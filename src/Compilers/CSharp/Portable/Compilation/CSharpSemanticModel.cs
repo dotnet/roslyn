@@ -3649,6 +3649,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
 
+                    case BoundKind.Conversion:
+                        // If we are looking for info on "M" in "(Action)M" 
+                        // we want to get the symbol that overload resolution chose for M, not the whole method group M.
+                        var conversion = (BoundConversion)boundNodeForSyntacticParent;
+
+                        var method = conversion.SymbolOpt;
+                        if ((object)method != null)
+                        {
+                            Debug.Assert(conversion.ConversionKind == ConversionKind.MethodGroup);
+
+                            if (conversion.IsExtensionMethod)
+                            {
+                                method = ReducedExtensionMethodSymbol.Create(method);
+                            }
+
+                            symbols = ImmutableArray.Create((Symbol)method);
+                            resultKind = conversion.ResultKind;
+                        }
+                        else
+                        {
+                            goto default;
+                        }
+
+                        break;
+
                     case BoundKind.DynamicInvocation:
                         var dynamicInvocation = (BoundDynamicInvocation)boundNodeForSyntacticParent;
                         symbols = dynamicInvocation.ApplicableMethods.Cast<MethodSymbol, Symbol>();

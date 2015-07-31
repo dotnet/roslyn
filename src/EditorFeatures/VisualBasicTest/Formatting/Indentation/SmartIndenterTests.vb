@@ -2341,6 +2341,119 @@ End Module
                 expectedIndentation:=s_baseIndentationOfNugget + 4)
         End Sub
 
+        <Fact, WorkItem(1190278)>
+        <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
+        Public Sub GetNextTokenForFormattingSpanCalculationIncludesZeroWidthToken_VB()
+            Dim markup = <code>Option Strict Off
+Option Explicit On
+ 
+Imports System
+Imports System.Collections.Generic
+Imports System.IO
+Imports System.Linq
+Imports System.Net
+Imports System.Web
+Imports System.Web.Helpers
+Imports System.Web.Mvc
+Imports System.Web.Mvc.Ajax
+Imports System.Web.Mvc.Html
+Imports System.Web.Optimization
+Imports System.Web.Routing
+Imports System.Web.Security
+Imports System.Web.UI
+Imports System.Web.WebPages
+Imports Szs.IssueTracking.Web
+Imports Zyxat.Util.Web.Mvc
+ 
+Namespace ASP
+Public Class _Page_Views_Shared__DeleteModel_vbhtml
+Inherits System.Web.Mvc.WebViewPage(Of Zyxat.Util.Web.Mvc.IModelViewModel)
+Private Shared __o As Object
+Public Sub New()
+MyBase.New
+End Sub
+Protected ReadOnly Property ApplicationInstance() As System.Web.HttpApplication
+Get
+Return CType(Context.ApplicationInstance,System.Web.HttpApplication)
+End Get
+End Property
+Private Sub __RazorDesignTimeHelpers__()
+ 
+ 
+#ExternalSource("C:\Users\fettinma\OneDrive\Entwicklung\Projekte\Szs.IssueTracking\Szs.IssueTracking.Web\Views\Shared\_DeleteModel.vbhtml",1)
+Dim __inheritsHelper As Zyxat.Util.Web.Mvc.IModelViewModel = Nothing
+ 
+ 
+#End ExternalSource
+ 
+End Sub
+Public Overrides Sub Execute()
+ 
+#ExternalSource("C:\Users\fettinma\OneDrive\Entwicklung\Projekte\Szs.IssueTracking\Szs.IssueTracking.Web\Views\Shared\_DeleteModel.vbhtml",2)
+If (Me.Model.ID > 0) Then
+  
+ 
+#End ExternalSource
+ 
+#ExternalSource("C:\Users\fettinma\OneDrive\Entwicklung\Projekte\Szs.IssueTracking\Szs.IssueTracking.Web\Views\Shared\_DeleteModel.vbhtml",3)
+__o = US.CS("Delete")
+ 
+ 
+#End ExternalSource
+ 
+#ExternalSource("C:\Users\fettinma\OneDrive\Entwicklung\Projekte\Szs.IssueTracking\Szs.IssueTracking.Web\Views\Shared\_DeleteModel.vbhtml",4)
+      
+Else
+  
+ 
+#End ExternalSource
+ 
+#ExternalSource("C:\Users\fettinma\OneDrive\Entwicklung\Projekte\Szs.IssueTracking\Szs.IssueTracking.Web\Views\Shared\_DeleteModel.vbhtml",5)
+__o = US.CS("Delete")
+ 
+ 
+#End ExternalSource
+ 
+#ExternalSource("C:\Users\fettinma\OneDrive\Entwicklung\Projekte\Szs.IssueTracking\Szs.IssueTracking.Web\Views\Shared\_DeleteModel.vbhtml",6)
+      
+End If
+ 
+#End ExternalSource
+ 
+#ExternalSource("C:\Users\fettinma\OneDrive\Entwicklung\Projekte\Szs.IssueTracking\Szs.IssueTracking.Web\Views\Shared\_DeleteModel.vbhtml",7)
+     __o = US.CS("Delete")
+ 
+ 
+#End ExternalSource
+ 
+#ExternalSource("C:\Users\fettinma\OneDrive\Entwicklung\Projekte\Szs.IssueTracking\Szs.IssueTracking.Web\Views\Shared\_DeleteModel.vbhtml",8)
+   __o = {|S1:[|US.CS("ReallyDelete)
+        @Me.Model.DisplayName
+      &lt;/div&gt;
+      &lt;div class="modal-footer"&gt;
+        &lt;a href="@Url.Action("Delete", New With {.id = Me.Model.ID}$$)|]|}" class="btn btn-primary"&gt;
+          @US.CS("OK")
+        &lt;/a&gt;
+        &lt;button type="button" class="btn btn-Default" data-dismiss="modal"&gt;
+          @US.CS("Cancel")
+        &lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;&lt;!-- /.modal-content --&gt;
+  &lt;/div&gt;&lt;!-- /.modal-dialog --&gt;
+&lt;/div&gt;&lt;!-- /.modal --&gt;
+ 
+ 
+#End ExternalSource
+End Sub
+End Class
+End Namespace
+</code>.Value
+
+            AssertSmartIndentIndentationInProjection(
+                markup,
+                expectedIndentation:=15)
+        End Sub
+
         <Fact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub BlockIndentation1()

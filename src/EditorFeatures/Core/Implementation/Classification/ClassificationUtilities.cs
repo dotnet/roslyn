@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Classification;
@@ -33,23 +34,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             s_spanCache.Enqueue(list);
         }
 
-        public static List<ITagSpan<IClassificationTag>> Convert(ClassificationTypeMap typeMap, ITextSnapshot snapshot, List<ClassifiedSpan> list)
+        public static void Convert(ClassificationTypeMap typeMap, ITextSnapshot snapshot, List<ClassifiedSpan> list, Action<ITagSpan<IClassificationTag>> addTag)
         {
-            var result = new List<ITagSpan<IClassificationTag>>();
-
             foreach (var classifiedSpan in list)
             {
-                result.Add(new TagSpan<IClassificationTag>(
+                addTag(new TagSpan<IClassificationTag>(
                     classifiedSpan.TextSpan.ToSnapshotSpan(snapshot),
                     new ClassificationTag(typeMap.GetClassificationType(classifiedSpan.ClassificationType))));
             }
-
-            return result;
         }
 
         public static List<ITagSpan<IClassificationTag>> ConvertAndReturnList(ClassificationTypeMap typeMap, ITextSnapshot snapshot, List<ClassifiedSpan> classifiedSpans)
         {
-            var result = Convert(typeMap, snapshot, classifiedSpans);
+            var result = new List<ITagSpan<IClassificationTag>>();
+            Convert(typeMap, snapshot, classifiedSpans, result.Add);
             ReturnClassifiedSpanList(classifiedSpans);
             return result;
         }

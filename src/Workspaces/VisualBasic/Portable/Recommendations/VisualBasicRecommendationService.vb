@@ -311,6 +311,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             ' Filter events and generated members
             symbols = symbols.Where(Function(s) FilterEventsAndGeneratedSymbols(node, s))
 
+            ' Never show the enum backing field
+            symbols = symbols.Where(Function(s) s.Kind <> SymbolKind.Field OrElse Not s.ContainingType.IsEnumType() OrElse s.Name <> WellKnownMemberNames.EnumBackingFieldName)
+
             Return symbols
         End Function
 
