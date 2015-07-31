@@ -2275,7 +2275,7 @@ new Metadata.ICSPropImpl()
             Assert.NotNull(result);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void MissingDependency()
         {
             var engine = new CSharpScriptEngine();
