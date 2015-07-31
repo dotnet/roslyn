@@ -105,9 +105,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return InvocationKind.NonVirtualInstance;
             }
         }
+
         ImmutableArray<IArgument> IInvocation.Arguments
         {
-            get { return DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt); }
+            get { return DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Method.ParameterCount, this.Method.Parameters[this.Method.ParameterCount - 1].IsParams); }
         }
 
         IArgument IInvocation.ArgumentMatchingParameter(IParameterSymbol parameter)
@@ -120,12 +121,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return OperationKind.Invocation; }
         }
 
-        internal static ImmutableArray<IArgument> DeriveArguments(ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds)
+        internal static ImmutableArray<IArgument> DeriveArguments(ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, int parameterCount, bool hasParamsParameter)
         {
             ArrayBuilder<IArgument> arguments = ArrayBuilder<IArgument>.GetInstance(boundArguments.Length);
             for (int index = 0; index < boundArguments.Length; index++)
             {
-                arguments[index] = DeriveArgument(index, boundArguments, argumentNames, argumentRefKinds);
+                arguments.Add(DeriveArgument(index, boundArguments, argumentNames, argumentRefKinds, parameterCount, hasParamsParameter));
             }
 
             return arguments.ToImmutableAndFree();
@@ -133,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static System.Runtime.CompilerServices.ConditionalWeakTable<BoundExpression, IArgument> ArgumentMappings = new System.Runtime.CompilerServices.ConditionalWeakTable<BoundExpression, IArgument>();
 
-        private static IArgument DeriveArgument(int index, ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds)
+        private static IArgument DeriveArgument(int index, ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, int parameterCount, bool hasParamsParameter)
         {
             return ArgumentMappings.GetValue(
                 boundArguments[index],
@@ -147,8 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return
                             mode == ArgumentMode.In
-                            ? new SimpleArgument(argument)
-                            // ZZZ Figure out which arguments match a params parameter.
+                            ? ((index >= parameterCount - 1 && hasParamsParameter) ? (IArgument)new Argument(ArgumentKind.ParamArray, mode, argument) : new SimpleArgument(argument))
                             : (IArgument)new Argument(ArgumentKind.Positional, mode, argument);
                     }
 
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int index = ArgumentIndexMatchingParameter(arguments, argumentsToParameters, parameter.ContainingSymbol as IMethodSymbol, parameter);
             if (index >= 0)
             {
-                return DeriveArgument(index, arguments, argumentNames, argumentRefKinds);
+                return DeriveArgument(index, arguments, argumentNames, argumentRefKinds, targetMethod.Parameters.Length, targetMethod.Parameters[targetMethod.Parameters.Length - 1].IsParams);
             }
 
             return null;
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ImmutableArray<IArgument> IObjectCreation.ConstructorArguments
         {
-            get { return BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt); }
+            get { return BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Constructor.ParameterCount, this.Constructor.Parameters[this.Constructor.ParameterCount - 1].IsParams); }
         }
 
         IArgument IObjectCreation.ArgumentMatchingParameter(IParameterSymbol parameter)

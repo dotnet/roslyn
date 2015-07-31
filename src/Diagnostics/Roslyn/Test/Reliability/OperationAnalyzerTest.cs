@@ -192,4 +192,80 @@ End Class
             });
         }
     }
+
+    public class InvocationOperationAnalyzerTests : CodeFixTestBase
+    {
+        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer() { return new InvocationTestAnalyzer(); }
+        protected override CodeFixProvider GetCSharpCodeFixProvider() { return null; }
+        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer() { return new InvocationTestAnalyzer(); }
+        protected override CodeFixProvider GetBasicCodeFixProvider() { return null; }
+
+        [Fact]
+        public void InvocationCSharp()
+        {
+            const string Source = @"
+class C
+{
+    public void M0(int a, params int[] b)
+    {
+    }
+
+    public void M1(int a, int b, int c, int x, int y, int z)
+    {
+    }
+
+    public void M2()
+    {
+        M1(1, 2, 3, 4, 5, 6);
+        M1(a: 1, b: 2, c: 3, x: 4, y:5, z:6);
+        M1(a: 1, c: 2, b: 3, x: 4, y:5, z:6);
+        M1(z: 1, x: 2, y: 3, c: 4, a:5, b:6);
+        M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+        M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+        M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+    }
+}
+";
+
+            VerifyCSharp(Source, new[]
+            {
+                GetCSharpResultAt(16, 27, InvocationTestAnalyzer.OutOfAlphabeticalOrderNamedArgumentsDescriptor),
+                GetCSharpResultAt(17, 21, InvocationTestAnalyzer.OutOfAlphabeticalOrderNamedArgumentsDescriptor),
+                GetCSharpResultAt(17, 33, InvocationTestAnalyzer.OutOfAlphabeticalOrderNamedArgumentsDescriptor),
+                GetCSharpResultAt(17, 38, InvocationTestAnalyzer.OutOfAlphabeticalOrderNamedArgumentsDescriptor),
+                GetCSharpResultAt(19, 9, InvocationTestAnalyzer.BigParamarrayArgumentsDescriptor),
+                GetCSharpResultAt(20, 9, InvocationTestAnalyzer.BigParamarrayArgumentsDescriptor)
+            });
+        }
+
+        [Fact(Skip = "VB support for arguments is broken.")]
+        public void InvocationVisualBasic()
+        {
+            const string Source = @"
+Class C
+    Public Sub M0(a As Integer, ParamArray b As Integer())
+    End Sub
+
+    Public Sub M1(a As Integer, b As Integer, c As Integer, x As Integer, y As Integer, z As Integer)
+    End Sub
+
+    Public Sub M2()
+        M1(1, 2, 3, 4, 5, 6)
+        M1(a:=1, b:=2, c:=3, x:=4, y:=5, z:=6)
+        M1(a:=1, c:=2, b:=3, x:=4, y:=5, z:=6)
+        M1(z:=1, x:=2, y:=3, c:=4, a:=5, b:=6)
+        M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+        M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
+        M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)
+    End Sub
+End Class
+";
+            // ToDo: The VB support for named and paramarray arguments is broken.
+            VerifyBasic(Source, new[]
+            {
+                GetBasicResultAt(12, 9, InvocationTestAnalyzer.OutOfAlphabeticalOrderNamedArgumentsDescriptor),
+                GetBasicResultAt(16, 9, InvocationTestAnalyzer.BigParamarrayArgumentsDescriptor)
+            });
+        }
+    }
 }

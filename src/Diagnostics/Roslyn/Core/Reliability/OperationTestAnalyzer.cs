@@ -8,6 +8,8 @@ using Roslyn.Diagnostics.Analyzers;
 
 namespace Microsoft.CodeAnalysis.Performance
 {
+    // These analyzers are not intended for any actual use. They exist solely to test IOperation support.
+
     /// <summary>Analyzer used to test for loop IOperations.</summary>
     public class BigForTestAnalyzer : DiagnosticAnalyzer
     {
@@ -314,6 +316,79 @@ namespace Microsoft.CodeAnalysis.Performance
             return clauseMaxValue - clauseMinValue + 1;
         }
 
+        void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(descriptor, syntax.GetLocation()));
+        }
+    }
+
+    /// <summary>Analyzer used to test invocaton IOperations.</summary>
+    public class InvocationTestAnalyzer : DiagnosticAnalyzer
+    {
+        /// <summary>Diagnostic category "Reliability".</summary>
+        private const string ReliabilityCategory = "Reliability";
+
+        internal static readonly DiagnosticDescriptor BigParamarrayArgumentsDescriptor = new DiagnosticDescriptor(
+            "OTA3",
+            "Big Paramarray",
+            "Paramarray has more than 10 elements",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        internal static readonly DiagnosticDescriptor OutOfAlphabeticalOrderNamedArgumentsDescriptor = new DiagnosticDescriptor(
+            "OTA4",
+            "Out of order named arguments",
+            "Named arguments are not in alphabetical order",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        /// <summary>Gets the set of supported diagnostic descriptors from this analyzer.</summary>
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(BigParamarrayArgumentsDescriptor, OutOfAlphabeticalOrderNamedArgumentsDescriptor); }
+        }
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     IInvocation invocation = (IInvocation)operationContext.Operation;
+                     INamedArgument previousNamedArgument = null;
+                     int paramarrayElementsCount = 0;
+                     foreach (IArgument argument in invocation.Arguments)
+                     {
+                         if (argument.Kind == ArgumentKind.Named)
+                         {
+                             INamedArgument namedArgument = (INamedArgument)argument;
+
+                             if (previousNamedArgument != null)
+                             {
+                                 if (namedArgument.Name.CompareTo(previousNamedArgument.Name) < 0)
+                                 {
+                                     Report(operationContext, namedArgument.Value.Syntax, OutOfAlphabeticalOrderNamedArgumentsDescriptor);
+                                 }
+                             }
+
+                             previousNamedArgument = namedArgument;
+                         }
+
+                         else if (argument.Kind == ArgumentKind.ParamArray)
+                         {
+                             paramarrayElementsCount++;
+                         }
+                     }
+
+                     if (paramarrayElementsCount > 10)
+                     {
+                         Report(operationContext, invocation.Syntax, BigParamarrayArgumentsDescriptor);
+                     }
+                 },
+                 OperationKind.Invocation);
+        }
+        
         void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)
         {
             context.ReportDiagnostic(Diagnostic.Create(descriptor, syntax.GetLocation()));
