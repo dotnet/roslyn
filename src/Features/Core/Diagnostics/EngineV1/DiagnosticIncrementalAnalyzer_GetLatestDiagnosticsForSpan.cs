@@ -163,7 +163,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             [Conditional("DEBUG")]
             private void VerifyDiagnostics(SemanticModel model)
             {
-                Func<Diagnostic, bool> shouldInclude = d => _range.IntersectsWith(d.Location.SourceSpan);
+                // Exclude unused import diagnostics since they are never reported when a span is passed.
+                // (See CSharp/VisualBasicCompilation.GetDiagnosticsForMethodBodiesInTree.)
+                Func<Diagnostic, bool> shouldInclude = d => _range.IntersectsWith(d.Location.SourceSpan) && !IsUnusedImportDiagnostic(d);
 
                 // make sure what we got from range is same as what we got from whole diagnostics
                 var rangeDeclaractionDiagnostics = model.GetDeclarationDiagnostics(_range).ToArray();
@@ -189,6 +191,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     GC.KeepAlive(wholeDeclarationDiagnostics);
                     GC.KeepAlive(wholeMethodBodyDiagnostics);
                     GC.KeepAlive(wholeDiagnostics);
+                }
+            }
+
+            private static bool IsUnusedImportDiagnostic(Diagnostic d)
+            {
+                switch (d.Id)
+                {
+                    case "CS8019":
+                    case "BC50000":
+                    case "BC50001":
+                        return true;
+                    default:
+                        return false;
                 }
             }
 
