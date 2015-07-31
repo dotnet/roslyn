@@ -923,9 +923,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private Shared VariablesMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundUsingStatement, Variables)
+
         Private ReadOnly Property IVariables As IVariableDeclaration Implements IUsingWithDeclaration.Variables
             Get
-                Return New Variables(Me.ResourceList.As(Of IVariable))
+                Return VariablesMappings.GetValue(
+                    Me,
+                    Function(BoundUsing)
+                        Return New Variables(BoundUsing.ResourceList.As(Of IVariable))
+                    End Function)
             End Get
         End Property
 

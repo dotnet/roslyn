@@ -239,12 +239,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Implements IInvocation
 
         Private Function IArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IInvocation.ArgumentMatchingParameter
-            Return ArgumentMatchingParameter(Me.Arguments, parameter)
+            Return ArgumentMatchingParameter(Me.Arguments, parameter, Me.Method.ParameterCount, Me.Method.Parameters(Me.Method.ParameterCount - 1).IsParamArray)
         End Function
 
         Private ReadOnly Property IArguments As ImmutableArray(Of IArgument) Implements IInvocation.Arguments
             Get
-                Return DeriveArguments(Me.Arguments)
+                Return DeriveArguments(Me.Arguments, Me.Method.ParameterCount, Me.Method.Parameters(Me.Method.ParameterCount - 1).IsParamArray)
             End Get
         End Property
 
@@ -278,20 +278,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.Invocation
         End Function
 
-        Friend Shared Function ArgumentMatchingParameter(arguments As ImmutableArray(Of BoundExpression), parameter As IParameterSymbol) As IArgument
+        Friend Shared Function ArgumentMatchingParameter(arguments As ImmutableArray(Of BoundExpression), parameter As IParameterSymbol, parameterCount As Integer, hasParamArrayParameter As Boolean) As IArgument
             Dim index As Integer = parameter.Ordinal
             If index <= arguments.Length Then
-                Return DeriveArgument(arguments(index))
+                Return DeriveArgument(index, arguments(index), parameterCount, hasParamArrayParameter)
             End If
 
             Return Nothing
         End Function
 
-        Friend Shared Function DeriveArguments(boundArguments As ImmutableArray(Of BoundExpression)) As ImmutableArray(Of IArgument)
+        Friend Shared Function DeriveArguments(boundArguments As ImmutableArray(Of BoundExpression), parameterCount As Integer, hasParamArrayParameter As Boolean) As ImmutableArray(Of IArgument)
             Dim argumentsLength As Integer = boundArguments.Length
             Dim arguments As ArrayBuilder(Of IArgument) = ArrayBuilder(Of IArgument).GetInstance(argumentsLength)
             For index As Integer = 0 To argumentsLength - 1 Step 1
-                arguments(index) = DeriveArgument(boundArguments(index))
+                arguments.Add(DeriveArgument(index, boundArguments(index), parameterCount, hasParamArrayParameter))
             Next
 
             Return arguments.ToImmutableAndFree()
@@ -299,28 +299,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared ArgumentMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundExpression, IArgument)
 
-        Private Shared Function DeriveArgument(argument As BoundExpression) As IArgument
+        Private Shared Function DeriveArgument(index As Integer, argument As BoundExpression, parameterCount As Integer, hasParamArrayParameter As Boolean) As IArgument
             Select Case argument.Kind
                 Case BoundKind.ByRefArgumentWithCopyBack
                     Return DirectCast(argument, BoundByRefArgumentWithCopyBack)
                 Case Else
-                    Return ArgumentMappings.GetValue(argument, Function(a) New Argument(a))
+                    ' Apparently the VB bound trees don't encode named arguments, which seems unnecesarily lossy.
+                    Return ArgumentMappings.GetValue(argument, Function(a) If(index >= parameterCount - 1 AndAlso hasParamArrayParameter, New Argument(a, ArgumentKind.ParamArray), New Argument(a, ArgumentKind.Positional)))
             End Select
         End Function
 
         Private Class Argument
             Implements IArgument
 
-            Private ReadOnly _Value As IExpression
+            Private ReadOnly _value As IExpression
+            Private ReadOnly _kind As ArgumentKind
 
-            Public Sub New(value As IExpression)
-                Me._Value = value
+            Public Sub New(value As IExpression, kind As ArgumentKind)
+                Me._value = value
+                Me._kind = kind
             End Sub
 
             Public ReadOnly Property Kind As ArgumentKind Implements IArgument.Kind
                 Get
-                    ' Apparently the VB bound trees don't encode named arguments, which seems unnecesarily lossy.
-                    Return ArgumentKind.Positional
+                    Return _kind
                 End Get
             End Property
 
@@ -332,7 +334,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public ReadOnly Property Value As IExpression Implements IArgument.Value
                 Get
-                    Return Me._Value
+                    Return Me._value
                 End Get
             End Property
 
@@ -924,7 +926,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Implements IObjectCreation
 
         Private Function IArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IObjectCreation.ArgumentMatchingParameter
-            Return BoundCall.ArgumentMatchingParameter(Me.Arguments, parameter)
+            Return BoundCall.ArgumentMatchingParameter(Me.Arguments, parameter, Me.ConstructorOpt.ParameterCount, Me.ConstructorOpt.Parameters(Me.ConstructorOpt.ParameterCount - 1).IsParamArray)
         End Function
 
         Private ReadOnly Property IConstructor As IMethodSymbol Implements IObjectCreation.Constructor
@@ -935,7 +937,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IConstructorArguments As ImmutableArray(Of IArgument) Implements IObjectCreation.ConstructorArguments
             Get
-                Return BoundCall.DeriveArguments(Me.Arguments)
+                Return BoundCall.DeriveArguments(Me.Arguments, Me.ConstructorOpt.ParameterCount, Me.ConstructorOpt.Parameters(Me.ConstructorOpt.ParameterCount - 1).IsParamArray)
             End Get
         End Property
 
