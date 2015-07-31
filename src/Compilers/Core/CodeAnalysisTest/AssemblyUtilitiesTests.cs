@@ -75,20 +75,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void ReadMVid()
-        {
-            var directory = Temp.CreateDirectory();
-
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
-
-            var assembly = Assembly.Load(File.ReadAllBytes(alphaDll.Path));
-
-            var result = AssemblyUtilities.ReadMvid(alphaDll.Path);
-
-            Assert.Equal(expected: assembly.ManifestModule.ModuleVersionId, actual: result);
-        }
-
-        [Fact]
         public void FindSatelliteAssemblies_None()
         {
             var directory = Temp.CreateDirectory();

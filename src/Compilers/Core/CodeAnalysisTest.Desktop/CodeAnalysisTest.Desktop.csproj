@@ -1,0 +1,126 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="Settings">
+    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
+  </ImportGroup>
+  <PropertyGroup>
+    <Nonshipping>true</Nonshipping>
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <ProjectGuid>{43A7A9AB-C425-49F0-A172-29B607A65572}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
+    <AssemblyName>Roslyn.Compilers.Desktop.UnitTests</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
+      <Project>{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}</Project>
+      <Name>PdbUtilities</Name>
+      <Aliases>PDB</Aliases>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Test\Utilities\TestUtilities.csproj">
+      <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
+      <Name>TestUtilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\CSharp\Portable\CSharpCodeAnalysis.csproj">
+      <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
+      <Name>CSharpCodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Test\Resources\Core\CompilerTestResources.csproj">
+      <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
+      <Name>CompilerTestResources</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Test\Utilities\Core2\CompilerTestUtilities2.csproj">
+      <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
+      <Name>CompilerTestUtilities2</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
+      <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
+      <Name>BasicCodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Portable\CodeAnalysis.csproj">
+      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
+      <Name>CodeAnalysis</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup Label="File References">
+    <Reference Include="..\..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
+    <Reference Include="..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
+    <Reference Include="xunit">
+      <HintPath>..\..\..\..\packages\xunit.1.9.2\lib\net20\xunit.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
+    <PlatformTarget>ARM</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|ARM' ">
+    <PlatformTarget>ARM</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\packages\Microsoft.CodeAnalysis.Test.Resources.Proprietary.1.1.0-beta1-20150716-05\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Helpers\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
+      <Link>FusionAssemblyIdentity.cs</Link>
+    </Compile>
+    <Compile Include="..\CodeAnalysisTest\MetadataReferences\AssemblyIdentityTestBase.cs">
+      <Link>AssemblyIdentityTestBase.cs</Link>
+    </Compile>
+    <Compile Include="AnalyzerFileReferenceTests.cs" />
+    <Compile Include="AssemblyIdentityComparerTests.cs" />
+    <Compile Include="AssemblyIdentityDisplayNameTests.cs" />
+    <Compile Include="AssemblyIdentityExtensions.cs" />
+    <Compile Include="AssemblyIdentityTests.cs" />
+    <Compile Include="AssemblyPortabilityPolicyTests.cs" />
+    <Compile Include="DiagnosticLocalizationTests.cs" />
+    <Compile Include="FusionAssemblyIdentityComparer.cs" />
+    <Compile Include="FusionAssemblyIdentityTests.cs" />
+    <Compile Include="FusionAssemblyPortabilityPolicy.cs" />
+    <Compile Include="InstructionOperandTypesTests.cs" />
+    <Compile Include="MetadataReferenceTests.cs" />
+    <Compile Include="ModuleMetadataTests.cs" />
+    <Compile Include="Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="SimpleAnalyzerAssemblyLoaderTests.cs" />
+    <Compile Include="Win32Res.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="Resources\default.win32manifest" />
+    <None Include="Resources\nativeWithStringIDsAndTypesAndIntTypes.res" />
+    <None Include="Resources\Roslyn.ico.blah" />
+    <None Include="Resources\VerResourceBuiltByRC.RES" />
+  </ItemGroup>
+  <ImportGroup Label="Targets">
+    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+    <Import Project="..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
+    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  </ImportGroup>
+</Project>

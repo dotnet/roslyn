@@ -8,6 +8,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     internal static class AssemblyIdentityExtensions
     {
+        // CultureInfo is not portable.
+
         /// <summary>
         /// Converts this identity to <see cref="AssemblyName"/>.
         /// </summary>
@@ -20,6 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             result.Version = identity.Version;
             result.Flags = identity.Flags;
             result.ContentType = identity.ContentType;
+            result.CultureInfo = CultureInfo.GetCultureInfo(identity.CultureName);
 
             if (identity.PublicKey.Length > 0)
             {

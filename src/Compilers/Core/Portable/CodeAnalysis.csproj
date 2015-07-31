@@ -669,6 +669,7 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.Test.Utilities2" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Emit.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.EnC.UnitTests" />

@@ -48,10 +48,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
         public void EncodingBOM()
         {
             var bytes = s_utf8Bom.GetPreamble().Concat(s_utf8Bom.GetBytes("abc")).ToArray();
-            Assert.Equal(s_utf8.EncodingName, SourceText.From(bytes, bytes.Length, s_unicode).Encoding.EncodingName);
+            Assert.Equal(s_utf8.WebName, SourceText.From(bytes, bytes.Length, s_unicode).Encoding.WebName);
 
             var stream = new MemoryStream(bytes);
-            Assert.Equal(s_utf8.EncodingName, SourceText.From(stream, s_unicode).Encoding.EncodingName);
+            Assert.Equal(s_utf8.WebName, SourceText.From(stream, s_unicode).Encoding.WebName);
         }
 
         [Fact]
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             Assert.True(SourceText.IsBinary("a\0\0bc"));
             Assert.True(SourceText.IsBinary("abc\0\0"));
 
-            var encoding = Encoding.GetEncoding(1252);
+            var encoding = Encoding.GetEncoding("windows-1252");
             Assert.False(SourceText.IsBinary(encoding.GetString(new byte[] { 0x81, 0x8D, 0x8F, 0x90, 0x9D })));
             // Unicode string: äëïöüû
             Assert.False(SourceText.IsBinary("abc def baz aeiouy \u00E4\u00EB\u00EF\u00F6\u00FC\u00FB"));

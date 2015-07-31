@@ -12,8 +12,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class ModuleMetadataTests : TestBase
     {
-        private readonly char _systemDrive = Environment.GetFolderPath(Environment.SpecialFolder.Windows)[0];
-
         [Fact]
         public unsafe void CreateFromMetadata_Errors()
         {
@@ -86,10 +84,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromFile(@"c:\*"));
             Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromFile(@"\\.\COM1"));
 
-            Assert.Throws<FileNotFoundException>(() => ModuleMetadata.CreateFromFile(_systemDrive + @":\file_that_does_not_exists.dll"));
-            Assert.Throws<FileNotFoundException>(() => ModuleMetadata.CreateFromFile(_systemDrive + @":\directory_that_does_not_exists\file_that_does_not_exists.dll"));
-            Assert.Throws<PathTooLongException>(() => ModuleMetadata.CreateFromFile(_systemDrive + @":\" + new string('x', 1000)));
-            Assert.Throws<IOException>(() => ModuleMetadata.CreateFromFile(Environment.GetFolderPath(Environment.SpecialFolder.Windows)));
+            Assert.Throws<FileNotFoundException>(() => ModuleMetadata.CreateFromFile(@"C:\file_that_does_not_exists.dll"));
+            Assert.Throws<FileNotFoundException>(() => ModuleMetadata.CreateFromFile(@"C:\directory_that_does_not_exists\file_that_does_not_exists.dll"));
         }
 
         [Fact]

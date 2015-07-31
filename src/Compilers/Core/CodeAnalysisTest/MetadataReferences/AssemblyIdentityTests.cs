@@ -68,11 +68,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void FromAssemblyDefinition()
         {
             var name = new AssemblyName("foo");
-            name.Flags = AssemblyNameFlags.Retargetable | AssemblyNameFlags.PublicKey | AssemblyNameFlags.EnableJITcompileOptimizer | AssemblyNameFlags.EnableJITcompileTracking;
-            name.CultureInfo = new CultureInfo("en-US");
+            name.Flags = AssemblyNameFlags.Retargetable | AssemblyNameFlags.PublicKey;
             name.ContentType = AssemblyContentType.Default;
             name.Version = new Version(1, 2, 3, 4);
-            name.ProcessorArchitecture = ProcessorArchitecture.X86;
 
             var id = AssemblyIdentity.FromAssemblyDefinition(name);
             Assert.Equal("foo", id.Name);
@@ -198,7 +196,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             foreach (var v in new Version[]
             {
-                new Version(),
                 new Version(0, 0),
                 new Version(0, 0, 0),
                 new Version(Int32.MaxValue, 0, 0, 0),
@@ -266,11 +263,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var an = ai.ToAssemblyName();
             Assert.Equal("foo", an.Name);
             Assert.Equal(new Version(0, 0, 0, 0), an.Version);
-            Assert.Equal(CultureInfo.InvariantCulture, an.CultureInfo);
+            Assert.Equal(CultureInfo.InvariantCulture.DisplayName, an.CultureName);
             AssertEx.Equal(new byte[0], an.GetPublicKeyToken());
             AssertEx.Equal(null, an.GetPublicKey());
             Assert.Equal(AssemblyNameFlags.None, an.Flags);
-            Assert.Equal(null, an.CodeBase);
 
             ai = new AssemblyIdentity("foo", new Version(1, 2, 3, 4), "en-US", RoPublicKey1,
                 hasPublicKey: true,
@@ -279,11 +275,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             an = ai.ToAssemblyName();
             Assert.Equal("foo", an.Name);
             Assert.Equal(new Version(1, 2, 3, 4), an.Version);
-            Assert.Equal(CultureInfo.GetCultureInfo("en-US"), an.CultureInfo);
+            Assert.Equal("en-US", an.CultureName);
             AssertEx.Equal(PublicKeyToken1, an.GetPublicKeyToken());
             AssertEx.Equal(PublicKey1, an.GetPublicKey());
             Assert.Equal(AssemblyNameFlags.PublicKey | AssemblyNameFlags.Retargetable, an.Flags);
-            Assert.Equal(null, an.CodeBase);
 
             // invalid characters are ok in the name, the FullName can't be built though:
             foreach (char c in ClrInvalidCharacters)
@@ -293,11 +288,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                 Assert.Equal(c.ToString(), an.Name);
                 Assert.Equal(new Version(0, 0, 0, 0), an.Version);
-                Assert.Equal(CultureInfo.InvariantCulture, an.CultureInfo);
+                Assert.Equal(CultureInfo.InvariantCulture.DisplayName, an.CultureName);
                 AssertEx.Equal(new byte[0], an.GetPublicKeyToken());
                 AssertEx.Equal(null, an.GetPublicKey());
                 Assert.Equal(AssemblyNameFlags.None, an.Flags);
-                AssertEx.Equal(null, an.CodeBase);
             }
         }
 
@@ -312,27 +306,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var aiPkt = AssemblyIdentity.CalculatePublicKeyToken(RoPublicKey1);
             AssertEx.Equal(PublicKeyToken1, anPkt);
             AssertEx.Equal(PublicKeyToken1, aiPkt);
-        }
-
-        [Fact]
-        public void FullKeyAndToken()
-        {
-            string displayPkt = "Foo, Version=1.0.0.0, Culture=neutral, PublicKeyToken=" + StrPublicKeyToken1;
-            string displayPk = "Foo, Version=1.0.0.0, Culture=neutral, PublicKey=" + StrPublicKey1;
-
-            bool equivalent;
-            FusionAssemblyIdentityComparer.AssemblyComparisonResult result;
-            int hr = FusionAssemblyIdentityComparer.DefaultModelCompareAssemblyIdentity(displayPkt, false, displayPk, false, out equivalent, out result, IntPtr.Zero);
-
-            Assert.Equal(0, hr);
-            Assert.True(equivalent, "Expected equivalent");
-            Assert.Equal(FusionAssemblyIdentityComparer.AssemblyComparisonResult.EquivalentFullMatch, result);
-
-            hr = FusionAssemblyIdentityComparer.DefaultModelCompareAssemblyIdentity(displayPk, false, displayPkt, false, out equivalent, out result, IntPtr.Zero);
-
-            Assert.Equal(0, hr);
-            Assert.True(equivalent, "Expected equivalent");
-            Assert.Equal(FusionAssemblyIdentityComparer.AssemblyComparisonResult.EquivalentFullMatch, result);
         }
     }
 }

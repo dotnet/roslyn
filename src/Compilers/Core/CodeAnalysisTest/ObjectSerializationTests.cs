@@ -99,7 +99,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             writer.WriteString("\uDC00\uD800"); // invalid surrogate pair
             writer.WriteString("\uD800"); // incomplete surrogate pair
             writer.WriteValue(null);
-            writer.WriteValue(ConsoleColor.Cyan);
             writer.WriteValue(EByte.Value);
             writer.WriteValue(ESByte.Value);
             writer.WriteValue(EShort.Value);
@@ -136,7 +135,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("\uDC00\uD800", (String)reader.ReadValue()); // invalid surrogate pair
             Assert.Equal("\uD800", (String)reader.ReadValue()); // incomplete surrogate pair
             Assert.Equal(null, reader.ReadValue());
-            Assert.Equal(ConsoleColor.Cyan, reader.ReadValue());
             Assert.Equal(EByte.Value, reader.ReadValue());
             Assert.Equal(ESByte.Value, reader.ReadValue());
             Assert.Equal(EShort.Value, reader.ReadValue());

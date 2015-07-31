@@ -31,18 +31,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(PathUtilities.IsAbsolute(@"\\?\C:\share"));      // long UNC
 
             // '/' is an absolute path on unix-like systems
-            switch (Environment.OSVersion.Platform)
+            if (PathUtilities.IsUnixLikePlatform)
             {
-                case PlatformID.MacOSX:
-                case PlatformID.Unix:
-                    Assert.True(PathUtilities.IsAbsolute(@"\C"));
-                    Assert.True(PathUtilities.IsAbsolute(@"/C"));
-                    break;
-
-                default:
-                    Assert.False(PathUtilities.IsAbsolute(@"\C"));
-                    Assert.False(PathUtilities.IsAbsolute(@"/C"));
-                    break;
+                Assert.True(PathUtilities.IsAbsolute(@"\C"));
+                Assert.True(PathUtilities.IsAbsolute(@"/C"));
+            }
+            else
+            {
+                Assert.False(PathUtilities.IsAbsolute(@"\C"));
+                Assert.False(PathUtilities.IsAbsolute(@"/C"));
             }
         }
 
@@ -63,21 +60,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(@"::/", PathUtilities.GetPathRoot(@"::/"));
 
             // '/' is an absolute path on unix-like systems
-            switch (Environment.OSVersion.Platform)
+            if (PathUtilities.IsUnixLikePlatform)
             {
-                case PlatformID.MacOSX:
-                case PlatformID.Unix:
-                    Assert.Equal("/", PathUtilities.GetPathRoot(@"/"));
-                    Assert.Equal(@"/", PathUtilities.GetPathRoot(@"/x"));
-                    // Be permissive of either directory separator, just
-                    // like we are in other cases
-                    Assert.Equal(@"\", PathUtilities.GetPathRoot(@"\"));
-                    Assert.Equal(@"\", PathUtilities.GetPathRoot(@"\x"));
-                    break;
-                default:
-                    Assert.Equal(null, PathUtilities.GetPathRoot(@"\"));
-                    Assert.Equal(null, PathUtilities.GetPathRoot(@"\x"));
-                    break;
+                Assert.Equal("/", PathUtilities.GetPathRoot(@"/"));
+                Assert.Equal(@"/", PathUtilities.GetPathRoot(@"/x"));
+                // Be permissive of either directory separator, just
+                // like we are in other cases
+                Assert.Equal(@"\", PathUtilities.GetPathRoot(@"\"));
+                Assert.Equal(@"\", PathUtilities.GetPathRoot(@"\x"));
+            }
+            else
+            {
+                Assert.Equal(null, PathUtilities.GetPathRoot(@"\"));
+                Assert.Equal(null, PathUtilities.GetPathRoot(@"\x"));
             }
             Assert.Equal(null, PathUtilities.GetPathRoot(@"\\"));
             Assert.Equal(null, PathUtilities.GetPathRoot(@"\\x"));

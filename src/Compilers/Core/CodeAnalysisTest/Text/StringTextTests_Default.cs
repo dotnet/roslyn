@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         protected virtual SourceText Create(string source)
         {
-            byte[] buffer = GetBytes(Encoding.Default, source);
+            byte[] buffer = GetBytes(Encoding.UTF8, source);
             using (var stream = new MemoryStream(buffer, 0, buffer.Length, writable: false, publiclyVisible: true))
             {
                 return EncodedStringText.Create(stream);
@@ -139,7 +139,7 @@ bar baz");
         [Fact]
         public void GetExtendedAsciiText()
         {
-            var originalText = Encoding.Default.GetString(new byte[] { 0xAB, 0xCD, 0xEF });
+            var originalText = Encoding.UTF8.GetString(new byte[] { 0xAB, 0xCD, 0xEF });
             var encodedText = Create(originalText);
             Assert.Equal(originalText, encodedText.ToString());
         }

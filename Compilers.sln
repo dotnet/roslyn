@@ -98,12 +98,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CscCore", "src\Compilers\CS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VbcCore", "src\Compilers\VisualBasic\VbcCore\VbcCore.csproj", "{8CE3A581-2969-4864-A803-013E9D977C3A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeAnalysisTest.Desktop", "src\Compilers\Core\CodeAnalysisTest.Desktop\CodeAnalysisTest.Desktop.csproj", "{43A7A9AB-C425-49F0-A172-29B607A65572}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{d0bc9be7-24f6-40ca-8dc6-fcb93bd44b34}*SharedItemsImports = 13
 		src\Compilers\Core\SharedCollections\SharedCollections.projitems*{afde6bea-5038-4a4a-a88e-dbd2e4088eed}*SharedItemsImports = 4
-		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
 		src\Compilers\Core\SharedCollections\SharedCollections.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
+		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
 		src\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems*{b501a547-c911-4a05-ac6e-274a50dff30e}*SharedItemsImports = 4
 		src\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems*{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}*SharedItemsImports = 4
 		src\Compilers\Core\SharedCollections\SharedCollections.projitems*{c1930979-c824-496b-a630-70f5369a636f}*SharedItemsImports = 13
@@ -709,6 +711,22 @@ Global
 		{8CE3A581-2969-4864-A803-013E9D977C3A}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{8CE3A581-2969-4864-A803-013E9D977C3A}.Release|x64.ActiveCfg = Release|Any CPU
 		{8CE3A581-2969-4864-A803-013E9D977C3A}.Release|x64.Build.0 = Release|Any CPU
+		{43A7A9AB-C425-49F0-A172-29B607A65572}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43A7A9AB-C425-49F0-A172-29B607A65572}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43A7A9AB-C425-49F0-A172-29B607A65572}.Debug|ARM.ActiveCfg = Debug|ARM
+		{43A7A9AB-C425-49F0-A172-29B607A65572}.Debug|ARM.Build.0 = Debug|ARM
+		{43A7A9AB-C425-49F0-A172-29B607A65572}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{43A7A9AB-C425-49F0-A172-29B607A65572}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{43A7A9AB-C425-49F0-A172-29B607A65572}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{43A7A9AB-C425-49F0-A172-29B607A65572}.Debug|x64.Build.0 = Debug|Any CPU
+		{43A7A9AB-C425-49F0-A172-29B607A65572}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43A7A9AB-C425-49F0-A172-29B607A65572}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43A7A9AB-C425-49F0-A172-29B607A65572}.Release|ARM.ActiveCfg = Release|ARM
+		{43A7A9AB-C425-49F0-A172-29B607A65572}.Release|ARM.Build.0 = Release|ARM
+		{43A7A9AB-C425-49F0-A172-29B607A65572}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{43A7A9AB-C425-49F0-A172-29B607A65572}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{43A7A9AB-C425-49F0-A172-29B607A65572}.Release|x64.ActiveCfg = Release|Any CPU
+		{43A7A9AB-C425-49F0-A172-29B607A65572}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -753,5 +771,6 @@ Global
 		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0} = {07ED9FF4-8027-42B7-A178-0114F26437C2}
 		{E3CD2895-76A8-4D11-A316-EA67CB5EA42C} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
 		{8CE3A581-2969-4864-A803-013E9D977C3A} = {C65C6143-BED3-46E6-869E-9F0BE6E84C37}
+		{43A7A9AB-C425-49F0-A172-29B607A65572} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 	EndGlobalSection
 EndGlobal

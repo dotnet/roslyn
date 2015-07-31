@@ -136,8 +136,8 @@
     <PackagesDir>$(NuGetPackagesPath)\</PackagesDir>
 
     <DnxVersion>1.0.0-beta5-12101</DnxVersion>
-    <DnxPackageName Condition="'$(DnxPackageName)' == '' and '$(OsEnvironment)'!='Unix'">dnx-coreclr-win-x86.$(DnxVersion)</DnxPackageName>
-    <DnxPackageName Condition="'$(DnxPackageName)' == '' and '$(OsEnvironment)'=='Unix'">dnx-mono.$(DnxVersion)</DnxPackageName>
+    <DnxPackageName Condition="'$(DnxPackageName)' == '' and '$(OS)'=='Windows_NT'">dnx-coreclr-win-x86.$(DnxVersion)</DnxPackageName>
+    <DnxPackageName Condition="'$(DnxPackageName)' == '' and '$(OS)'!='Windows_NT'">dnx-mono.$(DnxVersion)</DnxPackageName>
 
     <NuGetToolPath Condition="'$(NuGetToolPath)' == ''">$(NuGetPackagesPath)\..\.nuget\</NuGetToolPath>
     <NuGetConfigCommandLine>-ConfigFile "$(NuGetConfigFile)"</NuGetConfigCommandLine>
@@ -154,6 +154,12 @@
     <DnuRestoreCommand>"$(DnuToolPath)"</DnuRestoreCommand>
     <DnuRestoreCommand>$(DnuRestoreCommand) restore</DnuRestoreCommand>
     <DnuRestoreCommand>$(DnuRestoreCommand) --packages "$(PackagesDir.TrimEnd('/').TrimEnd('\\'))"</DnuRestoreCommand>
+    <DnuRestoreCommand>$(DnuRestoreCommand) --source 'https://www.myget.org/F/dotnet-core/'</DnuRestoreCommand>
+    <DnuRestoreCommand>$(DnuRestoreCommand) --source 'https://www.myget.org/F/dotnet-coreclr/'</DnuRestoreCommand>
+    <DnuRestoreCommand>$(DnuRestoreCommand) --source 'https://www.myget.org/F/dotnet-corefx/'</DnuRestoreCommand>
+    <DnuRestoreCommand>$(DnuRestoreCommand) --source 'https://www.myget.org/F/dotnet-corefxtestdata/'</DnuRestoreCommand>
+    <DnuRestoreCommand>$(DnuRestoreCommand) --source 'https://www.myget.org/F/dotnet-buildtools/'</DnuRestoreCommand>
+    <DnuRestoreCommand>$(DnuRestoreCommand) --source 'https://www.nuget.org/api/v2/'</DnuRestoreCommand>
 
     <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
 
@@ -166,6 +172,13 @@
  </PropertyGroup>
 
   <Import Condition="'$(TargetCoreClr)' == 'True'" Project="$(BuildToolsDir)Build.Common.Targets" />
+
+  <Target Name="MarkDnuExecutable"
+          AfterTargets="EnsureGlobalNuGets"
+          Condition="'$(TargetCoreClr)' == 'true' and '$(OS)' != 'Windows_NT'">
+    <Exec Command="chmod a+x &quot;$(DnxPackageDir)bin/dnu&quot;" />
+    <Exec Command="chmod a+x &quot;$(DnxPackageDir)bin/dnx&quot;" />
+  </Target>
 
   <!-- ====================================================================================
 
