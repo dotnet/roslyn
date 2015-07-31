@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var localFunctionsMap = this.LocalFunctionsMap;
-            if (localFunctionsMap != null && (options & LookupOptions.NamespaceAliasesOnly) == 0)
+            if (localFunctionsMap != null && options.CanConsiderLocals())
             {
                 LocalFunctionSymbol localSymbol;
                 if (localFunctionsMap.TryGetValue(name, out localSymbol))

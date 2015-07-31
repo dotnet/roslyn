@@ -109,6 +109,19 @@ VoidLocal();
         }
 
         [Fact]
+        public void EmptyStatementAfter()
+        {
+            var source = @"
+void Local()
+{
+    Console.Write(2);
+};
+Local();
+";
+            VerifyOutputInMain(source, "2", "System");
+        }
+
+        [Fact]
         public void Params()
         {
             var source = @"
@@ -1138,7 +1151,7 @@ Foo(0);
             Assert.Equal(RefKind.Ref, bar.Parameters[1].RefKind);
             Assert.Equal(RefKind.Ref, bar.Parameters[2].RefKind);
             Assert.True(foo.Parameters[1].Type.IsValueType);
-            Assert.True(bar.Parameters[2].Type.IsValueType);
+            Assert.True(bar.Parameters[1].Type.IsValueType);
             Assert.True(bar.Parameters[2].Type.IsValueType);
         }
 
@@ -2773,6 +2786,33 @@ class Program
         }
 
         [Fact]
+        public void NameConflictNestedTypeParameter()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        T Outer<T>()
+        {
+            T Inner<T>()
+            {
+                return default(T);
+            }
+            return Inner<T>();
+        }
+        System.Console.Write(Outer<int>());
+    }
+}
+";
+            VerifyDiagnostics(source,
+    // (8,21): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'Outer<T>()'
+    //             T Inner<T>()
+    Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "Outer<T>()").WithLocation(8, 21)
+    );
+        }
+
+        [Fact]
         public void NameConflictLocalVarFirst()
         {
             var source = @"
@@ -2965,6 +3005,25 @@ class Program
         }
 
         [Fact]
+        public void BadEmptyBody()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        void Local(int x);
+        Local(2);
+    }
+}";
+            VerifyDiagnostics(source,
+    // (6,14): error CS0501: 'Local(int)' must declare a body because it is not marked abstract, extern, or partial
+    //         void Local(int x);
+    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Local").WithArguments("Local(int)").WithLocation(6, 14)
+    );
+        }
+
+        [Fact]
         public void BadGotoInto()
         {
             var source = @"
@@ -3140,6 +3199,35 @@ class Program
     // (6,14): warning CS0168: The variable 'Local' is declared but never used
     //         void Local()
     Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local").WithArguments("Local").WithLocation(6, 14)
+    );
+        }
+
+        [Fact]
+        public void BadNotUsedSwitch()
+        {
+            var source = @"
+class Program
+{
+    static void A()
+    {
+        switch (0)
+        {
+        case 0:
+            void Local()
+            {
+            }
+            break;
+        }
+    }
+    static void Main(string[] args)
+    {
+        A();
+    }
+}";
+            VerifyDiagnostics(source,
+    // (9,18): warning CS0168: The variable 'Local' is declared but never used
+    //             void Local()
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local").WithArguments("Local").WithLocation(9, 18)
     );
         }
 
@@ -3435,13 +3523,25 @@ Console.Write(Local());
         public void InferredReturnVoid()
         {
             var source = @"
-var Local()
+using System;
+
+class Program
 {
-    Console.Write(2);
+    static void Main()
+    {
+        var Local()
+        {
+            Console.Write(2);
+        }
+        Local();
+    }
 }
-Local();
 ";
-            VerifyOutputInMain(source, "2", "System");
+            VerifyDiagnostics(source,
+    // (8,13): error CS8099: Cannot infer the type of 'Local()' as it does not return a value.
+    //         var Local()
+    Diagnostic(ErrorCode.ERR_CantInferVoid, "Local").WithArguments("Local()").WithLocation(8, 13)
+    );
         }
 
         [Fact]
@@ -3461,14 +3561,27 @@ Console.Write(Local().Result);
         public void InferredReturnTask()
         {
             var source = @"
-async var Local()
+using System;
+using System.Threading.Tasks;
+
+class Program
 {
-    await Task.Yield();
-    Console.WriteLine(2);
+    static void Main()
+    {
+        async var Local()
+        {
+            await Task.Yield();
+            Console.WriteLine(2);
+        }
+        Local().Wait();
+    }
 }
-Local().Wait();
 ";
-            VerifyOutputInMain(source, "2", "System", "System.Threading.Tasks");
+            VerifyDiagnostics(source,
+    // (9,19): error CS8099: Cannot infer the type of 'Local()' as it does not return a value.
+    //         async var Local()
+    Diagnostic(ErrorCode.ERR_CantInferVoid, "Local").WithArguments("Local()").WithLocation(9, 19)
+    );
         }
 
         [Fact]
@@ -3660,6 +3773,38 @@ class Program
     // (8,27): error CS0841: Cannot use local variable 'Local' before it is declared
     //         Console.WriteLine(Local());
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "Local").WithArguments("Local").WithLocation(8, 27)
+    );
+        }
+
+        [Fact]
+        public void OtherSwitchBlock()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var x = int.Parse(Console.ReadLine());
+        switch (x)
+        {
+        case 0:
+            void Local()
+            {
+            }
+            break;
+        default:
+            Local();
+            break;
+        }
+    }
+}
+";
+            VerifyDiagnostics(source,
+    // (17,13): error CS0165: Use of unassigned local variable 'Local'
+    //             Local();
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "Local()").WithArguments("Local").WithLocation(17, 13)
     );
         }
 

@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Bind switch section
             ImmutableArray<BoundSwitchSection> boundSwitchSections = BindSwitchSections(node.Sections, originalBinder, diagnostics);
 
-            return new BoundSwitchStatement(node, boundSwitchExpression, constantTargetOpt, Locals, boundSwitchSections, this.BreakLabel, null);
+            return new BoundSwitchStatement(node, boundSwitchExpression, constantTargetOpt, Locals, LocalFunctions, boundSwitchSections, this.BreakLabel, null);
         }
 
         // Bind the switch expression and set the switch governing type

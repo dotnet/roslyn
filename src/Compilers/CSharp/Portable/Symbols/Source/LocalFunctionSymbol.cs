@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // force lazy init
             ComputeParameters();
-            ComputeReturnType(body: null, forceNotNull: true, isIterator: false);
+            ComputeReturnType(body: null, returnNullIfUnknown: false, isIterator: false);
 
             var diags = ImmutableInterlocked.InterlockedExchange(ref _diagnostics, default(ImmutableArray<Diagnostic>));
             if (!diags.IsDefault)
@@ -135,8 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                ComputeReturnType(body: null, forceNotNull: true, isIterator: false);
-                return _returnType;
+                return ComputeReturnType(body: null, returnNullIfUnknown: false, isIterator: false);
             }
         }
 
@@ -147,8 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                ComputeReturnType(body: null, forceNotNull: false, isIterator: false);
-                return _returnType;
+                return ComputeReturnType(body: null, returnNullIfUnknown: true, isIterator: false);
             }
         }
 
@@ -156,16 +154,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                ComputeReturnType(body: null, forceNotNull: true, isIterator: true);
-                return _returnType;
+                return ComputeReturnType(body: null, returnNullIfUnknown: false, isIterator: true);
             }
         }
 
-        internal void ComputeReturnType(BoundBlock body, bool forceNotNull, bool isIterator)
+        /*
+        Note: `var` return types are currently very broken in subtle ways, in particular in the IDE scenario when random things are being bound.
+        The basic problem is that a LocalFunctionSymbol needs to compute its return type, and to do that it needs access to its BoundBlock.
+        However, the BoundBlock needs access to the local function's return type. Recursion detection is tricky, because this property (.ReturnType)
+        doesn't have access to the binder where it is being accessed from (i.e. either from inside the local function, where it should report an error,
+        or from outside, where it should attempt to infer the return type from the block).
+
+        The current (broken) system assumes that Binder_Statements.cs BindLocalFunctionStatement will always be called (and so a block will be provided)
+        before any (valid) uses of the local function are bound that require knowing the return type. This assumption breaks in the IDE, where
+        a use of a local function may be bound before BindLocalFunctionStatement is called on the corresponding local function.
+        */
+        internal TypeSymbol ComputeReturnType(BoundBlock body, bool returnNullIfUnknown, bool isIterator)
         {
             if (_returnType != null)
             {
-                return;
+                return _returnType;
             }
             var diagnostics = DiagnosticBag.GetInstance();
             // we might call this multiple times if it's var. Only bind the first time, and cache if it's var.
@@ -188,24 +196,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (body == null)
                 {
-                    if (forceNotNull)
+                    if (returnNullIfUnknown)
                     {
-                        returnType = _binder.CreateErrorType("var");
-                        diagnostics.Add(ErrorCode.ERR_RecursivelyTypedVariable, _syntax.ReturnType.Location, this);
+                        diagnostics.Free();
+                        return null;
                     }
-                    else
-                    {
-                        return; // leave _returnType null
-                    }
+                    returnType = _binder.CreateErrorType("var");
+                    diagnostics.Add(ErrorCode.ERR_RecursivelyTypedVariable, _syntax.ReturnType.Location, this);
                 }
                 else
                 {
                     returnType = InferReturnType(body, diagnostics);
                 }
             }
-            if (Interlocked.CompareExchange(ref _returnType, returnType, null) != null)
+            var raceReturnType = Interlocked.CompareExchange(ref _returnType, returnType, null);
+            if (raceReturnType != null)
             {
-                return;
+                diagnostics.Free();
+                return raceReturnType;
             }
             if (this.IsAsync && !this.IsGenericTaskReturningAsync(_binder.Compilation) && !this.IsTaskReturningAsync(_binder.Compilation) && !this.IsVoidReturningAsync())
             {
@@ -213,12 +221,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
             }
             AddDiagnostics(diagnostics.ToReadOnlyAndFree());
+            return returnType;
         }
 
         private TypeSymbol InferReturnType(BoundBlock body, DiagnosticBag diagnostics)
         {
             int numberOfDistinctReturns;
             var resultTypes = BoundLambda.BlockReturns.GetReturnTypes(body, out numberOfDistinctReturns);
+            if (numberOfDistinctReturns != resultTypes.Length) // included a "return;", no expression
+            {
+                resultTypes = resultTypes.Concat(ImmutableArray.Create((TypeSymbol)_binder.Compilation.GetSpecialType(SpecialType.System_Void)));
+            }
 
             TypeSymbol returnType;
             if (resultTypes.IsDefaultOrEmpty)
@@ -251,6 +264,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_ReturnTypesDontMatch, Locations[0], this);
                     return returnType;
                 }
+            }
+
+            // do this before async lifting, as inferring Task is also not allowed.
+            if (returnType.SpecialType == SpecialType.System_Void)
+            {
+                diagnostics.Add(ErrorCode.ERR_CantInferVoid, Locations[0], this);
             }
 
             if (IsAsync)
@@ -410,11 +429,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                var tpEnclosing = ContainingType.FindEnclosingTypeParameter(name);
+                var tpEnclosing = ContainingSymbol.FindEnclosingTypeParameter(name);
                 if ((object)tpEnclosing != null)
                 {
                     // Type parameter '{0}' has the same name as the type parameter from outer type '{1}'
-                    diagnostics.Add(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, location, name, tpEnclosing.ContainingType);
+                    diagnostics.Add(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, location, name, tpEnclosing.ContainingSymbol);
                 }
 
                 var typeParameter = new LocalFunctionTypeParameterSymbol(

@@ -3,12 +3,9 @@
 	- Currently thought to be unambiguous past the parameter list (starting at `{` or `=>`), but that requires lots of lookahead.
 	- See LanguageParser.cs for comments on both ambiguity in standard parsing, and ambiguity in error recovery.
 - [x] N-level nested local functions
-- [ ] Capture
-	- [x] Initial implementation
-	- [ ] Tests
-	- [x] IDE integration
-	- Works alongside lambdas and behaves very similarly
-	- Partially implemented zero-allocation closures on functions never converted to a delegate (nested zero-alloc closures are disabled)
+- [x] Capture
+	- Works alongside lambdas and behaves very similarly in fallback cases
+	- Has zero-allocation closures (struct frames by ref) on functions never converted to a delegate and are not an iterator/async
 - [x] Standard parameter features
 	- params
 	- ref/out
@@ -32,6 +29,7 @@
 Intentionally disabled features that might eventually be in the end result:
 - Calling a local function with a dynamic argument (due to name mangling and potential conflicts with closures and possibly overloads/shadows)
 - Referring to a local function in an expression tree (note that defining a local function itself in an expression tree is impossible)
+- Definite assignment rules: Currently, all captured variables must be assigned at point of local function declaration. Might change to requiring assignment at point of local function use, not declaration (would allow mutually recursive local functions without nesting, etc.). Related to "Visibility" point in main list.
 
 TODO:
 
@@ -39,3 +37,4 @@ TODO:
 	- `LocalScopeBinder.ReportConflictWithLocal()` (twice)
 - `LocalScopeBinder.EnsureSingleDefinition()`, handle case where 'name' exists in both `localsMap` and `localFunctionsMap`. Might be related to `LocalFunctionTests.NameConflictLocalVarLast()`
 - Defining a local function with a dynamic parameter doesn't work at runtime.
+- Return type of `var` is broken - see LocalFunctionSymbol.cs for an explanation. Fixing it will require a large rewrite of much of return type analysis, as the current system assumes that all return types are known (mostly) without examining the method body.

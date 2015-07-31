@@ -730,6 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ex,
                 null,
                 ImmutableArray<LocalSymbol>.Empty,
+                ImmutableArray<LocalFunctionSymbol>.Empty,
                 s,
                 breakLabel,
                 null)

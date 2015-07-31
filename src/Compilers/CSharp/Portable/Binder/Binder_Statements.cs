@@ -445,13 +445,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     block = null;
                     hasErrors = true;
-                    // TODO: add a message for this? (but parser currently doesn't produce syntax node with both null)
+                    // TODO: add a message for this?
                     diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, localSymbol.Locations[0], localSymbol);
                 }
 
                 if (block != null)
                 {
-                    localSymbol.ComputeReturnType(block, forceNotNull: true, isIterator: false);
+                    localSymbol.ComputeReturnType(block, returnNullIfUnknown: false, isIterator: false);
 
                     // Have to do ControlFlowPass here because in MethodCompiler, we don't call this for synthed methods
                     // rather we go directly to LowerBodyOrInitializer, which skips over flow analysis (which is in CompileMethod)

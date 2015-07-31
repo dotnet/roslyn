@@ -1314,5 +1314,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionTreeContainsLocalFunction = 8096,
         ERR_ReturnTypesDontMatch = 8097,
         ERR_DynamicLocalFunctionParameter = 8098,
+        ERR_CantInferVoid = 8099,
     }
 }
