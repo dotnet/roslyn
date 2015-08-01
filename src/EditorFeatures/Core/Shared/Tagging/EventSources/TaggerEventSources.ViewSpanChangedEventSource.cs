@@ -9,49 +9,34 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
     internal partial class TaggerEventSources
     {
-        private class ViewSpanChangedEventSource : ForegroundThreadAffinitizedObject, ITaggerEventSource
+        private class ViewSpanChangedEventSource : AbstractTaggerEventSource
         {
+            private readonly ForegroundThreadAffinitizedObject foregroundObject = new ForegroundThreadAffinitizedObject();
             private readonly ITextView textView;
-            private readonly TaggerDelay delay;
 
             private Span? lastSpan;
 
-            public ViewSpanChangedEventSource(ITextView textView, TaggerDelay delay)
+            public ViewSpanChangedEventSource(ITextView textView, TaggerDelay delay) : base(delay)
             {
-                this.AssertIsForeground();
                 Debug.Assert(textView != null);
                 this.textView = textView;
-                this.delay = delay;
             }
 
-            public event EventHandler<TaggerEventArgs> Changed;
-
-#pragma warning disable CS0067
-            public event EventHandler UIUpdatesPaused;
-            public event EventHandler UIUpdatesResumed;
-#pragma warning restore
-
-            public void Connect()
+            public override void Connect()
             {
-                this.AssertIsForeground();
+                foregroundObject.AssertIsForeground();
                 textView.LayoutChanged += OnLayoutChanged;
             }
 
-            public void Disconnect()
+            public override void Disconnect()
             {
-                this.AssertIsForeground();
+                foregroundObject.AssertIsForeground();
                 textView.LayoutChanged -= OnLayoutChanged;
             }
 
             private void OnLayoutChanged(object sender, TextViewLayoutChangedEventArgs e)
             {
-                this.AssertIsForeground();
-                var changed = this.Changed;
-                if (changed == null)
-                {
-                    return;
-                }
-
+                foregroundObject.AssertIsForeground();
                 // The formatted span refers to the span of the textview's buffer that is visible.
                 // If it changes, then we want to reclassify.  Note: the span might not change if
                 // text were overwritten.  However, in the case of text-edits, we'll hear about 
@@ -65,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 if (span != lastSpan)
                 {
                     this.lastSpan = span;
-                    changed(this, new TaggerEventArgs(delay));
+                    RaiseChanged();
                 }
             }
         }
