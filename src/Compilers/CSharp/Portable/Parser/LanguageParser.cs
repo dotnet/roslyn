@@ -3392,7 +3392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
-            return _syntaxFactory.AccessorList(openBrace, accessors, closeBrace);
+            return _syntaxFactory.AccessorList(openBrace, default(SyntaxList<FieldDeclarationSyntax>), accessors, closeBrace);
         }
 
         private ArrowExpressionClauseSyntax ParseArrowExpressionClause()
@@ -4329,6 +4329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var missingAccessorList =
                     _syntaxFactory.AccessorList(
                         SyntaxFactory.MissingToken(SyntaxKind.OpenBraceToken),
+                        default(SyntaxList<FieldDeclarationSyntax>),
                         default(SyntaxList<AccessorDeclarationSyntax>),
                         SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken));
 

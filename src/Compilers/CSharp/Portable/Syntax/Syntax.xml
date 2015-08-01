@@ -3201,6 +3201,7 @@
     <Field Name="OpenBraceToken" Type="SyntaxToken">
       <Kind Name="OpenBraceToken"/>
     </Field>
+    <Field Name="Fields" Type="SyntaxList&lt;FieldDeclarationSyntax&gt;"/>
     <Field Name="Accessors" Type="SyntaxList&lt;AccessorDeclarationSyntax&gt;"/>
     <Field Name="CloseBraceToken" Type="SyntaxToken">
       <Kind Name="CloseBraceToken"/>

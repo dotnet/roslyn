@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 (TypeSyntax)type,
                 default(ExplicitInterfaceSpecifierSyntax),
                 name.ToIdentifierToken(),
-                SyntaxFactory.AccessorList(SyntaxFactory.List(accessors)));
+                SyntaxFactory.AccessorList(default(SyntaxList<FieldDeclarationSyntax>), SyntaxFactory.List(accessors)));
         }
 
         public override SyntaxNode IndexerDeclaration(
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 (TypeSyntax)type,
                 default(ExplicitInterfaceSpecifierSyntax),
                 AsBracketedParameterList(parameters),
-                SyntaxFactory.AccessorList(SyntaxFactory.List(accessors)));
+                SyntaxFactory.AccessorList(default(SyntaxList<FieldDeclarationSyntax>), SyntaxFactory.List(accessors)));
         }
 
         private BracketedParameterListSyntax AsBracketedParameterList(IEnumerable<SyntaxNode> parameters)
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 (TypeSyntax)type,
                 default(ExplicitInterfaceSpecifierSyntax),
                 name.ToIdentifierToken(),
-                SyntaxFactory.AccessorList(SyntaxFactory.List(accessors)));
+                SyntaxFactory.AccessorList(default(SyntaxList<FieldDeclarationSyntax>), SyntaxFactory.List(accessors)));
         }
 
         public override SyntaxNode AsPublicInterfaceImplementation(SyntaxNode declaration, SyntaxNode interfaceTypeName, string interfaceMemberName)
@@ -2796,6 +2796,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private AccessorListSyntax AsAccessorList(IEnumerable<SyntaxNode> nodes, SyntaxKind parentKind)
         {
             return SyntaxFactory.AccessorList(
+                default(SyntaxList<FieldDeclarationSyntax>),
                 SyntaxFactory.List(nodes.Select(n => this.AsAccessor(n, parentKind)).Where(n => n != null)));
         }
 

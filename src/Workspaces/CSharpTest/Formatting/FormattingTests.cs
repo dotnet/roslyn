@@ -4164,6 +4164,7 @@ class innerClass
                 default(ExplicitInterfaceSpecifierSyntax),
                 SyntaxFactory.Identifier("Prop"),
                 SyntaxFactory.AccessorList(
+                    default(SyntaxList<FieldDeclarationSyntax>),
                     SyntaxFactory.List(
                         new AccessorDeclarationSyntax[]
                         {
