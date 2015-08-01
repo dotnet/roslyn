@@ -23,6 +23,11 @@
   <Target Name="RestorePackages">
     <Exec Command="&quot;$(MSBuildThisFileDirectory)\.nuget\Nuget.exe&quot; install xunit.runners -pre -version 2.0.0-alpha-build2576 -outputdirectory packages"/>
     <Exec Command="&quot;$(MSBuildThisFileDirectory)\.nuget\Nuget.exe&quot; restore &quot;$(RoslynSolution)&quot;" />
+
+    <!-- This package isn't properly signed and hence makes our tests unrunnable on standard
+         machines.  FakeSign it for now during a test run until we get a correctly signed
+         package uploaded --> 
+    <Exec Command="&quot;$(MSBuildThisFileDirectory)\packages\FakeSign.0.9.2\tools\FakeSign.exe&quot; -f packages\Microsoft.CodeAnalysis.Test.Resources.Proprietary.1.1.0-beta1-20150716-07\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll" />
   </Target>
 
   <Target Name="Build" DependsOnTargets="RestorePackages">
