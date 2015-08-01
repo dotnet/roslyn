@@ -326,10 +326,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// </summary>
         public static SnapshotSpan? GetVisibleLinesSpan(this ITextView textView, ITextBuffer subjectBuffer, int extraLines = 0)
         {
-            // Determine the range of text that is visible in the view.  Then map this down to our
-            // specific buffer.  From that, determine the start/end line for our buffer that is in
-            // view.  Then grow that a bit on either end (so the user can scroll up/down without
-            // noticing any classification) and return as the span we want to tag.
+            // Determine the range of text that is visible in the view.  Then map this down to the
+            // bufffer passed in.  From that, determine the start/end line for the buffer that is in
+            // view.
 
             var visibleSpan = textView.TextViewLines.FormattedSpan;
             var visibleSpansInBuffer = textView.BufferGraph.MapDownToBuffer(visibleSpan, SpanTrackingMode.EdgeInclusive, subjectBuffer);
