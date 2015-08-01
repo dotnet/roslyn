@@ -1,10 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslyn.Diagnostics.Analyzers
@@ -94,18 +93,24 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private bool IsObjectEqualsOverride(IMethodSymbol methodSymbol, INamedTypeSymbol objectType)
         {
+            Debug.Assert(methodSymbol != null);
+            if (methodSymbol == null)
+            {
+                return false;
+            }
+
             if (!methodSymbol.IsOverride)
             {
                 return false;
             }
 
             if (methodSymbol.Parameters.Length != 1 ||
-                !methodSymbol.Parameters[0].Type.Equals(objectType))
+                methodSymbol.Parameters[0]?.Type?.Equals(objectType) != true)
             {
                 return false;
             }
 
-            if (methodSymbol.ReturnType.SpecialType != SpecialType.System_Boolean)
+            if (methodSymbol.ReturnType?.SpecialType != SpecialType.System_Boolean)
             {
                 return false;
             }
@@ -114,9 +119,9 @@ namespace Roslyn.Diagnostics.Analyzers
             {
                 methodSymbol = methodSymbol.OverriddenMethod;
             }
-            while (methodSymbol.IsOverride);
+            while (methodSymbol?.IsOverride == true);
 
-            return methodSymbol.ContainingType.Equals(objectType);
+            return methodSymbol.ContainingType?.Equals(objectType) == true;
         }
     }
 }
