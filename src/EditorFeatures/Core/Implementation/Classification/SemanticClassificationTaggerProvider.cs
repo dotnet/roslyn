@@ -88,7 +88,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         protected override async Task ProduceTagsAsync(TaggerContext<IClassificationTag> context)
         {
             Debug.Assert(context.SpansToTag.IsSingle());
-            Debug.Assert(context.CaretPosition == null);
 
             var spanToTag = context.SpansToTag.Single();
             var document = spanToTag.Document;
