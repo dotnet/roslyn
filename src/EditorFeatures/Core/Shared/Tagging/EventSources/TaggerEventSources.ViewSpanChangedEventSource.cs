@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             public void Disconnect()
             {
                 this.AssertIsForeground();
-                textView.LayoutChanged += OnLayoutChanged;
+                textView.LayoutChanged -= OnLayoutChanged;
             }
 
             private void OnLayoutChanged(object sender, TextViewLayoutChangedEventArgs e)
