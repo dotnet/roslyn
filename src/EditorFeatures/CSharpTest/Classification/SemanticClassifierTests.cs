@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -1405,6 +1406,7 @@ class C
                 var contentTypeService = document.GetLanguageService<IContentTypeLanguageService>();
                 var contentType = contentTypeService.GetDefaultContentType();
                 var extraBuffer = workspace.ExportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer("", contentType);
+                var textView = workspace.ExportProvider.GetExportedValue<ITextEditorFactoryService>().CreateTextView(extraBuffer);
 
                 var waiter = new Waiter();
                 var provider = new SemanticClassificationTaggerProvider(
@@ -1415,7 +1417,7 @@ class C
                         new Lazy<IAsynchronousOperationListener, FeatureMetadata>(
                         () => waiter, new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", FeatureAttribute.Classification } }))));
 
-                using (var tagger = (IDisposable)provider.CreateTagger<IClassificationTag>(extraBuffer))
+                using (var tagger = (IDisposable)provider.CreateTagger<IClassificationTag>(textView, extraBuffer))
                 {
                     using (var edit = extraBuffer.CreateEdit())
                     {

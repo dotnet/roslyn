@@ -28,11 +28,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
-    [Export(typeof(ITaggerProvider))]
+    [Export(typeof(IViewTaggerProvider))]
     [TagType(typeof(IClassificationTag))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
-    internal partial class SemanticClassificationTaggerProvider : AsynchronousTaggerProvider<IClassificationTag>
+    internal partial class SemanticClassificationTaggerProvider : AsynchronousViewTaggerProvider<IClassificationTag>
     {
         private readonly ISemanticChangeNotificationService _semanticChangeNotificationService;
         private readonly ClassificationTypeMap _typeMap;
@@ -56,13 +56,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             _typeMap = typeMap;
         }
 
-        protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
+            this.AssertIsForeground();
+            const TaggerDelay Delay = TaggerDelay.Short;
+
             // Note: we don't listen for OnTextChanged.  Text changes to this this buffer will get
             // reported by OnSemanticChanged.
             return TaggerEventSources.Compose(
-                TaggerEventSources.OnSemanticChanged(subjectBuffer, TaggerDelay.Short, _semanticChangeNotificationService),
-                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, TaggerDelay.Short));
+                TaggerEventSources.OnViewSpanChanged(textView, Delay),
+                TaggerEventSources.OnSemanticChanged(subjectBuffer, Delay, _semanticChangeNotificationService),
+                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, Delay));
+        }
+
+        protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)
+        {
+            this.AssertIsForeground();
+
+            // Find the visible span some 100 lines +/- what's actually in view.  This way
+            // if the user scrolls up/down, we'll already have the results.
+            var visibleSpanOpt = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: 100);
+            if (visibleSpanOpt == null)
+            {
+                // Couldn't find anything visible, just fall back to classifying everything.
+                return base.GetSpansToTag(textView, subjectBuffer);
+            }
+
+            return new[] { visibleSpanOpt.Value };
         }
 
         protected override async Task ProduceTagsAsync(TaggerContext<IClassificationTag> context)

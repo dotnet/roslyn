@@ -318,5 +318,42 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             surfaceBufferSpan = default(VirtualSnapshotSpan);
             return false;
         }
+
+        /// <summary>
+        /// Returns the span of the lines in subjectBuffer that is currently visible in the provided
+        /// view.  "extraLines" can be provided to get a span that encompasses some number of lines
+        /// before and after the actual visible lines.
+        /// </summary>
+        public static SnapshotSpan? GetVisibleLinesSpan(this ITextView textView, ITextBuffer subjectBuffer, int extraLines = 0)
+        {
+            // Determine the range of text that is visible in the view.  Then map this down to our
+            // specific buffer.  From that, determine the start/end line for our buffer that is in
+            // view.  Then grow that a bit on either end (so the user can scroll up/down without
+            // noticing any classification) and return as the span we want to tag.
+
+            var visibleSpan = textView.TextViewLines.FormattedSpan;
+            var visibleSpansInBuffer = textView.BufferGraph.MapDownToBuffer(visibleSpan, SpanTrackingMode.EdgeInclusive, subjectBuffer);
+            if (visibleSpansInBuffer.Count == 0)
+            {
+                return null;
+            }
+
+            var visibleStart = visibleSpansInBuffer.First().Start;
+            var visibleEnd = visibleSpansInBuffer.Last().End;
+
+            var snapshot = subjectBuffer.CurrentSnapshot;
+            var startLine = snapshot.GetLineNumberFromPosition(visibleStart);
+            var endLine = snapshot.GetLineNumberFromPosition(visibleEnd);
+
+            startLine = Math.Max(startLine - extraLines, 0);
+            endLine = Math.Min(endLine + extraLines, snapshot.LineCount - 1);
+
+            var start = snapshot.GetLineFromLineNumber(startLine).Start;
+            var end = snapshot.GetLineFromLineNumber(endLine).EndIncludingLineBreak;
+
+            var span = new SnapshotSpan(snapshot, Span.FromBounds(start, end));
+
+            return span;
+        }
     }
 }
