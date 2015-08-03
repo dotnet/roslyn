@@ -2736,6 +2736,98 @@ End Module
                 expectedIndentation:=0)
         End Sub
 
+        <WorkItem(3293, "https://github.com/dotnet/roslyn/issues/3293")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub SmartIndentAtCaseBlockEnd()
+            Dim code = <code>Class Program
+    Public Sub M()
+        Dim s = 1
+        Select Case s
+            Case 1
+                System.Console.WriteLine(s)
+
+            Case 2
+        End Select
+    End Sub
+End Class
+</code>.Value
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=6,
+                expectedIndentation:=16)
+        End Sub
+
+        <WorkItem(3293, "https://github.com/dotnet/roslyn/issues/3293")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub SmartIndentAtCaseBlockEndComment()
+            Dim code = <code>Class Program
+    Public Sub M()
+        Dim s = 1
+        Select Case s
+            Case 1
+                System.Console.WriteLine(s)
+                ' This comment belongs to case 1
+
+            Case 2
+        End Select
+    End Sub
+End Class
+</code>.Value
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=7,
+                expectedIndentation:=16)
+        End Sub
+
+        <WorkItem(3293, "https://github.com/dotnet/roslyn/issues/3293")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub SmartIndentAtCaseBlockInbetweenComments()
+            Dim code = <code>Class Program
+    Public Sub M()
+        Dim s = 1
+        Select Case s
+            Case 1
+                System.Console.WriteLine(s)
+                ' This comment belongs to case 1
+
+            ' This comment belongs to case 2
+            Case 2
+        End Select
+    End Sub
+End Class
+</code>.Value
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=7,
+                expectedIndentation:=16)
+        End Sub
+
+        <WorkItem(3293, "https://github.com/dotnet/roslyn/issues/3293")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub SmartIndentAtCaseBlockEndUntabbedComment()
+            Dim code = <code>Class Program
+    Public Sub M()
+        Dim s = 1
+        Select Case s
+            Case 1
+                System.Console.WriteLine(s)
+            ' This comment belongs to case 1
+
+            Case 2
+        End Select
+    End Sub
+End Class
+</code>.Value
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=7,
+                expectedIndentation:=12)
+        End Sub
+
         Private Shared Sub AssertSmartIndentIndentationInProjection(markup As String,
                                                                     expectedIndentation As Integer)
             Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines({markup})

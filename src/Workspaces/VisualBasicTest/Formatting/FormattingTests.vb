@@ -3968,6 +3968,7 @@ End Module
         End Sub
 
         <WorkItem(796562)>
+        <WorkItem(3293, "https://github.com/dotnet/roslyn/issues/3293")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub TriviaAtEndOfCaseBelongsToNextCase()
             Dim text = <Code>
@@ -3976,7 +3977,8 @@ Class X
         Select Case x
             Case 1
                 Return 2
-                ' This comment describes case 2.
+                ' This comment describes case 1
+            ' This comment describes case 2
             Case 2,
                 Return 3
         End Select
@@ -3992,7 +3994,8 @@ Class X
         Select Case x
             Case 1
                 Return 2
-            ' This comment describes case 2.
+                ' This comment describes case 1
+            ' This comment describes case 2
             Case 2,
                 Return 3
         End Select
