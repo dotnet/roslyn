@@ -330,7 +330,21 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                 switch ((CommandIds)nCmdID)
                 {
                     case CommandIds.AbortExecution: _window.Evaluator.AbortExecution(); return VSConstants.S_OK;
-                    case CommandIds.Reset: _window.Operations.ResetAsync(); return VSConstants.S_OK;
+                    case CommandIds.Reset:
+                        {
+                            var operations2 = _window.Operations as IInteractiveWindowOperations2;
+                            if (operations2 != null)
+                            {
+                                operations2.ResetAsync(isFromSubmit: false); return VSConstants.S_OK;
+                            }
+                            else
+                            {
+                                // in cases where the cast to IInteractiveWindowOperations2 fails when the instance passed in
+                                // does not implement IInteractiveWindowOperations2 then we fall back to IInteractiveWindowOperations
+                                // ResetAsync method
+                                _window.Operations.ResetAsync(); return VSConstants.S_OK;
+                            }
+                         }
                     case CommandIds.SmartExecute: _window.Operations.ExecuteInput(); return VSConstants.S_OK;
                     case CommandIds.HistoryNext: _window.Operations.HistoryNext(); return VSConstants.S_OK;
                     case CommandIds.HistoryPrevious: _window.Operations.HistoryPrevious(); return VSConstants.S_OK;

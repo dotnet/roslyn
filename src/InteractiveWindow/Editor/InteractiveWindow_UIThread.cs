@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     /// <summary>
     /// Provides implementation of a Repl Window built on top of the VS editor using projection buffers.
     /// </summary>
-    internal partial class InteractiveWindow : IInteractiveWindow, IInteractiveWindowOperations
+    internal partial class InteractiveWindow : IInteractiveWindow, IInteractiveWindowOperations2
     {
         private UIThreadOnly _dangerous_uiOnly;
 
@@ -196,20 +196,33 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 _outputTrackingCaretPosition = -1;
             }
 
-            public Task<ExecutionResult> ResetAsync(bool initialize)
+            public Task<ExecutionResult> ResetAsync(bool initialize, bool isFromSubmit)
             {
                 Debug.Assert(State != State.Resetting, "The button should have been disabled.");
 
                 if (_window._stdInputStart != null)
                 {
-                     CancelStandardInput();
+                    CancelStandardInput();
                 }
 
                 _window._buffer.Flush();
 
                 // replace the task being interrupted by a "reset" task:
                 State = State.Resetting;
-                _currentTask = _window._evaluator.ResetAsync(initialize);
+
+                var evaluator2 = _window._evaluator as IInteractiveEvaluator2;
+                if (evaluator2 != null)
+                {
+                    _currentTask = evaluator2.ResetAsync(initialize, isFromSubmit);
+                }
+                else
+                {
+                    // in cases where the cast to IInteractiveEvaluator2 fails when the instance passed in
+                    // does not implement IInteractiveEvaluator2 then we fall back to IInteractiveEvaluator
+                    // ResetAsync method
+                    _currentTask = _window._evaluator.ResetAsync(initialize);
+                }
+
                 _currentTask.ContinueWith(FinishExecute, _uiScheduler);
 
                 return _currentTask;
@@ -343,12 +356,19 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
                 else
                 {
-                    StoreUncommittedInput();
+                    // Commenting out the following call as it is causing the currentInputBuffer
+                    // to get into a weird state when there is uncommitted multi line input and 
+                    // reset button is pressed. This should be uncommented and the above issue 
+                    // should be fixed while fixing issue https://github.com/dotnet/roslyn/issues/4277
+                    //StoreUncommittedInput();
                     _window.SetActiveCode(command);
                 }
 
-                FinishCurrentSubmissionInput();
+                // Add to history before calling FinishCurrentSubmissionInput as it adds 
+                // linebreak at the end which should not be saved in the history
                 _window._history.Add(_window._currentLanguageBuffer.CurrentSnapshot.GetExtent());
+                FinishCurrentSubmissionInput();
+                
             }
 
             private void AppendUncommittedInput(string text)
@@ -987,7 +1007,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 ITextBuffer buffer = _host.CreateAndActivateBuffer(_window);
 
-                buffer.Properties.AddProperty(typeof(IInteractiveEvaluator), _window._evaluator);
+                buffer.Properties.AddProperty(typeof(IInteractiveEvaluator2), _window._evaluator);
                 buffer.Properties.AddProperty(typeof(InteractiveWindow), _window);
 
                 _window._currentLanguageBuffer = buffer;

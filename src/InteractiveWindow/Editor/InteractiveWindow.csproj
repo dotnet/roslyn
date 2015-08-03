@@ -82,11 +82,13 @@
     <Compile Include="Commands\IInteractiveWindowCommands.cs" />
     <Compile Include="Commands\IInteractiveWindowCommandsFactory.cs" />
     <Compile Include="IInteractiveEvaluator.cs" />
+    <Compile Include="IInteractiveEvaluator2.cs" />
     <Compile Include="IInteractiveWindow.cs" />
     <Compile Include="IInteractiveWindowEditorFactoryService.cs" />
     <Compile Include="IInteractiveWindowFactoryService.cs" />
     <Compile Include="Commands\InteractiveCommandsFactory.cs" />
     <Compile Include="IInteractiveWindowOperations.cs" />
+    <Compile Include="IInteractiveWindowOperations2.cs" />
     <Compile Include="InteractiveWindow_UIThread.cs" />
     <Compile Include="PredefinedInteractiveContentTypes.cs" />
     <Compile Include="InteractiveContentTypeDefinitions.cs" />

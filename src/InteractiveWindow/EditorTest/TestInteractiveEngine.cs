@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 {
-    public class TestInteractiveEngine : IInteractiveEvaluator
+    public class TestInteractiveEngine : IInteractiveEvaluator2
     {
         private readonly IContentType _contentType;
         private IInteractiveWindow _currentWindow;
@@ -72,6 +72,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         public string GetPrompt()
         {
             return "> ";
+        }
+
+        public Task<ExecutionResult> ResetAsync(bool initialize = true, bool isFromSubmit = true)
+        {
+            return Task.FromResult(ExecutionResult.Success);
         }
     }
 }

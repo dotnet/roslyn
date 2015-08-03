@@ -31,7 +31,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.FileS
 
 namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
-    public abstract class InteractiveEvaluator : IInteractiveEvaluator, ICurrentWorkingDirectoryDiscoveryService
+    public abstract class InteractiveEvaluator : IInteractiveEvaluator2, ICurrentWorkingDirectoryDiscoveryService
     {
         // full path or null
         private readonly string _responseFilePath;
@@ -436,9 +436,24 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             return false;
         }
 
-        public Task<ExecutionResult> ResetAsync(bool initialize = true)
+        Task<ExecutionResult> IInteractiveEvaluator.ResetAsync(bool initialize)
         {
-            GetInteractiveWindow().AddInput(_interactiveCommands.CommandPrefix + "reset");
+            // This is an implementation of ResetAsync on IInteractiveEvaluator interface.
+            // C# and VB Interactive window should not be calling this method at all
+            // as they now call reset through IInteractiveEvaluator2
+
+            // Now we pass on this call to IInteractiveEvaluation2 implementation
+            // which maintains old behaviour when isFromSubmit was not there
+            
+            return ((IInteractiveEvaluator2)this).ResetAsync(initialize: initialize, isFromSubmit: true);
+        }
+
+        Task<ExecutionResult> IInteractiveEvaluator2.ResetAsync(bool initialize, bool isFromSubmit)
+        {
+            if (!isFromSubmit)
+            {
+                GetInteractiveWindow().AddInput(_interactiveCommands.CommandPrefix + "reset");
+            }
             GetInteractiveWindow().WriteLine("Resetting execution engine.");
             GetInteractiveWindow().FlushOutput();
 
