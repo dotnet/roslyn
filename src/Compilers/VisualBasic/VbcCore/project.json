@@ -25,6 +25,7 @@
     "System.Runtime.Extensions": "4.0.10-beta-22816",
     "System.Runtime.Handles": "4.0.0-beta-22816",
     "System.Runtime.InteropServices": "4.0.20-beta-22816",
+    "System.Runtime.Serialization.Json": "4.0.0-beta-22816",
     "System.Security.Cryptography.Hashing.Algorithms": "4.0.0-beta-22816",
     "System.Security.Principal": "4.0.0-beta-22816",
     "System.Text.Encoding": "4.0.10-beta-22816",
