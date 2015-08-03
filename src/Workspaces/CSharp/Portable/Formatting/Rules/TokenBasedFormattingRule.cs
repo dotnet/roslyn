@@ -200,7 +200,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     previousToken.Kind() == SyntaxKind.BaseKeyword ||
                     previousToken.Kind() == SyntaxKind.ThisKeyword ||
                     previousToken.Kind() == SyntaxKind.NewKeyword ||
-                    previousToken.Parent.Kind() == SyntaxKind.OperatorDeclaration ||
                     previousToken.IsGenericGreaterThanToken() ||
                     currentToken.IsParenInArgumentList())
                 {
