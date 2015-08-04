@@ -938,5 +938,57 @@ End Class
             End Try
         End Sub
 
+        <WorkItem(4312, "https://github.com/dotnet/roslyn/issues/4312")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        Public Sub VBAssignments_PropertyAssignedWithEmptyArray()
+            Dim definition =
+    <Workspace>
+        <Project Language="Visual Basic" CommonReferences="true">
+            <Document>
+Class C
+    Private Property Series As Object()
+
+    $$Sub M()
+        Me.Series = New Object(-1) {}
+    End Sub
+End Class
+            </Document>
+        </Project>
+    </Workspace>
+
+            Dim expected =
+<Block>
+    <ExpressionStatement line="5"><Expression>
+        <Assignment>
+            <Expression>
+                <NameRef variablekind="property">
+                    <Expression>
+                        <ThisReference/>
+                    </Expression>
+                    <Name>Series</Name>
+                </NameRef>
+            </Expression>
+            <Expression>
+                <NewArray>
+                    <ArrayType rank="1">
+                        <Type>System.Object</Type>
+                    </ArrayType>
+                    <Bound>
+                        <Expression>
+                            <Literal>
+                                <Number type="System.Int32">0</Number>
+                            </Literal>
+                        </Expression>
+                    </Bound>
+                </NewArray>
+            </Expression>
+        </Assignment>
+        </Expression>
+    </ExpressionStatement>
+</Block>
+
+            Test(definition, expected)
+        End Sub
+
     End Class
 End Namespace

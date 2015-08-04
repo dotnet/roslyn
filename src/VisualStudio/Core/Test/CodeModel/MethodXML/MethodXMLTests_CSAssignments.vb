@@ -1082,5 +1082,65 @@ class C
             Test(definition, expected)
         End Sub
 
+        <WorkItem(4312, "https://github.com/dotnet/roslyn/issues/4312")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        Public Sub CSAssignments_PropertyAssignedWithEmptyArray()
+            Dim definition =
+    <Workspace>
+        <Project Language="C#" CommonReferences="true">
+            <Document>
+class C
+{
+    private object[] Series { get; set }
+
+    $$void M()
+    {
+        this.Series = new object[0] {};
+    }
+}
+            </Document>
+        </Project>
+    </Workspace>
+
+            Dim expected =
+<Block>
+    <ExpressionStatement line="7">
+        <Expression>
+            <Assignment>
+                <Expression>
+                    <NameRef variablekind="property">
+                        <Expression>
+                            <ThisReference/>
+                        </Expression>
+                        <Name>Series</Name>
+                    </NameRef>
+                </Expression>
+                <Expression>
+                    <NewArray>
+                        <ArrayType rank="1">
+                            <Type>System.Object</Type>
+                        </ArrayType>
+                        <Bound>
+                            <Expression>
+                                <Literal>
+                                    <Number>0</Number>
+                                </Literal>
+                            </Expression>
+                        </Bound>
+                        <Expression>
+                            <Literal>
+                                <Array></Array>
+                            </Literal>
+                        </Expression>
+                    </NewArray>
+                </Expression>
+            </Assignment>
+        </Expression>
+    </ExpressionStatement>
+</Block>
+
+            Test(definition, expected)
+        End Sub
+
     End Class
 End Namespace
