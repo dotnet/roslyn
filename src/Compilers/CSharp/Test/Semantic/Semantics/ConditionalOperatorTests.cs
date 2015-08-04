@@ -1248,5 +1248,157 @@ interface I<in T, out U> {{ }}";
                 }
             }
         }
+
+
+        [Fact, WorkItem(4028, "https://github.com/dotnet/roslyn/issues/4028")]
+        public void ConditionalAccessToEvent_01()
+        {
+            string source = @"
+using System;
+
+class TestClass
+{
+    event Action test;
+
+    public static void Test(TestClass receiver)
+    {
+        Console.WriteLine(receiver?.test);
+    }
+
+    static void Main()
+    {
+        Console.WriteLine(""----"");
+        Test(null);
+        Console.WriteLine(""----"");
+        Test(new TestClass() {test = Main});
+        Console.WriteLine(""----"");
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput: 
+@"----
+
+----
+System.Action
+----");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var memberBinding = tree.GetRoot().DescendantNodes().OfType<MemberBindingExpressionSyntax>().Single();
+            var access = (ConditionalAccessExpressionSyntax)memberBinding.Parent;
+
+            Assert.Equal(".test", memberBinding.ToString());
+            Assert.Equal("receiver?.test", access.ToString());
+
+            var model = compilation.GetSemanticModel(tree);
+
+            Assert.Equal("event System.Action TestClass.test", model.GetSymbolInfo(memberBinding).Symbol.ToTestDisplayString());
+            Assert.Equal("event System.Action TestClass.test", model.GetSymbolInfo(memberBinding.Name).Symbol.ToTestDisplayString());
+
+            Assert.Null(model.GetSymbolInfo(access).Symbol);
+        }
+
+        [Fact, WorkItem(4028, "https://github.com/dotnet/roslyn/issues/4028")]
+        public void ConditionalAccessToEvent_02()
+        {
+            string source = @"
+using System;
+
+class TestClass
+{
+    event Action test;
+
+    public static void Test(TestClass receiver)
+    {
+        receiver?.test();
+    }
+
+    static void Main()
+    {
+        Console.WriteLine(""----"");
+        Test(null);
+        Console.WriteLine(""----"");
+        Test(new TestClass() {test = Target});
+        Console.WriteLine(""----"");
+    }
+
+    static void Target()
+    {
+        Console.WriteLine(""Target"");
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"----
+----
+Target
+----");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var memberBinding = tree.GetRoot().DescendantNodes().OfType<MemberBindingExpressionSyntax>().Single();
+            var invocation = (InvocationExpressionSyntax)memberBinding.Parent;
+            var access = (ConditionalAccessExpressionSyntax)invocation.Parent;
+
+            Assert.Equal(".test", memberBinding.ToString());
+            Assert.Equal(".test()", invocation.ToString());
+            Assert.Equal("receiver?.test()", access.ToString());
+
+            var model = compilation.GetSemanticModel(tree);
+
+            Assert.Equal("event System.Action TestClass.test", model.GetSymbolInfo(memberBinding).Symbol.ToTestDisplayString());
+            Assert.Equal("event System.Action TestClass.test", model.GetSymbolInfo(memberBinding.Name).Symbol.ToTestDisplayString());
+            Assert.Equal("void System.Action.Invoke()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+            Assert.Null(model.GetSymbolInfo(access).Symbol);
+        }
+
+        [Fact, WorkItem(4028, "https://github.com/dotnet/roslyn/issues/4028")]
+        public void ConditionalAccessToEvent_03()
+        {
+            string source = @"
+using System;
+
+class TestClass
+{
+    event Action test;
+
+    public static void Test(TestClass receiver)
+    {
+        receiver?.test += Main;
+    }
+
+    static void Main()
+    {
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+
+            compilation.VerifyDiagnostics(
+    // (10,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+    //         receiver?.test += Main;
+    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "receiver?.test").WithLocation(10, 9)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var memberBinding = tree.GetRoot().DescendantNodes().OfType<MemberBindingExpressionSyntax>().Single();
+            var access = (ConditionalAccessExpressionSyntax)memberBinding.Parent;
+
+            Assert.Equal(".test", memberBinding.ToString());
+            Assert.Equal("receiver?.test", access.ToString());
+
+            var model = compilation.GetSemanticModel(tree);
+
+            Assert.Equal("event System.Action TestClass.test", model.GetSymbolInfo(memberBinding).Symbol.ToTestDisplayString());
+            Assert.Equal("event System.Action TestClass.test", model.GetSymbolInfo(memberBinding.Name).Symbol.ToTestDisplayString());
+
+            Assert.Null(model.GetSymbolInfo(access).Symbol);
+        }
     }
 }
