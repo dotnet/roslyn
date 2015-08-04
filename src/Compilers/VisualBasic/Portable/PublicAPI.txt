@@ -3295,6 +3295,7 @@ NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleArgumen
 NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.ToFullString() -> String
 NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.ToString() -> String
 Overloads Microsoft.CodeAnalysis.VisualBasic.Conversion.Equals(other As Microsoft.CodeAnalysis.VisualBasic.Conversion) -> Boolean
+Overloads Microsoft.CodeAnalysis.VisualBasic.LocalizableErrorArgument.ToString(format As String, formatProvider As System.IFormatProvider) -> String
 Overloads Microsoft.CodeAnalysis.VisualBasic.GlobalImport.Equals(other As Microsoft.CodeAnalysis.VisualBasic.GlobalImport) -> Boolean
 Overloads Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.Equals(other As Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions) -> Boolean
 Overloads Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.Equals(other As Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions) -> Boolean

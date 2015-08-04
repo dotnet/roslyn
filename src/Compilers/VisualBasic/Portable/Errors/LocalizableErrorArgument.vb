@@ -21,7 +21,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''Creates a string representing the unformatted LocalizableErrorArgument instance.
         ''' </summary>
         Public Overrides Function ToString() As String
-            Return ToString(Nothing)
+            Return ToString(Nothing, Nothing)
+        End Function
+
+        <Obsolete("Use " + NameOf(ToString) + " instead", True)>
+        Public Function ToString_IFormattable(format As String, formatProvider As IFormatProvider) As String
+            Return ToString(Nothing, Nothing)
         End Function
 
         ''' <summary>
@@ -29,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="format">A string to use for formatting.</param>
         ''' <param name="formatProvider">An object that supplies culture-specific format information about format.</param>
-        Public Function ToString_IFormattable(format As String, formatProvider As IFormatProvider) As String Implements IFormattable.ToString
+        Public Overloads Function ToString(format As String, formatProvider As IFormatProvider) As String Implements IFormattable.ToString
             Return ErrorFactory.IdToString(_id, DirectCast(formatProvider, CultureInfo))
         End Function
     End Structure
