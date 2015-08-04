@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Emit
             int queueing;
 
             // A short delay to increase the chance that concurrent Enqueue operation will be diagnosed.
-            static TimeSpan shortDelay = new TimeSpan(2);
+            static readonly TimeSpan shortDelay = new TimeSpan(2);
 
             /// <summary>
             ///     Adds an object to the end of the ConcurrentQueue.
