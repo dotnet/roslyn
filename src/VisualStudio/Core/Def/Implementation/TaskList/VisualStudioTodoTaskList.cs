@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
     [Export(typeof(VisualStudioTodoTaskList))]
-    internal partial class VisualStudioTodoTaskList : AbstractVisualStudioTaskList, IVsTaskListEvents
+    internal partial class VisualStudioTodoTaskList : AbstractVisualStudioTaskList
     {
         private readonly Dictionary<object, IVsTaskItem[]> _todoItemMap = new Dictionary<object, IVsTaskItem[]>();
         private readonly IOptionService _optionService;
@@ -140,22 +140,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     }
                 }
             }, TaggerConstants.MediumDelay, this.Listener.BeginAsyncOperation("RefreshTaskList"));
-        }
-
-        public int OnCommentTaskInfoChanged()
-        {
-            var tokenInfo = ServiceProvider.GetService(typeof(SVsTaskList)) as IVsCommentTaskInfo;
-            var commentString = CommentTaskTokenSerializer.GetTaskTokenList(tokenInfo);
-
-            var optionSet = _optionService.GetOptions();
-            var optionValue = optionSet.GetOption(TodoCommentOptions.TokenList);
-            if (optionValue == commentString)
-            {
-                return VSConstants.S_OK;
-            }
-
-            _optionService.SetOptions(optionSet.WithChangedOption(TodoCommentOptions.TokenList, commentString));
-            return VSConstants.S_OK;
         }
 
         internal void TestOnly_Enable()
