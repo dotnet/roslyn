@@ -49,6 +49,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private ITableDataSource GetCurrentDataSource()
         {
+            if (_errorList == null)
+            {
+                return _liveTableSource;
+            }
+
             return _errorList.AreOtherErrorSourceEntriesShown ? (ITableDataSource)_liveTableSource : _buildTableSource;
         }
 
