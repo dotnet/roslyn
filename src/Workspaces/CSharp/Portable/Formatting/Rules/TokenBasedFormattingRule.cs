@@ -229,7 +229,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * )
-            // * [
             // * ]
             // * ,
             // * .
@@ -237,12 +236,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             switch (currentToken.Kind())
             {
                 case SyntaxKind.CloseParenToken:
-                case SyntaxKind.OpenBracketToken:
                 case SyntaxKind.CloseBracketToken:
                 case SyntaxKind.CommaToken:
                 case SyntaxKind.DotToken:
                 case SyntaxKind.MinusGreaterThanToken:
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
+            // * [
+            if (currentToken.IsKind(SyntaxKind.OpenBracketToken) && !previousToken.IsOpenBraceOrCommaOfObjectInitializer())
+            {
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
             // case * :

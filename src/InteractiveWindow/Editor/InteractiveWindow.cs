@@ -527,12 +527,18 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             var caretLine = caretPosition.GetContainingLine();
             var indentation = _smartIndenterService.GetDesiredIndentation(_textView, caretLine);
 
-            if (indentation != null)
+            if (indentation.HasValue)
             {
+                var promptSpan = _projectionSpans[_promptLineMapping[_promptLineMapping.GetMappingIndexByLineNumber(caretLine.LineNumber)].Value];
+                Debug.Assert(promptSpan.Kind == ReplSpanKind.Prompt || promptSpan.Kind == ReplSpanKind.SecondaryPrompt || promptSpan.Kind == ReplSpanKind.StandardInputPrompt);
+                int promptLength = promptSpan.Length;
+                Debug.Assert(promptLength == 2 || promptLength == 0); // Not required, just expected.
+                var adjustedIndentationValue = indentation.GetValueOrDefault() - promptLength;
+
                 if (caretPosition == caretLine.End)
                 {
                     // create virtual space:
-                    _textView.Caret.MoveTo(new VirtualSnapshotPoint(caretPosition, indentation.Value));
+                    _textView.Caret.MoveTo(new VirtualSnapshotPoint(caretPosition, adjustedIndentationValue));
                 }
                 else
                 {
@@ -544,7 +550,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                     // insert whitespace indentation:
                     var options = _textView.Options;
-                    string whitespace = GetWhiteSpaceForVirtualSpace(indentation.Value, options.IsConvertTabsToSpacesEnabled() ? default(int?) : options.GetTabSize());
+                    string whitespace = GetWhiteSpaceForVirtualSpace(adjustedIndentationValue, options.IsConvertTabsToSpacesEnabled() ? default(int?) : options.GetTabSize());
                     _currentLanguageBuffer.Insert(langCaret.Value, whitespace);
                 }
             }

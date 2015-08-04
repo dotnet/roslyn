@@ -975,6 +975,30 @@ End Class
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Sub TriggerCharacterInComment01()
+            Dim markup = "
+Class C
+    Sub M(p As String)
+        M(',$$
+    End Sub
+End Class
+"
+            Test(markup, Enumerable.Empty(Of SignatureHelpTestItem)(), usePreviousCharAsTrigger:=True)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Sub TriggerCharacterInString01()
+            Dim markup = "
+Class C
+    Sub M(p As String)
+        M("",$$""
+    End Sub
+End Class
+"
+            Test(markup, Enumerable.Empty(Of SignatureHelpTestItem)(), usePreviousCharAsTrigger:=True)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestTriggerCharacters()
             Dim expectedTriggerCharacters() As Char = {","c, "("c}
             Dim unexpectedTriggerCharacters() As Char = {" "c, "["c, "<"c}
@@ -1848,6 +1872,28 @@ Class C
 End Class
 "
             Test(markup, SpecializedCollections.SingletonEnumerable(New SignatureHelpTestItem("C.Next()", String.Empty)))
+        End Sub
+
+        <WorkItem(4144, "https://github.com/dotnet/roslyn/issues/4144")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Sub TestSigHelpIsVisibleOnInaccessibleItem()
+            Dim markup = "
+Imports System.Collections.Generic
+
+Class A
+    Dim args As List(Of Integer)
+End Class
+
+Class B
+    Inherits A
+
+    Sub M()
+        args.Add($$
+    End Sub
+End Class
+"
+
+            Test(markup, {New SignatureHelpTestItem("List(Of Integer).Add(item As Integer)")})
         End Sub
     End Class
 End Namespace

@@ -6258,5 +6258,27 @@ class Program
 }";
             AssertFormat(code, code);
         }
+
+        [WorkItem(1184285)]
+        [WorkItem(4280, "https://github.com/dotnet/roslyn/issues/4280")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void FormatDictionaryInitializers()
+        {
+            var code = @"class Program
+{
+    void Main()
+    {
+        var sample = new Dictionary<string, string> {[""x""] = ""d""    ,[""z""]   =  ""XX"" };
+    }
+}";
+            var expected = @"class Program
+{
+    void Main()
+    {
+        var sample = new Dictionary<string, string> { [""x""] = ""d"", [""z""] = ""XX"" };
+    }
+}";
+            AssertFormat(expected, code);
+        }
     }
 }

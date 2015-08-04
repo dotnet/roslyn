@@ -1916,7 +1916,7 @@ class Driver
             CompileAndVerify(source, "0");
         }
 
-        [Fact(Skip = "1089468")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/4300")]
         public void Return07_2()
         {
             var source = @"

@@ -10,6 +10,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
     [Export(typeof(IInteractiveWindowEditorFactoryService))]
     internal class InteractiveWindowEditorsFactoryService : IInteractiveWindowEditorFactoryService
     {
+        public const string ContentType = "text";
+
         private readonly ITextBufferFactoryService _textBufferFactoryService;
         private readonly ITextEditorFactoryService _textEditorFactoryService;
         private readonly IContentTypeRegistryService _contentTypeRegistry;
@@ -33,7 +35,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             IContentType contentType;
             if (!window.Properties.TryGetProperty(typeof(IContentType), out contentType))
             {
-                contentType = _contentTypeRegistry.GetContentType("text");
+                contentType = _contentTypeRegistry.GetContentType(ContentType);
             }
 
             return _textBufferFactoryService.CreateTextBuffer(contentType);

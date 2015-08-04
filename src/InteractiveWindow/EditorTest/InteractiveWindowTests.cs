@@ -408,5 +408,64 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         {
             Task.Run(() => Window.Operations.Cancel()).PumpingWait();
         }
+
+        [WorkItem(4235, "https://github.com/dotnet/roslyn/issues/4235")]
+        [Fact]
+        public void TestIndentation1()
+        {
+            TestIndentation(indentSize: 1);
+        }
+
+        [WorkItem(4235, "https://github.com/dotnet/roslyn/issues/4235")]
+        [Fact]
+        public void TestIndentation2()
+        {
+            TestIndentation(indentSize: 2);
+        }
+
+        [WorkItem(4235, "https://github.com/dotnet/roslyn/issues/4235")]
+        [Fact]
+        public void TestIndentation3()
+        {
+            TestIndentation(indentSize: 3);
+        }
+
+        [WorkItem(4235, "https://github.com/dotnet/roslyn/issues/4235")]
+        [Fact]
+        public void TestIndentation4()
+        {
+            TestIndentation(indentSize: 4);
+        }
+
+        private void TestIndentation(int indentSize)
+        {
+            const int promptWidth = 2;
+
+            _testHost.ExportProvider.GetExport<TestSmartIndentProvider>().Value.SmartIndent = new TestSmartIndent(
+                promptWidth,
+                promptWidth + indentSize,
+                promptWidth
+            );
+
+            AssertCaretVirtualPosition(0, promptWidth);
+            Window.InsertCode("{");
+            AssertCaretVirtualPosition(0, promptWidth + 1);
+            Window.Operations.BreakLine();
+            AssertCaretVirtualPosition(1, promptWidth + indentSize);
+            Window.InsertCode("Console.WriteLine();");
+            Window.Operations.BreakLine();
+            AssertCaretVirtualPosition(2, promptWidth);
+            Window.InsertCode("}");
+            AssertCaretVirtualPosition(2, promptWidth + 1);
+        }
+
+        private void AssertCaretVirtualPosition(int expectedLine, int expectedColumn)
+        {
+            ITextSnapshotLine actualLine;
+            int actualColumn;
+            Window.TextView.Caret.Position.VirtualBufferPosition.GetLineAndColumn(out actualLine, out actualColumn);
+            Assert.Equal(expectedLine, actualLine.LineNumber);
+            Assert.Equal(expectedColumn, actualColumn);
+        }
     }
 }
