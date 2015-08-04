@@ -145,10 +145,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                         var snapshot = subjectBuffer.CurrentSnapshot;
                         var fullSpan = new SnapshotSpan(snapshot, start: 0, length: snapshot.Length);
                         var tagger = outliningTaggerProvider.CreateTagger<IOutliningRegionTag>(subjectBuffer);
+                        using (var disposable = tagger as IDisposable)
+                        {
+                            tagger.GetAllTags(new NormalizedSnapshotSpanCollection(fullSpan), CancellationToken.None);
 
-                        tagger.GetAllTags(new NormalizedSnapshotSpanCollection(fullSpan), CancellationToken.None);
-
-                        outliningManager.CollapseAll(fullSpan, c => c.Tag.IsImplementation);
+                            outliningManager.CollapseAll(fullSpan, c => c.Tag.IsImplementation);
+                        }
                     }
                     else
                     {
