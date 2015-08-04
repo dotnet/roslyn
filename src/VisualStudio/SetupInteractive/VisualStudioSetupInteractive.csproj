@@ -97,7 +97,7 @@
     <Content Include="CSharpInteractivePackageRegistration.pkgdef">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="VisualInteractiveBasicPackageRegistration.pkgdef">
+    <Content Include="VisualBasicInteractivePackageRegistration.pkgdef">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
   </ItemGroup>
