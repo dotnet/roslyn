@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         }
 
                         containsFullResult &= await TryGetDocumentDiagnosticsAsync(
-                            stateSet, StateType.Project, (t, d) => t.Equals(projectTextVersion) && d.Equals(semanticVersion), GetProjectDiagnosticsWorkerAsync).ConfigureAwait(false);
+                            stateSet, StateType.Project, (t, d) => t.Equals(projectTextVersion) && d.Equals(semanticVersion), GetProjectDiagnosticsAsync).ConfigureAwait(false);
                     }
 
                     // if we are blocked for data, then we should always have full result.
@@ -238,12 +238,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 StateSet stateSet, StateType stateType, Func<VersionStamp, VersionStamp, bool> versionCheck,
                 Func<DiagnosticAnalyzerDriver, DiagnosticAnalyzer, Task<IEnumerable<DiagnosticData>>> getDiagnostics)
             {
-                if (_spanBasedDriver.IsAnalyzerSuppressed(stateSet.Analyzer) || !(await ShouldRunAnalyzerForStateTypeAsync(stateSet, stateType).ConfigureAwait(false)))
+                if (_owner.Owner.IsAnalyzerSuppressed(stateSet.Analyzer, _document.Project) ||
+                    !ShouldRunAnalyzerForStateType(stateSet, stateType))
                 {
                     return true;
                 }
 
-                bool supportsSemanticInSpan = await stateSet.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysisAsync(_spanBasedDriver).ConfigureAwait(false);
+                bool supportsSemanticInSpan = stateSet.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis();
                 var analyzerDriver = GetAnalyzerDriverBasedOnStateType(stateType, supportsSemanticInSpan);
 
                 return await TryGetDocumentDiagnosticsAsync(stateSet, stateType, supportsSemanticInSpan, versionCheck, getDiagnostics, analyzerDriver).ConfigureAwait(false);
@@ -290,14 +291,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return true;
             }
 
-            private async Task<bool> ShouldRunAnalyzerForStateTypeAsync(StateSet stateSet, StateType stateType)
+            private bool ShouldRunAnalyzerForStateType(StateSet stateSet, StateType stateType)
             {
-                if (stateType == StateType.Project)
-                {
-                    return await DiagnosticIncrementalAnalyzer.ShouldRunAnalyzerForStateTypeAsync(_projectDriver, stateSet.Analyzer, stateType).ConfigureAwait(false);
-                }
-
-                return await DiagnosticIncrementalAnalyzer.ShouldRunAnalyzerForStateTypeAsync(_spanBasedDriver, stateSet.Analyzer, stateType).ConfigureAwait(false);
+                return DiagnosticIncrementalAnalyzer.ShouldRunAnalyzerForStateType(stateSet.Analyzer, stateType);
             }
 
             private bool BlockForData(StateType stateType, bool supportsSemanticInSpan)
@@ -321,11 +317,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             private DiagnosticAnalyzerDriver GetAnalyzerDriverBasedOnStateType(StateType stateType, bool supportsSemanticInSpan)
             {
                 return stateType == StateType.Project ? _projectDriver : supportsSemanticInSpan ? _spanBasedDriver : _documentBasedDriver;
-            }
-
-            private Task<IEnumerable<DiagnosticData>> GetProjectDiagnosticsWorkerAsync(DiagnosticAnalyzerDriver driver, DiagnosticAnalyzer analyzer)
-            {
-                return GetProjectDiagnosticsAsync(driver, analyzer, _owner.ForceAnalyzeAllDocuments);
             }
         }
     }

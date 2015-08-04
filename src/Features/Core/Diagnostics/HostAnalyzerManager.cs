@@ -8,6 +8,8 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -72,6 +74,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableDictionary<DiagnosticAnalyzer, HashSet<string>> _compilerDiagnosticAnalyzerDescriptorMap;
 
         /// <summary>
+        /// Map from project to <see cref="CompilationWithAnalyzers"/> instance to be used for computing analyzer diagnostics.
+        /// </summary>
+        private readonly ConditionalWeakTable<Project, CompilationWithAnalyzers> _compilationWithAnalyzersMap;
+
+        /// <summary>
         /// Loader for VSIX-based analyzers.
         /// </summary>
         private static readonly IAnalyzerAssemblyLoader s_assemblyLoader = new LoadContextAssemblyLoader();
@@ -99,6 +106,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _compilerDiagnosticAnalyzerMap = ImmutableDictionary<string, DiagnosticAnalyzer>.Empty;
             _compilerDiagnosticAnalyzerDescriptorMap = ImmutableDictionary<DiagnosticAnalyzer, HashSet<string>>.Empty;
             _hostDiagnosticAnalyzerPackageNameMap = ImmutableDictionary<DiagnosticAnalyzer, string>.Empty;
+            _compilationWithAnalyzersMap = new ConditionalWeakTable<Project, CompilationWithAnalyzers>();
 
             DiagnosticAnalyzerLogger.LogWorkspaceAnalyzers(hostAnalyzerReferences);
         }
@@ -129,8 +137,41 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer)
         {
-            var analyzerExecutor = AnalyzerHelper.GetAnalyzerExecutorForSupportedDiagnostics(analyzer, _hostDiagnosticUpdateSource);
-            return AnalyzerManager.Instance.GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
+            ImmutableArray<DiagnosticDescriptor> descriptors;
+            try
+            {
+                // SupportedDiagnostics is user code and can throw an exception.
+                descriptors = analyzer.SupportedDiagnostics;
+                if (descriptors.IsDefault)
+                {
+                    descriptors = ImmutableArray<DiagnosticDescriptor>.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                AnalyzerHelper.OnAnalyzerExceptionForSupportedDiagnostics(analyzer, ex, _hostDiagnosticUpdateSource);
+                descriptors = ImmutableArray<DiagnosticDescriptor>.Empty;
+            }
+
+            return descriptors;
+        }
+
+        /// <summary>
+        /// Return true if the given <paramref name="analyzer"/> is suppressed for the given project.
+        /// </summary>
+        public bool IsAnalyzerSuppressed(DiagnosticAnalyzer analyzer, Project project)
+        {
+            var options = project.CompilationOptions;
+            if (options == null)
+            {
+                return false;
+            }
+
+            // Skip telemetry logging for supported diagnostics, as that can cause an infinite loop.
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = (ex, a, diagnostic) =>
+                    AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(ex, a, diagnostic, _hostDiagnosticUpdateSource, project.Id);
+
+            return CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, options, onAnalyzerException);
         }
 
         /// <summary>
@@ -146,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public ImmutableDictionary<object, ImmutableArray<DiagnosticDescriptor>> GetHostDiagnosticDescriptorsPerReference()
         {
-            return CreateDiagnosticDescriptorsPerReference(_lazyHostDiagnosticAnalyzersPerReferenceMap.Value);
+            return CreateDiagnosticDescriptorsPerReference(_lazyHostDiagnosticAnalyzersPerReferenceMap.Value, projectOpt: null);
         }
 
         /// <summary>
@@ -154,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public ImmutableDictionary<object, ImmutableArray<DiagnosticDescriptor>> CreateDiagnosticDescriptorsPerReference(Project project)
         {
-            return CreateDiagnosticDescriptorsPerReference(CreateDiagnosticAnalyzersPerReference(project));
+            return CreateDiagnosticDescriptorsPerReference(CreateDiagnosticAnalyzersPerReference(project), project);
         }
 
         /// <summary>
@@ -255,7 +296,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private ImmutableDictionary<object, ImmutableArray<DiagnosticDescriptor>> CreateDiagnosticDescriptorsPerReference(
-            ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> analyzersMap)
+            ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> analyzersMap,
+            Project projectOpt)
         {
             var builder = ImmutableDictionary.CreateBuilder<object, ImmutableArray<DiagnosticDescriptor>>();
             foreach (var kv in analyzersMap)
@@ -456,6 +498,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return current;
+        }
+
+        internal CompilationWithAnalyzers GetOrCreateCompilationWithAnalyzers(Project project, ConditionalWeakTable<Project, CompilationWithAnalyzers>.CreateValueCallback createCompilationWithAnalyzers)
+        {
+            Contract.ThrowIfFalse(project.SupportsCompilation);
+            return _compilationWithAnalyzersMap.GetValue(project, createCompilationWithAnalyzers);
+        }
+
+        internal void DisposeCompilationWithAnalyzers(Project project)
+        {
+            if (project.SupportsCompilation)
+            {
+                _compilationWithAnalyzersMap.Remove(project);
+            }
         }
 
         private class LoadContextAssemblyLoader : IAnalyzerAssemblyLoader

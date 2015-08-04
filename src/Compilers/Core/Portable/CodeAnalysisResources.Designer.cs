@@ -333,6 +333,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Argument contains duplicate analyzer instances..
+        /// </summary>
+        internal static string DuplicateAnalyzerInstances {
+            get {
+                return ResourceManager.GetString("DuplicateAnalyzerInstances", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Empty or invalid file name.
         /// </summary>
         internal static string EmptyOrInvalidFileName {
@@ -608,6 +617,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string InvalidSizeOfPublicKeyToken {
             get {
                 return ResourceManager.GetString("InvalidSizeOfPublicKeyToken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Syntax tree doesn&apos;t belong to the underlying &apos;Compilation&apos;..
+        /// </summary>
+        internal static string InvalidTree {
+            get {
+                return ResourceManager.GetString("InvalidTree", resourceCulture);
             }
         }
         
@@ -1040,6 +1058,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Unresolved {
             get {
                 return ResourceManager.GetString("Unresolved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Argument contains an analyzer instance that does not belong to the &apos;Analyzers&apos; for this CompilationWithAnalyzers instance..
+        /// </summary>
+        internal static string UnsupportedAnalyzerInstance {
+            get {
+                return ResourceManager.GetString("UnsupportedAnalyzerInstance", resourceCulture);
             }
         }
         

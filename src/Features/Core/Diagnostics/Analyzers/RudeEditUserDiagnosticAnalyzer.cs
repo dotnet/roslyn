@@ -62,5 +62,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 throw ExceptionUtilities.Unreachable;
             }
         }
+        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
+        {
+            return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+        }
     }
 }

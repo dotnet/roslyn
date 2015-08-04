@@ -418,7 +418,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     cancellationToken.ThrowIfCancellationRequested()
 
                     Dim reference = decl.SyntaxReference
-                    If reference IsNot Nothing Then
+                    If reference IsNot Nothing AndAlso reference.SyntaxTree Is tree Then
                         If Not reference.SyntaxTree.IsEmbeddedOrMyTemplateTree() Then
                             Dim syntaxRef = New NamespaceDeclarationSyntaxReference(reference)
                             Dim syntax = syntaxRef.GetSyntax(cancellationToken)

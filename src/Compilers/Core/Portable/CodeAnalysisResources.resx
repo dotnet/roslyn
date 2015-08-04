@@ -460,4 +460,13 @@
   <data name="NoAnalyzersFound" xml:space="preserve">
     <value>No analyzers found</value>
   </data>
+  <data name="DuplicateAnalyzerInstances" xml:space="preserve">
+    <value>Argument contains duplicate analyzer instances.</value>
+  </data>
+  <data name="UnsupportedAnalyzerInstance" xml:space="preserve">
+    <value>Argument contains an analyzer instance that does not belong to the 'Analyzers' for this CompilationWithAnalyzers instance.</value>
+  </data>
+  <data name="InvalidTree" xml:space="preserve">
+    <value>Syntax tree doesn't belong to the underlying 'Compilation'.</value>
+  </data>
 </root>
