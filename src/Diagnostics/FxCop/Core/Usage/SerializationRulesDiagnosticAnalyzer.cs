@@ -97,7 +97,13 @@ namespace Microsoft.AnalyzerPowerPack.Usage
                         return;
                     }
 
-                    context.RegisterSymbolAction(new Analyzer(iserializableTypeSymbol, serializationInfoTypeSymbol, streamingContextTypeSymbol, serializableAttributeTypeSymbol).AnalyzeSymbol, SymbolKind.NamedType);
+                    var stringSymbol = context.Compilation.GetTypeByMetadataName("System.String");
+                    if (stringSymbol == null)
+                    {
+                        return;
+                    }
+
+                    context.RegisterSymbolAction(new Analyzer(iserializableTypeSymbol, serializationInfoTypeSymbol, streamingContextTypeSymbol, serializableAttributeTypeSymbol, stringSymbol).AnalyzeSymbol, SymbolKind.NamedType);
                 });
         }
 
@@ -107,17 +113,15 @@ namespace Microsoft.AnalyzerPowerPack.Usage
             private readonly INamedTypeSymbol _serializationInfoTypeSymbol;
             private readonly INamedTypeSymbol _streamingContextTypeSymbol;
             private readonly INamedTypeSymbol _serializableAttributeTypeSymbol;
+            private readonly INamedTypeSymbol _stringSymbol;
 
-            public Analyzer(
-                INamedTypeSymbol iserializableTypeSymbol,
-                INamedTypeSymbol serializationInfoTypeSymbol,
-                INamedTypeSymbol streamingContextTypeSymbol,
-                INamedTypeSymbol serializableAttributeTypeSymbol)
+            public Analyzer(INamedTypeSymbol iserializableTypeSymbol, INamedTypeSymbol serializationInfoTypeSymbol, INamedTypeSymbol streamingContextTypeSymbol, INamedTypeSymbol serializableAttributeTypeSymbol, INamedTypeSymbol stringSymbol)
             {
                 _iserializableTypeSymbol = iserializableTypeSymbol;
                 _serializationInfoTypeSymbol = serializationInfoTypeSymbol;
                 _streamingContextTypeSymbol = streamingContextTypeSymbol;
                 _serializableAttributeTypeSymbol = serializableAttributeTypeSymbol;
+                _stringSymbol = stringSymbol;
             }
 
             public void AnalyzeSymbol(SymbolAnalysisContext context)
@@ -186,7 +190,9 @@ namespace Microsoft.AnalyzerPowerPack.Usage
 
             private bool IsSerializable(ITypeSymbol namedTypeSymbol)
             {
-                return namedTypeSymbol.GetAttributes().Any(a => a.AttributeClass == _serializableAttributeTypeSymbol);
+                return namedTypeSymbol.IsValueType ||
+                    namedTypeSymbol.Equals(_stringSymbol) ||
+                    namedTypeSymbol.GetAttributes().Any(a => a.AttributeClass == _serializableAttributeTypeSymbol);
             }
         }
     }
