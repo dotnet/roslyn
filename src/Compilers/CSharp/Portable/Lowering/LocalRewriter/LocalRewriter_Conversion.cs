@@ -554,11 +554,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                         @checked);
                 }
 
+                TypeSymbol userDefinedConversionRewrittenType = conversion.Method.ReturnType;
+
+                if (rewrittenOperand.Type != conversion.Method.ParameterTypes[0])
+                {
+                    Debug.Assert(rewrittenOperand.Type.IsNullableType());
+                    Debug.Assert(rewrittenOperand.Type.GetNullableUnderlyingType() == conversion.Method.ParameterTypes[0]);
+                    Debug.Assert(!userDefinedConversionRewrittenType.IsNullableType());
+
+                    // Lifted conversion, wrap return type in Nullable
+                    userDefinedConversionRewrittenType = ((NamedTypeSymbol)rewrittenOperand.Type.OriginalDefinition).Construct(userDefinedConversionRewrittenType);
+                }
+
                 BoundExpression userDefined = RewriteUserDefinedConversion(
                     syntax,
                     rewrittenOperand,
                     conversion.Method,
-                    conversion.Method.ReturnType,
+                    userDefinedConversionRewrittenType,
                     conversion.Kind);
 
                 if (userDefined.Type != conversion.BestUserDefinedConversionAnalysis.ToType)
