@@ -28,8 +28,8 @@
       <PerfVerifyLightBulb Text="IClrRuntimeInfo" ScenarioGroup="Basic LightBulb" TimeGoal="0.1" MemoryGoal="0.9" />
       <PerfStopEtwListener/>
 
-      <VerifyRoslynModulesLoadedStatus ExpectedStatus="NoCSharp" />
-      <VerifyRoslynModulesLoadedStatus ExpectedStatus="Basic" />
+      <!-- <VerifyRoslynModulesLoadedStatus ExpectedStatus="NoCSharp" /> -->
+      <!-- <VerifyRoslynModulesLoadedStatus ExpectedStatus="Basic" /> -->
     </Scenario>
 
   </ScenarioList>
