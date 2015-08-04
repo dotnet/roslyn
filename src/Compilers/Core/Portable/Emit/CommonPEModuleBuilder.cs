@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// we have a custom version of ConcurrentQueue that detects attempted concurrent adds.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        public class ConcurrentQueue<T> : System.Collections.Concurrent.ConcurrentQueue<T>
+        private class ConcurrentQueue<T> : System.Collections.Concurrent.ConcurrentQueue<T>
         {
             // A count of the number of concurrent queue operations in progress. Should always be zero or one,
             // as synthetic members should be added by the compiler to a given type in a well-defined sequential
@@ -323,14 +323,7 @@ namespace Microsoft.CodeAnalysis.Emit
             int queueing;
 
             // A short delay to increase the chance that concurrent Enqueue operation will be diagnosed.
-            static TimeSpan shortDelay = new TimeSpan(ticks: ShouldDelay() ? 2 : 0);
-
-            // The delay is set to change to zero after October 2015, when this whole class should be removed.
-            static bool ShouldDelay()
-            {
-                DateTime today = new DateTime();
-                return today.Year <= 2015 && today.Month <= 10;
-            }
+            static TimeSpan shortDelay = new TimeSpan(2);
 
             /// <summary>
             ///     Adds an object to the end of the ConcurrentQueue.
