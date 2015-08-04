@@ -1559,6 +1559,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IdentifierName:
                     eventSyntax = syntax;
                     break;
+                case SyntaxKind.MemberBindingExpression:
+                    eventSyntax = ((MemberBindingExpressionSyntax)syntax).Name;
+                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
             }
