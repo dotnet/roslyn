@@ -288,13 +288,9 @@
     <Compile Include="Extensibility\SignatureHelp\SignatureHelpParameter.cs" />
     <Compile Include="Extensibility\SignatureHelp\SignatureHelpTriggerInfo.cs" />
     <Compile Include="Extensibility\SignatureHelp\SignatureHelpTriggerReason.cs" />
-    <Compile Include="Extensibility\TaskList\AbstractTaskItem.cs" />
-    <Compile Include="Extensibility\TaskList\IErrorTaskItem.cs" />
-    <Compile Include="Extensibility\TaskList\ITaskItem.cs" />
-    <Compile Include="Extensibility\TaskList\ITodoListProvider.cs" />
-    <Compile Include="Extensibility\TaskList\PredefinedTaskItemTypes.cs" />
-    <Compile Include="Extensibility\TaskList\TaskItem.cs" />
-    <Compile Include="Extensibility\TaskList\TaskListEventArgs.cs" />
+    <Compile Include="Implementation\TodoComment\ITodoListProvider.cs" />
+    <Compile Include="Implementation\TodoComment\TodoItem.cs" />
+    <Compile Include="Implementation\TodoComment\TodoListEventArgs.cs" />
     <Compile Include="Host\ICallHierarchyPresenter.cs" />
     <Compile Include="Host\IPreviewPaneService.cs" />
     <Compile Include="Host\INavigableItemsPresenter.cs" />
@@ -659,7 +655,6 @@
     <Compile Include="Implementation\TodoComment\TodoCommentOptions.cs" />
     <Compile Include="Implementation\TodoComment\TodoCommentState.cs" />
     <Compile Include="Implementation\TodoComment\TodoCommentTokens.cs" />
-    <Compile Include="Implementation\TodoComment\TodoTaskItem.cs" />
     <Compile Include="Implementation\Workspaces\EditorErrorReportingService.cs" />
     <Compile Include="Implementation\Workspaces\EditorErrorReportingServiceFactory.cs" />
     <Compile Include="Implementation\Workspaces\ProjectCacheServiceFactory.cs" />
@@ -690,7 +685,6 @@
     <Compile Include="Options\NavigationBarOptions.cs" />
     <Compile Include="Options\SignatureHelpOptions.cs" />
     <Compile Include="Shared\SuggestionSupport\DefaultDocumentSupportsSuggestionService.cs" />
-    <Compile Include="Shared\Diagnostics\DiagnosticTaskItem.cs" />
     <Compile Include="Shared\Extensions\DependencyObjectExtensions.cs" />
     <Compile Include="Shared\Extensions\GlyphExtensions.cs" />
     <Compile Include="Shared\Extensions\IBraceMatchingServiceExtensions.cs" />
