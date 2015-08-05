@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -234,31 +235,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return true;
-        }
-
-        public ImmutableDictionary<object, ImmutableArray<DiagnosticData>> GetEngineCachedDiagnostics(DocumentId documentId)
-        {
-            lock (_gate)
-            {
-                var builder = ImmutableDictionary.CreateBuilder<object, ImmutableArray<DiagnosticData>>();
-                foreach (var diagnosticMap in _map.Values)
-                {
-                    foreach (var kv in diagnosticMap)
-                    {
-                        var key = kv.Key;
-                        var data = kv.Value;
-
-                        if (documentId != data.DocumentId || data.Diagnostics.Length == 0)
-                        {
-                            continue;
-                        }
-
-                        builder.Add(key, data.Diagnostics);
-                    }
-                }
-
-                return builder.ToImmutable();
-            }
         }
 
         private struct Data : IEquatable<Data>

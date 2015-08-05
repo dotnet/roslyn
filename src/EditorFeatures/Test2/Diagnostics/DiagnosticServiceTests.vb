@@ -482,7 +482,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 diagnostics = exceptionDiagnosticsSource.TestOnly_GetReportedDiagnostics(analyzer)
                 Assert.Equal(1, diagnostics.Count())
                 Dim diagnostic = diagnostics.First()
-                Assert.True(AnalyzerExecutor.IsAnalyzerExceptionDiagnostic(diagnostic.ToDiagnostic(document.GetSyntaxTreeAsync().Result)))
+                Assert.True(diagnostic.Id = "AD0001")
                 Assert.Contains("CodeBlockStartedAnalyzer", diagnostic.Message, StringComparison.Ordinal)
             End Using
         End Sub
@@ -794,6 +794,8 @@ class AnonymousFunctions
 
             Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
+
+                ' Test partial type diagnostic reported on user file.
                 Dim analyzer = New PartialTypeDiagnosticAnalyzer(indexOfDeclToReportDiagnostic:=1)
                 Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
                 project = project.AddAnalyzerReference(analyzerReference)
@@ -810,6 +812,52 @@ class AnonymousFunctions
                 Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(1, diagnostics.Count())
                 Assert.Equal(PartialTypeDiagnosticAnalyzer.DiagDescriptor.Id, diagnostics.Single().Id)
+            End Using
+        End Sub
+
+        <Fact, WorkItem(1042914), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        Public Sub TestDiagnosticsReportedOnAllPartialDefinitions()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document FilePath="Test1.cs">
+                                   public partial class Foo { }
+                               </Document>
+                               <Document FilePath="Test2.cs">
+                                   public partial class Foo { }
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+                Dim project = workspace.CurrentSolution.Projects.Single()
+
+                ' Test partial type diagnostic reported on all source files.
+                Dim analyzer = New PartialTypeDiagnosticAnalyzer(indexOfDeclToReportDiagnostic:=Nothing)
+                Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+
+                Dim diagnosticService = New TestDiagnosticAnalyzerService()
+
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
+                Assert.Equal(1, descriptorsMap.Count)
+
+                ' Verify project diagnostics contains diagnostics reported on both partial definitions.
+                Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+                Dim diagnostics = diagnosticService.GetDiagnosticsAsync(project.Solution, project.Id).WaitAndGetResult(CancellationToken.None)
+                Assert.Equal(2, diagnostics.Count())
+                Dim file1HasDiag = False, file2HasDiag = False
+                For Each diagnostic In diagnostics
+                    Assert.Equal(PartialTypeDiagnosticAnalyzer.DiagDescriptor.Id, diagnostic.Id)
+                    Dim document = project.GetDocument(diagnostic.DocumentId)
+                    If document.Name = "Test1.cs" Then
+                        file1HasDiag = True
+                    ElseIf document.Name = "Test2.cs"
+                        file2HasDiag = True
+                    End If
+                Next
+
+                Assert.True(file1HasDiag)
+                Assert.True(file2HasDiag)
             End Using
         End Sub
 
@@ -1228,8 +1276,8 @@ public class B
         Private Class PartialTypeDiagnosticAnalyzer
             Inherits DiagnosticAnalyzer
 
-            Private ReadOnly _indexOfDeclToReportDiagnostic As Integer
-            Public Sub New(indexOfDeclToReportDiagnostic As Integer)
+            Private ReadOnly _indexOfDeclToReportDiagnostic As Integer?
+            Public Sub New(indexOfDeclToReportDiagnostic As Integer?)
                 Me._indexOfDeclToReportDiagnostic = indexOfDeclToReportDiagnostic
             End Sub
 
@@ -1246,7 +1294,15 @@ public class B
             End Sub
 
             Private Sub AnalyzeSymbol(context As SymbolAnalysisContext)
-                context.ReportDiagnostic(Diagnostic.Create(DiagDescriptor, context.Symbol.Locations.ElementAt(Me._indexOfDeclToReportDiagnostic)))
+                Dim index = 0
+                For Each location In context.Symbol.Locations
+                    If Not Me._indexOfDeclToReportDiagnostic.HasValue OrElse Me._indexOfDeclToReportDiagnostic.Value = index Then
+                        context.ReportDiagnostic(Diagnostic.Create(DiagDescriptor, location))
+                    End If
+
+                    index += 1
+                Next
+
             End Sub
         End Class
 
@@ -1684,6 +1740,44 @@ namespace ConsoleApplication1
             ' Ensure that adding a dummy analyzer with no actions doesn't bring down entire analysis.
             ' See https//github.com/dotnet/roslyn/issues/2980 for details.
             TestGenericNameCore(test, CSharpGenericNameAnalyzer.Message, CSharpGenericNameAnalyzer.DiagnosticId, New AnalyzerWithNoActions, New CSharpGenericNameAnalyzer)
+        End Sub
+
+        <Fact, WorkItem(4055, "https://github.com/dotnet/roslyn/issues/4055")>
+        Public Sub TestAnalyzerWithNoSupportedDiagnostics()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document><![CDATA[
+class MyClass
+{
+}]]>
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            ' Ensure that adding a dummy analyzer with no supported diagnostics doesn't bring down entire analysis.
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+                Dim project = workspace.CurrentSolution.Projects.Single()
+
+                ' Add analyzer
+                Dim analyzer = New AnalyzerWithNoSupportedDiagnostics()
+                Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+
+                Dim diagnosticService = New TestDiagnosticAnalyzerService()
+                Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+
+                ' Verify available diagnostic descriptors/analyzers
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
+                Assert.Equal(1, descriptorsMap.Count)
+                Assert.Equal(0, descriptorsMap.First().Value.Length)
+
+                Dim document = project.Documents.Single()
+                Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document,
+                    document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan,
+                    CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+
+                Assert.Equal(0, diagnostics.Count())
+            End Using
         End Sub
     End Class
 End Namespace

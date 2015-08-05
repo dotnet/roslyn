@@ -1415,7 +1415,7 @@ class C
                         new Lazy<IAsynchronousOperationListener, FeatureMetadata>(
                         () => waiter, new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", FeatureAttribute.Classification } }))));
 
-                using (var tagger = (AsynchronousTagger<IClassificationTag>)provider.CreateTagger<IClassificationTag>(extraBuffer))
+                using (var tagger = (IDisposable)provider.CreateTagger<IClassificationTag>(extraBuffer))
                 {
                     using (var edit = extraBuffer.CreateEdit())
                     {

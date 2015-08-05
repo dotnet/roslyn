@@ -226,11 +226,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             return Owner?.GetOnAnalyzerException(projectId, DiagnosticLogAggregator);
         }
-
-        // internal for testing purposes.
-        internal Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException_NoTelemetryLogging(ProjectId projectId)
-        {
-            return Owner?.GetOnAnalyzerException_NoTelemetryLogging(projectId);
-        }
     }
 }

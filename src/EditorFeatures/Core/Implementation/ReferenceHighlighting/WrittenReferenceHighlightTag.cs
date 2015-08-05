@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 {
-    internal class WrittenReferenceHighlightTag : AbstractNavigatableReferenceHighlightingTag
+    internal class WrittenReferenceHighlightTag : NavigableHighlightTag
     {
         internal const string TagId = "MarkerFormatDefinition/HighlightedWrittenReference";
 

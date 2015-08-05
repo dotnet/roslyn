@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -136,32 +137,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 {
                     // We need to get our outlining tag source to notify it to start blocking
                     var outliningTaggerProvider = this.Package.ComponentModel.GetService<OutliningTaggerProvider>();
-                    ProducerPopulatedTagSource<IOutliningRegionTag> tagSource;
-                    if (outliningTaggerProvider.TryRetrieveTagSource(wpfTextView, wpfTextView.TextBuffer, out tagSource))
-                    {
-                        tagSource.ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted = true;
 
-                        try
+                    // If this file is a metadata-from-source file, we want to force-collapse
+                    if (isOpenMetadataAsSource)
+                    {
+                        var subjectBuffer = wpfTextView.TextBuffer;
+                        var snapshot = subjectBuffer.CurrentSnapshot;
+                        var fullSpan = new SnapshotSpan(snapshot, start: 0, length: snapshot.Length);
+                        var tagger = outliningTaggerProvider.CreateTagger<IOutliningRegionTag>(subjectBuffer);
+                        using (var disposable = tagger as IDisposable)
                         {
-                            // If this file is a metadata-from-source file, we want to force-collapse
-                            if (isOpenMetadataAsSource)
-                            {
-                                outliningManager.CollapseAll(new SnapshotSpan(wpfTextView.TextBuffer.CurrentSnapshot,
-                                                                              start: 0,
-                                                                              length: wpfTextView.TextBuffer.CurrentSnapshot.Length),
-                                                             c => c.Tag.IsImplementation);
-                            }
-                            else
-                            {
-                                // Set the initial outlining state by reading from the suo file, this operation requires
-                                // us to synchronously compute the outlining region tags.
-                                viewEx.PersistOutliningState();
-                            }
+                            tagger.GetAllTags(new NormalizedSnapshotSpanCollection(fullSpan), CancellationToken.None);
+
+                            outliningManager.CollapseAll(fullSpan, c => c.Tag.IsImplementation);
                         }
-                        finally
-                        {
-                            tagSource.ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted = false;
-                        }
+                    }
+                    else
+                    {
+                        // Set the initial outlining state by reading from the suo file, this operation requires
+                        // us to synchronously compute the outlining region tags.
+                        viewEx.PersistOutliningState();
                     }
                 }
             }

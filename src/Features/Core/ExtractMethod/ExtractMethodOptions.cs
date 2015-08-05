@@ -8,13 +8,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     {
         public const string FeatureName = "ExtractMethod";
 
-        [ExportOption]
         public static readonly PerLanguageOption<bool> AllowBestEffort = new PerLanguageOption<bool>(FeatureName, "Allow Best Effort", defaultValue: false);
-
-        [ExportOption]
         public static readonly PerLanguageOption<bool> DontPutOutOrRefOnStruct = new PerLanguageOption<bool>(FeatureName, "Don't Put Out Or Ref On Strcut", defaultValue: true);
-
-        [ExportOption]
         public static readonly PerLanguageOption<bool> AllowMovingDeclaration = new PerLanguageOption<bool>(FeatureName, "Allow Moving Declaration", defaultValue: false);
     }
 }

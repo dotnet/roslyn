@@ -41,6 +41,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             public event EventHandler<ProjectAnalyzerReferenceChangedEventArgs> ProjectAnalyzerReferenceChanged;
 
             /// <summary>
+            /// Return <see cref="DiagnosticAnalyzer"/>s for the given <see cref="Project"/>.
+            /// </summary>
+            public IEnumerable<DiagnosticAnalyzer> GetAnalyzers(Project project)
+            {
+                return _hostStates.GetAnalyzers(project.Language).Concat(_projectStates.GetAnalyzers(project));
+            }
+
+            /// <summary>
             /// Return <see cref="StateSet"/>s for the given <see cref="ProjectId"/>. 
             /// This will never create new <see cref="StateSet"/> but will return ones already created.
             /// </summary>
@@ -170,7 +178,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     {
                         var state = stateSet.GetState((StateType)i);
 
-                        Contract.Requires(set.Add(ValueTuple.Create(state.Language, state.Name)));
+                        if (!(set.Add(ValueTuple.Create(state.Language, state.Name))))
+                        {
+                            Contract.Fail();
+                        }
                     }
                 }
             }

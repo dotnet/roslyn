@@ -49,6 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                      SyntaxKind.DecimalLiteralToken,
                      SyntaxKind.FloatingLiteralToken,
                      SyntaxKind.IntegerLiteralToken,
+                     SyntaxKind.InterpolatedStringTextToken,
                      SyntaxKind.StringLiteralToken
                     Return String.Equals(DirectCast(before, Green.SyntaxToken).Text,
                                          DirectCast(after, Green.SyntaxToken).Text,

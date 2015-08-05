@@ -58,6 +58,12 @@ namespace Roslyn.Utilities
             Touch(SearchOption.Type);
             Touch(Thread.Type);
             Touch(XPath.Extensions.Type);
+            Touch(HashAlgorithm.Type);
+            Touch(SHA1.Type);
+            Touch(SHA256.Type);
+            Touch(SHA512.Type);
+            Touch(SHA384.Type);
+            Touch(MD5.Type);
         }
 
         private static void Touch(Type type)
@@ -70,11 +76,13 @@ namespace Roslyn.Utilities
             internal const string System_Diagnostics_FileVersionInfo = "System.Diagnostics.FileVersionInfo, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
             internal const string System_IO_FileSystem = "System.IO.FileSystem, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
             internal const string System_IO_FileSystem_Primitives = "System.IO.FileSystem.Primitives, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
+            internal const string System_Reflection = "System.Reflection, Version=4.0.10.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
             internal const string System_Runtime = "System.Runtime, Version=4.0.20.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
             internal const string System_Runtime_Extensions = "System.Runtime.Extensions, Version=4.0.10.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
+            internal const string System_Security_Cryptography_Primitives = "System.Security.Cryptography.Primitives, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
+            internal const string System_Security_Cryptography_Algorithms = "System.Security.Cryptography.Algorithms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
             internal const string System_Threading_Thread = "System.Threading.Thread, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
             internal const string System_Xml_XPath_XDocument = "System.Xml.XPath.XDocument, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
-            internal const string System_Reflection = "System.Reflection, Version=4.0.10.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
         }
 
         private static class DesktopNames
@@ -477,6 +485,112 @@ namespace Roslyn.Utilities
                 .GetTypeInfo()
                 .GetDeclaredMethod("GetType", typeof(string), typeof(bool), typeof(bool))
                 .CreateDelegate<Func<System.Reflection.Assembly, string, bool, bool, Type>>();
+        }
+
+        internal static class HashAlgorithm
+        {
+            private const string TypeName = "System.Security.Cryptography.HashAlgorithm";
+
+            internal static readonly Type Type = ReflectionUtilities.GetTypeFromEither(
+                contractName: $"{TypeName}, {CoreNames.System_Security_Cryptography_Primitives}",
+                desktopName: TypeName);
+
+            private static readonly MethodInfo s_computeHash_byte = Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(ComputeHash), new[] { typeof(byte[]) });
+
+            private static readonly MethodInfo s_computeHash_byte_int_int = Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(ComputeHash), new[] { typeof(byte[]), typeof(int), typeof(int) });
+
+            private static readonly MethodInfo s_computeHash_stream = Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(ComputeHash), new[] { typeof(Stream) });
+
+            internal static byte[] ComputeHash(object hashInstance, byte[] buffer)
+            {
+                return (byte[])s_computeHash_byte.Invoke(hashInstance, new object[] { buffer });
+            }
+
+            internal static byte[] ComputeHash(object hashInstance, byte[] buffer, int offset, int count)
+            {
+                return (byte[])s_computeHash_byte_int_int.Invoke(hashInstance, new object[] { buffer, offset, count });
+            }
+
+            internal static byte[] ComputeHash(object hashInstance, Stream inputStream)
+            {
+                return (byte[])s_computeHash_stream.Invoke(hashInstance, new object[] { inputStream });
+            }
+        }
+
+        internal static class SHA1
+        {
+            private const string TypeName = "System.Security.Cryptography.SHA1";
+
+            internal static readonly Type Type = ReflectionUtilities.GetTypeFromEither(
+                contractName: $"{TypeName}, {CoreNames.System_Security_Cryptography_Algorithms}",
+                desktopName: TypeName);
+
+            internal static readonly Func<IDisposable> Create = Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(Create), new Type[] { })
+                .CreateDelegate<Func<IDisposable>>();
+        }
+
+        internal static class SHA256
+        {
+            private const string TypeName = "System.Security.Cryptography.SHA256";
+
+            internal static readonly Type Type = ReflectionUtilities.GetTypeFromEither(
+                contractName: $"{TypeName}, {CoreNames.System_Security_Cryptography_Algorithms}",
+                desktopName: TypeName);
+
+            internal static readonly Func<IDisposable> Create = Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(Create), new Type[] { })
+                .CreateDelegate<Func<IDisposable>>();
+        }
+
+        internal static class SHA384
+        {
+            private const string TypeName = "System.Security.Cryptography.SHA384";
+
+            internal static readonly Type Type = ReflectionUtilities.GetTypeFromEither(
+                contractName: $"{TypeName}, {CoreNames.System_Security_Cryptography_Algorithms}",
+                desktopName: TypeName);
+
+            internal static readonly Func<IDisposable> Create = Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(Create), new Type[] { })
+                .CreateDelegate<Func<IDisposable>>();
+        }
+
+        internal static class SHA512
+        {
+            private const string TypeName = "System.Security.Cryptography.SHA512";
+
+            internal static readonly Type Type = ReflectionUtilities.GetTypeFromEither(
+                contractName: $"{TypeName}, {CoreNames.System_Security_Cryptography_Algorithms}",
+                desktopName: TypeName);
+
+            internal static readonly Func<IDisposable> Create = Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(Create), new Type[] { })
+                .CreateDelegate<Func<IDisposable>>();
+        }
+
+        internal static class MD5
+        {
+            private const string TypeName = "System.Security.Cryptography.MD5";
+
+            internal static readonly Type Type = ReflectionUtilities.GetTypeFromEither(
+                contractName: $"{TypeName}, {CoreNames.System_Security_Cryptography_Algorithms}",
+                desktopName: TypeName);
+
+            internal static readonly Func<IDisposable> Create = Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(Create), new Type[] { })
+                .CreateDelegate<Func<IDisposable>>();
         }
     }
 }

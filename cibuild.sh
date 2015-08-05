@@ -13,6 +13,7 @@ usage()
 XUNIT_VERSION=2.0.0-alpha-build2576
 BUILD_CONFIGURATION=Debug
 OS_NAME=$(uname -s)
+USE_CACHE=true
 
 while [[ $# > 0 ]]
 do
@@ -36,6 +37,10 @@ do
         ;;
         --release)
         BUILD_CONFIGURATION=Release
+        shift 1
+        ;;
+        --nocache)
+        USE_CACHE=false
         shift 1
         ;;
         *)
@@ -128,13 +133,16 @@ install_mono_toolset()
     TARGET=/tmp/$1
     echo "Installing Mono toolset $1"
     if [ -d $TARGET ]; then
-        echo "Already installed"
-        return
+        if [ "$USE_CACHE" = "true" ]; then
+            echo "Already installed"
+            return
+        fi
     fi
 
     pushd /tmp
 
-    rm $TARGET 2>/dev/null
+    rm -r $TARGET 2>/dev/null
+    rm $1.tar.bz2 2>/dev/null
     curl -O https://dotnetci.blob.core.windows.net/roslyn/$1.tar.bz2
     tar -jxf $1.tar.bz2
     if [ $? -ne 0 ]; then

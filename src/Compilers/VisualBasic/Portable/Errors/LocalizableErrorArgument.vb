@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''Creates a string representing the unformatted LocalizableErrorArgument instance.
         ''' </summary>
         Public Overrides Function ToString() As String
-            Return ToString(Nothing)
+            Return ToString_IFormattable(Nothing, Nothing)
         End Function
 
         ''' <summary>

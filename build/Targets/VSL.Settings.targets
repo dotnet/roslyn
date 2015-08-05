@@ -120,9 +120,7 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(ProjectLanguage)' == 'CSharp' AND '$(TargetNetFX20)' == 'true'">
-    <Reference Include="$(FrameworkPathOverride)\mscorlib.dll">
-      <Private>False</Private>
-    </Reference>
+    <_ExplicitReference Include="$(FrameworkPathOverride)\mscorlib.dll" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -260,8 +258,8 @@
       </PropertyGroup>
     </When>
 
-    <When Condition="'$(RealSignBuild)' == 'true' OR '$(SignType)' == 'real'">
-      <!-- We're real-signing the build, but don't have a build number. Just use the RoslynSemanticVersion.
+    <When Condition="'$(OfficialBuild)' == 'true' OR '$(RealSignBuild)' == 'true' OR '$(SignType)' == 'real'">
+      <!-- We're creating an official or real-signed build, but don't have a build number. Just use the RoslynSemanticVersion.
            This happens if the build template does not pass BuildNumber down to MSBuild. -->
       <PropertyGroup>
         <AssemblyVersion>$(RoslynSemanticVersion).0</AssemblyVersion>
