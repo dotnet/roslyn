@@ -61,6 +61,8 @@ namespace Microsoft.CodeAnalysis
 
             this.OnSolutionAdded(solutionInfo);
 
+            this.UpdateReferencesAfterAdd();
+
             return this.CurrentSolution;
         }
 
@@ -85,6 +87,8 @@ namespace Microsoft.CodeAnalysis
 
             this.OnProjectAdded(projectInfo);
 
+            this.UpdateReferencesAfterAdd();
+
             return this.CurrentSolution.GetProject(projectInfo.Id);
         }
 
@@ -103,6 +107,8 @@ namespace Microsoft.CodeAnalysis
             {
                 this.OnProjectAdded(info);
             }
+
+            this.UpdateReferencesAfterAdd();
         }
 
         /// <summary>

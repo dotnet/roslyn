@@ -787,6 +787,7 @@ Microsoft.CodeAnalysis.Workspace.ScheduleTask<T>(System.Func<T> func, string tas
 Microsoft.CodeAnalysis.Workspace.Services.get -> Microsoft.CodeAnalysis.Host.HostWorkspaceServices
 Microsoft.CodeAnalysis.Workspace.SetCurrentSolution(Microsoft.CodeAnalysis.Solution solution) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Workspace.UnregisterText(Microsoft.CodeAnalysis.Text.SourceTextContainer textContainer) -> void
+Microsoft.CodeAnalysis.Workspace.UpdateReferencesAfterAdd() -> void
 Microsoft.CodeAnalysis.Workspace.Workspace(Microsoft.CodeAnalysis.Host.HostServices host, string workspaceKind) -> void
 Microsoft.CodeAnalysis.Workspace.WorkspaceChanged -> System.EventHandler<Microsoft.CodeAnalysis.WorkspaceChangeEventArgs>
 Microsoft.CodeAnalysis.Workspace.WorkspaceFailed -> System.EventHandler<Microsoft.CodeAnalysis.WorkspaceDiagnosticEventArgs>
