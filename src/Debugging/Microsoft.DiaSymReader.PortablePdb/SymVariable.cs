@@ -160,8 +160,8 @@ namespace Microsoft.DiaSymReader.PortablePdb
             public object GetPointerType(object elementType) => null;
             public object GetPrimitiveType(PrimitiveTypeCode typeCode) => null;
             public object GetSZArrayType(object elementType) => null;
-            public object GetTypeFromDefinition(TypeDefinitionHandle handle) => null;
-            public object GetTypeFromReference(TypeReferenceHandle handle) => null;
+            public object GetTypeFromDefinition(TypeDefinitionHandle handle, bool? isValueType) => null;
+            public object GetTypeFromReference(TypeReferenceHandle handle, bool? isValueType) => null;
         }
     }
 }

@@ -1122,14 +1122,14 @@ namespace Roslyn.Test.PdbUtilities
                 return elementType + "[]";
             }
 
-            public string GetTypeFromDefinition(TypeDefinitionHandle handle)
+            public string GetTypeFromDefinition(TypeDefinitionHandle handle, bool? isValueType)
             {
                 var typeDef = _reader.GetTypeDefinition(handle);
                 var name = _reader.GetString(typeDef.Name);
                 return typeDef.Namespace.IsNil ? name : _reader.GetString(typeDef.Namespace) + "." + name;
             }
 
-            public string GetTypeFromReference(TypeReferenceHandle handle)
+            public string GetTypeFromReference(TypeReferenceHandle handle, bool? isValueType)
             {
                 var typeRef = _reader.GetTypeReference(handle);
                 var name = _reader.GetString(typeRef.Name);
