@@ -55,6 +55,10 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" Condition="'$(ProjectLanguage)' == 'CSharp' And '$(TargetFrameworkIdentifier)' != '.NETPortable' And '$(TargetCoreClr)' != 'True'" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" Condition="'$(ProjectLanguage)' == 'C++'" />
 
+  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+    <FinalDefineConstants>$(FinalDefineConstants.Replace('"', ''))</FinalDefineConstants>
+  </PropertyGroup>
+
   <PropertyGroup>
     <BuildDependsOn>
       $(BuildDependsOn);
