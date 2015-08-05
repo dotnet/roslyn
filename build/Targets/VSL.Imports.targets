@@ -55,6 +55,13 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" Condition="'$(ProjectLanguage)' == 'CSharp' And '$(TargetFrameworkIdentifier)' != '.NETPortable' And '$(TargetCoreClr)' != 'True'" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" Condition="'$(ProjectLanguage)' == 'C++'" />
 
+  <!-- It looks like MSBuild has a bug on *nix where they aggressively
+       directory separators from '\' to '/', even when the '\'
+       is being used as an escape character in a define constant in VB.
+       This change works around the bug by removing all quotes from
+       define constants after Microsoft.VisualBasic.CurrentVersion adds
+       them in our build. This should be OK since none of our constants
+       should require quoting. See https://github.com/Microsoft/msbuild/issues/137 -->
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
     <FinalDefineConstants>$(FinalDefineConstants.Replace('"', ''))</FinalDefineConstants>
   </PropertyGroup>
