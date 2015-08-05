@@ -720,7 +720,7 @@ compareTokens: false);
         }
 
         [WorkItem(539536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539536")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        [Fact(Skip = "Tuples"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task BugFix5538()
         {
             await TestAsync(

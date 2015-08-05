@@ -354,6 +354,9 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_GCLatencyMode__SustainedLowLatency,
 
+        System_Runtime_CompilerServices_Tuple_T1_T2__Item1,
+        System_Runtime_CompilerServices_Tuple_T1_T2__Item2,
+
         System_String__Format_IFormatProvider,
         Count
     }

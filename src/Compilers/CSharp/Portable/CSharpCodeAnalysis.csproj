@@ -510,6 +510,7 @@
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.TemplateSymbol.cs" />
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.ToStringMethodSymbol.cs" />
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.TypeParameterSymbol.cs" />
+    <Compile Include="Symbols\TupleTypeSymbol.cs" />
     <Compile Include="Symbols\ArrayTypeSymbol.cs" />
     <Compile Include="Symbols\AssemblySymbol.cs" />
     <Compile Include="Symbols\Attributes\AttributeData.cs" />
