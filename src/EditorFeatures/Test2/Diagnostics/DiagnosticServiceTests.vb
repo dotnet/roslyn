@@ -794,6 +794,8 @@ class AnonymousFunctions
 
             Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
+
+                ' Test partial type diagnostic reported on user file.
                 Dim analyzer = New PartialTypeDiagnosticAnalyzer(indexOfDeclToReportDiagnostic:=1)
                 Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
                 project = project.AddAnalyzerReference(analyzerReference)
@@ -810,6 +812,52 @@ class AnonymousFunctions
                 Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(1, diagnostics.Count())
                 Assert.Equal(PartialTypeDiagnosticAnalyzer.DiagDescriptor.Id, diagnostics.Single().Id)
+            End Using
+        End Sub
+
+        <Fact, WorkItem(1042914), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        Public Sub TestDiagnosticsReportedOnAllPartialDefinitions()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document FilePath="Test1.cs">
+                                   public partial class Foo { }
+                               </Document>
+                               <Document FilePath="Test2.cs">
+                                   public partial class Foo { }
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+                Dim project = workspace.CurrentSolution.Projects.Single()
+
+                ' Test partial type diagnostic reported on all source files.
+                Dim analyzer = New PartialTypeDiagnosticAnalyzer(indexOfDeclToReportDiagnostic:=Nothing)
+                Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+
+                Dim diagnosticService = New TestDiagnosticAnalyzerService()
+
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
+                Assert.Equal(1, descriptorsMap.Count)
+
+                ' Verify project diagnostics contains diagnostics reported on both partial definitions.
+                Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+                Dim diagnostics = diagnosticService.GetDiagnosticsAsync(project.Solution, project.Id).WaitAndGetResult(CancellationToken.None)
+                Assert.Equal(2, diagnostics.Count())
+                Dim file1HasDiag = False, file2HasDiag = False
+                For Each diagnostic In diagnostics
+                    Assert.Equal(PartialTypeDiagnosticAnalyzer.DiagDescriptor.Id, diagnostic.Id)
+                    Dim document = project.GetDocument(diagnostic.DocumentId)
+                    If document.Name = "Test1.cs" Then
+                        file1HasDiag = True
+                    ElseIf document.Name = "Test2.cs"
+                        file2HasDiag = True
+                    End If
+                Next
+
+                Assert.True(file1HasDiag)
+                Assert.True(file2HasDiag)
             End Using
         End Sub
 
@@ -1228,8 +1276,8 @@ public class B
         Private Class PartialTypeDiagnosticAnalyzer
             Inherits DiagnosticAnalyzer
 
-            Private ReadOnly _indexOfDeclToReportDiagnostic As Integer
-            Public Sub New(indexOfDeclToReportDiagnostic As Integer)
+            Private ReadOnly _indexOfDeclToReportDiagnostic As Integer?
+            Public Sub New(indexOfDeclToReportDiagnostic As Integer?)
                 Me._indexOfDeclToReportDiagnostic = indexOfDeclToReportDiagnostic
             End Sub
 
@@ -1246,7 +1294,15 @@ public class B
             End Sub
 
             Private Sub AnalyzeSymbol(context As SymbolAnalysisContext)
-                context.ReportDiagnostic(Diagnostic.Create(DiagDescriptor, context.Symbol.Locations.ElementAt(Me._indexOfDeclToReportDiagnostic)))
+                Dim index = 0
+                For Each location In context.Symbol.Locations
+                    If Not Me._indexOfDeclToReportDiagnostic.HasValue OrElse Me._indexOfDeclToReportDiagnostic.Value = index Then
+                        context.ReportDiagnostic(Diagnostic.Create(DiagDescriptor, location))
+                    End If
+
+                    index += 1
+                Next
+
             End Sub
         End Class
 
