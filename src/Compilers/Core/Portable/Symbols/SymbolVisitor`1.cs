@@ -26,6 +26,11 @@ namespace Microsoft.CodeAnalysis
             return DefaultVisit(symbol);
         }
 
+        public virtual TResult VisitTupleType(ITupleTypeSymbol symbol)
+        {
+            return DefaultVisit(symbol);
+        }
+
         public virtual TResult VisitAssembly(IAssemblySymbol symbol)
         {
             return DefaultVisit(symbol);

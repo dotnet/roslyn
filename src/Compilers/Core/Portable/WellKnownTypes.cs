@@ -244,6 +244,9 @@ namespace Microsoft.CodeAnalysis
         System_Environment,
 
         System_Runtime_GCLatencyMode,
+
+        System_Runtime_CompilerServices_Tuple_T1_T2,
+
         System_IFormatProvider,
 
         Available,
@@ -485,7 +488,10 @@ namespace Microsoft.CodeAnalysis
             "System.Environment",
 
             "System.Runtime.GCLatencyMode",
-            "System.IFormatProvider"
+
+            "System.Runtime.CompilerServices.Tuple`2",
+
+            "System.IFormatProvider",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
