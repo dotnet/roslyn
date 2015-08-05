@@ -2519,6 +2519,18 @@ namespace Microsoft.CodeAnalysis
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Runtime_GCLatencyMode,                   // Field Signature
 
+                // System_Runtime_CompilerServices_Tuple_T1_T2__Item1
+                (byte)MemberFlags.Field,                                                                                    // Flags
+                (byte)WellKnownType.System_Runtime_CompilerServices_Tuple_T1_T2,                                            // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0,                                                        // Field Signature
+
+                // System_Runtime_CompilerServices_Tuple_T1_T2__Item2
+                (byte)MemberFlags.Field,                                                                                    // Flags
+                (byte)WellKnownType.System_Runtime_CompilerServices_Tuple_T1_T2,                                            // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    (byte)SignatureTypeCode.GenericTypeParameter, 1,                                                        // Field Signature
+
                 // System_String__Format_IFormatProvider
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)SpecialType.System_String,                                                                            // DeclaringTypeId
@@ -2825,6 +2837,8 @@ namespace Microsoft.CodeAnalysis
                 "CurrentManagedThreadId",                   // System_Environment__CurrentManagedThreadId
                 ".ctor",                                    // System_ComponentModel_EditorBrowsableAttribute__ctor
                 "SustainedLowLatency",                      // System_Runtime_GCLatencyMode__SustainedLowLatency
+                "Item1",                                    // System_Runtime_CompilerServices_Tuple_T1_T2__Item1
+                "Item2",                                    // System_Runtime_CompilerServices_Tuple_T1_T2__Item2
                 "Format",                                   // System_String__Format_IFormatProvider
             };
 

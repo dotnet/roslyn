@@ -600,6 +600,7 @@
     <Compile Include="Symbols\CommonAttributeDataExtensions.cs" />
     <Compile Include="Symbols\CustomModifier.cs" />
     <Compile Include="Symbols\IAliasSymbol.cs" />
+    <Compile Include="Symbols\ITupleTypeSymbol.cs" />
     <Compile Include="Symbols\IArrayTypeSymbol.cs" />
     <Compile Include="Symbols\IAssemblySymbol.cs" />
     <Compile Include="Symbols\IDynamicTypeSymbol.cs" />
