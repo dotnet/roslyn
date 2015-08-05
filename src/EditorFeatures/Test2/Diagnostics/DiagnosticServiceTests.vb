@@ -1685,5 +1685,43 @@ namespace ConsoleApplication1
             ' See https//github.com/dotnet/roslyn/issues/2980 for details.
             TestGenericNameCore(test, CSharpGenericNameAnalyzer.Message, CSharpGenericNameAnalyzer.DiagnosticId, New AnalyzerWithNoActions, New CSharpGenericNameAnalyzer)
         End Sub
+
+        <Fact, WorkItem(4055, "https://github.com/dotnet/roslyn/issues/4055")>
+        Public Sub TestAnalyzerWithNoSupportedDiagnostics()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document><![CDATA[
+class MyClass
+{
+}]]>
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            ' Ensure that adding a dummy analyzer with no supported diagnostics doesn't bring down entire analysis.
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+                Dim project = workspace.CurrentSolution.Projects.Single()
+
+                ' Add analyzer
+                Dim analyzer = New AnalyzerWithNoSupportedDiagnostics()
+                Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+
+                Dim diagnosticService = New TestDiagnosticAnalyzerService()
+                Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+
+                ' Verify available diagnostic descriptors/analyzers
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
+                Assert.Equal(1, descriptorsMap.Count)
+                Assert.Equal(0, descriptorsMap.First().Value.Length)
+
+                Dim document = project.Documents.Single()
+                Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document,
+                    document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan,
+                    CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+
+                Assert.Equal(0, diagnostics.Count())
+            End Using
+        End Sub
     End Class
 End Namespace

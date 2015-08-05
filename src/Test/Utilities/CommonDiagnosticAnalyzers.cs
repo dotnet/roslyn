@@ -292,6 +292,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class AnalyzerWithNoSupportedDiagnostics : DiagnosticAnalyzer
+        {
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
+            public override void Initialize(AnalysisContext context) { }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public sealed class AnalyzerThatThrowsInGetMessage : DiagnosticAnalyzer
         {
             public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
