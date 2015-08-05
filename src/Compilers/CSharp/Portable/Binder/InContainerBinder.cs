@@ -47,7 +47,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _container = container;
             _imports = imports ?? Imports.Empty;
+            _inUsing = (imports != null);
         }
+
+        protected override bool InUsing => _inUsing;
 
         internal NamespaceOrTypeSymbol Container
         {

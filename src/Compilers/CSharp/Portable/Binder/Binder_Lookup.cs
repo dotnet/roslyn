@@ -673,6 +673,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 }
 
+                // Starting in VS2015 update 1, we no longer consider inherited members within using static.
+                if (InUsing)
+                {
+                    break;
+                }
+
                 if (basesBeingResolved != null && basesBeingResolved.ContainsReference(type.OriginalDefinition))
                 {
                     var other = GetNearestOtherSymbol(basesBeingResolved, type);

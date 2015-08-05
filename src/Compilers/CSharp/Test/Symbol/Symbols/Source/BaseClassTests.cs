@@ -1901,5 +1901,47 @@ class D : B {
             Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
             Assert.Equal(SpecialType.System_Int64, typeInfo.ConvertedType.SpecialType);
         }
+
+        [Fact, WorkItem(369, "https://github.com/dotnet/roslyn/issues/369")]
+        public void StaticImportAfterBases()
+        {
+            var text =
+@"using static A.B.B;
+
+class A
+{
+    public class B : A { }
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+                // (1,18): error CS0426: The type name 'B' does not exist in the type 'A.B'
+                // using static A.B.B;
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "B").WithArguments("B", "A.B").WithLocation(1, 18),
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using static A.B.B;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static A.B.B;").WithLocation(1, 1)
+                );
+        }
+
+        [Fact, WorkItem(369, "https://github.com/dotnet/roslyn/issues/369")]
+        public void StaticImportAfterBases02()
+        {
+            var text =
+@"using C = A.B.B;
+
+public class A
+{
+    public class B : A { }
+
+    static void Main(string[] args)
+    {
+    }
+
+    public void F(C c) {}
+}
+";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics();
+        }
     }
 }
