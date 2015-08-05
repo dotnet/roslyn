@@ -6,8 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.Extensibility.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -124,19 +122,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 private async Task<CompletionList> GetCompletionListAsync(ICompletionService completionService, CompletionTrigger trigger, CancellationToken cancellationToken)
                 {
-                    if (_documentOpt == null && completionService is ITextCompletionService)
-                    {
-                        var textCompletionService = (ITextCompletionService)completionService;
-                        return await textCompletionService.GetCompletionListAsync(_text, _subjectBufferCaretPosition, trigger, _completionProviders, _options, cancellationToken).ConfigureAwait(false);
-                    }
-                    else if (_documentOpt != null)
-                    {
-                        return await completionService.GetCompletionListAsync(_documentOpt, _subjectBufferCaretPosition, trigger, _completionProviders, cancellationToken).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        return null;
-                    }
+                    return _documentOpt != null
+                        ? await completionService.GetCompletionListAsync(_documentOpt, _subjectBufferCaretPosition, trigger, _completionProviders, cancellationToken).ConfigureAwait(false)
+                        : null;
                 }
             }
         }

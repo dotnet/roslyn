@@ -162,7 +162,6 @@
     <Compile Include="Completion\Triggers\TypeCharCompletionTrigger.cs" />
     <Compile Include="Completion\Triggers\DisplayListCompletionTrigger.cs" />
     <Compile Include="Completion\ICompletionService.cs" />
-    <Compile Include="Completion\ITextCompletionService.cs" />
     <Compile Include="Completion\Providers\AbstractCompletionProvider.cs" />
     <Compile Include="Completion\Providers\AbstractCompletionProvider.UnionCompletionitemComparer.cs" />
     <Compile Include="Completion\Providers\AbstractKeywordCompletionProvider.cs" />
@@ -175,7 +174,6 @@
     <Compile Include="Completion\Providers\KeywordCompletionItemRules.cs" />
     <Compile Include="Completion\Providers\ObjectInitializerCompletionItemRules.cs" />
     <Compile Include="Completion\Providers\AbstractSymbolCompletionItemRules.cs" />
-    <Compile Include="Completion\Providers\TextCompletionListProvider.cs" />
     <Compile Include="Completion\Providers\KeywordCompletionItem.cs" />
     <Compile Include="Completion\Providers\RecommendedKeyword.cs" />
     <Compile Include="Completion\SuggestionMode\SuggestionModeCompletionItemRules.cs" />
