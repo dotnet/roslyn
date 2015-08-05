@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Completion.Triggers;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
@@ -151,18 +152,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(
-            Document document, int position, CompletionTriggerInfo triggerInfo,
+            Document document, int position, CompletionTrigger trigger,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Completion_SymbolCompletionProvider_GetItemsWorker, cancellationToken))
             {
-                var regularItems = await GetItemsWorkerAsync(document, position, triggerInfo, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-                var preselectedItems = await GetItemsWorkerAsync(document, position, triggerInfo, preselect: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var regularItems = await GetItemsWorkerAsync(document, position, trigger, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var preselectedItems = await GetItemsWorkerAsync(document, position, trigger, preselect: true, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return regularItems.Concat(preselectedItems);
             }
         }
 
-        private async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTriggerInfo triggerInfo, bool preselect, CancellationToken cancellationToken)
+        private async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTrigger trigger, bool preselect, CancellationToken cancellationToken)
         {
             var relatedDocumentIds = document.GetLinkedDocumentIds();
             var relatedDocuments = relatedDocumentIds.Concat(document.Id).Select(document.Project.Solution.GetDocument);
@@ -184,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             var context = await GetOrCreateContext(document, position, cancellationToken).ConfigureAwait(false);
-            var options = GetOptions(document, triggerInfo, context);
+            var options = GetOptions(document, trigger, context);
 
             if (!relatedDocumentIds.Any())
             {
@@ -266,10 +267,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return !syntaxFacts.IsInInactiveRegion(context.SyntaxTree, context.Position, cancellationToken);
         }
 
-        protected OptionSet GetOptions(Document document, CompletionTriggerInfo triggerInfo, AbstractSyntaxContext context)
+        protected OptionSet GetOptions(Document document, CompletionTrigger trigger, AbstractSyntaxContext context)
         {
             var optionService = context.GetWorkspaceService<IOptionService>();
-            var filterOutOfScopeLocals = !triggerInfo.IsDebugger;
+            var filterOutOfScopeLocals = !trigger.CustomTags.Contains(WellKnownCompletionTriggerTags.Debugger);
             var hideAdvancedMembers = document.ShouldHideAdvancedMembers();
             var options = optionService
                 .GetOptions()

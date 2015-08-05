@@ -10,6 +10,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// <summary>
         /// Returns a CompletionItemGroup for the specified position in the text.
         /// </summary>
-        public abstract CompletionList GetCompletionList(SourceText text, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract CompletionList GetCompletionList(SourceText text, int position, CompletionTrigger trigger, CancellationToken cancellationToken = default(CancellationToken));
     }
 }

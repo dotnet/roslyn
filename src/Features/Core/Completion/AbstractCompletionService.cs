@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.Completion.Triggers;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
@@ -79,23 +80,23 @@ namespace Microsoft.CodeAnalysis.Completion
         public async Task<CompletionList> GetCompletionListAsync(
             Document document,
             int position,
-            CompletionTriggerInfo triggerInfo,
+            CompletionTrigger trigger,
             IEnumerable<CompletionListProvider> completionProviders,
             CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return await GetCompletionListAsync(document, text, position, triggerInfo, completionProviders, document.Project.Solution.Workspace.Options, cancellationToken).ConfigureAwait(false);
+            return await GetCompletionListAsync(document, text, position, trigger, completionProviders, document.Project.Solution.Workspace.Options, cancellationToken).ConfigureAwait(false);
         }
 
         public Task<CompletionList> GetCompletionListAsync(
             SourceText text,
             int position,
-            CompletionTriggerInfo triggerInfo,
+            CompletionTrigger trigger,
             IEnumerable<CompletionListProvider> completionProviders,
             OptionSet options,
             CancellationToken cancellationToken)
         {
-            return GetCompletionListAsync(null, text, position, triggerInfo, completionProviders, options, cancellationToken);
+            return GetCompletionListAsync(null, text, position, trigger, completionProviders, options, cancellationToken);
         }
 
         private class ProviderList
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Completion
             Document documentOpt,
             SourceText text,
             int position,
-            CompletionTriggerInfo triggerInfo,
+            CompletionTrigger trigger,
             IEnumerable<CompletionListProvider> completionProviders,
             OptionSet options,
             CancellationToken cancellationToken)
@@ -118,26 +119,27 @@ namespace Microsoft.CodeAnalysis.Completion
             var completionRules = GetCompletionRules();
 
             IEnumerable<CompletionListProvider> triggeredProviders;
-            switch (triggerInfo.TriggerReason)
+
+            if (trigger is TypeCharCompletionTrigger)
             {
-                case CompletionTriggerReason.TypeCharCommand:
-                    triggeredProviders = completionProviders.Where(p => p.IsTriggerCharacter(text, position - 1, options)).ToList();
-                    break;
-                case CompletionTriggerReason.BackspaceOrDeleteCommand:
-                    triggeredProviders = this.TriggerOnBackspace(text, position, triggerInfo, options)
-                        ? completionProviders
-                        : SpecializedCollections.EmptyEnumerable<CompletionListProvider>();
-                    break;
-                default:
-                    triggeredProviders = completionProviders;
-                    break;
+                triggeredProviders = completionProviders.Where(p => p.IsTriggerCharacter(text, position - 1, options)).ToList();
+            }
+            else if (trigger is BackspaceOrDeleteCharCompletionTrigger)
+            {
+                triggeredProviders = this.TriggerOnBackspaceOrDelete(text, position, trigger, options)
+                    ? completionProviders
+                    : SpecializedCollections.EmptyEnumerable<CompletionListProvider>();
+            }
+            else
+            {
+                triggeredProviders = completionProviders;
             }
 
             // Now, ask all the triggered providers if they can provide a group.
             var providersAndLists = new List<ProviderList>();
             foreach (var provider in triggeredProviders)
             {
-                var completionList = await GetCompletionListAsync(provider, documentOpt, text, position, triggerInfo, cancellationToken).ConfigureAwait(false);
+                var completionList = await GetCompletionListAsync(provider, documentOpt, text, position, trigger, cancellationToken).ConfigureAwait(false);
                 if (completionList != null)
                 {
                     providersAndLists.Add(new ProviderList { Provider = provider, List = completionList });
@@ -171,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var nonUsedNonExclusiveProviders = new List<ProviderList>();
             foreach (var provider in nonUsedProviders)
             {
-                var completionList = await GetCompletionListAsync(provider, documentOpt, text, position, triggerInfo, cancellationToken).ConfigureAwait(false);
+                var completionList = await GetCompletionListAsync(provider, documentOpt, text, position, trigger, cancellationToken).ConfigureAwait(false);
                 if (completionList != null && !completionList.IsExclusive)
                 {
                     nonUsedNonExclusiveProviders.Add(new ProviderList { Provider = provider, List = completionList });
@@ -292,17 +294,17 @@ namespace Microsoft.CodeAnalysis.Completion
             Document documentOpt,
             SourceText text,
             int position,
-            CompletionTriggerInfo triggerInfo,
+            CompletionTrigger trigger,
             CancellationToken cancellationToken)
         {
             if (provider is TextCompletionProvider)
             {
-                return ((TextCompletionProvider)provider).GetCompletionList(text, position, triggerInfo, cancellationToken);
+                return ((TextCompletionProvider)provider).GetCompletionList(text, position, trigger, cancellationToken);
             }
 
             if (documentOpt != null)
             {
-                var context = new CompletionListContext(documentOpt, position, triggerInfo, cancellationToken);
+                var context = new CompletionListContext(documentOpt, position, trigger, cancellationToken);
 
                 await provider.ProduceCompletionListAsync(context).ConfigureAwait(false);
 
@@ -325,7 +327,10 @@ namespace Microsoft.CodeAnalysis.Completion
             return completionProviders.Any(p => p.IsTriggerCharacter(text, characterPosition, options));
         }
 
-        protected abstract bool TriggerOnBackspace(SourceText text, int position, CompletionTriggerInfo triggerInfo, OptionSet options);
+        protected virtual bool TriggerOnBackspaceOrDelete(SourceText text, int position, CompletionTrigger trigger, OptionSet options)
+        {
+            return false;
+        }
 
         public abstract Task<TextSpan> GetDefaultTrackingSpanAsync(Document document, int position, CancellationToken cancellationToken);
 

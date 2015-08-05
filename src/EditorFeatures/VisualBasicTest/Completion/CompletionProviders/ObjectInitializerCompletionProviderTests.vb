@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Completion.Triggers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
@@ -401,9 +402,9 @@ End Program</Document>
                 Dim hostDocument = workspace.Documents.First()
                 Dim caretPosition = hostDocument.CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
-                Dim triggerInfo = CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo()
+                Dim trigger = New DisplayListCompletionTrigger()
 
-                Dim completionList = GetCompletionList(document, caretPosition, triggerInfo)
+                Dim completionList = GetCompletionList(document, caretPosition, trigger)
                 Assert.True(completionList Is Nothing OrElse completionList.IsExclusive, "Expected always exclusive")
             End Using
         End Sub

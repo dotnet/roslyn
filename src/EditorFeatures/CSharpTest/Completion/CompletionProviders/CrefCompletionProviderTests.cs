@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Triggers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -429,7 +430,7 @@ class C
                 var provider = new CrefCompletionProvider();
                 var hostDocument = workspace.DocumentWithCursor;
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var completionList = GetCompletionList(provider, document, hostDocument.CursorPosition.Value, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo());
+                var completionList = GetCompletionList(provider, document, hostDocument.CursorPosition.Value, new DisplayListCompletionTrigger());
             }
         }
 

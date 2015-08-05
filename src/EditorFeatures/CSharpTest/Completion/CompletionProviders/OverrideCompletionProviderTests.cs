@@ -3,6 +3,7 @@
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Triggers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
@@ -2127,9 +2128,9 @@ End Class
                 var solution = testWorkspace.CurrentSolution;
                 var documentId = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").Id;
                 var document = solution.GetDocument(documentId);
-                var triggerInfo = new CompletionTriggerInfo();
+                var trigger = new DisplayListCompletionTrigger();
 
-                var completionList = GetCompletionList(document, position, triggerInfo);
+                var completionList = GetCompletionList(document, position, trigger);
                 var completionItem = completionList.Items.First(i => CompareItems(i.DisplayText, "Bar[int bay]"));
 
                 var customCommitCompletionProvider = CompletionProvider as ICustomCommitCompletionProvider;
@@ -2386,9 +2387,9 @@ int bar;
                 var solution = testWorkspace.CurrentSolution;
                 var documentId = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument2").Id;
                 var document = solution.GetDocument(documentId);
-                var triggerInfo = new CompletionTriggerInfo();
+                var trigger = new DisplayListCompletionTrigger();
 
-                var completionList = GetCompletionList(document, position, triggerInfo);
+                var completionList = GetCompletionList(document, position, trigger);
                 var completionItem = completionList.Items.First(i => CompareItems(i.DisplayText, "Equals(object obj)"));
 
                 var customCommitCompletionProvider = CompletionProvider as ICustomCommitCompletionProvider;
@@ -2444,9 +2445,9 @@ int bar;
                 var solution = testWorkspace.CurrentSolution;
                 var documentId = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").Id;
                 var document = solution.GetDocument(documentId);
-                var triggerInfo = new CompletionTriggerInfo();
+                var trigger = new DisplayListCompletionTrigger();
 
-                var completionList = GetCompletionList(document, cursorPosition, triggerInfo);
+                var completionList = GetCompletionList(document, cursorPosition, trigger);
                 var completionItem = completionList.Items.First(i => CompareItems(i.DisplayText, "Equals(object obj)"));
 
                 var customCommitCompletionProvider = CompletionProvider as ICustomCommitCompletionProvider;
@@ -2548,7 +2549,7 @@ namespace ConsoleApplication46
             var provider = new OverrideCompletionProvider(TestWaitIndicator.Default);
             var testDocument = workspace.Documents.Single();
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
-            var completionList = GetCompletionList(provider, document, testDocument.CursorPosition.Value, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo());
+            var completionList = GetCompletionList(provider, document, testDocument.CursorPosition.Value, new DisplayListCompletionTrigger());
 
             var oldTree = document.GetSyntaxTreeAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
 

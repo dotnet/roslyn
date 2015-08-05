@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Triggers;
 using Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
@@ -574,8 +574,8 @@ class a
 
         private void CheckResults(Document document, int position, bool isBuilder)
         {
-            var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo('a');
-            var completionList = GetCompletionList(document, position, triggerInfo);
+            var trigger = new TypeCharCompletionTrigger('a');
+            var completionList = GetCompletionList(document, position, trigger);
 
             if (isBuilder)
             {

@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion
@@ -45,11 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return CompletionUtilities.GetTextChangeSpan(text, position);
-        }
-
-        protected override bool TriggerOnBackspace(SourceText text, int position, CompletionTriggerInfo triggerInfo, OptionSet options)
-        {
-            return false;
         }
 
         public override CompletionRules GetCompletionRules()

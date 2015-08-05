@@ -3,18 +3,19 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Completion.Triggers;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract partial class AbstractCompletionProvider : CompletionListProvider
     {
-        protected abstract Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken);
+        protected abstract Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTrigger trigger, CancellationToken cancellationToken);
 
         public override async Task ProduceCompletionListAsync(CompletionListContext context)
         {
-            var items = await this.GetItemsAsync(context.Document, context.Position, context.TriggerInfo, context.CancellationToken).ConfigureAwait(false);
-            var builder = await this.GetBuilderAsync(context.Document, context.Position, context.TriggerInfo, context.CancellationToken).ConfigureAwait(false);
+            var items = await this.GetItemsAsync(context.Document, context.Position, context.Trigger, context.CancellationToken).ConfigureAwait(false);
+            var builder = await this.GetBuilderAsync(context.Document, context.Position, context.Trigger, context.CancellationToken).ConfigureAwait(false);
 
             if (items == null && builder == null)
             {
@@ -34,17 +35,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 context.RegisterBuilder(builder);
             }
 
-            var isExclusive = await this.IsExclusiveAsync(context.Document, context.Position, context.TriggerInfo, context.CancellationToken).ConfigureAwait(false);
+            var isExclusive = await this.IsExclusiveAsync(context.Document, context.Position, context.Trigger, context.CancellationToken).ConfigureAwait(false);
 
             context.MakeExclusive(isExclusive);
         }
 
-        protected virtual Task<bool> IsExclusiveAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        protected virtual Task<bool> IsExclusiveAsync(Document document, int position, CompletionTrigger trigger, CancellationToken cancellationToken)
         {
             return SpecializedTasks.False;
         }
 
-        private async Task<IEnumerable<CompletionItem>> GetItemsAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        private async Task<IEnumerable<CompletionItem>> GetItemsAsync(Document document, int position, CompletionTrigger trigger, CancellationToken cancellationToken)
         {
             if (document == null)
             {
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // If we were triggered by typing a character, then do a semantic check to make sure
             // we're still applicable.  If not, then return immediately.
-            if (triggerInfo.TriggerReason == CompletionTriggerReason.TypeCharCommand)
+            if (trigger is TypeCharCompletionTrigger)
             {
                 var isSemanticTriggerCharacter = await IsSemanticTriggerCharacterAsync(document, position - 1, cancellationToken).ConfigureAwait(false);
                 if (!isSemanticTriggerCharacter)
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
             }
 
-            return await GetItemsWorkerAsync(document, position, triggerInfo, cancellationToken).ConfigureAwait(false);
+            return await GetItemsWorkerAsync(document, position, trigger, cancellationToken).ConfigureAwait(false);
         }
 
         protected virtual Task<bool> IsSemanticTriggerCharacterAsync(Document document, int characterPosition, CancellationToken cancellationToken)
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return SpecializedTasks.True;
         }
 
-        protected virtual Task<CompletionItem> GetBuilderAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        protected virtual Task<CompletionItem> GetBuilderAsync(Document document, int position, CompletionTrigger trigger, CancellationToken cancellationToken)
         {
             return SpecializedTasks.Default<CompletionItem>();
         }

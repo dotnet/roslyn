@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Completion
             return SpecializedTasks.Default<TextSpan>();
         }
 
-        protected override bool TriggerOnBackspace(SourceText text, int position, CompletionTriggerInfo triggerInfo, OptionSet options)
+        protected override bool TriggerOnBackspaceOrDelete(SourceText text, int position, CompletionTrigger trigger, OptionSet options)
         {
             return false;
         }

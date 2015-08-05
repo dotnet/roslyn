@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly Comparer s_comparer = new Comparer();
 
         protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(
-            Document document, int position, CompletionTriggerInfo triggerInfo,
+            Document document, int position, CompletionTrigger trigger,
             CancellationToken cancellationToken)
         {
             var options = document.Project.Solution.Workspace.Options;

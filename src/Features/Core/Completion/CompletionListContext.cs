@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public Document Document { get; }
         public int Position { get; }
-        public CompletionTriggerInfo TriggerInfo { get; }
+        public CompletionTrigger Trigger { get; }
         public CancellationToken CancellationToken { get; }
 
         public CompletionItem Builder => this._builder;
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public CompletionListContext(
             Document document,
             int position,
-            CompletionTriggerInfo triggerInfo,
+            CompletionTrigger trigger,
             CancellationToken cancellationToken)
         {
             if (document == null)
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             this.Document = document;
             this.Position = position;
-            this.TriggerInfo = triggerInfo;
+            this.Trigger = trigger;
             this.CancellationToken = cancellationToken;
 
             this._itemsBuilder = ImmutableArray.CreateBuilder<CompletionItem>();

@@ -5,11 +5,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Snippets;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Projection;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
@@ -35,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         // The builder, if any, provided by the model's completionproviders.
         public CompletionItem Builder { get; }
-        public CompletionTriggerInfo TriggerInfo { get; }
+        public CompletionTrigger Trigger { get; }
         public bool UseSuggestionCompletionMode { get; }
 
         // When committing a completion item, the span replaced ends at this point.
@@ -53,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             bool useSuggestionCompletionMode,
             CompletionItem builder,
             CompletionItem defaultBuilder,
-            CompletionTriggerInfo triggerInfo,
+            CompletionTrigger trigger,
             ITrackingPoint commitSpanEndPoint,
             bool dismissIfEmpty)
         {
@@ -71,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             this.UseSuggestionCompletionMode = useSuggestionCompletionMode;
             this.Builder = builder;
             this.DefaultBuilder = defaultBuilder;
-            this.TriggerInfo = triggerInfo;
+            this.Trigger = trigger;
             this.CommitTrackingSpanEndPoint = commitSpanEndPoint;
             this.DismissIfEmpty = dismissIfEmpty;
         }
@@ -85,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             bool isUnique,
             bool useSuggestionCompletionMode,
             CompletionItem builder,
-            CompletionTriggerInfo triggerInfo,
+            CompletionTrigger trigger,
             ICompletionService completionService,
             Workspace workspace)
         {
@@ -94,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             CompletionItem updatedBuilder = builder;
             CompletionItem updatedDefaultBuilder = GetDefaultBuilder(defaultTrackingSpanInSubjectBuffer);
 
-            if (completionService != null && workspace != null && triggerInfo.TriggerReason != CompletionTriggerReason.Snippets)
+            if (completionService != null && workspace != null && !(trigger is DisplaySnippetsCompletionTrigger))
             {
                 // In order to add snippet expansion notes to completion item descriptions, update
                 // all of the provided CompletionItems to DisplayCompletionItems which will proxy
@@ -140,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 useSuggestionCompletionMode,
                 updatedBuilder,
                 updatedDefaultBuilder,
-                triggerInfo,
+                trigger,
                 GetDefaultTrackingSpanEnd(defaultTrackingSpanInSubjectBuffer, disconnectedBufferGraph),
                 completionService.DismissIfEmpty);
         }
@@ -171,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         public Model WithFilteredItems(IList<CompletionItem> filteredItems)
         {
             return new Model(_disconnectedBufferGraph, TotalItems, filteredItems,
-                filteredItems.First(), IsHardSelection, IsUnique, UseSuggestionCompletionMode, Builder, DefaultBuilder, TriggerInfo, CommitTrackingSpanEndPoint, DismissIfEmpty);
+                filteredItems.First(), IsHardSelection, IsUnique, UseSuggestionCompletionMode, Builder, DefaultBuilder, Trigger, CommitTrackingSpanEndPoint, DismissIfEmpty);
         }
 
         public Model WithSelectedItem(CompletionItem selectedItem)
@@ -179,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return selectedItem == this.SelectedItem
                 ? this
                 : new Model(_disconnectedBufferGraph, TotalItems, FilteredItems,
-                    selectedItem, IsHardSelection, IsUnique, UseSuggestionCompletionMode, Builder, DefaultBuilder, TriggerInfo, CommitTrackingSpanEndPoint, DismissIfEmpty);
+                    selectedItem, IsHardSelection, IsUnique, UseSuggestionCompletionMode, Builder, DefaultBuilder, Trigger, CommitTrackingSpanEndPoint, DismissIfEmpty);
         }
 
         public Model WithHardSelection(bool isHardSelection)
@@ -187,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return isHardSelection == this.IsHardSelection
                 ? this
                 : new Model(_disconnectedBufferGraph, TotalItems, FilteredItems,
-                    SelectedItem, isHardSelection, IsUnique, UseSuggestionCompletionMode, Builder, DefaultBuilder, TriggerInfo, CommitTrackingSpanEndPoint, DismissIfEmpty);
+                    SelectedItem, isHardSelection, IsUnique, UseSuggestionCompletionMode, Builder, DefaultBuilder, Trigger, CommitTrackingSpanEndPoint, DismissIfEmpty);
         }
 
         public Model WithIsUnique(bool isUnique)
@@ -195,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return isUnique == this.IsUnique
                 ? this
                 : new Model(_disconnectedBufferGraph, TotalItems, FilteredItems,
-                    SelectedItem, IsHardSelection, isUnique, UseSuggestionCompletionMode, Builder, DefaultBuilder, TriggerInfo, CommitTrackingSpanEndPoint, DismissIfEmpty);
+                    SelectedItem, IsHardSelection, isUnique, UseSuggestionCompletionMode, Builder, DefaultBuilder, Trigger, CommitTrackingSpanEndPoint, DismissIfEmpty);
         }
 
         public Model WithBuilder(CompletionItem builder)
@@ -203,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return builder == this.Builder
                 ? this
                  : new Model(_disconnectedBufferGraph, TotalItems, FilteredItems,
-                    SelectedItem, IsHardSelection, IsUnique, UseSuggestionCompletionMode, builder, DefaultBuilder, TriggerInfo, CommitTrackingSpanEndPoint, DismissIfEmpty);
+                    SelectedItem, IsHardSelection, IsUnique, UseSuggestionCompletionMode, builder, DefaultBuilder, Trigger, CommitTrackingSpanEndPoint, DismissIfEmpty);
         }
 
         public Model WithUseSuggestionCompletionMode(bool useSuggestionCompletionMode)
@@ -211,13 +209,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return useSuggestionCompletionMode == this.UseSuggestionCompletionMode
                 ? this
                  : new Model(_disconnectedBufferGraph, TotalItems, FilteredItems,
-                    SelectedItem, IsHardSelection, IsUnique, useSuggestionCompletionMode, Builder, DefaultBuilder, TriggerInfo, CommitTrackingSpanEndPoint, DismissIfEmpty);
+                    SelectedItem, IsHardSelection, IsUnique, useSuggestionCompletionMode, Builder, DefaultBuilder, Trigger, CommitTrackingSpanEndPoint, DismissIfEmpty);
         }
 
         internal Model WithTrackingSpanEnd(ITrackingPoint trackingSpanEnd)
         {
             return new Model(_disconnectedBufferGraph, TotalItems, FilteredItems,
-                SelectedItem, IsHardSelection, IsUnique, UseSuggestionCompletionMode, Builder, DefaultBuilder, TriggerInfo, trackingSpanEnd, DismissIfEmpty);
+                SelectedItem, IsHardSelection, IsUnique, UseSuggestionCompletionMode, Builder, DefaultBuilder, Trigger, trackingSpanEnd, DismissIfEmpty);
         }
 
         internal SnapshotSpan GetCurrentSpanInSnapshot(ViewTextSpan originalSpan, ITextSnapshot textSnapshot)

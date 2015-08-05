@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Triggers;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Extensibility.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -113,8 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             var isTextuallyTriggered = IsTextualTriggerCharacter(completionService, args.TypedChar, options);
             var isPotentialFilterCharacter = IsPotentialFilterCharacter(args);
-            var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo(args.TypedChar)
-                .WithIsDebugger(_isDebugger).WithIsImmediateWindow(_isImmediateWindow);
+            var triggerInfo = new TypeCharCompletionTrigger(args.TypedChar, _completionTriggerTags);
 
             if (sessionOpt == null)
             {
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         // we have computed one, or it can trigger a new list.  Ask the computation
                         // to compute again. If nothing has been computed, then it will try to
                         // compute again, otherwise it will just ignore this request.
-                        sessionOpt.ComputeModel(completionService, triggerInfo, GetCompletionProviders(), _isDebugger);
+                        sessionOpt.ComputeModel(completionService, triggerInfo, GetCompletionProviders());
                     }
 
                     // Now filter whatever result we have.

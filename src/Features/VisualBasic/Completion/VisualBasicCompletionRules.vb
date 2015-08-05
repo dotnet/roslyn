@@ -2,6 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.Completion.Triggers
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -52,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
                 Return 0
             End Function
 
-            Public Overrides Function IsBetterFilterMatch(item1 As CompletionItem, item2 As CompletionItem, filterText As String, triggerInfo As CompletionTriggerInfo, filterReason As CompletionFilterReason) As Boolean
+            Public Overrides Function IsBetterFilterMatch(item1 As CompletionItem, item2 As CompletionItem, filterText As String, trigger As CompletionTrigger, filterReason As CompletionFilterReason) As Boolean
                 If filterReason = CompletionFilterReason.BackspaceOrDelete Then
                     Dim prefixLength1 = GetPrefixLength(item1.FilterText, filterText)
                     Dim prefixLength2 = GetPrefixLength(item2.FilterText, filterText)
@@ -79,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
                     End If
                 End If
 
-                Return MyBase.IsBetterFilterMatch(item1, item2, filterText, triggerInfo, filterReason)
+                Return MyBase.IsBetterFilterMatch(item1, item2, filterText, trigger, filterReason)
             End Function
 
             Private Function GetPrefixLength(text As String, pattern As String) As Integer
@@ -91,17 +92,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
                 Return x
             End Function
 
-            Public Overrides Function MatchesFilterText(item As CompletionItem, filterText As String, triggerInfo As CompletionTriggerInfo, filterReason As CompletionFilterReason) As Boolean
+            Public Overrides Function MatchesFilterText(item As CompletionItem, filterText As String, trigger As CompletionTrigger, filterReason As CompletionFilterReason) As Boolean
                 ' If this is a session started on backspace, we use a much looser prefix match check
                 ' to see if an item matches
-                If filterReason = CompletionFilterReason.BackspaceOrDelete AndAlso triggerInfo.TriggerReason = CompletionTriggerReason.BackspaceOrDeleteCommand Then
+                If filterReason = CompletionFilterReason.BackspaceOrDelete AndAlso TypeOf trigger Is BackspaceOrDeleteCharCompletionTrigger Then
                     Return GetPrefixLength(item.FilterText, filterText) > 0
                 End If
 
-                Return MyBase.MatchesFilterText(item, filterText, triggerInfo, filterReason)
+                Return MyBase.MatchesFilterText(item, filterText, trigger, filterReason)
             End Function
 
-            Public Overrides Function ShouldSoftSelectItem(item As CompletionItem, filterText As String, triggerInfo As CompletionTriggerInfo) As Boolean
+            Public Overrides Function ShouldSoftSelectItem(item As CompletionItem, filterText As String, trigger As CompletionTrigger) As Boolean
                 ' VB has additional specialized logic for soft selecting an item in completion when the only filter text is "_"
                 If (filterText.Length = 0 OrElse filterText = "_") Then
                     ' Object Creation hard selects even with no selected item

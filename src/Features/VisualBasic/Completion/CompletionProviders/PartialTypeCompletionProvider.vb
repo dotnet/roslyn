@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
 
-        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CompletionItem))
+        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, trigger As CompletionTrigger, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CompletionItem))
             Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             If tree.IsInNonUserCode(position, cancellationToken) OrElse tree.IsInSkippedText(position, cancellationToken) Then
                 Return Nothing

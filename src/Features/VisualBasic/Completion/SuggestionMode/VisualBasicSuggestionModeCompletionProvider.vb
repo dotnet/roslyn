@@ -4,6 +4,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.SuggestionMode
+Imports Microsoft.CodeAnalysis.Completion.Triggers
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
@@ -17,10 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
             Return CompletionUtilities.GetTextChangeSpan(text, position)
         End Function
 
-        Protected Overrides Async Function GetBuilderAsync(document As Document, position As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of CompletionItem)
+        Protected Overrides Async Function GetBuilderAsync(document As Document, position As Integer, trigger As CompletionTrigger, cancellationToken As CancellationToken) As Task(Of CompletionItem)
             Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
 
-            If triggerInfo.IsDebugger Then
+            If trigger.CustomTags.Contains(WellKnownCompletionTriggerTags.Debugger) Then
                 Return CreateEmptyBuilder(text, position)
             End If
 

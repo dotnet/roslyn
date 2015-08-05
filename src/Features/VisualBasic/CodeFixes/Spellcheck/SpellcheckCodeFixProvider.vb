@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Completion.Triggers
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
@@ -83,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
             Dim completionService = document.GetLanguageService(Of ICompletionService)()
             Dim providers = completionService.GetDefaultCompletionProviders()
 
-            Dim completionList = Await completionService.GetCompletionListAsync(document, identifierName.SpanStart, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo(), providers, cancellationToken).ConfigureAwait(False)
+            Dim completionList = Await completionService.GetCompletionListAsync(document, identifierName.SpanStart, New DisplayListCompletionTrigger(), providers, cancellationToken).ConfigureAwait(False)
             If completionList Is Nothing Then
                 Return Nothing
             End If

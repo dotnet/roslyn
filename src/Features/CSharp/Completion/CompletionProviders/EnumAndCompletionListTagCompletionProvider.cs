@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(
-            Document document, int position, CompletionTriggerInfo triggerInfo,
+            Document document, int position, CompletionTrigger trigger,
             CancellationToken cancellationToken)
         {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);

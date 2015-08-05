@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Returns the <see cref="CompletionList"/> for the specified position in the document.
         /// </summary>
-        public static Task<CompletionList> GetCompletionListAsync(Document document, int position, CompletionTriggerInfo triggerInfo, IEnumerable<CompletionListProvider> completionProviders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<CompletionList> GetCompletionListAsync(Document document, int position, CompletionTrigger trigger, IEnumerable<CompletionListProvider> completionProviders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return document.GetLanguageService<ICompletionService>().GetCompletionListAsync(document, position, triggerInfo, completionProviders, cancellationToken);
+            return document.GetLanguageService<ICompletionService>().GetCompletionListAsync(document, position, trigger, completionProviders, cancellationToken);
         }
 
         /// <summary>

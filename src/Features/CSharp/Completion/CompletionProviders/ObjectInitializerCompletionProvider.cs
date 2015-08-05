@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal class ObjectInitializerCompletionProvider : AbstractObjectInitializerCompletionProvider
     {
-        protected override async Task<bool> IsExclusiveAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        protected override async Task<bool> IsExclusiveAsync(Document document, int position, CompletionTrigger trigger, CancellationToken cancellationToken)
         {
             // We're exclusive if this context could only be an object initializer and not also a
             // collection initializer. If we're initializing something that could be initialized as

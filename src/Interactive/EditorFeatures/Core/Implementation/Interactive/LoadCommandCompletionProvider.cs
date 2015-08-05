@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         private const string NetworkPath = "\\\\";
         private static readonly Regex s_directiveRegex = new Regex(@"#load\s+(""[^""]*""?)", RegexOptions.Compiled);
 
-        public override CompletionList GetCompletionList(SourceText text, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken = default(CancellationToken))
+        public override CompletionList GetCompletionList(SourceText text, int position, CompletionTrigger trigger, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var items = this.GetItems(text, position, triggerInfo, cancellationToken);
+            var items = this.GetItems(text, position, trigger, cancellationToken);
             if (items == null || !items.Any())
             {
                 return null;
@@ -39,11 +39,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         {
             var document = context.Document;
             var position = context.Position;
-            var triggerInfo = context.TriggerInfo;
+            var trigger = context.Trigger;
             var cancellationToken = context.CancellationToken;
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var items = GetItems(text, position, triggerInfo, cancellationToken);
+            var items = GetItems(text, position, trigger, cancellationToken);
 
             context.AddItems(items);
         }
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             return text.Lines.GetLineFromPosition(position).Start + quotedPathGroup.Index;
         }
 
-        private ImmutableArray<CompletionItem> GetItems(SourceText text, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        private ImmutableArray<CompletionItem> GetItems(SourceText text, int position, CompletionTrigger trigger, CancellationToken cancellationToken)
         {
             var line = text.Lines.GetLineFromPosition(position);
             var lineText = text.ToString(TextSpan.FromBounds(line.Start, position));

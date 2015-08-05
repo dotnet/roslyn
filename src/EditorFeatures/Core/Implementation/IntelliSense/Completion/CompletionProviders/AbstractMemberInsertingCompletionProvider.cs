@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             _waitIndicator = waitIndicator;
         }
 
-        protected override Task<bool> IsExclusiveAsync(Document documentOpt, int caretPosition, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        protected override Task<bool> IsExclusiveAsync(Document documentOpt, int caretPosition, CompletionTrigger trigger, CancellationToken cancellationToken)
         {
             return SpecializedTasks.True;
         }

@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
         }
 
         protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(
-            Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
+            Document document, int position, CompletionTrigger trigger, CancellationToken cancellationToken)
         {
             if (document != null && document.SourceCodeKind == SourceCodeKind.Interactive)
             {

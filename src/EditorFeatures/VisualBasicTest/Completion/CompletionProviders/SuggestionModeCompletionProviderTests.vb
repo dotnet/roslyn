@@ -1,8 +1,9 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading
+Imports System.Collections.Immutable
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Completion.Triggers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
@@ -285,7 +286,7 @@ End Class
 
         <WorkItem(1044441)>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub BuilderInDebugger
+        Public Sub BuilderInDebugger()
             Dim markup = <a> 
 Class C1
     Sub Foo()
@@ -293,38 +294,38 @@ Class C1
     End Sub
 End Class
 </a>
-            VerifyBuilder(markup, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo().WithIsDebugger(True))
+            VerifyBuilder(markup, New DisplayListCompletionTrigger(ImmutableArray.Create(WellKnownCompletionTriggerTags.Debugger)))
         End Sub
 
-        Private Sub VerifyNotBuilder(markup As XElement, Optional triggerInfo As CompletionTriggerInfo? = Nothing)
-            VerifySuggestionModeWorker(markup, isBuilder:=False, triggerInfo:=triggerInfo)
+        Private Sub VerifyNotBuilder(markup As XElement, Optional trigger As CompletionTrigger = Nothing)
+            VerifySuggestionModeWorker(markup, isBuilder:=False, trigger:=trigger)
         End Sub
 
-        Private Sub VerifyBuilder(markup As XElement, Optional triggerInfo As CompletionTriggerInfo? = Nothing)
-            VerifySuggestionModeWorker(markup, isBuilder:=True, triggerInfo:=triggerInfo)
+        Private Sub VerifyBuilder(markup As XElement, Optional trigger As CompletionTrigger = Nothing)
+            VerifySuggestionModeWorker(markup, isBuilder:=True, trigger:=trigger)
         End Sub
 
-        Private Sub VerifySuggestionModeWorker(markup As XElement, isBuilder As Boolean, triggerInfo As CompletionTriggerInfo?)
+        Private Sub VerifySuggestionModeWorker(markup As XElement, isBuilder As Boolean, trigger As CompletionTrigger)
             Dim code As String = Nothing
             Dim position As Integer = 0
             MarkupTestFile.GetPosition(markup.NormalizedValue, code, position)
 
             Using workspaceFixture = New VisualBasicTestWorkspaceFixture()
                 Dim document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular)
-                CheckResults(document1, position, isBuilder, triggerInfo)
+                CheckResults(document1, position, isBuilder, trigger)
 
                 If CanUseSpeculativeSemanticModel(document1, position) Then
                     Dim document2 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular, cleanBeforeUpdate:=False)
-                    CheckResults(document2, position, isBuilder, triggerInfo)
+                    CheckResults(document2, position, isBuilder, trigger)
                 End If
             End Using
 
         End Sub
 
-        Private Sub CheckResults(document As Document, position As Integer, isBuilder As Boolean, triggerInfo As CompletionTriggerInfo?)
-            triggerInfo = If(triggerInfo, CompletionTriggerInfo.CreateTypeCharTriggerInfo("a"c))
+        Private Sub CheckResults(document As Document, position As Integer, isBuilder As Boolean, trigger As CompletionTrigger)
+            trigger = If(trigger, New TypeCharCompletionTrigger("a"c))
 
-            Dim completionList = GetCompletionList(document, position, triggerInfo.Value)
+            Dim completionList = GetCompletionList(document, position, trigger)
 
             If isBuilder Then
                 Assert.NotNull(completionList)

@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
 
-        Protected Overrides Async Function IsExclusiveAsync(document As Document, caretPosition As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of Boolean)
+        Protected Overrides Async Function IsExclusiveAsync(document As Document, caretPosition As Integer, trigger As CompletionTrigger, cancellationToken As CancellationToken) As Task(Of Boolean)
             Dim syntaxTree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Dim token = syntaxTree.FindTokenOnLeftOfPosition(caretPosition, cancellationToken).
                                    GetPreviousTokenIfTouchingWord(caretPosition)
@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return False
         End Function
 
-        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CompletionItem))
+        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, trigger As CompletionTrigger, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CompletionItem))
             Dim syntaxTree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             If syntaxTree.IsInNonUserCode(position, cancellationToken) OrElse
                 syntaxTree.IsInSkippedText(position, cancellationToken) Then

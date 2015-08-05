@@ -154,11 +154,13 @@
     <Compile Include="Completion\CompletionItemRules.cs" />
     <Compile Include="Completion\CompletionList.cs" />
     <Compile Include="Completion\CompletionListContext.cs" />
+    <Compile Include="Completion\CompletionTrigger.cs" />
     <Compile Include="Completion\CompletionOptions.cs" />
     <Compile Include="Completion\CompletionOptionsProvider.cs" />
     <Compile Include="Completion\CompletionService.cs" />
-    <Compile Include="Completion\CompletionTriggerInfo.cs" />
-    <Compile Include="Completion\CompletionTriggerReason.cs" />
+    <Compile Include="Completion\Triggers\BackspaceOrDeleteCharCompletionTrigger.cs" />
+    <Compile Include="Completion\Triggers\TypeCharCompletionTrigger.cs" />
+    <Compile Include="Completion\Triggers\DisplayListCompletionTrigger.cs" />
     <Compile Include="Completion\ICompletionService.cs" />
     <Compile Include="Completion\ITextCompletionService.cs" />
     <Compile Include="Completion\Providers\AbstractCompletionProvider.cs" />
@@ -178,6 +180,7 @@
     <Compile Include="Completion\Providers\RecommendedKeyword.cs" />
     <Compile Include="Completion\SuggestionMode\SuggestionModeCompletionItemRules.cs" />
     <Compile Include="Completion\SuggestionMode\SuggestionModeCompletionProvider.cs" />
+    <Compile Include="Completion\Triggers\WellKnownCompletionTriggerTags.cs" />
     <Compile Include="Diagnostics\AnalyzerHelper.cs" />
     <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
     <Compile Include="Diagnostics\AnalyzerUpdateArgsId.cs" />

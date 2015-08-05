@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
 
                     var filterText = model.GetCurrentTextInSnapshot(item.FilterSpan, textSnapshot, textSpanToText);
-                    var matchesFilterText = completionRules.MatchesFilterText(item, filterText, model.TriggerInfo, filterReason);
+                    var matchesFilterText = completionRules.MatchesFilterText(item, filterText, model.Trigger, filterReason);
 
                     if (matchesFilterText)
                     {
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         // If we have no best match, or this match is better than the last match,
                         // then the current item is the best filter match.
                         if (bestFilterMatch == null ||
-                            completionRules.IsBetterFilterMatch(item, GetCompletionItem(bestFilterMatch), filterText, model.TriggerInfo, filterReason))
+                            completionRules.IsBetterFilterMatch(item, GetCompletionItem(bestFilterMatch), filterText, model.Trigger, filterReason))
                         {
                             bestFilterMatch = currentItem;
                         }
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 // If we have a best item, then we want to hard select it.  Otherwise we want
                 // softselection.  However, no hard selection if there's a builder.
-                var hardSelection = IsHardSelection(model, bestFilterMatch, textSnapshot, completionRules, model.TriggerInfo, filterReason);
+                var hardSelection = IsHardSelection(model, bestFilterMatch, textSnapshot, completionRules, model.Trigger, filterReason);
 
                 var result = model.WithFilteredItems(allFilteredItems)
                             .WithSelectedItem(selectedItem)
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 CompletionItem bestFilterMatch,
                 ITextSnapshot textSnapshot,
                 CompletionRules completionRules,
-                CompletionTriggerInfo triggerInfo,
+                CompletionTrigger trigger,
                 CompletionFilterReason reason)
             {
                 if (model.Builder != null)
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var viewSpan = model.GetSubjectBufferFilterSpanInViewBuffer(bestFilterMatch.FilterSpan);
                 var fullFilterText = model.GetCurrentTextInSnapshot(viewSpan, textSnapshot, endPoint: null);
 
-                var shouldSoftSelect = completionRules.ShouldSoftSelectItem(GetExternallyUsableCompletionItem(bestFilterMatch), fullFilterText, triggerInfo);
+                var shouldSoftSelect = completionRules.ShouldSoftSelectItem(GetExternallyUsableCompletionItem(bestFilterMatch), fullFilterText, trigger);
                 if (shouldSoftSelect)
                 {
                     return false;
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 // If the user moved the caret left after they started typing, the 'best' match may not match at all
                 // against the full text span that this item would be replacing.
-                if (!completionRules.MatchesFilterText(bestFilterMatch, fullFilterText, triggerInfo, reason))
+                if (!completionRules.MatchesFilterText(bestFilterMatch, fullFilterText, trigger, reason))
                 {
                     return false;
                 }

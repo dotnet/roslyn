@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return text(characterPosition) = "."c
         End Function
 
-        Protected Overrides Function IsExclusiveAsync(documentOpt As Document, caretPosition As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of Boolean)
+        Protected Overrides Function IsExclusiveAsync(documentOpt As Document, caretPosition As Integer, trigger As CompletionTrigger, cancellationToken As CancellationToken) As Task(Of Boolean)
             ' Object initializers are explicitly indicated by "With", so we're always exclusive.
             Return SpecializedTasks.True
         End Function

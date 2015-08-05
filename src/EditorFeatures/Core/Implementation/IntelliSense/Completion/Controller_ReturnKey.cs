@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using Microsoft.CodeAnalysis.Completion.Triggers;
 using Microsoft.CodeAnalysis.Editor.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
@@ -64,7 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // to the editor.  In single-line debugger windows (Watch, etc), however, we don't
             // want to send the enter though, because those windows don't support displaying
             // more than one line of text.
-            sendThrough = !model.TriggerInfo.IsDebugger || model.TriggerInfo.IsImmediateWindow;
+            sendThrough = !model.Trigger.CustomTags.Contains(WellKnownCompletionTriggerTags.Debugger)
+                        || model.Trigger.CustomTags.Contains(ImmediateWindowTriggerTag);
 
             if (model.IsSoftSelection)
             {

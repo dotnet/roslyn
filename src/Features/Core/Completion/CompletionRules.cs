@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// iff the completion item matches and should be included in the filtered completion
         /// results, or false if it should not be.
         /// </summary>
-        public virtual bool MatchesFilterText(CompletionItem item, string filterText, CompletionTriggerInfo triggerInfo, CompletionFilterReason filterReason)
+        public virtual bool MatchesFilterText(CompletionItem item, string filterText, CompletionTrigger trigger, CompletionFilterReason filterReason)
         {
             // If the user hasn't typed anything, and this item was preselected, or was in the
             // MRU list, then we definitely want to include it.
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Returns true if item1 is a better completion item than item2 given the provided filter
         /// text, or false if it is not better.
         /// </summary>
-        public virtual bool IsBetterFilterMatch(CompletionItem item1, CompletionItem item2, string filterText, CompletionTriggerInfo triggerInfo, CompletionFilterReason filterReason)
+        public virtual bool IsBetterFilterMatch(CompletionItem item1, CompletionItem item2, string filterText, CompletionTrigger trigger, CompletionFilterReason filterReason)
         {
             var patternMatcher = GetPatternMatcher(_completionService.GetCultureSpecificQuirks(filterText));
             var match1 = patternMatcher.GetFirstMatch(_completionService.GetCultureSpecificQuirks(item1.FilterText));
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Returns true if the completion item should be "soft" selected, or false if it should be "hard"
         /// selected.
         /// </summary>
-        public virtual bool ShouldSoftSelectItem(CompletionItem item, string filterText, CompletionTriggerInfo triggerInfo)
+        public virtual bool ShouldSoftSelectItem(CompletionItem item, string filterText, CompletionTrigger trigger)
         {
             return filterText.Length == 0 && !item.Preselect;
         }

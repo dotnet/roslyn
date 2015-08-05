@@ -408,6 +408,7 @@
     <Compile Include="Implementation\Intellisense\Completion\FileSystem\ICurrentWorkingDirectoryDiscoveryService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\FileSystem\IOUtilities.cs" />
     <Compile Include="Implementation\Intellisense\Completion\FileSystem\PathCompletionUtilities.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\Snippets\DisplaySnippetsCompletionTrigger.cs" />
     <Compile Include="Implementation\KeywordHighlighting\AbstractKeywordHighlighter.cs" />
     <Compile Include="Implementation\KeywordHighlighting\HighlighterViewTaggerProvider.cs" />
     <Compile Include="Implementation\KeywordHighlighting\HighlightingService.cs" />

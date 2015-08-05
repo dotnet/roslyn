@@ -4,8 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Triggers;
 using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -63,10 +63,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     this.TextView.Caret.PositionChanged += OnCaretPositionChanged;
                 }
 
-                var triggerInfo = CompletionTriggerInfo.CreateBackspaceTriggerInfo(deletedChar);
+                var trigger = new BackspaceOrDeleteCharCompletionTrigger(deletedChar, isBackspace: !isDelete, customTags: _completionTriggerTags);
+
                 var completionService = this.GetCompletionService();
 
-                this.StartNewModelComputation(completionService, triggerInfo, filterItems: false);
+                this.StartNewModelComputation(completionService, trigger, filterItems: false);
 
                 return;
             }
@@ -98,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     this.StopModelComputation();
                     return;
                 }
-                else if (model != null && model.TriggerInfo.TriggerReason != CompletionTriggerReason.BackspaceOrDeleteCommand)
+                else if (model != null && !(model.Trigger is BackspaceOrDeleteCharCompletionTrigger))
                 {
                     // Filter the model if it wasn't invoked on backspace.
                     sessionOpt.FilterModel(CompletionFilterReason.BackspaceOrDelete);

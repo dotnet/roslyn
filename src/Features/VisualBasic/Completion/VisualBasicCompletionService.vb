@@ -5,6 +5,7 @@ Imports System.Composition
 Imports System.Globalization
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Completion.Triggers
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
@@ -56,8 +57,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             Return CompletionUtilities.GetTextChangeSpan(text, position)
         End Function
 
-        Protected Overrides Function TriggerOnBackspace(text As SourceText, position As Integer, triggerInfo As CompletionTriggerInfo, options As OptionSet) As Boolean
-            Dim triggerChar = triggerInfo.TriggerCharacter.GetValueOrDefault()
+        Private Shared Function GetDeletedChar(trigger As CompletionTrigger) As Char
+            If TypeOf trigger Is BackspaceOrDeleteCharCompletionTrigger Then
+                Return DirectCast(trigger, BackspaceOrDeleteCharCompletionTrigger).DeletedCharacter.GetValueOrDefault()
+            Else
+                Return Contract.FailWithReturn(Of Char)()
+            End If
+        End Function
+
+        Protected Overrides Function TriggerOnBackspaceOrDelete(text As SourceText, position As Integer, trigger As CompletionTrigger, options As OptionSet) As Boolean
+            Dim triggerChar = GetDeletedChar(trigger)
             Return options.GetOption(CompletionOptions.TriggerOnTyping, GetLanguageName()) AndAlso (Char.IsLetterOrDigit(triggerChar) OrElse triggerChar = "."c)
         End Function
 

@@ -10,6 +10,6 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal interface ITextCompletionService : ICompletionService
     {
-        Task<CompletionList> GetCompletionListAsync(SourceText text, int position, CompletionTriggerInfo triggerInfo, IEnumerable<CompletionListProvider> completionProviders, OptionSet options, CancellationToken cancellationToken);
+        Task<CompletionList> GetCompletionListAsync(SourceText text, int position, CompletionTrigger trigger, IEnumerable<CompletionListProvider> completionProviders, OptionSet options, CancellationToken cancellationToken);
     }
 }

@@ -2,6 +2,7 @@
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Completion.Triggers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
@@ -107,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 Dim document = workspace.CurrentSolution.GetDocument(documentId)
                 Dim position = hostDocument.CursorPosition.Value
 
-                Dim completionList = GetCompletionList(document, position, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo())
+                Dim completionList = GetCompletionList(document, position, New DisplayListCompletionTrigger())
                 Dim item = completionList.Items.First(Function(i) i.DisplayText.StartsWith(textTypedSoFar))
 
                 Dim completionService = document.Project.LanguageServices.GetService(Of ICompletionService)()
@@ -129,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 Dim document = workspace.CurrentSolution.GetDocument(documentId)
                 Dim position = hostDocument.CursorPosition.Value
 
-                Dim completionList = GetCompletionList(document, position, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo())
+                Dim completionList = GetCompletionList(document, position, New DisplayListCompletionTrigger())
                 Dim item = completionList.Items.First()
 
                 Dim completionService = document.Project.LanguageServices.GetService(Of ICompletionService)()

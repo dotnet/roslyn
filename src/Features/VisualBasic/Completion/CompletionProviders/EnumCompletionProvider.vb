@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.VisualBasic)
         End Function
 
-        Protected Overrides Function IsExclusiveAsync(documentOpt As Document, caretPosition As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of Boolean)
+        Protected Overrides Function IsExclusiveAsync(documentOpt As Document, caretPosition As Integer, trigger As CompletionTrigger, cancellationToken As CancellationToken) As Task(Of Boolean)
             Return SpecializedTasks.False
         End Function
 
