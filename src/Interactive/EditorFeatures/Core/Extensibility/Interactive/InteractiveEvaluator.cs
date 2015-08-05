@@ -487,33 +487,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
                 if (result.Success)
                 {
-                    SubmissionSuccessfullyExecuted(result);
-                }
-
-                return new ExecutionResult(result.Success);
-            }
-            catch (Exception e) when (FatalError.Report(e))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        public async Task<ExecutionResult> LoadCommandAsync(string path)
-        {
-            try
-            {
-                var result = await _interactiveHost.ExecuteFileAsync(path).ConfigureAwait(false);
-
-                if (result.Success)
-                {
-                    // We are executing a command, which means the current content type has been switched to "Command" 
-                    // and the source document removed.
-                    Debug.Assert(!_workspace.CurrentSolution.GetProject(_currentSubmissionProjectId).HasDocuments);
-                    Debug.Assert(result.ResolvedPath != null);
-
-                    var documentId = DocumentId.CreateNewId(_currentSubmissionProjectId, result.ResolvedPath);
-                    var newSolution = _workspace.CurrentSolution.AddDocument(documentId, Path.GetFileName(result.ResolvedPath), new FileTextLoader(result.ResolvedPath, defaultEncoding: null));
-                    _workspace.SetCurrentSolution(newSolution);
+                    // We are not executing a command (the current content type is not "Interactive Command"),
+                    // so the source document should not have been removed.
+                    Debug.Assert(_workspace.CurrentSolution.GetProject(_currentSubmissionProjectId).HasDocuments);
 
                     SubmissionSuccessfullyExecuted(result);
                 }

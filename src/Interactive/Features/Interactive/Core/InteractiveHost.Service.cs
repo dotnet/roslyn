@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
             }
 
-            private TaskResult CompleteExecution(TaskResult result, RemoteAsyncOperation<RemoteExecutionResult> operation, bool success, string resolvedPath = null)
+            private TaskResult CompleteExecution(TaskResult result, RemoteAsyncOperation<RemoteExecutionResult> operation, bool success)
             {
                 // TODO (tomat): we should be resetting this info just before the execution to ensure that the services see the same
                 // as the next execution.
@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 options = options.WithBaseDirectory(currentDirectory);
 
-                operation.Completed(new RemoteExecutionResult(success, newSourcePaths, newReferencePaths, newWorkingDirectory, resolvedPath));
+                operation.Completed(new RemoteExecutionResult(success, newSourcePaths, newReferencePaths, newWorkingDirectory));
                 return result.With(options);
             }
 
@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
                 finally
                 {
-                    result = CompleteExecution(result, operation, true);
+                    result = CompleteExecution(result, operation, success: true);
                 }
 
                 return result;
