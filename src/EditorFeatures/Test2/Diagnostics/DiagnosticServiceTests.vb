@@ -1779,5 +1779,46 @@ class MyClass
                 Assert.Equal(0, diagnostics.Count())
             End Using
         End Sub
+
+        <Fact, WorkItem(4068, "https://github.com/dotnet/roslyn/issues/4068")>
+        Public Sub TestAnalyzerWithCompilationActionReportingHiddenDiagnostics()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document><![CDATA[
+class MyClass
+{
+}]]>
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+                Dim project = workspace.CurrentSolution.Projects.Single()
+
+                ' Add analyzer
+                Dim analyzer = New HiddenDiagnosticsCompilationAnalyzer()
+                Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+
+                Dim diagnosticService = New TestDiagnosticAnalyzerService()
+                Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+
+                ' Verify available diagnostic descriptors
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
+                Assert.Equal(1, descriptorsMap.Count)
+                Dim descriptors = descriptorsMap.First().Value
+                Assert.Equal(1, descriptors.Length)
+                Assert.Equal(HiddenDiagnosticsCompilationAnalyzer.Descriptor.Id, descriptors.Single().Id)
+
+                ' Force project analysis
+                incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged:=True, cancellationToken:=CancellationToken.None).Wait()
+
+                ' Get cached project diagnostics.
+                Dim diagnostics = diagnosticService.GetCachedDiagnosticsAsync(workspace, project.Id).WaitAndGetResult(CancellationToken.None)
+
+                Assert.Equal(1, diagnostics.Count())
+                Assert.Equal(HiddenDiagnosticsCompilationAnalyzer.Descriptor.Id, diagnostics.Single().Id)
+            End Using
+        End Sub
     End Class
 End Namespace

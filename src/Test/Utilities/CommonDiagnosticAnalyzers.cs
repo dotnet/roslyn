@@ -336,5 +336,34 @@ namespace Microsoft.CodeAnalysis
                 }
             }
         }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public class HiddenDiagnosticsCompilationAnalyzer : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+                "ID 1000",
+                "Description1",
+                string.Empty,
+                "Analysis",
+                DiagnosticSeverity.Hidden,
+                true,
+                customTags: WellKnownDiagnosticTags.NotConfigurable);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCompilationAction(this.OnCompilation);
+            }
+
+            private void OnCompilation(CompilationAnalysisContext context)
+            {
+                // Report the hidden diagnostic on all trees in compilation.
+                foreach (var tree in context.Compilation.SyntaxTrees)
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(Descriptor, tree.GetRoot().GetLocation()));
+                }
+            }
+        }
     }
 }
