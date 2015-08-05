@@ -8728,5 +8728,26 @@ operator int (IntHolder ih)
 operator IntHolder(int i)
 'y' is 5");
         }
+
+        [Fact, WorkItem(4027, "https://github.com/dotnet/roslyn/issues/4027")]
+        public void NotSignExtendedOperand()
+        {
+            string source = @"
+class MainClass
+{
+    public static void Main ()
+    {
+        short a = 0;
+        int b = 0;
+        a |= (short)b;
+        a = (short)(a | (short)b);
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+
+            compilation.VerifyDiagnostics();
+        }
     }
 }
