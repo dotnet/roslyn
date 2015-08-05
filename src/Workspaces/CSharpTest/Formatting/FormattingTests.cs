@@ -6259,7 +6259,7 @@ class Program
             var code = @"class Program
 {
     public static Program operator +   (Program p1, Program p2) { return null; }
-    public static implicit operator string (Program p) { return null; }
+    public static implicit operator string     (Program p) { return null; }
     public static void M  () { }
 }";
             var expected = @"class Program
