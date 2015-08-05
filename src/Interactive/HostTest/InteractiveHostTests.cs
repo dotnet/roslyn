@@ -420,8 +420,8 @@ WriteLine(5);
             Host.ExecuteFileAsync(file.Path).Wait();
 
             var errorOut = ReadErrorOutputToEnd().Trim();
-            Assert.True(errorOut.StartsWith(file.Path + "(1,2):", StringComparison.Ordinal), "Error output should start with file name, line and column");
-            Assert.True(errorOut.Contains("CS1024"), "Error output should include error CS1024");
+            Assert.True(errorOut.StartsWith(file.Path + "(1,7):", StringComparison.Ordinal), "Error output should start with file name, line and column");
+            Assert.True(errorOut.Contains("CS7010"), "Error output should include error CS7010");
         }
 
         /// <summary>

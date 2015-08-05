@@ -62,6 +62,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot have a previousSubmission when not a submission..
+        /// </summary>
+        internal static string CannotHavePreviousSubmission {
+            get {
+                return ResourceManager.GetString("CannotHavePreviousSubmission", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Can&apos;t reference compilation of type &apos;{0}&apos; from {1} compilation..
         /// </summary>
         internal static string CantReferenceCompilationOf {
@@ -85,6 +94,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string CompilationC {
             get {
                 return ResourceManager.GetString("CompilationC", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not find file..
+        /// </summary>
+        internal static string CouldNotFindFile {
+            get {
+                return ResourceManager.GetString("CouldNotFindFile", resourceCulture);
             }
         }
         
@@ -9693,6 +9711,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SyntaxTree &apos;{0}&apos; resulted from a #load directive and cannot be removed or replaced directly..
+        /// </summary>
+        internal static string SyntaxTreeFromLoadNoRemoveReplace {
+            get {
+                return ResourceManager.GetString("SyntaxTreeFromLoadNoRemoveReplace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SyntaxTree &apos;{0}&apos; not found to remove.
         /// </summary>
         internal static string SyntaxTreeNotFoundTo {
@@ -9761,24 +9788,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string TreeNotPartOfCompilation {
             get {
                 return ResourceManager.GetString("TreeNotPartOfCompilation", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to trees[{0}].
-        /// </summary>
-        internal static string Trees0 {
-            get {
-                return ResourceManager.GetString("Trees0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to trees[{0}] must have root node with SyntaxKind.CompilationUnit..
-        /// </summary>
-        internal static string TreesMustHaveRootNode {
-            get {
-                return ResourceManager.GetString("TreesMustHaveRootNode", resourceCulture);
             }
         }
         

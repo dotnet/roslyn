@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>
-        /// Returns #r directives specified in the compilation.
+        /// Returns #load directives specified in the compilation.
         /// </summary>
         public IList<LoadDirectiveTriviaSyntax> GetLoadDirectives()
         {

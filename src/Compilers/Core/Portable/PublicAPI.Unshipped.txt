@@ -49,3 +49,4 @@ static Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetry.GetAnalyze
 static Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetry.GetAnalyzerExecutionTime(this Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers compilationWithAnalyzers, Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer analyzer) -> System.TimeSpan
 static Microsoft.CodeAnalysis.SyntaxNodeExtensions.NormalizeWhitespace<TNode>(this TNode node, string indentation = "    ", string eol = "\r\n", bool elasticTrivia = false) -> TNode
 static Microsoft.CodeAnalysis.SyntaxNodeExtensions.NormalizeWhitespace<TNode>(this TNode node, string indentation, bool elasticTrivia) -> TNode
+virtual Microsoft.CodeAnalysis.SourceReferenceResolver.ReadText(string resolvedPath) -> Microsoft.CodeAnalysis.Text.SourceText

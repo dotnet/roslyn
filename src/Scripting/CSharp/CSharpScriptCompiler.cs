@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Globalization;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Scripting.CSharp
 {
@@ -44,12 +46,12 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
                     scriptClassName: submissionTypeName,
                     usings: script.Options.Namespaces,
                     optimizationLevel: OptimizationLevel.Debug, // TODO
-                    checkOverflow: false,                  // TODO
-                    allowUnsafe: true,                     // TODO
+                    checkOverflow: false,                       // TODO
+                    allowUnsafe: true,                          // TODO
                     platform: Platform.AnyCpu,
                     warningLevel: 4,
                     xmlReferenceResolver: null, // don't support XML file references in interactive (permissions & doc comment includes)
-                    sourceReferenceResolver: SourceFileResolver.Default, // TODO
+                    sourceReferenceResolver: LoadDirectiveResolver.Default,
                     metadataReferenceResolver: script.Options.ReferenceResolver,
                     assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default
                 ),
@@ -59,6 +61,26 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
             );
 
             return compilation;
+        }
+
+        private class LoadDirectiveResolver : SourceFileResolver
+        {
+            public static new LoadDirectiveResolver Default { get; } = new LoadDirectiveResolver();
+
+            private LoadDirectiveResolver()
+                : base(ImmutableArray<string>.Empty, baseDirectory: null)
+            {
+            }
+
+            public override SourceText ReadText(string resolvedPath)
+            {
+                string unused;
+                return CommonCompiler.ReadFileContentHelper(
+                    resolvedPath,
+                    encoding: null,
+                    checksumAlgorithm: SourceHashAlgorithm.Sha1, // TODO: Should we be fetching the checksum algorithm from somewhere?
+                    normalizedFilePath: out unused);
+            }
         }
     }
 }

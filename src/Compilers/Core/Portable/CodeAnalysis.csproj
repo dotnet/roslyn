@@ -135,6 +135,8 @@
     <Compile Include="CommandLine\ErrorLogger.WellKnownStrings.cs" />
     <Compile Include="CommandLine\TouchedFileLogger.cs" />
     <Compile Include="Compilation.EmitStreamProvider.cs" />
+    <Compile Include="Compilation\LoadDirective.cs" />
+    <Compile Include="Compilation\CommonSyntaxAndDeclarationManager.cs" />
     <Compile Include="Compilation\SymbolFilter.cs" />
     <Compile Include="CompilerPathUtilities.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisResult.cs" />

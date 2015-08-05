@@ -230,6 +230,8 @@
     <Compile Include="Compilation\AttributeSemanticModel.cs" />
     <Compile Include="Compilation\AwaitExpressionInfo.cs" />
     <Compile Include="Compilation\BuiltInOperators.cs" />
+    <Compile Include="Compilation\SyntaxAndDeclarationManager.cs" />
+    <Compile Include="Compilation\SyntaxAndDeclarationManager.LazyState.cs" />
     <Compile Include="Compilation\CSharpCompilerDiagnosticAnalyzer.cs" />
     <Compile Include="Compilation\CSharpCompilation.cs" />
     <Compile Include="Compilation\CSharpCompilationReference.cs" />
