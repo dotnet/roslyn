@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return true;
         }
 
-        public static bool IsOpenParenInParameterListOfAConversionOperator(this SyntaxToken token)
+        public static bool IsOpenParenInParameterListOfAConversionOperatorDeclaration(this SyntaxToken token)
         {
             return token.IsOpenParenInParameterList() && token.Parent.IsParentKind(SyntaxKind.ConversionOperatorDeclaration);
         }

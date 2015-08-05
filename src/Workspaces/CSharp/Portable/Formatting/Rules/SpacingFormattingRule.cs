@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // Case: public static implicit operator string(Program p) { return null; }
-            if (previousToken.IsKeyword() && currentToken.IsOpenParenInParameterListOfAConversionOperator())
+            if (previousToken.IsKeyword() && currentToken.IsOpenParenInParameterListOfAConversionOperatorDeclaration())
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpacingAfterMethodDeclarationName);
             }
