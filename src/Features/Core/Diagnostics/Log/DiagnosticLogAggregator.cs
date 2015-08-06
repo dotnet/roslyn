@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Internal.Log;
+using static Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetry;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Log
 {
@@ -37,9 +38,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             get { return _analyzerInfoMap; }
         }
 
-        public void UpdateAnalyzerTypeCount(DiagnosticAnalyzer analyzer, AnalyzerActions analyzerActions)
+        public void UpdateAnalyzerTypeCount(DiagnosticAnalyzer analyzer, ActionCounts analyzerActions, Project projectOpt)
         {
-            var telemetry = DiagnosticAnalyzerLogger.AllowsTelemetry(_owner, analyzer);
+            var telemetry = DiagnosticAnalyzerLogger.AllowsTelemetry(_owner, analyzer, projectOpt?.Id);
 
             ImmutableInterlocked.AddOrUpdate(
                 ref _analyzerInfoMap,
@@ -56,9 +57,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
         {
             public Type CLRType;
             public bool Telemetry;
-            public int[] Counts = new int[DiagnosticLogAggregator.AnalyzerTypes.Length];
+            public int[] Counts = new int[AnalyzerTypes.Length];
 
-            public AnalyzerInfo(DiagnosticAnalyzer analyzer, AnalyzerActions analyzerActions, bool telemetry)
+            public AnalyzerInfo(DiagnosticAnalyzer analyzer, ActionCounts analyzerActions, bool telemetry)
             {
                 CLRType = analyzer.GetType();
                 Telemetry = telemetry;
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
                 Counts[9] = analyzerActions.SyntaxTreeActionsCount;
             }
 
-            public void SetAnalyzerTypeCount(AnalyzerActions analyzerActions)
+            public void SetAnalyzerTypeCount(ActionCounts analyzerActions)
             {
                 Counts[0] = analyzerActions.CodeBlockActionsCount;
                 Counts[1] = analyzerActions.CodeBlockEndActionsCount;

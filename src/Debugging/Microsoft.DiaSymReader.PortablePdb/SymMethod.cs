@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
@@ -9,23 +10,28 @@ using System.Runtime.InteropServices;
 namespace Microsoft.DiaSymReader.PortablePdb
 {
     [ComVisible(false)]
-    public sealed class SymMethod : ISymUnmanagedMethod, ISymUnmanagedAsyncMethod
+    public sealed class SymMethod : ISymUnmanagedMethod, ISymUnmanagedAsyncMethod, ISymEncUnmanagedMethod
     {
-        private readonly MethodDefinitionHandle _handle;
-        private readonly SymReader _symReader;
+        internal sealed class ByHandleComparer : IComparer<ISymUnmanagedMethod>
+        {
+            public static readonly ByHandleComparer Default = new ByHandleComparer();
+            public int Compare(ISymUnmanagedMethod x, ISymUnmanagedMethod y) => HandleComparer.Default.Compare(((SymMethod)x).BodyHandle, ((SymMethod)y).BodyHandle);
+        }
+
+        internal MethodBodyHandle BodyHandle { get; }
+        internal MethodDefinitionHandle DefinitionHandle => BodyHandle.ToMethodDefinitionHandle();
+        internal SymReader SymReader { get; }
         private RootScopeData _lazyRootScopeData;
         private AsyncMethodData _lazyAsyncMethodData;
 
-        internal SymMethod(SymReader symReader, MethodDefinitionHandle handle)
+        internal MetadataReader MetadataReader => SymReader.MetadataReader;
+
+        internal SymMethod(SymReader symReader, MethodBodyHandle handle)
         {
             Debug.Assert(symReader != null);
-            _symReader = symReader;
-            _handle = handle;
+            SymReader = symReader;
+            BodyHandle = handle;
         }
-
-        internal SymReader SymReader => _symReader;
-        internal MetadataReader MetadataReader => _symReader.MetadataReader;
-        internal MethodDefinitionHandle Handle => _handle;
 
         #region ISymUnmanagedMethod
 
@@ -100,9 +106,9 @@ namespace Microsoft.DiaSymReader.PortablePdb
         {
             // TODO: cache
 
-            var mdReader = _symReader.MetadataReader;
+            var mdReader = SymReader.MetadataReader;
 
-            var body = mdReader.GetMethodBody(_handle);
+            var body = mdReader.GetMethodBody(BodyHandle);
             var spReader = mdReader.GetSequencePointsReader(body.SequencePoints);
 
             SymDocument currentDocument = null;
@@ -146,7 +152,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
                 {
                     if (currentDocument == null || currentDocument.Handle != sp.Document)
                     {
-                        currentDocument = new SymDocument(_symReader, sp.Document);
+                        currentDocument = new SymDocument(SymReader, sp.Document);
                     }
 
                     documents[i] = currentDocument;
@@ -172,7 +178,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int GetToken(out int methodToken)
         {
-            methodToken = MetadataTokens.GetToken(_handle);
+            methodToken = MetadataTokens.GetToken(DefinitionHandle);
             return HResult.S_OK;
         }
 
@@ -196,7 +202,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
         private AsyncMethodData ReadAsyncMethodData()
         {
             var reader = MetadataReader;
-            var body = reader.GetMethodBody(_handle);
+            var body = reader.GetMethodBody(BodyHandle);
             var kickoffMethod = body.GetStateMachineKickoffMethod();
 
             if (kickoffMethod.IsNil)
@@ -204,7 +210,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
                 return AsyncMethodData.None;
             }
 
-            var value = reader.GetCustomDebugInformation(_handle, MetadataUtilities.MethodSteppingInformationBlobId);
+            var value = reader.GetCustomDebugInformation(DefinitionHandle, MetadataUtilities.MethodSteppingInformationBlobId);
             if (value.IsNil)
             {
                 return AsyncMethodData.None;
@@ -335,6 +341,71 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
             count = length;
             return HResult.S_OK;
+        }
+
+        #endregion
+
+        #region ISymEncUnmanagedMethod
+
+        /// <summary>
+        /// Get the file name for the line associated with speficied offset.
+        /// </summary>
+        public int GetFileNameFromOffset(
+            int offset,
+            int bufferLength,
+            out int count,
+            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] char[] name)
+        {
+            // TODO: parse sequence points -> document
+            throw new InvalidOperationException();
+        }
+
+        /// <summary>
+        /// Get the Line information associated with <paramref name="offset"/>.
+        /// </summary>
+        /// <remarks>
+        /// If <paramref name="offset"/> is not a sequence point it is associated with the previous one.
+        /// <paramref name="sequencePointOffset"/> provides the associated sequence point.
+        /// </remarks>
+        public int GetLineFromOffset(
+            int offset,
+            out int startLine,
+            out int startColumn,
+            out int endLine,
+            out int endColumn,
+            out int sequencePointOffset)
+        {
+            // TODO: parse sequence points
+            throw new InvalidOperationException();
+        }
+
+        /// <summary>
+        /// Get the number of Documents that this method has lines in.
+        /// </summary>
+        public int GetDocumentsForMethodCount(out int count)
+        {
+            // TODO: parse sequence points
+            throw new InvalidOperationException();
+        }
+
+        /// <summary>
+        /// Get the documents this method has lines in.
+        /// </summary>
+        public int GetDocumentsForMethod(
+            int bufferLength,
+            out int count,
+            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)]ISymUnmanagedDocument[] documents)
+        {
+            // TODO: parse sequence points
+            throw new InvalidOperationException();
+        }
+
+        /// <summary>
+        /// Get the smallest start line and largest end line, for the method, in a specific document.
+        /// </summary>
+        public int GetSourceExtentInDocument(ISymUnmanagedDocument document, out int startLine, out int endLine)
+        {
+            return SymReader.GetMethodSourceExtentInDocument(document, this, out startLine, out endLine);
         }
 
         #endregion

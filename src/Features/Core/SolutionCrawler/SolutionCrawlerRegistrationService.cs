@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 var solution = workspace.CurrentSolution;
                 var set = new HashSet<DocumentId>(documentIds ?? SpecializedCollections.EmptyEnumerable<DocumentId>());
-                set.Union(projectIds.Select(id => solution.GetProject(id)).SelectMany(p => p.DocumentIds));
+                set.UnionWith(projectIds.Select(id => solution.GetProject(id)).SelectMany(p => p.DocumentIds));
 
                 coordinator.Reanalyze(analyzer, set);
             }

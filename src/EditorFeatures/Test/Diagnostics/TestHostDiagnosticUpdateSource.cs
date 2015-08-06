@@ -20,5 +20,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 return _workspace;
             }
         }
+
+        public override int GetHashCode()
+        {
+            return _workspace.GetHashCode();
+        }
     }
 }

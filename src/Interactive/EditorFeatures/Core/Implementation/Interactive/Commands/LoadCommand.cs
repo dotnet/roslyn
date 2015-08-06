@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 {
     [Export(typeof(IInteractiveWindowCommand))]
-    [ContentType("code")]
+    [ContentType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName)]
     internal sealed class LoadCommand : IInteractiveWindowCommand
     {
         private const string CommandName = "load";

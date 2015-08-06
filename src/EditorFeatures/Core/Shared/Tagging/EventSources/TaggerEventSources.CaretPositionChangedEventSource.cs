@@ -23,14 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 _textView = textView;
             }
 
-            public override string EventKind
-            {
-                get
-                {
-                    return PredefinedChangedEventKinds.CaretPositionChanged;
-                }
-            }
-
             public override void Connect()
             {
                 _textView.Caret.PositionChanged += OnCaretPositionChanged;

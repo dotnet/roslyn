@@ -903,6 +903,62 @@ catch (Exception e) when (filter(e)) { Console.WriteLine(30); }
             expected.AssertEqual(actual);
         }
 
+        [Fact]
+        public void StringLiteral_update()
+        {
+            var src1 = @"
+var x = ""Hello1"";
+";
+            var src2 = @"
+var x = ""Hello2"";
+";
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits("Update [x = \"Hello1\"]@8 -> [x = \"Hello2\"]@8");
+        }
+
+        [Fact]
+        public void InterpolatedStringText_update()
+        {
+            var src1 = @"
+var x = $""Hello1"";
+";
+            var src2 = @"
+var x = $""Hello2"";
+";
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits("Update [x = $\"Hello1\"]@8 -> [x = $\"Hello2\"]@8");
+        }
+
+        [Fact]
+        public void Interpolation_update()
+        {
+            var src1 = @"
+var x = $""Hello{123}"";
+";
+            var src2 = @"
+var x = $""Hello{124}"";
+";
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits("Update [x = $\"Hello{123}\"]@8 -> [x = $\"Hello{124}\"]@8");
+        }
+
+        [Fact]
+        public void InterpolationFormatClause_update()
+        {
+            var src1 = @"
+var x = $""Hello{123:N1}"";
+";
+            var src2 = @"
+var x = $""Hello{123:N2}"";
+";
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits("Update [x = $\"Hello{123:N1}\"]@8 -> [x = $\"Hello{123:N2}\"]@8");
+        }
+
         #endregion
 
         #region Variable Declaration

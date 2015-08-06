@@ -679,7 +679,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal virtual bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default(CancellationToken))
         {
-            foreach (var syntaxRef in this.DeclaringSyntaxReferences)
+            var declaringReferences = this.DeclaringSyntaxReferences;
+            if (this.IsImplicitlyDeclared && declaringReferences.Length == 0)
+            {
+                return this.ContainingSymbol.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken);
+            }
+
+            foreach (var syntaxRef in declaringReferences)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 

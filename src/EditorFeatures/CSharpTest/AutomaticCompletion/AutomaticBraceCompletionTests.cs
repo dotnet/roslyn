@@ -757,6 +757,7 @@ class Foo
             }
         }
 
+        [WorkItem(3447, "https://github.com/dotnet/roslyn/issues/3447")]
         [WorkItem(850540)]
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void BlockIndentationWithAutomaticBraceFormattingDisabled()
@@ -773,6 +774,14 @@ class Foo
     {}
 }";
 
+            var expectedAfterReturn = @"class C
+{
+    public void X()
+    {
+
+    }
+}";
+
             var optionSet = new Dictionary<OptionKey, object>
                             {
                                 { new OptionKey(FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp), false },
@@ -785,7 +794,7 @@ class Foo
                 CheckStart(session.Session);
                 Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
 
-                CheckReturnOnNonEmptyLine(session.Session, 3);
+                CheckReturn(session.Session, 4, expectedAfterReturn);
             }
         }
 

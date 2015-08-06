@@ -2704,6 +2704,65 @@ False
 ]]>)
         End Sub
 
+        <Fact, WorkItem(4132, "https://github.com/dotnet/roslyn/issues/4132")>
+        Public Sub Issue4132()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Namespace NullableMathRepro
+    Module Program
+        Sub Main()
+            Dim x As Integer? = 0
+            x += 5
+            Console.WriteLine("'x' is {0}", x)
+
+            Dim y As IntHolder? = 0
+            y += 5
+            Console.WriteLine("'y' is {0}", y)
+        End Sub
+    End Module
+
+    Structure IntHolder
+        Private x As Integer
+
+        Public Shared Widening Operator CType(ih As IntHolder) As Integer
+            Console.WriteLine("operator int (IntHolder ih)")
+            Return ih.x
+        End Operator
+
+        Public Shared Widening Operator CType(i As Integer) As IntHolder
+            Console.WriteLine("operator IntHolder(int i)")
+            Return New IntHolder With {.x = i}
+        End Operator
+
+        Public Shared Operator +(x As IntHolder, y As Integer) As Integer
+            Return CInt(x) + y
+        End Operator
+        Public Overrides Function ToString() As String
+            Return x.ToString()
+        End Function
+
+    End Structure
+End Namespace
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation,
+            <![CDATA[
+'x' is 5
+operator IntHolder(int i)
+operator int (IntHolder ih)
+operator IntHolder(int i)
+'y' is 5
+]]>)
+        End Sub
+
     End Class
 
 End Namespace
+

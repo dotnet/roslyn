@@ -4,13 +4,16 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.Shared.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.Tagging
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
@@ -25,35 +28,33 @@ class 123 { }
                 Dim miscService = New MiscellaneousDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()))
                 Assert.False(miscService.SupportGetDiagnostics)
 
-                Dim diagnosticWaiter = New DiagnosticServiceWaiter()
-                Dim listener = SpecializedCollections.SingletonEnumerable(New Lazy(Of IAsynchronousOperationListener, FeatureMetadata)(
-                    Function() diagnosticWaiter,
-                    New FeatureMetadata(New Dictionary(Of String, Object)() From {{"FeatureName", FeatureAttribute.DiagnosticService}})))
+                Dim listener = New AsynchronousOperationListener()
+                Dim listeners = AsynchronousOperationListener.CreateListeners(
+                    ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
+                    ValueTuple.Create(FeatureAttribute.ErrorSquiggles, listener))
 
-                Dim diagnosticService = New DiagnosticService(New IDiagnosticUpdateSource() {miscService}, listener)
+                Dim diagnosticService = New DiagnosticService(New IDiagnosticUpdateSource() {miscService}, listeners)
 
                 Dim optionsService = workspace.Services.GetService(Of IOptionService)()
 
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
-                Dim squiggleWaiter = New ErrorSquiggleWaiter()
-                Dim foregroundService = New TestForegroundNotificationService()
-                Dim taggerSource = New DiagnosticsSquiggleTaggerProvider.TagSource(buffer, foregroundService, diagnosticService, optionsService, squiggleWaiter)
+                Dim foregroundService = workspace.GetService(Of IForegroundNotificationService)()
+                Dim provider = New DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, listeners)
+                Dim tagger = provider.CreateTagger(Of IErrorTag)(buffer)
 
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
                 analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).PumpingWait()
 
-                diagnosticWaiter.CreateWaitTask().PumpingWait()
-                squiggleWaiter.CreateWaitTask().PumpingWait()
+                listener.CreateWaitTask().PumpingWait()
 
                 Dim snapshot = buffer.CurrentSnapshot
-                Dim intervalTree = taggerSource.GetTagIntervalTreeForBuffer(buffer)
-                Dim spans = intervalTree.GetIntersectingSpans(New SnapshotSpan(snapshot, 0, snapshot.Length)).ToImmutableArray()
+                Dim spans = tagger.GetTags(New NormalizedSnapshotSpanCollection(New SnapshotSpan(snapshot, 0, snapshot.Length))).ToImmutableArray()
 
                 Assert.True(spans.Count() > 0)
                 Assert.True(spans.All(Function(s) s.Span.Length > 0))
 
-                taggerSource.TestOnly_Dispose()
+                DirectCast(tagger, IDisposable).Dispose()
             End Using
         End Sub
 
@@ -99,8 +100,5 @@ End Class
                 Assert.Equal(PredefinedBuildTools.Live, buildTool)
             End Using
         End Sub
-
-        Private Class DiagnosticServiceWaiter : Inherits AsynchronousOperationListener : End Class
-        Private Class ErrorSquiggleWaiter : Inherits AsynchronousOperationListener : End Class
     End Class
 End Namespace

@@ -1356,6 +1356,43 @@ End Try
 
             expected.AssertEqual(actual)
         End Sub
+
+        <Fact>
+        Public Sub StringLiteral_update()
+            Dim src1 = "Dim a = ""Hello1"""
+            Dim src2 = "Dim a = ""Hello2"""
+            Dim edits = GetMethodEdits(src1, src2)
+
+            edits.VerifyEdits("Update [a = ""Hello1""]@12 -> [a = ""Hello2""]@12")
+        End Sub
+
+        <Fact>
+        Public Sub InterpolatedStringText_update()
+            Dim src1 = "Dim a = $""Hello1"""
+            Dim src2 = "Dim a = $""Hello2"""
+            Dim edits = GetMethodEdits(src1, src2)
+
+            edits.VerifyEdits("Update [a = $""Hello1""]@12 -> [a = $""Hello2""]@12")
+        End Sub
+
+        <Fact>
+        Public Sub Interpolation_update()
+            Dim src1 = "Dim a = $""Hello{123}"""
+            Dim src2 = "Dim a = $""Hello{124}"""
+            Dim edits = GetMethodEdits(src1, src2)
+
+            edits.VerifyEdits("Update [a = $""Hello{123}""]@12 -> [a = $""Hello{124}""]@12")
+        End Sub
+
+        <Fact>
+        Public Sub InterpolationFormatClause_update()
+            Dim src1 = "Dim a = $""Hello{123:N1}"""
+            Dim src2 = "Dim a = $""Hello{123:N2}"""
+            Dim edits = GetMethodEdits(src1, src2)
+
+            edits.VerifyEdits("Update [a = $""Hello{123:N1}""]@12 -> [a = $""Hello{123:N2}""]@12")
+        End Sub
+
 #End Region
 
 #Region "Misc"

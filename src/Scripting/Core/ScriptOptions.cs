@@ -33,8 +33,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         static ScriptOptions()
         {
             Default = new ScriptOptions()
-                        .WithReferences(typeof(int).GetTypeInfo().Assembly)
-                        .WithNamespaces("System");
+                        .WithReferences(typeof(int).GetTypeInfo().Assembly);
         }
 
         private ScriptOptions(

@@ -203,6 +203,7 @@
     <Compile Include="Attributes\AttributeTests.cs" />
     <Compile Include="AutomaticCompletion\AbstractAutomaticBraceCompletionTests.cs" />
     <Compile Include="AutomaticCompletion\AbstractAutomaticLineEnderTests.cs" />
+    <Compile Include="BraceHighlighting\AbstractBraceHighlightingTests.cs" />
     <Compile Include="BraceMatching\AbstractBraceMatcherTests.cs" />
     <Compile Include="CallHierarchy\CallHierarchyTestState.cs" />
     <Compile Include="ChangeSignature\AbstractChangeSignatureTests.cs" />
@@ -246,6 +247,7 @@
     <Compile Include="Diagnostics\AbstractSuppressionDiagnosticTest.cs" />
     <Compile Include="Diagnostics\AbstractDiagnosticProviderBasedUserDiagnosticTest.cs" />
     <Compile Include="Diagnostics\AbstractUserDiagnosticTest.cs" />
+    <Compile Include="Diagnostics\TestDiagnosticAnalyzerDriver.cs" />
     <Compile Include="Diagnostics\TestDiagnosticAnalyzerService.cs" />
     <Compile Include="Diagnostics\DiagnosticDataTests.cs" />
     <Compile Include="Diagnostics\DiagnosticProviderTestUtilities.cs" />

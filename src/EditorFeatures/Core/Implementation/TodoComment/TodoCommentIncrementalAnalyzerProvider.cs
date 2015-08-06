@@ -30,29 +30,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                new TodoCommentIncrementalAnalyzer(w, w.Services.GetService<IOptionService>(), this, _todoCommentTokens));
         }
 
-        internal void RaiseTaskListUpdated(object id, Workspace workspace, ProjectId projectId, DocumentId documentId, ImmutableArray<ITaskItem> items)
+        internal void RaiseTaskListUpdated(object id, Workspace workspace, ProjectId projectId, DocumentId documentId, ImmutableArray<TodoItem> items)
         {
             var handler = this.TodoListUpdated;
             if (handler != null)
             {
-                handler(this, new TaskListEventArgs(Tuple.Create(this, id), PredefinedTaskItemTypes.Todo, workspace, projectId, documentId, items));
+                handler(this, new TodoListEventArgs(Tuple.Create(this, id), workspace, projectId, documentId, items));
             }
         }
 
-        public event EventHandler<TaskListEventArgs> TodoListUpdated;
+        public event EventHandler<TodoListEventArgs> TodoListUpdated;
 
-        public ImmutableArray<ITaskItem> GetTodoItems(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+        public ImmutableArray<TodoItem> GetTodoItems(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
         {
             var analyzer = TryGetAnalyzer(workspace);
             if (analyzer == null)
             {
-                return ImmutableArray<ITaskItem>.Empty;
+                return ImmutableArray<TodoItem>.Empty;
             }
 
             var document = workspace.CurrentSolution.GetDocument(documentId);
             if (document == null)
             {
-                return ImmutableArray<ITaskItem>.Empty;
+                return ImmutableArray<TodoItem>.Empty;
             }
 
             return analyzer.GetTodoItems(workspace, document.Id, cancellationToken);
