@@ -2,10 +2,7 @@
 
 using System.ComponentModel.Composition;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading.Tasks;
-using System.Windows.Controls;
-using System.Windows.Media.Imaging;
 
 namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 {
@@ -20,12 +17,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 
         public override string Description
         {
-            get { return "Clears the contents of the REPL editor window, leaving history and execution context intact."; }
+            // TODO: Needs localization...
+            get { return "Clears the contents of the editor window, leaving history and execution context intact."; }
         }
 
         public override IEnumerable<string> Names
         {
-            get { yield return "cls"; }
+            get { yield return "cls"; yield return "clear"; }
         }
     }
 }

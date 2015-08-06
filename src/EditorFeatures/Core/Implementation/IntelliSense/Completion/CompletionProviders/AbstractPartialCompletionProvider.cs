@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.CompletionProviders
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
     internal abstract partial class AbstractPartialCompletionProvider : AbstractMemberInsertingCompletionProvider
     {

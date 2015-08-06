@@ -1,13 +1,13 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     Public Class NamedParameterCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
-        Friend Overrides Function CreateCompletionProvider() As ICompletionProvider
+        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
             Return New NamedParameterCompletionProvider()
         End Function
 
@@ -300,7 +300,7 @@ End Module
             Dim expected = <Text>
 Module Program
     Sub Main(args As String())
-        Main(args:
+        Main(args:=
     End Sub
 End Module
 
@@ -323,7 +323,7 @@ End Module
             Dim expected = <Text>
 Module Program
     Sub Main(args As String())
-        Main(args
+        Main(args:
     End Sub
 End Module
 
@@ -346,7 +346,7 @@ End Module
             Dim expected = <Text>
 Module Program
     Sub Main(args As String())
-        Main(args:=
+        Main(args:= 
     End Sub
 End Module
 

@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -1339,8 +1340,25 @@ class A
             Assert.Equal("ModuleAssemblyName", compilation.Assembly.Identity.Name);
         }
 
+        [WorkItem(3719)]
         [Fact]
         public void GetEntryPoint_Script()
+        {
+            var source = @"System.Console.WriteLine(1);";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Script);
+            compilation.VerifyDiagnostics();
+
+            var scriptMethod = compilation.GetMember<MethodSymbol>("Script.<Main>");
+            Assert.NotNull(scriptMethod);
+
+            var method = compilation.GetEntryPoint(default(CancellationToken));
+            Assert.Equal(method, scriptMethod);
+            var entryPoint = compilation.GetEntryPointAndDiagnostics(default(CancellationToken));
+            Assert.Equal(entryPoint.MethodSymbol, scriptMethod);
+        }
+
+        [Fact]
+        public void GetEntryPoint_Script_MainIgnored()
         {
             var source = @"
 class A
@@ -1349,14 +1367,43 @@ class A
 }
 ";
             var compilation = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Script);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (4,17): warning CS7022: The entry point of the program is global script code; ignoring 'A.Main()' entry point.
+                //     static void Main() { }
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("A.Main()").WithLocation(4, 17));
 
-            Assert.Null(compilation.GetEntryPoint(default(CancellationToken)));
-            Assert.Null(compilation.GetEntryPointAndDiagnostics(default(CancellationToken)));
+            var scriptMethod = compilation.GetMember<MethodSymbol>("Script.<Main>");
+            Assert.NotNull(scriptMethod);
+
+            var entryPoint = compilation.GetEntryPointAndDiagnostics(default(CancellationToken));
+            Assert.Equal(entryPoint.MethodSymbol, scriptMethod);
+            entryPoint.Diagnostics.Verify(
+                // (4,17): warning CS7022: The entry point of the program is global script code; ignoring 'A.Main()' entry point.
+                //     static void Main() { }
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("A.Main()").WithLocation(4, 17));
         }
 
         [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void GetEntryPoint_Submission()
+        {
+            var source = @"1 + 1";
+            var compilation = CSharpCompilation.CreateSubmission("sub",
+                references: new[] { MscorlibRef },
+                syntaxTree: Parse(source, options: TestOptions.Interactive));
+            compilation.VerifyDiagnostics();
+
+            var scriptMethod = compilation.GetMember<MethodSymbol>("Script.<Factory>");
+            Assert.NotNull(scriptMethod);
+
+            var method = compilation.GetEntryPoint(default(CancellationToken));
+            Assert.Equal(method, scriptMethod);
+            var entryPoint = compilation.GetEntryPointAndDiagnostics(default(CancellationToken));
+            Assert.Equal(entryPoint.MethodSymbol, scriptMethod);
+            entryPoint.Diagnostics.Verify();
+        }
+
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
+        public void GetEntryPoint_Submission_MainIgnored()
         {
             var source = @"
 class A
@@ -1367,13 +1414,22 @@ class A
             var compilation = CSharpCompilation.CreateSubmission("sub",
                 references: new[] { MscorlibRef },
                 syntaxTree: Parse(source, options: TestOptions.Interactive));
-
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (4,17): warning CS7022: The entry point of the program is global script code; ignoring 'A.Main()' entry point.
+                //     static void Main() { }
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("A.Main()").WithLocation(4, 17));
 
             Assert.True(compilation.IsSubmission);
 
-            Assert.Null(compilation.GetEntryPoint(default(CancellationToken)));
-            Assert.Null(compilation.GetEntryPointAndDiagnostics(default(CancellationToken)));
+            var scriptMethod = compilation.GetMember<MethodSymbol>("Script.<Factory>");
+            Assert.NotNull(scriptMethod);
+
+            var entryPoint = compilation.GetEntryPointAndDiagnostics(default(CancellationToken));
+            Assert.Equal(entryPoint.MethodSymbol, scriptMethod);
+            entryPoint.Diagnostics.Verify(
+                // (4,17): warning CS7022: The entry point of the program is global script code; ignoring 'A.Main()' entry point.
+                //     static void Main() { }
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("A.Main()").WithLocation(4, 17));
         }
 
         [Fact]
@@ -1855,60 +1911,6 @@ public class C { public static FrameworkName Foo() { return null; }}";
         }
 
         [Fact]
-        public void EmitDebugInfoForSourceTextWithoutEncoding1()
-        {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("class A { }", encoding: null, path: "Foo.cs");
-            var tree2 = SyntaxFactory.ParseSyntaxTree("class B { }", encoding: null, path: "");
-            var tree3 = SyntaxFactory.ParseSyntaxTree(SourceText.From("class C { }", encoding: null), path: "Bar.cs");
-            var tree4 = SyntaxFactory.ParseSyntaxTree("class D { }", encoding: Encoding.UTF8, path: "Baz.cs");
-
-            var comp = CSharpCompilation.Create("Compilation", new[] { tree1, tree2, tree3, tree4 }, new[] { MscorlibRef }, options: TestOptions.ReleaseDll);
-
-            var result = comp.Emit(new MemoryStream(), pdbStream: new MemoryStream());
-            result.Diagnostics.Verify(
-                // Foo.cs(1,1): error CS8055: Cannot emit debug information for a source text without encoding.
-                Diagnostic(ErrorCode.ERR_EncodinglessSyntaxTree, "class A { }").WithLocation(1, 1),
-                // Bar.cs(1,1): error CS8055: Cannot emit debug information for a source text without encoding.
-                Diagnostic(ErrorCode.ERR_EncodinglessSyntaxTree, "class C { }").WithLocation(1, 1));
-
-            Assert.False(result.Success);
-        }
-
-        [ClrOnlyFact(ClrOnlyReason.Pdb)]
-        public void EmitDebugInfoForSourceTextWithoutEncoding2()
-        {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("class A { public void F() { } }", encoding: Encoding.Unicode, path: "Foo.cs");
-            var tree2 = SyntaxFactory.ParseSyntaxTree("class B { public void F() { } }", encoding: null, path: "");
-            var tree3 = SyntaxFactory.ParseSyntaxTree("class C { public void F() { } }", encoding: new UTF8Encoding(true, false), path: "Bar.cs");
-            var tree4 = SyntaxFactory.ParseSyntaxTree(SourceText.From("class D { public void F() { } }", new UTF8Encoding(false, false)), path: "Baz.cs");
-
-            var comp = CSharpCompilation.Create("Compilation", new[] { tree1, tree2, tree3, tree4 }, new[] { MscorlibRef }, options: TestOptions.ReleaseDll);
-
-            var result = comp.Emit(new MemoryStream(), pdbStream: new MemoryStream());
-            result.Diagnostics.Verify();
-            Assert.True(result.Success);
-
-            var hash1 = CryptographicHashProvider.ComputeSha1(Encoding.Unicode.GetBytesWithPreamble(tree1.ToString()));
-            var hash3 = CryptographicHashProvider.ComputeSha1(new UTF8Encoding(true, false).GetBytesWithPreamble(tree3.ToString()));
-            var hash4 = CryptographicHashProvider.ComputeSha1(new UTF8Encoding(false, false).GetBytesWithPreamble(tree4.ToString()));
-
-            var checksum1 = string.Concat(hash1.Select(b => string.Format("{0,2:X}", b) + ", "));
-            var checksum3 = string.Concat(hash3.Select(b => string.Format("{0,2:X}", b) + ", "));
-            var checksum4 = string.Concat(hash4.Select(b => string.Format("{0,2:X}", b) + ", "));
-
-            var actual = string.Join("\r\n", GetPdbXml(comp).Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries).Skip(2).Take(5));
-
-            string expected = @"
-<files>
-    <file id=""1"" name=""Foo.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""" + checksum1 + @""" />
-    <file id=""2"" name=""Bar.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""" + checksum3 + @""" />
-    <file id=""3"" name=""Baz.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""" + checksum4 + @""" />
-</files>";
-
-            AssertXml.Equal(expected, actual);
-        }
-
-        [Fact]
         public void ConsistentParseOptions()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree("", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
@@ -1916,11 +1918,11 @@ public class C { public static FrameworkName Foo() { return null; }}";
             var tree3 = SyntaxFactory.ParseSyntaxTree("", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
 
             var assemblyName = GetUniqueName();
-            var compilationOptions = new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-            CSharp.CSharpCompilation.Create(assemblyName, new[] { tree1, tree2 }, new[] { MscorlibRef }, compilationOptions);
+            var compilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+            CSharpCompilation.Create(assemblyName, new[] { tree1, tree2 }, new[] { MscorlibRef }, compilationOptions);
             Assert.Throws(typeof(ArgumentException), () =>
             {
-                CSharp.CSharpCompilation.Create(assemblyName, new[] { tree1, tree3 }, new[] { MscorlibRef }, compilationOptions);
+                CSharpCompilation.Create(assemblyName, new[] { tree1, tree3 }, new[] { MscorlibRef }, compilationOptions);
             });
         }
     }

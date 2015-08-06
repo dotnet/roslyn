@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Roslyn.Test.Utilities;
@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
 {
     public class AttributeNamedParameterCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        internal override ICompletionProvider CreateCompletionProvider()
+        internal override CompletionListProvider CreateCompletionProvider()
         {
             return new AttributeNamedParameterCompletionProvider();
         }
@@ -18,14 +18,44 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SendEnterThroughToEditorTest()
         {
-            VerifySendEnterThroughToEnter("Foo", "Foo", sendThroughEnterEnabled: false, expected: false);
-            VerifySendEnterThroughToEnter("Foo", "Foo", sendThroughEnterEnabled: true, expected: true);
+            const string markup = @"
+using System;
+class class1
+{
+    [Test($$
+    public void Foo()
+    {
+    }
+}
+ 
+public class TestAttribute : Attribute
+{
+    public ConsoleColor Color { get; set; }
+}";
+
+            VerifySendEnterThroughToEnter(markup, "Color =", sendThroughEnterEnabled: false, expected: false);
+            VerifySendEnterThroughToEnter(markup, "Color =", sendThroughEnterEnabled: true, expected: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitCharacterTest()
         {
-            TestCommonIsCommitCharacter();
+            const string markup = @"
+using System;
+class class1
+{
+    [Test($$
+    public void Foo()
+    {
+    }
+}
+ 
+public class TestAttribute : Attribute
+{
+    public ConsoleColor Color { get; set; }
+}";
+
+            VerifyCommonCommitCharacters(markup, textTypedSoFar: "");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

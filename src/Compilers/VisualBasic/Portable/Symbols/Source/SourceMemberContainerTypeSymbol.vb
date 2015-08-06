@@ -1302,13 +1302,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public NotOverridable Overrides ReadOnly Property IsSubmissionClass As Boolean
-            Get
-                Dim kind = _declaration.Declarations(0).Kind
-                Return kind = DeclarationKind.Submission
-            End Get
-        End Property
-
         Public NotOverridable Overrides ReadOnly Property IsImplicitClass As Boolean
             Get
                 Return _declaration.Declarations(0).Kind = DeclarationKind.ImplicitClass
@@ -2757,6 +2750,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim isDebuggable As Boolean = anyInitializersToInject
 
                 EnsureCtor(members, isShared, isDebuggable, diagnostics)
+            End If
+
+            If Not isShared AndAlso IsScriptClass Then
+                ' a submission can only have a single declaration:
+                Dim syntaxRef = SyntaxReferences.Single()
+                Dim scriptInitializer = New SynthesizedInteractiveInitializerMethod(syntaxRef, Me, diagnostics)
+                AddSymbolToMembers(scriptInitializer, members.Members)
+                Dim scriptEntryPoint = SynthesizedEntryPointSymbol.Create(Me, scriptInitializer.ReturnType, diagnostics)
+                AddSymbolToMembers(scriptEntryPoint, members.Members)
             End If
         End Sub
 

@@ -370,7 +370,7 @@
   </Node>
 
   <!--
-  Represens an operation that is special in both IL and Expression trees -
+  Represents an operation that is special in both IL and Expression trees -
   getting length of a one-dimensional 0-based array (vector)
   
   This node should not be produced in initial binding since it is not a part of 
@@ -597,7 +597,7 @@
   The node may also declare locals (temporaries). 
   
   The sequence node is both SCOPE and EXTENT of these locals. 
-  As a result nonintersecting sequences can reuse variable slots.
+  As a result non-intersecting sequences can reuse variable slots.
   -->
   <Node Name="BoundSequence" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
@@ -784,7 +784,7 @@
     <!--
     Refers to the location where the exception object is stored. 
     The expression is a local or a BoundSequence, whose last expression refers to the location of the exception object
-    and the sideeffects initialize its storage (e.g. if the catch identitifer is lifted 
+    and the sideeffects initialize its storage (e.g. if the catch identifier is lifted 
     into a closure the sideeffects initialize the closure).
     
     Null if the exception object is not referred to.
@@ -811,12 +811,6 @@
   <Node Name="BoundPreviousSubmissionReference" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-
-    <!-- 
-    Used for "this" that binds to a class that implements an interactive submission. 
-    The SourceType is the type of the class that contains the reference, Type is the type of the target submission class.
-    -->
-    <Field Name="SourceType" Type="NamedTypeSymbol"/>
   </Node>
 
   <Node Name="BoundHostObjectMemberReference" Base="BoundExpression">

@@ -242,7 +242,7 @@
     <Compile Include="Extensibility\Completion\IAsyncCompletionService.cs" />
     <Compile Include="Extensibility\Completion\ICompletionPresenterSession.cs" />
     <Compile Include="Extensibility\Completion\ICustomCommitCompletionProvider.cs" />
-    <Compile Include="Extensibility\Completion\ISnippetCompletionProvider.cs" />
+    <Compile Include="Extensibility\Completion\SnippetCompletionProvider.cs" />
     <Compile Include="Extensibility\Completion\PredefinedCompletionPresenterNames.cs" />
     <Compile Include="Extensibility\Completion\PredefinedCompletionProviderNames.cs" />
     <Compile Include="Extensibility\Completion\PredefinedCompletionRulesFactoryNames.cs" />
@@ -411,6 +411,13 @@
     <Compile Include="Implementation\GoToDefinition\GoToDefinitionCommandHandler.cs" />
     <Compile Include="Implementation\GoToDefinition\GoToDefinitionHelpers.cs" />
     <Compile Include="Implementation\GoToDefinition\IGoToDefinitionService.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\CompletionProviders\MemberInsertingCompletionItemRules.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\CompletionProviders\XmlDocCommentCompletion\AbstractXmlDocCommentCompletionItemRules.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\FileSystem\CurrentWorkingDirectoryDiscoveryService.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\FileSystem\FileSystemCompletionHelper.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\FileSystem\ICurrentWorkingDirectoryDiscoveryService.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\FileSystem\IOUtilities.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\FileSystem\PathCompletionUtilities.cs" />
     <Compile Include="Implementation\KeywordHighlighting\AbstractKeywordHighlighter.cs" />
     <Compile Include="Implementation\KeywordHighlighting\HighlighterTagProducer.cs" />
     <Compile Include="Implementation\KeywordHighlighting\HighlighterViewTaggerProvider.cs" />
@@ -472,7 +479,7 @@
     <Compile Include="Implementation\Intellisense\Completion\CompletionProviders\AbstractPartialCompletionProvider.cs" />
     <Compile Include="Implementation\Intellisense\Completion\CompletionProviders\MemberInsertingCompletionItem.cs" />
     <Compile Include="Implementation\Intellisense\Completion\CompletionProviders\XmlDocCommentCompletion\AbstractDocCommentCompletionProvider.cs" />
-    <Compile Include="Implementation\Intellisense\Completion\CompletionProviders\XmlDocCommentCompletion\XmlItem.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\CompletionProviders\XmlDocCommentCompletion\XmlDocCommentCompletionItem.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller.Session.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller.Session_ComputeModel.cs" />
@@ -499,7 +506,6 @@
     <Compile Include="Implementation\Intellisense\Completion\Controller_TypeChar.cs" />
     <Compile Include="Implementation\Intellisense\Completion\DescriptionModifyingCompletionItem.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Model.cs" />
-    <Compile Include="Implementation\Intellisense\Completion\PathCompletionUtilities.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\CompletionPresenter.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\CompletionPresenterSession.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\CompletionSet2.cs" />
@@ -832,6 +838,7 @@
     </None>
     <PublicAPI Include="PublicAPI.txt" />
   </ItemGroup>
+  <ItemGroup />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

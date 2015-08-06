@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class SpeculativeTCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        internal override ICompletionProvider CreateCompletionProvider()
+        internal override CompletionListProvider CreateCompletionProvider()
         {
             return new SpeculativeTCompletionProvider();
         }
@@ -17,7 +17,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void IsCommitCharacterTest()
         {
-            TestCommonIsCommitCharacter();
+            const string markup = @"
+class C
+{
+    $$
+}";
+
+            VerifyCommonCommitCharacters(markup, textTypedSoFar: "");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -29,8 +35,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SendEnterThroughToEditorTest()
         {
-            VerifySendEnterThroughToEnter("T", "T", sendThroughEnterEnabled: false, expected: false);
-            VerifySendEnterThroughToEnter("T", "T", sendThroughEnterEnabled: true, expected: true);
+            const string markup = @"
+class C
+{
+    $$
+}";
+
+            VerifySendEnterThroughToEnter(markup, "T", sendThroughEnterEnabled: false, expected: false);
+            VerifySendEnterThroughToEnter(markup, "T", sendThroughEnterEnabled: true, expected: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

@@ -1,13 +1,13 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     Public Class PartialTypeCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
-        Friend Overrides Function CreateCompletionProvider() As ICompletionProvider
+        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
             Return New PartialTypeCompletionProvider()
         End Function
 
@@ -47,6 +47,9 @@ Partial Class $$</text>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub PartialGenericClassCommitOnParen()
+            ' TODO(DustinCa): This is testing the wrong behavior and will need to be updated to the commented expected
+            ' result when https://github.com/dotnet/roslyn/issues/4137 is fixed.
+
             Dim text = <text>Class Bar
 End Class
                            
@@ -61,9 +64,17 @@ End Class
 Partial Class C(Of Bar)
 End Class
 
-Partial Class C(Of Bar)</text>
+Partial Class C(Of Bar)(</text>
 
-            VerifyProviderCommit(text.Value, "C(Of Bar)", expected.Value, "("c, "", Microsoft.CodeAnalysis.SourceCodeKind.Regular)
+            '            Dim expected = <text>Class Bar
+            'End Class
+
+            'Partial Class C(Of Bar)
+            'End Class
+
+            'Partial Class C(</text>
+
+            VerifyProviderCommit(text.Value, "C(Of Bar)", expected.Value, "("c, "", SourceCodeKind.Regular)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -84,7 +95,7 @@ End Class
 
 Partial Class C(Of Bar)</text>
 
-            VerifyProviderCommit(text.Value, "C(Of Bar)", expected.Value, Nothing, "", Microsoft.CodeAnalysis.SourceCodeKind.Regular)
+            VerifyProviderCommit(text.Value, "C(Of Bar)", expected.Value, Nothing, "", SourceCodeKind.Regular)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>

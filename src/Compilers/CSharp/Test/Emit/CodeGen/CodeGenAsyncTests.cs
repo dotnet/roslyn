@@ -3288,6 +3288,43 @@ class Test
             sequencePoints: "Test+<F>d__2.MoveNext");
         }
 
+        [Fact]
+        public void MutatingStructWithUsing()
+        {
+            var source =
+@"using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+class Program
+{
+    public static void Main()
+    {
+        (new Program()).Test().Wait();
+    }
+
+    public async Task Test()
+    {
+        var list = new List<int> {1, 2, 3};
+
+        using (var enumerator = list.GetEnumerator()) 
+        {
+            Console.WriteLine(enumerator.MoveNext());
+            Console.WriteLine(enumerator.Current);
+
+            await Task.Delay(1);
+        }
+    }
+}";
+
+            var expectedOutput = @"True
+1";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+        }
+
         [Fact, WorkItem(1942, "https://github.com/dotnet/roslyn/issues/1942")]
         public void HoistStructure()
         {

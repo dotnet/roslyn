@@ -8,6 +8,10 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests
     Public Class ScriptTests
         Inherits BasicTestBase
 
+        ' It shouldn't be necessary to include VB runtime assembly
+        ' explicitly in VisualBasicScript.Create.
+        Private Shared ReadOnly DefaultOptions As ScriptOptions = ScriptOptions.Default.AddReferences(MsvbRef)
+
         <Fact>
         Public Sub TestCreateScript()
             Dim script = VisualBasicScript.Create("? 1 + 2")
@@ -16,28 +20,28 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestEvalScript()
-            Dim value = VisualBasicScript.Eval("? 1 + 2")
-            Assert.Equal(3, value)
+            Dim value = VisualBasicScript.EvaluateAsync("? 1 + 2", DefaultOptions)
+            Assert.Equal(3, value.Result)
         End Sub
 
         <Fact>
         Public Sub TestRunScript()
-            Dim result = VisualBasicScript.Run("? 1 + 2")
-            Assert.Equal(3, result.ReturnValue)
+            Dim result = VisualBasicScript.RunAsync("? 1 + 2", DefaultOptions)
+            Assert.Equal(3, result.ReturnValue.Result)
         End Sub
 
         <Fact>
         Public Sub TestCreateAndRunScript()
-            Dim script = VisualBasicScript.Create("? 1 + 2")
-            Dim result = script.Run()
+            Dim script = VisualBasicScript.Create("? 1 + 2", DefaultOptions)
+            Dim result = script.RunAsync()
             Assert.Same(script, result.Script)
-            Assert.Equal(3, result.ReturnValue)
+            Assert.Equal(3, result.ReturnValue.Result)
         End Sub
 
         <Fact>
         Public Sub TestRunScriptWithSpecifiedReturnType()
-            Dim result = VisualBasicScript.Create("? 1 + 2").WithReturnType(GetType(Integer)).Run()
-            Assert.Equal(3, result.ReturnValue)
+            Dim result = VisualBasicScript.RunAsync("? 1 + 2", DefaultOptions)
+            Assert.Equal(3, result.ReturnValue.Result)
         End Sub
 
         <Fact>
@@ -50,16 +54,17 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests
         <Fact>
         Public Sub TestCreateScriptDelegate()
             '' create a delegate for the entire script
-            Dim script = VisualBasicScript.Create("? 1 + 2")
+            Dim script = VisualBasicScript.Create("? 1 + 2", DefaultOptions)
             Dim fn = script.CreateDelegate()
             Dim value = fn()
-            Assert.Equal(3, value)
+            Assert.Equal(3, value.Result)
         End Sub
 
         <Fact>
         Public Sub TestRunVoidScript()
-            Dim result = VisualBasicScript.Run("Console.WriteLine(0)")
-            Assert.Null(result.ReturnValue)
+            Dim result = VisualBasicScript.RunAsync("Console.WriteLine(0)", DefaultOptions)
+            Dim task = result.ReturnValue
+            Assert.Null(task.Result)
         End Sub
 
         Public Class Globals
@@ -72,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests
         <Fact>
         Public Sub TestRunScriptWithGlobals()
             Dim g = New Globals With {.X = 1, .Y = 2}
-            Dim result = VisualBasicScript.Run("? X + Y", g)
+            Dim result = VisualBasicScript.RunAsync("? X + Y", g)
             Assert.Equal(3, result.ReturnValue)
         End Sub
 
@@ -81,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests
         public void TestRunCreatedScriptWithExpectedGlobals()
         {
             var script = CSharpScript.Create("X + Y").WithGlobalsType(typeof(Globals));
-            var result = script.Run(new Globals { X = 1, Y = 2 });
+            var result = script.RunAsync(new Globals { X = 1, Y = 2 });
             Assert.Equal(3, result.ReturnValue);
             Assert.Same(script, result.Script);
         }
@@ -90,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests
         public void TestRunCreatedScriptWithUnexpectedGlobals()
         {
             var script = CSharpScript.Create("X + Y");
-            var result = script.Run(new Globals { X = 1, Y = 2 });
+            var result = script.RunAsync(new Globals { X = 1, Y = 2 });
             Assert.Equal(3, result.ReturnValue);
 
             // the end state of running the script should be based on a different script instance because of the globals

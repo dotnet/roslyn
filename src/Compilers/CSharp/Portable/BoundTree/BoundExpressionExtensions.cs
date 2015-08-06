@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Kind == BoundKind.Literal && node.ConstantValue.Discriminator == ConstantValueTypeDiscriminator.Null;
         }
 
-        // returns true when expression has no sideeffects and produces
+        // returns true when expression has no side-effects and produces
         // default value (null, zero, false, default(T) ...)
         //
         // NOTE: This method is a very shallow check.

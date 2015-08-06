@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             IForegroundNotificationService notificationService,
             bool removeTagsThatIntersectEdits,
             SpanTrackingMode spanTrackingMode)
-            : base(subjectBuffer, tagProducer, eventSource, asyncListener, notificationService, removeTagsThatIntersectEdits, spanTrackingMode, bufferToRelatedTagSource: null)
+            : base(subjectBuffer, tagProducer, eventSource, asyncListener, notificationService, removeTagsThatIntersectEdits, spanTrackingMode)
         {
             _textView = textView;
         }

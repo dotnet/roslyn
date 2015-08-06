@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             ' Emit sequence points unless
             ' - the PDBs are not being generated
             ' - debug information for the method is not generated since the method does not contain
-            '   user code that can be stepped thru, or changed during EnC.
+            '   user code that can be stepped through, or changed during EnC.
             ' 
             ' This setting only affects generating PDB sequence points, it shall Not affect generated IL in any way.
             _emitPdbSequencePoints = emittingPdb AndAlso method.GenerateDebugInfo

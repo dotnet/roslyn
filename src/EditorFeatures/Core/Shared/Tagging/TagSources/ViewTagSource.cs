@@ -20,11 +20,15 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging.TagSources
         private readonly ITextView _textView;
 
         public ViewTagSource(
-            ITextView textView, ITextBuffer subjectBuffer, ITagProducer<TTag> tagProducer, ITaggerEventSource eventSource,
-            IAsynchronousOperationListener asyncListener, IForegroundNotificationService notificationService,
+            ITextView textView,
+            ITextBuffer subjectBuffer,
+            ITagProducer<TTag> tagProducer,
+            ITaggerEventSource eventSource,
+            IAsynchronousOperationListener asyncListener,
+            IForegroundNotificationService notificationService,
             bool removeTagsThatIntersectEdits,
             SpanTrackingMode spanTrackingMode) :
-            base(subjectBuffer, tagProducer, eventSource, asyncListener, notificationService, removeTagsThatIntersectEdits, spanTrackingMode, bufferToRelatedTagSource: null)
+            base(subjectBuffer, tagProducer, eventSource, asyncListener, notificationService, removeTagsThatIntersectEdits, spanTrackingMode)
         {
             _textView = textView;
         }

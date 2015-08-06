@@ -22,7 +22,7 @@ using Xunit;
 //
 // static void M(int x, int y, __arglist) { var ai = new ArgIterator(__arglist); }
 //
-// 3) As the "recevier" of a "call" syntax in the last position of a call to an __arglist method:
+// 3) As the "receiver" of a "call" syntax in the last position of a call to an __arglist method:
 //
 // C.M(1, 2, __arglist(3, 4, 5));
 //
@@ -741,7 +741,7 @@ static class C
             // CS0118: 'C.Main()' is a 'method' but is used like a 'type'
             // instead of
             // CS0246: The type or namespace name 'Main' could not be found
-            // The native compiler behaviour seems better here; we might consider fixing Roslyn to match.
+            // The native compiler behavior seems better here; we might consider fixing Roslyn to match.
 
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(

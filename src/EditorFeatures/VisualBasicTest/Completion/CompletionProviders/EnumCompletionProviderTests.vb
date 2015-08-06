@@ -1,6 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
@@ -446,7 +446,7 @@ End Enum
  
 Class C
     Sub M()
-        Const e As E = E.A
+        Const e As E = E.A,
     End Sub
 End Class
 ]]></Text>.Value
@@ -454,7 +454,7 @@ End Class
             VerifyProviderCommit(markup, "E.A", expected, ","c, textTypedSoFar:="")
         End Sub
 
-        Friend Overrides Function CreateCompletionProvider() As ICompletionProvider
+        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
             Return New EnumCompletionProvider()
         End Function
     End Class

@@ -9,7 +9,6 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CompilerServer;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -76,8 +75,8 @@ class C
   </runtime>
 </configuration>").Path;
 
-            var silverlight = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).Path;
-            var net4_0dll = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System).Path;
+            var silverlight = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).Path;
+            var net4_0dll = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.System).Path;
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var cmd = new MockCSharpCompiler(null, _baseDirectory,

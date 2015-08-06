@@ -1468,9 +1468,9 @@ FullWidthRepeat:
             End If
         End Function
 
-        Private Function TokenOfStringCached(spelling As String, Optional kind As SyntaxKind = SyntaxKind.IdentifierToken) As SyntaxKind
+        Private Function TokenOfStringCached(spelling As String) As SyntaxKind
             If spelling.Length = 1 OrElse spelling.Length > 16 Then
-                Return kind
+                Return SyntaxKind.IdentifierToken
             End If
 
             Return _KeywordsObjs.GetOrMakeValue(spelling)

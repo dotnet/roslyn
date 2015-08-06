@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' both need to be completely lowered (translated). Standard translation only goes one level deep. 
             ' Generic arguments are not translated until they are needed by metadata writer. 
             '
-            ' In order to get the fully lowered form we run the type symbols of stashed variables thru a deep translator
+            ' In order to get the fully lowered form we run the type symbols of stashed variables through a deep translator
             ' that translates the symbol recursively.
             _deepTranslator = New VisualBasicSymbolMatcher.DeepTranslator(sourceAssembly.GetSpecialType(SpecialType.System_Object))
         End Sub

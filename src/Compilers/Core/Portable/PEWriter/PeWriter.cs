@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading;
@@ -165,7 +166,7 @@ namespace Microsoft.Cci
             Stream portablePdbStream = getPortablePdbStreamOpt?.Invoke();
             if (portablePdbStream != null)
             {
-                debugMetadataWriterOpt.WriteTo(portablePdbStream);
+                debugMetadataWriterOpt.WriteContentTo(portablePdbStream);
 
                 if (_deterministic)
                 {
@@ -491,9 +492,9 @@ namespace Microsoft.Cci
         {
             this.SerializeWin32Resources(resourcesRva);
             int result = 0;
-            if (_win32ResourceWriter.Length > 0)
+            if (_win32ResourceWriter.Count > 0)
             {
-                result += BitArithmeticUtilities.Align(_win32ResourceWriter.Length, 4);
+                result += BitArithmeticUtilities.Align(_win32ResourceWriter.Count, 4);
             }            // result += Align(this.win32ResourceWriter.Length+1, 8);
 
             return result;
@@ -824,18 +825,16 @@ namespace Microsoft.Cci
                 languageDirectory.Entries.Add(r);
             }
 
-            var dataWriter = BlobBuilder.GetInstance();
+            var dataWriter = new BlobBuilder();
 
             //'dataWriter' is where opaque resource data goes as well as strings that are used as type or name identifiers
             this.WriteDirectory(typeDirectory, _win32ResourceWriter, 0, 0, sizeOfDirectoryTree, resourcesRva, dataWriter);
-            dataWriter.WriteTo(_win32ResourceWriter);
+            _win32ResourceWriter.LinkSuffix(dataWriter);
             _win32ResourceWriter.WriteByte(0);
-            while ((_win32ResourceWriter.Length % 4) != 0)
+            while ((_win32ResourceWriter.Count % 4) != 0)
             {
                 _win32ResourceWriter.WriteByte(0);
             }
-
-            dataWriter.Free();
         }
 
         private void WriteDirectory(Directory directory, BlobBuilder writer, uint offset, uint level, uint sizeOfDirectoryTree, int virtualAddressBase, BlobBuilder dataWriter)
@@ -885,7 +884,7 @@ namespace Microsoft.Cci
                     dataWriter.WriteUInt32(r.CodePage);
                     dataWriter.WriteUInt32(0);
                     dataWriter.WriteBytes(data);
-                    while ((dataWriter.Length % 4) != 0)
+                    while ((dataWriter.Count % 4) != 0)
                     {
                         dataWriter.WriteByte(0);
                     }
@@ -954,21 +953,18 @@ namespace Microsoft.Cci
 
         private void SerializeWin32Resources(ResourceSection resourceSections, int resourcesRva)
         {
-            _win32ResourceWriter.WriteBytes(resourceSections.SectionBytes);
-
-            var savedPosition = _win32ResourceWriter.Position;
+            var sectionWriter = _win32ResourceWriter.ReserveBytes(resourceSections.SectionBytes.Length);
+            sectionWriter.WriteBytes(resourceSections.SectionBytes);
 
             var readStream = new MemoryStream(resourceSections.SectionBytes);
             var reader = new BinaryReader(readStream);
 
             foreach (int addressToFixup in resourceSections.Relocations)
             {
-                _win32ResourceWriter.SetPosition(addressToFixup);
+                sectionWriter.Offset = addressToFixup;
                 reader.BaseStream.Position = addressToFixup;
-                _win32ResourceWriter.WriteUInt32(reader.ReadUInt32() + (uint)resourcesRva);
+                sectionWriter.WriteUInt32(reader.ReadUInt32() + (uint)resourcesRva);
             }
-
-            _win32ResourceWriter.SetPosition(savedPosition);
         }
 
         //#define IMAGE_FILE_RELOCS_STRIPPED           0x0001  // Relocation info stripped from file.
@@ -1009,7 +1005,7 @@ namespace Microsoft.Cci
 
         private void WriteHeaders(Stream peStream, NtHeader ntHeader, CoffHeader coffHeader, List<SectionHeader> sectionHeaders, out long ntHeaderTimestampPosition)
         {
-            var writer = new BlobBuilder(1024);
+            var writer = PooledBlobBuilder.GetInstance();
 
             // MS-DOS stub (128 bytes)
             writer.WriteBytes(s_dosHeader);
@@ -1126,7 +1122,8 @@ namespace Microsoft.Cci
                 WriteSectionHeader(sectionHeader, writer);
             }
 
-            writer.WriteTo(peStream);
+            writer.WriteContentTo(peStream);
+            writer.Free();
         }
 
         private static void WriteSectionHeader(SectionHeader sectionHeader, BlobBuilder writer)
@@ -1187,16 +1184,16 @@ namespace Microsoft.Cci
 
             // IL:
             ilWriter.Align(4);
-            ilWriter.WriteTo(peStream);
+            ilWriter.WriteContentTo(peStream);
 
             // metadata:
             metadataPosition = peStream.Position;
-            Debug.Assert(metadataWriter.Length % 4 == 0);
-            metadataWriter.WriteTo(peStream);
+            Debug.Assert(metadataWriter.Count % 4 == 0);
+            metadataWriter.WriteContentTo(peStream);
 
             // managed resources:
-            Debug.Assert(managedResourceWriter.Length % 4 == 0);
-            managedResourceWriter.WriteTo(peStream);
+            Debug.Assert(managedResourceWriter.Count % 4 == 0);
+            managedResourceWriter.WriteContentTo(peStream);
 
             // strong name signature:
             WriteSpaceForHash(peStream, metadataSizes.StrongNameSignatureSize);
@@ -1214,7 +1211,7 @@ namespace Microsoft.Cci
             }
 
             // mapped field data:            
-            mappedFieldDataWriter.WriteTo(peStream);
+            mappedFieldDataWriter.WriteContentTo(peStream);
 
             // TODO: zero out all bytes:
             int alignedPosition = textSection.PointerToRawData + textSection.SizeOfRawData;
@@ -1243,8 +1240,8 @@ namespace Microsoft.Cci
                 writer.WriteUInt64(0); // 16
             }
 
-            Debug.Assert(writer.Length == SizeOfImportAddressTable);
-            writer.WriteTo(peStream);
+            Debug.Assert(writer.Count == SizeOfImportAddressTable);
+            writer.WriteContentTo(peStream);
         }
 
         private void WriteImportTable(Stream peStream, int importTableRva, int importAddressTableRva)
@@ -1284,9 +1281,9 @@ namespace Microsoft.Cci
             }
 
             writer.WriteByte(0); // 66|70
-            Debug.Assert(writer.Length == SizeOfImportTable);
+            Debug.Assert(writer.Count == SizeOfImportTable);
 
-            writer.WriteTo(peStream);
+            writer.WriteContentTo(peStream);
         }
 
         private static void WriteNameTable(Stream peStream)
@@ -1299,9 +1296,9 @@ namespace Microsoft.Cci
 
             writer.WriteByte(0);
             writer.WriteUInt16(0);
-            Debug.Assert(writer.Length == SizeOfNameTable);
+            Debug.Assert(writer.Count == SizeOfNameTable);
 
-            writer.WriteTo(peStream);
+            writer.WriteContentTo(peStream);
         }
 
         private static void WriteCorHeader(Stream peStream, CorHeader corHeader)
@@ -1325,10 +1322,10 @@ namespace Microsoft.Cci
             writer.WriteUInt32((uint)corHeader.ExportAddressTableJumpsDirectory.RelativeVirtualAddress);
             writer.WriteUInt32((uint)corHeader.ExportAddressTableJumpsDirectory.Size);
             writer.WriteUInt64(0);
-            Debug.Assert(writer.Length == CorHeaderSize);
-            Debug.Assert(writer.Length % 4 == 0);
+            Debug.Assert(writer.Count == CorHeaderSize);
+            Debug.Assert(writer.Count % 4 == 0);
 
-            writer.WriteTo(peStream);
+            writer.WriteContentTo(peStream);
         }
 
         private static void WriteSpaceForHash(Stream peStream, int strongNameSignatureSize)
@@ -1344,7 +1341,7 @@ namespace Microsoft.Cci
         {
             Debug.Assert(nativePdbContentId.IsDefault ^ portablePdbContentId.IsDefault);
 
-            var writer = new BlobBuilder();
+            var writer = PooledBlobBuilder.GetInstance();
 
             // characteristics:
             writer.WriteUInt32(0);
@@ -1388,10 +1385,10 @@ namespace Microsoft.Cci
             writer.WriteUInt32(PdbWriter.Age);
 
             // UTF-8 encoded zero-terminated path to PDB
-            writer.WriteUTF8(_pdbPathOpt);
+            writer.WriteUTF8(_pdbPathOpt, allowUnpairedSurrogates: true);
             writer.WriteByte(0);
 
-            writer.WriteTo(peStream);
+            writer.WriteContentTo(peStream);
             writer.Free();
         }
 
@@ -1427,7 +1424,7 @@ namespace Microsoft.Cci
                 writer.WriteUInt64((ulong)importAddressTableRva + _properties.BaseAddress); //16
             }
 
-            writer.WriteTo(peStream);
+            writer.WriteContentTo(peStream);
         }
 
         private void WriteRelocSection(Stream peStream, SectionHeader relocSection, int entryPointAddress)
@@ -1447,14 +1444,14 @@ namespace Microsoft.Cci
 
             writer.WriteUInt16(0); // next chunk's RVA
             writer.PadTo(relocSection.SizeOfRawData);
-            writer.WriteTo(peStream);
+            writer.WriteContentTo(peStream);
         }
 
         private void WriteResourceSection(Stream peStream, SectionHeader resourceSection)
         {
             peStream.Position = resourceSection.PointerToRawData;
             _win32ResourceWriter.PadTo(resourceSection.SizeOfRawData);
-            _win32ResourceWriter.WriteTo(peStream);
+            _win32ResourceWriter.WriteContentTo(peStream);
         }
     }
 }

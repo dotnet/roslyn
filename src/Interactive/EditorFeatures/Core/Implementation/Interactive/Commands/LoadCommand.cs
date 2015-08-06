@@ -9,10 +9,12 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 {
     [Export(typeof(IInteractiveWindowCommand))]
+    [ContentType("code")]
     internal sealed class LoadCommand : IInteractiveWindowCommand
     {
         private const string CommandName = "load";
@@ -36,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 
         public string Description
         {
+            // TODO: Needs localization...
             get { return "Executes the specified file within the current interactive session."; }
         }
 

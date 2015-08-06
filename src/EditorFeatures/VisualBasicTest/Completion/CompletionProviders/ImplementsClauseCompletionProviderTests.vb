@@ -1,15 +1,14 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Completion.Providers
-Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     Public Class ImplementsClauseCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
-        Friend Overrides Function CreateCompletionProvider() As ICompletionProvider
+        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
             Return New ImplementsClauseCompletionProvider()
         End Function
 
@@ -501,7 +500,7 @@ End Interface
 
 Class C
     Implements [Interface]
-    Public Sub test Implements [Interface]
+    Public Sub test Implements [Interface].
 End Class</text>.Value
 
             VerifyProviderCommit(text, "Interface", expected, "."c, "")
@@ -637,12 +636,12 @@ End Interface
                 </Workspace>
 
             Using testWorkspace = TestWorkspaceFactory.CreateWorkspace(workspace)
-                Dim caretPosition = testWorkspace.Documents.Single().CursorPosition.Value
+                Dim position = testWorkspace.Documents.Single().CursorPosition.Value
                 Dim document = testWorkspace.CurrentSolution.GetDocument(testWorkspace.Documents.Single().Id)
                 Dim triggerInfo = New CompletionTriggerInfo()
 
-                Dim completions = completionProvider.GetGroupAsync(document, caretPosition, triggerInfo).Result
-                AssertEx.Any(completions.Items, Function(c) c.DisplayText = "Workcover")
+                Dim completionList = GetCompletionList(document, position, triggerInfo)
+                AssertEx.Any(completionList.Items, Function(c) c.DisplayText = "Workcover")
 
             End Using
         End Sub

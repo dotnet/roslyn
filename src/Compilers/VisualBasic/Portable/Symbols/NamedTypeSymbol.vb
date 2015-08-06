@@ -530,11 +530,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Returns true if the type is a submission class. 
         ''' </summary>
-        Public Overridable ReadOnly Property IsSubmissionClass As Boolean
+        Public ReadOnly Property IsSubmissionClass As Boolean
             Get
-                Return False
+                Return TypeKind = TypeKind.Submission
             End Get
         End Property
+
+        Friend Function GetScriptConstructor() As SynthesizedConstructorBase
+            Debug.Assert(IsScriptClass)
+            Return DirectCast(InstanceConstructors.Single(), SynthesizedConstructorBase)
+        End Function
+
+        Friend Function GetScriptInitializer() As SynthesizedInteractiveInitializerMethod
+            Debug.Assert(IsScriptClass)
+            Return DirectCast(GetMembers(SynthesizedInteractiveInitializerMethod.InitializerName).Single(), SynthesizedInteractiveInitializerMethod)
+        End Function
+
+        Friend Function GetScriptEntryPoint() As SynthesizedEntryPointSymbol
+            Debug.Assert(IsScriptClass)
+            Dim name = If(TypeKind = TypeKind.Submission, SynthesizedEntryPointSymbol.FactoryName, SynthesizedEntryPointSymbol.MainName)
+            Return DirectCast(GetMembers(name).Single(), SynthesizedEntryPointSymbol)
+        End Function
 
         ''' <summary>
         ''' Returns true if the type is the implicit class that holds onto invalid global members (like methods or

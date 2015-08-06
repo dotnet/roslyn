@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Creates a new command line parser.
         ''' </summary>
         ''' <param name="isInteractive">An optional parameter indicating indicating whether to create a interactive command line parser.</param>
-        Public Sub New(Optional isInteractive As Boolean = False)
+        Friend Sub New(Optional isInteractive As Boolean = False)
             MyBase.New(VisualBasic.MessageProvider.Instance, isInteractive)
         End Sub
 

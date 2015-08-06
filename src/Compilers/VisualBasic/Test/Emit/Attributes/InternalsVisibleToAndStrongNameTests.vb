@@ -1162,7 +1162,7 @@ End Class
     </file>
 </compilation>
 
-            ' now that the module checks out, ensure that adding it to a compilation outputing a dll
+            ' now that the module checks out, ensure that adding it to a compilation outputting a dll
             ' results in a signed assembly.
             Dim assemblyComp = CreateCompilationWithMscorlibAndReferences(source, {metadata.GetReference()}, TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider))
 

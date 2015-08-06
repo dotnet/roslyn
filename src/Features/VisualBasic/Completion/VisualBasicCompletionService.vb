@@ -5,19 +5,18 @@ Imports System.Composition
 Imports System.Globalization
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Completion.Providers
-Imports Microsoft.CodeAnalysis.Completion.Rules
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
+Imports Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
     <ExportLanguageService(GetType(ICompletionService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicCompletionService
         Inherits AbstractCompletionService
 
-        Private ReadOnly _completionProviders As IEnumerable(Of ICompletionProvider) = New ICompletionProvider() {
+        Private ReadOnly _completionProviders As IEnumerable(Of CompletionListProvider) = New CompletionListProvider() {
             New KeywordCompletionProvider(),
             New SymbolCompletionProvider(),
             New ObjectInitializerCompletionProvider(),
@@ -32,11 +31,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             New CompletionListTagCompletionProvider
         }.ToImmutableArray()
 
-        Public Overrides Function GetDefaultCompletionProviders() As IEnumerable(Of ICompletionProvider)
+        Public Overrides Function GetDefaultCompletionProviders() As IEnumerable(Of CompletionListProvider)
             Return _completionProviders
         End Function
 
-        Public Overrides Function GetDefaultCompletionRules() As ICompletionRules
+        Public Overrides Function GetCompletionRules() As CompletionRules
             Return New VisualBasicCompletionRules(Me)
         End Function
 

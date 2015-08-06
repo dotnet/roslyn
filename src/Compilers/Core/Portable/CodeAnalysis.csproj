@@ -133,6 +133,7 @@
     <Compile Include="Compilation\SymbolFilter.cs" />
     <Compile Include="CompilerPathUtilities.cs" />
     <Compile Include="InternalUtilities\CompilerOptionParseUtilities.cs" />
+    <Compile Include="InternalUtilities\ImmutableArrayInterop.cs" />
     <Compile Include="InternalUtilities\ReflectionUtilities.cs" />
     <Compile Include="CorLightup.cs" />
     <Compile Include="Desktop\AssemblyPortabilityPolicy.cs" />
@@ -372,12 +373,17 @@
     <Compile Include="FileSystem\PathKind.cs" />
     <Compile Include="FileSystem\PathUtilities.cs" />
     <Compile Include="FileSystem\FileUtilities.cs" />
+    <Compile Include="PEWriter\Blob.cs" />
+    <Compile Include="PEWriter\BlobWriter.cs" />
+    <Compile Include="PEWriter\BlobWriterImpl.cs" />
+    <Compile Include="PEWriter\BlobUtilities.cs" />
     <Compile Include="PEWriter\CoffHeader.cs" />
     <Compile Include="PEWriter\ContentId.cs" />
     <Compile Include="PEWriter\MetadataHeapsBuilder.cs" />
     <Compile Include="PEWriter\ITypeReferenceExtensions.cs" />
     <Compile Include="PEWriter\MetadataWriter.PortablePdb.cs" />
     <Compile Include="PEWriter\NoPiaReferenceIndexer.cs" />
+    <Compile Include="PEWriter\PooledBlobBuilder.cs" />
     <Compile Include="PEWriter\ReferenceIndexerBase.cs" />
     <Compile Include="PEWriter\TypeNameSerializer.cs" />
     <Compile Include="PEWriter\StateMachineHoistedLocalScope.cs" />
@@ -414,7 +420,7 @@
     <Compile Include="PEWriter\ManagedResource.cs" />
     <Compile Include="PEWriter\MemberRefComparer.cs" />
     <Compile Include="PEWriter\Members.cs" />
-    <Compile Include="PEWriter\BlobWriter.cs" />
+    <Compile Include="PEWriter\BlobBuilder.cs" />
     <Compile Include="PEWriter\MetadataSizes.cs" />
     <Compile Include="PEWriter\MetadataVisitor.cs" />
     <Compile Include="PEWriter\MethodSpecComparer.cs" />
@@ -697,6 +703,7 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="packages.config" />
+    <Compile Include="PEWriter\BlobBuilder.Enumerators.cs" />
     <None Include="RuleSet\RuleSetSchema.xsd">
       <SubType>Designer</SubType>
     </None>
@@ -712,11 +719,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\..\..\packages\Microsoft.DiaSymReader.Native.1.0.0-rc2\lib\any~windows\x86\Microsoft.DiaSymReader.Native.x86.dll">
+    <Content Include="..\..\..\..\packages\Microsoft.DiaSymReader.Native.$(MicrosoftDiaSymReaderNativeVersion)\lib\any~windows\x86\Microsoft.DiaSymReader.Native.x86.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
     </Content>
-    <Content Include="..\..\..\..\packages\Microsoft.DiaSymReader.Native.1.0.0-rc2\lib\any~windows\amd64\Microsoft.DiaSymReader.Native.amd64.dll">
+    <Content Include="..\..\..\..\packages\Microsoft.DiaSymReader.Native.$(MicrosoftDiaSymReaderNativeVersion)\lib\any~windows\amd64\Microsoft.DiaSymReader.Native.amd64.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
     </Content>

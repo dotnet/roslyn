@@ -2346,6 +2346,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     newModifiers = newModifiers.RemoveAt(newAsyncIndex);
                 }
 
+                // 'async' keyword is allowed to add, but not to remove.
+                if (oldAsyncIndex >= 0 && newAsyncIndex < 0)
+                {
+                    return false;
+                }
+
                 return SyntaxFactory.AreEquivalent(oldModifiers, newModifiers);
             }
 
@@ -2857,15 +2863,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                    SyntaxUtilities.IsIteratorMethod(declaration);
         }
 
-        protected override ImmutableArray<SyntaxNode> GetStateMachineSuspensionPoints(SyntaxNode body)
+        protected override void GetStateMachineInfo(SyntaxNode body, out ImmutableArray<SyntaxNode> suspensionPoints, out StateMachineKind kind)
         {
             if (SyntaxUtilities.IsAsyncMethodOrLambda(body.Parent))
             {
-                return SyntaxUtilities.GetAwaitExpressions(body);
+                suspensionPoints = SyntaxUtilities.GetAwaitExpressions(body);
+                kind = StateMachineKind.Async;
             }
             else
             {
-                return SyntaxUtilities.GetYieldStatements(body);
+                suspensionPoints = SyntaxUtilities.GetYieldStatements(body);
+                kind = suspensionPoints.IsEmpty ? StateMachineKind.None : StateMachineKind.Iterator;
             }
         }
 
@@ -3051,7 +3059,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private static CheckedStatementSyntax TryGetCheckedStatementAncestor(SyntaxNode node)
         {
-            // Ignoring lambda boundaries since checked context flows thru.
+            // Ignoring lambda boundaries since checked context flows through.
 
             while (node != null)
             {

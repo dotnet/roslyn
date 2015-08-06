@@ -1,23 +1,23 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
     /// <summary>
     /// The result of running a script.
     /// </summary>
-    public class ScriptState
+    public abstract class ScriptState
     {
         private readonly ScriptExecutionState _executionState;
-        private readonly object _value;
         private readonly Script _script;
         private ScriptVariables _variables;
 
-        internal ScriptState(ScriptExecutionState executionState, object value, Script script)
+        internal ScriptState(ScriptExecutionState executionState, Script script)
         {
             _executionState = executionState;
-            _value = value;
             _script = script;
         }
 
@@ -37,10 +37,12 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <summary>
         /// The final value produced by running the script.
         /// </summary>
-        public object ReturnValue
+        public Task ReturnValue
         {
-            get { return _value; }
+            get { return GetReturnValue(); }
         }
+
+        internal abstract Task GetReturnValue();
 
         /// <summary>
         /// The global variables accessible to or declared by the script.
@@ -143,5 +145,27 @@ namespace Microsoft.CodeAnalysis.Scripting
             return null;
         }
 #endif
+    }
+
+    public sealed class ScriptState<T> : ScriptState
+    {
+        private readonly Task<T> _value;
+
+        internal ScriptState(ScriptExecutionState executionState, Task<T> value, Script script) :
+            base(executionState, script)
+        {
+            Debug.Assert(value != null);
+            _value = value;
+        }
+
+        public new Task<T> ReturnValue
+        {
+            get { return _value; }
+        }
+
+        internal override Task GetReturnValue()
+        {
+            return ReturnValue;
+        }
     }
 }

@@ -2,8 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Snippets;
 using Roslyn.Test.Utilities;
@@ -13,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class SnippetCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        internal override ICompletionProvider CreateCompletionProvider()
+        internal override CompletionListProvider CreateCompletionProvider()
         {
             return new SnippetCompletionProvider(new MockSnippetInfoService());
         }
@@ -120,11 +119,11 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitWithEnterObeysOption()
         {
-            VerifySendEnterThroughToEnter("try", "tr", sendThroughEnterEnabled: true, expected: false);
-            VerifySendEnterThroughToEnter("try", "try", sendThroughEnterEnabled: true, expected: true);
+            VerifySendEnterThroughToEnter("$$", "SnippetShortcu", sendThroughEnterEnabled: true, expected: false);
+            VerifySendEnterThroughToEnter("$$", "SnippetShortcut", sendThroughEnterEnabled: true, expected: true);
 
-            VerifySendEnterThroughToEnter("try", "tr", sendThroughEnterEnabled: false, expected: false);
-            VerifySendEnterThroughToEnter("try", "try", sendThroughEnterEnabled: false, expected: false);
+            VerifySendEnterThroughToEnter("$$", "SnippetShortcu", sendThroughEnterEnabled: false, expected: false);
+            VerifySendEnterThroughToEnter("$$", "SnippetShortcut", sendThroughEnterEnabled: false, expected: false);
         }
 
         private class MockSnippetInfoService : ISnippetInfoService

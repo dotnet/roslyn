@@ -13,7 +13,6 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -28,6 +27,7 @@ using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.CodeAnalysis.Scripting;
 using Roslyn.Utilities;
 using GacFileResolver = WORKSPACES::Microsoft.CodeAnalysis.Scripting.GacFileResolver;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.FileSystem;
 
 namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         private ITextView _currentTextView;
         private ITextBuffer _currentSubmissionBuffer;
 
-        private readonly IList<ValueTuple<ITextView, ITextBuffer>> _submissionBuffers = new List<ValueTuple<ITextView, ITextBuffer>>();
+        private readonly ISet<ValueTuple<ITextView, ITextBuffer>> _submissionBuffers = new HashSet<ValueTuple<ITextView, ITextBuffer>>();
 
         private int _submissionCount = 0;
         private readonly EventHandler<ContentTypeChangedEventArgs> _contentTypeChangedHandler;
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             HostServices hostServices,
             IViewClassifierAggregatorService classifierAggregator,
             IInteractiveWindowCommandsFactory commandsFactory,
-            IInteractiveWindowCommand[] commands,
+            ImmutableArray<IInteractiveWindowCommand> commands,
             string responseFilePath,
             string initialWorkingDirectory,
             string interactiveHostPath,
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _classifierAggregator = classifierAggregator;
             _initialWorkingDirectory = initialWorkingDirectory;
             _commandsFactory = commandsFactory;
-            _commands = commands.ToImmutableArray();
+            _commands = commands;
 
             var hostPath = interactiveHostPath;
             _interactiveHost = new InteractiveHost(replType, hostPath, initialWorkingDirectory);
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             // create the first submission project in the workspace after reset:
             if (_currentSubmissionBuffer != null)
             {
-                AddSubmission(_currentTextView, _currentSubmissionBuffer);
+                AddSubmission(_currentTextView, _currentSubmissionBuffer, this.LanguageName);
             }
         }
 
@@ -260,50 +260,59 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         private void SubmissionBufferAdded(object sender, SubmissionBufferAddedEventArgs args)
         {
-            AddSubmission(_currentWindow.TextView, args.NewBuffer);
+            AddSubmission(_currentWindow.TextView, args.NewBuffer, this.LanguageName);
         }
 
         // The REPL window might change content type to host command content type (when a host command is typed at the beginning of the buffer).
         private void LanguageBufferContentTypeChanged(object sender, ContentTypeChangedEventArgs e)
         {
-            var buffer = e.Before.TextBuffer;
-            var afterIsCSharp = e.AfterContentType.IsOfType(ContentTypeNames.CSharpContentType);
-            var beforeIsCSharp = e.BeforeContentType.IsOfType(ContentTypeNames.CSharpContentType);
-
-            if (afterIsCSharp == beforeIsCSharp)
+            // It's not clear whether this situation will ever happen, but just in case.
+            if (e.BeforeContentType == e.AfterContentType)
             {
                 return;
             }
 
-            if (afterIsCSharp)
+            var buffer = e.Before.TextBuffer;
+            var contentTypeName = this.ContentType.TypeName;
+
+            var afterIsLanguage = e.AfterContentType.IsOfType(contentTypeName);
+            var afterIsInteractiveCommand = e.AfterContentType.IsOfType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName);
+            var beforeIsLanguage = e.BeforeContentType.IsOfType(contentTypeName);
+            var beforeIsInteractiveCommand = e.BeforeContentType.IsOfType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName);
+
+            Debug.Assert((afterIsLanguage && beforeIsInteractiveCommand)
+                      || (beforeIsLanguage && afterIsInteractiveCommand));
+
+            // We're switching between the target language and the Interactive Command "language".
+            // First, remove the current submission from the solution.
+
+            var oldSolution = _workspace.CurrentSolution;
+            var newSolution = oldSolution;
+
+            foreach (var documentId in _workspace.GetRelatedDocumentIds(buffer.AsTextContainer()))
             {
-                // add a new document back to the project
-                var project = _workspace.CurrentSolution.GetProject(_currentSubmissionProjectId);
-                Debug.Assert(project != null);
-                SetSubmissionDocument(buffer, project);
+                Debug.Assert(documentId != null);
+
+                newSolution = newSolution.RemoveDocument(documentId);
+
+                // TODO (tomat): Is there a better way to remove mapping between buffer and document in REPL? 
+                // Perhaps TrackingWorkspace should implement RemoveDocumentAsync?
+                _workspace.ClearOpenDocument(documentId);
             }
-            else
-            {
-                Debug.Assert(beforeIsCSharp);
 
-                // remove document from the project
-                foreach (var documentId in _workspace.GetRelatedDocumentIds(buffer.AsTextContainer()))
-                {
-                    Debug.Assert(documentId != null);
-                    _workspace.SetCurrentSolution(_workspace.CurrentSolution.RemoveDocument(documentId));
+            // Next, remove the previous submission project and update the workspace.
+            newSolution = newSolution.RemoveProject(_currentSubmissionProjectId);
+            _workspace.SetCurrentSolution(newSolution);
 
-                    // TODO (tomat): Is there a better way to remove mapping between buffer and document in REPL? 
-                    // Perhaps TrackingWorkspace should implement RemoveDocumentAsync?
-                    _workspace.ClearOpenDocument(documentId);
+            // Add a new submission with the correct language for the current buffer.
+            var languageName = afterIsLanguage
+                ? this.LanguageName
+                : InteractiveLanguageNames.InteractiveCommand;
 
-                    // Ensure sure our buffer is still registered with the workspace. This allows consumers
-                    // to get back to the interactive workspace from the Interactive Command buffer.
-                    _workspace.RegisterText(buffer.AsTextContainer());
-                }
-            }
+            AddSubmission(_currentTextView, buffer, languageName);
         }
 
-        private void AddSubmission(ITextView textView, ITextBuffer subjectBuffer)
+        private void AddSubmission(ITextView textView, ITextBuffer subjectBuffer, string languageName)
         {
             var solution = _workspace.CurrentSolution;
             Project project;
@@ -315,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 // create a submission chain
                 foreach (var file in _rspSourceFiles)
                 {
-                    project = CreateSubmissionProject(solution);
+                    project = CreateSubmissionProject(solution, languageName);
                     var documentId = DocumentId.CreateNewId(project.Id, debugName: file.Path);
                     solution = project.Solution.AddDocument(documentId, Path.GetFileName(file.Path), new FileTextLoader(file.Path, defaultEncoding: null));
                     _previousSubmissionProjectId = project.Id;
@@ -323,10 +332,14 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             }
 
             // project for the new submission:
-            project = CreateSubmissionProject(solution);
+            project = CreateSubmissionProject(solution, languageName);
 
             // Keep track of this buffer so we can freeze the classifications for it in the future.
-            _submissionBuffers.Add(ValueTuple.Create(textView, subjectBuffer));
+            var viewAndBuffer = ValueTuple.Create(textView, subjectBuffer);
+            if (!_submissionBuffers.Contains(viewAndBuffer))
+            {
+                _submissionBuffers.Add(ValueTuple.Create(textView, subjectBuffer));
+            }
 
             SetSubmissionDocument(subjectBuffer, project);
 
@@ -344,7 +357,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _currentTextView = textView;
         }
 
-        private Project CreateSubmissionProject(Solution solution)
+        private Project CreateSubmissionProject(Solution solution, string languageName)
         {
             var name = "Submission#" + (_submissionCount++);
 
@@ -367,7 +380,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                     VersionStamp.Create(),
                     name: name,
                     assemblyName: name,
-                    language: LanguageName,
+                    language: languageName,
                     compilationOptions: localCompilationOptions,
                     parseOptions: localParseOptions,
                     documents: null,
@@ -386,11 +399,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         private void SetSubmissionDocument(ITextBuffer buffer, Project project)
         {
-            // Try to unregister our buffer with our workspace. This is a bit of a hack,
-            // but we may have registered the buffer with the workspace if it was
-            // transitioned to an Interactive Command buffer.
-            _workspace.UnregisterText(buffer.AsTextContainer());
-
             var documentId = DocumentId.CreateNewId(project.Id, debugName: project.Name);
             var solution = project.Solution
                 .AddDocument(documentId, project.Name, buffer.CurrentSnapshot.AsText());

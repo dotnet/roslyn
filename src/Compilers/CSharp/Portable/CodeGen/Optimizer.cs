@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                           orderby d.end - d.start, d.end ascending
                           select new { i = i.Key, d = d };
 
-            // collect nonintersecting def-use spans. 
+            // collect non-intersecting def-use spans. 
             // if span intersects with something already stored, reject corresponding variable.
             //
             // CONSIDER: do we want to remove already added spans of rejected variables?
@@ -595,10 +595,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             //      postfix: Seq{var temp, ref operand; operand initializers; *operand = Seq{temp = operand;        ;  (T)(temp + 1);} result: temp}
             //
             //  1) temp is used as the result of the sequence (and that is the only reason why it is declared in the outer sequence).
-            //  2) all sideeffects except the last one do not use the temp.
-            //  3) last sideeffect is an indirect assignment of a sequence (and target does not involve the temp).
+            //  2) all side-effects except the last one do not use the temp.
+            //  3) last side-effect is an indirect assignment of a sequence (and target does not involve the temp).
             //            
-            //  Note that in a case of Sideeffects context, the result value will be ignored and therefore
+            //  Note that in a case of side-effects context, the result value will be ignored and therefore
             //  all usages of the nested temp will be confined to the nested sequence that is executed at +1 stack.
             //
             //  We will detect such case and indicate +1 as the desired stack depth at local accesses.
@@ -682,14 +682,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 if (lastSideeffect != null)
                 {
-                    // last sideeffect must be an indirect assignment of a sequence.
+                    // last side-effect must be an indirect assignment of a sequence.
                     if (lastSideeffect.Kind == BoundKind.AssignmentOperator)
                     {
                         var assignment = (BoundAssignmentOperator)lastSideeffect;
                         if (IsIndirectOrInstanceFieldAssignment(assignment) &&
                             assignment.Right.Kind == BoundKind.Sequence)
                         {
-                            // and no other sideeffects should use the variable
+                            // and no other side-effects should use the variable
                             var localUsedWalker = new LocalUsedWalker(local);
                             for (int i = 0; i < sideeffects.Length - 1; i++)
                             {
@@ -1773,7 +1773,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             // ==  here we have a regular write to a stack local
             //
-            // we do not need to vist lhs, because we do not read the local,
+            // we do not need to visit lhs, because we do not read the local,
             // just update the counter to be in sync.
             //
             // if this is the last store, we just push the rhs

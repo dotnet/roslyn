@@ -3,30 +3,28 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.Completion.Rules;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
     internal static class CompletionService
     {
-        public static IEnumerable<ICompletionProvider> GetDefaultCompletionProviders(Document document)
+        public static IEnumerable<CompletionListProvider> GetDefaultCompletionProviders(Document document)
         {
             return document.GetLanguageService<ICompletionService>().GetDefaultCompletionProviders();
         }
 
-        public static ICompletionRules GetDefaultCompletionRules(Document document)
+        public static CompletionRules GetCompletionRules(Document document)
         {
-            return document.GetLanguageService<ICompletionService>().GetDefaultCompletionRules();
+            return document.GetLanguageService<ICompletionService>().GetCompletionRules();
         }
 
         /// <summary>
-        /// Returns the CompletionItemGroups for the specified position in the document.
+        /// Returns the <see cref="CompletionList"/> for the specified position in the document.
         /// </summary>
-        public static Task<IEnumerable<CompletionItemGroup>> GetCompletionItemGroupsAsync(Document document, int position, CompletionTriggerInfo triggerInfo, IEnumerable<ICompletionProvider> completionProviders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<CompletionList> GetCompletionListAsync(Document document, int position, CompletionTriggerInfo triggerInfo, IEnumerable<CompletionListProvider> completionProviders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return document.GetLanguageService<ICompletionService>().GetGroupsAsync(document, position, triggerInfo, completionProviders, cancellationToken);
+            return document.GetLanguageService<ICompletionService>().GetCompletionListAsync(document, position, triggerInfo, completionProviders, cancellationToken);
         }
 
         /// <summary>
@@ -34,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// trigger completion. Implementers of this will be called on the main UI thread and should
         /// only do minimal textual checks to determine if they should be presented.
         /// </summary>
-        public static async Task<bool> IsCompletionTriggerCharacterAsync(Document document, int characterPosition, IEnumerable<ICompletionProvider> completionProviders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<bool> IsCompletionTriggerCharacterAsync(Document document, int characterPosition, IEnumerable<CompletionListProvider> completionProviders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var options = document.Project.Solution.Workspace.Options;
