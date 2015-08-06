@@ -10,6 +10,7 @@
     <RootNamespace>Microsoft.VisualStudio.ProjectSystem.Managed</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.ProjectSystem.Managed</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.CSharp" />

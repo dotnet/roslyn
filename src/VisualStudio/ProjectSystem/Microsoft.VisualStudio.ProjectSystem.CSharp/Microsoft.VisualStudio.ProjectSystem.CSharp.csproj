@@ -14,6 +14,7 @@
     <CreateVsixContainer>false</CreateVsixContainer>
     <DeployExtension>false</DeployExtension>
     <UseCodebase>true</UseCodebase>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.CSharp.UnitTests" />
