@@ -21,6 +21,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CompilationAPITests
         Inherits BasicTestBase
 
+        <Fact>
+        Public Sub LocalizableErrorArgumentToStringDoesntStackOverflow()
+            ' Error ID is arbitrary
+            Dim arg = New LocalizableErrorArgument(ERRID.IDS_ProjectSettingsLocationName)
+            Assert.NotNull(arg.ToString())
+        End Sub
+
         <WorkItem(538778, "DevDiv")>
         <WorkItem(537623, "DevDiv")>
         <Fact>

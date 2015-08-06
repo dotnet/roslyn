@@ -121,15 +121,15 @@
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   <data name="defaultWin32Manifest" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Resources\default.win32manifest;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>Resources/default.win32manifest;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="VerResourceBuiltByRC" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Resources\VerResourceBuiltByRC.RES;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>Resources/VerResourceBuiltByRC.RES;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="nativeWithStringIDsAndTypesAndIntTypes" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Resources\nativeWithStringIDsAndTypesAndIntTypes.res;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>Resources/nativeWithStringIDsAndTypesAndIntTypes.res;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="Roslyn_ico" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Resources\Roslyn.ico.blah;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>Resources/Roslyn.ico.blah;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
 </root>

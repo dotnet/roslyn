@@ -8,7 +8,6 @@ namespace Microsoft.CodeAnalysis.Shared.Options
     {
         public const string OptionName = "ServiceFeaturesOnOff";
 
-        [ExportOption]
         public static readonly PerLanguageOption<bool> ClosedFileDiagnostic = new PerLanguageOption<bool>(OptionName, "Closed File Diagnostic", defaultValue: true);
     }
 }

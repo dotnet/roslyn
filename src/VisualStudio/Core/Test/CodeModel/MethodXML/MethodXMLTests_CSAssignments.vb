@@ -1142,5 +1142,73 @@ class C
             Test(definition, expected)
         End Sub
 
+        <WorkItem(4149, "https://github.com/dotnet/roslyn/issues/4149")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        Public Sub CSAssignments_RoundTrippedDoubles()
+            Dim definition =
+    <Workspace>
+        <Project Language="C#" CommonReferences="true">
+            <Document>
+class C
+{
+    void $$M()
+    {
+        double d = 9.2233720368547758E+18D;
+    }
+}
+            </Document>
+        </Project>
+    </Workspace>
+
+            Dim expected =
+<Block>
+    <Local line="5">
+        <Type>System.Double</Type>
+        <Name>d</Name>
+        <Expression>
+            <Literal>
+                <Number type="System.Double">9.2233720368547758E+18</Number>
+            </Literal>
+        </Expression>
+    </Local>
+</Block>
+
+            Test(definition, expected)
+        End Sub
+
+        <WorkItem(4149, "https://github.com/dotnet/roslyn/issues/4149")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        Public Sub CSAssignments_RoundTrippedSingles()
+            Dim definition =
+    <Workspace>
+        <Project Language="C#" CommonReferences="true">
+            <Document>
+class C
+{
+    void $$M()
+    {
+        float s = 0.333333343F;
+    }
+}
+            </Document>
+        </Project>
+    </Workspace>
+
+            Dim expected =
+<Block>
+    <Local line="5">
+        <Type>System.Single</Type>
+        <Name>s</Name>
+        <Expression>
+            <Literal>
+                <Number type="System.Single">0.333333343</Number>
+            </Literal>
+        </Expression>
+    </Local>
+</Block>
+
+            Test(definition, expected)
+        End Sub
+
     End Class
 End Namespace

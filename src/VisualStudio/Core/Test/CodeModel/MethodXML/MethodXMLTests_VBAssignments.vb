@@ -990,5 +990,69 @@ End Class
             Test(definition, expected)
         End Sub
 
+        <WorkItem(4149, "https://github.com/dotnet/roslyn/issues/4149")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        Public Sub VBAssignments_RoundTrippedDoubles()
+            Dim definition =
+    <Workspace>
+        <Project Language="Visual Basic" CommonReferences="true">
+            <Document>
+Class C
+    Sub $$M()
+        Dim d As Double = 9.2233720368547758E+18R
+    End Sub
+End Class
+            </Document>
+        </Project>
+    </Workspace>
+
+            Dim expected =
+<Block>
+    <Local line="3">
+        <Type>System.Double</Type>
+        <Name>d</Name>
+        <Expression>
+            <Literal>
+                <Number type="System.Double">9.2233720368547758E+18</Number>
+            </Literal>
+        </Expression>
+    </Local>
+</Block>
+
+            Test(definition, expected)
+        End Sub
+
+        <WorkItem(4149, "https://github.com/dotnet/roslyn/issues/4149")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        Public Sub VBAssignments_RoundTrippedSingles()
+            Dim definition =
+    <Workspace>
+        <Project Language="Visual Basic" CommonReferences="true">
+            <Document>
+Class C
+    Sub $$M()
+        Dim s As Single = 0.333333343F
+    End Sub
+End Class
+            </Document>
+        </Project>
+    </Workspace>
+
+            Dim expected =
+<Block>
+    <Local line="3">
+        <Type>System.Single</Type>
+        <Name>s</Name>
+        <Expression>
+            <Literal>
+                <Number type="System.Single">0.333333343</Number>
+            </Literal>
+        </Expression>
+    </Local>
+</Block>
+
+            Test(definition, expected)
+        End Sub
+
     End Class
 End Namespace

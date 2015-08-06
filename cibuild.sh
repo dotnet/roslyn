@@ -52,7 +52,7 @@ done
 
 run_xbuild()
 {
-    xbuild /v:m /p:SignAssembly=false /p:DebugSymbols=false "$@"
+    mono packages/Microsoft.Build.Mono.Debug.14.1.0.0-prerelease/lib/MSBuild.exe /v:m /p:SignAssembly=false /p:DebugSymbols=false "$@"
     if [ $? -ne 0 ]; then
         echo Compilation failed
         exit 1
@@ -115,7 +115,7 @@ save_toolset()
 clean_roslyn()
 {
     echo Cleaning the enlistment
-    xbuild /v:m /t:Clean build/Toolset.sln /p:Configuration=$BUILD_CONFIGURATION
+    mono packages/Microsoft.Build.Mono.Debug.14.1.0.0-prerelease/lib/MSBuild.exe /v:m /t:Clean build/Toolset.sln /p:Configuration=$BUILD_CONFIGURATION
     rm -rf Binaries/$BUILD_CONFIGURATION
 }
 
