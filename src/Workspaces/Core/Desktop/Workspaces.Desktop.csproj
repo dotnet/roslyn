@@ -133,6 +133,7 @@
     <Compile Include="Workspace\MSBuild\SolutionFile\SolutionFile.cs" />
     <Compile Include="Workspace\MSBuild\VisualBasic\VisualBasicProjectFileLoader.cs" />
     <Compile Include="Workspace\MSBuild\VisualBasic\VisualBasicProjectFileLoaderFactory.cs" />
+    <Compile Include="Workspace\MSBuild\MSBuildProjectLoader.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" />

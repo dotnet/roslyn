@@ -3333,7 +3333,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Only Modules can declare extension methods.
 
                 If _lazyContainsExtensionMethods = ThreeState.Unknown Then
-                    If Not (_containingSymbol.Kind = SymbolKind.Namespace AndAlso Me.TypeKind = TypeKind.Module AndAlso Me.AnyMemberHasAttributes) Then
+                    If Not (_containingSymbol.Kind = SymbolKind.Namespace AndAlso Me.AllowsExtensionMethods() AndAlso Me.AnyMemberHasAttributes) Then
                         _lazyContainsExtensionMethods = ThreeState.False
                     End If
                 End If

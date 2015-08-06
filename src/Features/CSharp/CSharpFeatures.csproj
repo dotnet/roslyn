@@ -297,7 +297,6 @@
     <Compile Include="Diagnostics\Analyzers\CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpSimplifyTypeNamesDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\CSharpAnalyzerDriverService.cs" />
-    <Compile Include="Diagnostics\CSharpSyntaxNodeAnalyzerService.cs" />
     <Compile Include="DocumentationCommentFormatting\CSharpDocumentationCommentFormattingService.cs" />
     <Compile Include="DocumentationCommentFormatting\DocumentationCommentUtilities.cs" />
     <Compile Include="EditAndContinue\BreakpointSpans.cs" />

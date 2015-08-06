@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         bool IEqualityComparer<ISymbol>.Equals(ISymbol x, ISymbol y)
         {
-            return x.Kind == y.Kind && x.Name == y.Name;
+            return x.Name == y.Name;
         }
 
         int IEqualityComparer<ISymbol>.GetHashCode(ISymbol symbol)

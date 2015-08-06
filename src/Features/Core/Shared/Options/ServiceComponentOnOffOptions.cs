@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.Shared.Options
     {
         public const string OptionName = "FeatureManager/Components";
 
-        [ExportOption]
         public static readonly Option<bool> DiagnosticProvider = new Option<bool>(OptionName, "Diagnostic Provider", defaultValue: true);
     }
 }

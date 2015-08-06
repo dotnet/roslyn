@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis
                     analyzerExceptionDiagnostics = new ConcurrentSet<Diagnostic>();
                     Action<Diagnostic> addExceptionDiagnostic = diagnostic => analyzerExceptionDiagnostics.Add(diagnostic);
                     var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.CastUp(additionalTextFiles));
-                    analyzerDriver = AnalyzerDriver.Create(compilation, analyzers, analyzerOptions, analyzerManager, addExceptionDiagnostic, Arguments.ReportAnalyzer, out compilation, analyzerCts.Token);
+                    analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(compilation, analyzers, analyzerOptions, analyzerManager, addExceptionDiagnostic, Arguments.ReportAnalyzer, out compilation, analyzerCts.Token);
                     getAnalyzerDiagnostics = () => analyzerDriver.GetDiagnosticsAsync().Result;
                 }
 

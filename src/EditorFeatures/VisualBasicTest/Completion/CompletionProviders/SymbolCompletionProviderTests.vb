@@ -6536,5 +6536,96 @@ End Class
             VerifyItemExists(text, "y")
         End Sub
 
+        <WorkItem(4136, "https://github.com/dotnet/roslyn/issues/4136")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NoValue__WhenDottingIntoEnum()
+            Dim text =
+<code><![CDATA[
+Enum E
+    A
+End Enum
+
+Class Program
+    Sub Foo()
+        E.$$
+    End Sub
+End Class
+]]></code>.Value
+            VerifyItemExists(text, "A")
+            VerifyItemIsAbsent(text, "value__")
+        End Sub
+
+        <WorkItem(4136, "https://github.com/dotnet/roslyn/issues/4136")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NoValue__WhenDottingIntoLocalOfEnumType()
+            Dim text =
+<code><![CDATA[
+Enum E
+    A
+End Enum
+
+Class Program
+    Sub Foo()
+        Dim x = E.A
+        x.$$
+    End Sub
+End Class
+]]></code>.Value
+            VerifyItemIsAbsent(text, "value__")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Sub SharedProjectFieldAndPropertiesTreatedAsIdentical()
+            Dim markup = <Workspace>
+                             <Project Language="Visual Basic" CommonReferences="True" AssemblyName="Proj1" PreprocessorSymbols="ONE=True">
+                                 <Document FilePath="CurrentDocument.vb"><![CDATA[
+Class C
+#if ONE Then
+    Public  x As Integer
+#endif
+#if TWO Then
+    Public Property x as Integer
+#endif
+    Sub foo()
+        x$$
+    End Sub
+End Class]]>
+                                 </Document>
+                             </Project>
+                             <Project Language="Visual Basic" CommonReferences="True" AssemblyName="Proj2" PreprocessorSymbols="TWO=True">
+                                 <Document IsLinkFile="True" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.vb"/>
+                             </Project>
+                         </Workspace>.ToString().NormalizeLineEndings()
+
+            Dim expectedDescription = $"(field) C.x As Integer"
+            VerifyItemInLinkedFiles(markup, "x", expectedDescription)
+        End Sub
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SharedProjectFieldAndPropertiesTreatedAsIdentical2()
+            Dim markup = <Workspace>
+                             <Project Language="Visual Basic" CommonReferences="True" AssemblyName="Proj1" PreprocessorSymbols="ONE=True">
+                                 <Document FilePath="CurrentDocument.vb"><![CDATA[
+Class C
+#if TWO Then
+    Public  x As Integer
+#endif
+#if ONE Then
+    Public Property x as Integer
+#endif
+    Sub foo()
+        x$$
+    End Sub
+End Class]]>
+                                 </Document>
+                             </Project>
+                             <Project Language="Visual Basic" CommonReferences="True" AssemblyName="Proj2" PreprocessorSymbols="TWO=True">
+                                 <Document IsLinkFile="True" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.vb"/>
+                             </Project>
+                         </Workspace>.ToString().NormalizeLineEndings()
+
+            Dim expectedDescription = $"Property C.x As Integer"
+            VerifyItemInLinkedFiles(markup, "x", expectedDescription)
+        End Sub
     End Class
 End Namespace

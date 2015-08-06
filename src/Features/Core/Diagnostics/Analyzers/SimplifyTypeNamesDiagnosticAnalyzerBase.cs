@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Options;
@@ -112,6 +113,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
             var tree = model.SyntaxTree;
             diagnostic = Diagnostic.Create(descriptor, tree.GetLocation(issueSpan));
             return true;
+        }
+
+        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
+        {
+            return DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
         }
     }
 }

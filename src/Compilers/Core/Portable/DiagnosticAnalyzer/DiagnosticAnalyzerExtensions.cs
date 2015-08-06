@@ -18,5 +18,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             return new CompilationWithAnalyzers(compilation, analyzers, options, cancellationToken);
         }
+
+        /// <summary>
+        /// Returns a new compilation with attached diagnostic analyzers.
+        /// </summary>
+        /// <param name="compilation">Compilation to which analyzers are to be added.</param>
+        /// <param name="analyzers">The set of analyzers to include in future analyses.</param>
+        /// <param name="analysisOptions">Options to configure analyzer execution within <see cref="CompilationWithAnalyzers"/>.</param>
+        public static CompilationWithAnalyzers WithAnalyzers(this Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersOptions analysisOptions)
+        {
+            return new CompilationWithAnalyzers(compilation, analyzers, analysisOptions);
+        }
     }
 }

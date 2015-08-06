@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Check attributes quickly.
             _quickAttributes = binder.QuickAttributeChecker.CheckAttributes(syntax.AttributeLists)
-            If containingType.TypeKind <> TypeKind.Module Then
+            If Not containingType.AllowsExtensionMethods() Then
                 ' Extension methods in source can only be inside modules.
                 _quickAttributes = _quickAttributes And Not QuickAttributes.Extension
             End If
