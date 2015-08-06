@@ -10,7 +10,7 @@ usage()
     echo "  --os <os>           OS to run (Linux / Darwin)"
 }
 
-XUNIT_VERSION=2.0.0-alpha-build2576
+XUNIT_VERSION=2.1.0-beta4-build3109
 BUILD_CONFIGURATION=Debug
 OS_NAME=$(uname -s)
 USE_CACHE=true

@@ -163,6 +163,7 @@
   <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>
+  <Import Project="..\Shared\TestUtilities.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
