@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Shared.Options
 
         public static PerLanguageOption<bool> PlaceSystemNamespaceFirst
         {
-            get { return Microsoft.CodeAnalysis.Editing.GenerationOptions.PlaceSystemNamespaceFirst; }
+            get { return Editing.GenerationOptions.PlaceSystemNamespaceFirst; }
         }
 
         /// <summary>
@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.Shared.Options
         /// maintain any customized value for this setting, even through versions that have not
         /// implemented this feature yet.
         /// </summary>
-        [ExportOption]
         public static readonly PerLanguageOption<bool> WarnOnBuildErrors = new PerLanguageOption<bool>(FeatureName, "WarnOnBuildErrors", defaultValue: true);
     }
 }

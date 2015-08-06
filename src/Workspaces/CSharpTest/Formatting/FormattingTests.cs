@@ -6231,6 +6231,46 @@ class Program
             AssertFormat(expected, code);
         }
 
+        [WorkItem(4240, "https://github.com/dotnet/roslyn/issues/4240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void VerifySpacingAfterMethodDeclarationName_Default()
+        {
+            var code = @"class Program
+{
+    public static Program operator +   (Program p1, Program p2) { return null; }
+    public static implicit operator string (Program p) { return null; }
+    public static void M  () { }
+}";
+            var expected = @"class Program
+{
+    public static Program operator +(Program p1, Program p2) { return null; }
+    public static implicit operator string(Program p) { return null; }
+    public static void M() { }
+}";
+            AssertFormat(expected, code);
+        }
+
+        [WorkItem(4240, "https://github.com/dotnet/roslyn/issues/4240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void VerifySpacingAfterMethodDeclarationName_NonDefault()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.SpacingAfterMethodDeclarationName, true);
+            var code = @"class Program
+{
+    public static Program operator +   (Program p1, Program p2) { return null; }
+    public static implicit operator string     (Program p) { return null; }
+    public static void M  () { }
+}";
+            var expected = @"class Program
+{
+    public static Program operator + (Program p1, Program p2) { return null; }
+    public static implicit operator string (Program p) { return null; }
+    public static void M () { }
+}";
+            AssertFormat(expected, code, changedOptionSet: changingOptions);
+        }
+
         [WorkItem(939, "https://github.com/dotnet/roslyn/issues/939")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void DontFormatInsideArrayInitializers()

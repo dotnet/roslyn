@@ -1105,6 +1105,20 @@ namespace ConsoleApplication1
             TestGenericNameCore(source, new AnalyzerWithNoActions(), new CSharpGenericNameAnalyzer());
         }
 
+        [Fact, WorkItem(4055, "https://github.com/dotnet/roslyn/issues/4055")]
+        public void TestAnalyzerWithNoSupportedDiagnostics()
+        {
+            var source = @"
+class MyClass
+{
+}";
+            // Ensure that adding a dummy analyzer with no supported diagnostics doesn't bring down entire analysis.
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerWithNoSupportedDiagnostics() };
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers);
+        }
+
         private static void TestEffectiveSeverity(
             DiagnosticSeverity defaultSeverity,
             ReportDiagnostic expectedEffectiveSeverity,
