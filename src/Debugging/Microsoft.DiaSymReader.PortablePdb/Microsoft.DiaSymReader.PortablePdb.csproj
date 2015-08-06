@@ -45,7 +45,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ImmutableArrayExtensions.cs">
+      <Link>Utilities\ImmutableArrayExtensions.cs</Link>
+    </Compile>
     <Compile Include="AsyncMethodData.cs" />
+    <Compile Include="MethodMap.cs" />
     <Compile Include="Utilities\BlobWriter.cs" />
     <Compile Include="Utilities\FileNameUtilities.cs" />
     <Compile Include="Utilities\HResult.cs" />
