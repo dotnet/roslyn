@@ -795,12 +795,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// <returns>The language or command buffer or null if the point doesn't belong to any.</returns>
             private ITextBuffer GetLanguageBuffer(SnapshotPoint point)
             {
-                int promptIndex = _window.GetPromptIndexForLine(point.GetContainingLine().LineNumber);
+                int promptIndex = _window.GetPromptIndexForPoint(point);
                 if (promptIndex < 0)
                 {
                     return null;
                 }
 
+                // Grab the span following the prompt (either language or standard input).
                 ReplSpan projectionSpan = _window._projectionSpans[promptIndex + 1];
                 if (projectionSpan.Kind != ReplSpanKind.Language)
                 {

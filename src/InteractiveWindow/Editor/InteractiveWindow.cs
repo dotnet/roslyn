@@ -449,12 +449,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// </summary>
         private SnapshotSpan? GetContainingRegion(SnapshotPoint point)
         {
-            int promptIndex = GetPromptIndexForLine(point.GetContainingLine().LineNumber);
+            int promptIndex = GetPromptIndexForPoint(point);
             if (promptIndex < 0)
             {
                 return null;
             }
 
+            // Grab the span following the prompt (either language or standard input).
             ReplSpan projectionSpan = _projectionSpans[promptIndex + 1];
 
             Debug.Assert(projectionSpan.Kind == ReplSpanKind.Language || projectionSpan.Kind == ReplSpanKind.StandardInput);
@@ -551,7 +552,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             // no indentation is required in such cases, so we can just do nothing.
             if (indentation != null && indentation != 0)
             {
-                var promptIndex = GetPromptIndexForLine(caretLine.LineNumber);
+                var promptIndex = GetPromptIndexForPoint(caretPosition);
                 var promptSpan = _projectionSpans[promptIndex];
                 Debug.Assert(promptSpan.Kind.IsPrompt());
                 int promptLength = promptSpan.Length;
@@ -1453,8 +1454,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             minPromptLength = maxPromptLength = promptSpan.Length;
         }
 
-        private int GetPromptIndexForLine(int lineNumber)
+        private int GetPromptIndexForPoint(SnapshotPoint point)
         {
+            int lineNumber = point.GetContainingLine().LineNumber;
             return _projectionSpans.BinarySearch(new ReplSpan("", ReplSpanKind.Prompt, lineNumber), ReplSpanComparer.Instance);
         }
 
@@ -1471,13 +1473,19 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 int comp = x.LineNumber - y.LineNumber;
                 return comp != 0
                     ? comp
-                    : GetKindValue(x) - GetKindValue(y);
+                    : GetKindOrdinal(x) - GetKindOrdinal(y);
             }
 
             /// <summary>
             /// Within a given line, the order is Output &lt; Prompt &lt; Language/StdIn.
             /// </summary>
-            private static int GetKindValue(ReplSpan span)
+            /// <remarks>
+            /// While, visually, it appears that every line begins with a prompt, a line
+            /// may actually begin with an empty output prompt, because at any given time
+            /// there must be a writable output buffer for <see cref="AppendOutput"/>.
+            /// Generally, this occurs when a submission has no output.
+            /// </remarks>
+            private static int GetKindOrdinal(ReplSpan span)
             {
                 switch (span.Kind)
                 {
@@ -1491,7 +1499,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     case ReplSpanKind.StandardInput:
                         return 3;
                     default:
-                        throw new InvalidOperationException($"Unexpected ReplSpanKind '{span.Kind}'");
+                        throw new InvalidOperationException($"Unexpected {nameof(ReplSpanKind)} '{span.Kind}'");
                 }
             }
         }
@@ -1830,18 +1838,25 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         [Conditional("DEBUG")]
         private void CheckProjectionSpanLineNumbers()
         {
-            int prevPromptLineNumber = -1;
-            ReplSpan prev = new ReplSpan("", ReplSpanKind.Output, 0);
-            foreach (var curr in _projectionSpans)
+            if (_projectionSpans.Count == 0) return;
+
+            ReplSpan prev = _projectionSpans[0];
+            Debug.Assert(prev.LineNumber == 0);
+
+            int prevPromptLineNumber = prev.Kind.IsPrompt() ? prev.LineNumber : -1;
+
+            foreach (var curr in _projectionSpans.Skip(1))
             {
                 if (curr.Kind.IsPrompt())
                 {
                     int currPromptLineNumber = curr.LineNumber;
-                    Debug.Assert(currPromptLineNumber > prevPromptLineNumber); // One prompt per line.
+                    Debug.Assert(prevPromptLineNumber < currPromptLineNumber); // One prompt per line.
                     prevPromptLineNumber = currPromptLineNumber;
                 }
 
-                Debug.Assert(ReplSpanComparer.Instance.Compare(prev, curr) <= 0);
+                int comp = ReplSpanComparer.Instance.Compare(prev, curr);
+                Debug.Assert(comp <= 0);
+                Debug.Assert(comp < 0 || curr.Kind == ReplSpanKind.Output); // We might add a trailing newline as a separate span.
                 prev = curr;
             }
         }
