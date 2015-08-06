@@ -61,11 +61,6 @@
     <Compile Include="DispatcherExtensions.cs" />
     <Compile Include="DirectoryExtensions.cs" />
     <Compile Include="ExceptionUtilities.cs" />
-    <Compile Include="Parallel\AsyncFactCommand.cs" />
-    <Compile Include="Parallel\AsyncTestClassCommand.cs" />
-    <Compile Include="Parallel\ExceptionCaptureCommand.cs" />
-    <Compile Include="Parallel\ParallelFixtureAttribute.cs" />
-    <Compile Include="Parallel\ParallelTestClassCommand.cs" />
     <Compile Include="Traits.cs" />
     <Compile Include="VisualStudioSendKeys.cs" />
   </ItemGroup>
