@@ -950,7 +950,7 @@ public class B
         {
             string source = @"";
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerReportingUnsupportedDiagnostic() };
-            string message = new ArgumentException(string.Format(AnalyzerDriverResources.UnsupportedDiagnosticReported, AnalyzerReportingUnsupportedDiagnostic.UnsupportedDescriptor.Id), "diagnostic").Message;
+            string message = new ArgumentException(string.Format(CodeAnalysisResources.UnsupportedDiagnosticReported, AnalyzerReportingUnsupportedDiagnostic.UnsupportedDescriptor.Id), "diagnostic").Message;
 
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()

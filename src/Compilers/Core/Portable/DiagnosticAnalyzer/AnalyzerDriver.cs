@@ -257,12 +257,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             await WhenInitializedTask.ConfigureAwait(false);
 
-            if (!WhenInitializedTask.IsCanceled)
+            if (WhenInitializedTask.IsFaulted)
+            {
+                OnDriverException(WhenInitializedTask, this.analyzerExecutor, analysisScope.Analyzers);
+            }
+            else if (!WhenInitializedTask.IsCanceled)
             {
                 this.analyzerExecutor = this.analyzerExecutor.WithCancellationToken(cancellationToken);
 
                 await ProcessCompilationEventsAsync(analysisScope, analysisStateOpt, usingPrePopulatedEventQueue, cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        private static void OnDriverException(Task faultedTask, AnalyzerExecutor analyzerExecutor, ImmutableArray<DiagnosticAnalyzer> analyzers)
+        {
+            Debug.Assert(faultedTask.IsFaulted);
+
+            var innerException = faultedTask.Exception?.InnerException;
+            if (innerException == null || innerException is OperationCanceledException)
+            {
+                return;
+            }
+
+            var diagnostic = AnalyzerExecutor.CreateDriverExceptionDiagnostic(innerException);
+
+            // Just pick the first analyzer from the scope for the onAnalyzerException callback.
+            // The exception diagnostic's message and description will not include the analyzer, but explicitly state its a driver exception.
+            var analyzer = analyzers[0];
+
+            analyzerExecutor.OnAnalyzerException(innerException, analyzer, diagnostic);
         }
 
         private void ExecuteSyntaxTreeActions(AnalysisScope analysisScope, AnalysisState analysisStateOpt)
@@ -357,6 +380,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (CompilationEventQueue.IsCompleted)
             {
                 await this.WhenCompletedTask.ConfigureAwait(false);
+
+                if (this.WhenCompletedTask.IsFaulted)
+                {
+                    OnDriverException(this.WhenCompletedTask, this.analyzerExecutor, this.analyzers);
+                }
             }
 
             Diagnostic d;
@@ -805,7 +833,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var executor = analyzerExecutor.WithCancellationToken(cancellationToken);
             var analyzerActions = await analyzerManager.GetAnalyzerActionsAsync(analyzer, executor).ConfigureAwait(false);
-            return new ActionCounts(analyzerActions);
+            return ActionCounts.Create(analyzerActions);
         }
 
         /// <summary>
@@ -1297,15 +1325,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
         }
-    }
-
-    internal static class AnalyzerDriverResources
-    {
-        internal static string AnalyzerFailure => CodeAnalysisResources.CompilerAnalyzerFailure;
-        internal static string AnalyzerThrows => CodeAnalysisResources.CompilerAnalyzerThrows;
-        internal static string AnalyzerThrowsDescription => CodeAnalysisResources.CompilerAnalyzerThrowsDescription;
-        internal static string ArgumentElementCannotBeNull => CodeAnalysisResources.ArgumentElementCannotBeNull;
-        internal static string ArgumentCannotBeEmpty => CodeAnalysisResources.ArgumentCannotBeEmpty;
-        internal static string UnsupportedDiagnosticReported => CodeAnalysisResources.UnsupportedDiagnosticReported;
     }
 }

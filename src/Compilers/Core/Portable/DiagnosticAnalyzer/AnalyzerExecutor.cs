@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         // internal for testing purposes only.
         internal const string AnalyzerExceptionDiagnosticId = "AD0001";
+        internal const string AnalyzerDriverExceptionDiagnosticId = "AD0002";
 
         private readonly Compilation _compilation;
         private readonly AnalyzerOptions _analyzerOptions;
@@ -783,25 +784,43 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal static Diagnostic CreateAnalyzerExceptionDiagnostic(DiagnosticAnalyzer analyzer, Exception e)
         {
             var analyzerName = analyzer.ToString();
+            var title = CodeAnalysisResources.CompilerAnalyzerFailure;
+            var messageFormat = CodeAnalysisResources.CompilerAnalyzerThrows;
+            var messageArguments = new[] { analyzerName, e.GetType().ToString(), e.Message };
+            var description = string.Format(CodeAnalysisResources.CompilerAnalyzerThrowsDescription, analyzerName, e.ToString());
+            return CreateExceptionDiagnostic(AnalyzerExceptionDiagnosticId, title, description, messageFormat, messageArguments);
+        }
 
+        internal static Diagnostic CreateDriverExceptionDiagnostic(Exception e)
+        {
+            var title = CodeAnalysisResources.AnalyzerDriverFailure;
+            var messageFormat = CodeAnalysisResources.AnalyzerDriverThrows;
+            var messageArguments = new[] { e.GetType().ToString(), e.Message };
+            var description = string.Format(CodeAnalysisResources.AnalyzerDriverThrowsDescription, e.ToString());
+            return CreateExceptionDiagnostic(AnalyzerDriverExceptionDiagnosticId, title, description, messageFormat, messageArguments);
+        }
+
+        private static Diagnostic CreateExceptionDiagnostic(string id, string title, string description, string messageFormat, string[] messageArguments)
+        {
             // TODO: It is not ideal to create a new descriptor per analyzer exception diagnostic instance.
             // However, until we add a LongMessage field to the Diagnostic, we are forced to park the instance specific description onto the Descriptor's Description field.
             // This requires us to create a new DiagnosticDescriptor instance per diagnostic instance.
-            var descriptor = new DiagnosticDescriptor(AnalyzerExceptionDiagnosticId,
-                title: AnalyzerDriverResources.AnalyzerFailure,
-                messageFormat: AnalyzerDriverResources.AnalyzerThrows,
-                description: string.Format(AnalyzerDriverResources.AnalyzerThrowsDescription, analyzerName, e.ToString()),
+            var descriptor = new DiagnosticDescriptor(
+                id,
+                title,
+                messageFormat,
+                description: description,
                 category: DiagnosticCategory,
                 defaultSeverity: DiagnosticSeverity.Info,
                 isEnabledByDefault: true,
                 customTags: WellKnownDiagnosticTags.AnalyzerException);
 
-            return Diagnostic.Create(descriptor, Location.None, analyzerName, e.GetType(), e.Message);
+            return Diagnostic.Create(descriptor, Location.None, messageArguments);
         }
 
         internal static bool IsAnalyzerExceptionDiagnostic(Diagnostic diagnostic)
         {
-            if (diagnostic.Id == AnalyzerExceptionDiagnosticId)
+            if (diagnostic.Id == AnalyzerExceptionDiagnosticId || diagnostic.Id == AnalyzerDriverExceptionDiagnosticId)
             {
 #pragma warning disable RS0013 // Its ok to realize the Descriptor for analyzer exception diagnostics, which are descriptor based and also rare.
                 foreach (var tag in diagnostic.Descriptor.CustomTags)

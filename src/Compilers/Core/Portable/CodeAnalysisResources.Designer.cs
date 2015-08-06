@@ -71,6 +71,34 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Analyzer Driver Failure.
+        /// </summary>
+        internal static string AnalyzerDriverFailure {
+            get {
+                return ResourceManager.GetString("AnalyzerDriverFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Analyzer driver threw an exception of type &apos;{0}&apos; with message &apos;{1}&apos;..
+        /// </summary>
+        internal static string AnalyzerDriverThrows {
+            get {
+                return ResourceManager.GetString("AnalyzerDriverThrows", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Analyzer driver threw the following exception:
+        ///&apos;{0}&apos;..
+        /// </summary>
+        internal static string AnalyzerDriverThrowsDescription {
+            get {
+                return ResourceManager.GetString("AnalyzerDriverThrowsDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Time (s).
         /// </summary>
         internal static string AnalyzerExecutionTimeColumnHeader {
@@ -278,7 +306,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Compiler Analyzer Failure.
+        ///   Looks up a localized string similar to Analyzer Failure.
         /// </summary>
         internal static string CompilerAnalyzerFailure {
             get {
@@ -287,7 +315,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Compiler Analyzer &apos;{0}&apos; threw an exception of type &apos;{1}&apos; with message &apos;{2}&apos;..
+        ///   Looks up a localized string similar to Analyzer &apos;{0}&apos; threw an exception of type &apos;{1}&apos; with message &apos;{2}&apos;..
         /// </summary>
         internal static string CompilerAnalyzerThrows {
             get {

@@ -178,7 +178,6 @@
     <Compile Include="Completion\Providers\RecommendedKeyword.cs" />
     <Compile Include="Completion\SuggestionMode\SuggestionModeCompletionItemRules.cs" />
     <Compile Include="Completion\SuggestionMode\SuggestionModeCompletionProvider.cs" />
-    <Compile Include="Diagnostics\AnalyzerDriverResources.cs" />
     <Compile Include="Diagnostics\AnalyzerHelper.cs" />
     <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
     <Compile Include="Diagnostics\AnalyzerUpdateArgsId.cs" />
