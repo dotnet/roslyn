@@ -5,17 +5,12 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal class TaskListEventArgs : EventArgs
+    internal class TodoListEventArgs : EventArgs
     {
         /// <summary>
         /// The identity of task item group. 
         /// </summary>
         public object Id { get; }
-
-        /// <summary>
-        /// task item type
-        /// </summary>
-        public string TaskListType { get; }
 
         /// <summary>
         /// Workspace this task items are associated with
@@ -35,19 +30,16 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <summary>
         /// The task items associated with the ID.
         /// </summary>
-        public ImmutableArray<ITaskItem> TaskItems { get; }
+        public ImmutableArray<TodoItem> TodoItems { get; }
 
-        public TaskListEventArgs(
-            object id, string type,
-            Workspace workspace, ProjectId projectId, DocumentId documentId,
-            ImmutableArray<ITaskItem> taskItems)
+        public TodoListEventArgs(
+            object id, Workspace workspace, ProjectId projectId, DocumentId documentId, ImmutableArray<TodoItem> todoItems)
         {
             this.Id = id;
-            this.TaskListType = type;
             this.Workspace = workspace;
             this.ProjectId = projectId;
             this.DocumentId = documentId;
-            this.TaskItems = taskItems;
+            this.TodoItems = todoItems;
         }
     }
 }
