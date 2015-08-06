@@ -164,9 +164,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return underlyingParameter.IsCallerMemberName; }
         }
 
-        internal sealed override bool HasByRefBeforeCustomModifiers
+        internal sealed override ushort CountOfCustomModifiersPrecedingByRef
         {
-            get { return underlyingParameter.HasByRefBeforeCustomModifiers; }
+            get { return underlyingParameter.CountOfCustomModifiersPrecedingByRef; }
         }
 
         #endregion

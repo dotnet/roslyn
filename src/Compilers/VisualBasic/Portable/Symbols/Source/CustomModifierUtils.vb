@@ -46,12 +46,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(thisParam.Type.IsSameTypeIgnoringCustomModifiers(overriddenParam.Type))
 
             If Not overriddenParam.CustomModifiers.SequenceEqual(thisParam.CustomModifiers) OrElse
-               (overriddenParam.IsByRef AndAlso thisParam.IsByRef AndAlso overriddenParam.HasByRefBeforeCustomModifiers <> thisParam.HasByRefBeforeCustomModifiers) OrElse
+               (overriddenParam.IsByRef AndAlso thisParam.IsByRef AndAlso overriddenParam.CountOfCustomModifiersPrecedingByRef <> thisParam.CountOfCustomModifiersPrecedingByRef) OrElse
                thisParam.Type <> overriddenParam.Type Then
                 thisParam = DirectCast(thisParam, SourceParameterSymbolBase).WithTypeAndCustomModifiers(
                     overriddenParam.Type,
                     overriddenParam.CustomModifiers,
-                    If(thisParam.IsByRef AndAlso overriddenParam.IsByRef, overriddenParam.HasByRefBeforeCustomModifiers, thisParam.HasByRefBeforeCustomModifiers))
+                    If(thisParam.IsByRef, overriddenParam.CountOfCustomModifiersPrecedingByRef, 0US))
                 Return True
             End If
 

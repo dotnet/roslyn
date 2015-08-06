@@ -70,10 +70,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalParam.DefaultValueFromAttributes; }
         }
 
-        internal override ParameterSymbol WithCustomModifiersAndParams(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, bool hasByRefBeforeCustomModifiers, bool newIsParams)
+        internal override ParameterSymbol WithCustomModifiersAndParams(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, ushort countOfCustomModifiersPrecedingByRef, bool newIsParams)
         {
             return new SourceClonedParameterSymbol(
-                _originalParam.WithCustomModifiersAndParamsCore(newType, newCustomModifiers, hasByRefBeforeCustomModifiers, newIsParams),
+                _originalParam.WithCustomModifiersAndParamsCore(newType, newCustomModifiers, countOfCustomModifiersPrecedingByRef, newIsParams),
                 this.ContainingSymbol,
                 this.Ordinal,
                 _suppressOptional);

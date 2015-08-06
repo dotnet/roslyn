@@ -857,6 +857,7 @@
     <Compile Include="Symbols\TypeSubstitution.vb" />
     <Compile Include="Symbols\TypeSymbol.vb" />
     <Compile Include="Symbols\TypeSymbolExtensions.vb" />
+    <Compile Include="Symbols\TypeWithModifiers.vb" />
     <Compile Include="Symbols\UnboundGenericType.vb" />
     <Compile Include="Symbols\UnsupportedMetadataTypeSymbol.vb" />
     <Compile Include="Symbols\WellKnownMembers.vb" />

@@ -159,12 +159,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeSymbol
+            Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
                 Dim newDescriptor As New AnonymousTypeDescriptor
                 If Not Me.TypeDescriptor.SubstituteTypeParametersIfNeeded(substitution, newDescriptor) Then
-                    Return Me
+                    Return New TypeWithModifiers(Me)
                 End If
-                Return Me.Manager.ConstructAnonymousTypeSymbol(newDescriptor)
+
+                Return New TypeWithModifiers(Me.Manager.ConstructAnonymousTypeSymbol(newDescriptor))
             End Function
 
             Public Overrides Function GetMembers() As ImmutableArray(Of Symbol)
