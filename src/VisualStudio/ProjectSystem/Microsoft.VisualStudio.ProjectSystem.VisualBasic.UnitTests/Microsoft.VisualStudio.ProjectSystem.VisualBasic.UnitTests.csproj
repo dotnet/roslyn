@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{FE8D7869-3ABA-45D3-8058-E60C9F1267BF}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Microsoft.VisualStudio.ProjectSystem.VisualBasic.UnitTests</RootNamespace>
+    <AssemblyName>Microsoft.VisualStudio.ProjectSystem.VisualBasic.UnitTests</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests\Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests.csproj">
+      <Project>{c7ec63f8-f96a-4a8f-b879-d572516746b4}</Project>
+      <Name>Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Microsoft.VisualStudio.ProjectSystem.Managed\Microsoft.VisualStudio.ProjectSystem.Managed.csproj">
+      <Project>{6c6a41ce-72c5-4d77-8208-d01693f9bc88}</Project>
+      <Name>Microsoft.VisualStudio.ProjectSystem.Managed</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Microsoft.VisualStudio.ProjectSystem.VisualBasic\Microsoft.VisualStudio.ProjectSystem.VisualBasic.csproj">
+      <Project>{04aa393a-48c2-424d-985c-77385a962019}</Project>
+      <Name>Microsoft.VisualStudio.ProjectSystem.VisualBasic</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+</Project>
