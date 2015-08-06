@@ -26,6 +26,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
+    <ProjectReference Include="..\..\Test\PdbUtilities\PdbUtilities.csproj">
+      <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
+      <Name>PdbUtilities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.csproj">
       <Project>{f83343ba-b4ea-451c-b6db-5d645e6171bc}</Project>
       <Name>Microsoft.DiaSymReader.PortablePdb</Name>
@@ -144,16 +148,34 @@
     <EmbeddedResource Include="Resources\Scopes.pdbx">
       <LogicalName>Scopes.pdbx</LogicalName>
     </EmbeddedResource>
-    <None Include="Resources\build.cmd" />
-    <None Include="Resources\Scopes.cs" />
-    <None Include="Resources\Async.cs" />
+    <EmbeddedResource Include="Resources\MethodBoundaries.dll">
+      <LogicalName>MethodBoundaries.dll</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\MethodBoundaries.pdb">
+      <LogicalName>MethodBoundaries.pdb</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\MethodBoundaries.dllx">
+      <LogicalName>MethodBoundaries.dllx</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\MethodBoundaries.pdbx">
+      <LogicalName>MethodBoundaries.pdbx</LogicalName>
+    </EmbeddedResource>
+    <Content Include="Resources\Documents.cmd" />
+    <Content Include="Resources\Scopes.cmd" />
+    <Content Include="Resources\MethodBoundaries.cmd" />
+    <Content Include="Resources\Async.cmd" />
+    <Content Include="Resources\Scopes.cs" />
+    <Content Include="Resources\Async.cs" />
     <Content Include="Resources\Documents.cs" />
+    <Compile Include="MethodMapTests.cs" />
+    <Compile Include="ResourceLoader.cs" />
+    <Content Include="Resources\MethodBoundaries.cs" />
+    <Compile Include="SymBinderTests.cs" />
+    <Compile Include="TestHelpers\SymTestHelpers.cs" />
+    <Compile Include="TestResources.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ComStreamWrapper.cs">
       <Link>TestHelpers\ComStreamWrapper.cs</Link>
     </Compile>
-    <Compile Include="ResourceLoader.cs" />
-    <Compile Include="SymBinderTests.cs" />
-    <Compile Include="TestResources.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TestHelpers\AssertEx.cs" />
