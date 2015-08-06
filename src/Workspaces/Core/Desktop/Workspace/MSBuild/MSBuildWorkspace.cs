@@ -183,6 +183,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 this.OnProjectAdded(project);
             }
 
+            this.UpdateReferencesAfterAdd();
+
             return this.CurrentSolution.GetProject(projects[0].Id);
         }
 

@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly ImmutableArray<string> _searchPaths;
         private readonly string _baseDirectory;
+        private readonly Func<string, bool> _fileExists;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RelativePathReferenceResolver"/> class.
@@ -19,7 +20,8 @@ namespace Microsoft.CodeAnalysis
         /// <param name="searchPaths">An ordered set of fully qualified 
         /// paths which are searched when resolving assembly names.</param>
         /// <param name="baseDirectory">Directory used when resolving relative paths.</param>
-        public RelativePathReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)
+        /// <param name="fileExists">Method that tests existence of a file.</param>
+        public RelativePathReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory, Func<string, bool> fileExists = null)
         {
             ValidateSearchPaths(searchPaths, "searchPaths");
 
@@ -31,6 +33,7 @@ namespace Microsoft.CodeAnalysis
 
             _searchPaths = searchPaths;
             _baseDirectory = baseDirectory;
+            _fileExists = fileExists ?? FileExists;
         }
 
         public override ImmutableArray<string> SearchPaths
@@ -45,17 +48,17 @@ namespace Microsoft.CodeAnalysis
 
         internal override MetadataFileReferenceResolver WithSearchPaths(ImmutableArray<string> searchPaths)
         {
-            return new RelativePathReferenceResolver(searchPaths, _baseDirectory);
+            return new RelativePathReferenceResolver(searchPaths, _baseDirectory, _fileExists);
         }
 
         internal override MetadataFileReferenceResolver WithBaseDirectory(string baseDirectory)
         {
-            return new RelativePathReferenceResolver(_searchPaths, baseDirectory);
+            return new RelativePathReferenceResolver(_searchPaths, baseDirectory, _fileExists);
         }
 
         public override string ResolveReference(string reference, string baseFilePath)
         {
-            string resolvedPath = FileUtilities.ResolveRelativePath(reference, baseFilePath, _baseDirectory, _searchPaths, FileExists);
+            string resolvedPath = FileUtilities.ResolveRelativePath(reference, baseFilePath, _baseDirectory, _searchPaths, _fileExists);
             if (resolvedPath == null)
             {
                 return null;

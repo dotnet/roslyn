@@ -23,7 +23,12 @@ namespace Microsoft.CodeAnalysis.Scripting
         public ScriptOptions()
             : this(ImmutableArray<MetadataReference>.Empty,
                   ImmutableArray<string>.Empty,
-                  new AssemblyReferenceResolver(MetadataFileReferenceResolver.Default, MetadataFileReferenceProvider.Default),
+                  new AssemblyReferenceResolver(
+                      new DesktopMetadataReferenceResolver(
+                          MetadataFileReferenceResolver.Default,
+                          null,
+                          GacFileResolver.Default),
+                      MetadataFileReferenceProvider.Default),
                   isInteractive: true)
         {
         }

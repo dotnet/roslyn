@@ -81,7 +81,7 @@ namespace Roslyn.Test.Utilities
             string baseDirectory = null,
             ImmutableArray<string> searchPaths = default(ImmutableArray<string>))
         {
-            _resolver = new RelativePathReferenceResolver(searchPaths.NullToEmpty(), baseDirectory);
+            _resolver = new RelativePathReferenceResolver(searchPaths.NullToEmpty(), baseDirectory, FileExists);
             _existingFullPaths = new HashSet<string>(existingFullPaths, StringComparer.OrdinalIgnoreCase);
         }
 
@@ -107,12 +107,12 @@ namespace Roslyn.Test.Utilities
 
         public override string ResolveReference(string reference, string baseFilePath)
         {
-            var fullPath = _resolver.ResolveReference(reference, baseFilePath);
-            if (fullPath != null && _existingFullPaths != null && _existingFullPaths.Contains(FileUtilities.NormalizeAbsolutePath(fullPath)))
-            {
-                return fullPath;
-            }
-            return null;
+            return _resolver.ResolveReference(reference, baseFilePath);
+        }
+
+        private bool FileExists(string fullPath)
+        {
+            return _existingFullPaths.Contains(FileUtilities.NormalizeAbsolutePath(fullPath));
         }
     }
 }
