@@ -316,7 +316,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         {
             try
             {
-                if (!CheckOption(project.Solution.Workspace, project.Language, documentOpened: false))
+                // Compilation actions can report diagnostics on open files, so "documentOpened = true"
+                if (!CheckOption(project.Solution.Workspace, project.Language, documentOpened: true))
                 {
                     return;
                 }
@@ -329,7 +330,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var versions = new VersionArgument(projectTextVersion, semanticVersion, projectVersion);
                 foreach (var stateSet in _stateManager.GetOrUpdateStateSets(project))
                 {
-                    if (SkipRunningAnalyzer(project.CompilationOptions, analyzerDriver, openedDocument: false, skipClosedFileChecks: false, stateSet: stateSet))
+                    // Compilation actions can report diagnostics on open files, so we skipClosedFileChecks.
+                    if (SkipRunningAnalyzer(project.CompilationOptions, analyzerDriver, openedDocument: true, skipClosedFileChecks: true, stateSet: stateSet))
                     {
                         await ClearExistingDiagnostics(project, stateSet, cancellationToken).ConfigureAwait(false);
                         continue;
