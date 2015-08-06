@@ -9,9 +9,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
         /// </summary>
         public class ActionCounts
         {
-            internal ActionCounts(AnalyzerActions analyzerActions)
+            internal static ActionCounts Empty = new ActionCounts(AnalyzerActions.Empty);
+
+            internal static ActionCounts Create(AnalyzerActions analyzerActions)
             {
-                analyzerActions = analyzerActions ?? AnalyzerActions.Empty;
+                if (analyzerActions == null)
+                {
+                    return Empty;
+                }
+
+                return new ActionCounts(analyzerActions);
+            }
+
+            private ActionCounts(AnalyzerActions analyzerActions)
+            {
                 CompilationStartActionsCount = analyzerActions.CompilationStartActionsCount;
                 CompilationEndActionsCount = analyzerActions.CompilationEndActionsCount;
                 CompilationActionsCount = analyzerActions.CompilationActionsCount;

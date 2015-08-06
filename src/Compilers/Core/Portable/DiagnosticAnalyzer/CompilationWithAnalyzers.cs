@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Driver must have been initialized.
                 Debug.Assert(driver.WhenInitializedTask != null);
-                Debug.Assert(driver.WhenInitializedTask.IsCompleted);
+                Debug.Assert(!driver.WhenInitializedTask.IsCanceled);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -619,7 +619,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private async Task ComputeAnalyzerDiagnosticsCoreAsync(AnalyzerDriver driver, AsyncQueue<CompilationEvent> eventQueue, AnalysisScope analysisScope, CancellationToken cancellationToken)
         {
-            Debug.Assert(driver.WhenInitializedTask.IsCompleted);
+            Debug.Assert(!driver.WhenInitializedTask.IsCanceled);
 
             if (eventQueue.Count > 0 || _analysisState.HasPendingSyntaxAnalysis(analysisScope))
             {
