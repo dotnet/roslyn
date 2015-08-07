@@ -345,8 +345,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     _window.SetActiveCode(command);
                 }
 
-                FinishCurrentSubmissionInput();
+                // Add command to history before calling FinishCurrentSubmissionInput as it adds newline 
+                // to the end of the command.
                 _window._history.Add(_window._currentLanguageBuffer.CurrentSnapshot.GetExtent());
+                FinishCurrentSubmissionInput();
             }
 
             private void AppendUncommittedInput(string text)
@@ -489,6 +491,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     return Task.FromResult<object>(null);
                 }
 
+                // get command to save to history before calling FinishCurrentSubmissionInput
+                // as it adds newline at the end
+                var historySpan = _window._currentLanguageBuffer.CurrentSnapshot.GetExtent();
                 FinishCurrentSubmissionInput();
 
                 _window._history.UncommittedInput = null;
@@ -504,7 +509,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
                 else
                 {
-                    _window._history.Add(trimmedSpan);
+                    _window._history.Add(historySpan);
                     State = State.ExecutingInput;
 
                     StartCursorTimer();
