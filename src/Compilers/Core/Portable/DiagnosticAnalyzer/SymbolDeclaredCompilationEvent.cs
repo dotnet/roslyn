@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             _lazySemanticModel = lazySemanticModel;
         }
+        private SymbolDeclaredCompilationEvent(SymbolDeclaredCompilationEvent original, SemanticModel newSemanticModel) : this(original.Compilation, original.Symbol)
+        {
+            _semanticModel = newSemanticModel;
+        }
+
         public ISymbol Symbol { get; }
 
         // At most one of these should be non-null.
@@ -65,6 +70,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _semanticModel = null;
             }
         }
+
+        public SymbolDeclaredCompilationEvent WithSemanticModel(SemanticModel model)
+        {
+            return new SymbolDeclaredCompilationEvent(this, model);
+        }
+
         private static SymbolDisplayFormat s_displayFormat = SymbolDisplayFormat.FullyQualifiedFormat;
         public override string ToString()
         {

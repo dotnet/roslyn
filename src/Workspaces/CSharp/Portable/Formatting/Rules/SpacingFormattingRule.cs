@@ -31,6 +31,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpacingAfterMethodDeclarationName);
             }
 
+            // Case: public static implicit operator string(Program p) { return null; }
+            if (previousToken.IsKeyword() && currentToken.IsOpenParenInParameterListOfAConversionOperatorDeclaration())
+            {
+                return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpacingAfterMethodDeclarationName);
+            }
+
+            // Case: public static Program operator !(Program p) { return null; }
+            if (previousToken.Parent.IsKind(SyntaxKind.OperatorDeclaration) && currentToken.IsOpenParenInParameterListOfAOperationDeclaration())
+            {
+                return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpacingAfterMethodDeclarationName);
+            }
+
             if (previousToken.IsOpenParenInParameterList() && currentToken.IsCloseParenInParameterList())
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceBetweenEmptyMethodDeclarationParentheses);

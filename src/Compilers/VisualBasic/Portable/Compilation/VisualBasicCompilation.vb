@@ -2073,9 +2073,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Not hasError
         End Function
 
-        Friend Overrides Function AnalyzerForLanguage(analyzers As ImmutableArray(Of DiagnosticAnalyzer), analyzerManager As AnalyzerManager, cancellationToken As CancellationToken) As AnalyzerDriver
+        Friend Overrides Function AnalyzerForLanguage(analyzers As ImmutableArray(Of DiagnosticAnalyzer), analyzerManager As AnalyzerManager) As AnalyzerDriver
             Dim getKind As Func(Of SyntaxNode, SyntaxKind) = Function(node As SyntaxNode) node.Kind
-            Return New AnalyzerDriver(Of SyntaxKind)(analyzers, getKind, analyzerManager, cancellationToken)
+            Return New AnalyzerDriver(Of SyntaxKind)(analyzers, getKind, analyzerManager)
         End Function
 
 #End Region

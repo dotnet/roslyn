@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis.Text
         private static readonly Encoding s_fallbackEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
         /// <summary>
-        /// Encoding to use when UTF-8 fails. If available, we use CodePage 1252. If not, we use Latin1.
+        /// Encoding to use when UTF-8 fails and default OS ANSI encoding is not available. If available, we use CodePage 1252. If not, we use Latin1.
         /// </summary>
-        private static readonly Encoding s_defaultEncoding = GetDefaultEncoding();
+        private static readonly Encoding s_defaultFallbackEncoding = GetDefaultFallbackEncoding();
 
-        private static Encoding GetDefaultEncoding()
+        private static Encoding GetDefaultFallbackEncoding()
         {
             try
             {
@@ -32,6 +32,20 @@ namespace Microsoft.CodeAnalysis.Text
             catch (NotSupportedException)
             {
                 return Encoding.GetEncoding(name: "Latin1");
+            }
+        }
+
+        private static Encoding GetDefaultAnsiEncoding()
+        {
+            try
+            {
+                // To get the encoding associated with the default ANSI code page in the operating system's regional and language settings,
+                // supply a value 0 for the codepage argument 
+                return PortableShim.Encoding.GetEncoding(0) ?? s_defaultFallbackEncoding;
+            }
+            catch 
+            {
+                return s_defaultFallbackEncoding;
             }
         }
 
@@ -74,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             try
             {
-                return Decode(stream, defaultEncoding ?? s_defaultEncoding, checksumAlgorithm, throwIfBinaryDetected: detectEncoding);
+                return Decode(stream, defaultEncoding ?? GetDefaultAnsiEncoding(), checksumAlgorithm, throwIfBinaryDetected: detectEncoding);
             }
             catch (DecoderFallbackException e)
             {

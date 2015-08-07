@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -30,13 +31,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _testHost.Dispose();
         }
 
-        public IInteractiveWindow Window
-        {
-            get
-            {
-                return _testHost.Window;
-            }
-        }
+        public IInteractiveWindow Window => _testHost.Window;
+        internal List<ReplSpan> ProjectionSpans => ((InteractiveWindow)Window).ProjectionSpans;
 
         public static IEnumerable<IInteractiveWindowCommand> MockCommands(params string[] commandNames)
         {
@@ -407,6 +403,152 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         public void CallCancelOnNonUIThread()
         {
             Task.Run(() => Window.Operations.Cancel()).PumpingWait();
+        }
+
+        [Fact]
+        public void TestProjectionSpans()
+        {
+            new ExpectedProjectionSpans
+            {
+                {0, ReplSpanKind.Output},
+                {0, ReplSpanKind.Prompt},
+                {0, ReplSpanKind.Language},
+            }.Check(ProjectionSpans);
+
+            Window.InsertCode("{");
+            new ExpectedProjectionSpans
+            {
+                {0, ReplSpanKind.Output},
+                {0, ReplSpanKind.Prompt},
+                {0, ReplSpanKind.Language},
+            }.Check(ProjectionSpans);
+
+            Window.Operations.BreakLine();
+            new ExpectedProjectionSpans
+            {
+                {0, ReplSpanKind.Output},
+                {0, ReplSpanKind.Prompt},
+                {0, ReplSpanKind.Language},
+                {1, ReplSpanKind.SecondaryPrompt},
+                {1, ReplSpanKind.Language},
+            }.Check(ProjectionSpans);
+
+            Window.Operations.BreakLine();
+            new ExpectedProjectionSpans
+            {
+                {0, ReplSpanKind.Output},
+                {0, ReplSpanKind.Prompt},
+                {0, ReplSpanKind.Language},
+                {1, ReplSpanKind.SecondaryPrompt},
+                {1, ReplSpanKind.Language},
+                {2, ReplSpanKind.SecondaryPrompt},
+                {2, ReplSpanKind.Language},
+            }.Check(ProjectionSpans);
+
+            Window.Operations.Backspace();
+            new ExpectedProjectionSpans
+            {
+                {0, ReplSpanKind.Output},
+                {0, ReplSpanKind.Prompt},
+                {0, ReplSpanKind.Language},
+                {1, ReplSpanKind.SecondaryPrompt},
+                {1, ReplSpanKind.Language},
+            }.Check(ProjectionSpans);
+
+            Window.InsertCode("}");
+            new ExpectedProjectionSpans
+            {
+                {0, ReplSpanKind.Output},
+                {0, ReplSpanKind.Prompt},
+                {0, ReplSpanKind.Language},
+                {1, ReplSpanKind.SecondaryPrompt},
+                {1, ReplSpanKind.Language},
+            }.Check(ProjectionSpans);
+
+            // Move back before close brace.
+            Window.TextView.Caret.MoveToPreviousCaretPosition();
+            new ExpectedProjectionSpans
+            {
+                {0, ReplSpanKind.Output},
+                {0, ReplSpanKind.Prompt},
+                {0, ReplSpanKind.Language},
+                {1, ReplSpanKind.SecondaryPrompt},
+                {1, ReplSpanKind.Language},
+            }.Check(ProjectionSpans);
+
+            Window.Operations.BreakLine();
+            new ExpectedProjectionSpans
+            {
+                {0, ReplSpanKind.Output},
+                {0, ReplSpanKind.Prompt},
+                {0, ReplSpanKind.Language},
+                {1, ReplSpanKind.SecondaryPrompt},
+                {1, ReplSpanKind.Language},
+                {2, ReplSpanKind.SecondaryPrompt},
+                {2, ReplSpanKind.Language},
+            }.Check(ProjectionSpans);
+
+            // Note: Without the PumpingWait, the next prompt won't appear.
+            Task.Run(() => Window.Operations.ExecuteInput()).PumpingWait();
+            new ExpectedProjectionSpans
+            {
+                {0, ReplSpanKind.Output},
+                {0, ReplSpanKind.Prompt},
+                {0, ReplSpanKind.Language},
+                {1, ReplSpanKind.SecondaryPrompt},
+                {1, ReplSpanKind.Language},
+                {2, ReplSpanKind.SecondaryPrompt},
+                {2, ReplSpanKind.Language},
+                {3, ReplSpanKind.Output},
+                {3, ReplSpanKind.Prompt},
+                {3, ReplSpanKind.Language},
+            }.Check(ProjectionSpans);
+
+            Window.Operations.ClearView();
+            new ExpectedProjectionSpans
+            {
+                {0, ReplSpanKind.Output},
+                {0, ReplSpanKind.Prompt},
+                {0, ReplSpanKind.Language},
+            }.Check(ProjectionSpans);
+        }
+
+        /// <remarks>
+        /// This type exists to make it easier to express assertions about <see cref="ProjectionSpans"/>.
+        /// </remarks>
+        private sealed class ExpectedProjectionSpans : IEnumerable<object> // Just for collection initializers.
+        {
+            private List<ReplSpan> _spans = new List<ReplSpan>();
+
+            public void Add(int lineNumber, ReplSpanKind kind)
+            {
+                _spans.Add(new ReplSpan("", kind, lineNumber));
+            }
+
+            public void Check(List<ReplSpan> actualReplSpans)
+            {
+                if (!_spans.Select(s => s.Kind).SequenceEqual(actualReplSpans.Select(s => s.Kind)) ||
+                    !_spans.Select(s => s.LineNumber).SequenceEqual(actualReplSpans.Select(s => s.LineNumber)))
+                {
+                    Dump("Actual:", actualReplSpans);
+                    Dump("Expected:", _spans);
+                    Assert.True(false, "Spans did not match");
+                }
+            }
+
+            private static void Dump(string header, List<ReplSpan> spans)
+            {
+                Console.WriteLine(header);
+                Console.WriteLine("{");
+                foreach (var span in spans)
+                {
+                    Console.WriteLine($"\t{{{span.LineNumber}, ReplSpanKind.{span.Kind}}},");
+                }
+                Console.WriteLine("}");
+            }
+
+            IEnumerator IEnumerable.GetEnumerator() { throw new NotImplementedException(); }
+            IEnumerator<object> IEnumerable<object>.GetEnumerator() { throw new NotImplementedException(); }
         }
 
         [WorkItem(4235, "https://github.com/dotnet/roslyn/issues/4235")]

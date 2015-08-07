@@ -14,6 +14,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private const string CSharpCompilerAnalyzerTypeName = "Microsoft.CodeAnalysis.Diagnostics.CSharp.CSharpCompilerDiagnosticAnalyzer";
         private const string VisualBasicCompilerAnalyzerTypeName = "Microsoft.CodeAnalysis.Diagnostics.VisualBasic.VisualBasicCompilerDiagnosticAnalyzer";
 
+        private const string AnalyzerExceptionDiagnosticId = "AD0001";
+        private const string AnalyzerExceptionDiagnosticCategory = "Intellisense";
+        
+
         public static bool IsBuiltInAnalyzer(this DiagnosticAnalyzer analyzer)
         {
             return analyzer is IBuiltInAnalyzer || analyzer is DocumentDiagnosticAnalyzer || analyzer is ProjectDiagnosticAnalyzer || analyzer.IsCompilerAnalyzer();
@@ -57,26 +61,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return type.AssemblyQualifiedName;
         }
 
-        internal static AnalyzerExecutor GetAnalyzerExecutorForSupportedDiagnostics(
-            DiagnosticAnalyzer analyzer,
-            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            // Skip telemetry logging if the exception is thrown as we are computing supported diagnostics and
-            // we can't determine if any descriptors support getting telemetry without having the descriptors.
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> defaultOnAnalyzerException = (ex, a, diagnostic) =>
-                OnAnalyzerException_NoTelemetryLogging(ex, a, diagnostic, hostDiagnosticUpdateSource);
-
-            return AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException ?? defaultOnAnalyzerException, AnalyzerManager.Instance, cancellationToken: cancellationToken);
-        }
-
         internal static void OnAnalyzerException_NoTelemetryLogging(
-            Exception e,
+            Exception ex,
             DiagnosticAnalyzer analyzer,
             Diagnostic diagnostic,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
-            ProjectId projectIdOpt = null)
+            ProjectId projectIdOpt)
         {
             if (diagnostic != null)
             {
@@ -85,8 +75,44 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (IsBuiltInAnalyzer(analyzer))
             {
-                FatalError.ReportWithoutCrashUnlessCanceled(e);
+                FatalError.ReportWithoutCrashUnlessCanceled(ex);
             }
+        }
+
+        internal static void OnAnalyzerExceptionForSupportedDiagnostics(DiagnosticAnalyzer analyzer, Exception exception, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+        {
+            if (exception is OperationCanceledException)
+            {
+                return;
+            }
+
+            var diagnostic = CreateAnalyzerExceptionDiagnostic(analyzer, exception);
+            OnAnalyzerException_NoTelemetryLogging(exception, analyzer, diagnostic, hostDiagnosticUpdateSource, projectIdOpt: null);
+        }
+
+        /// <summary>
+        /// Create a diagnostic for exception thrown by the given analyzer.
+        /// </summary>
+        /// <remarks>
+        /// Keep this method in sync with "AnalyzerExecutor.CreateAnalyzerExceptionDiagnostic".
+        /// </remarks>
+        internal static Diagnostic CreateAnalyzerExceptionDiagnostic(DiagnosticAnalyzer analyzer, Exception e)
+        {
+            var analyzerName = analyzer.ToString();
+
+            // TODO: It is not ideal to create a new descriptor per analyzer exception diagnostic instance.
+            // However, until we add a LongMessage field to the Diagnostic, we are forced to park the instance specific description onto the Descriptor's Description field.
+            // This requires us to create a new DiagnosticDescriptor instance per diagnostic instance.
+            var descriptor = new DiagnosticDescriptor(AnalyzerExceptionDiagnosticId,
+                title: FeaturesResources.UserDiagnosticAnalyzerFailure,
+                messageFormat: FeaturesResources.UserDiagnosticAnalyzerThrows,
+                description: string.Format(FeaturesResources.UserDiagnosticAnalyzerThrowsDescription, analyzerName, e.ToString()),
+                category: AnalyzerExceptionDiagnosticCategory,
+                defaultSeverity: DiagnosticSeverity.Info,
+                isEnabledByDefault: true,
+                customTags: WellKnownDiagnosticTags.AnalyzerException);
+
+            return Diagnostic.Create(descriptor, Location.None, analyzerName, e.GetType(), e.Message);
         }
 
         private static VersionStamp GetAnalyzerVersion(string path)

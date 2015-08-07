@@ -8,16 +8,9 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         public const string FeatureName = "Completion";
 
-        [ExportOption]
         public static readonly PerLanguageOption<bool> HideAdvancedMembers = new PerLanguageOption<bool>(FeatureName, "HideAdvancedMembers", defaultValue: false);
-
-        [ExportOption]
         public static readonly PerLanguageOption<bool> IncludeKeywords = new PerLanguageOption<bool>(FeatureName, "IncludeKeywords", defaultValue: true);
-
-        [ExportOption]
         public static readonly PerLanguageOption<bool> TriggerOnTyping = new PerLanguageOption<bool>(FeatureName, "TriggerOnTyping", defaultValue: true);
-
-        [ExportOption]
         public static readonly PerLanguageOption<bool> TriggerOnTypingLetters = new PerLanguageOption<bool>(FeatureName, "TriggerOnTypingLetters", defaultValue: true);
     }
 }

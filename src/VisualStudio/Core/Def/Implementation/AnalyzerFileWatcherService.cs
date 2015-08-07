@@ -68,20 +68,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private void RaiseAnalyzerChangedWarning(ProjectId projectId, string analyzerPath)
         {
-            string id = ServicesVSResources.WRN_AnalyzerChangedId;
-            string category = ServicesVSResources.ErrorCategory;
             string message = string.Format(ServicesVSResources.WRN_AnalyzerChangedMessage, analyzerPath);
 
             DiagnosticData data = new DiagnosticData(
-                id,
-                category,
+                IDEDiagnosticIds.AnalyzerChangedId,
+                ServicesVSResources.ErrorCategory,
                 message,
                 ServicesVSResources.WRN_AnalyzerChangedMessage,
                 severity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
                 warningLevel: 0,
                 workspace: _workspace,
-                projectId: projectId);
+                projectId: projectId,
+                title: ServicesVSResources.WRN_AnalyzerChangedTitle);
 
             _updateSource.UpdateDiagnosticsForProject(projectId, Tuple.Create(s_analyzerChangedErrorId, analyzerPath), SpecializedCollections.SingletonEnumerable(data));
         }

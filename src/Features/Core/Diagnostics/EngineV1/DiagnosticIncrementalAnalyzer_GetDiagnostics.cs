@@ -46,11 +46,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             return new IDELatestDiagnosticGetter(this, diagnosticIds, concurrent: projectId == null).GetProjectDiagnosticsAsync(solution, projectId, cancellationToken);
         }
 
-        private Task ReanalyzeAllDocumentsAsync(Project project, DiagnosticAnalyzer analyzer, ImmutableHashSet<string> diagnosticIds, CancellationToken cancellationToken)
-        {
-            return new ReanalysisDiagnosticGetter(this, analyzer, diagnosticIds).ReanalyzeAllDocumentsAsync(project, cancellationToken);
-        }
-
         private abstract class DiagnosticsGetter
         {
             protected readonly DiagnosticIncrementalAnalyzer Owner;
@@ -443,8 +438,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (driver.IsAnalyzerSuppressed(stateSet.Analyzer) ||
-                        !(await this.Owner.ShouldRunAnalyzerForStateTypeAsync(driver, stateSet.Analyzer, stateType, this.DiagnosticIds).ConfigureAwait(false)))
+                    if (Owner.Owner.IsAnalyzerSuppressed(stateSet.Analyzer, project) ||
+                        !this.Owner.ShouldRunAnalyzerForStateType(stateSet.Analyzer, stateType, this.DiagnosticIds))
                     {
                         continue;
                     }
@@ -468,52 +463,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             private DiagnosticLogAggregator DiagnosticLogAggregator
             {
                 get { return this.Owner.DiagnosticLogAggregator; }
-            }
-        }
-
-        private class ReanalysisDiagnosticGetter : LatestDiagnosticsGetter
-        {
-            private readonly DiagnosticAnalyzer _analyzer;
-
-            public ReanalysisDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, DiagnosticAnalyzer analyzer, ImmutableHashSet<string> diagnosticIds) : base(owner, diagnosticIds)
-            {
-                _analyzer = analyzer;
-            }
-
-            public async Task ReanalyzeAllDocumentsAsync(Project project, CancellationToken cancellationToken)
-            {
-                foreach (var document in project.Documents)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    await AppendDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
-                }
-            }
-
-            protected override void FilterDiagnostics(AnalysisData analysisData, Func<DiagnosticData, bool> predicateOpt = null)
-            {
-                // we don't care about result
-                return;
-            }
-
-            protected override async Task<AnalysisData> GetDiagnosticAnalysisDataAsync(
-                Solution solution, DiagnosticAnalyzerDriver analyzerDriver, StateSet stateSet, StateType stateType, VersionArgument versions)
-            {
-                // we don't care about result
-                switch (stateType)
-                {
-                    case StateType.Syntax:
-                        await GetSyntaxDiagnosticsAsync(analyzerDriver, _analyzer).ConfigureAwait(false);
-                        break;
-                    case StateType.Document:
-                        await GetSemanticDiagnosticsAsync(analyzerDriver, _analyzer).ConfigureAwait(false);
-                        break;
-                    case StateType.Project:
-                    default:
-                        return Contract.FailWithReturn<AnalysisData>("Can't reach here");
-                }
-
-                return AnalysisData.Empty;
             }
         }
 

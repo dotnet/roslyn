@@ -28,25 +28,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             [Import(AllowDefault = true)]IWorkspaceDiagnosticAnalyzerProviderService diagnosticAnalyzerProviderService = null,
             [Import(AllowDefault = true)]AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null)
             : this(diagnosticAnalyzerProviderService != null ? diagnosticAnalyzerProviderService.GetHostDiagnosticAnalyzerPackages() : SpecializedCollections.EmptyEnumerable<HostDiagnosticAnalyzerPackage>(),
-                   hostDiagnosticUpdateSource)
+                   hostDiagnosticUpdateSource,
+                   new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.DiagnosticService))
         {
-            _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.DiagnosticService);
         }
 
         public IAsynchronousOperationListener Listener => _listener;
 
         // protected for testing purposes.
-        protected DiagnosticAnalyzerService(IEnumerable<HostDiagnosticAnalyzerPackage> workspaceAnalyzerPackages, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource) : this()
+        protected DiagnosticAnalyzerService(IEnumerable<HostDiagnosticAnalyzerPackage> workspaceAnalyzerPackages, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource, IAsynchronousOperationListener listener = null)
+            : this (new HostAnalyzerManager(workspaceAnalyzerPackages, hostDiagnosticUpdateSource), hostDiagnosticUpdateSource, listener)
         {
-            _hostAnalyzerManager = new HostAnalyzerManager(workspaceAnalyzerPackages, hostDiagnosticUpdateSource);
-            _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
         }
 
         // protected for testing purposes.
-        protected DiagnosticAnalyzerService(ImmutableArray<AnalyzerReference> workspaceAnalyzers, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null) : this()
+        protected DiagnosticAnalyzerService(HostAnalyzerManager hostAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null, IAsynchronousOperationListener listener = null) : this()
         {
-            _hostAnalyzerManager = new HostAnalyzerManager(workspaceAnalyzers, hostDiagnosticUpdateSource);
+            _hostAnalyzerManager = hostAnalyzerManager;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
+            _listener = listener ?? AggregateAsynchronousOperationListener.CreateEmptyListener();
         }
 
         public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptors(Project projectOpt)
@@ -101,6 +101,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer)
         {
             return _hostAnalyzerManager.GetDiagnosticDescriptors(analyzer);
+        }
+
+        public bool IsAnalyzerSuppressed(DiagnosticAnalyzer analyzer, Project project)
+        {
+            return _hostAnalyzerManager.IsAnalyzerSuppressed(analyzer, project);
         }
 
         public void Reanalyze(Workspace workspace, IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null)
@@ -227,17 +232,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return (ex, analyzer, diagnostic) =>
             {
                 // Log telemetry, if analyzer supports telemetry.
-                DiagnosticAnalyzerLogger.LogAnalyzerCrashCount(analyzer, ex, diagnosticLogAggregator);
+                DiagnosticAnalyzerLogger.LogAnalyzerCrashCount(analyzer, ex, diagnosticLogAggregator, projectId);
 
                 AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(ex, analyzer, diagnostic, _hostDiagnosticUpdateSource, projectId);
             };
-        }
-
-        // virtual for testing purposes.
-        internal virtual Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException_NoTelemetryLogging(ProjectId projectId)
-        {
-            return (ex, analyzer, diagnostic) =>
-                AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(ex, analyzer, diagnostic, _hostDiagnosticUpdateSource, projectId);
         }
     }
 }

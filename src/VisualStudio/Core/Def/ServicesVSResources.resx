@@ -303,13 +303,13 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="ErrorCategory" xml:space="preserve">
     <value>Roslyn.HostError</value>
   </data>
-  <data name="ERR_CantReadRulesetFileId" xml:space="preserve">
+  <data name="ERR_CantReadRulesetFileTitle" xml:space="preserve">
     <value>ErrorReadingRuleset</value>
   </data>
   <data name="ERR_CantReadRulesetFileMessage" xml:space="preserve">
     <value>Error reading ruleset file {0} - {1}</value>
   </data>
-  <data name="WRN_AnalyzerChangedId" xml:space="preserve">
+  <data name="WRN_AnalyzerChangedTitle" xml:space="preserve">
     <value>AnalyzerChangedOnDisk</value>
   </data>
   <data name="WRN_AnalyzerChangedMessage" xml:space="preserve">
@@ -441,7 +441,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="PreviewChangesProjectReference" xml:space="preserve">
     <value>Project reference to '{0}' in project '{1}'</value>
   </data>
-  <data name="WRN_AnalyzerDependencyConflictId" xml:space="preserve">
+  <data name="WRN_AnalyzerDependencyConflictTitle" xml:space="preserve">
     <value>AnalyzerDependencyConflict</value>
   </data>
   <data name="WRN_AnalyzerDependencyConflictMessage" xml:space="preserve">
@@ -483,7 +483,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="BuildTableSourceName" xml:space="preserve">
     <value>C#/VB Build Table Data Source</value>
   </data>
-  <data name="WRN_MissingAnalyzerReferenceId" xml:space="preserve">
+  <data name="WRN_MissingAnalyzerReferenceTitle" xml:space="preserve">
     <value>MissingAnalyzerReference</value>
   </data>
   <data name="WRN_MissingAnalyzerReferenceMessage" xml:space="preserve">

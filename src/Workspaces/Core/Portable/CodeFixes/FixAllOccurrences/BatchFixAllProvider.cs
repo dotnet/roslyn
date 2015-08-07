@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 });
             }
 
-            Task.WaitAll(fixerTasks, cancellationToken);
+            await Task.WhenAll(fixerTasks).ConfigureAwait(false);
         }
 
         public virtual async Task<CodeAction> GetFixAsync(

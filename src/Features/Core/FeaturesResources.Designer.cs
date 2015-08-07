@@ -2133,7 +2133,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The User Diagnostic Analyzer &apos;{0}&apos; threw an exception of type &apos;{1}&apos; with message &apos;{2}&apos;..
+        ///   Looks up a localized string similar to Analyzer &apos;{0}&apos; threw an exception of type &apos;{1}&apos; with message &apos;{2}&apos;..
         /// </summary>
         internal static string UserDiagnosticAnalyzerThrows {
             get {

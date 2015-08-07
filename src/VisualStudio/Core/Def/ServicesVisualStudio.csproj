@@ -659,17 +659,9 @@
     <Compile Include="Implementation\Snippets\SnippetFunctions\AbstractSnippetFunctionGenerateSwitchCases.cs" />
     <Compile Include="Implementation\Snippets\SnippetFunctions\AbstractSnippetFunctionSimpleTypeName.cs" />
     <Compile Include="Implementation\StandaloneCommandFilter.cs" />
-    <Compile Include="Implementation\TaskList\AbstractVisualStudioErrorTaskList.cs" />
-    <Compile Include="Implementation\TaskList\AbstractVisualStudioErrorTaskList.TaskItem.cs" />
-    <Compile Include="Implementation\TaskList\AbstractVisualStudioTaskList.cs" />
-    <Compile Include="Implementation\TaskList\AbstractVisualStudioTaskList.IVsTaskProvider.cs" />
     <Compile Include="Implementation\TaskList\CommentTaskTokenSerializer.cs" />
     <Compile Include="Implementation\TaskList\ExternalErrorDiagnosticUpdateSource.cs" />
     <Compile Include="Implementation\TaskList\ProjectExternalErrorReporter.cs" />
-    <Compile Include="Implementation\TaskList\VisualStudioErrorTaskList.cs" />
-    <Compile Include="Implementation\TaskList\VisualStudioTaskItemBase.cs" />
-    <Compile Include="Implementation\TaskList\VisualStudioTodoTaskList.cs" />
-    <Compile Include="Implementation\TaskList\VisualStudioTodoTaskList.TaskItem.cs" />
     <Compile Include="Implementation\Utilities\AbstractNotifyPropertyChanged.cs" />
     <Compile Include="Implementation\Utilities\Exceptions.cs" />
     <Compile Include="Implementation\Utilities\GlyphExtensions.cs" />
