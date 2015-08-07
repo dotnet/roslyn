@@ -25,7 +25,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 this.Workspace,
                 this.HostDiagnosticUpdateSource);
 
-            projectRoot.SetProjectSite(project);
+            // give back Com Wrapper com object over managed version so that consumer like project k can QI it to IAnalyzerHost
+            projectRoot.SetProjectSite((ICSharpProjectSite)project.ComAggregate);
         }
     }
 }

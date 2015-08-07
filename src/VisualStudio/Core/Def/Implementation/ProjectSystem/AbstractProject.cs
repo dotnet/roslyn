@@ -113,6 +113,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             Contract.ThrowIfNull(projectSystemName);
 
+            // hold onto Com wrapper before CCW is created for this object.
+            this.ComAggregate = Implementation.Interop.ComAggregate.CreateAggregatedObject(this);
+
             this.ServiceProvider = serviceProvider;
 
             _language = language;
@@ -157,6 +160,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             SetIsWebsite(hierarchy);
         }
+
+        // hold onto ComAggregate of this managed COM object so that
+        // managed consumer like project k can QI this to IAnalyzerHost to
+        // manage analyzer related information such as additional files, ruleset files and etc.
+        internal object ComAggregate { get; }
 
         private static string GetProjectType(IVsHierarchy hierarchy)
         {
