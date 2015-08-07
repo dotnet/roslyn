@@ -252,6 +252,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             var verifier = CompileAndVerify(compilation2);
         }
 
+        public void NoTypedRef()
+        {
+            var source1 =
+@"namespace System
+{
+    public class Object { }
+    public struct Void { }
+    public class ValueType { }
+    public struct Int32 { }
+    public struct Decimal { }
+}";
+            var compilation1 = CreateCompilation(source1, assemblyName: GetUniqueName());
+            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
+            var source2 =
+@"    
+public class C1
+{
+    public static T Read<T>()
+    {
+        T result = default(T);
+        var refresult = __makeref(result);
+
+        // ... method body
+
+        return result;
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            // Should report "CS0656: Missing compiler required member 'System.Decimal.op_Explicit_ToInt32'".
+            // Instead, we report no errors and assert during emit.
+            compilation2.VerifyDiagnostics(
+    // (7,25): error CS0518: Predefined type 'System.TypedReference' is not defined or imported
+    //         var refresult = __makeref(result);
+    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "__makeref(result)").WithArguments("System.TypedReference").WithLocation(7, 25)
+);
+        }
+
         [WorkItem(530861, "DevDiv")]
         [Fact]
         public void MissingStringLengthForEach()
