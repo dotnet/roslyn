@@ -20,7 +20,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Public Function CreateProject(wszName As String, punkProject As Object, pProjHier As IVsHierarchy, pVbCompilerHost As IVbCompilerHost) As IVbCompilerProject Implements IVbCompiler.CreateProject
             Dim visualStudioWorkspace = ComponentModel.GetService(Of VisualStudioWorkspaceImpl)()
             Dim hostDiagnosticUpdateSource = ComponentModel.GetService(Of HostDiagnosticUpdateSource)()
-            Return New VisualBasicProjectShimWithServices(
+            Dim project = New VisualBasicProjectShimWithServices(
                 visualStudioWorkspace.ProjectTracker,
                 pVbCompilerHost,
                 wszName,
@@ -29,6 +29,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 Me.ComponentModel.GetService(Of MiscellaneousFilesWorkspace),
                 visualStudioWorkspace,
                 hostDiagnosticUpdateSource)
+
+            ' wrap managed com object to com wrapper so that consumer can QI it to IAnalyzerHost.
+            ' currently, IAnalyzerHost is only way to add analyzer related information such as additional files/analyzer references/ruleset files if consumer
+            ' doesn't come through msbuild
+            Return DirectCast(project.ComAggregate, IVbCompilerProject)
         End Function
 
         Public Function IsValidIdentifier(wszIdentifier As String) As Boolean Implements IVbCompiler.IsValidIdentifier
