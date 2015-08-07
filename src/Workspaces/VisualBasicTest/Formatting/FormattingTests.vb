@@ -4209,8 +4209,9 @@ End Class
             AssertFormatLf2CrLf(text.Value, expected.Value)
         End Sub
 
+        <WorkItem(3293, "https://github.com/dotnet/roslyn/issues/3293")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Sub EmptyCaseBlockCommentGetsIndented()
+        Public Sub CaseCommentsRemainsUndisturbed()
             Dim text = <Code>
 Class Program
     Sub Main(args As String())
@@ -4233,7 +4234,7 @@ Class Program
         Dim s = 0
         Select Case s
             Case 0
-                ' Comment should be indented
+            ' Comment should be indented
             Case 2
                 ' comment
                 Console.WriteLine(s)
