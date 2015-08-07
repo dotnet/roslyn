@@ -281,8 +281,6 @@ public class C1
 }
 ";
             var compilation2 = CreateCompilation(source2, new[] { reference1 });
-            // Should report "CS0656: Missing compiler required member 'System.Decimal.op_Explicit_ToInt32'".
-            // Instead, we report no errors and assert during emit.
             compilation2.VerifyDiagnostics(
     // (7,25): error CS0518: Predefined type 'System.TypedReference' is not defined or imported
     //         var refresult = __makeref(result);
