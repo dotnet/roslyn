@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     /// <summary>
     /// Provides implementation of a Repl Window built on top of the VS editor using projection buffers.
     /// </summary>
-    internal partial class InteractiveWindow : IInteractiveWindow, IInteractiveWindowOperations
+    internal partial class InteractiveWindow : IInteractiveWindow,  IInteractiveWindowOperations2
     {
         private bool _adornmentToMinimize;
 
@@ -201,7 +201,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         Task<ExecutionResult> IInteractiveWindowOperations.ResetAsync(bool initialize)
         {
-            return UIThread(uiOnly => uiOnly.ResetAsync(initialize));
+            // This is an implementation of ResetAsync on IInteractiveWindowOperations interface.
+            // C# and VB Interactive window should not be calling this method at all
+            // as they now call reset through IInteractiveWindowOperations2
+            return UIThread(uiOnly => uiOnly.ResetAsync(initialize, isFromSubmit: true));
+        }
+
+        Task<ExecutionResult> IInteractiveWindowOperations2.ResetAsync(bool initialize, bool isFromSubmit)
+        {
+            return UIThread(uiOnly => uiOnly.ResetAsync(initialize, isFromSubmit));
         }
 
         void IInteractiveWindowOperations.ClearHistory()
