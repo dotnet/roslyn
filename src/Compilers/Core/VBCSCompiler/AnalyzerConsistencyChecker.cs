@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             foreach (var analyzerReference in analyzerReferences)
             {
                 string resolvedPath = FileUtilities.ResolveRelativePath(analyzerReference.FilePath, basePath: null, baseDirectory: baseDirectory, searchPaths: SpecializedCollections.EmptyEnumerable<string>(), fileExists: File.Exists);
-                if (File.Exists(resolvedPath))
+                if (resolvedPath != null)
                 {
                     resolvedPath = FileUtilities.TryNormalizeAbsolutePath(resolvedPath);
                     if (resolvedPath != null)

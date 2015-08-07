@@ -147,9 +147,11 @@
       <Link>GlobalAssemblyCache.cs</Link>
     </Compile>
     <Compile Include="AssemblyLoadResult.cs" />
+    <Compile Include="DesktopMetadataReferenceResolver.cs" />
     <Compile Include="InteractiveAssemblyLoader.cs" />
     <Compile Include="MetadataShadowCopy.cs" />
     <Compile Include="MetadataShadowCopyProvider.cs" />
+    <Compile Include="NuGetPackageResolver.cs" />
     <Compile Include="ScriptCompilerUtil.cs" />
     <Compile Include="ShadowCopy.cs" />
     <Compile Include="ObjectFormatter.cs" />
