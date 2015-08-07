@@ -9,5 +9,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string SimplifyThisOrMeDiagnosticId = "IDE0003";
         public const string RemoveUnnecessaryCastDiagnosticId = "IDE0004";
         public const string RemoveUnnecessaryImportsDiagnosticId = "IDE0005";
+
+        // Analyzer error Ids
+        public const string AnalyzerChangedId = "IDE1001";
+        public const string AnalyzerDependencyConflictId = "IDE1002";
+        public const string MissingAnalyzerReferenceId = "IDE1003";
+        public const string ErrorReadingRulesetId = "IDE1004";
     }
 }
