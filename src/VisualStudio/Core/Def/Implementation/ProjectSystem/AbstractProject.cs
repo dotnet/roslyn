@@ -1141,10 +1141,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
             else
             {
-                string id = ServicesVSResources.ERR_CantReadRulesetFileId;
-                string category = ServicesVSResources.ErrorCategory;
                 string message = string.Format(ServicesVSResources.ERR_CantReadRulesetFileMessage, ruleSetFile.FilePath, ruleSetFile.GetException().Message);
-                DiagnosticData data = new DiagnosticData(id, category, message, ServicesVSResources.ERR_CantReadRulesetFileMessage, DiagnosticSeverity.Error, true, 0, this.Workspace, this.Id);
+                var data = new DiagnosticData(
+                    id: IDEDiagnosticIds.ErrorReadingRulesetId,
+                    category: ServicesVSResources.ErrorCategory,
+                    message: message,
+                    enuMessageForBingSearch: ServicesVSResources.ERR_CantReadRulesetFileMessage,
+                    severity: DiagnosticSeverity.Error,
+                    isEnabledByDefault: true,
+                    warningLevel: 0,
+                    workspace: this.Workspace,
+                    projectId: this.Id,
+                    title: ServicesVSResources.ERR_CantReadRulesetFileTitle);
 
                 this.HostDiagnosticUpdateSource.UpdateDiagnosticsForProject(this.Id, RuleSetErrorId, SpecializedCollections.SingletonEnumerable(data));
             }

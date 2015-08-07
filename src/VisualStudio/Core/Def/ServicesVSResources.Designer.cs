@@ -304,20 +304,20 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ErrorReadingRuleset.
-        /// </summary>
-        internal static string ERR_CantReadRulesetFileId {
-            get {
-                return ResourceManager.GetString("ERR_CantReadRulesetFileId", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Error reading ruleset file {0} - {1}.
         /// </summary>
         internal static string ERR_CantReadRulesetFileMessage {
             get {
                 return ResourceManager.GetString("ERR_CantReadRulesetFileMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ErrorReadingRuleset.
+        /// </summary>
+        internal static string ERR_CantReadRulesetFileTitle {
+            get {
+                return ResourceManager.GetString("ERR_CantReadRulesetFileTitle", resourceCulture);
             }
         }
         
@@ -1084,15 +1084,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to AnalyzerChangedOnDisk.
-        /// </summary>
-        internal static string WRN_AnalyzerChangedId {
-            get {
-                return ResourceManager.GetString("WRN_AnalyzerChangedId", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The analyzer assembly &apos;{0}&apos; has changed. Diagnostics may be incorrect until Visual Studio is restarted..
         /// </summary>
         internal static string WRN_AnalyzerChangedMessage {
@@ -1102,11 +1093,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to AnalyzerDependencyConflict.
+        ///   Looks up a localized string similar to AnalyzerChangedOnDisk.
         /// </summary>
-        internal static string WRN_AnalyzerDependencyConflictId {
+        internal static string WRN_AnalyzerChangedTitle {
             get {
-                return ResourceManager.GetString("WRN_AnalyzerDependencyConflictId", resourceCulture);
+                return ResourceManager.GetString("WRN_AnalyzerChangedTitle", resourceCulture);
             }
         }
         
@@ -1120,11 +1111,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MissingAnalyzerReference.
+        ///   Looks up a localized string similar to AnalyzerDependencyConflict.
         /// </summary>
-        internal static string WRN_MissingAnalyzerReferenceId {
+        internal static string WRN_AnalyzerDependencyConflictTitle {
             get {
-                return ResourceManager.GetString("WRN_MissingAnalyzerReferenceId", resourceCulture);
+                return ResourceManager.GetString("WRN_AnalyzerDependencyConflictTitle", resourceCulture);
             }
         }
         
@@ -1134,6 +1125,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string WRN_MissingAnalyzerReferenceMessage {
             get {
                 return ResourceManager.GetString("WRN_MissingAnalyzerReferenceMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MissingAnalyzerReference.
+        /// </summary>
+        internal static string WRN_MissingAnalyzerReferenceTitle {
+            get {
+                return ResourceManager.GetString("WRN_MissingAnalyzerReferenceTitle", resourceCulture);
             }
         }
         
