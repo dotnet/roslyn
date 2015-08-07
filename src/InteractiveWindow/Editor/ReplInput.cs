@@ -5,38 +5,44 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.InteractiveWindow
 {
-    internal sealed class ReplSpan
+    [DebuggerDisplay("{GetDebuggerDisplay()}")]
+    internal struct ReplSpan
     {
-        // ITrackingSpan or string
+        // CustomTrackingSpan or string
         public object Span { get; }
         public ReplSpanKind Kind { get; }
+        public int LineNumber { get; }
 
-        public ReplSpan(CustomTrackingSpan span, ReplSpanKind kind)
+        public ReplSpan(CustomTrackingSpan span, ReplSpanKind kind, int lineNumber)
+            : this((object)span, kind, lineNumber)
         {
             Debug.Assert(!kind.IsPrompt());
+        }
+
+        public ReplSpan(string literal, ReplSpanKind kind, int lineNumber)
+            : this((object)literal, kind, lineNumber)
+        {
+        }
+
+        private ReplSpan(object span, ReplSpanKind kind, int lineNumber)
+        {
             this.Span = span;
             this.Kind = kind;
+            this.LineNumber = lineNumber;
         }
 
-        public ReplSpan(string literal, ReplSpanKind kind)
-        {
-            this.Span = literal;
-            this.Kind = kind;
-        }
+        public string InertValue => (string)Span;
 
-        public string InertValue
-        {
-            get { return (string)Span; }
-        }
-
-        public CustomTrackingSpan TrackingSpan
-        {
-            get { return (CustomTrackingSpan)Span; }
-        }
+        public CustomTrackingSpan TrackingSpan => (CustomTrackingSpan)Span;
 
         public ReplSpan WithEndTrackingMode(PointTrackingMode endTrackingMode)
         {
-            return new ReplSpan(((CustomTrackingSpan)this.Span).WithEndTrackingMode(endTrackingMode), this.Kind);
+            return new ReplSpan(((CustomTrackingSpan)this.Span).WithEndTrackingMode(endTrackingMode), this.Kind, this.LineNumber);
+        }
+
+        public ReplSpan WithLineNumber(int lineNumber)
+        {
+            return new ReplSpan(this.Span, this.Kind, lineNumber);
         }
 
         public int Length
@@ -47,9 +53,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
         }
 
-        public override string ToString()
+        private string GetDebuggerDisplay()
         {
-            return string.Format("{0}: {1}", Kind, Span);
+            return $"Line {LineNumber}: {Kind} - {Span}";
         }
     }
 }
