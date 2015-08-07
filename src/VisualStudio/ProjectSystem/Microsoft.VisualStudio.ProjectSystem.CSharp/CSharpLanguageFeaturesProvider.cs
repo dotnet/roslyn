@@ -1,0 +1,107 @@
+﻿//-----------------------------------------------------------------------
+// <copyright file="CSharpLanguageFeaturesProvider.cs" company="Microsoft">
+//     Copyright (c) Microsoft Corporation.  All rights reserved.
+// </copyright>
+//-----------------------------------------------------------------------
+
+namespace Microsoft.VisualStudio.ProjectSystem.CSharp.Implementation
+{
+    using System;
+    using System.Collections.Immutable;
+    using System.ComponentModel.Composition;
+    using System.Diagnostics.CodeAnalysis;
+    using System.Globalization;
+    using System.Linq;
+    using Microsoft.VisualStudio.ProjectSystem.Utilities;
+    using Microsoft.VisualStudio.ProjectSystem.VS;
+
+    /// <summary>
+    /// Unconfigured project level component to provide C# language specific features.
+    /// </summary>
+    [Export(typeof(ILanguageFeaturesProvider))]
+    [AppliesTo(ProjectCapabilities.CSharp)]
+    internal class CSharpLanguageFeaturesProvider : ILanguageFeaturesProvider
+    {
+        private static readonly ImmutableHashSet<UnicodeCategory> IdentifierCharCategories = ImmutableHashSet<UnicodeCategory>.Empty
+            .Add(UnicodeCategory.UppercaseLetter)
+            .Add(UnicodeCategory.LowercaseLetter)
+            .Add(UnicodeCategory.TitlecaseLetter)
+            .Add(UnicodeCategory.ModifierLetter)
+            .Add(UnicodeCategory.OtherLetter)
+            .Add(UnicodeCategory.DecimalDigitNumber)
+            .Add(UnicodeCategory.ConnectorPunctuation)
+            .Add(UnicodeCategory.EnclosingMark)
+            .Add(UnicodeCategory.NonSpacingMark);
+
+        private static readonly ImmutableHashSet<UnicodeCategory> FirstIdentifierCharCategories = ImmutableHashSet<UnicodeCategory>.Empty
+            .Add(UnicodeCategory.UppercaseLetter)
+            .Add(UnicodeCategory.LowercaseLetter)
+            .Add(UnicodeCategory.TitlecaseLetter)
+            .Add(UnicodeCategory.ModifierLetter)
+            .Add(UnicodeCategory.OtherLetter)
+            .Add(UnicodeCategory.ConnectorPunctuation);
+
+        [Import]
+        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called by MEF")]
+        private UnconfiguredProject UnconfiguredProject { get; set; }
+
+        /// <summary>
+        /// Makes a proper identifier from the given string.
+        /// </summary>
+        /// <param name="name">The input string.</param>
+        /// <returns>A proper identifier which meets the C# language spec.</returns>
+        public string MakeProperIdentifier(string name)
+        {
+            Requires.NotNullOrEmpty(name, nameof(name));
+
+            var identifier = string.Concat(name.Select(c => IsValidIdentifierChar(c) ? c : '_'));
+            if (!IsValidFirstIdentifierChar(identifier.First())
+                || identifier == "_")
+            {
+                identifier = '_' + identifier;
+            }
+
+            return identifier;
+        }
+
+        /// <summary>
+        /// Makes a proper namespace from the given string.
+        /// </summary>
+        /// <param name="name">The input string.</param>
+        /// <returns>A proper namespace which meets the C# language spec.</returns>
+        public string MakeProperNamespace(string name)
+        {
+            Requires.NotNullOrEmpty(name, nameof(name));
+
+            var identifiers = from token in name.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries)
+                              let id = this.MakeProperIdentifier(token)
+                              where !string.IsNullOrEmpty(id)
+                              select id;
+            return string.Join(".", identifiers);
+        }
+
+        /// <summary>
+        /// Concatenate multiple namespace names.
+        /// </summary>
+        /// <param name="namespaceNames">The array of namespace names to be concatenated.</param>
+        /// <returns>A concatenated namespace name.</returns>
+        public string ConcatNamespaces(params string[] namespaceNames)
+        {
+            Requires.NotNull(namespaceNames, nameof(namespaceNames));
+
+            return string.Join(".", namespaceNames.Where(name => !string.IsNullOrEmpty(name)));
+        }
+
+        private static bool IsValidIdentifierChar(char ch)
+        {
+            var category = CharUnicodeInfo.GetUnicodeCategory(ch);
+            return IdentifierCharCategories.Contains(category);
+        }
+
+        private static bool IsValidFirstIdentifierChar(char ch)
+        {
+            var category = CharUnicodeInfo.GetUnicodeCategory(ch);
+            return FirstIdentifierCharCategories.Contains(category);
+        }
+    }
+}
