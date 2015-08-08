@@ -33,6 +33,29 @@ namespace Microsoft.DiaSymReader.PortablePdb
             BodyHandle = handle;
         }
 
+        private SequencePointBlobReader GetSequencePointsReader()
+        {
+            var mdReader = SymReader.MetadataReader;
+            var body = mdReader.GetMethodBody(BodyHandle);
+            return mdReader.GetSequencePointsReader(body.SequencePoints);
+        }
+
+        private RootScopeData GetRootScopeData()
+        {
+            if (_lazyRootScopeData == null)
+            {
+                _lazyRootScopeData = new RootScopeData(this);
+            }
+
+            return _lazyRootScopeData;
+        }
+
+        private int GetILSize()
+        {
+            // SymWriter sets the size of the method to the end offset of the root scope in CloseMethod:
+            return GetRootScopeData().EndOffset;
+        }
+
         #region ISymUnmanagedMethod
 
         public int GetNamespace([MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedNamespace @namespace)
@@ -44,8 +67,43 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int GetOffset(ISymUnmanagedDocument document, int line, int column, out int offset)
         {
-            // TODO:
-            throw new NotImplementedException();
+            if (line <= 0)
+            {
+                offset = 0;
+                return HResult.E_INVALIDARG;
+            }
+
+            // Note that DiaSymReader completely ignores column parameter.
+
+            var symDocument = SymReader.AsSymDocument(document);
+            if (symDocument == null)
+            {
+                offset = 0;
+                return HResult.E_INVALIDARG;
+            }
+
+            // DiaSymReader uses DiaSession::findLinesByLinenum, which results in bad results for lines shared accross multiple methods
+            // and for lines outside of the current method.
+
+            var spReader = GetSequencePointsReader();
+            var documentHandle = symDocument.Handle;
+
+            while (spReader.MoveNext())
+            {
+                if (!spReader.Current.IsHidden && 
+                    spReader.Current.Document == documentHandle && 
+                    line >= spReader.Current.StartLine && 
+                    line <= spReader.Current.EndLine)
+                {
+                    // Return the first matching IL offset. In common cases there will be a single one 
+                    // since sequence points of a single method don't overlap unless forced by #line.
+                    offset = spReader.Current.Offset;
+                    return HResult.S_OK;
+                }
+            }
+
+            offset = 0;
+            return HResult.E_FAIL;
         }
 
         public int GetParameters(
@@ -66,19 +124,65 @@ namespace Microsoft.DiaSymReader.PortablePdb
             out int count,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3), Out]int[] ranges)
         {
-            // TODO:
-            throw new NotImplementedException();
+            if (line <= 0)
+            {
+                count = 0;
+                return HResult.E_INVALIDARG;
+            }
+
+            // Note that DiaSymReader completely ignores column parameter.
+
+            var symDocument = SymReader.AsSymDocument(document);
+            if (symDocument == null)
+            {
+                count = 0;
+                return HResult.E_INVALIDARG;
+            }
+
+            // DiaSymReader uses DiaSession::findLinesByLinenum, which results in bad results for lines shared accross multiple methods.
+
+            var spReader = GetSequencePointsReader();
+            var documentHandle = symDocument.Handle;
+
+            bool setEndOffset = false;
+            int i = 0;
+            while (spReader.MoveNext())
+            {
+                if (setEndOffset)
+                {
+                    ranges[i - 1] = spReader.Current.Offset;
+                    setEndOffset = false;
+                }
+
+                if (!spReader.Current.IsHidden && 
+                    spReader.Current.Document == documentHandle && 
+                    line >= spReader.Current.StartLine && 
+                    line <= spReader.Current.EndLine)
+                {
+                    if (i + 1 < bufferLength)
+                    {
+                        ranges[i] = spReader.Current.Offset;
+                        setEndOffset = true;
+                    }
+
+                    // pair of offsets for each sequence point
+                    i += 2;
+                }
+            }
+
+            if (setEndOffset)
+            {
+                ranges[i - 1] = GetILSize();
+            }
+
+            count = i;
+            return HResult.S_OK;
         }
 
         public int GetRootScope([MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedScope scope)
         {
-            if (_lazyRootScopeData == null)
-            {
-                _lazyRootScopeData = new RootScopeData(this);
-            }
-
             // SymReader always creates a new scope instance
-            scope = new SymScope(_lazyRootScopeData);
+            scope = new SymScope(GetRootScopeData());
             return HResult.S_OK;
         }
 
@@ -91,7 +195,16 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int GetSequencePointCount(out int count)
         {
-            return GetSequencePoints(0, out count, null, null, null, null, null, null);
+            var spReader = GetSequencePointsReader();
+
+            int i = 0;
+            while (spReader.MoveNext())
+            {
+                i++;
+            }
+
+            count = i;
+            return HResult.S_OK;
         }
 
         public int GetSequencePoints(
@@ -104,14 +217,8 @@ namespace Microsoft.DiaSymReader.PortablePdb
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]int[] endLines,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]int[] endColumns)
         {
-            // TODO: cache
-
-            var mdReader = SymReader.MetadataReader;
-
-            var body = mdReader.GetMethodBody(BodyHandle);
-            var spReader = mdReader.GetSequencePointsReader(body.SequencePoints);
-
             SymDocument currentDocument = null;
+            var spReader = GetSequencePointsReader();
 
             int i = 0;
             while (spReader.MoveNext())
@@ -357,7 +464,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] char[] name)
         {
             // TODO: parse sequence points -> document
-            throw new InvalidOperationException();
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -376,7 +483,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             out int sequencePointOffset)
         {
             // TODO: parse sequence points
-            throw new InvalidOperationException();
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -385,7 +492,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
         public int GetDocumentsForMethodCount(out int count)
         {
             // TODO: parse sequence points
-            throw new InvalidOperationException();
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -397,7 +504,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)]ISymUnmanagedDocument[] documents)
         {
             // TODO: parse sequence points
-            throw new InvalidOperationException();
+            throw new NotImplementedException();
         }
 
         /// <summary>
