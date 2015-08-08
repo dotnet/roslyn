@@ -14,10 +14,29 @@ namespace Roslyn.Test.Utilities
     /// </summary>
     internal abstract class TestMetadataReferenceResolver : MetadataFileReferenceResolver
     {
-        public TestMetadataReferenceResolver()
-            : base(searchPaths: ImmutableArray.Create<string>(),
-                   baseDirectory: null)
+        public override string ResolveReference(string reference, string baseFilePath)
         {
+            return null;
+        }
+
+        public override ImmutableArray<string> SearchPaths
+        {
+            get { return ImmutableArray<string>.Empty; }
+        }
+
+        public override string BaseDirectory
+        {
+            get { return null; }
+        }
+
+        internal override MetadataFileReferenceResolver WithSearchPaths(ImmutableArray<string> searchPaths)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal override MetadataFileReferenceResolver WithBaseDirectory(string baseDirectory)
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -52,22 +71,48 @@ namespace Roslyn.Test.Utilities
         }
     }
 
-    internal class VirtualizedFileReferenceResolver : MetadataFileReferenceResolver
+    internal sealed class VirtualizedFileReferenceResolver : MetadataFileReferenceResolver
     {
+        private readonly RelativePathReferenceResolver _resolver;
         private readonly HashSet<string> _existingFullPaths;
 
         public VirtualizedFileReferenceResolver(
             IEnumerable<string> existingFullPaths = null,
             string baseDirectory = null,
             ImmutableArray<string> searchPaths = default(ImmutableArray<string>))
-            : base(searchPaths.NullToEmpty(), baseDirectory)
         {
+            _resolver = new RelativePathReferenceResolver(searchPaths.NullToEmpty(), baseDirectory, FileExists);
             _existingFullPaths = new HashSet<string>(existingFullPaths, StringComparer.OrdinalIgnoreCase);
         }
 
-        protected override bool FileExists(string fullPath)
+        public override ImmutableArray<string> SearchPaths
         {
-            return fullPath != null && _existingFullPaths != null && _existingFullPaths.Contains(FileUtilities.NormalizeAbsolutePath(fullPath));
+            get { return _resolver.SearchPaths; }
+        }
+
+        public override string BaseDirectory
+        {
+            get { return _resolver.BaseDirectory; }
+        }
+
+        internal override MetadataFileReferenceResolver WithSearchPaths(ImmutableArray<string> searchPaths)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal override MetadataFileReferenceResolver WithBaseDirectory(string baseDirectory)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override string ResolveReference(string reference, string baseFilePath)
+        {
+            return _resolver.ResolveReference(reference, baseFilePath);
+        }
+
+        private bool FileExists(string fullPath)
+        {
+            return _existingFullPaths.Contains(FileUtilities.NormalizeAbsolutePath(fullPath));
         }
     }
 }

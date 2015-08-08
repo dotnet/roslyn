@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 isInteractive: false,
                 sdkDirectory: RuntimeEnvironment.GetRuntimeDirectory());
 
-            var resolver = new MetadataFileReferenceResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory);
+            var resolver = new RelativePathReferenceResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory);
             var metadataReferences = commandLineArgs.ResolveMetadataReferences(new AssemblyReferenceResolver(resolver, metadataService.GetProvider()));
 
             var analyzerLoader = analyzerService.GetLoader();
@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     .WithSourceReferenceResolver(new SourceFileResolver(ImmutableArray<string>.Empty, projectDirectory))
                     .WithMetadataReferenceResolver(
                         new AssemblyReferenceResolver(
-                            new MetadataFileReferenceResolver(ImmutableArray<string>.Empty, projectDirectory),
+                            new RelativePathReferenceResolver(ImmutableArray<string>.Empty, projectDirectory),
                             MetadataFileReferenceProvider.Default))
                     .WithStrongNameProvider(new DesktopStrongNameProvider(ImmutableArray.Create(projectDirectory, outputFilePath)))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);

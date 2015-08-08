@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var f1 = dir1.CreateFile("f.dll").Path;
             var f2 = dir2.CreateFile("f.dll").Path;
 
-            var resolver = new MetadataFileReferenceResolver(
+            var resolver = new RelativePathReferenceResolver(
                 ImmutableArray.Create(dir1.Path, dir2.Path),
                 baseDirectory: null);
 
