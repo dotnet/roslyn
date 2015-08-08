@@ -55,6 +55,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             return snapshotMock.Object;
         }
 
+        public string GetTextFromCurrentLanguageBuffer
+        {
+            get
+            {
+                return Window.CurrentLanguageBuffer.CurrentSnapshot.GetText();
+            }
+        }
+
         #endregion
 
         [Fact]
@@ -608,6 +616,25 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Window.TextView.Caret.Position.VirtualBufferPosition.GetLineAndColumn(out actualLine, out actualColumn);
             Assert.Equal(expectedLine, actualLine.LineNumber);
             Assert.Equal(expectedColumn, actualColumn);
+        }
+		
+		[Fact]
+        public void CheckHistoryPrevious()
+        {
+            const string V = "1 ";
+            Window.InsertCode(V);
+            Assert.Equal(V, GetTextFromCurrentLanguageBuffer);
+            Task.Run(() => Window.Operations.ExecuteInput()).PumpingWait();
+            Window.Operations.HistoryPrevious();
+            Assert.Equal(V, GetTextFromCurrentLanguageBuffer);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/4121")]
+        public void CheckHistoryAfterResetButtonClick()
+        {
+            Task.Run(() => Window.Operations.ResetAsync(initialize: true)).PumpingWait();
+            Task.Run(() => Window.Operations.HistoryPrevious()).PumpingWait();
+            Assert.Equal("#reset", GetTextFromCurrentLanguageBuffer);
         }
     }
 }
