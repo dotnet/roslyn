@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis
 
         internal virtual MetadataFileReferenceResolver GetExternalMetadataResolver(TouchedFileLogger touchedFiles)
         {
-            return new LoggingMetadataReferencesResolver(Arguments.ReferencePaths, Arguments.BaseDirectory, touchedFiles);
+            return CreateLoggingMetadataResolver(touchedFiles);
         }
 
         /// <summary>
@@ -111,14 +111,18 @@ namespace Microsoft.CodeAnalysis
             {
                 // when compiling into an assembly (csc/vbc) we only allow #r that match references given on command line:
                 referenceDirectiveResolver = new ExistingReferencesResolver(
+                    CreateLoggingMetadataResolver(touchedFiles),
                     resolved.Where(r => r.Properties.Kind == MetadataImageKind.Assembly).OfType<PortableExecutableReference>().AsImmutable(),
-                    Arguments.ReferencePaths,
-                    Arguments.BaseDirectory,
-                    assemblyIdentityComparer,
-                    touchedFiles);
+                    assemblyIdentityComparer);
             }
 
             return resolved;
+        }
+
+        private MetadataFileReferenceResolver CreateLoggingMetadataResolver(TouchedFileLogger logger)
+        {
+            MetadataFileReferenceResolver resolver = new RelativePathReferenceResolver(Arguments.ReferencePaths, Arguments.BaseDirectory);
+            return (logger == null) ? resolver : new LoggingMetadataReferencesResolver(resolver, logger);
         }
 
         /// <summary>

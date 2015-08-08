@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
-using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -16,23 +15,42 @@ namespace Microsoft.CodeAnalysis
         /// When scripts are included into a project we don't want #r's to reference other assemblies than those 
         /// specified explicitly in the project references.
         /// </summary>
-        internal sealed class ExistingReferencesResolver : LoggingMetadataReferencesResolver
+        internal sealed class ExistingReferencesResolver : MetadataFileReferenceResolver
         {
+            private readonly MetadataFileReferenceResolver _resolver;
             private readonly ImmutableArray<PortableExecutableReference> _availableReferences;
             private readonly AssemblyIdentityComparer _assemblyIdentityComparer;
 
             public ExistingReferencesResolver(
+                MetadataFileReferenceResolver resolver,
                 ImmutableArray<PortableExecutableReference> availableReferences,
-                ImmutableArray<string> referencePaths,
-                string baseDirectory,
-                AssemblyIdentityComparer assemblyIdentityComparer,
-                TouchedFileLogger logger)
-                : base(referencePaths, baseDirectory, logger)
+                AssemblyIdentityComparer assemblyIdentityComparer)
             {
                 Debug.Assert(!availableReferences.Any(r => r.Properties.Kind != MetadataImageKind.Assembly));
 
+                _resolver = resolver;
                 _availableReferences = availableReferences;
                 _assemblyIdentityComparer = assemblyIdentityComparer;
+            }
+
+            public override ImmutableArray<string> SearchPaths
+            {
+                get { return _resolver.SearchPaths; }
+            }
+
+            public override string BaseDirectory
+            {
+                get { return _resolver.BaseDirectory; }
+            }
+
+            internal override MetadataFileReferenceResolver WithSearchPaths(ImmutableArray<string> searchPaths)
+            {
+                return new ExistingReferencesResolver(_resolver.WithSearchPaths(searchPaths), _availableReferences, _assemblyIdentityComparer);
+            }
+
+            internal override MetadataFileReferenceResolver WithBaseDirectory(string baseDirectory)
+            {
+                return new ExistingReferencesResolver(_resolver.WithBaseDirectory(baseDirectory), _availableReferences, _assemblyIdentityComparer);
             }
 
             public override string ResolveReference(string reference, string baseFilePath)
@@ -69,7 +87,7 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private string ResolveMetadataFile(string path, string basePath)
             {
-                var fullPath = base.ResolveReference(path, basePath);
+                var fullPath = _resolver.ResolveReference(path, basePath);
 
                 foreach (var fileReference in _availableReferences)
                 {

@@ -392,13 +392,9 @@ namespace Microsoft.CodeAnalysis
         private AnalyzerFileReference ResolveAnalyzerReference(CommandLineAnalyzerReference reference, IAnalyzerAssemblyLoader analyzerLoader)
         {
             string resolvedPath = FileUtilities.ResolveRelativePath(reference.FilePath, basePath: null, baseDirectory: BaseDirectory, searchPaths: ReferencePaths, fileExists: PortableShim.File.Exists);
-            if (PortableShim.File.Exists(resolvedPath))
+            if (resolvedPath != null)
             {
                 resolvedPath = FileUtilities.TryNormalizeAbsolutePath(resolvedPath);
-            }
-            else
-            {
-                resolvedPath = null;
             }
 
             if (resolvedPath != null)

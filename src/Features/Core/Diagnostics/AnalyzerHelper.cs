@@ -104,9 +104,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // However, until we add a LongMessage field to the Diagnostic, we are forced to park the instance specific description onto the Descriptor's Description field.
             // This requires us to create a new DiagnosticDescriptor instance per diagnostic instance.
             var descriptor = new DiagnosticDescriptor(AnalyzerExceptionDiagnosticId,
-                title: AnalyzerDriverResources.AnalyzerFailure,
-                messageFormat: AnalyzerDriverResources.AnalyzerThrows,
-                description: string.Format(AnalyzerDriverResources.AnalyzerThrowsDescription, analyzerName, e.ToString()),
+                title: FeaturesResources.UserDiagnosticAnalyzerFailure,
+                messageFormat: FeaturesResources.UserDiagnosticAnalyzerThrows,
+                description: string.Format(FeaturesResources.UserDiagnosticAnalyzerThrowsDescription, analyzerName, e.ToString()),
                 category: AnalyzerExceptionDiagnosticCategory,
                 defaultSeverity: DiagnosticSeverity.Info,
                 isEnabledByDefault: true,

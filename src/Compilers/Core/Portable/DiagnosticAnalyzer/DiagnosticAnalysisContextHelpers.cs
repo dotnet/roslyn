@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (!isSupportedDiagnostic(diagnostic))
             {
-                throw new ArgumentException(string.Format(AnalyzerDriverResources.UnsupportedDiagnosticReported, diagnostic.Id), nameof(diagnostic));
+                throw new ArgumentException(string.Format(CodeAnalysisResources.UnsupportedDiagnosticReported, diagnostic.Id), nameof(diagnostic));
             }
         }
 
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (symbolKinds.IsEmpty)
             {
-                throw new ArgumentException(AnalyzerDriverResources.ArgumentCannotBeEmpty, nameof(symbolKinds));
+                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(symbolKinds));
             }
         }
 
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (syntaxKinds.IsEmpty)
             {
-                throw new ArgumentException(AnalyzerDriverResources.ArgumentCannotBeEmpty, nameof(syntaxKinds));
+                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(syntaxKinds));
             }
         }
     }
