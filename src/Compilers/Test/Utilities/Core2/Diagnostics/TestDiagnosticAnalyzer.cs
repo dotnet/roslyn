@@ -27,12 +27,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static ImmutableArray<T> GetAllEnumValues<T>()
         {
-            return ImmutableArray<T>.Empty.AddRange(typeof(T).GetFields(BindingFlags.Public | BindingFlags.Static).Select(f => (T)f.GetRawConstantValue()));
-        }
-
-        protected static IEnumerable<string> GetAbstractMemberNames(Type abstractType)
-        {
-            return abstractType.GetMembers().Where(m => !(m is MethodInfo) || !((MethodInfo)m).IsSpecialName).Select(m => m.Name);
+            return ImmutableArray.CreateRange(Enum.GetValues(typeof(T)).Cast<T>());
         }
 
         protected abstract void OnAbstractMember(string abstractMemberName, SyntaxNode node = null, ISymbol symbol = null, [CallerMemberName]string callerName = null);

@@ -103,13 +103,6 @@
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Helpers\AbstractAnalyzerAssemblyLoader.cs">
-      <Link>AbstractAnalyzerAssemblyLoader.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Helpers\SimpleAnalyzerAssemblyLoader.cs">
-      <Link>SimpleAnalyzerAssemblyLoader.cs</Link>
-    </Compile>
-    <Compile Include="CSReflectionBasedKindProvider.cs" />
     <Compile Include="Diagnostics\DiagnosticsHelper.cs" />
     <Compile Include="Diagnostics\OptionsDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\TestDiagnosticAnalyzer.cs" />
@@ -124,32 +117,11 @@
     <Compile Include="NodeHelpers.cs" />
     <Compile Include="NodeInfo.cs" />
     <Compile Include="NodeInfo.FieldInfo.cs" />
-    <Compile Include="NodeRules.cs" />
-    <Compile Include="NonTerminalRuleAttribute.cs" />
-    <Compile Include="ParseHelpers.cs" />
     <Compile Include="PEModuleTestHelpers.cs" />
-    <Compile Include="ProgressDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ProgressDialog.Designer.cs">
-      <DependentUpon>ProgressDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="SourceCodeValidator.cs" />
     <Compile Include="SpeculativeSemanticModelTestsBase.cs" />
     <Compile Include="TestExceptionUtilities.cs" />
     <Compile Include="TestReferences.cs" />
-    <Compile Include="TokenRuleAttribute.cs" />
-    <Compile Include="TreeRuleAttribute.cs" />
-    <Compile Include="TreeRules.cs" />
-    <Compile Include="TreeValidator.cs" />
-    <Compile Include="TriviaRuleAttribute.cs" />
-    <Compile Include="VBReflectionBasedKindProvider.cs" />
     <Compile Include="XmlHelpers.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="ProgressDialog.resx">
-      <DependentUpon>ProgressDialog.cs</DependentUpon>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
