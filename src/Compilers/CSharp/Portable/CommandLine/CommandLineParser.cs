@@ -140,7 +140,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!TryParseOption(arg, out name, out value))
                 {
                     sourceFiles.AddRange(ParseFileArgument(arg, baseDirectory, diagnostics));
-                    sourceFilesSpecified = true;
+                    if (sourceFiles.Count > 0)
+                    {
+                        sourceFilesSpecified = true;
+                    }
                     continue;
                 }
 
@@ -1130,7 +1133,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportAnalyzer = reportAnalyzer
             };
         }
-
 
         private static void ParseAndResolveReferencePaths(string switchName, string switchValue, string baseDirectory, List<string> builder, MessageID origin, List<Diagnostic> diagnostics)
         {

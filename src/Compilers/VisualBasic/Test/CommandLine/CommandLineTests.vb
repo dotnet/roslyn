@@ -7241,6 +7241,13 @@ End Class
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
+
+
+        <ConditionalFact(GetType(WindowsOnly))>
+        Public Sub SourceFile_BadPath()
+            Dim args = DefaultParse({"e:c:\test\test.cs", "/t:library"}, _baseDirectory)
+            args.Errors.Verify(Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("e:c:\test\test.cs").WithLocation(1, 1))
+        End Sub
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>

@@ -324,6 +324,16 @@ d.cs
             Assert.Equal(4, resolvedSourceFiles.Length);
         }
 
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void SourceFile_BadPath()
+        {
+            var args = DefaultParse(new[] { @"e:c:\test\test.cs", "/t:library" }, _baseDirectory);
+            Assert.Equal(3, args.Errors.Length);
+            Assert.Equal((int)ErrorCode.FTL_InputFileNameTooLong, args.Errors[0].Code);
+            Assert.Equal((int)ErrorCode.WRN_NoSources, args.Errors[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_OutputNeedsName, args.Errors[2].Code);
+        }
+
         private void CreateFile(TempDirectory folder, string file)
         {
             var f = folder.CreateFile(file);
