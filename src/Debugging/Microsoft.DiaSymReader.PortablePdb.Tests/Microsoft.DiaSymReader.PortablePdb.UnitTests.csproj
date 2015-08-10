@@ -129,18 +129,30 @@
       <HintPath>..\..\..\packages\xunit.extensibility.core.2.1.0-beta2-build2981\lib\portable-net45+dnxcore50+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.core.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup>  
     <EmbeddedResource Include="Resources\Async.dll">
       <LogicalName>Async.dll</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Async.pdb">
+      <LogicalName>Async.pdb</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Async.dllx">
+      <LogicalName>Async.dllx</LogicalName>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Async.pdbx">
       <LogicalName>Async.pdbx</LogicalName>
     </EmbeddedResource>
-    <EmbeddedResource Include="Resources\Documents.dll">
-      <LogicalName>Documents.dll</LogicalName>
+    <EmbeddedResource Include="Resources\Documents.dllx">
+      <LogicalName>Documents.dllx</LogicalName>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Documents.pdbx">
       <LogicalName>Documents.pdbx</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Documents.dll">
+      <LogicalName>Documents.dll</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Documents.pdb">
+      <LogicalName>Documents.pdb</LogicalName>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Scopes.dll">
       <LogicalName>Scopes.dll</LogicalName>

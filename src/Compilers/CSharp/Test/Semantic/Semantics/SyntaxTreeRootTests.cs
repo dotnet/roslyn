@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
 
         private void CheckTree(SyntaxTree tree)
         {
-#if false
+#if false // https://github.com/dotnet/roslyn/issues/4453
             CheckAllMembers(
                 tree,
                 new Dictionary<Type, Func<object>> 

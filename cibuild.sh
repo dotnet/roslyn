@@ -226,6 +226,9 @@ test_roslyn()
     fi
 }
 
+echo Clean out the enlistment
+git clean -dxf . 
+
 # NuGet on mono crashes about every 5th time we run it.  This is causing
 # Linux runs to fail frequently enough that we need to employ a 
 # temporary work around.  
