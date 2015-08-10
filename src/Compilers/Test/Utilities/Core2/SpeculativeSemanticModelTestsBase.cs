@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class SpeculativeSemanticModelTestsBase
     {
+#if false // https://github.com/dotnet/roslyn/issues/4453
         protected void CheckAllMembers<T>(T instance, IDictionary<Type, Func<object>> valueProviders, IDictionary<MemberInfo, Type> expectedExceptions)
         {
             foreach (var m in typeof(T).GetMembers())
@@ -46,7 +47,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
             }
         }
+#endif
     }
+
 
     internal static class DictionaryExtensions
     {

@@ -105,6 +105,12 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\Compilers\Helpers\AbstractAnalyzerAssemblyLoader.cs">
+      <Link>AbstractAnalyzerAssemblyLoader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Helpers\SimpleAnalyzerAssemblyLoader.cs">
+      <Link>SimpleAnalyzerAssemblyLoader.cs</Link>
+    </Compile>
     <Compile Include="AssertEx.cs" />
     <Compile Include="CLRHelpers.cs" />
     <Compile Include="CommonDiagnosticAnalyzers.cs" />

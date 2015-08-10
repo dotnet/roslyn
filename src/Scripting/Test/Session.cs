@@ -40,14 +40,6 @@ namespace Microsoft.CodeAnalysis.Scripting
             get { return _engine; }
         }
 
-        internal MetadataFileReferenceResolver MetadataReferenceResolver
-        {
-            get
-            {
-                return _options.AssemblyResolver.PathResolver;
-            }
-        }
-
         internal Type HostObjectType
         {
             get { return _globalsType; }

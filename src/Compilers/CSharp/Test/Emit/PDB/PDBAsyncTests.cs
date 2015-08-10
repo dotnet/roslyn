@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBAsyncTests : CSharpTestBase
     {
-        [Fact(Skip = "1068894")]
+        [Fact]
         [WorkItem(1137300, "DevDiv")]
         [WorkItem(631350, "DevDiv")]
         [WorkItem(643501, "DevDiv")]
@@ -234,7 +234,7 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
         <forward declaringType=""TestCase"" methodName="".cctor"" />
         <encLocalSlotMap>
           <slot kind=""0"" offset=""15"" />
-          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -262,14 +262,13 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
       <customDebugInfo>
         <forwardIterator name=""&lt;&lt;Run&gt;b__1_0&gt;d"" />
       </customDebugInfo>
-      <sequencePoints />
     </method>
     <method containingType=""TestCase+&lt;Run&gt;d__1"" name=""MoveNext"">
       <customDebugInfo>
         <forward declaringType=""TestCase"" methodName="".cctor"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0xe"" endOffset=""0xff"" />
-          <slot startOffset=""0xe"" endOffset=""0xff"" />
+          <slot startOffset=""0x0"" endOffset=""0x12e"" />
+          <slot startOffset=""0x0"" endOffset=""0x12e"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -306,9 +305,9 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
     <method containingType=""TestCase+&lt;&gt;c+&lt;&lt;Run&gt;b__1_0&gt;d"" name=""MoveNext"">
       <customDebugInfo>
         <encLocalSlotMap>
-          <slot kind=""27"" offset=""0"" />
-          <slot kind=""20"" offset=""0"" />
-          <slot kind=""33"" offset=""2"" />
+          <slot kind=""27"" offset=""86"" />
+          <slot kind=""20"" offset=""86"" />
+          <slot kind=""33"" offset=""88"" />
           <slot kind=""temp"" />
           <slot kind=""temp"" />
         </encLocalSlotMap>
@@ -507,7 +506,7 @@ namespace ConsoleApplication1
 </symbols>");
         }
 
-        [Fact(Skip = "1068894")]
+        [Fact]
         [WorkItem(1137300, "DevDiv")]
         [WorkItem(690180, "DevDiv")]
         public void TestAsyncDebug3()
@@ -539,7 +538,6 @@ class TestCase
           <slot kind=""28"" offset=""21"" ordinal=""2"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints />
     </method>
     <method containingType=""TestCase+&lt;Await&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
@@ -547,7 +545,7 @@ class TestCase
           <namespace usingCount=""0"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x11"" endOffset=""0x232"" />
+          <slot startOffset=""0x0"" endOffset=""0x261"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -733,8 +731,6 @@ class C
 
         await M(x1 + x2 + x3);
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
             // TODO: Currently we don't have means necessary to pass information about the display 
@@ -755,7 +751,7 @@ class C
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""C"" methodName=""F"" />
+        <forward declaringType=""C+&lt;&gt;c__DisplayClass0_0"" methodName=""&lt;M&gt;b__0"" />
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" />
@@ -825,8 +821,6 @@ class C
         // possible EnC edit:
         // Console.WriteLine(x1);
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
             var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
@@ -846,7 +840,7 @@ class C
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""C"" methodName=""F"" />
+        <forward declaringType=""C+&lt;&gt;c__DisplayClass0_0"" methodName=""&lt;M&gt;b__0"" />
         <hoistedLocalScopes>
           <slot startOffset=""0x0"" endOffset=""0x10d"" />
         </hoistedLocalScopes>
@@ -923,8 +917,6 @@ class C
 
         Console.WriteLine(x1);
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
             var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
@@ -943,7 +935,7 @@ class C
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""C"" methodName=""F"" />
+        <forward declaringType=""C+&lt;&gt;c__DisplayClass0_0"" methodName=""&lt;M&gt;b__0"" />
         <hoistedLocalScopes>
           <slot startOffset=""0x0"" endOffset=""0xeb"" />
         </hoistedLocalScopes>
@@ -1011,8 +1003,6 @@ class C
 
         Console.WriteLine(x1);
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
             var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
@@ -1032,7 +1022,7 @@ class C
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""C"" methodName=""F"" />
+        <forward declaringType=""C+&lt;&gt;c__DisplayClass0_0"" methodName=""&lt;M&gt;b__0"" />
         <hoistedLocalScopes>
           <slot startOffset=""0x0"" endOffset=""0xfc"" />
         </hoistedLocalScopes>
@@ -1103,8 +1093,6 @@ class C
         await Task.Delay(0);
         d.ToString();
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
             var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
@@ -1125,7 +1113,9 @@ class C
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""C"" methodName=""F"" />
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
         <hoistedLocalScopes>
           <slot startOffset=""0x0"" endOffset=""0x109"" />
         </hoistedLocalScopes>
@@ -1148,6 +1138,9 @@ class C
         <entry offset=""0xf5"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
         <entry offset=""0xfd"" hidden=""true"" />
       </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x10a"">
+        <namespace name=""System.Threading.Tasks"" />
+      </scope>
       <asyncInfo>
         <kickoffMethod declaringType=""C"" methodName=""M"" />
         <await yield=""0x39"" resume=""0x57"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
@@ -1189,8 +1182,6 @@ class C
         d.ToString();
         await Task.Delay(0);
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
             var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
@@ -1208,7 +1199,9 @@ class C
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""C"" methodName=""F"" />
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
         <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""d"" />
         </dynamicLocals>
@@ -1225,6 +1218,7 @@ class C
         <entry offset=""0xe5"" hidden=""true"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0xf1"">
+        <namespace name=""System.Threading.Tasks"" />
         <scope startOffset=""0xd"" endOffset=""0xc6"">
           <local name=""d"" il_index=""1"" il_start=""0xd"" il_end=""0xc6"" attributes=""0"" />
         </scope>
@@ -1268,8 +1262,6 @@ class C
         // Possible EnC edit:
         // System.Console.WriteLine(d);
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
             var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
@@ -1288,7 +1280,9 @@ class C
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""C"" methodName=""F"" />
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
         <hoistedLocalScopes>
           <slot startOffset=""0x0"" endOffset=""0x109"" />
         </hoistedLocalScopes>
@@ -1311,6 +1305,9 @@ class C
         <entry offset=""0xf5"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" />
         <entry offset=""0xfd"" hidden=""true"" />
       </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x10a"">
+        <namespace name=""System.Threading.Tasks"" />
+      </scope>
       <asyncInfo>
         <kickoffMethod declaringType=""C"" methodName=""M"" />
         <await yield=""0x94"" resume=""0xaf"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
@@ -1354,8 +1351,6 @@ class C
             await Task.Delay(0);
         }
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
             // We need to hoist x even though its scope doesn't contain await.
@@ -1403,8 +1398,6 @@ class C
 
         return x;
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }";
             var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
             {
@@ -1585,7 +1578,9 @@ class C
   <methods>
     <method containingType=""C+&lt;G&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""C"" methodName=""F"" />
+        <using>
+          <namespace usingCount=""2"" />
+        </using>
         <hoistedLocalScopes>
           <slot startOffset=""0x0"" endOffset=""0x11d"" />
           <slot startOffset=""0x29"" endOffset=""0x32"" />
@@ -1620,6 +1615,10 @@ class C
         <entry offset=""0x108"" startLine=""20"" startColumn=""5"" endLine=""20"" endColumn=""6"" />
         <entry offset=""0x110"" hidden=""true"" />
       </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x11e"">
+        <namespace name=""System"" />
+        <namespace name=""System.Threading.Tasks"" />
+      </scope>
       <asyncInfo>
         <kickoffMethod declaringType=""C"" methodName=""G"" />
         <await yield=""0x51"" resume=""0x70"" declaringType=""C+&lt;G&gt;d__0"" methodName=""MoveNext"" />

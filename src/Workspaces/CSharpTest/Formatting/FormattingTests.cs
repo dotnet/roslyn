@@ -6320,5 +6320,78 @@ class Program
 }";
             AssertFormat(expected, code);
         }
+
+        [WorkItem(3256, "https://github.com/dotnet/roslyn/issues/3256")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SwitchSectionHonorsNewLineForBracesinControlBlockOption_Default()
+        {
+            var code = @"class Program
+{
+    public void foo()
+    {
+        int f = 1;
+        switch (f) {
+            case 1: {
+                    // DO nothing
+                    break;
+                }
+        }
+    }
+}";
+            var expected = @"class Program
+{
+    public void foo()
+    {
+        int f = 1;
+        switch (f)
+        {
+            case 1:
+                {
+                    // DO nothing
+                    break;
+                }
+        }
+    }
+}";
+            AssertFormat(expected, code);
+        }
+
+        [WorkItem(3256, "https://github.com/dotnet/roslyn/issues/3256")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SwitchSectionHonorsNewLineForBracesinControlBlockOption_NonDefault()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInControlBlocks, false);
+            var code = @"class Program
+{
+    public void foo()
+    {
+        int f = 1;
+        switch (f)
+        {
+            case 1:
+                {
+                    // DO nothing
+                    break;
+                }
+        }
+    }
+}";
+
+            var expected = @"class Program
+{
+    public void foo()
+    {
+        int f = 1;
+        switch (f) {
+            case 1: {
+                    // DO nothing
+                    break;
+                }
+        }
+    }
+}";
+            AssertFormat(expected, code, changedOptionSet: changingOptions);
+        }
     }
 }

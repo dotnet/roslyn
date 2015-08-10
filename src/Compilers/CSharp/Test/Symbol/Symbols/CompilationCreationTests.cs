@@ -2621,10 +2621,12 @@ class Module1
 
         private sealed class Resolver : TestMetadataReferenceResolver
         {
+            private readonly RelativePathReferenceResolver _pathResolver;
             private readonly string _data, _core, _system;
 
             public Resolver(string data, string core, string system)
             {
+                _pathResolver = RelativePathReferenceResolver.Default;
                 _data = data;
                 _core = core;
                 _system = system;
@@ -2644,7 +2646,7 @@ class Module1
                         return _system;
 
                     default:
-                        return base.ResolveReference(reference, baseFileName);
+                        return _pathResolver.ResolveReference(reference, baseFileName);
                 }
             }
         }
