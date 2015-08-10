@@ -3,6 +3,7 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
     <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
+    <Import Project="..\..\..\..\..\build\Targets\PortableTestReferences.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -15,28 +16,10 @@
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
+    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
   </PropertyGroup>
-  <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Resources\Core\CompilerTestResources.csproj">
-      <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
-      <Name>CompilerTestResources</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup Label="File References">
-    <Reference Include="System.Reflection.Metadata.dll">
-        <HintPath>..\..\..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Collections.Immutable.dll">
-        <HintPath>..\..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-    </Reference>
-    <Reference Include="xunit">
-      <HintPath>..\..\..\..\..\packages\xunit.1.9.2\lib\net20\xunit.dll</HintPath>
-    </Reference>
-  </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
@@ -72,18 +55,18 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj">
+      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
+      <Name>CodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Resources\Core\CompilerTestResources.csproj">
+      <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
+      <Name>CompilerTestResources</Name>
+    </ProjectReference>
+  </ItemGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\packages\Microsoft.CodeAnalysis.Test.Resources.Proprietary.1.1.0-beta1-20150716-08\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
+    <Reference Include="$(NuGetPackagesPath)\Microsoft.CodeAnalysis.Test.Resources.Proprietary.1.1.0-beta1-20150716-08\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
@@ -103,13 +86,6 @@
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Helpers\AbstractAnalyzerAssemblyLoader.cs">
-      <Link>AbstractAnalyzerAssemblyLoader.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Helpers\SimpleAnalyzerAssemblyLoader.cs">
-      <Link>SimpleAnalyzerAssemblyLoader.cs</Link>
-    </Compile>
-    <Compile Include="CSReflectionBasedKindProvider.cs" />
     <Compile Include="Diagnostics\DiagnosticsHelper.cs" />
     <Compile Include="Diagnostics\OptionsDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\TestDiagnosticAnalyzer.cs" />
@@ -124,32 +100,11 @@
     <Compile Include="NodeHelpers.cs" />
     <Compile Include="NodeInfo.cs" />
     <Compile Include="NodeInfo.FieldInfo.cs" />
-    <Compile Include="NodeRules.cs" />
-    <Compile Include="NonTerminalRuleAttribute.cs" />
-    <Compile Include="ParseHelpers.cs" />
     <Compile Include="PEModuleTestHelpers.cs" />
-    <Compile Include="ProgressDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ProgressDialog.Designer.cs">
-      <DependentUpon>ProgressDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="SourceCodeValidator.cs" />
     <Compile Include="SpeculativeSemanticModelTestsBase.cs" />
     <Compile Include="TestExceptionUtilities.cs" />
     <Compile Include="TestReferences.cs" />
-    <Compile Include="TokenRuleAttribute.cs" />
-    <Compile Include="TreeRuleAttribute.cs" />
-    <Compile Include="TreeRules.cs" />
-    <Compile Include="TreeValidator.cs" />
-    <Compile Include="TriviaRuleAttribute.cs" />
-    <Compile Include="VBReflectionBasedKindProvider.cs" />
     <Compile Include="XmlHelpers.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="ProgressDialog.resx">
-      <DependentUpon>ProgressDialog.cs</DependentUpon>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

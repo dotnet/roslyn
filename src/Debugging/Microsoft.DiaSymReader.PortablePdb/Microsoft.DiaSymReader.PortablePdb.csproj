@@ -4,6 +4,7 @@
   <ImportGroup Label="Settings">
     <Import Project="Version.targets" />
     <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
+    <Import Project="..\..\..\build\Targets\PortableReferences.targets"/>
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -22,27 +23,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <Reference Include="System.Reflection.Metadata">
-      <HintPath>..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Collections.Immutable, Version=$(SystemCollectionsImmutableAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.DiaSymReader.dll">
-        <HintPath>..\..\..\packages\Microsoft.DiaSymReader.1.0.5\lib\net45\Microsoft.DiaSymReader.dll</HintPath>
-    </Reference>
-    <Reference Include="System.IO.FileSystem.dll">
-        <HintPath>..\..\..\packages\System.IO.FileSystem.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.IO.FileSystem.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.IO.FileSystem.Primitives.dll">
-        <HintPath>..\..\..\packages\System.IO.FileSystem.Primitives.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.IO.FileSystem.Primitives.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.IO.MemoryMappedFiles.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.IO.MemoryMappedFiles.dll">
-      <Private>False</Private>
-    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\Microsoft.DiaSymReader.1.0.5\lib\net45\Microsoft.DiaSymReader.dll" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ImmutableArrayExtensions.cs">

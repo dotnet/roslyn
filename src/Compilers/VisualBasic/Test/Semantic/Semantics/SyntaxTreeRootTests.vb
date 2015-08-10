@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         End Sub
 
         Private Sub CheckTree(tree As SyntaxTree)
-#If False Then
+#If False Then ' https://github.com/dotnet/roslyn/issues/4453
             CheckAllMembers(
                 tree,
                 New Dictionary(Of Type, Func(Of Object)) From
