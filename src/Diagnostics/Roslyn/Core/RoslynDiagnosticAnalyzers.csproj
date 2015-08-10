@@ -70,6 +70,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApiDesign\CancellationTokenMustBeLastAnalyzer.cs" />
+    <Compile Include="ApiDesign\DeclarePublicAPIAnalyzer.Impl.cs" />
     <Compile Include="ApiDesign\DeclarePublicAPIAnalyzer.cs" />
     <Compile Include="ApiDesign\DeclarePublicAPIFix.cs" />
     <Compile Include="CodeFixProviderBase.cs" />
