@@ -15,7 +15,7 @@
     <DeployExtension>false</DeployExtension>
     <UseCodebase>true</UseCodebase>
     <SignAssembly>false</SignAssembly>
-    <OutDir>$(OutDir)\ProjectSystem\VisualBasic</OutDir>
+    <OutDir>$(OutDir)\ProjectSystem\VisualBasic\</OutDir>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic.UnitTests" />
