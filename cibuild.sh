@@ -102,9 +102,9 @@ run_nuget()
 compile_toolset()
 {
     echo Compiling the toolset compilers
-    echo -e "\tCompiling the C# compiler"
+    echo -e "Compiling the C# compiler"
     run_msbuild src/Compilers/CSharp/csc/csc.csproj /p:Configuration=$BUILD_CONFIGURATION
-    echo -e "\tCompiling the VB compiler"
+    echo -e "Compiling the VB compiler"
     run_msbuild src/Compilers/VisualBasic/vbc/vbc.csproj /p:Configuration=$BUILD_CONFIGURATION
 }
 
