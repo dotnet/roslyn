@@ -176,7 +176,7 @@
 
  </PropertyGroup>
 
-  <Import Condition="'$(TargetCoreClr)' == 'True'" Project="$(BuildToolsDir)Build.Common.Targets" />
+  <Import Condition="'$(TargetCoreClr)' == 'True'" Project="$(BuildToolsDir)Build.Common.targets" />
 
   <Target Name="MakeDnuExecutable"
           DependsOnTargets="EnsureGlobalNugets"
