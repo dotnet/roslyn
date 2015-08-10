@@ -147,8 +147,8 @@
     <PackagesDir>$(NuGetPackagesPath)\</PackagesDir>
 
     <DnxVersion>1.0.0-beta5-12101</DnxVersion>
-    <DnxPackageName Condition="'$(DnxPackageName)' == '' and '$(OsEnvironment)'!='Unix'">dnx-coreclr-win-x86.$(DnxVersion)</DnxPackageName>
-    <DnxPackageName Condition="'$(DnxPackageName)' == '' and '$(OsEnvironment)'=='Unix'">dnx-mono.$(DnxVersion)</DnxPackageName>
+    <DnxPackageName Condition="'$(DnxPackageName)' == '' and '$(OS)' == 'Windows_NT'">dnx-coreclr-win-x86.$(DnxVersion)</DnxPackageName>
+    <DnxPackageName Condition="'$(DnxPackageName)' == '' and '$(OS)' != 'Windows_NT'">dnx-mono.$(DnxVersion)</DnxPackageName>
 
     <NuGetToolPath Condition="'$(NuGetToolPath)' == ''">$(NuGetPackagesPath)\..\.nuget\</NuGetToolPath>
     <NuGetConfigCommandLine>-ConfigFile "$(NuGetConfigFile)"</NuGetConfigCommandLine>
@@ -177,6 +177,15 @@
  </PropertyGroup>
 
   <Import Condition="'$(TargetCoreClr)' == 'True'" Project="$(BuildToolsDir)Build.Common.Targets" />
+
+  <Target Name="MakeDnuExecutable"
+          DependsOnTargets="EnsureGlobalNugets"
+          BeforeTargets="RestorePackages"
+          Condition="'$(TargetCoreClr)' == 'True' and '$(OS)' != 'Windows_NT'">
+    <Message Text="DNU: $(DnuToolPath), DNX: $(DnxPackageDir)" />
+    <Exec Command="chmod +x $(DnuToolPath)" />
+    <Exec Command="chmod +x $(DnxPackageDir)bin/dnx" />
+  </Target>
 
   <!-- ====================================================================================
 
