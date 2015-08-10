@@ -97,13 +97,7 @@ namespace Microsoft.AnalyzerPowerPack.Usage
                         return;
                     }
 
-                    var stringSymbol = context.Compilation.GetTypeByMetadataName("System.String");
-                    if (stringSymbol == null)
-                    {
-                        return;
-                    }
-
-                    context.RegisterSymbolAction(new Analyzer(iserializableTypeSymbol, serializationInfoTypeSymbol, streamingContextTypeSymbol, serializableAttributeTypeSymbol, stringSymbol).AnalyzeSymbol, SymbolKind.NamedType);
+                    context.RegisterSymbolAction(new Analyzer(iserializableTypeSymbol, serializationInfoTypeSymbol, streamingContextTypeSymbol, serializableAttributeTypeSymbol).AnalyzeSymbol, SymbolKind.NamedType);
                 });
         }
 
@@ -113,15 +107,13 @@ namespace Microsoft.AnalyzerPowerPack.Usage
             private readonly INamedTypeSymbol _serializationInfoTypeSymbol;
             private readonly INamedTypeSymbol _streamingContextTypeSymbol;
             private readonly INamedTypeSymbol _serializableAttributeTypeSymbol;
-            private readonly INamedTypeSymbol _stringSymbol;
 
-            public Analyzer(INamedTypeSymbol iserializableTypeSymbol, INamedTypeSymbol serializationInfoTypeSymbol, INamedTypeSymbol streamingContextTypeSymbol, INamedTypeSymbol serializableAttributeTypeSymbol, INamedTypeSymbol stringSymbol)
+            public Analyzer(INamedTypeSymbol iserializableTypeSymbol, INamedTypeSymbol serializationInfoTypeSymbol, INamedTypeSymbol streamingContextTypeSymbol, INamedTypeSymbol serializableAttributeTypeSymbol)
             {
                 _iserializableTypeSymbol = iserializableTypeSymbol;
                 _serializationInfoTypeSymbol = serializationInfoTypeSymbol;
                 _streamingContextTypeSymbol = streamingContextTypeSymbol;
                 _serializableAttributeTypeSymbol = serializableAttributeTypeSymbol;
-                _stringSymbol = stringSymbol;
             }
 
             public void AnalyzeSymbol(SymbolAnalysisContext context)
@@ -190,9 +182,33 @@ namespace Microsoft.AnalyzerPowerPack.Usage
 
             private bool IsSerializable(ITypeSymbol namedTypeSymbol)
             {
-                return namedTypeSymbol.IsValueType ||
-                    namedTypeSymbol.Equals(_stringSymbol) ||
-                    namedTypeSymbol.GetAttributes().Any(a => a.AttributeClass == _serializableAttributeTypeSymbol);
+                return IsPrimitiveType(namedTypeSymbol) ||
+                    namedTypeSymbol.SpecialType == SpecialType.System_String ||
+                    namedTypeSymbol.GetAttributes().Any(a => a.AttributeClass.Equals(_serializableAttributeTypeSymbol));
+            }
+
+            private static bool IsPrimitiveType(ITypeSymbol type)
+            {
+                switch (type.SpecialType)
+                {
+                    case SpecialType.System_Boolean:
+                    case SpecialType.System_Byte:
+                    case SpecialType.System_Char:
+                    case SpecialType.System_Double:
+                    case SpecialType.System_Int16:
+                    case SpecialType.System_Int32:
+                    case SpecialType.System_Int64:
+                    case SpecialType.System_UInt16:
+                    case SpecialType.System_UInt32:
+                    case SpecialType.System_UInt64:
+                    case SpecialType.System_IntPtr:
+                    case SpecialType.System_UIntPtr:
+                    case SpecialType.System_SByte:
+                    case SpecialType.System_Single:
+                        return true;
+                    default:
+                        return false;
+                }
             }
         }
     }
