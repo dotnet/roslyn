@@ -102,9 +102,9 @@ run_nuget()
 compile_toolset()
 {
     echo Compiling the toolset compilers
-    echo -e "\tCompiling the C# compiler"
+    echo -e "Compiling the C# compiler"
     run_msbuild src/Compilers/CSharp/csc/csc.csproj /p:Configuration=$BUILD_CONFIGURATION
-    echo -e "\tCompiling the VB compiler"
+    echo -e "Compiling the VB compiler"
     run_msbuild src/Compilers/VisualBasic/vbc/vbc.csproj /p:Configuration=$BUILD_CONFIGURATION
 }
 
@@ -225,6 +225,9 @@ test_roslyn()
         exit 1
     fi
 }
+
+echo Clean out the enlistment
+git clean -dxf . 
 
 # NuGet on mono crashes about every 5th time we run it.  This is causing
 # Linux runs to fail frequently enough that we need to employ a 
