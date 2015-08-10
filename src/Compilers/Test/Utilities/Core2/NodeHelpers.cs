@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var typeObject = node.GetType();
             var nodeClassName = typeObject.Name;
-            var properties = typeObject.GetProperties(BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.Public);
+            var properties = typeObject.GetTypeInfo().DeclaredProperties;
             return new NodeInfo(typeObject.Name, (
                 from p in properties
                 where IsField(p)
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var typeObject = token.GetType();
             var nodeClassName = typeObject.Name;
-            var properties = typeObject.GetProperties(BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.Public);
+            var properties = typeObject.GetTypeInfo().DeclaredProperties;
             return new NodeInfo(typeObject.Name, (
                 from p in properties
                 where IsField(p)
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var typeObject = trivia.GetType();
             var nodeClassName = typeObject.Name;
-            var properties = typeObject.GetProperties(BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.Public);
+            var properties = typeObject.GetTypeInfo().DeclaredProperties;
             return new NodeInfo(typeObject.Name, (
                 from p in properties
                 where IsField(p)
@@ -177,7 +177,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private static bool IsField(PropertyInfo prop)
         {
             var typeObject = prop.PropertyType;
-            if (typeObject == typeof(int) || typeObject == typeof(uint) || typeObject == typeof(long) || typeObject == typeof(ulong) || typeObject == typeof(bool) || typeObject == typeof(string) || typeObject == typeof(float) || typeObject == typeof(double) || typeObject == typeof(char) || typeObject == typeof(DateTime) || typeObject == typeof(decimal) || typeObject.IsEnum)
+            if (typeObject == typeof(int) || 
+                typeObject == typeof(uint) || 
+                typeObject == typeof(long) || 
+                typeObject == typeof(ulong) || 
+                typeObject == typeof(bool) || 
+                typeObject == typeof(string) ||
+                typeObject == typeof(float) || 
+                typeObject == typeof(double) || 
+                typeObject == typeof(char) ||
+                typeObject == typeof(DateTime) ||
+                typeObject == typeof(decimal) || 
+                typeObject.GetTypeInfo().IsEnum)
             {
                 return true;
             }

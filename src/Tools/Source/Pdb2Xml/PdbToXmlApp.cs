@@ -93,14 +93,11 @@ internal static class PdbToXmlApp
     public static void GenXmlFromPdb(string exePath, string pdbPath, string outPath, PdbToXmlOptions options)
     {
         using (var exebits = new FileStream(exePath, FileMode.Open, FileAccess.Read))
+        using (var pdbbits = new FileStream(pdbPath, FileMode.Open, FileAccess.Read))
+        using (var output = new FileStream(outPath, FileMode.Create, FileAccess.Write))
+        using (var sw = new StreamWriter(output, Encoding.UTF8))
         {
-            using (var pdbbits = new FileStream(pdbPath, FileMode.Open, FileAccess.Read))
-            {
-                using (var sw = new StreamWriter(outPath, append: false, encoding: Encoding.UTF8))
-                {
-                    PdbToXmlConverter.ToXml(sw, pdbbits, exebits, options);
-                }
-            }
+            PdbToXmlConverter.ToXml(sw, pdbbits, exebits, options);
         }
     }
 

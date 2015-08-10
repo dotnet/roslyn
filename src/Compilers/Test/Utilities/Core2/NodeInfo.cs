@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Reflection;
-using Microsoft.CodeAnalysis.Text;
+using System;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -11,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         private readonly string _className;
         private readonly FieldInfo[] _fieldInfos;
-        private static readonly FieldInfo[] s_emptyFieldInfos = { };
+        private static readonly FieldInfo[] s_emptyFieldInfos = Array.Empty<FieldInfo>();
 
         public string ClassName
         {

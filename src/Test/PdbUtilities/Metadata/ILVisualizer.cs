@@ -501,7 +501,7 @@ namespace Roslyn.Test.MetadataUtilities
         {
             if (entries.Length == 0)
             {
-                return new HandlerSpan[0];
+                return Array.Empty<HandlerSpan>();
             }
 
             var result = new List<HandlerSpan>();
