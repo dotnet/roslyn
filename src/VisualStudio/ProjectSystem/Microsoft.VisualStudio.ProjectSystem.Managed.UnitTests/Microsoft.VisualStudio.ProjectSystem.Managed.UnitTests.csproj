@@ -12,7 +12,8 @@
     <RootNamespace>Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <SignAssembly>false</SignAssembly>    
+    <SignAssembly>false</SignAssembly>
+    <OutDir>$(OutDir)\ProjectSystem\</OutDir>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.CSharp.UnitTests" />

@@ -13,8 +13,7 @@
     <AssemblyName>Microsoft.VisualStudio.ProjectSystem.CSharp.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <SignAssembly>false</SignAssembly>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
+    <OutDir>$(OutDir)\ProjectSystem\CSharp</OutDir>
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
