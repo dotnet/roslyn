@@ -64,6 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string pdbPath = null;
             bool noStdLib = false;
             string outputDirectory = baseDirectory;
+            ImmutableArray<KeyValuePair<string, string>> pathMap = ImmutableArray<KeyValuePair<string, string>>.Empty;
             string outputFileName = null;
             string documentationPath = null;
             string errorLogPath = null;
@@ -898,6 +899,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                             printFullPaths = true;
                             continue;
 
+                        case "pathmap":
+                            // "/pathmap:K1=V1,K2=V2..."
+                            {
+                                if (value == null)
+                                    break;
+
+                                var pathMapBuilder = ArrayBuilder<KeyValuePair<string, string>>.GetInstance();
+                                foreach (var kEqualsV in value.Split(','))
+                                {
+                                    var kv = kEqualsV.Split('=');
+                                    if (kv.Length != 2) continue;
+                                    var from = TrimTrailingSeparators(kv[0]);
+                                    var to = TrimTrailingSeparators(kv[1]);
+                                    if (from.Length == 0 || to.Length == 0) continue;
+                                    pathMapBuilder.Add(new KeyValuePair<string, string>(from, to));
+                                }
+
+                                pathMap = pathMapBuilder.ToImmutableAndFree();
+                            }
+                            continue;
+
                         case "filealign":
                             value = RemoveQuotesAndSlashes(value);
 
@@ -1130,6 +1152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 IsInteractive = IsInteractive,
                 BaseDirectory = baseDirectory,
+                PathMap = pathMap,
                 Errors = diagnostics.AsImmutable(),
                 Utf8Output = utf8output,
                 CompilationName = compilationName,
@@ -1166,6 +1189,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SqmSessionGuid = sqmSessionGuid,
                 ReportAnalyzer = reportAnalyzer
             };
+        }
+
+        private string TrimTrailingSeparators(string s)
+        {
+            while (s.Length > 0 && SourceFileResolver.IsPathSeparator(s[s.Length - 1]))
+            {
+                s = s.Substring(0, s.Length - 1);
+            }
+
+            return s;
         }
 
         private static void ParseAndResolveReferencePaths(string switchName, string switchValue, string baseDirectory, List<string> builder, MessageID origin, List<Diagnostic> diagnostics)

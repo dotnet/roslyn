@@ -30,6 +30,16 @@ namespace Roslyn.Utilities
             return c == DirectorySeparatorChar || c == AltDirectorySeparatorChar;
         }
 
+        internal static string TrimTrailingSeparators(string s)
+        {
+            while (s.Length > 0 && IsDirectorySeparator(s[s.Length - 1]))
+            {
+                s = s.Substring(0, s.Length - 1);
+            }
+
+            return s;
+        }
+
         internal static string GetExtension(string path)
         {
             return FileNameUtilities.GetExtension(path);

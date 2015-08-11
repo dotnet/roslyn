@@ -4447,6 +4447,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /fullpaths                    Compiler generates fully qualified paths
  /filealign:&lt;n&gt;                Specify the alignment used for output file 
                                sections
+ /pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...      Specify a mapping for source path names output by
+                               the compiler.
  /pdb:&lt;file&gt;                   Specify debug information file name (default: 
                                output file name with .pdb extension)
  /errorendlocation             Output line and column of the end location of 

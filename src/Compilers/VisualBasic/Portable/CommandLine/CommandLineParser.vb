@@ -133,6 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim vbRuntimePath As String = Nothing
             Dim includeVbRuntimeReference As Boolean = True
             Dim generalDiagnosticOption As ReportDiagnostic = ReportDiagnostic.Default
+            Dim pathMap As ImmutableArray(Of KeyValuePair(Of String, String)) = ImmutableArray(Of KeyValuePair(Of String, String)).Empty
 
             ' Diagnostic ids specified via /nowarn /warnaserror must be processed in case-insensitive fashion.
             Dim specificDiagnosticOptionsFromRuleSet = New Dictionary(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer)
@@ -976,8 +977,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             UnimplementedSwitch(diagnostics, name)
                             Continue For
 
+                        Case "pathmap"
+                            ' "/pathmap:K1=V1,K2=V2..."
+                            If value = Nothing Then
+                                Exit Select
+                            End If
+
+                            Dim pathMapBuilder = ArrayBuilder(Of KeyValuePair(Of String, String)).GetInstance()
+                            For Each kEqualsV In value.Split(","c)
+                                Dim kv = kEqualsV.Split("="c)
+                                If kv.Length <> 2 Then Continue For
+                                Dim [from] = PathUtilities.TrimTrailingSeparators(kv(0))
+                                Dim [to] = PathUtilities.TrimTrailingSeparators(kv(1))
+                                If [from].Length = 0 OrElse [to].Length = 0 Then Continue For
+                                pathMapBuilder.Add(New KeyValuePair(Of String, String)([from], [to]))
+                            Next
+
+                            pathMap = pathMapBuilder.ToImmutableAndFree()
+                            Continue For
+
                         Case "reportanalyzer"
-                            reportAnalyzer = True
+                                    reportAnalyzer = True
                             Continue For
 
                         Case "nostdlib"
@@ -1245,6 +1265,7 @@ lVbRuntimePlus:
                 .DocumentationPath = documentationPath,
                 .ErrorLogPath = errorLogPath,
                 .SourceFiles = sourceFiles.AsImmutable(),
+                .PathMap = pathMap,
                 .Encoding = codepage,
                 .ChecksumAlgorithm = checksumAlgorithm,
                 .MetadataReferences = metadataReferences.AsImmutable(),

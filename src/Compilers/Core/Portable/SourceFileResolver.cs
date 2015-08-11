@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis
 
         private readonly string _baseDirectory;
         private readonly ImmutableArray<string> _searchPaths;
+        private readonly ImmutableArray<KeyValuePair<string, string>> _pathMap;
 
         public SourceFileResolver(IEnumerable<string> searchPaths, string baseDirectory)
             : this(searchPaths.AsImmutableOrNull(), baseDirectory)
@@ -26,6 +27,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         public SourceFileResolver(ImmutableArray<string> searchPaths, string baseDirectory)
+            : this(searchPaths, baseDirectory, default(ImmutableArray<KeyValuePair<string, string>>))
+        {
+        }
+
+        public SourceFileResolver(
+            ImmutableArray<string> searchPaths,
+            string baseDirectory,
+            ImmutableArray<KeyValuePair<string, string>> pathMap)
         {
             if (searchPaths.IsDefault)
             {
@@ -39,21 +48,62 @@ namespace Microsoft.CodeAnalysis
 
             _baseDirectory = baseDirectory;
             _searchPaths = searchPaths;
+            _pathMap = pathMap;
+
+            // the keys in pathMap should not end with a path separator
+            if (!pathMap.IsDefaultOrEmpty) foreach (var kv in pathMap)
+            {
+                var key = kv.Key;
+                if (key == null || key.Length == 0)
+                {
+                    throw new ArgumentException("empty key", nameof(pathMap));
+                }
+
+                if (IsPathSeparator(key[key.Length - 1]))
+                {
+                    throw new ArgumentException("key ends with a path separator", nameof(pathMap));
+                }
+            }
         }
 
-        public string BaseDirectory
-        {
-            get { return _baseDirectory; }
-        }
+        public string BaseDirectory => _baseDirectory;
 
-        public ImmutableArray<string> SearchPaths
-        {
-            get { return _searchPaths; }
-        }
+        public ImmutableArray<string> SearchPaths => _searchPaths;
+
+        public ImmutableArray<KeyValuePair<string, string>> PathMap => _pathMap;
 
         public override string NormalizePath(string path, string baseFilePath)
         {
-            return FileUtilities.NormalizeRelativePath(path, baseFilePath, _baseDirectory);
+            string normalizedPath = FileUtilities.NormalizeRelativePath(path, baseFilePath, _baseDirectory);
+            return (normalizedPath == null || _pathMap.IsDefaultOrEmpty) ? normalizedPath : NormalizePathPrefix(normalizedPath, _pathMap);
+        }
+
+        private string NormalizePathPrefix(string normalizedPath, ImmutableArray<KeyValuePair<string, string>> pathMap)
+        {
+            // find the first key in the path map that matches a prefix of the normalized path (followed by a path separator).
+            // Note that we expect the client to use consistent capitalization; we use ordinal (case-sensitive) comparisons.
+            foreach (var kv in pathMap)
+            {
+                var oldPrefix = kv.Key;
+                if (!(oldPrefix?.Length > 0)) continue;
+                if (normalizedPath.StartsWith(oldPrefix, StringComparison.Ordinal) && normalizedPath.Length > oldPrefix.Length && IsPathSeparator(normalizedPath[oldPrefix.Length]))
+                {
+                    var replacementPrefix = kv.Value;
+
+                    // Replace that prefix.
+                    var replacement = replacementPrefix + normalizedPath.Substring(oldPrefix.Length);
+
+                    // Normalize the path separators if used uniformly in the replacement
+                    bool hasSlash = replacementPrefix.IndexOf('/') >= 0;
+                    bool hasBackslash = replacementPrefix.IndexOf('\\') >= 0;
+                    return
+                        (hasSlash && !hasBackslash) ? replacement.Replace('\\', '/') :
+                        (hasBackslash && !hasSlash) ? replacement.Replace('/', '\\') :
+                        replacement;
+                }
+            }
+
+            return normalizedPath;
         }
 
         public override string ResolveReference(string path, string baseFilePath)
@@ -65,6 +115,12 @@ namespace Microsoft.CodeAnalysis
             }
 
             return FileUtilities.TryNormalizeAbsolutePath(resolvedPath);
+        }
+
+        // For purposes of command-line processing, allow both \ and / to act as path separators.
+        internal static bool IsPathSeparator(char c)
+        {
+            return (c == '\\') || (c == '/');
         }
 
         public override Stream OpenRead(string resolvedPath)
@@ -87,14 +143,17 @@ namespace Microsoft.CodeAnalysis
             }
 
             var other = (SourceFileResolver)obj;
-            return string.Equals(_baseDirectory, other._baseDirectory, StringComparison.Ordinal) &&
-                _searchPaths.SequenceEqual(other._searchPaths, StringComparer.Ordinal);
+            return
+                string.Equals(_baseDirectory, other._baseDirectory, StringComparison.Ordinal) &&
+                _searchPaths.SequenceEqual(other._searchPaths, StringComparer.Ordinal) &&
+                (_pathMap.IsDefaultOrEmpty ? other._pathMap.IsDefaultOrEmpty : _pathMap.SequenceEqual(other._pathMap));
         }
 
         public override int GetHashCode()
         {
             return Hash.Combine(_baseDirectory != null ? StringComparer.Ordinal.GetHashCode(_baseDirectory) : 0,
-                   Hash.CombineValues(_searchPaths, StringComparer.Ordinal));
+                   Hash.Combine(Hash.CombineValues(_searchPaths, StringComparer.Ordinal),
+                   Hash.CombineValues(_pathMap)));
         }
     }
 }
