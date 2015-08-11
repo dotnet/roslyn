@@ -13,11 +13,14 @@ using Microsoft.CodeAnalysis.Text;
 namespace Roslyn.Diagnostics.Analyzers.ApiDesign
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public class DeclarePublicAPIAnalyzer : DiagnosticAnalyzer
+    public sealed partial class DeclarePublicAPIAnalyzer : DiagnosticAnalyzer
     {
-        internal const string PublicApiFileName = "PublicAPI.txt";
+        internal const string ShippedFileName = "PublicAPI.Shipped.txt";
+        internal const string UnshippedFileName = "PublicAPI.Unshipped.txt";
         internal const string PublicApiNamePropertyBagKey = "PublicAPIName";
         internal const string MinimalNamePropertyBagKey = "MinimalName";
+        internal const string RemovedApiPrefix = "*REMOVED*";
+        internal const string InvalidReasonShippedCantHaveRemoved = "The shipped API file can't have removed members";
 
         internal static readonly DiagnosticDescriptor DeclareNewApiRule = new DiagnosticDescriptor(
             id: RoslynDiagnosticIds.DeclarePublicApiRuleId,
@@ -47,6 +50,16 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
             defaultSeverity: DiagnosticSeverity.Error,
             isEnabledByDefault: true,
             description: RoslynDiagnosticsResources.ExposedNoninstantiableTypeDescription,
+            customTags: WellKnownDiagnosticTags.Telemetry);
+
+        internal static readonly DiagnosticDescriptor PublicApiFilesInvalid = new DiagnosticDescriptor(
+            id: RoslynDiagnosticIds.PublicApiFilesInvalid,
+            title: RoslynDiagnosticsResources.PublicApiFilesInvalid,
+            messageFormat: RoslynDiagnosticsResources.PublicApiFilesInvalid,
+            category: "ApiDesign",
+            defaultSeverity: DiagnosticSeverity.Error,
+            isEnabledByDefault: true,
+            description: RoslynDiagnosticsResources.PublicApiFilesInvalid,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         internal static readonly SymbolDisplayFormat ShortSymbolNameFormat =
@@ -83,132 +96,65 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        private static readonly HashSet<MethodKind> s_ignorableMethodKinds = new HashSet<MethodKind>
-        {
-            MethodKind.EventAdd,
-            MethodKind.EventRemove
-        };
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DeclareNewApiRule, RemoveDeletedApiRule, ExposedNoninstantiableType, PublicApiFilesInvalid);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DeclareNewApiRule, RemoveDeletedApiRule, ExposedNoninstantiableType);
+        private readonly ImmutableArray<AdditionalText> _extraAdditionalFiles;
+
+        /// <summary>
+        /// This API is used for testing to allow arguments to be passed to the analyzer.
+        /// </summary>
+        public DeclarePublicAPIAnalyzer(ImmutableArray<AdditionalText> extraAdditionalFiles)
+        {
+            _extraAdditionalFiles = extraAdditionalFiles;
+        }
+
+        public DeclarePublicAPIAnalyzer()
+        {
+
+        }
 
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterCompilationStartAction(compilationContext =>
+            context.RegisterCompilationStartAction(OnCompilationStart);
+        }
+
+        private void OnCompilationStart(CompilationStartAnalysisContext compilationContext)
+        {
+            var additionalFiles = compilationContext.Options.AdditionalFiles;
+            if (!_extraAdditionalFiles.IsDefaultOrEmpty)
             {
-                AdditionalText publicApiAdditionalText = TryGetPublicApiSpec(compilationContext.Options.AdditionalFiles, compilationContext.CancellationToken);
+                additionalFiles = additionalFiles.AddRange(_extraAdditionalFiles);
+            }
 
-                if (publicApiAdditionalText == null)
+            ApiData shippedData;
+            ApiData unshippedData;
+            if (!TryGetApiData(additionalFiles, compilationContext.CancellationToken, out shippedData, out unshippedData))
+            {
+                return;
+            }
+
+            List<Diagnostic> errors;
+            if (!ValidateApiFiles(shippedData, unshippedData, out errors))
+            {
+                compilationContext.RegisterCompilationEndAction(context =>
                 {
-                    return;
-                }
-
-                SourceText publicApiSourceText = publicApiAdditionalText.GetText(compilationContext.CancellationToken);
-                HashSet<string> declaredPublicSymbols = ReadPublicSymbols(publicApiSourceText, compilationContext.CancellationToken);
-                HashSet<string> examinedPublicTypes = new HashSet<string>();
-                object lockObj = new object();
-
-                Dictionary<ITypeSymbol, bool> typeCanBeExtendedPubliclyMap = new Dictionary<ITypeSymbol, bool>();
-                Func<ITypeSymbol, bool> typeCanBeExtendedPublicly = type =>
-                {
-                    bool result;
-                    if (typeCanBeExtendedPubliclyMap.TryGetValue(type, out result)) return result;
-
-                    // a type can be extended publicly if (1) it isn't sealed, and (2) it has some constructor that is
-                    // not internal, private or protected&internal
-                    result = !type.IsSealed &&
-                        type.GetMembers(WellKnownMemberNames.InstanceConstructorName).Any(
-                            m => m.DeclaredAccessibility != Accessibility.Internal && m.DeclaredAccessibility != Accessibility.Private && m.DeclaredAccessibility != Accessibility.ProtectedAndInternal
-                        );
-
-                    typeCanBeExtendedPubliclyMap.Add(type, result);
-                    return result;
-                };
-
-                compilationContext.RegisterSymbolAction(symbolContext =>
-                {
-                    var symbol = symbolContext.Symbol;
-
-                    var methodSymbol = symbol as IMethodSymbol;
-                    if (methodSymbol != null &&
-                        s_ignorableMethodKinds.Contains(methodSymbol.MethodKind))
+                    foreach (var cur in errors)
                     {
-                        return;
+                        context.ReportDiagnostic(cur);
                     }
+                });
 
-                    lock (lockObj)
-                    {
-                        if (!IsPublicApi(symbol, typeCanBeExtendedPublicly))
-                        {
-                            return;
-                        }
+                return;
+            }
 
-                        string publicApiName = GetPublicApiName(symbol);
-
-                        examinedPublicTypes.Add(publicApiName);
-
-                        if (!declaredPublicSymbols.Contains(publicApiName))
-                        {
-                            var errorMessageName = symbol.ToDisplayString(ShortSymbolNameFormat);
-
-                            var propertyBag = ImmutableDictionary<string, string>.Empty
-                                .Add(PublicApiNamePropertyBagKey, publicApiName)
-                                .Add(MinimalNamePropertyBagKey, errorMessageName);
-
-                            foreach (var sourceLocation in symbol.Locations.Where(loc => loc.IsInSource))
-                            {
-                                symbolContext.ReportDiagnostic(Diagnostic.Create(DeclareNewApiRule, sourceLocation, propertyBag, errorMessageName));
-                            }
-                        }
-
-                        // Check if a public API is a constructor that makes this class instantiable, even though the base class
-                        // is not instantiable. That API pattern is not allowed, because it causes protected members of
-                        // the base class, which are not considered public APIs, to be exposed to subclasses of this class.
-                        if ((symbol as IMethodSymbol)?.MethodKind == MethodKind.Constructor &&
-                            symbol.ContainingType.TypeKind == TypeKind.Class &&
-                            !symbol.ContainingType.IsSealed &&
-                            symbol.ContainingType.BaseType != null &&
-                            IsPublicApi(symbol.ContainingType.BaseType, typeCanBeExtendedPublicly) &&
-                            !typeCanBeExtendedPublicly(symbol.ContainingType.BaseType))
-                        {
-                            var errorMessageName = symbol.ToDisplayString(ShortSymbolNameFormat);
-                            var propertyBag = ImmutableDictionary<string, string>.Empty;
-                            symbolContext.ReportDiagnostic(Diagnostic.Create(ExposedNoninstantiableType, symbol.Locations[0], propertyBag, errorMessageName));
-                        }
-                    }
-                },
+            var impl = new Impl(shippedData, unshippedData);
+            compilationContext.RegisterSymbolAction(
+                impl.OnSymbolAction,
                 SymbolKind.NamedType,
                 SymbolKind.Event,
                 SymbolKind.Field,
                 SymbolKind.Method);
-
-                compilationContext.RegisterCompilationEndAction(compilationEndContext =>
-                {
-                    ImmutableArray<string> deletedSymbols;
-                    lock (lockObj)
-                    {
-                        deletedSymbols = declaredPublicSymbols.Where(symbol => !examinedPublicTypes.Contains(symbol)).ToImmutableArray();
-                    }
-
-                    foreach (var symbol in deletedSymbols)
-                    {
-                        var span = FindString(publicApiSourceText, symbol);
-                        Location location;
-                        if (span.HasValue)
-                        {
-                            var linePositionSpan = publicApiSourceText.Lines.GetLinePositionSpan(span.Value);
-                            location = Location.Create(publicApiAdditionalText.Path, span.Value, linePositionSpan);
-                        }
-                        else
-                        {
-                            location = Location.Create(publicApiAdditionalText.Path, default(TextSpan), default(LinePositionSpan));
-                        }
-
-                        var propertyBag = ImmutableDictionary<string, string>.Empty.Add(PublicApiNamePropertyBagKey, symbol);
-
-                        compilationEndContext.ReportDiagnostic(Diagnostic.Create(RemoveDeletedApiRule, location, propertyBag, symbol));
-                    }
-                });
-            });
+            compilationContext.RegisterCompilationEndAction(impl.OnCompilationEnd);
         }
 
         internal static string GetPublicApiName(ISymbol symbol)
@@ -241,70 +187,85 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
             return publicApiName;
         }
 
-        private TextSpan? FindString(SourceText sourceText, string symbol)
+        private static ApiData ReadApiData(string path, SourceText sourceText)
         {
+            var apiBuilder = ImmutableArray.CreateBuilder<ApiLine>();
+            var removedBuilder = ImmutableArray.CreateBuilder<ApiLine>();
+
             foreach (var line in sourceText.Lines)
             {
-                if (line.ToString() == symbol)
-                {
-                    return line.Span;
-                }
-            }
-
-            return null;
-        }
-
-        private static HashSet<string> ReadPublicSymbols(SourceText file, CancellationToken cancellationToken)
-        {
-            HashSet<string> publicSymbols = new HashSet<string>();
-
-            foreach (var line in file.Lines)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
                 var text = line.ToString();
-
-                if (!string.IsNullOrWhiteSpace(text))
+                if (string.IsNullOrWhiteSpace(text))
                 {
-                    publicSymbols.Add(text);
+                    continue;
+                }
+
+                var apiLine = new ApiLine(text, line.Span, sourceText, path);
+                if (text.StartsWith(RemovedApiPrefix, StringComparison.Ordinal))
+                {
+                    removedBuilder.Add(apiLine);
+                }
+                else
+                {
+                    apiBuilder.Add(apiLine);
                 }
             }
 
-            return publicSymbols;
+            return new ApiData(apiBuilder.ToImmutable(), removedBuilder.ToImmutable());
         }
 
-        private static bool IsPublicApi(ISymbol symbol, Func<ITypeSymbol, bool> typeCanBeExtendedPublicly)
+        private static bool TryGetApiData(ImmutableArray<AdditionalText> additionalTexts, CancellationToken cancellationToken, out ApiData shippedData, out ApiData unshippedData)
         {
-            switch (symbol.DeclaredAccessibility)
+            AdditionalText shippedText;
+            AdditionalText unshippedText;
+            if (!TryGetApiText(additionalTexts, cancellationToken, out shippedText, out unshippedText))
             {
-                case Accessibility.Public:
-                    return symbol.ContainingType == null || IsPublicApi(symbol.ContainingType, typeCanBeExtendedPublicly);
-                case Accessibility.Protected:
-                case Accessibility.ProtectedOrInternal:
-                    // Protected symbols must have parent types (that is, top-level protected
-                    // symbols are not allowed.
-                    return
-                        symbol.ContainingType != null &&
-                        IsPublicApi(symbol.ContainingType, typeCanBeExtendedPublicly) &&
-                        typeCanBeExtendedPublicly(symbol.ContainingType);
-                default:
-                    return false;
+                shippedData = default(ApiData);
+                unshippedData = default(ApiData);
+                return false;
             }
+
+            shippedData = ReadApiData(ShippedFileName, shippedText.GetText(cancellationToken));
+            unshippedData = ReadApiData(UnshippedFileName, unshippedText.GetText(cancellationToken));
+            return true;
         }
 
-        private static AdditionalText TryGetPublicApiSpec(ImmutableArray<AdditionalText> additionalTexts, CancellationToken cancellationToken)
+        private static bool TryGetApiText(ImmutableArray<AdditionalText> additionalTexts, CancellationToken cancellationToken, out AdditionalText shippedText, out AdditionalText unshippedText)
         {
+            shippedText = null;
+            unshippedText = null;
+
+            var comparer = StringComparer.Ordinal;
             foreach (var text in additionalTexts)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (Path.GetFileName(text.Path).Equals(PublicApiFileName, StringComparison.OrdinalIgnoreCase))
+                var fileName = Path.GetFileName(text.Path);
+                if (comparer.Equals(fileName, ShippedFileName))
                 {
-                    return text;
+                    shippedText = text;
+                    continue;
+                }
+
+                if (comparer.Equals(fileName, UnshippedFileName))
+                {
+                    unshippedText = text;
+                    continue;
                 }
             }
 
-            return null;
+            return shippedText != null && unshippedText != null;
+        }
+
+        private bool ValidateApiFiles(ApiData shippedData, ApiData unshippedData, out List<Diagnostic> list)
+        {
+            list = new List<Diagnostic>();
+            if (shippedData.RemovedApiList.Length > 0)
+            {
+                list.Add(Diagnostic.Create(PublicApiFilesInvalid, Location.None, InvalidReasonShippedCantHaveRemoved));
+            }
+
+            return list.Count == 0;
         }
     }
 }
