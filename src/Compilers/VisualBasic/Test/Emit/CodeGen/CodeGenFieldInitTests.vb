@@ -486,7 +486,7 @@ Class C
 End Class
     </file>
 </compilation>,
-                references:=DefaultReferences,
+                references:=DefaultVbReferences,
                 options:=TestOptions.ReleaseDll)
 
             Using executableStream As New MemoryStream()
@@ -513,7 +513,7 @@ Class C
 End Class
     </file>
 </compilation>,
-                references:=DefaultReferences,
+                references:=DefaultVbReferences,
                 options:=TestOptions.ReleaseDll)
 
             Using executableStream As New MemoryStream()

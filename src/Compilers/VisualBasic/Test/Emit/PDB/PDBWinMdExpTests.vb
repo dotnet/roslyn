@@ -156,7 +156,7 @@ End Namespace
             Dim compilation =
                 CompilationUtils.CreateCompilationWithReferences(
                     source,
-                    LatestReferences,
+                    LatestVbReferences,
                     options:=TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata))
             CompilationUtils.AssertNoDiagnostics(compilation)
 

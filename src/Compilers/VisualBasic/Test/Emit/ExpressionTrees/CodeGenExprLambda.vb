@@ -1807,7 +1807,7 @@ End Structure
                         <%= _exprTesting %>
                         <%= _queryTesting %>
                     </compilation>,
-                    references:=If(addXmlReferences, DefaultReferences.Concat(XmlReferences), DefaultReferences),
+                    references:=If(addXmlReferences, DefaultVbReferences.Concat(XmlReferences), DefaultVbReferences),
                     options:=If(optimize, TestOptions.ReleaseDll, TestOptions.DebugDll).WithOverflowChecks(checked))
 
             CompilationUtils.AssertTheseDiagnostics(compilation, diagnostics)
