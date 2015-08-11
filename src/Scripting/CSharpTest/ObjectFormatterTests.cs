@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests
             Assert.Equal("object[0, 0] { }", str);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void DebuggerProxy_FrameworkTypes_IEnumerable()
         {
             string str;
