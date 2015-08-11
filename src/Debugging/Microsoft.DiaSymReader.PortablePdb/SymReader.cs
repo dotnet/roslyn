@@ -66,7 +66,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             return false;
         }
 
-        private MethodMap GetMethodMap()
+        internal MethodMap GetMethodMap()
         {
             if (_pdbReader.IsDisposed)
             {
@@ -76,7 +76,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             return _lazyMethodMap.Value;
         }
 
-        private SymDocument AsSymDocument(ISymUnmanagedDocument document)
+        internal SymDocument AsSymDocument(ISymUnmanagedDocument document)
         {
             var symDocument = document as SymDocument;
             return (symDocument?.SymReader == this) ? symDocument : null;
@@ -95,7 +95,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
             if (_pdbReader.IsDisposed)
             {
-                throw new ObjectDisposedException("SymReader");
+                throw new ObjectDisposedException(nameof(SymReader));
             }
 
             if (_lazyDocumentMap.Value.TryGetDocument(url, out documentHandle))

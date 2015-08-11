@@ -46,6 +46,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             // Consider: we could remove the MaxLine from this list and look it up in ExtensByMinLine
             public readonly ImmutableArray<MethodLineExtent> ExtentsByMethod;
 
+            // Represents method extents partitioned into non-overlapping subsequences, each sorted by min line.
             public readonly ImmutableArray<ImmutableArray<MethodLineExtent>> ExtentsByMinLine;
 
             public MethodsInDocument(ImmutableArray<MethodLineExtent> extentsByMethod, ImmutableArray<ImmutableArray<MethodLineExtent>> extentsByMinLine)
@@ -55,9 +56,6 @@ namespace Microsoft.DiaSymReader.PortablePdb
             }
         }
 
-        // For each document holds on a list of method extent runs. 
-        // Each method is represented exactly once.
-        // Each run is sorted first by method token and then by start line. Extents in each run are non-everlapping.
         private readonly IReadOnlyDictionary<DocumentHandle, MethodsInDocument> _methodsByDocument;
 
         public MethodMap(MetadataReader reader)
@@ -173,6 +171,13 @@ namespace Microsoft.DiaSymReader.PortablePdb
             foreach (var methodBodyHandle in reader.MethodBodies)
             {
                 var methodBody = reader.GetMethodBody(methodBodyHandle);
+
+                // no debug info for the method
+                if (methodBody.SequencePoints.IsNil)
+                {
+                    continue;
+                }
+
                 var methodBodyReader = reader.GetBlobReader(methodBody.SequencePoints);
 
                 // skip signature:
@@ -233,32 +238,36 @@ namespace Microsoft.DiaSymReader.PortablePdb
             return EnumerateMethodsContainingLine(methodsInDocument.ExtentsByMinLine, line);
         }
 
-        private static IEnumerable<MethodBodyHandle> EnumerateMethodsContainingLine(ImmutableArray<ImmutableArray<MethodLineExtent>> runs, int line)
+        private static IEnumerable<MethodBodyHandle> EnumerateMethodsContainingLine(ImmutableArray<ImmutableArray<MethodLineExtent>> extents, int line)
         {
-            foreach (var run in runs)
+            foreach (var subsequence in extents)
             {
-                int index = IndexOfContainingExtent(run, line);
+                int closestFollowingExtent;
+                int index = IndexOfContainingExtent(subsequence, line, out closestFollowingExtent);
                 if (index >= 0)
                 {
-                    yield return run[index].Method;
+                    yield return subsequence[index].Method;
                 }
             }
         }
 
-        private static int IndexOfContainingExtent(ImmutableArray<MethodLineExtent> run, int startLine)
+        private static int IndexOfContainingExtent(ImmutableArray<MethodLineExtent> orderedNonOverlappingExtents, int startLine, out int closestFollowingExtent)
         {
-            int index = run.BinarySearch(startLine, (extent, line) => extent.MinLine - line);
+            closestFollowingExtent = -1;
+
+            int index = orderedNonOverlappingExtents.BinarySearch(startLine, (extent, line) => extent.MinLine - line);
             if (index >= 0)
             {
                 return index;
             }
 
             int preceding = ~index - 1;
-            if (preceding >= 0 && startLine <= run[preceding].MaxLine)
+            if (preceding >= 0 && startLine <= orderedNonOverlappingExtents[preceding].MaxLine)
             {
                 return preceding;
             }
 
+            closestFollowingExtent = ~index;
             return -1;
         }
 
@@ -293,6 +302,29 @@ namespace Microsoft.DiaSymReader.PortablePdb
             startLine = extent.MinLine;
             endLine = extent.MaxLine;
             return true;
+        }
+
+        internal IEnumerable<MethodLineExtent> EnumerateContainingOrClosestFollowingMethodExtents(DocumentHandle documentHandle, int line)
+        {
+            MethodsInDocument methodsInDocument;
+            if (!_methodsByDocument.TryGetValue(documentHandle, out methodsInDocument))
+            {
+                yield break;
+            }
+
+            foreach (var subsequence in methodsInDocument.ExtentsByMinLine)
+            {
+                int closestFollowingExtent;
+                int index = IndexOfContainingExtent(subsequence, line, out closestFollowingExtent);
+                if (index >= 0)
+                {
+                    yield return subsequence[index];
+                }
+                else if (closestFollowingExtent < subsequence.Length)
+                {
+                    yield return subsequence[closestFollowingExtent];
+                }
+            }
         }
     }
 }

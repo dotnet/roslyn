@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection.Metadata;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
@@ -230,6 +232,178 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
             {
                 Assert.Equal(moveNextMethodToken, actualResumeMethod);
             }
+        }
+
+        internal static int[] GetMethodTokensFromDocumentPosition(
+            ISymUnmanagedReader symReader,
+            ISymUnmanagedDocument symDocument,
+            int line,
+            int column)
+        {
+            Assert.True(line >= 1);
+            Assert.True(column >= 0);
+
+            int count;
+            Assert.Equal(HResult.S_OK, symReader.GetMethodsFromDocumentPosition(symDocument, line, column, 0, out count, null));
+
+            var methods = new ISymUnmanagedMethod[count];
+            int count2;
+            Assert.Equal(HResult.S_OK, symReader.GetMethodsFromDocumentPosition(symDocument, line, column, count, out count2, methods));
+            Assert.Equal(count, count2);
+
+            return methods.Select(m =>
+            {
+                int token;
+                Assert.Equal(HResult.S_OK, m.GetToken(out token));
+                return token;
+            }).ToArray();
+        }
+
+        internal static int[][] GetMethodTokensForEachLine(ISymUnmanagedReader symReader, ISymUnmanagedDocument symDocument, int minLine, int maxLine)
+        {
+            Assert.True(minLine >= 1);
+            Assert.True(maxLine >= minLine);
+
+            var result = new List<int[]>();
+
+            for (int line = minLine; line <= maxLine; line++)
+            {
+                int[] allMethodTokens = GetMethodTokensFromDocumentPosition(symReader, symDocument, line, 0);
+
+                ISymUnmanagedMethod method;
+                int hr = symReader.GetMethodFromDocumentPosition(symDocument, line, 1, out method);
+
+                if (hr != HResult.S_OK)
+                {
+                    Assert.Equal(HResult.E_FAIL, hr);
+                    Assert.Equal(0, allMethodTokens.Length);
+                }
+                else
+                {
+                    int primaryToken;
+                    Assert.Equal(HResult.S_OK, method.GetToken(out primaryToken));
+                    Assert.Equal(primaryToken, allMethodTokens.First());
+                }
+
+                result.Add(allMethodTokens);
+            }
+
+            return result.ToArray();
+        }
+
+        public static int[] GetILOffsetForEachLine(
+            ISymUnmanagedReader symReader,
+            int methodToken, 
+            ISymUnmanagedDocument document, 
+            int minLine, int maxLine)
+        {
+            Assert.True(minLine >= 1);
+            Assert.True(maxLine >= minLine);
+
+            var result = new List<int>();
+
+            ISymUnmanagedMethod method;
+            Assert.Equal(HResult.S_OK, symReader.GetMethod(methodToken, out method));
+
+            for (int line = minLine; line <= maxLine; line++)
+            {
+                int offset;
+                int hr = method.GetOffset(document, line, 0, out offset);
+
+                if (hr != HResult.S_OK)
+                {
+                    Assert.Equal(HResult.E_FAIL, hr);
+                    offset = int.MaxValue;
+                }
+
+                result.Add(offset);
+            }
+
+            return result.ToArray();
+        }
+
+        public static int[][] GetILOffsetRangesForEachLine(
+            ISymUnmanagedReader symReader,
+            int methodToken,
+            ISymUnmanagedDocument document,
+            int minLine, int maxLine)
+        {
+            Assert.True(minLine >= 1);
+            Assert.True(maxLine >= minLine);
+
+            var result = new List<int[]>();
+
+            ISymUnmanagedMethod method;
+            Assert.Equal(HResult.S_OK, symReader.GetMethod(methodToken, out method));
+
+            for (int line = minLine; line <= maxLine; line++)
+            {
+                int count;
+                Assert.Equal(HResult.S_OK, method.GetRanges(document, line, 0, 0, out count, null));
+
+                int count2;
+                int[] ranges = new int[count];
+                Assert.Equal(HResult.S_OK, method.GetRanges(document, line, 0, count, out count2, ranges));
+                Assert.Equal(count, count2);
+
+                result.Add(ranges);
+            }
+
+            return result.ToArray();
+        }
+
+        public static void ValidateMethodExtent(ISymUnmanagedReader symReader, int methodDef, string documentName, int minLine, int maxLine)
+        {
+            Assert.True(minLine >= 1);
+            Assert.True(maxLine >= minLine);
+
+            ISymUnmanagedMethod method;
+            Assert.Equal(HResult.S_OK, symReader.GetMethod(methodDef, out method));
+
+            ISymUnmanagedDocument document;
+            Assert.Equal(HResult.S_OK, symReader.GetDocument(documentName, default(Guid), default(Guid), default(Guid), out document));
+
+            int actualMinLine, actualMaxLine;
+            Assert.Equal(HResult.S_OK, ((ISymEncUnmanagedMethod)method).GetSourceExtentInDocument(document, out actualMinLine, out actualMaxLine));
+
+            Assert.Equal(minLine, actualMinLine);
+            Assert.Equal(maxLine, actualMaxLine);
+        }
+
+        public static void ValidateNoMethodExtent(ISymUnmanagedReader symReader, int methodDef, string documentName)
+        {
+            ISymUnmanagedMethod method;
+            Assert.Equal(HResult.S_OK, symReader.GetMethod(methodDef, out method));
+
+            ISymUnmanagedDocument document;
+            Assert.Equal(HResult.S_OK, symReader.GetDocument(documentName, default(Guid), default(Guid), default(Guid), out document));
+
+            int actualMinLine, actualMaxLine;
+            Assert.Equal(HResult.E_FAIL, ((ISymEncUnmanagedMethod)method).GetSourceExtentInDocument(document, out actualMinLine, out actualMaxLine));
+        }
+
+        public static int[] FindClosestLineForEachLine(ISymUnmanagedDocument document, int minLine, int maxLine)
+        {
+            Assert.True(minLine >= 1);
+            Assert.True(maxLine >= minLine);
+
+            var result = new List<int>();
+                     
+            for (int line = minLine; line <= maxLine; line++)
+            {
+                int closestLine;
+                int hr = document.FindClosestLine(line, out closestLine);
+
+                if (hr != HResult.S_OK)
+                {
+                    Assert.Equal(HResult.E_FAIL, hr);
+                    closestLine = 0;
+                }
+
+                result.Add(closestLine);
+            }
+
+            return result.ToArray();
         }
     }
 }

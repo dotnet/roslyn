@@ -14,9 +14,9 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         [Fact]
         public unsafe void TestMetadataHeaders1()
         {
-            fixed (byte* pdbPtr = TestResources.Documents.Pdb)
+            fixed (byte* pdbPtr = TestResources.Documents.PortablePdb)
             {
-                var pdbReader = new MetadataReader(pdbPtr, TestResources.Documents.Pdb.Length);
+                var pdbReader = new MetadataReader(pdbPtr, TestResources.Documents.PortablePdb.Length);
                 Assert.Equal("PDB v0.1", pdbReader.MetadataVersion);
                 Assert.Equal(MetadataKind.Ecma335, pdbReader.MetadataKind);
                 Assert.False(pdbReader.IsAssembly);
@@ -27,16 +27,16 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         [Fact]
         public void TestGetDocuments1()
         {
-            var symReader = CreateSymReaderFromResource(TestResources.Documents.DllAndPdb);
+            var symReader = CreateSymReaderFromResource(TestResources.Documents.PortableDllAndPdb);
 
             int actualCount;
             Assert.Equal(HResult.S_OK, symReader.GetDocuments(0, out actualCount, null));
-            Assert.Equal(11, actualCount);
+            Assert.Equal(13, actualCount);
 
             var actualDocuments = new ISymUnmanagedDocument[actualCount];
             int actualCount2;
             Assert.Equal(HResult.S_OK, symReader.GetDocuments(actualCount, out actualCount2, actualDocuments));
-            Assert.Equal(11, actualCount2);
+            Assert.Equal(13, actualCount2);
 
             ValidateDocument(actualDocuments[0],
                 url: @"C:\Documents.cs",
@@ -53,14 +53,17 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
             ValidateDocument(actualDocuments[8], url: @"C:\a\B\c\4.cs", algorithmId: null, checksum: null);
             ValidateDocument(actualDocuments[9], url: @"C:\*\5.cs", algorithmId: null, checksum: null);
             ValidateDocument(actualDocuments[10], url: @":6.cs", algorithmId: null, checksum: null);
+            ValidateDocument(actualDocuments[11], url: @"C:\a\b\X.cs", algorithmId: null, checksum: null);
+            ValidateDocument(actualDocuments[12], url: @"C:\a\B\x.cs", algorithmId: null, checksum: null);
         }
 
         [Fact]
         public void TestGetDocument1()
         {
-            var symReader = CreateSymReaderFromResource(TestResources.Documents.DllAndPdb);
+            var symReader = CreateSymReaderFromResource(TestResources.Documents.PortableDllAndPdb);
             TestGetDocument(symReader, @"x.cs", expectedUrl: @"C:\a\b\c\d\x.cs");
             TestGetDocument(symReader, @"X.CS", expectedUrl: @"C:\a\b\c\d\x.cs");
+            TestGetDocument(symReader, @"X.cs", expectedUrl: @"C:\a\b\X.cs");
             TestGetDocument(symReader, @"1.cs", expectedUrl: @"C:\a\b\c\d\1.cs");
             TestGetDocument(symReader, @"2.cs", expectedUrl: @"C:\a\b\c\D\2.cs");
             TestGetDocument(symReader, @"3.cs", expectedUrl: @"C:\a\b\C\d\3.cs");
@@ -69,6 +72,8 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
             TestGetDocument(symReader, @"C:\*\5.cs", expectedUrl: @"C:\*\5.cs");
             TestGetDocument(symReader, @"5.cs", expectedUrl: @"C:\*\5.cs");
             TestGetDocument(symReader, @":6.cs", expectedUrl: @":6.cs");
+            TestGetDocument(symReader, @"C:\a\B\x.cs", expectedUrl: @"C:\a\B\x.cs");
+            TestGetDocument(symReader, @"C:\a\b\X.cs", expectedUrl: @"C:\a\b\X.cs");
         }
 
         private void TestGetDocument(ISymUnmanagedReader symReader, string name, string expectedUrl)
@@ -91,7 +96,7 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         [Fact]
         public void TestSymGetAttribute()
         {
-            var symReader = CreateSymReaderFromResource(TestResources.Documents.DllAndPdb);
+            var symReader = CreateSymReaderFromResource(TestResources.Documents.PortableDllAndPdb);
 
             int actualCount;
             int actualCount2;
@@ -101,7 +106,7 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
             Assert.Equal(HResult.S_OK, symReader.GetSymAttribute(0, "<PortablePdbImage>", actualCount, out actualCount2, image));
             Assert.Equal(actualCount, actualCount2);
 
-            AssertEx.Equal(TestResources.Documents.Pdb, image);
+            AssertEx.Equal(TestResources.Documents.PortablePdb, image);
         }
 
         [Fact]
