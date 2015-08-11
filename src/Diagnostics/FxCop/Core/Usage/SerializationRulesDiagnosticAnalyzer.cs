@@ -108,11 +108,7 @@ namespace Microsoft.AnalyzerPowerPack.Usage
             private readonly INamedTypeSymbol _streamingContextTypeSymbol;
             private readonly INamedTypeSymbol _serializableAttributeTypeSymbol;
 
-            public Analyzer(
-                INamedTypeSymbol iserializableTypeSymbol,
-                INamedTypeSymbol serializationInfoTypeSymbol,
-                INamedTypeSymbol streamingContextTypeSymbol,
-                INamedTypeSymbol serializableAttributeTypeSymbol)
+            public Analyzer(INamedTypeSymbol iserializableTypeSymbol, INamedTypeSymbol serializationInfoTypeSymbol, INamedTypeSymbol streamingContextTypeSymbol, INamedTypeSymbol serializableAttributeTypeSymbol)
             {
                 _iserializableTypeSymbol = iserializableTypeSymbol;
                 _serializationInfoTypeSymbol = serializationInfoTypeSymbol;
@@ -186,7 +182,33 @@ namespace Microsoft.AnalyzerPowerPack.Usage
 
             private bool IsSerializable(ITypeSymbol namedTypeSymbol)
             {
-                return namedTypeSymbol.GetAttributes().Any(a => a.AttributeClass == _serializableAttributeTypeSymbol);
+                return IsPrimitiveType(namedTypeSymbol) ||
+                    namedTypeSymbol.SpecialType == SpecialType.System_String ||
+                    namedTypeSymbol.GetAttributes().Any(a => a.AttributeClass.Equals(_serializableAttributeTypeSymbol));
+            }
+
+            private static bool IsPrimitiveType(ITypeSymbol type)
+            {
+                switch (type.SpecialType)
+                {
+                    case SpecialType.System_Boolean:
+                    case SpecialType.System_Byte:
+                    case SpecialType.System_Char:
+                    case SpecialType.System_Double:
+                    case SpecialType.System_Int16:
+                    case SpecialType.System_Int32:
+                    case SpecialType.System_Int64:
+                    case SpecialType.System_UInt16:
+                    case SpecialType.System_UInt32:
+                    case SpecialType.System_UInt64:
+                    case SpecialType.System_IntPtr:
+                    case SpecialType.System_UIntPtr:
+                    case SpecialType.System_SByte:
+                    case SpecialType.System_Single:
+                        return true;
+                    default:
+                        return false;
+                }
             }
         }
     }
