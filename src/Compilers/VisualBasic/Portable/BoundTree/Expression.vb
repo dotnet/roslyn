@@ -251,11 +251,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IInvocationKind As InvocationKind Implements IInvocation.InvocationKind
             Get
-                If Me.Method.IsShared Then
+                Dim method As IMethodSymbol = Me.Method
+
+                If method.IsStatic Then
                     Return InvocationKind.Static
                 End If
 
-                If Me.Method.IsOverridable AndAlso Me.ReceiverOpt.Kind <> BoundKind.MyBaseReference AndAlso Me.ReceiverOpt.Kind <> BoundKind.MyClassReference Then
+                If (method.IsVirtual OrElse method.IsAbstract OrElse method.IsOverride) AndAlso Me.ReceiverOpt.Kind <> BoundKind.MyBaseReference AndAlso Me.ReceiverOpt.Kind <> BoundKind.MyClassReference Then
                     Return InvocationKind.Virtual
                 End If
 

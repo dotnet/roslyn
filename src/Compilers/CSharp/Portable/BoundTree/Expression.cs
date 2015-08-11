@@ -67,12 +67,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (this.Method.IsStatic)
+                IMethodSymbol method = this.Method;
+
+                if (method.IsStatic)
                 {
                     return InvocationKind.Static;
                 }
 
-                if (this.Method.IsVirtual && !this.ReceiverOpt.SuppressVirtualCalls)
+                if ((method.IsVirtual || method.IsAbstract || method.IsOverride) && !this.ReceiverOpt.SuppressVirtualCalls)
                 {
                     return InvocationKind.Virtual;
                 }
