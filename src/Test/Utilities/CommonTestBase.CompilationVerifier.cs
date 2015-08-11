@@ -1,6 +1,4 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-extern alias PDB;
-
 
 using System;
 using System.Collections.Generic;
@@ -16,7 +14,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.DiaSymReader;
-using PDB::Roslyn.Test.PdbUtilities;
+using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -273,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                  PdbToXmlOptions.ExcludeScopes,
                         methodName: sequencePoints);
 
-                    markers = GetMarkers(actualPdbXml);
+                    markers = PdbValidation.GetMarkers(actualPdbXml);
                 }
 
                 if (!realIL)

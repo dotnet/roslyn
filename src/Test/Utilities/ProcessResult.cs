@@ -3,7 +3,7 @@
 using System;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities
+namespace Roslyn.Test.Utilities
 {
     /// <summary>
     /// Encapsulates exit code and output/error streams of a process.

@@ -79,11 +79,15 @@
     <Reference Include="xunit">
       <HintPath>..\..\..\..\packages\xunit.1.9.2\lib\net20\xunit.dll</HintPath>
     </Reference>
+    <Reference Include="System.Collections.Immutable" >
+      <HintPath>..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApiDesign\DeclarePublicAPIAnalyzerTests.cs" />
     <Compile Include="ApiDesign\CancellationTokenMustBeLastTests.cs" />
     <Compile Include="Performance\EmptyArrayDiagnosticAnalyzerTests.cs" />
     <Compile Include="Performance\EquatableAnalyzerTests.cs" />

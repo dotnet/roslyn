@@ -22,6 +22,10 @@
     <Reference Include="..\..\..\packages\Moq.4.2.1402.2112\lib\net40\Moq.dll" />
   </ItemGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\Compilers\Test\Utilities\Core2\CompilerTestUtilities2.csproj">
+      <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
+      <Name>CompilerTestUtilities2</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\InteractiveWindow\Editor\InteractiveWindow.csproj">
       <Project>{01E9BD68-0339-4A13-B42F-A3CA84D164F3}</Project>
       <Name>InteractiveWindow</Name>

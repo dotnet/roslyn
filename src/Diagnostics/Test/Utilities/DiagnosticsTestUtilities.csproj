@@ -26,6 +26,10 @@
       <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
       <Name>CSharpCodeAnalysis</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\Compilers\Test\Utilities\Core2\CompilerTestUtilities2.csproj">
+      <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
+      <Name>CompilerTestUtilities2</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
       <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
       <Name>BasicCodeAnalysis</Name>
@@ -87,4 +91,4 @@
     <Import Project="..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
- </Project>
+</Project>

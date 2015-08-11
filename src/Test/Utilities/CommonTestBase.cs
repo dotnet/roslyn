@@ -13,7 +13,6 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -167,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal CompilationVerifier CompileAndVerifyFieldMarshal(string source, Func<string, PEAssembly, byte[]> getExpectedBlob, bool isField = true)
         {
-            return CompileAndVerify(source, options: CompilationOptionsReleaseDll, assemblyValidator: (assembly) => MarshalAsMetadataValidator(assembly, getExpectedBlob, isField));
+            return CompileAndVerify(source, options: CompilationOptionsReleaseDll, assemblyValidator: (assembly) => MetadataValidation.MarshalAsMetadataValidator(assembly, getExpectedBlob, isField));
         }
 
         static internal void RunValidators(CompilationVerifier verifier, Action<PEAssembly> assemblyValidator, Action<IModuleSymbol> symbolValidator)
@@ -230,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             string assemblyPath;
             string pdbPath;
-            SharedCompilationUtils.IlasmTempAssembly(ilSource, appendDefaultHeader, includePdb, out assemblyPath, out pdbPath);
+            IlasmUtilities.IlasmTempAssembly(ilSource, appendDefaultHeader, includePdb, out assemblyPath, out pdbPath);
 
             Assert.NotNull(assemblyPath);
             Assert.Equal(pdbPath != null, includePdb);
@@ -523,6 +522,38 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 minorSubsystemVersion: 0,
                 linkerMajorVersion: 0,
                 linkerMinorVersion: 0);
+        }
+
+        #endregion
+
+        #region Metadata Validation
+
+        /// <summary>
+        /// Creates instance of SignatureDescription for a specified member
+        /// </summary>
+        /// <param name="fullyQualifiedTypeName">
+        /// Fully qualified type name for member
+        /// Names must be in format recognized by reflection
+        /// e.g. MyType{T}.MyNestedType{T, U} => MyType`1+MyNestedType`2
+        /// </param>
+        /// <param name="memberName">
+        /// Name of member on specified type whose signature needs to be verified
+        /// Names must be in format recognized by reflection
+        /// e.g. For explicitly implemented member - I1{string}.Method => I1{System.String}.Method
+        /// </param>
+        /// <param name="expectedSignature">
+        /// Baseline string for signature of specified member
+        /// Skip this argument to get an error message that shows all available signatures for specified member
+        /// </param>
+        /// <returns>Instance of SignatureDescription for specified member</returns>
+        internal static SignatureDescription Signature(string fullyQualifiedTypeName, string memberName, string expectedSignature = "")
+        {
+            return new SignatureDescription()
+            {
+                FullyQualifiedTypeName = fullyQualifiedTypeName,
+                MemberName = memberName,
+                ExpectedSignature = expectedSignature
+            };
         }
 
         #endregion

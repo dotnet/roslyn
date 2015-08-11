@@ -225,15 +225,15 @@ End Module
 
             Assert.True(result.Success)
 
-            Dim assembly As Reflection.Assembly = Reflection.Assembly.ReflectionOnlyLoad(output.ToArray())
+            Dim assembly As Assembly = Assembly.ReflectionOnlyLoad(output.ToArray())
 
             Dim resourceNames As String() = assembly.GetManifestResourceNames()
             Assert.Equal(2, resourceNames.Length)
 
-            Dim rInfo As Reflection.ManifestResourceInfo = assembly.GetManifestResourceInfo(r1Name)
-            Assert.Equal(Reflection.ResourceLocation.Embedded Or Reflection.ResourceLocation.ContainedInManifestFile, rInfo.ResourceLocation)
+            Dim rInfo As ManifestResourceInfo = assembly.GetManifestResourceInfo(r1Name)
+            Assert.Equal(ResourceLocation.Embedded Or ResourceLocation.ContainedInManifestFile, rInfo.ResourceLocation)
 
-            Dim rData As IO.Stream = assembly.GetManifestResourceStream(r1Name)
+            Dim rData As Stream = assembly.GetManifestResourceStream(r1Name)
             Dim rBytes(CInt(rData.Length - 1)) As Byte
             rData.Read(rBytes, 0, CInt(rData.Length))
             Assert.Equal(arrayOfEmbeddedData, rBytes)
