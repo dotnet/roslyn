@@ -1,227 +1,117 @@
-﻿using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Semantics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     partial class BoundStatement : IStatement
     {
-        OperationKind IOperation.Kind
-        {
-            get { return this.StatementKind; }
-        }
+        OperationKind IOperation.Kind => this.StatementKind;
 
-        SyntaxNode IOperation.Syntax
-        {
-            get { return this.Syntax; }
-        }
+        SyntaxNode IOperation.Syntax => this.Syntax;
 
         protected abstract OperationKind StatementKind { get; }
     }
 
     partial class BoundBlock : IBlock
     {
-        ImmutableArray<IStatement> IBlock.Statements
-        {
-            get { return this.Statements.As<IStatement>(); }
-        }
+        ImmutableArray<IStatement> IBlock.Statements => this.Statements.As<IStatement>();
 
-        ImmutableArray<ILocalSymbol> IBlock.Locals
-        {
-            get { return this.Locals.As<ILocalSymbol>(); }
-        }
+        ImmutableArray<ILocalSymbol> IBlock.Locals => this.Locals.As<ILocalSymbol>();
 
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.BlockStatement; }
-        }
+        protected override OperationKind StatementKind => OperationKind.BlockStatement;
     }
 
     partial class BoundContinueStatement : IBranch
     {
-        ILabelSymbol IBranch.Target
-        {
-            get { return this.Label; }
-        }
+        ILabelSymbol IBranch.Target => this.Label;
 
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.ContinueStatement; }
-        }
+        protected override OperationKind StatementKind => OperationKind.ContinueStatement;
     }
 
     partial class BoundBreakStatement : IBranch
     {
-        ILabelSymbol IBranch.Target
-        {
-            get { return this.Label; }
-        }
+        ILabelSymbol IBranch.Target => this.Label;
 
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.BreakStatement; }
-        }
+        protected override OperationKind StatementKind => OperationKind.BreakStatement;
     }
 
     partial class BoundYieldBreakStatement
     {
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.YieldBreakStatement; }
-        }
+        protected override OperationKind StatementKind => OperationKind.YieldBreakStatement;
     }
 
     partial class BoundGotoStatement : IBranch
     {
-        ILabelSymbol IBranch.Target
-        {
-            get { return this.Label; }
-        }
+        ILabelSymbol IBranch.Target => this.Label;
 
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.GoToStatement; }
-        }
+        protected override OperationKind StatementKind => OperationKind.GoToStatement;
     }
 
     partial class BoundNoOpStatement
     {
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.EmptyStatement; }
-        }
+        protected override OperationKind StatementKind => OperationKind.EmptyStatement;
     }
 
     partial class BoundIfStatement : IIf, IIfClause
     {
-        ImmutableArray<IIfClause> IIf.IfClauses
-        {
-            get { return ImmutableArray.Create<IIfClause>(this); }
-        }
+        ImmutableArray<IIfClause> IIf.IfClauses => ImmutableArray.Create<IIfClause>(this);
 
-        IStatement IIf.Else
-        {
-            get { return this.AlternativeOpt; }
-        }
+        IStatement IIf.Else => this.AlternativeOpt;
 
-        IExpression IIfClause.Condition
-        {
-            get { return this.Condition; }
-        }
+        IExpression IIfClause.Condition => this.Condition;
 
-        IStatement IIfClause.Body
-        {
-            get { return this.Consequence; }
-        }
+        IStatement IIfClause.Body => this.Consequence;
 
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.IfStatement; }
-        }
+        protected override OperationKind StatementKind => OperationKind.IfStatement;
     }
 
     partial class BoundWhileStatement : IWhileUntil
     {
-        bool IWhileUntil.IsTopTest
-        {
-            get { return true; }
-        }
+        bool IWhileUntil.IsTopTest => true;
 
-        bool IWhileUntil.IsWhile
-        {
-            get { return true; }
-        }
+        bool IWhileUntil.IsWhile => true;
 
-        IExpression IForWhileUntil.Condition
-        {
-            get { return this.Condition; }
-        }
+        IExpression IForWhileUntil.Condition => this.Condition;
 
-        LoopKind ILoop.LoopKind
-        {
-            get { return LoopKind.WhileUntil; }
-        }
+        LoopKind ILoop.LoopKind => LoopKind.WhileUntil;
 
-        IStatement ILoop.Body
-        {
-            get { return this.Body; }
-        }
+        IStatement ILoop.Body => this.Body;
 
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.LoopStatement; }
-        }
+        protected override OperationKind StatementKind => OperationKind.LoopStatement;
     }
 
     partial class BoundDoStatement : IWhileUntil
     {
-        bool IWhileUntil.IsTopTest
-        {
-            get { return false; }
-        }
+        bool IWhileUntil.IsTopTest => false;
 
-        bool IWhileUntil.IsWhile
-        {
-            get { return true; }
-        }
+        bool IWhileUntil.IsWhile => true;
 
-        IExpression IForWhileUntil.Condition
-        {
-            get { return this.Condition; }
-        }
+        IExpression IForWhileUntil.Condition => this.Condition;
 
-        LoopKind ILoop.LoopKind
-        {
-            get { return LoopKind.WhileUntil; }
-        }
+        LoopKind ILoop.LoopKind => LoopKind.WhileUntil;
 
-        IStatement ILoop.Body
-        {
-            get { return this.Body; }
-        }
+        IStatement ILoop.Body => this.Body;
 
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.LoopStatement; }
-        }
+        protected override OperationKind StatementKind => OperationKind.LoopStatement;
     }
 
     partial class BoundForStatement : IFor
     {
-        ImmutableArray<IStatement> IFor.Before
-        {
-            get { return ToStatements(this.Initializer); }
-        }
+        ImmutableArray<IStatement> IFor.Before => ToStatements(this.Initializer);
 
-        ImmutableArray<IStatement> IFor.AtLoopBottom
-        {
-            get { return ToStatements(this.Increment); }
-        }
+        ImmutableArray<IStatement> IFor.AtLoopBottom => ToStatements(this.Increment);
 
-        ImmutableArray<ILocalSymbol> IFor.Locals
-        {
-            get { return this.OuterLocals.As<ILocalSymbol>(); }
-        }
+        ImmutableArray<ILocalSymbol> IFor.Locals => this.OuterLocals.As<ILocalSymbol>();
 
-        IExpression IForWhileUntil.Condition
-        {
-            get { return this.Condition; }
-        }
+        IExpression IForWhileUntil.Condition => this.Condition;
 
-        LoopKind ILoop.LoopKind
-        {
-            get { return LoopKind.For; }
-        }
+        LoopKind ILoop.LoopKind => LoopKind.For;
 
-        IStatement ILoop.Body
-        {
-            get { return this.Body; }
-        }
+        IStatement ILoop.Body => this.Body;
 
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.LoopStatement; }
-        }
+        protected override OperationKind StatementKind => OperationKind.LoopStatement;
 
         ImmutableArray<IStatement> ToStatements(BoundStatement statement)
         {
@@ -241,69 +131,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundForEachStatement : IForEach
     {
-        ILocalSymbol IForEach.IterationVariable
-        {
-            get { return this.IterationVariable; }
-        }
+        ILocalSymbol IForEach.IterationVariable => this.IterationVariable;
 
-        IExpression IForEach.Collection
-        {
-            get { return this.Expression; }
-        }
+        IExpression IForEach.Collection => this.Expression;
 
-        LoopKind ILoop.LoopKind
-        {
-            get { return LoopKind.ForEach; }
-        }
+        LoopKind ILoop.LoopKind => LoopKind.ForEach;
 
-        IStatement ILoop.Body
-        {
-            get { return this.Body; }
-        }
+        IStatement ILoop.Body => this.Body;
 
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.LoopStatement; }
-        }
+        protected override OperationKind StatementKind => OperationKind.LoopStatement;
     }
 
     partial class BoundSwitchStatement: ISwitch
     {
-        IExpression ISwitch.Value
-        {
-            get { return this.BoundExpression; }
-        }
+        IExpression ISwitch.Value => this.BoundExpression;
 
-        ImmutableArray<ICase> ISwitch.Cases
-        {
-            get { return this.SwitchSections.As<ICase>(); }
-        }
+        ImmutableArray<ICase> ISwitch.Cases => this.SwitchSections.As<ICase>();
 
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.SwitchStatement; }
-        }
+        protected override OperationKind StatementKind => OperationKind.SwitchStatement;
     }
 
     partial class BoundSwitchSection : ICase
     {
-        ImmutableArray<ICaseClause> ICase.Clauses
-        {
-            get { return this.BoundSwitchLabels.As<ICaseClause>(); }
-        }
+        ImmutableArray<ICaseClause> ICase.Clauses => this.BoundSwitchLabels.As<ICaseClause>();
 
-        ImmutableArray<IStatement> ICase.Body
-        {
-            get { return this.Statements.As<IStatement>(); }
-        }
+        ImmutableArray<IStatement> ICase.Body => this.Statements.As<IStatement>();
     }
 
     partial class BoundSwitchLabel : ISingleValueCaseClause
     {
-        IExpression ISingleValueCaseClause.Value
-        {
-            get { return this.ExpressionOpt; }
-        }
+        IExpression ISingleValueCaseClause.Value => this.ExpressionOpt;
 
         RelationalOperationKind ISingleValueCaseClause.Equality
         {
@@ -342,292 +199,154 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        CaseKind ICaseClause.CaseKind
-        {
-            get { return this.ExpressionOpt != null ? CaseKind.SingleValue : CaseKind.Default; }
-        }
+        CaseKind ICaseClause.CaseKind => this.ExpressionOpt != null ? CaseKind.SingleValue : CaseKind.Default;
     }
 
     partial class BoundTryStatement : ITry
     {
-        IBlock ITry.Body
-        {
-            get { return this.TryBlock; }
-        }
+        IBlock ITry.Body => this.TryBlock;
 
-        ImmutableArray<ICatch> ITry.Catches
-        {
-            get { return this.CatchBlocks.As<ICatch>(); }
-        }
+        ImmutableArray<ICatch> ITry.Catches => this.CatchBlocks.As<ICatch>();
 
-        IBlock ITry.FinallyHandler
-        {
-            get { return this.FinallyBlockOpt; }
-        }
+        IBlock ITry.FinallyHandler => this.FinallyBlockOpt;
 
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.TryStatement; }
-        }
+        protected override OperationKind StatementKind => OperationKind.TryStatement;
     }
 
     partial class BoundCatchBlock : ICatch
     {
-        IBlock ICatch.Handler
-        {
-            get { return this.Body; }
-        }
+        IBlock ICatch.Handler => this.Body;
 
-        ITypeSymbol ICatch.CaughtType
-        {
-            get { return this.ExceptionTypeOpt; }
-        }
+        ITypeSymbol ICatch.CaughtType => this.ExceptionTypeOpt;
 
-        IExpression ICatch.Filter
-        {
-            get { return this.ExceptionFilterOpt; }
-        }
+        IExpression ICatch.Filter => this.ExceptionFilterOpt;
 
-        ILocalSymbol ICatch.ExceptionLocal
-        {
-            get { return this.LocalOpt; }
-        }
+        ILocalSymbol ICatch.ExceptionLocal => this.LocalOpt;
 
-        OperationKind IOperation.Kind
-        {
-            get { return OperationKind.CatchHandler; }
-        }
+        OperationKind IOperation.Kind => OperationKind.CatchHandler;
 
-        SyntaxNode IOperation.Syntax
-        {
-            get { return this.Syntax; }
-        }
+        SyntaxNode IOperation.Syntax => this.Syntax;
     }
 
     partial class BoundFixedStatement : IFixed
     {
-        IVariableDeclaration IFixed.Variables
-        {
-            get { return this.Declarations; }
-        }
+        IVariableDeclaration IFixed.Variables => this.Declarations;
 
-        IStatement IFixed.Body
-        {
-            get { return this.Body; }
-        }
+        IStatement IFixed.Body => this.Body;
 
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.FixedStatement; }
-        }
+        protected override OperationKind StatementKind => OperationKind.FixedStatement;
     }
 
     partial class BoundUsingStatement: IUsingWithDeclaration, IUsingWithExpression
     {
-        IVariableDeclaration IUsingWithDeclaration.Variables
-        {
-            get { return this.DeclarationsOpt; }
-        }
+        IVariableDeclaration IUsingWithDeclaration.Variables => this.DeclarationsOpt;
 
-        IExpression IUsingWithExpression.Value
-        {
-            get { return this.ExpressionOpt; }
-        }
+        IExpression IUsingWithExpression.Value => this.ExpressionOpt;
 
-        IStatement IUsing.Body
-        {
-            get { return this.Body; }
-        }
+        IStatement IUsing.Body => this.Body;
 
-        protected override OperationKind StatementKind
-        {
-            get { return this.ExpressionOpt != null ? OperationKind.UsingWithExpressionStatement : OperationKind.UsingWithDeclarationStatement; }
-        }
+        protected override OperationKind StatementKind => this.ExpressionOpt != null ? OperationKind.UsingWithExpressionStatement : OperationKind.UsingWithDeclarationStatement;
     }
 
     partial class BoundThrowStatement : IThrow
     {
-        IExpression IThrow.Thrown
-        {
-            get { return this.ExpressionOpt; }
-        }
+        IExpression IThrow.Thrown => this.ExpressionOpt;
 
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.ThrowStatement; }
-        }
+        protected override OperationKind StatementKind => OperationKind.ThrowStatement;
     }
 
     partial class BoundReturnStatement : IReturn
     {
-        IExpression IReturn.Returned
-        {
-            get { return this.ExpressionOpt; }
-        }
+        IExpression IReturn.Returned => this.ExpressionOpt;
 
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.ReturnStatement; }
-        }
+        protected override OperationKind StatementKind => OperationKind.ReturnStatement;
     }
 
     partial class BoundYieldReturnStatement : IReturn
     {
-        IExpression IReturn.Returned
-        {
-            get { return this.Expression; }
-        }
+        IExpression IReturn.Returned => this.Expression;
 
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.YieldReturnStatement; }
-        }
+        protected override OperationKind StatementKind => OperationKind.YieldReturnStatement;
     }
 
     partial class BoundLockStatement : ILock
     {
-        IExpression ILock.Locked
-        {
-            get { return this.Argument; }
-        }
+        IExpression ILock.Locked => this.Argument;
 
-        IStatement ILock.Body
-        {
-            get { return this.Body; }
-        }
+        IStatement ILock.Body => this.Body;
 
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.LockStatement; }
-        }
+        protected override OperationKind StatementKind => OperationKind.LockStatement;
     }
 
     partial class BoundBadStatement
     {
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.None; }
-        }
+        protected override OperationKind StatementKind => OperationKind.None;
     }
 
     partial class BoundStatementList
     {
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.None; }
-        }
+        protected override OperationKind StatementKind => OperationKind.None;
     }
 
     partial class BoundConditionalGoto
     {
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.None; }
-        }
+        protected override OperationKind StatementKind => OperationKind.None;
     }
 
     partial class BoundSequencePoint
     {
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.None; }
-        }
+        protected override OperationKind StatementKind => OperationKind.None;
     }
 
     partial class BoundSequencePointWithSpan
     {
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.None; }
-        }
+        protected override OperationKind StatementKind => OperationKind.None;
     }
 
     partial class BoundStateMachineScope
     {
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.None; }
-        }
+        protected override OperationKind StatementKind => OperationKind.None;
     }
 
     partial class BoundLocalDeclaration : IVariableDeclaration, IVariable
     {
-        ImmutableArray<IVariable> IVariableDeclaration.Variables
-        {
-            get { return ImmutableArray.Create<IVariable>(this); }
-        }
+        ImmutableArray<IVariable> IVariableDeclaration.Variables => ImmutableArray.Create<IVariable>(this);
 
-        ILocalSymbol IVariable.Variable
-        {
-            get { return this.LocalSymbol; }
-        }
+        ILocalSymbol IVariable.Variable => this.LocalSymbol;
 
-        IExpression IVariable.InitialValue
-        {
-            get { return this.InitializerOpt; }
-        }
+        IExpression IVariable.InitialValue => this.InitializerOpt;
 
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.VariableDeclarationStatement; }
-        }
+        protected override OperationKind StatementKind => OperationKind.VariableDeclarationStatement;
     }
 
     partial class BoundMultipleLocalDeclarations : IVariableDeclaration
     {
-        ImmutableArray<IVariable> IVariableDeclaration.Variables
-        {
-            get { return this.LocalDeclarations.As<IVariable>(); }
-        }
+        ImmutableArray<IVariable> IVariableDeclaration.Variables => this.LocalDeclarations.As<IVariable>();
 
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.VariableDeclarationStatement; }
-        }
+        protected override OperationKind StatementKind => OperationKind.VariableDeclarationStatement;
     }
 
     partial class BoundLabelStatement : ILabel
     {
-        ILabelSymbol ILabel.Label
-        {
-            get { return this.Label; }
-        }
+        ILabelSymbol ILabel.Label => this.Label;
 
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.LabelStatement; }
-        }
+        protected override OperationKind StatementKind => OperationKind.LabelStatement;
     }
 
     partial class BoundLabeledStatement : ILabeled
     {
-        IStatement ILabeled.Labeled
-        {
-            get { return this.Body; }
-        }
+        IStatement ILabeled.Labeled => this.Body;
 
-        ILabelSymbol ILabel.Label
-        {
-            get { return this.Label; }
-        }
+        ILabelSymbol ILabel.Label => this.Label;
 
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.LabeledStatement; }
-        }
+        protected override OperationKind StatementKind => OperationKind.LabeledStatement;
     }
 
     partial class BoundExpressionStatement:IExpressionStatement
     {
-        IExpression IExpressionStatement.Expression
-        {
-            get { return this.Expression; }
-        }
+        IExpression IExpressionStatement.Expression => this.Expression;
 
-        protected override OperationKind StatementKind
-        {
-            get { return OperationKind.ExpressionStatement; }
-        }
+        protected override OperationKind StatementKind => OperationKind.ExpressionStatement;
     }
 
 }
