@@ -64,7 +64,7 @@ class C
 @"class C
 {
     //$$
-    int M<@T>(int @foo) { return 0; }
+    int M<@int>(int @foo) { return 0; }
 }";
 
             var expected =
@@ -73,10 +73,10 @@ class C
     /// <summary>
     /// $$
     /// </summary>
-    /// <typeparam name=""T""></typeparam>
+    /// <typeparam name=""int""></typeparam>
     /// <param name=""foo""></param>
     /// <returns></returns>
-    int M<@T>(int @foo) { return 0; }
+    int M<@int>(int @foo) { return 0; }
 }";
 
             VerifyTypingCharacter(code, expected);
@@ -197,7 +197,7 @@ class C
 @"class C
 {
     //$$
-    void M<@T>(int @foo) {  }
+    void M<@T>(int @int) {  }
 }";
 
             var expected =
@@ -207,8 +207,8 @@ class C
     /// $$
     /// </summary>
     /// <typeparam name=""T""></typeparam>
-    /// <param name=""foo""></param>
-    void M<@T>(int @foo) {  }
+    /// <param name=""int""></param>
+    void M<@T>(int @int) {  }
 }";
 
             VerifyTypingCharacter(code, expected);
