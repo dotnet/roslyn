@@ -120,6 +120,7 @@
     <Compile Include="Semantics\OverloadResolutionTests.cs" />
     <Compile Include="Semantics\PropertyAccessTests.cs" />
     <Compile Include="Semantics\QueryTests.cs" />
+    <Compile Include="Semantics\ScriptSemanticsTests.cs" />
     <Compile Include="Semantics\SemanticAnalyzerTests.cs" />
     <Compile Include="Semantics\SemanticErrorTests.cs" />
     <Compile Include="Semantics\StructsTests.cs" />

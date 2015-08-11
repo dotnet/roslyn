@@ -546,7 +546,7 @@ End Class
 System.Console.WriteLine(1)
 </text>
             Dim compilation = CreateCompilationWithMscorlib(
-                {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseExe, references:=LatestReferences)
+                {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseExe, references:=LatestVbReferences)
 
             CompileAndVerify(compilation, expectedOutput:="1")
         End Sub
@@ -566,7 +566,7 @@ End Class
 </text>
             Dim compilation = CreateCompilationWithMscorlib(
                 {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script),
-                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=VisualBasicParseOptions.Default)}, options:=TestOptions.ReleaseExe, references:=LatestReferences)
+                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=VisualBasicParseOptions.Default)}, options:=TestOptions.ReleaseExe, references:=LatestVbReferences)
 
             ' TODO: compilation.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("C.Main()"))
             CompileAndVerify(compilation, expectedOutput:="1")
@@ -593,7 +593,7 @@ End Class
 </text>
             Dim compilation = CreateCompilationWithMscorlib(
                 {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script),
-                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=VisualBasicParseOptions.Default)}, options:=TestOptions.ReleaseExe, references:=LatestReferences)
+                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=VisualBasicParseOptions.Default)}, options:=TestOptions.ReleaseExe, references:=LatestVbReferences)
 
             ' TODO: compilation.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("C.Main()"), Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("D.Main()"))
             CompileAndVerify(compilation, expectedOutput:="1")

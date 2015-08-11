@@ -135,7 +135,6 @@
     <Compile Include="TraceListener.cs" />
     <Compile Include="Traits.cs" />
     <Compile Include="Win32Res.cs" />
-    <Compile Include="WorkItemAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="TestResource.resx">
