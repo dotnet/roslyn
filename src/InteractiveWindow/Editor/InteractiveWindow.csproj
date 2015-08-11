@@ -87,6 +87,7 @@
     <Compile Include="IInteractiveWindowFactoryService.cs" />
     <Compile Include="Commands\InteractiveCommandsFactory.cs" />
     <Compile Include="IInteractiveWindowOperations.cs" />
+    <Compile Include="IInteractiveWindowOperations2.cs" />
     <Compile Include="InteractiveWindow_UIThread.cs" />
     <Compile Include="PredefinedInteractiveContentTypes.cs" />
     <Compile Include="InteractiveContentTypeDefinitions.cs" />

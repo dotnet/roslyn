@@ -31,8 +31,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             this.LineNumber = lineNumber;
         }
 
-        public string InertValue => (string)Span;
-
         public CustomTrackingSpan TrackingSpan => (CustomTrackingSpan)Span;
 
         public ReplSpan WithEndTrackingMode(PointTrackingMode endTrackingMode)
@@ -49,7 +47,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             get
             {
-                return Span is string ? InertValue.Length : TrackingSpan.GetSpan(TrackingSpan.TextBuffer.CurrentSnapshot).Length;
+                var value = Span as string;
+                return (value != null) ? value.Length : TrackingSpan.GetSpan(TrackingSpan.TextBuffer.CurrentSnapshot).Length;
             }
         }
 
