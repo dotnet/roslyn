@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Collections;
 using System.Diagnostics;
 using System.IO;
@@ -77,6 +78,17 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests
 
             str = CSharpObjectFormatter.Instance.FormatObject(obj, s_inline);
             Assert.Equal("SortedList(1) { { int[1] { 3 }, int[1] { 4 } } }", str);
+        }
+
+        [Fact]
+        public void DebuggerProxy_FrameworkTypes_IEnumerable()
+        {
+            string str;
+            object obj;
+
+            obj = Enumerable.Range(0, 10);
+            str = CSharpObjectFormatter.Instance.FormatObject(obj, s_inline);
+            Assert.Equal("RangeIterator { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }", str);
         }
 
         // TODO: move to portable

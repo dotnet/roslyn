@@ -417,17 +417,6 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests
         }
 
         [Fact]
-        public void DebuggerProxy_FrameworkTypes_IEnumerable()
-        {
-            string str;
-            object obj;
-
-            obj = Enumerable.Range(0, 10);
-            str = CSharpObjectFormatter.Instance.FormatObject(obj, s_inline);
-            Assert.Equal("RangeIterator { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }", str);
-        }
-
-        [Fact]
         public void DebuggerProxy_FrameworkTypes_IEnumerable_Exception()
         {
             string str;
