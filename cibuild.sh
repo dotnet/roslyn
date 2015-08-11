@@ -189,7 +189,7 @@ set_mono_path()
     fi
 
     if [ "$OS_NAME" = "Darwin" ]; then
-        MONO_TOOLSET_NAME=mono.mac.1
+        MONO_TOOLSET_NAME=mono.mac.2
     elif [ "$OS_NAME" = "Linux" ]; then
         MONO_TOOLSET_NAME=mono.linux.2
     else
