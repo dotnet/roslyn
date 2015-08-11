@@ -646,7 +646,8 @@ public class A
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
 
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, requestor.Assembly.Identity.PublicKey));
-            requestor.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FriendRefSigningMismatch, null, new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" }));
+            requestor.VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_FriendRefSigningMismatch, arguments: new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" }));
         }
 
         [Fact]
@@ -674,7 +675,7 @@ public class A
               options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
 
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, requestor.Assembly.Identity.PublicKey));
-            requestor.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, null, new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2" }));
+            requestor.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, arguments: new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2" }));
         }
 
         [Fact]
@@ -730,7 +731,7 @@ public class A
                 assemblyName: "John");
 
             Assert.False(((IAssemblySymbol)other.Assembly).GivesAccessTo(requestor.Assembly));
-            requestor.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, null, new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2" }));
+            requestor.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, arguments: new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2" }));
         }
 
         [WorkItem(820450, "DevDiv")]

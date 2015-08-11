@@ -419,7 +419,7 @@ End Module
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
-                                           AnalyzerDiagnostic("XX001", <![CDATA[Public Module ThisModule]]>))
+                                           Diagnostic("XX001", <![CDATA[Public Module ThisModule]]>))
         End Sub
 
         Public Class MockSymbolAnalyzer
@@ -465,7 +465,7 @@ End Class
 
             compilation.VerifyDiagnostics()
             compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
-                                           AnalyzerDiagnostic("XX001", <![CDATA[C]]>))
+                                           Diagnostic("XX001", <![CDATA[C]]>))
         End Sub
 
         Public Class NamespaceAndTypeNodeAnalyzer
@@ -515,8 +515,8 @@ End Namespace
 
             compilation.VerifyDiagnostics()
             compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
-                                           AnalyzerDiagnostic("XX001", <![CDATA[N]]>),
-                                           AnalyzerDiagnostic("XX001", <![CDATA[C]]>))
+                                           Diagnostic("XX001", <![CDATA[N]]>),
+                                           Diagnostic("XX001", <![CDATA[C]]>))
         End Sub
 
         Private Class CodeBlockAnalyzer
@@ -581,7 +581,7 @@ End Class
                 options:=TestOptions.ReleaseDll)
 
             compilation.VerifyDiagnostics()
-            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False, AnalyzerDiagnostic("CodeBlockDiagnostic", <![CDATA[Public Sub Method()]]>))
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False, Diagnostic("CodeBlockDiagnostic", <![CDATA[Public Sub Method()]]>))
         End Sub
 
         <Fact, WorkItem(1096600)>
@@ -657,7 +657,7 @@ End Enum
 
             compilation.VerifyDiagnostics()
             compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
-                    AnalyzerDiagnostic("FieldSymbolDiagnostic", <![CDATA[X]]>))
+                    Diagnostic("FieldSymbolDiagnostic", <![CDATA[X]]>))
         End Sub
 
         <Fact, WorkItem(1111667)>
@@ -679,7 +679,7 @@ End Class
 
             compilation.VerifyDiagnostics()
             compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
-                    AnalyzerDiagnostic("FieldSymbolDiagnostic", <![CDATA[Field]]>))
+                    Diagnostic("FieldSymbolDiagnostic", <![CDATA[Field]]>))
         End Sub
 
         Public Class FieldDeclarationAnalyzer
@@ -725,10 +725,10 @@ End Class
 
             compilation.VerifyDiagnostics()
             compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
-                    AnalyzerDiagnostic("FieldDeclarationDiagnostic", <![CDATA[Dim x, y As Integer]]>),
-                    AnalyzerDiagnostic("FieldDeclarationDiagnostic", <![CDATA[Dim z As Integer]]>),
-                    AnalyzerDiagnostic("FieldDeclarationDiagnostic", <![CDATA[Dim x2 = 0, y2 = 0]]>),
-                    AnalyzerDiagnostic("FieldDeclarationDiagnostic", <![CDATA[Dim z2 = 0]]>))
+                    Diagnostic("FieldDeclarationDiagnostic", <![CDATA[Dim x, y As Integer]]>),
+                    Diagnostic("FieldDeclarationDiagnostic", <![CDATA[Dim z As Integer]]>),
+                    Diagnostic("FieldDeclarationDiagnostic", <![CDATA[Dim x2 = 0, y2 = 0]]>),
+                    Diagnostic("FieldDeclarationDiagnostic", <![CDATA[Dim z2 = 0]]>))
         End Sub
 
         <Fact, WorkItem(1473, "https://github.com/dotnet/roslyn/issues/1473")>
@@ -748,7 +748,7 @@ End Class
 
             compilation.VerifyDiagnostics()
             compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
-                    AnalyzerDiagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id))
+                    Diagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id))
 
             ' Verify not configurable enabled diagnostic cannot be suppressed.
             Dim specificDiagOptions = New Dictionary(Of String, ReportDiagnostic)
@@ -761,7 +761,7 @@ End Class
 
             compilation.VerifyDiagnostics()
             compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
-                    AnalyzerDiagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id))
+                    Diagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id))
 
 
             ' Verify not configurable disabled diagnostic cannot be enabled.
@@ -775,7 +775,7 @@ End Class
 
             compilation.VerifyDiagnostics()
             compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
-                    AnalyzerDiagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id))
+                    Diagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id))
         End Sub
 
         <Fact, WorkItem(1709, "https://github.com/dotnet/roslyn/issues/1709")>
@@ -796,8 +796,8 @@ End Class
 
             compilation.VerifyDiagnostics()
             compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
-                    AnalyzerDiagnostic(CodeBlockActionAnalyzer.CodeBlockTopLevelRule.Id, <![CDATA[M]]>).WithArguments("M"),
-                    AnalyzerDiagnostic(CodeBlockActionAnalyzer.CodeBlockPerCompilationRule.Id, <![CDATA[M]]>).WithArguments("M"))
+                    Diagnostic(CodeBlockActionAnalyzer.CodeBlockTopLevelRule.Id, <![CDATA[M]]>).WithArguments("M"),
+                    Diagnostic(CodeBlockActionAnalyzer.CodeBlockPerCompilationRule.Id, <![CDATA[M]]>).WithArguments("M"))
         End Sub
 
         <Fact, WorkItem(1709, "https://github.com/dotnet/roslyn/issues/1709")>
@@ -818,7 +818,7 @@ End Class
 
             compilation.VerifyDiagnostics()
             compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
-                    AnalyzerDiagnostic(CodeBlockActionAnalyzer.CodeBlockTopLevelRule.Id, <![CDATA[M]]>).WithArguments("M"))
+                    Diagnostic(CodeBlockActionAnalyzer.CodeBlockTopLevelRule.Id, <![CDATA[M]]>).WithArguments("M"))
         End Sub
 
         Private Shared Sub TestEffectiveSeverity(defaultSeverity As DiagnosticSeverity, expectedEffectiveSeverity As ReportDiagnostic, Optional specificOptions As Dictionary(Of String, ReportDiagnostic) = Nothing, Optional generalOption As ReportDiagnostic = ReportDiagnostic.Default, Optional isEnabledByDefault As Boolean = True)

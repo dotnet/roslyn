@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests
         public readonly int Foo;
     }
 
-    public class InteractiveSessionTests : CSharpTestBase
+    public class InteractiveSessionTests : TestBase
     {
         #region Namespaces, Types
 
@@ -2002,35 +2002,6 @@ new object[] { x, y, z }
             Assert.IsType<int[]>(result);
         }
 
-        [WorkItem(543890)]
-        [Fact]
-        public void ThisIndexerAccessInScript()
-        {
-            string test = @"
-this[1]
-";
-            var compilation = CreateCompilationWithMscorlib(test, parseOptions: TestOptions.Interactive);
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-
-            compilation.VerifyDiagnostics(
-                // (2,1): error CS0027: Keyword 'this' is not available in the current context
-                // this[1]
-                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this"));
-
-            var syntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ExpressionSyntax>().First();
-            Assert.Equal(SyntaxKind.ElementAccessExpression, syntax.Kind());
-
-            var summary = model.GetSemanticInfoSummary(syntax);
-            Assert.Null(summary.Symbol);
-            Assert.Equal(0, summary.CandidateSymbols.Length);
-            Assert.Equal(CandidateReason.None, summary.CandidateReason);
-            Assert.Equal(TypeKind.Error, summary.Type.TypeKind);
-            Assert.Equal(TypeKind.Error, summary.ConvertedType.TypeKind);
-            Assert.Equal(Conversion.Identity, summary.ImplicitConversion);
-            Assert.Equal(0, summary.MethodGroup.Length);
-        }
-
         [Fact]
         public void NoAwait()
         {
@@ -2103,19 +2074,6 @@ static T G<T>(T t, Func<T, Task<T>> f)
         #endregion
 
         #region References
-
-        [Fact]
-        public void Submission_TypeDisambiguationBasedUponAssemblyName()
-        {
-            var compilation = CreateCompilationWithMscorlib("namespace System { public struct Int32 { } }");
-
-            compilation.VerifyDiagnostics();
-
-            // TODO:
-            // Assert.Throws<NotSupportedException>(() => new ScriptEngine(references: new[] { new CompilationReference(compilation) }));
-            //int i = engine.Execute<int>(@"1+1");
-            //Assert.Equal(2, i);
-        }
 
         [Fact]
         public void SearchPaths1()
@@ -2938,36 +2896,6 @@ static int Baz = w;
                 Diagnostic(ErrorCode.ERR_NameNotInContextPossibleMissingReference, "X").
                 WithArguments("X", typeof(InteractiveFixtures_TopLevelHostObject).Assembly.FullName));
 #endif
-        }
-
-        [WorkItem(540875)]
-        [Fact]
-        public void MainInScript1()
-        {
-            var text = @"static void Main() { }";
-
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Script);
-
-            var compilation = CreateCompilationWithMscorlib(tree, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
-
-            compilation.VerifyDiagnostics(
-                // (1,13): warning CS7022: The entry point of the program is global script code; ignoring 'Main()' entry point.
-                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Main()"));
-        }
-
-        [WorkItem(540875)]
-        [Fact]
-        public void MainInScript2()
-        {
-            var text = @"static void Main() { }";
-
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Script);
-
-            var compilation = CreateCompilationWithMscorlib(tree, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
-
-            compilation.VerifyDiagnostics(
-                // (1,13): warning CS7022: The entry point of the program is global script code; ignoring 'Main()' entry point.
-                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Main()"));
         }
 
         #endregion

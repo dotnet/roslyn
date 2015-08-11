@@ -1,8 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.VisualBasic;
 
 namespace Roslyn.Test.Utilities
 {
@@ -44,6 +49,15 @@ namespace Roslyn.Test.Utilities
         }
 
         #region Metadata References
+
+        private static MetadataReference[] s_lazyDefaultVbReferences;
+        private static MetadataReference[] s_lazyLatestVbReferences;
+
+        public static MetadataReference[] DefaultVbReferences => s_lazyDefaultVbReferences ?? 
+            (s_lazyDefaultVbReferences = new[] { MscorlibRef, SystemRef, SystemCoreRef, MsvbRef });
+
+        public static MetadataReference[] LatestVbReferences = s_lazyLatestVbReferences ??
+            (s_lazyLatestVbReferences = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, MsvbRef_v4_0_30319_17929 });
 
         private static MetadataReference[] s_winRtRefs;
         private static MetadataReference[] s_portableRefsMinimal;
@@ -109,26 +123,17 @@ namespace Roslyn.Test.Utilities
         /// <summary>
         /// Reference to an assembly that defines Expression Trees.
         /// </summary>
-        public static MetadataReference ExpressionAssemblyRef
-        {
-            get { return SystemCoreRef; }
-        }
+        public static MetadataReference ExpressionAssemblyRef => SystemCoreRef;
 
         /// <summary>
         /// Reference to an assembly that defines LINQ operators.
         /// </summary>
-        public static MetadataReference LinqAssemblyRef
-        {
-            get { return SystemCoreRef; }
-        }
+        public static MetadataReference LinqAssemblyRef => SystemCoreRef;
 
         /// <summary>
         /// Reference to an assembly that defines ExtensionAttribute.
         /// </summary>
-        public static MetadataReference ExtensionAssemblyRef
-        {
-            get { return SystemCoreRef; }
-        }
+        public static MetadataReference ExtensionAssemblyRef => SystemCoreRef;
 
         private static MetadataReference s_systemCoreRef_v4_0_30319_17929;
         public static MetadataReference SystemCoreRef_v4_0_30319_17929
@@ -528,6 +533,58 @@ namespace Roslyn.Test.Utilities
         }
 
         public static MetadataReference InvalidRef = new TestMetadataReference(fullPath: @"R:\Invalid.dll");
+
+        #endregion
+
+        #region Diagnostics
+
+        internal static DiagnosticDescription Diagnostic(
+            object code, 
+            string squiggledText = null, 
+            object[] arguments = null,
+            LinePosition? startLocation = null, 
+            Func<SyntaxNode, bool> syntaxNodePredicate = null,
+            bool argumentOrderDoesNotMatter = false)
+        {
+            Debug.Assert(code is ErrorCode || code is ERRID || code is string);
+
+            return new DiagnosticDescription(
+                (code is ErrorCode || code is ERRID) ? (int)code : code, 
+                false,
+                squiggledText,
+                arguments, 
+                startLocation, 
+                syntaxNodePredicate, 
+                argumentOrderDoesNotMatter, 
+                code.GetType());
+        }
+
+        internal static DiagnosticDescription Diagnostic(
+           object code,
+           XCData squiggledText,
+           object[] arguments = null,
+           LinePosition? startLocation = null,
+           Func<SyntaxNode, bool> syntaxNodePredicate = null,
+           bool argumentOrderDoesNotMatter = false)
+        {
+            return Diagnostic(
+                code,
+                NormalizeDiagnosticString(squiggledText.Value), 
+                arguments, 
+                startLocation,
+                syntaxNodePredicate,
+                argumentOrderDoesNotMatter);
+        }
+
+        protected static string NormalizeDiagnosticString(string inputString)
+        {
+            if (!inputString.Contains("\r\n") && inputString.Contains("\n"))
+            {
+                return inputString.Replace("\n", "\r\n");
+            }
+            
+            return inputString;
+        }
 
         #endregion
     }

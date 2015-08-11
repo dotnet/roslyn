@@ -135,6 +135,7 @@
     <Compile Include="Assert\AssertEx.cs" />
     <Compile Include="Assert\AssertXml.cs" />
     <Compile Include="Assert\ConditionalFactAttribute.cs" />
+    <Compile Include="Assert\WorkItemAttribute.cs" />
     <Compile Include="Compilation\CompilationDifference.cs" />
     <Compile Include="Compilation\CompilationExtensions.cs" />
     <Compile Include="Compilation\CompilationTestDataExtensions.cs" />
