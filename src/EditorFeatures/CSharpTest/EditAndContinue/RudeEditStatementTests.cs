@@ -3650,7 +3650,7 @@ class C
 }
 ";
             MetadataReference delegateDefs;
-            using (var tempAssembly = SharedCompilationUtils.IlasmTempAssembly(delegateSource))
+            using (var tempAssembly = IlasmUtilities.CreateTempAssembly(delegateSource))
             {
                 delegateDefs = MetadataReference.CreateFromImage(File.ReadAllBytes(tempAssembly.Path));
             }

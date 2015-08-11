@@ -48,15 +48,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return null;
         }
 
-        public static bool IsRunningOnMono()
-        {
-            return Type.GetType("Mono.Runtime") != null;
-        }
-
         public static object GetRuntimeInterfaceAsObject(Guid clsid, Guid riid)
         {
             // This API isn't available on Mono hence we must use reflection to access it.  
-            Debug.Assert(!IsRunningOnMono());
+            Debug.Assert(!MonoHelpers.IsRunningOnMono());
 
             var getRuntimeInterfaceAsObject = typeof(RuntimeEnvironment).GetMethod("GetRuntimeInterfaceAsObject", BindingFlags.Public | BindingFlags.Static);
             return getRuntimeInterfaceAsObject.Invoke(null, new object[] { clsid, riid });
@@ -83,11 +78,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static string[] PeVerify(byte[] peImage, int domainId, string assemblyPath)
         {
-            if (IsRunningOnMono())
+            if (MonoHelpers.IsRunningOnMono())
             {
                 // PEverify is currently unsupported on Mono hence return an empty 
                 // set of messages
-                return new string[] { };
+                return new string[0];
             }
 
             lock (s_guard)
@@ -159,9 +154,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     formatString = ReplaceFormatItems(formatString, "%d", "");
                     if (psa == null)
                     {
-                        psa = new object[] { };
+                        psa = new object[0];
                     }
-                    message = String.Format(formatString, (object[])psa);
+
+                    message = string.Format(formatString, (object[])psa);
                 }
                 else
                 {

@@ -30,6 +30,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\Compilers\Test\Utilities\Core2\CompilerTestUtilities2.csproj">
+      <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
+      <Name>CompilerTestUtilities2</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
       <Name>Workspaces.Desktop</Name>

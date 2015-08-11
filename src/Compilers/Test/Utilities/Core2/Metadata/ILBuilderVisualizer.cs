@@ -1,7 +1,4 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-extern alias PDB;
-
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -9,7 +6,7 @@ using System.Reflection.Metadata;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
-using PDB::Roslyn.Test.MetadataUtilities;
+using Roslyn.Test.MetadataUtilities;
 using Roslyn.Utilities;
 using Cci = Microsoft.Cci;
 

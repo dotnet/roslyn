@@ -40,7 +40,8 @@
         <HintPath>..\..\..\packages\System.IO.FileSystem.Primitives.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.IO.FileSystem.Primitives.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="..\..\..\packages\System.IO.MemoryMappedFiles.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.IO.MemoryMappedFiles.dll">
+    <Reference Include="System.IO.MemoryMappedFiles">
+      <HintPath>..\..\..\packages\System.IO.MemoryMappedFiles.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.IO.MemoryMappedFiles.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>

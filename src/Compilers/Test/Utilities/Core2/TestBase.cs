@@ -1,28 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-extern alias PDB;
-
-
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Reflection.Metadata;
-using System.Reflection.Metadata.Ecma335;
-using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Xml;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using PDB::Roslyn.Test.PdbUtilities;
-using Roslyn.Utilities;
-using Xunit;
-using System.Reflection.PortableExecutable;
 
 namespace Roslyn.Test.Utilities
 {
@@ -32,6 +12,38 @@ namespace Roslyn.Test.Utilities
     public abstract class TestBase : IDisposable
     {
         private TempRoot _temp;
+
+        protected TestBase()
+        {
+        }
+
+        public static string GetUniqueName()
+        {
+            return Guid.NewGuid().ToString("D");
+        }
+
+        public TempRoot Temp
+        {
+            get
+            {
+                if (_temp == null)
+                {
+                    _temp = new TempRoot();
+                }
+
+                return _temp;
+            }
+        }
+
+        public virtual void Dispose()
+        {
+            if (_temp != null)
+            {
+                _temp.Dispose();
+            }
+        }
+
+        #region Metadata References
 
         private static MetadataReference[] s_winRtRefs;
         private static MetadataReference[] s_portableRefsMinimal;
@@ -93,16 +105,6 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        protected TestBase()
-        {
-        }
-
-        public static string GetUniqueName()
-        {
-            return Guid.NewGuid().ToString("D");
-        }
-
-        #region Metadata References
 
         /// <summary>
         /// Reference to an assembly that defines Expression Trees.
@@ -526,366 +528,6 @@ namespace Roslyn.Test.Utilities
         }
 
         public static MetadataReference InvalidRef = new TestMetadataReference(fullPath: @"R:\Invalid.dll");
-
-        #endregion
-
-        #region File System
-
-        public TempRoot Temp
-        {
-            get
-            {
-                if (_temp == null)
-                {
-                    _temp = new TempRoot();
-                }
-
-                return _temp;
-            }
-        }
-
-        public virtual void Dispose()
-        {
-            if (_temp != null)
-            {
-                _temp.Dispose();
-            }
-        }
-
-        #endregion
-
-        #region Execution
-
-        public static int Execute(System.Reflection.Assembly assembly, string[] args)
-        {
-            var parameters = assembly.EntryPoint.GetParameters();
-            object[] arguments;
-
-            if (parameters.Length == 0)
-            {
-                arguments = new object[0];
-            }
-            else if (parameters.Length == 1)
-            {
-                arguments = new object[] { args };
-            }
-            else
-            {
-                throw new InvalidOperationException("Invalid entry point");
-            }
-
-            if (assembly.EntryPoint.ReturnType == typeof(int))
-            {
-                return (int)assembly.EntryPoint.Invoke(null, arguments);
-            }
-            else if (assembly.EntryPoint.ReturnType == typeof(void))
-            {
-                assembly.EntryPoint.Invoke(null, arguments);
-                return 0;
-            }
-            else
-            {
-                throw new InvalidOperationException("Invalid entry point");
-            }
-        }
-
-        #endregion
-
-        #region Metadata Validation
-
-        /// <summary>
-        /// Returns the name of the attribute class 
-        /// </summary>
-        internal static string GetAttributeName(MetadataReader metadataReader, CustomAttributeHandle customAttribute)
-        {
-            var ctorHandle = metadataReader.GetCustomAttribute(customAttribute).Constructor;
-            if (ctorHandle.Kind == HandleKind.MemberReference) // MemberRef
-            {
-                var container = metadataReader.GetMemberReference((MemberReferenceHandle)ctorHandle).Parent;
-                var name = metadataReader.GetTypeReference((TypeReferenceHandle)container).Name;
-                return metadataReader.GetString(name);
-            }
-            else
-            {
-                Assert.True(false, "not impl");
-                return null;
-            }
-        }
-
-        internal static CustomAttributeHandle FindCustomAttribute(MetadataReader metadataReader, string attributeClassName)
-        {
-            foreach (var caHandle in metadataReader.CustomAttributes)
-            {
-                if (string.Equals(GetAttributeName(metadataReader, caHandle), attributeClassName, StringComparison.Ordinal))
-                {
-                    return caHandle;
-                }
-            }
-
-            return default(CustomAttributeHandle);
-        }
-
-        /// <summary>
-        /// Used to validate metadata blobs emitted for MarshalAs.
-        /// </summary>
-        internal static void MarshalAsMetadataValidator(PEAssembly assembly, Func<string, PEAssembly, byte[]> getExpectedBlob, bool isField = true)
-        {
-            var metadataReader = assembly.GetMetadataReader();
-
-            // no custom attributes should be emitted on parameters, fields or methods:
-            foreach (var ca in metadataReader.CustomAttributes)
-            {
-                Assert.NotEqual("MarshalAsAttribute", GetAttributeName(metadataReader, ca));
-            }
-
-            int expectedMarshalCount = 0;
-
-            if (isField)
-            {
-                // fields
-                foreach (var fieldDef in metadataReader.FieldDefinitions)
-                {
-                    var field = metadataReader.GetFieldDefinition(fieldDef);
-                    string fieldName = metadataReader.GetString(field.Name);
-
-                    byte[] expectedBlob = getExpectedBlob(fieldName, assembly);
-                    if (expectedBlob != null)
-                    {
-                        BlobHandle descriptor = metadataReader.GetFieldDefinition(fieldDef).GetMarshallingDescriptor();
-                        Assert.False(descriptor.IsNil, "Expecting record in FieldMarshal table");
-
-                        Assert.NotEqual(0, (int)(field.Attributes & FieldAttributes.HasFieldMarshal));
-                        expectedMarshalCount++;
-
-                        byte[] actualBlob = metadataReader.GetBlobBytes(descriptor);
-                        AssertEx.Equal(expectedBlob, actualBlob);
-                    }
-                    else
-                    {
-                        Assert.Equal(0, (int)(field.Attributes & FieldAttributes.HasFieldMarshal));
-                    }
-                }
-            }
-            else
-            {
-                // parameters
-                foreach (var methodHandle in metadataReader.MethodDefinitions)
-                {
-                    var methodDef = metadataReader.GetMethodDefinition(methodHandle);
-                    string memberName = metadataReader.GetString(methodDef.Name);
-                    foreach (var paramHandle in methodDef.GetParameters())
-                    {
-                        var paramRow = metadataReader.GetParameter(paramHandle);
-                        string paramName = metadataReader.GetString(paramRow.Name);
-
-                        byte[] expectedBlob = getExpectedBlob(memberName + ":" + paramName, assembly);
-                        if (expectedBlob != null)
-                        {
-                            Assert.NotEqual(0, (int)(paramRow.Attributes & ParameterAttributes.HasFieldMarshal));
-                            expectedMarshalCount++;
-
-                            BlobHandle descriptor = metadataReader.GetParameter(paramHandle).GetMarshallingDescriptor();
-                            Assert.False(descriptor.IsNil, "Expecting record in FieldMarshal table");
-
-                            byte[] actualBlob = metadataReader.GetBlobBytes(descriptor);
-
-                            AssertEx.Equal(expectedBlob, actualBlob);
-                        }
-                        else
-                        {
-                            Assert.Equal(0, (int)(paramRow.Attributes & ParameterAttributes.HasFieldMarshal));
-                        }
-                    }
-                }
-            }
-
-            Assert.Equal(expectedMarshalCount, metadataReader.GetTableRowCount(TableIndex.FieldMarshal));
-        }
-
-        /// <summary>
-        /// Creates instance of SignatureDescription for a specified member
-        /// </summary>
-        /// <param name="fullyQualifiedTypeName">
-        /// Fully qualified type name for member
-        /// Names must be in format recognized by reflection
-        /// e.g. MyType{T}.MyNestedType{T, U} => MyType`1+MyNestedType`2
-        /// </param>
-        /// <param name="memberName">
-        /// Name of member on specified type whose signature needs to be verified
-        /// Names must be in format recognized by reflection
-        /// e.g. For explicitly implemented member - I1{string}.Method => I1{System.String}.Method
-        /// </param>
-        /// <param name="expectedSignature">
-        /// Baseline string for signature of specified member
-        /// Skip this argument to get an error message that shows all available signatures for specified member
-        /// </param>
-        /// <returns>Instance of SignatureDescription for specified member</returns>
-        internal static SignatureDescription Signature(string fullyQualifiedTypeName, string memberName, string expectedSignature = "")
-        {
-            return new SignatureDescription()
-            {
-                FullyQualifiedTypeName = fullyQualifiedTypeName,
-                MemberName = memberName,
-                ExpectedSignature = expectedSignature
-            };
-        }
-
-        internal static IEnumerable<string> GetFullTypeNames(MetadataReader metadataReader)
-        {
-            foreach (var typeDefHandle in metadataReader.TypeDefinitions)
-            {
-                var typeDef = metadataReader.GetTypeDefinition(typeDefHandle);
-                var ns = metadataReader.GetString(typeDef.Namespace);
-                var name = metadataReader.GetString(typeDef.Name);
-
-                yield return (ns.Length == 0) ? name : (ns + "." + name);
-            }
-        }
-
-        #endregion
-
-        #region PDB Validation
-
-        public static string GetPdbXml(Compilation compilation, string qualifiedMethodName = "")
-        {
-            return SharedCompilationUtils.GetPdbXml(compilation, qualifiedMethodName: qualifiedMethodName);
-        }
-
-        public static Dictionary<int, string> GetMarkers(string pdbXml)
-        {
-            return ToDictionary<int, string, string>(EnumerateMarkers(pdbXml), (markers, marker) => markers + marker);
-        }
-
-        private static Dictionary<K, V> ToDictionary<K, V, I>(IEnumerable<KeyValuePair<K, I>> pairs, Func<V, I, V> aggregator)
-        {
-            var result = new Dictionary<K, V>();
-            foreach (var pair in pairs)
-            {
-                V existing;
-                if (result.TryGetValue(pair.Key, out existing))
-                {
-                    result[pair.Key] = aggregator(existing, pair.Value);
-                }
-                else
-                {
-                    result.Add(pair.Key, aggregator(default(V), pair.Value));
-                }
-            }
-
-            return result;
-        }
-
-        public static IEnumerable<KeyValuePair<int, string>> EnumerateMarkers(string pdbXml)
-        {
-            var doc = new XmlDocument();
-            doc.LoadXml(pdbXml);
-
-            foreach (XmlNode entry in doc.GetElementsByTagName("sequencePoints"))
-            {
-                foreach (XmlElement item in entry.ChildNodes)
-                {
-                    yield return KeyValuePair.Create(
-                        Convert.ToInt32(item.GetAttribute("offset"), 16),
-                        (item.GetAttribute("hidden") == "true") ? "~" : "-");
-                }
-            }
-
-            foreach (XmlNode entry in doc.GetElementsByTagName("asyncInfo"))
-            {
-                foreach (XmlElement item in entry.ChildNodes)
-                {
-                    if (item.Name == "await")
-                    {
-                        yield return KeyValuePair.Create(Convert.ToInt32(item.GetAttribute("yield"), 16), "<");
-                        yield return KeyValuePair.Create(Convert.ToInt32(item.GetAttribute("resume"), 16), ">");
-                    }
-                    else if (item.Name == "catchHandler")
-                    {
-                        yield return KeyValuePair.Create(Convert.ToInt32(item.GetAttribute("offset"), 16), "$");
-                    }
-                }
-            }
-        }
-
-        public static string GetTokenToLocationMap(Compilation compilation, bool maskToken = false)
-        {
-            using (var exebits = new MemoryStream())
-            {
-                using (var pdbbits = new MemoryStream())
-                {
-                    compilation.Emit(exebits, pdbbits);
-                    return Token2SourceLineExporter.TokenToSourceMap2Xml(pdbbits, maskToken);
-                }
-            }
-        }
-
-        protected static string ConsolidateArguments(string[] args)
-        {
-            var consolidated = new StringBuilder();
-            foreach (string argument in args)
-            {
-                bool surround = Regex.Match(argument, @"[\s+]").Success;
-                if (surround)
-                {
-                    consolidated.AppendFormat("\"{0}\" ", argument);
-                }
-                else
-                {
-                    consolidated.AppendFormat("{0} ", argument);
-                }
-            }
-            return consolidated.ToString();
-        }
-
-        protected static string RunAndGetOutput(string exeFileName, string arguments = null, int expectedRetCode = 0, string startFolder = null)
-        {
-            ProcessStartInfo startInfo = new ProcessStartInfo(exeFileName);
-            if (arguments != null)
-            {
-                startInfo.Arguments = arguments;
-            }
-            string result = null;
-
-            startInfo.CreateNoWindow = true;
-            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            startInfo.RedirectStandardOutput = true;
-            startInfo.UseShellExecute = false;
-
-            if (startFolder != null)
-            {
-                startInfo.WorkingDirectory = startFolder;
-            }
-
-            using (var process = System.Diagnostics.Process.Start(startInfo))
-            {
-                // Do not wait for the child process to exit before reading to the end of its
-                // redirected stream. Read the output stream first and then wait. Doing otherwise
-                // might cause a deadlock.
-                result = process.StandardOutput.ReadToEnd();
-                process.WaitForExit();
-                Assert.Equal(expectedRetCode, process.ExitCode);
-            }
-
-            return result;
-        }
-
-        #endregion
-
-        #region Serialization
-
-        public static T VerifySerializability<T>(T obj)
-        {
-            Assert.True(obj is ISerializable);
-
-            var formatter = new BinaryFormatter();
-            using (var stream = new MemoryStream())
-            {
-                formatter.Serialize(stream, obj);
-
-                stream.Seek(0, SeekOrigin.Begin);
-                return (T)formatter.Deserialize(stream);
-            }
-        }
 
         #endregion
     }

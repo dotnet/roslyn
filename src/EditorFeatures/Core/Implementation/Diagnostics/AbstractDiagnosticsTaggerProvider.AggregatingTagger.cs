@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 foreach (var kvp in _idToProviderAndTagger)
                 {
                     var tagger = kvp.Value.Item2;
+
                     tagger.TagsChanged -= OnUnderlyingTaggerTagsChanged;
                     var disposable = tagger as IDisposable;
                     if (disposable != null)
@@ -137,6 +138,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 ValueTuple<TaggerProvider, IAccurateTagger<TTag>> providerAndTagger;
                 if (!_idToProviderAndTagger.TryGetValue(id, out providerAndTagger))
                 {
+                    // We didn't have an existing tagger for this diagnostic id.  If there are no actual 
+                    // diagnostics being reported, then don't bother actually doing anything.  This saves
+                    // us from creating a lot of objects, and subscribing to tons of events that we don't
+                    // actually need (since we don't even have any diagnostics to show!).
+                    if (e.Diagnostics.Length == 0)
+                    {
+                        return;
+                    }
+
                     // Didn't have an existing tagger for this diagnostic id.  Make a new one
                     // and cache it so we can use it in the future.
                     var taggerProvider = new TaggerProvider(_owner);

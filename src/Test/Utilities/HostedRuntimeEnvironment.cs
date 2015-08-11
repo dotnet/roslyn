@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             allModules = allModules.ToArray();
 
             string conflict = DetectNameCollision(allModules);
-            if (conflict != null && !CLRHelpers.IsRunningOnMono())
+            if (conflict != null && !MonoHelpers.IsRunningOnMono())
             {
                 Type appDomainProxyType = typeof(RuntimeAssemblyManager);
                 Assembly thisAssembly = appDomainProxyType.Assembly;
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             using (var executableStream = new MemoryStream())
             {
-                MemoryStream pdbStream = CLRHelpers.IsRunningOnMono()
+                MemoryStream pdbStream = MonoHelpers.IsRunningOnMono()
                     ? null
                     : new MemoryStream();
 
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             foreach (var assembly in _loadedAssemblies)
             {
-                if (!CLRHelpers.IsRunningOnMono())
+                if (!MonoHelpers.IsRunningOnMono())
                 {
                     assembly.ModuleResolve -= ModuleResolve;
                 }
@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // We won't get an AssemblyResolve event for the main assembly so we need to do it here.
             if (_mainMvids.Contains(assembly.ManifestModule.ModuleVersionId) && _loadedAssemblies.Add(assembly))
             {
-                if (!CLRHelpers.IsRunningOnMono())
+                if (!MonoHelpers.IsRunningOnMono())
                 {
                     assembly.ModuleResolve += ModuleResolve;
                 }
@@ -633,7 +633,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             var assembly = cache.GetOrAdd(data.Mvid, _ => LoadAsAssembly(data.Image, reflectionOnly));
 
-            if (!CLRHelpers.IsRunningOnMono())
+            if (!MonoHelpers.IsRunningOnMono())
             {
                 assembly.ModuleResolve += ModuleResolve;
             }
@@ -691,11 +691,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 object[] args;
                 if (count == 0)
                 {
-                    args = new object[] { };
+                    args = new object[0];
                 }
                 else if (count == 1)
                 {
-                    args = new object[] { new string[] { } };
+                    args = new object[] { new string[0] };
                 }
                 else
                 {

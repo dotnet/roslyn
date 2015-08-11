@@ -31,11 +31,17 @@ namespace Roslyn.Test.Utilities
 
         public void RunAll()
         {
-            var methods = this.GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Instance);
-            foreach (var method in methods)
-            {
-                method.Invoke(this, null);
-            }
+            EqualityOperator1();
+            EqualityOperator2();
+            InequalityOperator1();
+            InequalityOperator2();
+            ImplementsIEquatable();
+            ObjectEquals1();
+            ObjectEquals2();
+            ObjectEquals3();
+            GetHashCode1();
+            EquatableEquals1();
+            EquatableEquals2();
         }
 
         private void EqualityOperator1()
@@ -58,7 +64,7 @@ namespace Roslyn.Test.Utilities
 
         private void EqualityOperator2()
         {
-            if (typeof(T).IsValueType)
+            if (typeof(T).GetTypeInfo().IsValueType)
             {
                 return;
             }
@@ -70,7 +76,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private void InEqualityOperator1()
+        private void InequalityOperator1()
         {
             foreach (var unit in _equalityUnits)
             {
@@ -88,9 +94,9 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private void InEqualityOperator2()
+        private void InequalityOperator2()
         {
-            if (typeof(T).IsValueType)
+            if (typeof(T).GetTypeInfo().IsValueType)
             {
                 return;
             }
@@ -106,7 +112,7 @@ namespace Roslyn.Test.Utilities
         {
             var type = typeof(T);
             var targetType = typeof(IEquatable<T>);
-            Assert.True(type.GetInterfaces().Contains(targetType));
+            Assert.True(type.GetTypeInfo().ImplementedInterfaces.Contains(targetType));
         }
 
         private void ObjectEquals1()
@@ -127,7 +133,7 @@ namespace Roslyn.Test.Utilities
         /// </summary>
         private void ObjectEquals2()
         {
-            if (typeof(T).IsValueType)
+            if (typeof(T).GetTypeInfo().IsValueType)
             {
                 return;
             }
@@ -188,7 +194,7 @@ namespace Roslyn.Test.Utilities
         /// </summary>
         private void EquatableEquals2()
         {
-            if (typeof(T).IsValueType)
+            if (typeof(T).GetTypeInfo().IsValueType)
             {
                 return;
             }

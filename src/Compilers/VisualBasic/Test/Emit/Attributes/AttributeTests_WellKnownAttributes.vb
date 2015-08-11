@@ -1796,7 +1796,7 @@ End Class
                     Dim reader = assembly.GetMetadataReader()
                     Assert.Equal(1, reader.GetTableRowCount(TableIndex.ModuleRef))
                     Assert.Equal(1, reader.GetTableRowCount(TableIndex.ImplMap))
-                    Assert.False(FindCustomAttribute(reader, "DefaultCharSetAttribute").IsNil)
+                    Assert.False(MetadataValidation.FindCustomAttribute(reader, "DefaultCharSetAttribute").IsNil)
                     Dim import = reader.GetImportedMethods().Single().GetImport()
                     Assert.Equal(MethodImportAttributes.CharSetAnsi, import.Attributes And MethodImportAttributes.CharSetMask)
                 End Sub)
@@ -1828,7 +1828,7 @@ End Class
                     Assert.Equal(1, reader.GetTableRowCount(TableIndex.ModuleRef))
                     Assert.Equal(1, reader.GetTableRowCount(TableIndex.ImplMap))
 
-                    Assert.False(FindCustomAttribute(reader, "DefaultCharSetAttribute").IsNil)
+                    Assert.False(MetadataValidation.FindCustomAttribute(reader, "DefaultCharSetAttribute").IsNil)
 
                     Dim import = reader.GetImportedMethods().Single().GetImport()
                     Assert.Equal(MethodImportAttributes.None, import.Attributes And MethodImportAttributes.CharSetMask)
@@ -2451,7 +2451,7 @@ End Structure
                     Dim peFileReader = assembly.GetMetadataReader()
 
                     For Each ca In peFileReader.CustomAttributes
-                        Dim name = GetAttributeName(peFileReader, ca)
+                        Dim name = MetadataValidation.GetAttributeName(peFileReader, ca)
                         Assert.NotEqual("SpecialNameAttribute", name)
                     Next
 
@@ -2576,7 +2576,7 @@ End Class
                     Dim peFileReader = assembly.GetMetadataReader()
 
                     For Each ca In peFileReader.CustomAttributes
-                        Dim name = GetAttributeName(peFileReader, ca)
+                        Dim name = MetadataValidation.GetAttributeName(peFileReader, ca)
                         Assert.NotEqual("SerializableAttribute", name)
                         Assert.NotEqual("NonSerializedAttribute", name)
                     Next

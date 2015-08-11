@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Reflection
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -10108,7 +10109,7 @@ End Namespace
                                        "Project.Foo.B",
                                        "Project.foO.Bar.F",
                                        "Project.foo.Baz.E",
-                                       "SYStem.G"}, GetFullTypeNames(a.GetMetadataReader()))
+                                       "SYStem.G"}, MetadataValidation.GetFullTypeNames(a.GetMetadataReader()))
                 End Sub)
         End Sub
 
@@ -11090,8 +11091,8 @@ End Class
         <Fact()>
         Public Sub ComImportMethods()
             Dim sourceValidator As Action(Of ModuleSymbol) = Sub([module])
-                                                                 Dim expectedMethodImplAttributes As System.Reflection.MethodImplAttributes = Reflection.MethodImplAttributes.Managed Or
-                                                                     Reflection.MethodImplAttributes.Runtime Or Reflection.MethodImplAttributes.InternalCall
+                                                                 Dim expectedMethodImplAttributes As System.Reflection.MethodImplAttributes = MethodImplAttributes.Managed Or
+                                                                     MethodImplAttributes.Runtime Or MethodImplAttributes.InternalCall
 
                                                                  Dim globalNamespace = [module].GlobalNamespace
                                                                  Dim typeA = globalNamespace.GetMember(Of NamedTypeSymbol)("A")
@@ -11106,7 +11107,7 @@ End Class
                                                                  Assert.True(typeB.IsComImport())
                                                                  Assert.Equal(1, typeB.GetAttributes().Length)
                                                                  Dim ctorB = typeB.InstanceConstructors.First()
-                                                                 Assert.True(DirectCast(ctorB, Microsoft.Cci.IMethodDefinition).IsExternal)
+                                                                 Assert.True(DirectCast(ctorB, Cci.IMethodDefinition).IsExternal)
                                                                  Assert.Equal(expectedMethodImplAttributes, ctorB.ImplementationAttributes)
                                                              End Sub
 

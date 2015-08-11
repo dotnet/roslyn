@@ -3,12 +3,12 @@
 Imports System.Globalization
 Imports System.IO
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Test.Utilities.SharedResourceHelpers
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Xunit
 
 Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.DiagnosticExtensions
+Imports Roslyn.Test.Utilities.SharedResourceHelpers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
 

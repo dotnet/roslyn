@@ -1395,7 +1395,7 @@ namespace NS
 
             folderA.CreateFile("asm2.dll").WriteAllBytes(bitsA);
             var asmB = folderA.CreateFile("test.exe").WriteAllBytes(bitsB);
-            var result = RunAndGetOutput(asmB.Path);
+            var result = ProcessUtilities.RunAndGetOutput(asmB.Path);
             Assert.Equal("Original", result.Trim());
 
             folderB.CreateFile("asm0.netmodule").WriteAllBytes(bits0);
@@ -1403,7 +1403,7 @@ namespace NS
             var asm2 = folderB.CreateFile("asm2.dll").WriteAllBytes(bits2);
             var asmB2 = folderB.CreateFile("test.exe").WriteAllBytes(bitsB);
 
-            result = RunAndGetOutput(asmB2.Path);
+            result = ProcessUtilities.RunAndGetOutput(asmB2.Path);
             Assert.Equal("Substituted", result.Trim());
         }
 
@@ -1511,7 +1511,7 @@ public class CF1
 ";
 
             var ilBytes = default(ImmutableArray<Byte>);
-            using (var reference = SharedCompilationUtils.IlasmTempAssembly(ilSource, appendDefaultHeader: false))
+            using (var reference = IlasmUtilities.CreateTempAssembly(ilSource, appendDefaultHeader: false))
             {
                 ilBytes = ReadFromFile(reference.Path);
             }

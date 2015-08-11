@@ -295,7 +295,7 @@ Public MustInherit Class BasicTestBase
         End If
 
         Dim reference As MetadataReference = Nothing
-        Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+        Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
             reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
         End Using
 
@@ -329,7 +329,7 @@ Public MustInherit Class BasicTestBase
                                                            Optional isField As Boolean = True) As CompilationVerifier
         Return CompileAndVerify(source,
                                 options:=TestOptions.ReleaseDll,
-                                validator:=Sub(assembly) MarshalAsMetadataValidator(assembly, getExpectedBlob, isField),
+                                validator:=Sub(assembly) MetadataValidation.MarshalAsMetadataValidator(assembly, getExpectedBlob, isField),
                                 expectedSignatures:=expectedSignatures)
     End Function
 
@@ -468,7 +468,7 @@ Public MustInherit Class BasicTestBaseBase
     End Function
 
     Public Shared Shadows Function GetPdbXml(compilation As VisualBasicCompilation, Optional methodName As String = "") As XElement
-        Return XElement.Parse(TestBase.GetPdbXml(compilation, methodName))
+        Return XElement.Parse(PdbValidation.GetPdbXml(compilation, qualifiedMethodName:=methodName))
     End Function
 
     Public Shared Shadows Function GetPdbXml(source As XElement, Optional options As VisualBasicCompilationOptions = Nothing, Optional methodName As String = "") As XElement
