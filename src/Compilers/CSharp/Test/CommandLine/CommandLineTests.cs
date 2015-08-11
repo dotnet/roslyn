@@ -7887,6 +7887,31 @@ class C {
                 new[] { @"a, b" },
                 paths);
         }
+
+        [Fact]
+        public void PathMapParser()
+        {
+            var parsedArgs = DefaultParse(new [] { "/pathmap:", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(ImmutableArray.Create<KeyValuePair<string, string>>(), parsedArgs.PathMap);
+
+            parsedArgs = DefaultParse(new [] { "/pathmap:K1=V1", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(KeyValuePair.Create("K1", "V1"), parsedArgs.PathMap[0]);
+
+            parsedArgs = DefaultParse(new [] { "/pathmap:K1=V1,K2=V2", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(KeyValuePair.Create("K1", "V1"), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePair.Create("K2", "V2"), parsedArgs.PathMap[1]);
+
+            parsedArgs = DefaultParse(new [] { "/pathmap:,,,", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(0, parsedArgs.PathMap.Length);
+
+            parsedArgs = DefaultParse(new [] { "/pathmap:k=,=v", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(0, parsedArgs.PathMap.Length);
+        }
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
