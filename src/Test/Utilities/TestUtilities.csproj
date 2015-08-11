@@ -38,9 +38,8 @@
       <Name>BasicCodeAnalysis</Name>
     </ProjectReference>
     <ProjectReference Include="..\PdbUtilities\PdbUtilities.csproj">
-      <Project>{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}</Project>
+      <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
       <Name>PdbUtilities</Name>
-      <Aliases>PDB</Aliases>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup Label="File References">
@@ -111,73 +110,32 @@
     <Compile Include="..\..\Compilers\Helpers\SimpleAnalyzerAssemblyLoader.cs">
       <Link>SimpleAnalyzerAssemblyLoader.cs</Link>
     </Compile>
-    <Compile Include="AssertEx.cs" />
     <Compile Include="CLRHelpers.cs" />
+    <Compile Include="ConditionalFactAttribute.cs" />
+    <Compile Include="ProcessUtilities.cs" />
+    <Compile Include="SharedResourceHelpers.cs" />
     <Compile Include="CommonDiagnosticAnalyzers.cs" />
     <Compile Include="CommonTestBase.CompilationVerifier.cs" />
     <Compile Include="CommonTestBase.cs" />
-    <Compile Include="CompilationDifference.cs" />
-    <Compile Include="CompilationExtensions.cs" />
-    <Compile Include="ConditionalFactAttribute.cs" />
-    <Compile Include="ConsoleOutput.cs" />
     <Compile Include="CultureContext.cs" />
-    <Compile Include="DiagnosticDescription.cs" />
-    <Compile Include="DescriptorFactory.cs" />
-    <Compile Include="DiagnosticExtensions.cs" />
-    <Compile Include="DiffUtil.cs" />
-    <Compile Include="DisposableDirectory.cs" />
-    <Compile Include="DisposableFile.cs" />
-    <Compile Include="EncodingUtilities.cs" />
-    <Compile Include="EqualityUnit.cs" />
-    <Compile Include="EqualityUnit`1.cs" />
-    <Compile Include="EqualityUtil.cs" />
-    <Compile Include="EqualityUtil`1.cs" />
     <Compile Include="ErrorDiagnostics.cs" />
-    <Compile Include="EventWaiter.cs" />
-    <Compile Include="EnsureEnglishUICulture.cs" />
     <Compile Include="HostedRuntimeEnvironment.cs" />
-    <Compile Include="ILBuilderVisualizer.cs" />
-    <Compile Include="ImmutableArrayTestExtensions.cs" />
-    <Compile Include="SourceWithMarkedNodes.cs" />
-    <Compile Include="MarkupTestFile.cs" />
-    <Compile Include="MetadataCacheTestHelpers.cs" />
-    <Compile Include="MetadataReader\CustomAttributeRow.cs" />
-    <Compile Include="MetadataReader\EncValidation.cs" />
-    <Compile Include="MetadataReader\MetadataReaderUtils.cs" />
-    <Compile Include="MetadataReader\TypeAttributesMissing.cs" />
     <Compile Include="MetadataSignatureHelper.cs" />
     <Compile Include="MetadataSignatureUnitTestHelper.cs" />
-    <Compile Include="MockSymWriter.cs" />
-    <Compile Include="ObjectReference.cs" />
-    <Compile Include="PdbTestUtilities.cs" />
-    <Compile Include="PinnedMetadata.cs" />
-    <Compile Include="ProcessLauncher.cs" />
     <Compile Include="ProcessResult.cs" />
     <Compile Include="ReflectionAssert.cs" />
-    <Compile Include="RegexExtensions.cs" />
-    <Compile Include="SharedCompilationUtils.cs" />
+    <Compile Include="IlasmUtilities.cs" />
     <Compile Include="SigningTestHelpers.cs" />
-    <Compile Include="StringExtensions.cs" />
-    <Compile Include="TempDirectory.cs" />
-    <Compile Include="TempFile.cs" />
-    <Compile Include="TempRoot.cs" />
-    <Compile Include="TestBase.cs" />
     <Compile Include="TestHelpers.cs" />
-    <Compile Include="TestMetadataReference.cs" />
-    <Compile Include="TestMessageProvider.cs" />
-    <Compile Include="TestMetadataReferenceResolver.cs" />
     <Compile Include="TestResource.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>TestResource.resx</DependentUpon>
     </Compile>
-    <Compile Include="TestStream.cs" />
-    <Compile Include="TokenUtilities.cs" />
     <Compile Include="TraceListener.cs" />
     <Compile Include="Traits.cs" />
     <Compile Include="Win32Res.cs" />
     <Compile Include="WorkItemAttribute.cs" />
-    <Compile Include="AssertXml.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="TestResource.resx">
@@ -218,7 +176,6 @@
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ImportGroup Label="Targets">

@@ -5,16 +5,18 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public static class CompilationExtensions
-    {
+    {        
         internal static ImmutableArray<byte> EmitToArray(
             this Compilation compilation,
             EmitOptions options = null,
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (pdbStream == null && compilation.Options.OptimizationLevel == OptimizationLevel.Debug)
             {
-                if (CLRHelpers.IsRunningOnMono())
+                if (MonoHelpers.IsRunningOnMono())
                 {
                     options = (options ?? EmitOptions.Default).WithDebugInformationFormat(DebugInformationFormat.PortablePdb);
                 }

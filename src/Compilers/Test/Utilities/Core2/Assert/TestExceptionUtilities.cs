@@ -16,10 +16,5 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             System.Diagnostics.Debug.Fail(output);
             return new InvalidOperationException(output);
         }
-
-        public static InvalidOperationException Unreachable
-        {
-            get { return new InvalidOperationException(); }
-        }
     }
 }

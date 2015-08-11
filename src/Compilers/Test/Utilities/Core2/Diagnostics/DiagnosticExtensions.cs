@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -198,7 +199,7 @@ namespace Microsoft.CodeAnalysis
         public static TCompilation VerifyEmitDiagnostics<TCompilation>(this TCompilation c, EmitOptions options, params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
-            var pdbStream = CLRHelpers.IsRunningOnMono() ? null : new MemoryStream();
+            var pdbStream = MonoHelpers.IsRunningOnMono() ? null : new MemoryStream();
             c.Emit(new MemoryStream(), pdbStream: pdbStream, options: options).Diagnostics.Verify(expected);
             return c;
         }
@@ -212,7 +213,7 @@ namespace Microsoft.CodeAnalysis
         public static TCompilation VerifyEmitDiagnostics<TCompilation>(this TCompilation c, IEnumerable<ResourceDescription> manifestResources, params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
-            var pdbStream = CLRHelpers.IsRunningOnMono() ? null : new MemoryStream();
+            var pdbStream = MonoHelpers.IsRunningOnMono() ? null : new MemoryStream();
             c.Emit(new MemoryStream(), pdbStream: pdbStream, manifestResources: manifestResources).Diagnostics.Verify(expected);
             return c;
         }
@@ -265,6 +266,26 @@ namespace Microsoft.CodeAnalysis
     ""productVersion"": ""{2}"",
     ""fileVersion"": ""{3}""
   }},", ErrorLogger.OutputFormatVersion, expectedToolName, expectedProductVersion, expectedFileVersion);
+        }
+
+        public static string Stringize(this Diagnostic e)
+        {
+            var retVal = string.Empty;
+            if (e.Location.IsInSource)
+            {
+                retVal = e.Location.SourceSpan.ToString() + ": ";
+            }
+            else if (e.Location.IsInMetadata)
+            {
+                return "metadata: ";
+            }
+            else
+            {
+                return "no location: ";
+            }
+
+            retVal = e.Severity.ToString() + " " + e.Id + ": " + e.GetMessage(CultureInfo.CurrentCulture);
+            return retVal;
         }
     }
 }

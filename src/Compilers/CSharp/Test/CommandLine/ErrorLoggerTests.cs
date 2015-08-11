@@ -9,7 +9,7 @@ using Xunit;
 
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 using static Microsoft.CodeAnalysis.DiagnosticExtensions;
-using static Microsoft.CodeAnalysis.Test.Utilities.SharedResourceHelpers;
+using static Roslyn.Test.Utilities.SharedResourceHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {

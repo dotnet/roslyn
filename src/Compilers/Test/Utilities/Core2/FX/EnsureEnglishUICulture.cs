@@ -13,7 +13,7 @@ namespace Roslyn.Test.Utilities
         {
             get
             {
-                var currentUICultureName = Thread.CurrentThread.CurrentUICulture.Name;
+                var currentUICultureName = CultureInfo.CurrentUICulture.Name;
                 if (currentUICultureName.Length == 0 || currentUICultureName.StartsWith("en", StringComparison.OrdinalIgnoreCase))
                 {
                     return null;
@@ -34,9 +34,11 @@ namespace Roslyn.Test.Utilities
 
             if (preferred != null)
             {
-                _threadUICulture = Thread.CurrentThread.CurrentUICulture;
+                _threadUICulture = CultureInfo.CurrentUICulture;
                 _needToRestore = true;
-                Thread.CurrentThread.CurrentUICulture = preferred;
+
+                // TODO: Should use CultureInfo.CurrentUICulture on 4.6
+                System.Threading.Thread.CurrentThread.CurrentUICulture = preferred;
             }
         }
 
@@ -47,7 +49,8 @@ namespace Roslyn.Test.Utilities
             if (_needToRestore && _threadId == Thread.CurrentThread.ManagedThreadId)
             {
                 _needToRestore = false;
-                Thread.CurrentThread.CurrentUICulture = _threadUICulture;
+                // TODO: Should use CultureInfo.CurrentUICulture on 4.6
+                System.Threading.Thread.CurrentThread.CurrentUICulture = _threadUICulture;
             }
         }
     }

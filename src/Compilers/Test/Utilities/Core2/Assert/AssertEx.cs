@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Xml.Linq;
@@ -29,8 +30,8 @@ namespace Roslyn.Test.Utilities
             private static bool CanBeNull()
             {
                 var type = typeof(T);
-                return !type.IsValueType ||
-                    (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>));
+                return !type.GetTypeInfo().IsValueType ||
+                    (type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>));
             }
 
             public static bool IsNull(T @object)
@@ -367,7 +368,7 @@ namespace Roslyn.Test.Utilities
                     return (T)ex;
                 }
 
-                if (allowDerived && typeof(T).IsAssignableFrom(type))
+                if (allowDerived && typeof(T).GetTypeInfo().IsAssignableFrom(type.GetTypeInfo()))
                 {
                     // We got a derived type
                     return (T)ex;
@@ -530,7 +531,6 @@ namespace Roslyn.Test.Utilities
 
                 link = MakeDiffToolLink(actualFile, expectedValueSourcePath);
 
-                s_diffLinks.Value.Add(Tuple.Create(expectedValueSourcePath, expectedValueSourceLine, link));
                 return true;
             }
 
@@ -547,20 +547,5 @@ namespace Roslyn.Test.Utilities
 
             return "file://" + compareCmd;
         }
-
-        private static readonly Lazy<List<Tuple<string, int, string>>> s_diffLinks = new Lazy<List<Tuple<string, int, string>>>(() =>
-        {
-            AppDomain.CurrentDomain.DomainUnload += (_, __) =>
-            {
-                Debug.WriteLine("All error diffs:");
-
-                foreach (var link in s_diffLinks.Value.OrderBy(l => l.Item1).ThenBy(l => l.Item2))
-                {
-                    Debug.WriteLine(link.Item3);
-                }
-            };
-
-            return new List<Tuple<string, int, string>>();
-        });
     }
 }

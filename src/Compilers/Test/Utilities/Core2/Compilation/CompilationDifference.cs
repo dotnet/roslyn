@@ -1,7 +1,4 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-extern alias PDB;
-
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,8 +11,8 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using PDB::Roslyn.Test.MetadataUtilities;
-using PDB::Roslyn.Test.PdbUtilities;
+using Roslyn.Test.MetadataUtilities;
+using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -92,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (!methodToken.IsNil)
             {
                 string actualPdb = PdbToXmlConverter.DeltaPdbToXml(PdbDelta, new[] { MetadataTokens.GetToken(methodToken) });
-                sequencePointMarkers = TestBase.GetMarkers(actualPdb);
+                sequencePointMarkers = PdbValidation.GetMarkers(actualPdb);
             }
 
             string actualIL = ILBuilderVisualizer.ILBuilderToString(ilBuilder, mapLocal ?? ToLocalInfo, sequencePointMarkers);

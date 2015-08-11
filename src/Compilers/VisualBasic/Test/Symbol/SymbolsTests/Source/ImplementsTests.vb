@@ -3871,7 +3871,7 @@ End Class
                 </compilation>
 
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -3955,7 +3955,7 @@ End Class
                 </compilation>
 
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -4050,7 +4050,7 @@ End Class
                 </compilation>
 
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -4108,7 +4108,7 @@ End Class
                 </compilation>
 
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -4177,7 +4177,7 @@ End Class
                 </compilation>
 
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -4246,7 +4246,7 @@ End Class
                 </compilation>
 
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -4331,7 +4331,7 @@ End Class
                 </compilation>
 
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -4396,7 +4396,7 @@ End Class
                 </compilation>
 
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
