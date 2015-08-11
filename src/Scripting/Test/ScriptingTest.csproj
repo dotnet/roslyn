@@ -30,6 +30,10 @@
       <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
       <Name>CompilerTestResources</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Compilers\Test\Utilities\Core2\CompilerTestUtilities2.csproj">
+      <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
+      <Name>CompilerTestUtilities2</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
       <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
       <Name>BasicCodeAnalysis</Name>

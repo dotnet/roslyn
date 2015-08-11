@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
 
             MetadataReference reference = null;
-            using (var tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource))
+            using (var tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource))
             {
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path));
             }

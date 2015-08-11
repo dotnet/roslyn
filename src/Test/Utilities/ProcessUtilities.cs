@@ -4,10 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using Xunit;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities
+namespace Roslyn.Test.Utilities
 {
-    public static class ProcessLauncher
+    public static class ProcessUtilities
     {
         /// <summary>
         /// Launch a process, wait for it to complete, and return output, error, and exit code.
@@ -90,6 +91,38 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Process p = new Process { StartInfo = startInfo };
             p.Start();
             return p;
+        }
+
+        public static string RunAndGetOutput(string exeFileName, string arguments = null, int expectedRetCode = 0, string startFolder = null)
+        {
+            ProcessStartInfo startInfo = new ProcessStartInfo(exeFileName);
+            if (arguments != null)
+            {
+                startInfo.Arguments = arguments;
+            }
+            string result = null;
+
+            startInfo.CreateNoWindow = true;
+            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            startInfo.RedirectStandardOutput = true;
+            startInfo.UseShellExecute = false;
+
+            if (startFolder != null)
+            {
+                startInfo.WorkingDirectory = startFolder;
+            }
+
+            using (var process = System.Diagnostics.Process.Start(startInfo))
+            {
+                // Do not wait for the child process to exit before reading to the end of its
+                // redirected stream. Read the output stream first and then wait. Doing otherwise
+                // might cause a deadlock.
+                result = process.StandardOutput.ReadToEnd();
+                process.WaitForExit();
+                Assert.Equal(expectedRetCode, process.ExitCode);
+            }
+
+            return result;
         }
     }
 }

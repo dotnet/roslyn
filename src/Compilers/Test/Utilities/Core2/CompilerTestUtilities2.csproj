@@ -17,9 +17,21 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
+      <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
+      <Name>PdbUtilities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\CSharp\Portable\CSharpCodeAnalysis.csproj">
+      <Project>{b501a547-c911-4a05-ac6e-274a50dff30e}</Project>
+      <Name>CSharpCodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
+      <Project>{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}</Project>
+      <Name>BasicCodeAnalysis</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Resources\Core\CompilerTestResources.csproj">
       <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
@@ -27,11 +39,14 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup Label="File References">
-    <Reference Include="System.Reflection.Metadata.dll">
-        <HintPath>..\..\..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
+    <Reference Include="System.Reflection.Metadata">
+      <HintPath>..\..\..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
     </Reference>
-    <Reference Include="System.Collections.Immutable.dll">
-        <HintPath>..\..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+    <Reference Include="System.Collections.Immutable">
+      <HintPath>..\..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.DiaSymReader">
+      <HintPath>..\..\..\..\..\packages\Microsoft.DiaSymReader.1.0.5\lib\net45\Microsoft.DiaSymReader.dll</HintPath>
     </Reference>
     <Reference Include="xunit">
       <HintPath>..\..\..\..\..\packages\xunit.1.9.2\lib\net20\xunit.dll</HintPath>
@@ -86,8 +101,10 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Emit.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.WinRT.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.EnC.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Semantic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Symbol.UnitTests" />
@@ -96,32 +113,87 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Emit.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.EnC.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Semantic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Symbol.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Syntax.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Test.Utilities" />
-    <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.CSharp.ExpressionCompiler.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.CSharp.ResultProvider.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.ExpressionCompiler.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.VisualBasic.ExpressionCompiler.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.VisualBasic.ResultProvider.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assert\AssertEx.cs" />
+    <Compile Include="Assert\AssertXml.cs" />
+    <Compile Include="Assert\ConditionalFactAttribute.cs" />
+    <Compile Include="Compilation\CompilationDifference.cs" />
+    <Compile Include="Compilation\CompilationExtensions.cs" />
+    <Compile Include="Compilation\CompilationTestDataExtensions.cs" />
+    <Compile Include="Diagnostics\DescriptorFactory.cs" />
+    <Compile Include="Diagnostics\DiagnosticDescription.cs" />
+    <Compile Include="Diagnostics\DiagnosticExtensions.cs" />
     <Compile Include="Diagnostics\DiagnosticsHelper.cs" />
     <Compile Include="Diagnostics\OptionsDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\TestDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\ThrowingDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\TrackingDiagnosticAnalyzer.cs" />
-    <Compile Include="DirectoryHelper.cs" />
-    <Compile Include="EqualityTesting.cs" />
-    <Compile Include="ErrorHelpers.cs" />
-    <Compile Include="FailureLocation.cs" />
-    <Compile Include="IParser.cs" />
-    <Compile Include="ISyntaxNodeKindProvider.cs" />
-    <Compile Include="NodeHelpers.cs" />
-    <Compile Include="NodeInfo.cs" />
-    <Compile Include="NodeInfo.FieldInfo.cs" />
-    <Compile Include="PEModuleTestHelpers.cs" />
-    <Compile Include="SpeculativeSemanticModelTestsBase.cs" />
-    <Compile Include="TestExceptionUtilities.cs" />
-    <Compile Include="TestReferences.cs" />
-    <Compile Include="XmlHelpers.cs" />
+    <Compile Include="Assert\DiffUtil.cs" />
+    <Compile Include="FX\ConsoleOutput.cs" />
+    <Compile Include="FX\DirectoryHelper.cs" />
+    <Compile Include="FX\EncodingUtilities.cs" />
+    <Compile Include="FX\EnsureEnglishUICulture.cs" />
+    <Compile Include="Assert\EqualityUnit.cs" />
+    <Compile Include="Assert\EqualityUnit`1.cs" />
+    <Compile Include="Assert\EqualityUtil.cs" />
+    <Compile Include="Assert\EqualityUtil`1.cs" />
+    <Compile Include="FX\EventWaiter.cs" />
+    <Compile Include="Metadata\CustomAttributeRow.cs" />
+    <Compile Include="Metadata\EncValidation.cs" />
+    <Compile Include="Metadata\ILBuilderVisualizer.cs" />
+    <Compile Include="FX\ImmutableArrayTestExtensions.cs" />
+    <Compile Include="MarkedSource\MarkupTestFile.cs" />
+    <Compile Include="FX\MonoHelpers.cs" />
+    <Compile Include="FX\ObjectReference.cs" />
+    <Compile Include="Metadata\MetadataReaderUtils.cs" />
+    <Compile Include="Metadata\MetadataValidation.cs" />
+    <Compile Include="Metadata\TypeAttributesMissing.cs" />
+    <Compile Include="Pdb\MockSymWriter.cs" />
+    <Compile Include="Pdb\PdbTestUtilities.cs" />
+    <Compile Include="FX\PinnedMetadata.cs" />
+    <Compile Include="FX\RegexExtensions.cs" />
+    <Compile Include="Pdb\PdbValidation.cs" />
+    <Compile Include="MarkedSource\SourceWithMarkedNodes.cs" />
+    <Compile Include="FX\StringExtensions.cs" />
+    <Compile Include="TempFiles\DisposableDirectory.cs" />
+    <Compile Include="TempFiles\DisposableFile.cs" />
+    <Compile Include="Assert\EqualityTesting.cs" />
+    <Compile Include="Syntax\ISyntaxNodeKindProvider.cs" />
+    <Compile Include="Syntax\NodeHelpers.cs" />
+    <Compile Include="Syntax\NodeInfo.cs" />
+    <Compile Include="Syntax\NodeInfo.FieldInfo.cs" />
+    <Compile Include="Metadata\PEModuleTestHelpers.cs" />
+    <Compile Include="Compilation\SpeculativeSemanticModelTestsBase.cs" />
+    <Compile Include="TempFiles\TempDirectory.cs" />
+    <Compile Include="TempFiles\TempFile.cs" />
+    <Compile Include="TempFiles\TempRoot.cs" />
+    <Compile Include="Assert\TestExceptionUtilities.cs" />
+    <Compile Include="Mocks\TestMessageProvider.cs" />
+    <Compile Include="Mocks\TestMetadataReference.cs" />
+    <Compile Include="Mocks\TestMetadataReferenceResolver.cs" />
+    <Compile Include="Mocks\TestReferences.cs" />
+    <Compile Include="Mocks\TestStream.cs" />
+    <Compile Include="Syntax\TokenUtilities.cs" />
+    <Compile Include="Syntax\XmlHelpers.cs" />
+    <Compile Include="TestBase.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

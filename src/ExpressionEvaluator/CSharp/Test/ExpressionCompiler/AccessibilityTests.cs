@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using System;
 using Xunit;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {

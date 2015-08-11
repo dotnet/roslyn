@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public sealed class DiagnosticDescription
     {
-        public static readonly DiagnosticDescription[] None = new DiagnosticDescription[0];
+        public static readonly DiagnosticDescription[] None = { };
         public static readonly DiagnosticDescription[] Any = null;
 
         // common fields for all DiagnosticDescriptions
@@ -44,15 +44,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 // We'll use IFormattable here, because it is more explicit than just calling .ToString()
                 // (and is closer to what the compiler actually does when displaying error messages)
                 _argumentsAsStrings = _arguments.Select(o =>
-                                                        {
-                                                            var embedded = o as DiagnosticInfo;
-                                                            if (embedded != null)
-                                                            {
-                                                                return embedded.GetMessage(EnsureEnglishUICulture.PreferredOrNull);
-                                                            }
+                {
+                    var embedded = o as DiagnosticInfo;
+                    if (embedded != null)
+                    {
+                        return embedded.GetMessage(EnsureEnglishUICulture.PreferredOrNull);
+                    }
 
-                                                            return String.Format(EnsureEnglishUICulture.PreferredOrNull, "{0}", o);
-                                                        });
+                    return string.Format(EnsureEnglishUICulture.PreferredOrNull, "{0}", o);
+                });
             }
             return _argumentsAsStrings;
         }

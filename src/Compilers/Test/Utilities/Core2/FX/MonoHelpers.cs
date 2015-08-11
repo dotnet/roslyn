@@ -1,11 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Text;
+using System;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public interface IParser
+    public static class MonoHelpers
     {
-        SyntaxTree Parse(string code);
+        public static bool IsRunningOnMono()
+        {
+            return Type.GetType("Mono.Runtime") != null;
+        }
     }
 }

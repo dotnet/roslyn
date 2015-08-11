@@ -2162,7 +2162,7 @@ class C
             var emitResult1 = c.Emit(peStream: peStream1, pdbStream: pdbStream);
             var emitResult2 = c.Emit(peStream: peStream2);
 
-            SharedCompilationUtils.VerifyMetadataEqualModuloMvid(peStream1, peStream2);
+            PdbValidation.VerifyMetadataEqualModuloMvid(peStream1, peStream2);
         }
 
         [Fact]

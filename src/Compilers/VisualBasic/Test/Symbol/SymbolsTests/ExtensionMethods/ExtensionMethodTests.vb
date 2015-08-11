@@ -203,7 +203,7 @@ End Module
 } // end of class Module1]]>
 
 
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(customIL.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, appendDefaultHeader:=False)
 
                 Dim ILRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
 
@@ -414,7 +414,7 @@ End Module
 ]]>
 
 
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(customIL.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, appendDefaultHeader:=False)
 
                 Dim ILRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
 
@@ -610,7 +610,7 @@ End Module
 } // end of class Module1]]>
 
 
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(customIL.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, appendDefaultHeader:=False)
 
                 Dim ILRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
 
@@ -805,7 +805,7 @@ End Module
 } // end of class Module1]]>
 
 
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(customIL.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, appendDefaultHeader:=False)
 
                 Dim ILRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
 
@@ -1002,7 +1002,7 @@ End Module
 ]]>
 
 
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(customIL.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, appendDefaultHeader:=False)
 
                 Dim ILRef = ModuleMetadata.CreateFromImage(File.ReadAllBytes(reference.Path)).GetReference()
 
@@ -2238,7 +2238,7 @@ BC42030: Variable 'x' is passed by reference before it has been assigned a value
 }
 ]]>
 
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(customIL.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, appendDefaultHeader:=False)
 
                 Dim ILRef = ModuleMetadata.CreateFromImage(File.ReadAllBytes(reference.Path)).GetReference()
 
