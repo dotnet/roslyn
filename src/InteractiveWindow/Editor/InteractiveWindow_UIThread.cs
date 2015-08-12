@@ -334,6 +334,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             public void AddInput(string command)
             {
+                // If the language buffer is readonly then input can not be added. Return immediately.
+                if (_window._currentLanguageBuffer != null && _window._currentLanguageBuffer.IsReadOnly(0))
+                {
+                    return;
+                }
+
                 if (State == State.ExecutingInput || _window._currentLanguageBuffer == null)
                 {
                     AddLanguageBuffer();
