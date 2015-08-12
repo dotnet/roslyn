@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             int startIndex = 0;
             while (true)
             {
-                int index = arguments.IndexOf(NoConfigParameterName, startIndex, StringComparison.OrdinalIgnoreCase);
+                int index = arguments.IndexOf(NoConfigParameterName, startIndex, StringComparison.Ordinal);
                 if (index < 0) yield break;
 
                 if ((index == 0 || char.IsWhiteSpace(arguments[index - 1])) &&
@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
                 initialize = true;
                 return true;
             }
-            else if (string.Equals(trimmed, NoConfigParameterName, StringComparison.OrdinalIgnoreCase))
+            else if (string.Equals(trimmed, NoConfigParameterName, StringComparison.Ordinal))
             {
                 initialize = false;
                 return true;
