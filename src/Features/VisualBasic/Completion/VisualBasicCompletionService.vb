@@ -2,7 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
-Imports System.Globalization
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Snippets
@@ -44,18 +43,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
 
         Public Overrides Function GetCompletionRules() As CompletionRules
             Return New VisualBasicCompletionRules(Me)
-        End Function
-
-        ''' <summary>
-        ''' In Turkish Locale, both capital 'i's should be considered same. This behavior matches the compiler behavior.
-        ''' If lowered, both 'i's are lowered to small 'i' with dot
-        ''' </summary>
-        Public Overrides Function GetCultureSpecificQuirks(candidate As String) As String
-            If CultureInfo.CurrentCulture.Name = "tr-TR" Then
-                Return candidate.Replace("I"c, "İ"c)
-            End If
-
-            Return candidate
         End Function
 
         Public Overrides Async Function GetDefaultTrackingSpanAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of TextSpan)

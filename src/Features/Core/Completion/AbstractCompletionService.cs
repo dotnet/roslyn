@@ -67,15 +67,6 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
-        /// <summary>
-        /// Apply any culture-specific quirks to the given text for the purposes of pattern matching.
-        /// For example, in the Turkish locale, capital 'i's should be treated specially in Visual Basic.
-        /// </summary>
-        public virtual string GetCultureSpecificQuirks(string candidate)
-        {
-            return candidate;
-        }
-
         protected AbstractCompletionService(string languageName)
         {
             this.LanguageName = languageName;

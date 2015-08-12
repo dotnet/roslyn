@@ -34,6 +34,15 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         /// <summary>
+        /// Apply any culture-specific quirks to the given text for the purposes of pattern matching.
+        /// For example, in the Turkish locale, capital 'i's should be treated specially in Visual Basic.
+        /// </summary>
+        protected virtual string GetCultureSpecificQuirks(string candidate)
+        {
+            return candidate;
+        }
+
+        /// <summary>
         /// Returns true if the completion item matches the filter text typed so far.  Returns 'true'
         /// iff the completion item matches and should be included in the filtered completion
         /// results, or false if it should not be.
@@ -57,8 +66,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 return false;
             }
 
-            var patternMatcher = this.GetPatternMatcher(_completionService.GetCultureSpecificQuirks(filterText));
-            var match = patternMatcher.GetFirstMatch(_completionService.GetCultureSpecificQuirks(item.FilterText));
+            var patternMatcher = this.GetPatternMatcher(GetCultureSpecificQuirks(filterText));
+            var match = patternMatcher.GetFirstMatch(GetCultureSpecificQuirks(item.FilterText));
             return match != null;
         }
 
@@ -81,9 +90,9 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public virtual bool IsBetterFilterMatch(CompletionItem item1, CompletionItem item2, string filterText, CompletionTrigger trigger, CompletionFilterReason filterReason)
         {
-            var patternMatcher = GetPatternMatcher(_completionService.GetCultureSpecificQuirks(filterText));
-            var match1 = patternMatcher.GetFirstMatch(_completionService.GetCultureSpecificQuirks(item1.FilterText));
-            var match2 = patternMatcher.GetFirstMatch(_completionService.GetCultureSpecificQuirks(item2.FilterText));
+            var patternMatcher = GetPatternMatcher(GetCultureSpecificQuirks(filterText));
+            var match1 = patternMatcher.GetFirstMatch(GetCultureSpecificQuirks(item1.FilterText));
+            var match2 = patternMatcher.GetFirstMatch(GetCultureSpecificQuirks(item2.FilterText));
 
             if (match1 != null && match2 != null)
             {

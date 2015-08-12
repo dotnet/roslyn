@@ -1,5 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Globalization
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Completion.Triggers
@@ -16,6 +17,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             Public Sub New(service As AbstractCompletionService)
                 MyBase.New(service)
             End Sub
+
+            ''' <summary>
+            ''' In Turkish Locale, both capital 'i's should be considered same. This behavior matches the compiler behavior.
+            ''' If lowered, both 'i's are lowered to small 'i' with dot
+            ''' </summary>
+            Protected Overrides Function GetCultureSpecificQuirks(candidate As String) As String
+                If CultureInfo.CurrentCulture.Name = "tr-TR" Then
+                    Return candidate.Replace("I"c, "İ"c)
+                End If
+
+                Return candidate
+            End Function
 
             Protected Overrides Function CompareMatches(leftMatch As PatternMatch, rightMatch As PatternMatch, leftItem As CompletionItem, rightItem As CompletionItem) As Integer
                 Dim diff As Integer
