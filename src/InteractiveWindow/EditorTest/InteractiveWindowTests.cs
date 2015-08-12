@@ -629,12 +629,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Assert.Equal(V, GetTextFromCurrentLanguageBuffer);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/4121")]
-        public void CheckHistoryAfterResetButtonClick()
+        [Fact]
+        public void CheckHistoryPreviousAfterReset()
         {
-            Task.Run(() => Window.Operations.ResetAsync(initialize: true)).PumpingWait();
-            Task.Run(() => Window.Operations.HistoryPrevious()).PumpingWait();
-            Assert.Equal("#reset", GetTextFromCurrentLanguageBuffer);
+            const string V = "#reset";
+            Window.InsertCode(V);
+            Assert.Equal(V, GetTextFromCurrentLanguageBuffer);
+            Task.Run(() => Window.Operations.ExecuteInput()).PumpingWait();
+            Window.Operations.HistoryPrevious();
+            Assert.Equal(V, GetTextFromCurrentLanguageBuffer);
         }
     }
 }
