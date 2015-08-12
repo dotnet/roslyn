@@ -41,7 +41,7 @@ The backing field of a getter-only auto-property is implicitly declared as `read
 ``` c#
 public class Customer
 {
-    public string Name { get; };
+    public string Name { get; }
     public Customer(string first, string last)
     {
         Name = first + " " + last;
