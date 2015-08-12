@@ -14,8 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
 
             Private ReadOnly s_commitChars As Char() = {" "c, ";"c, "("c, ")"c, "["c, "]"c, "{"c, "}"c, "."c, ","c, ":"c, "+"c, "-"c, "*"c, "/"c, "\"c, "^"c, "<"c, ">"c, "'"c, "="c, "?"c}
 
-            Public Sub New(service As AbstractCompletionService)
-                MyBase.New(service)
+            Public Sub New(mostRecentlyUsedList As MostRecentlyUsedList)
+                MyBase.New(mostRecentlyUsedList)
             End Sub
 
             ''' <summary>

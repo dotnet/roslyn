@@ -41,8 +41,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             Return _completionProviders
         End Function
 
-        Public Overrides Function GetCompletionRules() As CompletionRules
-            Return New VisualBasicCompletionRules(Me)
+        Protected Overrides Function CreateCompletionRules(mostRecentlyUsedList As MostRecentlyUsedList) As CompletionRules
+            Return New VisualBasicCompletionRules(mostRecentlyUsedList)
         End Function
 
         Public Overrides Async Function GetDefaultTrackingSpanAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of TextSpan)

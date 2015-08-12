@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
             return CompletionUtilities.GetTextChangeSpan(text, position);
         }
 
-        public override CompletionRules GetCompletionRules()
+        protected override CompletionRules CreateCompletionRules(MostRecentlyUsedList mostRecentlyUsedList)
         {
-            return new CSharpCompletionRules(this);
+            return new CSharpCompletionRules(mostRecentlyUsedList);
         }
     }
 }

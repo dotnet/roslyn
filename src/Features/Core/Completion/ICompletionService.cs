@@ -26,10 +26,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         CompletionRules GetCompletionRules();
 
-        /// <summary>
-        /// Clears the most-recently-used cache used by completion.
-        /// </summary>
-        void ClearMRUCache();
+        MostRecentlyUsedList MostRecentlyUsedList { get; }
 
         /// <summary>
         /// Returns the <see cref="CompletionList"/> for the specified position in the document.

@@ -10,12 +10,12 @@ namespace Microsoft.CodeAnalysis.Completion
     internal class CompletionRules
     {
         private readonly object _gate = new object();
-        private readonly AbstractCompletionService _completionService;
+        private readonly MostRecentlyUsedList _mostRecentlyUsedList;
         private readonly Dictionary<string, PatternMatcher> _patternMatcherMap = new Dictionary<string, PatternMatcher>();
 
-        public CompletionRules(AbstractCompletionService completionService)
+        public CompletionRules(MostRecentlyUsedList mostRecentlyUsedList)
         {
-            _completionService = completionService;
+            _mostRecentlyUsedList = mostRecentlyUsedList;
         }
 
         protected PatternMatcher GetPatternMatcher(string value)
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // MRU list, then we definitely want to include it.
             if (filterText.Length == 0)
             {
-                if (item.Preselect || _completionService.GetMRUIndex(item) < 0)
+                if (item.Preselect || _mostRecentlyUsedList.Contains(item))
                 {
                     return true;
                 }
@@ -127,8 +127,8 @@ namespace Microsoft.CodeAnalysis.Completion
             // They matched on everything, including preselection values.  Item1 is better if it
             // has a lower MRU index.
 
-            var item1MRUIndex = _completionService.GetMRUIndex(item1);
-            var item2MRUIndex = _completionService.GetMRUIndex(item2);
+            var item1MRUIndex = _mostRecentlyUsedList.GetMRUIndex(item1);
+            var item2MRUIndex = _mostRecentlyUsedList.GetMRUIndex(item2);
 
             // The one with the lower index is the better one.
             return item1MRUIndex < item2MRUIndex;
@@ -146,15 +146,6 @@ namespace Microsoft.CodeAnalysis.Completion
         public virtual bool ShouldSoftSelectItem(CompletionItem item, string filterText, CompletionTrigger trigger)
         {
             return filterText.Length == 0 && !item.Preselect;
-        }
-
-        /// <summary>
-        /// Called by completion engine when a completion item is committed.  Completion rules can
-        /// use this information to affect future calls to MatchesFilterText or IsBetterFilterMatch.
-        /// </summary>
-        public virtual void CompletionItemCommitted(CompletionItem item)
-        {
-            _completionService.CompletionItemCommitted(item);
         }
 
         /// <summary>

@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Completion.Snippets;
 using Microsoft.CodeAnalysis.Completion.Triggers;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -19,52 +18,19 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal abstract partial class AbstractCompletionService : ICompletionService
     {
-        public string LanguageName { get; }
-
         private static readonly Func<string, List<CompletionItem>> s_createList = _ => new List<CompletionItem>();
 
-        private const int MruSize = 10;
-
-        private readonly List<string> _committedItems = new List<string>(MruSize);
-        private readonly object _mruGate = new object();
-
-        internal void CompletionItemCommitted(CompletionItem item)
-        {
-            lock (_mruGate)
-            {
-                // We need to remove the item if it's already in the list.
-                // If we're at capacity, we need to remove the LRU item.
-                var removed = _committedItems.Remove(item.DisplayText);
-                if (!removed && _committedItems.Count == MruSize)
-                {
-                    _committedItems.RemoveAt(0);
-                }
-
-                _committedItems.Add(item.DisplayText);
-            }
-        }
+        public string LanguageName { get; }
+        public MostRecentlyUsedList MostRecentlyUsedList { get; } = new MostRecentlyUsedList();
 
         internal int GetMRUIndex(CompletionItem item)
         {
-            lock (_mruGate)
-            {
-                // A lower value indicates more recently used.  Since items are added
-                // to the end of the list, our result just maps to the negation of the 
-                // index.
-                // -1 => 1  == Not Found
-                // 0  => 0  == least recently used 
-                // 9  => -9 == most recently used 
-                var index = _committedItems.IndexOf(item.DisplayText);
-                return -index;
-            }
+            return this.MostRecentlyUsedList.GetMRUIndex(item);
         }
 
         public void ClearMRUCache()
         {
-            lock (_mruGate)
-            {
-                _committedItems.Clear();
-            }
+            this.MostRecentlyUsedList.Clear();
         }
 
         protected AbstractCompletionService(string languageName)
@@ -73,6 +39,16 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         public abstract IEnumerable<CompletionListProvider> GetDefaultCompletionProviders();
+
+        protected virtual CompletionRules CreateCompletionRules(MostRecentlyUsedList mostRecentlyUsedList)
+        {
+            return new CompletionRules(mostRecentlyUsedList);
+        }
+
+        public CompletionRules GetCompletionRules()
+        {
+            return CreateCompletionRules(this.MostRecentlyUsedList);
+        }
 
         public async Task<CompletionList> GetCompletionListAsync(
             Document document,
@@ -306,11 +282,6 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         public abstract Task<TextSpan> GetDefaultTrackingSpanAsync(Document document, int position, CancellationToken cancellationToken);
-
-        public virtual CompletionRules GetCompletionRules()
-        {
-            return new CompletionRules(this);
-        }
 
         public virtual bool DismissIfEmpty
         {
