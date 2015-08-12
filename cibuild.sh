@@ -61,9 +61,8 @@ run_msbuild()
     
     for i in `seq 1 $RETRY_COUNT`
     do
-        o=$(mono packages/Microsoft.Build.Mono.Debug.14.1.0.0-prerelease/lib/MSBuild.exe /v:m /p:SignAssembly=false /p:DebugSymbols=false "$@")
+        mono packages/Microsoft.Build.Mono.Debug.14.1.0.0-prerelease/lib/MSBuild.exe /v:m /p:SignAssembly=false /p:DebugSymbols=false "$@"
         if [ $? -eq 0 ]; then
-            echo "$o"
             is_good=true
             break
         fi
@@ -72,7 +71,6 @@ run_msbuild()
     done
 
     if [ "$is_good" != "true" ]; then
-        echo "$o"
         echo Build failed
         exit 1
     fi
