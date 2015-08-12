@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Snippets;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Snippets;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // The user may be trying to invoke snippets
                 var completionService = GetCompletionService();
                 if (completionService != null &&
-                    completionService.SupportSnippetCompletionListOnTab &&
+                    (completionService as ISnippetCompletionService)?.SupportSnippetCompletionListOnTab == true &&
                     TryInvokeSnippetCompletion(args, completionService))
                 {
                     // We've taken care of the tab. Don't send it to the buffer.

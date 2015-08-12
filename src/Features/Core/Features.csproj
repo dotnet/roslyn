@@ -158,6 +158,7 @@
     <Compile Include="Completion\CompletionOptions.cs" />
     <Compile Include="Completion\CompletionOptionsProvider.cs" />
     <Compile Include="Completion\CompletionService.cs" />
+    <Compile Include="Completion\Snippets\ISnippetCompletionService.cs" />
     <Compile Include="Completion\Triggers\BackspaceOrDeleteCharCompletionTrigger.cs" />
     <Compile Include="Completion\Triggers\TypeCharCompletionTrigger.cs" />
     <Compile Include="Completion\Triggers\DisplayListCompletionTrigger.cs" />
@@ -170,7 +171,7 @@
     <Compile Include="Completion\Providers\AbstractSymbolCompletionProvider.cs" />
     <Compile Include="Completion\CompletionListProvider.cs" />
     <Compile Include="Completion\Providers\IKeywordRecommender.cs" />
-    <Compile Include="Completion\Providers\ISnippetCompletionProvider.cs" />
+    <Compile Include="Completion\Snippets\ISnippetCompletionListProvider.cs" />
     <Compile Include="Completion\Providers\KeywordCompletionItemRules.cs" />
     <Compile Include="Completion\Providers\ObjectInitializerCompletionItemRules.cs" />
     <Compile Include="Completion\Providers\AbstractSymbolCompletionItemRules.cs" />

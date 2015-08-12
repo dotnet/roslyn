@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.Snippets;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
@@ -53,6 +54,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
         }
 
+        /// <summary>
+        /// Returns a string that should be added to the description of the given completion item
+        /// if a snippet exists with a shortcut that matches the completion item's insertion text.
+        /// </summary>
+        private Task<string> GetSnippetExpansionNoteForCompletionItemAsync(CompletionItem completionItem)
+        {
+            var completionRules = _completionService.GetCompletionRules();
+            var insertionText = completionRules.GetTextChange(completionItem, '\t').NewText;
+
+            var snippetInfoService = _workspace.Services.GetLanguageServices(_completionService.LanguageName).GetService<ISnippetInfoService>();
+            if (snippetInfoService != null && snippetInfoService.SnippetShortcutExists_NonBlocking(insertionText))
+            {
+                return Task.FromResult(string.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, insertionText));
+            }
+
+            return SpecializedTasks.Default<string>();
+        }
+
         public override Task<ImmutableArray<SymbolDisplayPart>> GetDescriptionAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             var descriptionTask = CompletionItem.GetDescriptionAsync(cancellationToken);
@@ -60,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var updatedDescriptionTask = descriptionTask.SafeContinueWithFromAsync(async task =>
                 {
                     var parts = task.Result;
-                    var note = await _completionService.GetSnippetExpansionNoteForCompletionItemAsync(CompletionItem, _workspace).ConfigureAwait(false);
+                    var note = await GetSnippetExpansionNoteForCompletionItemAsync(CompletionItem).ConfigureAwait(false);
 
                     if (!string.IsNullOrEmpty(note))
                     {

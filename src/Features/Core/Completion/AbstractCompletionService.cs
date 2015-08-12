@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.Completion.Snippets;
 using Microsoft.CodeAnalysis.Completion.Triggers;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Snippets;
@@ -18,6 +19,8 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal abstract partial class AbstractCompletionService : ICompletionService
     {
+        public string LanguageName { get; }
+
         private static readonly Func<string, List<CompletionItem>> s_createList = _ => new List<CompletionItem>();
 
         private const int MruSize = 10;
@@ -73,9 +76,12 @@ namespace Microsoft.CodeAnalysis.Completion
             return candidate;
         }
 
-        public abstract IEnumerable<CompletionListProvider> GetDefaultCompletionProviders();
+        protected AbstractCompletionService(string languageName)
+        {
+            this.LanguageName = languageName;
+        }
 
-        protected abstract string GetLanguageName();
+        public abstract IEnumerable<CompletionListProvider> GetDefaultCompletionProviders();
 
         public async Task<CompletionList> GetCompletionListAsync(
             Document document,
@@ -248,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // the snippet item doesn't have its preselect bit set.
             // We'll special case this by not preferring later items
             // if they are snippets and the other candidate is preselected.
-            if (existingItem.Preselect && item.CompletionProvider is ISnippetCompletionProvider)
+            if (existingItem.Preselect && item.CompletionProvider is ISnippetCompletionListProvider)
             {
                 return existingItem;
             }
@@ -294,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public bool IsTriggerCharacter(SourceText text, int characterPosition, IEnumerable<CompletionListProvider> completionProviders, OptionSet options)
         {
-            if (!options.GetOption(CompletionOptions.TriggerOnTyping, GetLanguageName()))
+            if (!options.GetOption(CompletionOptions.TriggerOnTyping, LanguageName))
             {
                 return false;
             }
@@ -316,24 +322,6 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         public virtual bool DismissIfEmpty
-        {
-            get { return false; }
-        }
-
-        public Task<string> GetSnippetExpansionNoteForCompletionItemAsync(CompletionItem completionItem, Workspace workspace)
-        {
-            var insertionText = GetCompletionRules().GetTextChange(completionItem, '\t').NewText;
-
-            var snippetInfoService = workspace.Services.GetLanguageServices(GetLanguageName()).GetService<ISnippetInfoService>();
-            if (snippetInfoService != null && snippetInfoService.SnippetShortcutExists_NonBlocking(insertionText))
-            {
-                return Task.FromResult(string.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, insertionText));
-            }
-
-            return SpecializedTasks.Default<string>();
-        }
-
-        public virtual bool SupportSnippetCompletionListOnTab
         {
             get { return false; }
         }

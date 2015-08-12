@@ -242,7 +242,7 @@
     <Compile Include="Extensibility\Completion\IAsyncCompletionService.cs" />
     <Compile Include="Extensibility\Completion\ICompletionPresenterSession.cs" />
     <Compile Include="Extensibility\Completion\ICustomCommitCompletionProvider.cs" />
-    <Compile Include="Extensibility\Completion\SnippetCompletionProvider.cs" />
+    <Compile Include="Extensibility\Completion\SnippetCompletionListProvider.cs" />
     <Compile Include="Extensibility\Completion\PredefinedCompletionPresenterNames.cs" />
     <Compile Include="Extensibility\Completion\PredefinedCompletionProviderNames.cs" />
     <Compile Include="Extensibility\Completion\PredefinedCompletionRulesFactoryNames.cs" />

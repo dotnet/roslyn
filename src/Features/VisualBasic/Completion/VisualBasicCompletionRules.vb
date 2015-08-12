@@ -4,7 +4,6 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Completion.Triggers
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion

@@ -5,6 +5,7 @@ Imports System.Composition
 Imports System.Globalization
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Completion.Snippets
 Imports Microsoft.CodeAnalysis.Completion.Triggers
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
@@ -16,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
     <ExportLanguageService(GetType(ICompletionService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicCompletionService
         Inherits AbstractCompletionService
+        Implements ISnippetCompletionService
 
         Private ReadOnly _completionProviders As IEnumerable(Of CompletionListProvider) = New CompletionListProvider() {
             New KeywordCompletionProvider(),
@@ -31,6 +33,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             New CrefCompletionProvider(),
             New CompletionListTagCompletionProvider
         }.ToImmutableArray()
+
+        Private Sub New()
+            MyBase.New(LanguageNames.VisualBasic)
+        End Sub
 
         Public Overrides Function GetDefaultCompletionProviders() As IEnumerable(Of CompletionListProvider)
             Return _completionProviders
@@ -67,16 +73,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
 
         Protected Overrides Function TriggerOnBackspaceOrDelete(text As SourceText, position As Integer, trigger As CompletionTrigger, options As OptionSet) As Boolean
             Dim triggerChar = GetDeletedChar(trigger)
-            Return options.GetOption(CompletionOptions.TriggerOnTyping, GetLanguageName()) AndAlso (Char.IsLetterOrDigit(triggerChar) OrElse triggerChar = "."c)
+            Return options.GetOption(CompletionOptions.TriggerOnTyping, LanguageName) AndAlso (Char.IsLetterOrDigit(triggerChar) OrElse triggerChar = "."c)
         End Function
 
         Public Overrides ReadOnly Property DismissIfEmpty As Boolean
-            Get
-                Return True
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property SupportSnippetCompletionListOnTab As Boolean
             Get
                 Return True
             End Get
@@ -88,8 +88,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             End Get
         End Property
 
-        Protected Overrides Function GetLanguageName() As String
-            Return LanguageNames.VisualBasic
-        End Function
+        Private ReadOnly Property SupportSnippetCompletionListOnTab As Boolean Implements ISnippetCompletionService.SupportSnippetCompletionListOnTab
+            Get
+                Return True
+            End Get
+        End Property
+
     End Class
 End Namespace

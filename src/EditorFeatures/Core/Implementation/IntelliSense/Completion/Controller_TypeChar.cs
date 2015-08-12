@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var extensionProviders = workspace.Services.SelectMatchingExtensionValues(
                     _allCompletionProviders, this.SubjectBuffer);
 
-                return defaultProviders.Concat(extensionProviders.Where(p => !(p is SnippetCompletionProvider)));
+                return defaultProviders.Concat(extensionProviders.Where(p => !(p is SnippetCompletionListProvider)));
             }
 
             return defaultProviders;
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var extensionProviders = workspace.Services.SelectMatchingExtensionValues(
                     _allCompletionProviders, this.SubjectBuffer);
 
-                return extensionProviders.OfType<SnippetCompletionProvider>();
+                return extensionProviders.OfType<SnippetCompletionListProvider>();
             }
 
             return SpecializedCollections.EmptyEnumerable<CompletionListProvider>();

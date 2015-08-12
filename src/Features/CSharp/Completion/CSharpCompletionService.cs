@@ -35,6 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
                 new ExternAliasCompletionProvider(),
             }.ToImmutableArray();
 
+        private CSharpCompletionService()
+            : base(LanguageNames.CSharp)
+        {
+        }
+
         public override IEnumerable<CompletionListProvider> GetDefaultCompletionProviders()
         {
             return _defaultCompletionProviders;
@@ -49,11 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
         public override CompletionRules GetCompletionRules()
         {
             return new CSharpCompletionRules(this);
-        }
-
-        protected override string GetLanguageName()
-        {
-            return LanguageNames.CSharp;
         }
     }
 }

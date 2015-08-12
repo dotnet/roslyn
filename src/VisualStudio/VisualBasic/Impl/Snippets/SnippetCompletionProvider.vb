@@ -19,7 +19,7 @@ Imports Microsoft.VisualStudio.Text.Editor
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
     <ExportCompletionProvider("SnippetCompletionProvider", LanguageNames.VisualBasic)>
     Partial Friend Class SnippetCompletionProvider
-        Inherits Extensibility.Completion.SnippetCompletionProvider
+        Inherits Extensibility.Completion.SnippetCompletionListProvider
 
         Private ReadOnly _editorAdaptersFactoryService As IVsEditorAdaptersFactoryService
 
