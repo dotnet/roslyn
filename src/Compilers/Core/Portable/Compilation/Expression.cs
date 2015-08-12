@@ -121,32 +121,23 @@ namespace Microsoft.CodeAnalysis.Semantics
             this.Syntax = syntax;
         }
 
-        public RelationalOperationKind RelationalKind { get; set; }
+        public RelationalOperationKind RelationalKind { get; private set; }
         
-        public IExpression Left { get; set; }
+        public IExpression Left { get; private set; }
         
-        public IExpression Right { get; set; }
+        public IExpression Right { get; private set; }
         
-        public SyntaxNode Syntax { get; set; }
+        public SyntaxNode Syntax { get; private set; }
 
-        public bool UsesOperatorMethod
-        {
-            get { return this.Operator != null; }
-        }
+        public bool UsesOperatorMethod => this.Operator != null;
 
-        public IMethodSymbol Operator { get; set; }
+        public IMethodSymbol Operator { get; private set; }
 
-        public ITypeSymbol ResultType { get; set; }
+        public ITypeSymbol ResultType { get; private set; }
 
-        public OperationKind Kind
-        {
-            get { return OperationKind.RelationalOperator; }
-        }
+        public OperationKind Kind => OperationKind.RelationalOperator;
 
-        public object ConstantValue
-        {
-            get { return null; }
-        }
+        public object ConstantValue => null;
     }
 
     public class ConditionalChoice : IConditionalChoice
@@ -160,25 +151,19 @@ namespace Microsoft.CodeAnalysis.Semantics
             this.Syntax = syntax;
         }
 
-        public IExpression Condition { get; set; }
+        public IExpression Condition { get; private set; }
 
-        public IExpression IfTrue { get; set; }
+        public IExpression IfTrue { get; private set; }
 
-        public IExpression IfFalse { get; set; }
+        public IExpression IfFalse { get; private set; }
 
-        public ITypeSymbol ResultType { get; set; }
+        public ITypeSymbol ResultType { get; private set; }
 
-        public SyntaxNode Syntax { get; set; }
+        public SyntaxNode Syntax { get; private set; }
 
-        public OperationKind Kind
-        {
-            get { return OperationKind.ConditionalChoice; }
-        }
+        public OperationKind Kind => OperationKind.ConditionalChoice;
 
-        public object ConstantValue
-        {
-            get { return null; }
-        }
+        public object ConstantValue => null;
     }
 
     public class Assignment : IExpressionStatement
