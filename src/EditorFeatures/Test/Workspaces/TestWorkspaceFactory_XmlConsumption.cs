@@ -225,6 +225,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             if (projectElement.Attribute(FilePathAttributeName) != null)
             {
                 filePath = projectElement.Attribute(FilePathAttributeName).Value;
+                if (string.Compare(filePath, "null", StringComparison.Ordinal) == 0 || string.Compare(filePath, "Nothing", StringComparison.OrdinalIgnoreCase) == 0)
+                {
+                    // allow explicit null file path
+                    filePath = null;
+                }
             }
             else
             {
