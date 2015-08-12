@@ -1525,32 +1525,21 @@ Microsoft.CodeAnalysis.Semantics.IOperation.Syntax.get -> Microsoft.CodeAnalysis
 Microsoft.CodeAnalysis.Semantics.Relational
 Microsoft.CodeAnalysis.Semantics.Relational.Relational(Microsoft.CodeAnalysis.Semantics.RelationalOperationKind relationalKind, Microsoft.CodeAnalysis.Semantics.IExpression left, Microsoft.CodeAnalysis.Semantics.IExpression right, Microsoft.CodeAnalysis.ITypeSymbol resultType, Microsoft.CodeAnalysis.IMethodSymbol operatorMethod, Microsoft.CodeAnalysis.SyntaxNode syntax) -> void
 Microsoft.CodeAnalysis.Semantics.Relational.RelationalKind.get -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.Relational.RelationalKind.set -> void
 Microsoft.CodeAnalysis.Semantics.Relational.Left.get -> Microsoft.CodeAnalysis.Semantics.IExpression
-Microsoft.CodeAnalysis.Semantics.Relational.Left.set -> void
 Microsoft.CodeAnalysis.Semantics.Relational.Right.get -> Microsoft.CodeAnalysis.Semantics.IExpression
-Microsoft.CodeAnalysis.Semantics.Relational.Right.set -> void
 Microsoft.CodeAnalysis.Semantics.Relational.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
-Microsoft.CodeAnalysis.Semantics.Relational.Syntax.set -> void
 Microsoft.CodeAnalysis.Semantics.Relational.UsesOperatorMethod.get -> bool
 Microsoft.CodeAnalysis.Semantics.Relational.Operator.get -> Microsoft.CodeAnalysis.IMethodSymbol
-Microsoft.CodeAnalysis.Semantics.Relational.Operator.set -> void
 Microsoft.CodeAnalysis.Semantics.Relational.ResultType.get -> Microsoft.CodeAnalysis.ITypeSymbol
-Microsoft.CodeAnalysis.Semantics.Relational.ResultType.set -> void
 Microsoft.CodeAnalysis.Semantics.Relational.Kind.get -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.Relational.ConstantValue.get -> object
 Microsoft.CodeAnalysis.Semantics.ConditionalChoice
 Microsoft.CodeAnalysis.Semantics.ConditionalChoice.ConditionalChoice(Microsoft.CodeAnalysis.Semantics.IExpression condition, Microsoft.CodeAnalysis.Semantics.IExpression ifTrue, Microsoft.CodeAnalysis.Semantics.IExpression ifFalse, Microsoft.CodeAnalysis.ITypeSymbol resultType, Microsoft.CodeAnalysis.SyntaxNode syntax) -> void
 Microsoft.CodeAnalysis.Semantics.ConditionalChoice.Condition.get -> Microsoft.CodeAnalysis.Semantics.IExpression
-Microsoft.CodeAnalysis.Semantics.ConditionalChoice.Condition.set -> void
 Microsoft.CodeAnalysis.Semantics.ConditionalChoice.IfTrue.get -> Microsoft.CodeAnalysis.Semantics.IExpression
-Microsoft.CodeAnalysis.Semantics.ConditionalChoice.IfTrue.set -> void
 Microsoft.CodeAnalysis.Semantics.ConditionalChoice.IfFalse.get -> Microsoft.CodeAnalysis.Semantics.IExpression
-Microsoft.CodeAnalysis.Semantics.ConditionalChoice.IfFalse.set -> void
 Microsoft.CodeAnalysis.Semantics.ConditionalChoice.ResultType.get -> Microsoft.CodeAnalysis.ITypeSymbol
-Microsoft.CodeAnalysis.Semantics.ConditionalChoice.ResultType.set -> void
 Microsoft.CodeAnalysis.Semantics.ConditionalChoice.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
-Microsoft.CodeAnalysis.Semantics.ConditionalChoice.Syntax.set -> void
 Microsoft.CodeAnalysis.Semantics.ConditionalChoice.Kind.get -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.ConditionalChoice.ConstantValue.get -> object
 Microsoft.CodeAnalysis.Semantics.Assignment
