@@ -335,6 +335,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             public void AddInput(string command)
             {
                 // If the language buffer is readonly then input can not be added. Return immediately.
+                // The language buffer gets marked as readonly in SubmitAsync method when input on the prompt 
+                // gets submitted. So it would be readonly when the user types #reset on the prompt. In that 
+                // case it is the right thing to bail out of this method.
                 if (_window._currentLanguageBuffer != null && _window._currentLanguageBuffer.IsReadOnly(0))
                 {
                     return;
