@@ -55,12 +55,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             return snapshotMock.Object;
         }
 
-        public string GetTextFromCurrentLanguageBuffer
+        public string GetTextFromCurrentLanguageBuffer()
         {
-            get
-            {
-                return Window.CurrentLanguageBuffer.CurrentSnapshot.GetText();
-            }
+            return Window.CurrentLanguageBuffer.CurrentSnapshot.GetText();
         }
 
         #endregion
@@ -621,20 +618,23 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 		[Fact]
         public void CheckHistoryPrevious()
         {
-            const string V = "1 ";
-            Window.InsertCode(V);
-            Assert.Equal(V, GetTextFromCurrentLanguageBuffer);
+            const string inputString = "1 ";
+            Window.InsertCode(inputString);
+            Assert.Equal(inputString, GetTextFromCurrentLanguageBuffer());
             Task.Run(() => Window.Operations.ExecuteInput()).PumpingWait();
             Window.Operations.HistoryPrevious();
-            Assert.Equal(V, GetTextFromCurrentLanguageBuffer);
+            Assert.Equal(inputString, GetTextFromCurrentLanguageBuffer());
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/4121")]
-        public void CheckHistoryAfterResetButtonClick()
+        [Fact]
+        public void CheckHistoryPreviousAfterReset()
         {
-            Task.Run(() => Window.Operations.ResetAsync(initialize: true)).PumpingWait();
-            Task.Run(() => Window.Operations.HistoryPrevious()).PumpingWait();
-            Assert.Equal("#reset", GetTextFromCurrentLanguageBuffer);
+            const string resetCommand = "#reset";
+            Window.InsertCode(resetCommand);
+            Assert.Equal(resetCommand, GetTextFromCurrentLanguageBuffer());
+            Task.Run(() => Window.Operations.ExecuteInput()).PumpingWait();
+            Window.Operations.HistoryPrevious();
+            Assert.Equal(resetCommand, GetTextFromCurrentLanguageBuffer());
         }
     }
 }
