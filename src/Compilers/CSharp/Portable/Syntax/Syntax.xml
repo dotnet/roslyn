@@ -2313,10 +2313,11 @@
         <summary>Gets the open bracket token.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Target" Type="AttributeTargetSpecifierSyntax" Optional="true"/>
-    <PropertyComment>
-      <summary>Gets the optional construct targeted by the attribute.</summary>
-    </PropertyComment>
+    <Field Name="Target" Type="AttributeTargetSpecifierSyntax" Optional="true">
+      <PropertyComment>
+        <summary>Gets the optional construct targeted by the attribute.</summary>
+      </PropertyComment>
+    </Field>
     <Field Name="Attributes" Type="SeparatedSyntaxList&lt;AttributeSyntax&gt;">
       <PropertyComment>
         <summary>Gets the attribute declaration list.</summary>
