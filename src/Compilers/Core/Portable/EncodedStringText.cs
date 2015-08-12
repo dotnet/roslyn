@@ -16,36 +16,40 @@ namespace Microsoft.CodeAnalysis.Text
         /// Encoding to use when there is no byte order mark (BOM) on the stream. This encoder may throw a <see cref="DecoderFallbackException"/>
         /// if the stream contains invalid UTF-8 bytes.
         /// </summary>
-        private static readonly Encoding s_fallbackEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+        private static readonly Encoding s_utf8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
         /// <summary>
-        /// Encoding to use when UTF-8 fails and default OS ANSI encoding is not available. If available, we use CodePage 1252. If not, we use Latin1.
+        /// Encoding to use when UTF-8 fails. We try to find the following, in order, if available:
+        ///     1. The default ANSI codepage
+       ///      2. CodePage 1252.
+       ///      3. Latin1.
         /// </summary>
-        private static readonly Encoding s_defaultFallbackEncoding = GetDefaultFallbackEncoding();
+        private static readonly Encoding s_fallbackEncoding = GetFallbackEncoding();
 
-        private static Encoding GetDefaultFallbackEncoding()
+        private static Encoding GetFallbackEncoding()
         {
             try
             {
-                return PortableShim.Encoding.GetEncoding(1252);
+                // If we're running on CoreCLR there is no "default" codepage
+                // but we should be able to grab 1252 from System.Text.Encoding.CodePages
+                if (CoreClrShim.IsCoreClr)
+                {
+                    CoreClrShim.Encoding.RegisterProvider(CoreClrShim.CodePagesEncodingProvider.Instance);
+                    // We should now have 1252 from the CodePagesEncodingProvider
+                    return PortableShim.Encoding.GetEncoding(1252);
+                }
+                // If we're running on the desktop framework we should be able
+                // to get the default ANSI code page in the operating system's
+                // regional and language settings,
+                else
+                {
+                    return PortableShim.Encoding.GetEncoding(0)
+                        ?? PortableShim.Encoding.GetEncoding(1252);
+                }
             }
             catch (NotSupportedException)
             {
                 return Encoding.GetEncoding(name: "Latin1");
-            }
-        }
-
-        private static Encoding GetDefaultAnsiEncoding()
-        {
-            try
-            {
-                // To get the encoding associated with the default ANSI code page in the operating system's regional and language settings,
-                // supply a value 0 for the codepage argument 
-                return PortableShim.Encoding.GetEncoding(0) ?? s_defaultFallbackEncoding;
-            }
-            catch 
-            {
-                return s_defaultFallbackEncoding;
             }
         }
 
@@ -78,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 try
                 {
-                    return Decode(stream, s_fallbackEncoding, checksumAlgorithm, throwIfBinaryDetected: false);
+                    return Decode(stream, s_utf8Encoding, checksumAlgorithm, throwIfBinaryDetected: false);
                 }
                 catch (DecoderFallbackException)
                 {
@@ -88,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             try
             {
-                return Decode(stream, defaultEncoding ?? GetDefaultAnsiEncoding(), checksumAlgorithm, throwIfBinaryDetected: detectEncoding);
+                return Decode(stream, defaultEncoding ?? s_fallbackEncoding, checksumAlgorithm, throwIfBinaryDetected: detectEncoding);
             }
             catch (DecoderFallbackException e)
             {
