@@ -229,6 +229,9 @@ test_roslyn()
 echo Clean out the enlistment
 git clean -dxf . 
 
+set_mono_path
+which mono
+
 # NuGet on mono crashes about every 5th time we run it.  This is causing
 # Linux runs to fail frequently enough that we need to employ a 
 # temporary work around.  
@@ -236,8 +239,6 @@ echo Restoring NuGet packages
 run_nuget restore Roslyn.sln
 run_nuget install xunit.runners -PreRelease -Version $XUNIT_VERSION -OutputDirectory packages
 
-set_mono_path
-which mono
 compile_toolset
 save_toolset
 clean_roslyn
