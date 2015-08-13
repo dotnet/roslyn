@@ -18,11 +18,13 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.InteractiveWindow.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.VsInteractiveWindow" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
@@ -115,6 +117,33 @@
     <Compile Include="SubmissionBufferAddedEventArgs.cs" />
     <Compile Include="Utils\Contract.cs" />
     <Compile Include="Utils\EditorExtensions.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
+      <Link>InternalUtilities\ExceptionUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FailFast.cs">
+      <Link>InternalUtilities\FailFast.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FatalError.cs">
+      <Link>InternalUtilities\FatalError.cs</Link>
+    </Compile>
+    <Compile Include="..\..\VisualStudio\Core\Def\Implementation\Watson\ErrorReportSettings.cs">
+      <Link>InternalUtilities\ErrorReportSettings.cs</Link>
+    </Compile>
+    <Compile Include="..\..\VisualStudio\Core\Def\Implementation\Watson\ExceptionInfo.cs">
+      <Link>InternalUtilities\ExceptionInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\VisualStudio\Core\Def\Implementation\Watson\NativeWin32Stubs.cs">
+      <Link>InternalUtilities\NativeWin32Stubs.cs</Link>
+    </Compile>
+    <Compile Include="..\..\VisualStudio\Core\Def\Implementation\Watson\Watson.cs">
+      <Link>InternalUtilities\Watson.cs</Link>
+    </Compile>
+    <Compile Include="..\..\VisualStudio\Core\Def\Implementation\Watson\WatsonErrorReport.cs">
+      <Link>InternalUtilities\WatsonErrorReport.cs</Link>
+    </Compile>
+    <Compile Include="..\..\VisualStudio\Core\Def\Implementation\Watson\WatsonReporter.cs">
+      <Link>InternalUtilities\WatsonReporter.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="InteractiveWindowResources.resx">

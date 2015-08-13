@@ -125,7 +125,6 @@
   <ItemGroup>
     <Compile Include="AssemblyRedirects.cs" Condition="('$(AssemblyVersion)' == '42.42.42.42') or ('$(OfficialBuild)' == 'true')" />
     <Compile Include="CommandIds.cs" />
-    <Compile Include="ContentTypeMetadata.cs" />
     <Compile Include="Guids.cs" />
     <Compile Include="VsInteractiveWindowEditorFactoryService.cs" />
     <Compile Include="InteractiveWindowPackage.cs" />
