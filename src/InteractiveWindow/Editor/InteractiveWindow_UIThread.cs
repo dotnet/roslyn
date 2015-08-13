@@ -143,8 +143,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             private readonly IInteractiveWindowEditorFactoryService _host;
 
-            private readonly TaskScheduler _uiScheduler;
-
             private readonly IReadOnlyRegion[] _outputProtection;
 
             // Pending submissions to be processed whenever the REPL is ready to accept submissions.
@@ -152,7 +150,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             private DispatcherTimer _executionTimer;
             private Cursor _oldCursor;
-            private Task<ExecutionResult> _currentTask;
             private int _currentOutputProjectionSpan;
             private int _outputTrackingCaretPosition;
 
@@ -195,14 +192,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 _window = window;
                 _host = host;
-                _uiScheduler = TaskScheduler.FromCurrentSynchronizationContext();
                 StandardInputProtection = new IReadOnlyRegion[2];
                 _outputProtection = new IReadOnlyRegion[2];
                 _pendingSubmissions = new Queue<PendingSubmission>();
                 _outputTrackingCaretPosition = -1;
             }
 
-            public Task<ExecutionResult> ResetAsync(bool initialize)
+            public async Task<ExecutionResult> ResetAsync(bool initialize)
             {
                 Debug.Assert(State != State.Resetting, "The button should have been disabled.");
 
@@ -223,12 +219,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     _window._currentLanguageBuffer = null;
                 }
 
-                // replace the task being interrupted by a "reset" task:
                 State = State.Resetting;
-                _currentTask = _window._evaluator.ResetAsync(initialize);
-                _currentTask.ContinueWith(FinishExecute, _uiScheduler);
+                var executionResult = await _window._evaluator.ResetAsync(initialize).ConfigureAwait(true);
+                Debug.Assert(_window.OnUIThread()); // ConfigureAwait should bring us back to the UI thread.
 
-                return _currentTask;
+                Debug.Assert(State == State.Resetting, $"Unexpected state {State}");
+                FinishExecute(executionResult.IsSuccessful);
+
+                return executionResult;
             }
 
             public void ClearView()
@@ -502,7 +500,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }));
             }
 
-            public Task SubmitAsync()
+            public async Task SubmitAsync()
             {
                 RequiresLanguageBuffer();
 
@@ -512,7 +510,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 // the code in this method will need to be bullet-proofed
                 if (State == State.ExecutingInput)
                 {
-                    return Task.FromResult<object>(null);
+                    return;
                 }
 
                 // get command to save to history before calling FinishCurrentSubmissionInput
@@ -529,7 +527,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 {
                     // TODO: reuse the current language buffer
                     PrepareForInput();
-                    return Task.FromResult<object>(null);
+                    return;
                 }
                 else
                 {
@@ -538,9 +536,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                     StartCursorTimer();
 
-                    Debug.Assert(_currentTask == null, "Shouldn't be either executing or resetting");
-                    _currentTask = _window._evaluator.ExecuteCodeAsync(snapshotSpan.GetText());
-                    return _currentTask.ContinueWith(FinishExecute, _uiScheduler);
+                    var executionResult = await _window._evaluator.ExecuteCodeAsync(snapshotSpan.GetText()).ConfigureAwait(true);
+                    Debug.Assert(_window.OnUIThread()); // ConfigureAwait should bring us back to the UI thread.
+
+                    Debug.Assert(State == State.ExecutingInput || State == State.Resetting, $"Unexpected state {State}");
+                    
+                    if (State == State.ExecutingInput)
+                    {
+                        FinishExecute(executionResult.IsSuccessful);
+                    }
                 }
             }
 
@@ -736,24 +740,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 ApplyProtection(_window._outputBuffer, _outputProtection);
             }
 
-            private void FinishExecute(Task<ExecutionResult> result)
+            private void FinishExecute(bool succeeded)
             {
-                // The finished task has been replaced by another task (e.g. reset).
-                // Do not perform any task finalization, it will be done by the replacement task.
-                if (_currentTask != result)
-                {
-                    return;
-                }
-
-                _currentTask = null;
                 ResetCursor();
 
-                if (result.Exception != null || !result.Result.IsSuccessful)
+                if (!succeeded && _window._history.Last != null)
                 {
-                    if (_window._history.Last != null)
-                    {
-                        _window._history.Last.Failed = true;
-                    }
+                    _window._history.Last.Failed = true;
                 }
 
                 PrepareForInput();
@@ -778,7 +771,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         completionSession.Commit();
                     }
 
-                    SubmitAsync();
+                    var dummy = SubmitAsync(); // Consume output to avoid warning.
                 }
                 else
                 {
