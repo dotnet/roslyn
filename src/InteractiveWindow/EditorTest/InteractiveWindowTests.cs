@@ -658,9 +658,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
             Assert.True(ResetCommand.TryParseArguments("\r\nnoconfig\r\n", out initialize));
             Assert.False(initialize);
-
-            Assert.True(ResetCommand.TryParseArguments("nOcOnfIg", out initialize));
-            Assert.False(initialize);
         }
 
         [Fact]
@@ -673,6 +670,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Assert.False(ResetCommand.TryParseArguments("noconfig 1", out initialize));
             Assert.False(ResetCommand.TryParseArguments("1 noconfig", out initialize));
             Assert.False(ResetCommand.TryParseArguments("noconfig\r\na", out initialize));
+            Assert.False(ResetCommand.TryParseArguments("nOcOnfIg", out initialize));
         }
 
         [Fact]
@@ -684,6 +682,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Assert.Empty(ResetCommand.GetNoConfigPositions("noconfig1"));
             Assert.Empty(ResetCommand.GetNoConfigPositions("1noconfig"));
             Assert.Empty(ResetCommand.GetNoConfigPositions("1noconfig1"));
+            Assert.Empty(ResetCommand.GetNoConfigPositions("nOcOnfIg"));
 
             Assert.Equal(new[] { 0 }, ResetCommand.GetNoConfigPositions("noconfig"));
             Assert.Equal(new[] { 0 }, ResetCommand.GetNoConfigPositions("noconfig "));
