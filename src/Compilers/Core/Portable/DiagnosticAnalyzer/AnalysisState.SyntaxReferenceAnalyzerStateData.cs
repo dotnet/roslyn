@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -19,9 +20,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// </summary>
             public CodeBlockAnalyzerStateData CodeBlockAnalysisState { get; set; }
 
+            /// <summary>
+            /// Partial analysis state for operation actions executed on the declaration.
+            /// </summary>
+            public OperationAnalyzerStateData OperationAnalysisState { get; set; }
+
             public DeclarationAnalyzerStateData()
             {
                 CodeBlockAnalysisState = new CodeBlockAnalyzerStateData();
+                OperationAnalysisState = new OperationAnalyzerStateData();
             }
 
             public override void SetStateKind(StateKind stateKind)
@@ -62,6 +69,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 base.Free();
                 CurrentNode = null;
                 ProcessedNodes.Clear();
+            }
+        }
+
+        /// <summary>
+        /// Stores the partial analysis state for operation actions executed on the declaration.
+        /// </summary>
+        internal class OperationAnalyzerStateData : AnalyzerStateData
+        {
+            public HashSet<IOperation> ProcessedOperations { get; set; }
+            public IOperation CurrentOperation { get; set; }
+
+            public OperationAnalyzerStateData()
+            {
+                CurrentOperation = null;
+                ProcessedOperations = new HashSet<IOperation>();
+            }
+
+            public void ClearNodeAnalysisState()
+            {
+                CurrentOperation = null;
+                ProcessedActions.Clear();
+            }
+
+            public override void Free()
+            {
+                base.Free();
+                CurrentOperation = null;
+                ProcessedOperations.Clear();
             }
         }
 
