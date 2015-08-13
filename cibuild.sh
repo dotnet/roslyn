@@ -14,6 +14,7 @@ XUNIT_VERSION=2.0.0-alpha-build2576
 BUILD_CONFIGURATION=Debug
 OS_NAME=$(uname -s)
 USE_CACHE=true
+MONO_ARGS='--runtime=v4.0.30319 --gc=boehm --debug=mdb-optimizations --attach=disable'
 
 # There are some stability issues that are causing Jenkins builds to fail at an 
 # unacceptable rate.  To temporarily work around that we are going to retry the 
@@ -61,7 +62,7 @@ run_msbuild()
     
     for i in `seq 1 $RETRY_COUNT`
     do
-        mono packages/Microsoft.Build.Mono.Debug.14.1.0.0-prerelease/lib/MSBuild.exe /v:m /p:SignAssembly=false /p:DebugSymbols=false "$@"
+        mono $MONO_ARGS packages/Microsoft.Build.Mono.Debug.14.1.0.0-prerelease/lib/MSBuild.exe /v:m /p:SignAssembly=false /p:DebugSymbols=false "$@"
         if [ $? -eq 0 ]; then
             is_good=true
             break
@@ -83,7 +84,7 @@ run_nuget()
     local is_good=false
     for i in `seq 1 $RETRY_COUNT`
     do
-        mono .nuget/NuGet.exe "$@"
+        mono $MONO_ARGS .nuget/NuGet.exe "$@"
         if [ $? -eq 0 ]; then
             is_good=true
             break
@@ -133,7 +134,7 @@ save_toolset()
 clean_roslyn()
 {
     echo Cleaning the enlistment
-    mono packages/Microsoft.Build.Mono.Debug.14.1.0.0-prerelease/lib/MSBuild.exe /v:m /t:Clean build/Toolset.sln /p:Configuration=$BUILD_CONFIGURATION
+    mono $MONO_ARGS packages/Microsoft.Build.Mono.Debug.14.1.0.0-prerelease/lib/MSBuild.exe /v:m /t:Clean build/Toolset.sln /p:Configuration=$BUILD_CONFIGURATION
     rm -rf Binaries/$BUILD_CONFIGURATION
 }
 
@@ -212,7 +213,7 @@ test_roslyn()
 
     for i in "${test_binaries[@]}"
     do
-        mono $xunit_runner Binaries/$BUILD_CONFIGURATION/$i.dll -xml Binaries/$BUILD_CONFIGURATION/$i.TestResults.xml -noshadow
+        mono $MONO_ARGS $xunit_runner Binaries/$BUILD_CONFIGURATION/$i.dll -xml Binaries/$BUILD_CONFIGURATION/$i.TestResults.xml -noshadow
         if [ $? -ne 0 ]; then
             any_failed=true
         fi
@@ -234,7 +235,7 @@ which mono
 # Linux runs to fail frequently enough that we need to employ a 
 # temporary work around.  
 echo Restoring NuGet packages
-run_nuget restore Roslyn.sln
+run_nuget restore CrossPlatform.sln
 run_nuget install xunit.runners -PreRelease -Version $XUNIT_VERSION -OutputDirectory packages
 
 compile_toolset
