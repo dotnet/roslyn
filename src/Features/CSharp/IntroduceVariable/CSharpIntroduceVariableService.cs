@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
@@ -49,6 +50,11 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         protected override bool IsInConstructorInitializer(ExpressionSyntax expression)
         {
             return expression.GetAncestorOrThis<ConstructorInitializerSyntax>() != null;
+        }
+
+        protected override bool IsInAutoPropertyInitializer(ExpressionSyntax expression)
+        {
+            return expression.GetAncestorOrThis<EqualsValueClauseSyntax>().IsParentKind(SyntaxKind.PropertyDeclaration);
         }
 
         protected override bool IsInExpressionBodiedMember(ExpressionSyntax expression)

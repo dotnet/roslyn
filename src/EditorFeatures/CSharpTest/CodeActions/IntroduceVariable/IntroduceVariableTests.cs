@@ -2578,5 +2578,47 @@ namespace N
 
             Test(code, expected, index: 0, compareTokens: false);
         }
+
+        [WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void InAutoPropertyInitializer()
+        {
+            var code =
+@"using System;
+class C
+{
+    int Prop1 { get; } = [|1 + 2|];
+}";
+            var expected =
+@"using System;
+class C
+{
+    private const int {|Rename:V|} = 1 + 2;
+
+    int Prop1 { get; } = V;
+}";
+            Test(code, expected, index: 0, compareTokens: false);
+        }
+
+        [WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void InAutoPropertyInitializer2()
+        {
+            var code =
+@"using System;
+class C
+{
+    public DateTime TimeStamp { get; } = [|DateTime.UtcNow|];
+}";
+            var expected =
+@"using System;
+class C
+{
+    private static readonly DateTime {|Rename:utcNow|} = DateTime.UtcNow;
+
+    public DateTime TimeStamp { get; } = utcNow;
+}";
+            Test(code, expected, index: 0, compareTokens: false);
+        }
     }
 }
