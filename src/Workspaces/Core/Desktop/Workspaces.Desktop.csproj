@@ -68,6 +68,9 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\EncodedStringText.cs">
       <Link>InternalUtilities\EncodedStringText.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Helpers\CoreClrShim.cs">
+      <Link>InternalUtilities\CoreClrShim.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\FileKey.cs">
       <Link>InternalUtilities\FileKey.cs</Link>
     </Compile>
