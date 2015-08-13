@@ -5041,6 +5041,31 @@ class C
             }
         }
 
+
+        [WorkItem(3923, "https://github.com/dotnet/roslyn/issues/3923")]
+        [Fact]
+        public void NameofInExpressionTree()
+        {
+            string program = @"
+using System;
+using System.Linq.Expressions;
+
+public class Program
+{
+    public static void Main()
+    {
+        Expression<Func<string>> func = () => nameof(Main);
+        Console.WriteLine(func.Compile().Invoke());
+    }
+}
+";
+            CompileAndVerify(
+                sources: new string[] { program },
+                additionalRefs: new[] { SystemCoreRef },
+                expectedOutput: @"Main")
+                .VerifyDiagnostics();
+        }
+
         #endregion Regression Tests
 
         #region helpers
