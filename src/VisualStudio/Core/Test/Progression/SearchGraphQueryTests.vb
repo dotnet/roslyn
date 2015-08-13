@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.VisualStudio.GraphModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 Imports Roslyn.Test.Utilities
@@ -381,7 +382,7 @@ End Namespace
         Public Sub SearchWithNullFilePathsOnProject()
             Using testState = New ProgressionTestState(
                     <Workspace>
-                        <Project Language="C#" CommonReferences="true" FilePath="null">
+                        <Project Language="C#" CommonReferences="true" FilePath=<%= TestWorkspaceFactory.NullFilePath %>>
                             <Document FilePath="Z:\SomeVenusDocument.aspx.cs">
                                 namespace Animal { class Dog&lt;X&gt; { void Bark() { } } }
                             </Document>
