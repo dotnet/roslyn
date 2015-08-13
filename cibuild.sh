@@ -14,7 +14,7 @@ XUNIT_VERSION=2.0.0-alpha-build2576
 BUILD_CONFIGURATION=Debug
 OS_NAME=$(uname -s)
 USE_CACHE=true
-MONO_ARGS='--runtime=v4.0.30319 --gc=boehm --debug=mdb-optimizations --attach=disable'
+MONO_ENV_OPTIONS='--runtime=v4.0.30319 --gc=boehm --debug=mdb-optimizations --attach=disable'
 
 # There are some stability issues that are causing Jenkins builds to fail at an 
 # unacceptable rate.  To temporarily work around that we are going to retry the 
@@ -62,7 +62,7 @@ run_msbuild()
     
     for i in `seq 1 $RETRY_COUNT`
     do
-        mono $MONO_ARGS packages/Microsoft.Build.Mono.Debug.14.1.0.0-prerelease/lib/MSBuild.exe /v:m /p:SignAssembly=false /p:DebugSymbols=false "$@"
+        mono packages/Microsoft.Build.Mono.Debug.14.1.0.0-prerelease/lib/MSBuild.exe /v:m /p:SignAssembly=false /p:DebugSymbols=false "$@"
         if [ $? -eq 0 ]; then
             is_good=true
             break
@@ -84,7 +84,7 @@ run_nuget()
     local is_good=false
     for i in `seq 1 $RETRY_COUNT`
     do
-        mono $MONO_ARGS .nuget/NuGet.exe "$@"
+        mono .nuget/NuGet.exe "$@"
         if [ $? -eq 0 ]; then
             is_good=true
             break
