@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.CSharp;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
 {
@@ -905,6 +906,49 @@ class C
 }";
 
             Test(markup, usePreviousCharAsTrigger: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestTriggerCharacterInComment01()
+        {
+            var markup = @"
+class C
+{
+    void Foo(int a)
+    {
+        Foo(/*,$$*/);
+    }
+}";
+            Test(markup, Enumerable.Empty<SignatureHelpTestItem>(), usePreviousCharAsTrigger: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestTriggerCharacterInComment02()
+        {
+            var markup = @"
+class C
+{
+    void Foo(int a)
+    {
+        Foo(//,$$
+            );
+    }
+}";
+            Test(markup, Enumerable.Empty<SignatureHelpTestItem>(), usePreviousCharAsTrigger: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestTriggerCharacterInString01()
+        {
+            var markup = @"
+class C
+{
+    void Foo(int a)
+    {
+        Foo("",$$"");
+    }
+}";
+            Test(markup, Enumerable.Empty<SignatureHelpTestItem>(), usePreviousCharAsTrigger: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
@@ -1946,6 +1990,30 @@ class C
             };
 
             Test(markup, expectedOrderedItems);
+        }
+
+        [WorkItem(4144, "https://github.com/dotnet/roslyn/issues/4144")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestSigHelpIsVisibleOnInaccessibleItem()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+class A
+{
+    List<int> args;
+}
+
+class B : A
+{
+    void M()
+    {
+        args.Add($$
+    }
+}
+";
+
+            Test(markup, new[] { new SignatureHelpTestItem("void List<int>.Add(int item)") });
         }
     }
 }

@@ -20,7 +20,7 @@ Imports System
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata))
 
-            Dim actual = PDBTests.GetTokenToLocationMap(compilation, True)
+            Dim actual = PdbTestUtilities.GetTokenToLocationMap(compilation, True)
 
             Dim expected =
 <?xml version="1.0" encoding="utf-16"?>
@@ -65,7 +65,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata))
 
-            Dim actual = PDBTests.GetTokenToLocationMap(compilation, True)
+            Dim actual = PdbTestUtilities.GetTokenToLocationMap(compilation, True)
 
             Dim expected =
 <?xml version="1.0" encoding="utf-16"?>
@@ -97,7 +97,7 @@ End Namespace
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata))
 
-            Dim actual = PDBTests.GetTokenToLocationMap(compilation, True)
+            Dim actual = PdbTestUtilities.GetTokenToLocationMap(compilation, True)
 
             Dim expected =
 <?xml version="1.0" encoding="utf-16"?>
@@ -156,11 +156,11 @@ End Namespace
             Dim compilation =
                 CompilationUtils.CreateCompilationWithReferences(
                     source,
-                    LatestReferences,
+                    LatestVbReferences,
                     options:=TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata))
             CompilationUtils.AssertNoDiagnostics(compilation)
 
-            Dim actual = PDBTests.GetTokenToLocationMap(compilation, True)
+            Dim actual = PdbTestUtilities.GetTokenToLocationMap(compilation, True)
 
             Dim expected =
 <?xml version="1.0" encoding="utf-16"?>
@@ -222,7 +222,7 @@ End Namespace
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata))
 
-            Dim actual = PDBTests.GetTokenToLocationMap(compilation, True)
+            Dim actual = PdbTestUtilities.GetTokenToLocationMap(compilation, True)
 
             Dim expected =
 <?xml version="1.0" encoding="utf-16"?>

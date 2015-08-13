@@ -13,16 +13,25 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Roslyn.Utilities;
 using Xunit;
+using System.Collections.Concurrent;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     public abstract class AbstractDiagnosticProviderBasedUserDiagnosticTest : AbstractUserDiagnosticTest
     {
+        private readonly ConcurrentDictionary<Workspace, Tuple<DiagnosticAnalyzer, CodeFixProvider>> _analyzerAndFixerMap =
+            new ConcurrentDictionary<Workspace, Tuple<DiagnosticAnalyzer, CodeFixProvider>>();
+
         internal abstract Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
+
+        private Tuple<DiagnosticAnalyzer, CodeFixProvider> GetOrCreateDiagnosticProviderAndFixer(Workspace workspace)
+        {
+            return _analyzerAndFixerMap.GetOrAdd(workspace, CreateDiagnosticProviderAndFixer);
+        }
 
         internal override IEnumerable<Diagnostic> GetDiagnostics(TestWorkspace workspace)
         {
-            var providerAndFixer = CreateDiagnosticProviderAndFixer(workspace);
+            var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace);
 
             var provider = providerAndFixer.Item1;
             TextSpan span;
@@ -32,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         internal override IEnumerable<Tuple<Diagnostic, CodeFixCollection>> GetDiagnosticAndFixes(TestWorkspace workspace, string fixAllActionId)
         {
-            var providerAndFixer = CreateDiagnosticProviderAndFixer(workspace);
+            var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace);
 
             var provider = providerAndFixer.Item1;
             Document document;
@@ -43,58 +52,61 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 document = GetDocumentAndAnnotatedSpan(workspace, out annotation, out span);
             }
 
-            var diagnostics = DiagnosticProviderTestUtilities.GetAllDiagnostics(provider, document, span);
-
-            var fixer = providerAndFixer.Item2;
-            var ids = new HashSet<string>(fixer.FixableDiagnosticIds);
-            var dxs = diagnostics.Where(d => ids.Contains(d.Id)).ToList();
-
-            foreach (var diagnostic in dxs)
+            using (var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, provider))
             {
-                if (annotation == null)
+                var diagnostics = testDriver.GetAllDiagnostics(provider, document, span);
+
+                var fixer = providerAndFixer.Item2;
+                var ids = new HashSet<string>(fixer.FixableDiagnosticIds);
+                var dxs = diagnostics.Where(d => ids.Contains(d.Id)).ToList();
+
+                foreach (var diagnostic in dxs)
                 {
-                    var fixes = new List<CodeFix>();
-                    var context = new CodeFixContext(document, diagnostic, (a, d) => fixes.Add(new CodeFix(a, d)), CancellationToken.None);
-                    fixer.RegisterCodeFixesAsync(context).Wait();
-                    if (fixes.Any())
+                    if (annotation == null)
                     {
-                        var codeFix = new CodeFixCollection(fixer, diagnostic.Location.SourceSpan, fixes);
-                        yield return Tuple.Create(diagnostic, codeFix);
+                        var fixes = new List<CodeFix>();
+                        var context = new CodeFixContext(document, diagnostic, (a, d) => fixes.Add(new CodeFix(a, d)), CancellationToken.None);
+                        fixer.RegisterCodeFixesAsync(context).Wait();
+                        if (fixes.Any())
+                        {
+                            var codeFix = new CodeFixCollection(fixer, diagnostic.Location.SourceSpan, fixes);
+                            yield return Tuple.Create(diagnostic, codeFix);
+                        }
                     }
-                }
-                else
-                {
-                    var fixAllProvider = fixer.GetFixAllProvider();
-                    Assert.NotNull(fixAllProvider);
-                    FixAllScope scope = GetFixAllScope(annotation);
-
-                    Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDocumentDiagnosticsAsync =
-                        (d, diagIds, c) =>
-                        {
-                            var root = d.GetSyntaxRootAsync().Result;
-                            var diags = DiagnosticProviderTestUtilities.GetDocumentDiagnostics(provider, d, root.FullSpan);
-                            diags = diags.Where(diag => diagIds.Contains(diag.Id));
-                            return Task.FromResult(diags);
-                        };
-
-                    Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getProjectDiagnosticsAsync =
-                        (p, includeAllDocumentDiagnostics, diagIds, c) =>
-                        {
-                            var diags = includeAllDocumentDiagnostics ?
-                                DiagnosticProviderTestUtilities.GetAllDiagnostics(provider, p) :
-                                DiagnosticProviderTestUtilities.GetProjectDiagnostics(provider, p);
-                            diags = diags.Where(diag => diagIds.Contains(diag.Id));
-                            return Task.FromResult(diags);
-                        };
-
-                    var diagnosticIds = ImmutableHashSet.Create(diagnostic.Id);
-                    var fixAllDiagnosticProvider = new FixAllCodeActionContext.FixAllDiagnosticProvider(diagnosticIds, getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync);
-                    var fixAllContext = new FixAllContext(document, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider, CancellationToken.None);
-                    var fixAllFix = fixAllProvider.GetFixAsync(fixAllContext).WaitAndGetResult(CancellationToken.None);
-                    if (fixAllFix != null)
+                    else
                     {
-                        var codeFix = new CodeFixCollection(fixAllProvider, diagnostic.Location.SourceSpan, ImmutableArray.Create(new CodeFix(fixAllFix, diagnostic)));
-                        yield return Tuple.Create(diagnostic, codeFix);
+                        var fixAllProvider = fixer.GetFixAllProvider();
+                        Assert.NotNull(fixAllProvider);
+                        FixAllScope scope = GetFixAllScope(annotation);
+
+                        Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDocumentDiagnosticsAsync =
+                            (d, diagIds, c) =>
+                            {
+                                var root = d.GetSyntaxRootAsync().Result;
+                                var diags = testDriver.GetDocumentDiagnostics(provider, d, root.FullSpan);
+                                diags = diags.Where(diag => diagIds.Contains(diag.Id));
+                                return Task.FromResult(diags);
+                            };
+
+                        Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getProjectDiagnosticsAsync =
+                            (p, includeAllDocumentDiagnostics, diagIds, c) =>
+                            {
+                                var diags = includeAllDocumentDiagnostics ?
+                                    testDriver.GetAllDiagnostics(provider, p) :
+                                    testDriver.GetProjectDiagnostics(provider, p);
+                                diags = diags.Where(diag => diagIds.Contains(diag.Id));
+                                return Task.FromResult(diags);
+                            };
+
+                        var diagnosticIds = ImmutableHashSet.Create(diagnostic.Id);
+                        var fixAllDiagnosticProvider = new FixAllCodeActionContext.FixAllDiagnosticProvider(diagnosticIds, getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync);
+                        var fixAllContext = new FixAllContext(document, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider, CancellationToken.None);
+                        var fixAllFix = fixAllProvider.GetFixAsync(fixAllContext).WaitAndGetResult(CancellationToken.None);
+                        if (fixAllFix != null)
+                        {
+                            var codeFix = new CodeFixCollection(fixAllProvider, diagnostic.Location.SourceSpan, ImmutableArray.Create(new CodeFix(fixAllFix, diagnostic)));
+                            yield return Tuple.Create(diagnostic, codeFix);
+                        }
                     }
                 }
             }

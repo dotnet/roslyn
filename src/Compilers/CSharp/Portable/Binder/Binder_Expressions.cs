@@ -619,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool hasErrors = argument.HasAnyErrors;
 
-            TypeSymbol typedReferenceType = this.Compilation.GetSpecialType(SpecialType.System_TypedReference);
+            TypeSymbol typedReferenceType = GetSpecialType(SpecialType.System_TypedReference, diagnostics, node);
 
             if ((object)argument.Type != null && argument.Type.IsRestrictedType())
             {

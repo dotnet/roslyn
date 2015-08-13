@@ -147,9 +147,11 @@
       <Link>GlobalAssemblyCache.cs</Link>
     </Compile>
     <Compile Include="AssemblyLoadResult.cs" />
+    <Compile Include="DesktopMetadataReferenceResolver.cs" />
     <Compile Include="InteractiveAssemblyLoader.cs" />
     <Compile Include="MetadataShadowCopy.cs" />
     <Compile Include="MetadataShadowCopyProvider.cs" />
+    <Compile Include="NuGetPackageResolver.cs" />
     <Compile Include="ScriptCompilerUtil.cs" />
     <Compile Include="ShadowCopy.cs" />
     <Compile Include="ObjectFormatter.cs" />
@@ -184,7 +186,7 @@
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
   </ItemGroup>
   <ItemGroup>

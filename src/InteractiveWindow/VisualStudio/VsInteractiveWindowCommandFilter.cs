@@ -151,6 +151,17 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
 
         private int PreEditorCommandFilterQueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
         {
+            if (pguidCmdGroup == Guids.InteractiveCommandSetId)
+            {
+                switch ((CommandIds)prgCmds[0].cmdID)
+                {
+                    case CommandIds.BreakLine:
+                        prgCmds[0].cmdf = _window.CurrentLanguageBuffer != null ? CommandEnabled : CommandDisabled;
+                        prgCmds[0].cmdf |= (uint)OLECMDF.OLECMDF_DEFHIDEONCTXTMENU;
+                        return VSConstants.S_OK;
+                }
+            }
+
             return _editorCommandFilter.QueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
         }
 

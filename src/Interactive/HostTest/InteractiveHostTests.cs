@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             remoteService.SetTestObjectFormattingOptions();
 
             // assert and remove logo:
-            var output = ReadOutputToEnd().Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            var output = SplitLines(ReadOutputToEnd());
             var errorOutput = ReadErrorOutputToEnd();
 
             Assert.Equal("", errorOutput);
@@ -153,13 +153,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             public ImmutableArray<byte> Image;
         }
 
-        private CompiledFile CompileLibrary(TempDirectory dir, string fileName, string assemblyName, string source, params MetadataReference[] references)
+        private static CompiledFile CompileLibrary(TempDirectory dir, string fileName, string assemblyName, string source, params MetadataReference[] references)
         {
-            const string Prefix = "RoslynTestFile_";
-
-            fileName = Prefix + fileName;
-            assemblyName = Prefix + assemblyName;
-
             var file = dir.CreateFile(fileName);
             var compilation = CreateCompilation(
                 new[] { source },
@@ -742,7 +737,7 @@ new D().Y
         ////            var task = Host.InitializeContextAsync(rspFile.Path, isRestarting: false, killProcess: true);
         ////            task.Wait();
 
-        ////            var output = ReadOutputToEnd().Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+        ////            var output = SplitLines(ReadOutputToEnd());
         ////            var errorOutput = ReadErrorOutputToEnd();
 
         ////            Assert.Equal(4, output.Length);
@@ -755,7 +750,7 @@ new D().Y
 
         ////            Host.InitializeContextAsync(rspFile.Path).Wait();
 
-        ////            output = ReadOutputToEnd().Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+        ////            output = SplitLines(ReadOutputToEnd());
         ////            errorOutput = ReadErrorOutputToEnd();
 
         ////            Assert.True(2 == output.Length, "Output is: '" + string.Join("<NewLine>", output) + "'. Expecting 2 lines.");
@@ -793,13 +788,32 @@ new D().Y
         ////            var errorOutput = ReadErrorOutputToEnd();
         ////            Assert.Equal("", errorOutput);
 
-        ////            var output = ReadOutputToEnd().Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+        ////            var output = SplitLines(ReadOutputToEnd());
         ////            Assert.Equal(4, output.Length);
         ////            Assert.Equal("Microsoft (R) Roslyn C# Compiler version " + FileVersionInfo.GetVersionInfo(Host.GetType().Assembly.Location).FileVersion, output[0]);
         ////            Assert.Equal("Loading context from '" + Path.GetFileName(rspFile.Path) + "'.", output[1]);
         ////            Assert.Equal("Type \"#help\" for more information.", output[2]);
         ////            Assert.Equal("13", output[3]);
         ////        }
+
+        [Fact]
+        public void ReferencePaths()
+        {
+            var directory = Temp.CreateDirectory();
+            var assemblyName = GetUniqueName();
+            CompileLibrary(directory, assemblyName + ".dll", assemblyName, @"public class C { }");
+            var rspFile = Temp.CreateFile();
+            rspFile.WriteAllText("/rp:" + directory.Path);
+            var task = Host.ResetAsync(InteractiveHostOptions.Default.WithInitializationFile(rspFile.Path));
+            task.Wait();
+            Execute(
+$@"#r ""{assemblyName}.dll""
+typeof(C).Assembly.GetName()");
+            var output = SplitLines(ReadOutputToEnd());
+            Assert.Equal(2, output.Length);
+            Assert.Equal("Loading context from '" + Path.GetFileName(rspFile.Path) + "'.", output[0]);
+            Assert.Equal($"[{assemblyName}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", output[1]);
+        }
 
         [Fact]
         public void ReferenceDirectives()
@@ -972,5 +986,10 @@ foo()
         }
 
 #endregion
+
+        private static ImmutableArray<string> SplitLines(string text)
+        {
+            return ImmutableArray.Create(text.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries));
+        }
     }
 }

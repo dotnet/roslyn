@@ -47,7 +47,7 @@ public class Class6<TTypeParameter>
             AnalyzeDocumentCore(GetCSharpDiagnosticAnalyzer(), documentsAndSpan.Item1[0], diagnostics.Add, null, logAnalyzerExceptionAsDiagnostics: true);
             Assert.True(diagnostics.Count > 0);
             Assert.Equal(
-                $"info AD0001: The Compiler Analyzer '{GetCSharpDiagnosticAnalyzer().GetType()}' threw an exception of type 'System.NotImplementedException' with message 'The method or operation is not implemented.'.",
+                $"info AD0001: Analyzer '{GetCSharpDiagnosticAnalyzer().GetType()}' threw an exception of type 'System.NotImplementedException' with message 'The method or operation is not implemented.'.",
                 (new DiagnosticFormatter()).Format(diagnostics[0], EnsureEnglishUICulture.PreferredOrNull));
         }
 

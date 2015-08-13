@@ -847,7 +847,7 @@ public class A
 
             Dim arguments = $"/C ""{s_CSharpCompilerExecutable}"" /nologo /t:library /out:{libraryOut} {references} {sourceFile} > {tempOut}"
 
-            Dim output = RunAndGetOutput("cmd", arguments, expectedRetCode:=0)
+            Dim output = ProcessUtilities.RunAndGetOutput("cmd", arguments, expectedRetCode:=0)
 
             Return libraryOut
         End Function

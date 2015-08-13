@@ -238,7 +238,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
         {
-            CheckForBitwiseOrSignExtend(node, node.Operator.Kind, node.Left, node.Right);
+            BoundExpression left = node.Left;
+
+            if (!node.Operator.Kind.IsDynamic() && !node.LeftConversion.IsIdentity && node.LeftConversion.Exists)
+            {
+                // Need to represent the implicit conversion as a node in order to be able to produce correct diagnostics.
+                left = new BoundConversion(left.Syntax, left, node.LeftConversion, node.Operator.Kind.IsChecked(),
+                                           explicitCastInCode: false, constantValueOpt: null, type: node.Operator.LeftType);
+            }
+
+            CheckForBitwiseOrSignExtend(node, node.Operator.Kind, left, node.Right);
             CheckLiftedCompoundAssignment(node);
 
             if (_inExpressionLambda)

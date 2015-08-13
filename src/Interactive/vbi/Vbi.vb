@@ -5,9 +5,9 @@ Imports System.IO
 Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Scripting
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports Microsoft.CodeAnalysis.Scripting
 
 Friend NotInheritable Class Vbi
     Inherits VisualBasicCompiler
@@ -30,7 +30,10 @@ Friend NotInheritable Class Vbi
 
     Friend Overrides Function GetExternalMetadataResolver(touchedFiles As TouchedFileLogger) As MetadataFileReferenceResolver
         ' We don't log touched files atm.
-        Return New GacFileResolver(Arguments.ReferencePaths, Arguments.BaseDirectory, GacFileResolver.Default.Architectures, CultureInfo.CurrentCulture)
+        Return New DesktopMetadataReferenceResolver(
+            New RelativePathReferenceResolver(Arguments.ReferencePaths, Arguments.BaseDirectory),
+            Nothing,
+            New GacFileResolver(GacFileResolver.Default.Architectures, CultureInfo.CurrentCulture))
     End Function
 
     Public Overrides Sub PrintLogo(consoleOutput As TextWriter)

@@ -1674,11 +1674,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 result = editor(isolated)
             End If
 
-            If result Is isolated Then
-                Return isolated
-            Else
-                Return result
-            End If
+            Return result
         End Function
 
         Private Function GetFullDeclaration(declaration As SyntaxNode) As SyntaxNode

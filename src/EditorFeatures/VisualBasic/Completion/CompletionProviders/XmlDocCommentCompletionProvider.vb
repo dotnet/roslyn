@@ -275,8 +275,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
             Dim typeParameters = [property].GetTypeArguments().Select(Function(t) t.Name).ToSet()
             Dim value = True
 
-            RemoveExistingTags(parent, typeParameters, Function(e) FindName("typeparam", e))
-
             For Each node In parent.ChildNodes
                 Dim element = TryCast(node, XmlElementSyntax)
                 If element IsNot Nothing AndAlso Not element.StartTag.IsMissing AndAlso Not element.EndTag.IsMissing Then
@@ -287,6 +285,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
                     End If
                 End If
             Next
+
+            If [property].IsIndexer Then
+                Dim parameters = [property].Parameters.Select(Function(p) p.Name).ToSet()
+                RemoveExistingTags(parent, parameters, Function(e) FindName("param", e))
+                items.AddRange(parameters.Select(Function(p) New XmlDocCommentCompletionItem(Me, span, FormatParameter("param", p), GetCompletionItemRules())))
+            End If
 
             items.AddRange(typeParameters.Select(Function(p) New XmlDocCommentCompletionItem(Me, span, FormatParameter("typeparam", p), GetCompletionItemRules())))
 

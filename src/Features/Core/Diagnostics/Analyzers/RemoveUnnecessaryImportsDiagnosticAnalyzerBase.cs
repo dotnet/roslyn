@@ -116,5 +116,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryImports
                 yield return Diagnostic.Create(s_fixableIdDescriptor, tree.GetLocation(span));
             }
         }
+
+        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
+        {
+            return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+        }
     }
 }

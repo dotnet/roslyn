@@ -3,7 +3,7 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
     <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-    <Import Project="..\..\..\packages\xunit.core.2.1.0-beta2-build2981\build\portable-net45+dnxcore50+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.core.props" />
+    <Import Project="..\..\..\packages\xunit.core.2.1.0-beta4-build3109\build\portable-net45+netcore45+wp8+wpa81\xunit.core.props" />
   </ImportGroup>
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
@@ -26,6 +26,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
+    <ProjectReference Include="..\..\Test\PdbUtilities\PdbUtilities.csproj">
+      <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
+      <Name>PdbUtilities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.csproj">
       <Project>{f83343ba-b4ea-451c-b6db-5d645e6171bc}</Project>
       <Name>Microsoft.DiaSymReader.PortablePdb</Name>
@@ -116,27 +120,39 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\packages\xunit.abstractions.2.0.0\lib\portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="xunit.assert, Version=2.0.0.2785, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+    <Reference Include="xunit.assert, Version=2.0.0.3109, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\xunit.assert.2.1.0-beta2-build2981\lib\portable-net45+dnxcore50+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.assert.dll</HintPath>
+      <HintPath>..\..\..\packages\xunit.assert.2.1.0-beta4-build3109\lib\portable-net45+netcore45+wp8+wpa81\xunit.assert.dll</HintPath>
     </Reference>
-    <Reference Include="xunit.core, Version=2.0.0.2785, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+    <Reference Include="xunit.core, Version=2.0.0.3109, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\xunit.extensibility.core.2.1.0-beta2-build2981\lib\portable-net45+dnxcore50+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.core.dll</HintPath>
+      <HintPath>..\..\..\packages\xunit.extensibility.core.2.1.0-beta4-build3109\lib\portable-net45+netcore45+wp8+wpa81\xunit.core.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup>  
     <EmbeddedResource Include="Resources\Async.dll">
       <LogicalName>Async.dll</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Async.pdb">
+      <LogicalName>Async.pdb</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Async.dllx">
+      <LogicalName>Async.dllx</LogicalName>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Async.pdbx">
       <LogicalName>Async.pdbx</LogicalName>
     </EmbeddedResource>
-    <EmbeddedResource Include="Resources\Documents.dll">
-      <LogicalName>Documents.dll</LogicalName>
+    <EmbeddedResource Include="Resources\Documents.dllx">
+      <LogicalName>Documents.dllx</LogicalName>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Documents.pdbx">
       <LogicalName>Documents.pdbx</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Documents.dll">
+      <LogicalName>Documents.dll</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Documents.pdb">
+      <LogicalName>Documents.pdb</LogicalName>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Scopes.dll">
       <LogicalName>Scopes.dll</LogicalName>
@@ -144,16 +160,34 @@
     <EmbeddedResource Include="Resources\Scopes.pdbx">
       <LogicalName>Scopes.pdbx</LogicalName>
     </EmbeddedResource>
-    <None Include="Resources\build.cmd" />
-    <None Include="Resources\Scopes.cs" />
-    <None Include="Resources\Async.cs" />
+    <EmbeddedResource Include="Resources\MethodBoundaries.dll">
+      <LogicalName>MethodBoundaries.dll</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\MethodBoundaries.pdb">
+      <LogicalName>MethodBoundaries.pdb</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\MethodBoundaries.dllx">
+      <LogicalName>MethodBoundaries.dllx</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\MethodBoundaries.pdbx">
+      <LogicalName>MethodBoundaries.pdbx</LogicalName>
+    </EmbeddedResource>
+    <Content Include="Resources\Documents.cmd" />
+    <Content Include="Resources\Scopes.cmd" />
+    <Content Include="Resources\MethodBoundaries.cmd" />
+    <Content Include="Resources\Async.cmd" />
+    <Content Include="Resources\Scopes.cs" />
+    <Content Include="Resources\Async.cs" />
     <Content Include="Resources\Documents.cs" />
+    <Compile Include="MethodMapTests.cs" />
+    <Compile Include="ResourceLoader.cs" />
+    <Content Include="Resources\MethodBoundaries.cs" />
+    <Compile Include="SymBinderTests.cs" />
+    <Compile Include="TestHelpers\SymTestHelpers.cs" />
+    <Compile Include="TestResources.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ComStreamWrapper.cs">
       <Link>TestHelpers\ComStreamWrapper.cs</Link>
     </Compile>
-    <Compile Include="ResourceLoader.cs" />
-    <Compile Include="SymBinderTests.cs" />
-    <Compile Include="TestResources.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TestHelpers\AssertEx.cs" />

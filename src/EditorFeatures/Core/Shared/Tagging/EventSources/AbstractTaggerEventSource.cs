@@ -22,14 +22,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         public event EventHandler UIUpdatesPaused;
         public event EventHandler UIUpdatesResumed;
 
-        public abstract string EventKind { get; }
-
-        protected virtual void RaiseChanged(TextContentChangedEventArgs textChangedEventArgs = null)
+        protected virtual void RaiseChanged()
         {
             var changed = this.Changed;
             if (changed != null)
             {
-                changed(this, new TaggerEventArgs(EventKind, _delay, textChangedEventArgs));
+                changed(this, new TaggerEventArgs(_delay));
             }
         }
 

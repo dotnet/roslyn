@@ -86,6 +86,12 @@
     <Compile Include="..\..\..\Compilers\Helpers\SimpleAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\SimpleAnalyzerAssemblyLoader.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Scripting\Core\DesktopMetadataReferenceResolver.cs">
+      <Link>InternalUtilities\DesktopMetadataReferenceResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Scripting\Core\NuGetPackageResolver.cs">
+      <Link>InternalUtilities\NuGetPackageResolver.cs</Link>
+    </Compile>
     <Compile Include="Options\ExportOptionAttribute.cs" />
     <Compile Include="InternalUtilities\FilePathUtilities.cs" />
     <Compile Include="Log\EtwLogger.cs" />
@@ -127,6 +133,7 @@
     <Compile Include="Workspace\MSBuild\SolutionFile\SolutionFile.cs" />
     <Compile Include="Workspace\MSBuild\VisualBasic\VisualBasicProjectFileLoader.cs" />
     <Compile Include="Workspace\MSBuild\VisualBasic\VisualBasicProjectFileLoaderFactory.cs" />
+    <Compile Include="Workspace\MSBuild\MSBuildProjectLoader.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" />

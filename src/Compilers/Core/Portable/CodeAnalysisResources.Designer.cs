@@ -71,6 +71,34 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Analyzer Driver Failure.
+        /// </summary>
+        internal static string AnalyzerDriverFailure {
+            get {
+                return ResourceManager.GetString("AnalyzerDriverFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Analyzer driver threw an exception of type &apos;{0}&apos; with message &apos;{1}&apos;..
+        /// </summary>
+        internal static string AnalyzerDriverThrows {
+            get {
+                return ResourceManager.GetString("AnalyzerDriverThrows", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Analyzer driver threw the following exception:
+        ///&apos;{0}&apos;..
+        /// </summary>
+        internal static string AnalyzerDriverThrowsDescription {
+            get {
+                return ResourceManager.GetString("AnalyzerDriverThrowsDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Time (s).
         /// </summary>
         internal static string AnalyzerExecutionTimeColumnHeader {
@@ -278,7 +306,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Compiler Analyzer Failure.
+        ///   Looks up a localized string similar to Analyzer Failure.
         /// </summary>
         internal static string CompilerAnalyzerFailure {
             get {
@@ -287,7 +315,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Compiler Analyzer &apos;{0}&apos; threw an exception of type &apos;{1}&apos; with message &apos;{2}&apos;..
+        ///   Looks up a localized string similar to Analyzer &apos;{0}&apos; threw an exception of type &apos;{1}&apos; with message &apos;{2}&apos;..
         /// </summary>
         internal static string CompilerAnalyzerThrows {
             get {
@@ -329,6 +357,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string DiagnosticIdCantBeNullOrWhitespace {
             get {
                 return ResourceManager.GetString("DiagnosticIdCantBeNullOrWhitespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Argument contains duplicate analyzer instances..
+        /// </summary>
+        internal static string DuplicateAnalyzerInstances {
+            get {
+                return ResourceManager.GetString("DuplicateAnalyzerInstances", resourceCulture);
             }
         }
         
@@ -608,6 +645,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string InvalidSizeOfPublicKeyToken {
             get {
                 return ResourceManager.GetString("InvalidSizeOfPublicKeyToken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Syntax tree doesn&apos;t belong to the underlying &apos;Compilation&apos;..
+        /// </summary>
+        internal static string InvalidTree {
+            get {
+                return ResourceManager.GetString("InvalidTree", resourceCulture);
             }
         }
         
@@ -1040,6 +1086,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Unresolved {
             get {
                 return ResourceManager.GetString("Unresolved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Argument contains an analyzer instance that does not belong to the &apos;Analyzers&apos; for this CompilationWithAnalyzers instance..
+        /// </summary>
+        internal static string UnsupportedAnalyzerInstance {
+            get {
+                return ResourceManager.GetString("UnsupportedAnalyzerInstance", resourceCulture);
             }
         }
         

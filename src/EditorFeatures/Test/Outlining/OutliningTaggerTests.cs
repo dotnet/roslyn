@@ -7,7 +7,9 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -133,16 +135,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
             var editorService = workspace.GetService<IEditorOptionsFactoryService>();
             var projectionService = workspace.GetService<IProjectionBufferFactoryService>();
 
-            var provider = new OutliningTaggerProvider.TagProducer(
-                textService, editorService, projectionService);
+            var provider = new OutliningTaggerProvider(
+                workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
+                textService, editorService, projectionService,
+                AggregateAsynchronousOperationListener.EmptyListeners);
 
-            Document document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
+            var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
+            var context = new TaggerContext<IOutliningRegionTag>(document, view.TextSnapshot);
+            provider.ProduceTagsAsync_ForTestingPurposesOnly(context).Wait();
 
-            return provider.ProduceTagsAsync(
-                document,
-                new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length),
-                null,
-                CancellationToken.None).Result.Select(x => x.Tag).ToList();
+            return context.tagSpans.Select(x => x.Tag).ToList();
         }
     }
 }

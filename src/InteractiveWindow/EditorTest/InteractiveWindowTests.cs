@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -30,13 +31,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _testHost.Dispose();
         }
 
-        public IInteractiveWindow Window
-        {
-            get
-            {
-                return _testHost.Window;
-            }
-        }
+        public IInteractiveWindow Window => _testHost.Window;
+        internal List<ReplSpan> ProjectionSpans => ((InteractiveWindow)Window).ProjectionSpans;
 
         public static IEnumerable<IInteractiveWindowCommand> MockCommands(params string[] commandNames)
         {
@@ -57,6 +53,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             snapshotMock.Setup(m => m.GetText(It.IsAny<int>(), It.IsAny<int>())).Returns<int, int>((start, length) => content.Substring(start, length));
             snapshotMock.Setup(m => m.GetText(It.IsAny<Span>())).Returns<Span>(span => content.Substring(span.Start, span.Length));
             return snapshotMock.Object;
+        }
+
+        public string GetTextFromCurrentLanguageBuffer()
+        {
+            return Window.CurrentLanguageBuffer.CurrentSnapshot.GetText();
         }
 
         #endregion
@@ -407,6 +408,294 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         public void CallCancelOnNonUIThread()
         {
             Task.Run(() => Window.Operations.Cancel()).PumpingWait();
+        }
+
+        [Fact]
+        public void TestProjectionSpans()
+        {
+            new ExpectedProjectionSpans
+            {
+                {0, ReplSpanKind.Output},
+                {0, ReplSpanKind.Prompt},
+                {0, ReplSpanKind.Language},
+            }.Check(ProjectionSpans);
+
+            Window.InsertCode("{");
+            new ExpectedProjectionSpans
+            {
+                {0, ReplSpanKind.Output},
+                {0, ReplSpanKind.Prompt},
+                {0, ReplSpanKind.Language},
+            }.Check(ProjectionSpans);
+
+            Window.Operations.BreakLine();
+            new ExpectedProjectionSpans
+            {
+                {0, ReplSpanKind.Output},
+                {0, ReplSpanKind.Prompt},
+                {0, ReplSpanKind.Language},
+                {1, ReplSpanKind.SecondaryPrompt},
+                {1, ReplSpanKind.Language},
+            }.Check(ProjectionSpans);
+
+            Window.Operations.BreakLine();
+            new ExpectedProjectionSpans
+            {
+                {0, ReplSpanKind.Output},
+                {0, ReplSpanKind.Prompt},
+                {0, ReplSpanKind.Language},
+                {1, ReplSpanKind.SecondaryPrompt},
+                {1, ReplSpanKind.Language},
+                {2, ReplSpanKind.SecondaryPrompt},
+                {2, ReplSpanKind.Language},
+            }.Check(ProjectionSpans);
+
+            Window.Operations.Backspace();
+            new ExpectedProjectionSpans
+            {
+                {0, ReplSpanKind.Output},
+                {0, ReplSpanKind.Prompt},
+                {0, ReplSpanKind.Language},
+                {1, ReplSpanKind.SecondaryPrompt},
+                {1, ReplSpanKind.Language},
+            }.Check(ProjectionSpans);
+
+            Window.InsertCode("}");
+            new ExpectedProjectionSpans
+            {
+                {0, ReplSpanKind.Output},
+                {0, ReplSpanKind.Prompt},
+                {0, ReplSpanKind.Language},
+                {1, ReplSpanKind.SecondaryPrompt},
+                {1, ReplSpanKind.Language},
+            }.Check(ProjectionSpans);
+
+            // Move back before close brace.
+            Window.TextView.Caret.MoveToPreviousCaretPosition();
+            new ExpectedProjectionSpans
+            {
+                {0, ReplSpanKind.Output},
+                {0, ReplSpanKind.Prompt},
+                {0, ReplSpanKind.Language},
+                {1, ReplSpanKind.SecondaryPrompt},
+                {1, ReplSpanKind.Language},
+            }.Check(ProjectionSpans);
+
+            Window.Operations.BreakLine();
+            new ExpectedProjectionSpans
+            {
+                {0, ReplSpanKind.Output},
+                {0, ReplSpanKind.Prompt},
+                {0, ReplSpanKind.Language},
+                {1, ReplSpanKind.SecondaryPrompt},
+                {1, ReplSpanKind.Language},
+                {2, ReplSpanKind.SecondaryPrompt},
+                {2, ReplSpanKind.Language},
+            }.Check(ProjectionSpans);
+
+            // Note: Without the PumpingWait, the next prompt won't appear.
+            Task.Run(() => Window.Operations.ExecuteInput()).PumpingWait();
+            new ExpectedProjectionSpans
+            {
+                {0, ReplSpanKind.Output},
+                {0, ReplSpanKind.Prompt},
+                {0, ReplSpanKind.Language},
+                {1, ReplSpanKind.SecondaryPrompt},
+                {1, ReplSpanKind.Language},
+                {2, ReplSpanKind.SecondaryPrompt},
+                {2, ReplSpanKind.Language},
+                {3, ReplSpanKind.Output},
+                {3, ReplSpanKind.Prompt},
+                {3, ReplSpanKind.Language},
+            }.Check(ProjectionSpans);
+
+            Window.Operations.ClearView();
+            new ExpectedProjectionSpans
+            {
+                {0, ReplSpanKind.Output},
+                {0, ReplSpanKind.Prompt},
+                {0, ReplSpanKind.Language},
+            }.Check(ProjectionSpans);
+        }
+
+        /// <remarks>
+        /// This type exists to make it easier to express assertions about <see cref="ProjectionSpans"/>.
+        /// </remarks>
+        private sealed class ExpectedProjectionSpans : IEnumerable<object> // Just for collection initializers.
+        {
+            private List<ReplSpan> _spans = new List<ReplSpan>();
+
+            public void Add(int lineNumber, ReplSpanKind kind)
+            {
+                _spans.Add(new ReplSpan("", kind, lineNumber));
+            }
+
+            public void Check(List<ReplSpan> actualReplSpans)
+            {
+                if (!_spans.Select(s => s.Kind).SequenceEqual(actualReplSpans.Select(s => s.Kind)) ||
+                    !_spans.Select(s => s.LineNumber).SequenceEqual(actualReplSpans.Select(s => s.LineNumber)))
+                {
+                    Dump("Actual:", actualReplSpans);
+                    Dump("Expected:", _spans);
+                    Assert.True(false, "Spans did not match");
+                }
+            }
+
+            private static void Dump(string header, List<ReplSpan> spans)
+            {
+                Console.WriteLine(header);
+                Console.WriteLine("{");
+                foreach (var span in spans)
+                {
+                    Console.WriteLine($"\t{{{span.LineNumber}, ReplSpanKind.{span.Kind}}},");
+                }
+                Console.WriteLine("}");
+            }
+
+            IEnumerator IEnumerable.GetEnumerator() { throw new NotImplementedException(); }
+            IEnumerator<object> IEnumerable<object>.GetEnumerator() { throw new NotImplementedException(); }
+        }
+
+        [WorkItem(4235, "https://github.com/dotnet/roslyn/issues/4235")]
+        [Fact]
+        public void TestIndentation1()
+        {
+            TestIndentation(indentSize: 1);
+        }
+
+        [WorkItem(4235, "https://github.com/dotnet/roslyn/issues/4235")]
+        [Fact]
+        public void TestIndentation2()
+        {
+            TestIndentation(indentSize: 2);
+        }
+
+        [WorkItem(4235, "https://github.com/dotnet/roslyn/issues/4235")]
+        [Fact]
+        public void TestIndentation3()
+        {
+            TestIndentation(indentSize: 3);
+        }
+
+        [WorkItem(4235, "https://github.com/dotnet/roslyn/issues/4235")]
+        [Fact]
+        public void TestIndentation4()
+        {
+            TestIndentation(indentSize: 4);
+        }
+
+        private void TestIndentation(int indentSize)
+        {
+            const int promptWidth = 2;
+
+            _testHost.ExportProvider.GetExport<TestSmartIndentProvider>().Value.SmartIndent = new TestSmartIndent(
+                promptWidth,
+                promptWidth + indentSize,
+                promptWidth
+            );
+
+            AssertCaretVirtualPosition(0, promptWidth);
+            Window.InsertCode("{");
+            AssertCaretVirtualPosition(0, promptWidth + 1);
+            Window.Operations.BreakLine();
+            AssertCaretVirtualPosition(1, promptWidth + indentSize);
+            Window.InsertCode("Console.WriteLine();");
+            Window.Operations.BreakLine();
+            AssertCaretVirtualPosition(2, promptWidth);
+            Window.InsertCode("}");
+            AssertCaretVirtualPosition(2, promptWidth + 1);
+        }
+
+        private void AssertCaretVirtualPosition(int expectedLine, int expectedColumn)
+        {
+            ITextSnapshotLine actualLine;
+            int actualColumn;
+            Window.TextView.Caret.Position.VirtualBufferPosition.GetLineAndColumn(out actualLine, out actualColumn);
+            Assert.Equal(expectedLine, actualLine.LineNumber);
+            Assert.Equal(expectedColumn, actualColumn);
+        }
+		
+		[Fact]
+        public void CheckHistoryPrevious()
+        {
+            const string inputString = "1 ";
+            Window.InsertCode(inputString);
+            Assert.Equal(inputString, GetTextFromCurrentLanguageBuffer());
+            Task.Run(() => Window.Operations.ExecuteInput()).PumpingWait();
+            Window.Operations.HistoryPrevious();
+            Assert.Equal(inputString, GetTextFromCurrentLanguageBuffer());
+        }
+
+        [Fact]
+        public void CheckHistoryPreviousAfterReset()
+        {
+            const string resetCommand = "#reset";
+            Window.InsertCode(resetCommand);
+            Assert.Equal(resetCommand, GetTextFromCurrentLanguageBuffer());
+            Task.Run(() => Window.Operations.ExecuteInput()).PumpingWait();
+            Window.Operations.HistoryPrevious();
+            Assert.Equal(resetCommand, GetTextFromCurrentLanguageBuffer());
+        }
+
+        [Fact]
+        public void ResetCommandArgumentParsing_Success()
+        {
+            bool initialize;
+            Assert.True(ResetCommand.TryParseArguments("", out initialize));
+            Assert.True(initialize);
+
+            Assert.True(ResetCommand.TryParseArguments(" ", out initialize));
+            Assert.True(initialize);
+
+            Assert.True(ResetCommand.TryParseArguments("\r\n", out initialize));
+            Assert.True(initialize);
+
+            Assert.True(ResetCommand.TryParseArguments("noconfig", out initialize));
+            Assert.False(initialize);
+
+            Assert.True(ResetCommand.TryParseArguments(" noconfig ", out initialize));
+            Assert.False(initialize);
+
+            Assert.True(ResetCommand.TryParseArguments("\r\nnoconfig\r\n", out initialize));
+            Assert.False(initialize);
+
+            Assert.True(ResetCommand.TryParseArguments("nOcOnfIg", out initialize));
+            Assert.False(initialize);
+        }
+
+        [Fact]
+        public void ResetCommandArgumentParsing_Failure()
+        {
+            bool initialize;
+            Assert.False(ResetCommand.TryParseArguments("a", out initialize));
+            Assert.False(ResetCommand.TryParseArguments("noconfi", out initialize));
+            Assert.False(ResetCommand.TryParseArguments("noconfig1", out initialize));
+            Assert.False(ResetCommand.TryParseArguments("noconfig 1", out initialize));
+            Assert.False(ResetCommand.TryParseArguments("1 noconfig", out initialize));
+            Assert.False(ResetCommand.TryParseArguments("noconfig\r\na", out initialize));
+        }
+
+        [Fact]
+        public void ResetCommandNoConfigClassification()
+        {
+            Assert.Empty(ResetCommand.GetNoConfigPositions(""));
+            Assert.Empty(ResetCommand.GetNoConfigPositions("a"));
+            Assert.Empty(ResetCommand.GetNoConfigPositions("noconfi"));
+            Assert.Empty(ResetCommand.GetNoConfigPositions("noconfig1"));
+            Assert.Empty(ResetCommand.GetNoConfigPositions("1noconfig"));
+            Assert.Empty(ResetCommand.GetNoConfigPositions("1noconfig1"));
+
+            Assert.Equal(new[] { 0 }, ResetCommand.GetNoConfigPositions("noconfig"));
+            Assert.Equal(new[] { 0 }, ResetCommand.GetNoConfigPositions("noconfig "));
+            Assert.Equal(new[] { 1 }, ResetCommand.GetNoConfigPositions(" noconfig"));
+            Assert.Equal(new[] { 1 }, ResetCommand.GetNoConfigPositions(" noconfig "));
+            Assert.Equal(new[] { 2 }, ResetCommand.GetNoConfigPositions("\r\nnoconfig"));
+            Assert.Equal(new[] { 0 }, ResetCommand.GetNoConfigPositions("noconfig\r\n"));
+            Assert.Equal(new[] { 2 }, ResetCommand.GetNoConfigPositions("\r\nnoconfig\r\n"));
+            Assert.Equal(new[] { 6 }, ResetCommand.GetNoConfigPositions("error noconfig"));
+
+            Assert.Equal(new[] { 0, 9 }, ResetCommand.GetNoConfigPositions("noconfig noconfig"));
+            Assert.Equal(new[] { 0, 15 }, ResetCommand.GetNoConfigPositions("noconfig error noconfig"));
         }
     }
 }

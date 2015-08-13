@@ -118,7 +118,7 @@ namespace RunTests
             builder.AppendFormat(@" -{0} ""{1}""", _useHtml ? "html" : "xml", resultsPath);
             builder.Append(" -noshadow");
 
-            var errorOutput = string.Empty;
+            var errorOutput = new StringBuilder();
             var start = DateTime.UtcNow;
             var processOutput = await ProcessRunner.RunProcessAsync(
                 _xunitConsolePath,
@@ -155,13 +155,19 @@ namespace RunTests
                     File.Delete(resultsPath);
                 }
 
-                errorOutput = processOutput.ErrorLines.Any()
-                    ? processOutput.ErrorLines.Aggregate((x, y) => x + Environment.NewLine + y)
-                    : string.Format("xunit produced no error output but had exit code {0}", processOutput.ExitCode);
+                errorOutput.AppendLine($"Command: {_xunitConsolePath} {builder}");
 
-                errorOutput = string.Format("Command: {0} {1}", _xunitConsolePath, builder.ToString())
-                    + Environment.NewLine
-                    + errorOutput;
+                if (processOutput.ErrorLines.Any())
+                {
+                    foreach (var line in processOutput.ErrorLines)
+                    {
+                        errorOutput.AppendLine(line);
+                    }
+                }
+                else
+                {
+                    errorOutput.AppendLine($"xunit produced no error output but had exit code {processOutput.ExitCode}");
+                }
 
                 // If the results are html, use Process.Start to open in the browser.
 
@@ -171,7 +177,7 @@ namespace RunTests
                 }
             }
 
-            return new TestResult(processOutput.ExitCode == 0, assemblyName, span, errorOutput);
+            return new TestResult(processOutput.ExitCode == 0, assemblyName, span, errorOutput.ToString());
         }
 
         private static void DeleteFile(string filePath)

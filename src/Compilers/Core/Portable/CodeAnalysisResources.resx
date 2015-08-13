@@ -355,14 +355,24 @@
     <value>An error occurred while loading the included rule set file {0} - {1}</value>
   </data>
   <data name="CompilerAnalyzerFailure" xml:space="preserve">
-    <value>Compiler Analyzer Failure</value>
+    <value>Analyzer Failure</value>
   </data>
   <data name="CompilerAnalyzerThrows" xml:space="preserve">
-    <value>The Compiler Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.</value>
+    <value>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.</value>
   </data>
   <data name="CompilerAnalyzerThrowsDescription" xml:space="preserve">
     <value>Analyzer '{0}' threw the following exception:
 '{1}'.</value>
+  </data>
+  <data name="AnalyzerDriverFailure" xml:space="preserve">
+    <value>Analyzer Driver Failure</value>
+  </data>
+  <data name="AnalyzerDriverThrows" xml:space="preserve">
+    <value>Analyzer driver threw an exception of type '{0}' with message '{1}'.</value>
+  </data>
+  <data name="AnalyzerDriverThrowsDescription" xml:space="preserve">
+    <value>Analyzer driver threw the following exception:
+'{0}'.</value>
   </data>
   <data name="PEImageDoesntContainManagedMetadata" xml:space="preserve">
     <value>PE image doesn't contain managed metadata.</value>
@@ -459,5 +469,14 @@
   </data>
   <data name="NoAnalyzersFound" xml:space="preserve">
     <value>No analyzers found</value>
+  </data>
+  <data name="DuplicateAnalyzerInstances" xml:space="preserve">
+    <value>Argument contains duplicate analyzer instances.</value>
+  </data>
+  <data name="UnsupportedAnalyzerInstance" xml:space="preserve">
+    <value>Argument contains an analyzer instance that does not belong to the 'Analyzers' for this CompilationWithAnalyzers instance.</value>
+  </data>
+  <data name="InvalidTree" xml:space="preserve">
+    <value>Syntax tree doesn't belong to the underlying 'Compilation'.</value>
   </data>
 </root>

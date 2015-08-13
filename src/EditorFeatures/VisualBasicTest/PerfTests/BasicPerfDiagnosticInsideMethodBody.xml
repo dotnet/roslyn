@@ -32,8 +32,8 @@
       <PerfVerifyDiagnostics Text="c" ScenarioGroup="VisualBasic Diagnostics MethodBody" TimeGoal="0.1" MemoryGoal="0.9" />
       <PerfStopEtwListener/>
 
-      <VerifyRoslynModulesLoadedStatus ExpectedStatus="NoCSharp" />
-      <VerifyRoslynModulesLoadedStatus ExpectedStatus="Basic" />
+      <!-- <VerifyRoslynModulesLoadedStatus ExpectedStatus="NoCSharp" /> -->
+      <!-- <VerifyRoslynModulesLoadedStatus ExpectedStatus="Basic" /> -->
     </Scenario>
 
   </ScenarioList>

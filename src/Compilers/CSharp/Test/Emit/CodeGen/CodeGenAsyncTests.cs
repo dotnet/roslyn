@@ -1916,7 +1916,7 @@ class Driver
             CompileAndVerify(source, "0");
         }
 
-        [Fact(Skip = "1089468")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/4300")]
         public void Return07_2()
         {
             var source = @"
@@ -3401,32 +3401,49 @@ class Program
         }
 
         [Fact]
-        public void AwaitInScript()
+        public void AwaitInScriptExpression()
         {
             var source =
-@"int x = await System.Threading.Tasks.Task.Run(() => 1);
-System.Console.WriteLine(x);";
+@"System.Console.WriteLine(await System.Threading.Tasks.Task.FromResult(1));";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
-            compilation.VerifyDiagnostics(
-                // (1,9): error CS1992: The 'await' operator can only be used when contained within a method or lambda expression marked with the 'async' modifier
-                // int x = await System.Threading.Tasks.Task.Run(() => 1);
-                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsync, "await System.Threading.Tasks.Task.Run(() => 1)").WithLocation(1, 9));
+            compilation.VerifyDiagnostics();
         }
 
         [Fact]
-        public void AwaitInInteractive()
+        public void AwaitInScriptDeclaration()
+        {
+            var source =
+@"int x = await System.Threading.Tasks.Task.Run(() => 2);
+System.Console.WriteLine(x);";
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AwaitInInteractiveExpression()
         {
             var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
             var source0 =
 @"static async System.Threading.Tasks.Task<int> F()
 {
-    return await System.Threading.Tasks.Task.FromResult(2);
+    return await System.Threading.Tasks.Task.FromResult(3);
 }";
             var source1 =
 @"await F()";
             var s0 = CSharpCompilation.CreateSubmission("s0.dll", SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Interactive), references);
             var s1 = CSharpCompilation.CreateSubmission("s1.dll", SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.Interactive), references, previousSubmission: s0);
             s1.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AwaitInInteractiveDeclaration()
+        {
+            var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
+            var source0 =
+@"int x = await System.Threading.Tasks.Task.Run(() => 4);
+System.Console.WriteLine(x);";
+            var s0 = CSharpCompilation.CreateSubmission("s0.dll", SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Interactive), references);
+            s0.VerifyDiagnostics();
         }
 
         /// <summary>

@@ -50,17 +50,13 @@
       <Project>{066F0DBD-C46C-4C20-AFEC-99829A172625}</Project>
       <Name>CSharpScripting</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Test\Utilities\TestUtilities.csproj">
-      <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
-      <Name>TestUtilities</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Compilers\CSharp\Test\Symbol\CSharpCompilerSymbolTest.csproj">
       <Project>{28026D16-EB0C-40B0-BDA7-11CAA2B97CCC}</Project>
       <Name>CSharpCompilerSymbolTest</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\Test\Utilities\Core2\CompilerTestUtilities2.csproj">
+    <ProjectReference Include="..\..\Test\Utilities\Portable\TestUtilities.FX45.csproj">
       <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
-      <Name>CompilerTestUtilities2</Name>
+      <Name>TestUtilities.FX45</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">

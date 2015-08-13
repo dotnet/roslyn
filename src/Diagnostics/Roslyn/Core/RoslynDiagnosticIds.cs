@@ -13,7 +13,6 @@ namespace Roslyn.Diagnostics.Analyzers
         public const string UseArrayEmptyRuleId = "RS0007";
         public const string ImplementIEquatableRuleId = "RS0008";
         public const string OverrideObjectEqualsRuleId = "RS0009";
-        public const string MissingSharedAttributeRuleId = "RS0010";
         public const string DoNotUseVerbatimCrefsRuleId = "RS0010";
         public const string CancellationTokenMustBeLastRuleId = "RS0011";
         public const string DoNotCallToImmutableArrayRuleId = "RS0012";
@@ -27,6 +26,8 @@ namespace Roslyn.Diagnostics.Analyzers
         public const string DeadCodeRuleId = "RS0020";
         public const string DeadCodeTriggerRuleId = "RS0021";
         public const string ExposedNoninstantiableTypeRuleId = "RS0022";
+        public const string MissingSharedAttributeRuleId = "RS0023";
+        public const string PublicApiFilesInvalid = "RS0024";
         public const string BoxingRuleId = "RS0023";
     }
 }

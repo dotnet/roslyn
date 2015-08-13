@@ -76,5 +76,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
             diagnostic = Diagnostic.Create(s_descriptor, tree.GetLocation(span));
             return true;
         }
+
+        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
+        {
+            return DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+        }
     }
 }

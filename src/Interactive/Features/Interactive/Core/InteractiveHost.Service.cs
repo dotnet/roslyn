@@ -69,6 +69,16 @@ namespace Microsoft.CodeAnalysis.Interactive
                     this.Options = options;
                     this.State = state;
                 }
+
+                internal TaskResult With(ScriptOptions options)
+                {
+                    return new TaskResult(options, State);
+                }
+
+                internal TaskResult With(ScriptState<object> state)
+                {
+                    return new TaskResult(Options, state);
+                }
             }
 
             private static readonly ImmutableArray<string> s_systemNoShadowCopyDirectories = ImmutableArray.Create(
@@ -299,7 +309,6 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 var result = await ReportUnhandledExceptionIfAny(lastTask).ConfigureAwait(false);
                 var options = result.Options;
-                var state = result.State;
                 try
                 {
                     Directory.SetCurrentDirectory(baseDirectory);
@@ -316,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 {
                     operation.Completed(null);
                 }
-                return new TaskResult(options, state);
+                return result.With(options);
             }
 
             /// <summary>
@@ -365,7 +374,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var result = await ReportUnhandledExceptionIfAny(lastTask).ConfigureAwait(false);
                 var success = false;
                 var options = result.Options;
-                var state = result.State;
                 try
                 {
                     string fullPath = ResolveReferencePath(options, reference, baseFilePath: null);
@@ -386,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 {
                     operation.Completed(success);
                 }
-                return new TaskResult(options, state);
+                return result.With(options);
             }
 
             /// <summary>
@@ -505,7 +513,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 options = options.WithBaseDirectory(currentDirectory);
 
                 operation.Completed(new RemoteExecutionResult(success, newSourcePaths, newReferencePaths, newWorkingDirectory, resolvedPath));
-                return new TaskResult(options, result.State);
+                return result.With(options);
             }
 
             private static async Task<TaskResult> ReportUnhandledExceptionIfAny(Task<TaskResult> lastTask)
@@ -574,7 +582,8 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                         // The base directory for relative paths is the directory that contains the .rsp file.
                         // Note that .rsp files included by this .rsp file will share the base directory (Dev10 behavior of csc/vbc).
-                        var args = parser.Parse(new[] { "@" + initializationFileOpt }, Path.GetDirectoryName(initializationFileOpt), RuntimeEnvironment.GetRuntimeDirectory(), null /* TODO: pass a valid value*/);
+                        var rspDirectory = Path.GetDirectoryName(initializationFileOpt);
+                        var args = parser.Parse(new[] { "@" + initializationFileOpt }, rspDirectory, RuntimeEnvironment.GetRuntimeDirectory(), null /* TODO: pass a valid value*/);
 
                         foreach (var error in args.Errors)
                         {
@@ -586,6 +595,10 @@ namespace Microsoft.CodeAnalysis.Interactive
                         {
                             // TODO (tomat): other arguments
                             // TODO (tomat): parse options
+                            var referencePaths = args.ReferencePaths;
+                            result = result.With(result.Options.AddSearchPaths(referencePaths));
+                            _hostObject.ReferencePaths.Clear();
+                            _hostObject.ReferencePaths.AddRange(referencePaths);
 
                             // TODO (tomat): consolidate with other reference resolving
                             foreach (CommandLineReference cmdLineReference in args.MetadataReferences)
@@ -596,10 +609,9 @@ namespace Microsoft.CodeAnalysis.Interactive
                                 var options = result.Options;
                                 string fullPath = ResolveReferencePath(options, cmdLineReference.Reference, baseFilePath: null);
                                 LoadReference(fullPath, suppressWarnings: true, addReference: true, options: ref options);
-                                result = new TaskResult(options, result.State);
+                                result = result.With(options);
                             }
 
-                            var rspDirectory = Path.GetDirectoryName(initializationFileOpt);
                             foreach (CommandLineSourceFile file in args.SourceFiles)
                             {
                                 // execute all files as scripts (matches csi/vbi semantics)
@@ -703,14 +715,13 @@ namespace Microsoft.CodeAnalysis.Interactive
                 {
                     var result = ReportUnhandledExceptionIfAny(_lastTask).Result;
                     var options = result.Options;
-                    var state = result.State;
                     var fullPath = ResolveReferencePath(options, reference, baseFilePath: null);
                     if (fullPath == null)
                     {
                         throw new FileNotFoundException(message: null, fileName: reference);
                     }
                     var loadResult = LoadFromPathThrowing(fullPath, addReference, ref options);
-                    _lastTask = Task.FromResult(new TaskResult(options, state));
+                    _lastTask = Task.FromResult(result.With(options));
                     return loadResult;
                 }
             }
@@ -874,12 +885,11 @@ namespace Microsoft.CodeAnalysis.Interactive
                     {
                         try
                         {
-                            var options = result.Options;
                             var state = result.State;
                             var globals = state ?? (object)_hostObject;
                             state = script.RunAsync(globals, CancellationToken.None);
                             var value = await state.ReturnValue.ConfigureAwait(false);
-                            return new ExecuteResult(new TaskResult(options, state), value, null, true);
+                            return new ExecuteResult(result.With(state), value, null, true);
                         }
                         catch (Exception e)
                         {

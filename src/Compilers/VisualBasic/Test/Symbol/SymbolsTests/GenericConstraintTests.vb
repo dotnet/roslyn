@@ -4704,7 +4704,7 @@ Module E
     End Sub
 End Module
    ]]></file>
-</compilation>, references:=DefaultReferences)
+</compilation>, references:=DefaultVbReferences)
             compilation.AssertNoErrors()
             Dim compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("B.M(Of U)(U)",

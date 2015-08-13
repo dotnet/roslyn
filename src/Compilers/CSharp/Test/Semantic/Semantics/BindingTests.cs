@@ -2524,5 +2524,173 @@ class C
 
             CompileAndVerify(source, expectedOutput: "True");
         }
+
+        [Fact, WorkItem(3096, "https://github.com/dotnet/roslyn/issues/3096")]
+        public void CastToDelegate_01()
+        {
+            var sourceText = @"namespace NS
+{
+    public static class A
+    {
+        public delegate void Action();
+
+        public static void M()
+        {
+            RunAction(A.B<string>.M0);
+            RunAction((Action)A.B<string>.M1);
+        }
+
+        private static void RunAction(Action action) { }
+
+        private class B<T>
+        {
+            public static void M0() { }
+            public static void M1() { }
+        }
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib(sourceText, options: TestOptions.DebugDll);
+
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var identifierNameM0 = tree
+                .GetRoot()
+                .DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .First(x => x.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression) && x.Identifier.ValueText.Equals("M0"));
+
+            Assert.Equal("A.B<string>.M0", identifierNameM0.Parent.ToString());
+            var m0Symbol = model.GetSymbolInfo(identifierNameM0);
+
+            Assert.Equal("void NS.A.B<System.String>.M0()", m0Symbol.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, m0Symbol.CandidateReason);
+
+            var identifierNameM1 = tree
+                .GetRoot()
+                .DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .First(x => x.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression) && x.Identifier.ValueText.Equals("M1"));
+
+            Assert.Equal("A.B<string>.M1", identifierNameM1.Parent.ToString());
+            var m1Symbol = model.GetSymbolInfo(identifierNameM1);
+
+            Assert.Equal("void NS.A.B<System.String>.M1()", m1Symbol.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, m1Symbol.CandidateReason);
+        }
+
+        [Fact, WorkItem(3096, "https://github.com/dotnet/roslyn/issues/3096")]
+        public void CastToDelegate_02()
+        {
+            var sourceText = @"
+class A
+{
+    public delegate void MyDelegate<T>(T a);
+
+    public void Test()
+    {
+        UseMyDelegate((MyDelegate<int>)MyMethod);
+        UseMyDelegate((MyDelegate<long>)MyMethod);
+        UseMyDelegate((MyDelegate<float>)MyMethod);
+        UseMyDelegate((MyDelegate<double>)MyMethod);
+    }
+
+    private void UseMyDelegate<T>(MyDelegate<T> f) { }
+
+    private static void MyMethod(int a) { }
+    private static void MyMethod(long a) { }
+    private static void MyMethod(float a) { }
+    private static void MyMethod(double a) { }
+}";
+
+            var compilation = CreateCompilationWithMscorlib(sourceText, options: TestOptions.DebugDll);
+
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var identifiers = tree
+                .GetRoot()
+                .DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .Where(x => x.Identifier.ValueText.Equals("MyMethod")).ToArray();
+
+            Assert.Equal(4, identifiers.Length);
+
+            Assert.Equal("(MyDelegate<int>)MyMethod", identifiers[0].Parent.ToString());
+            Assert.Equal("void A.MyMethod(System.Int32 a)", model.GetSymbolInfo(identifiers[0]).Symbol.ToTestDisplayString());
+
+            Assert.Equal("(MyDelegate<long>)MyMethod", identifiers[1].Parent.ToString());
+            Assert.Equal("void A.MyMethod(System.Int64 a)", model.GetSymbolInfo(identifiers[1]).Symbol.ToTestDisplayString());
+
+            Assert.Equal("(MyDelegate<float>)MyMethod", identifiers[2].Parent.ToString());
+            Assert.Equal("void A.MyMethod(System.Single a)", model.GetSymbolInfo(identifiers[2]).Symbol.ToTestDisplayString());
+
+            Assert.Equal("(MyDelegate<double>)MyMethod", identifiers[3].Parent.ToString());
+            Assert.Equal("void A.MyMethod(System.Double a)", model.GetSymbolInfo(identifiers[3]).Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(3096, "https://github.com/dotnet/roslyn/issues/3096")]
+        public void CastToDelegate_03()
+        {
+            var sourceText = @"namespace NS
+{
+    public static class A
+    {
+        public delegate void Action();
+
+        public static void M()
+        {
+            var b = new A.B<string>();
+            RunAction(b.M0);
+            RunAction((Action)b.M1);
+        }
+
+        private static void RunAction(Action action) { }
+
+        public class B<T>
+        {
+        }
+
+        public static void M0<T>(this B<T> x) { }
+        public static void M1<T>(this B<T> x) { }
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceText, options: TestOptions.DebugDll);
+
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var identifierNameM0 = tree
+                .GetRoot()
+                .DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .First(x => x.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression) && x.Identifier.ValueText.Equals("M0"));
+
+            Assert.Equal("b.M0", identifierNameM0.Parent.ToString());
+            var m0Symbol = model.GetSymbolInfo(identifierNameM0);
+
+            Assert.Equal("void NS.A.B<System.String>.M0<System.String>()", m0Symbol.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, m0Symbol.CandidateReason);
+
+            var identifierNameM1 = tree
+                .GetRoot()
+                .DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .First(x => x.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression) && x.Identifier.ValueText.Equals("M1"));
+
+            Assert.Equal("b.M1", identifierNameM1.Parent.ToString());
+            var m1Symbol = model.GetSymbolInfo(identifierNameM1);
+
+            Assert.Equal("void NS.A.B<System.String>.M1<System.String>()", m1Symbol.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, m1Symbol.CandidateReason);
+        }
     }
 }

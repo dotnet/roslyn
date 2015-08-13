@@ -3,6 +3,8 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -22,6 +24,24 @@ namespace Roslyn.Interactive.CommandLine.UnitTests
         public CommandLineTests()
         {
             _baseDirectory = Temp.CreateDirectory();
+        }
+
+        private static string ConsolidateArguments(string[] args)
+        {
+            var consolidated = new StringBuilder();
+            foreach (string argument in args)
+            {
+                bool surround = Regex.Match(argument, @"[\s+]").Success;
+                if (surround)
+                {
+                    consolidated.AppendFormat("\"{0}\" ", argument);
+                }
+                else
+                {
+                    consolidated.AppendFormat("{0} ", argument);
+                }
+            }
+            return consolidated.ToString();
         }
 
         [Fact]
@@ -68,7 +88,7 @@ error CS0246: The type or namespace name 'Foo' could not be found (are you missi
             ConsoleOutput.AssertEqual(
                 () =>
                 {
-                    Console.Write(RunAndGetOutput("csi.exe", ConsolidateArguments(args), expectedExitCode, _baseDirectory.Path));
+                    Console.Write(ProcessUtilities.RunAndGetOutput("csi.exe", ConsolidateArguments(args), expectedExitCode, _baseDirectory.Path));
                 },
                 expectedOutput,
                 "",
@@ -100,7 +120,7 @@ error CS0246: The type or namespace name 'Foo' could not be found (are you missi
             ConsoleOutput.AssertEqual(
                 () =>
                 {
-                    Console.Write(RunAndGetOutput("vbi.exe", ConsolidateArguments(args), expectedExitCode, _baseDirectory.Path));
+                    Console.Write(ProcessUtilities.RunAndGetOutput("vbi.exe", ConsolidateArguments(args), expectedExitCode, _baseDirectory.Path));
                 },
                 expectedOutput,
                 "",
