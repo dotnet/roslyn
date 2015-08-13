@@ -61,9 +61,8 @@ run_msbuild()
     
     for i in `seq 1 $RETRY_COUNT`
     do
-        o=$(mono packages/Microsoft.Build.Mono.Debug.14.1.0.0-prerelease/lib/MSBuild.exe /v:m /p:SignAssembly=false /p:DebugSymbols=false "$@")
+        mono packages/Microsoft.Build.Mono.Debug.14.1.0.0-prerelease/lib/MSBuild.exe /v:m /p:SignAssembly=false /p:DebugSymbols=false "$@"
         if [ $? -eq 0 ]; then
-            echo "$o"
             is_good=true
             break
         fi
@@ -72,7 +71,6 @@ run_msbuild()
     done
 
     if [ "$is_good" != "true" ]; then
-        echo "$o"
         echo Build failed
         exit 1
     fi
@@ -189,9 +187,9 @@ set_mono_path()
     fi
 
     if [ "$OS_NAME" = "Darwin" ]; then
-        MONO_TOOLSET_NAME=mono.mac.1
+        MONO_TOOLSET_NAME=mono.mac.2
     elif [ "$OS_NAME" = "Linux" ]; then
-        MONO_TOOLSET_NAME=mono.linux.1
+        MONO_TOOLSET_NAME=mono.linux.2
     else
         echo "Error: Unsupported OS $OS_NAME"
         exit 1
@@ -229,6 +227,9 @@ test_roslyn()
 echo Clean out the enlistment
 git clean -dxf . 
 
+set_mono_path
+which mono
+
 # NuGet on mono crashes about every 5th time we run it.  This is causing
 # Linux runs to fail frequently enough that we need to employ a 
 # temporary work around.  
@@ -236,8 +237,6 @@ echo Restoring NuGet packages
 run_nuget restore Roslyn.sln
 run_nuget install xunit.runners -PreRelease -Version $XUNIT_VERSION -OutputDirectory packages
 
-set_mono_path
-which mono
 compile_toolset
 save_toolset
 clean_roslyn
