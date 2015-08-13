@@ -17,7 +17,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 if (!Environment.HasShutdownStarted)
                 {
-                    Contract.Fail(@"Should have been disposed!");
+#if DEBUG
+                    Contract.Fail($@"Should have been disposed!
+
+{_stackTrace}
+");
+#else
+                    Contract.Fail($@"Should have been disposed! Try running in Debug to get the allocation callstack");
+#endif
                 }
             }
 
@@ -53,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             internal void OnTaggerDisposed(Tagger tagger)
             {
                 // this should be only called from UI thread.
-                // in unit test, must be called from same thead as OnTaggerAdded
+                // in unit test, must be called from same thread as OnTaggerAdded
                 Contract.ThrowIfFalse(_taggers > 0);
 
                 _taggers--;
@@ -73,6 +80,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
 #if DEBUG
             private Thread _thread;
+            private string _stackTrace;
+
+            private void DebugRecordInitialStackTrace()
+            {
+                _stackTrace = new StackTrace().ToString();
+            }
 
             private void DebugRecordCurrentThread()
             {
@@ -89,13 +102,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 Contract.ThrowIfFalse(Thread.CurrentThread == _thread);
             }
 #else
-        private void DebugRecordCurrentThread()
-        {
-        }
+            private void RecordInitialStackTrace()
+            {
+            }
 
-        private void DebugVerifyThread()
-        {
-        }
+            private void DebugRecordCurrentThread()
+            {
+            }
+
+            private void DebugVerifyThread()
+            {
+            }
 #endif
         }
     }
