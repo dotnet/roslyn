@@ -8,11 +8,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 using AnalyzerStateData = Microsoft.CodeAnalysis.Diagnostics.AnalysisState.AnalyzerStateData;
 using SyntaxNodeAnalyzerStateData = Microsoft.CodeAnalysis.Diagnostics.AnalysisState.SyntaxNodeAnalyzerStateData;
+using OperationAnalyzerStateData = Microsoft.CodeAnalysis.Diagnostics.AnalysisState.OperationAnalyzerStateData;
 using CodeBlockAnalyzerStateData = Microsoft.CodeAnalysis.Diagnostics.AnalysisState.CodeBlockAnalyzerStateData;
 using DeclarationAnalyzerStateData = Microsoft.CodeAnalysis.Diagnostics.AnalysisState.DeclarationAnalyzerStateData;
 
@@ -447,6 +449,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        private void ExecuteOperationAction(
+            OperationAnalyzerAction operationAction,
+            IOperation operation,
+            Action<Diagnostic> addDiagnostic,
+            OperationAnalyzerStateData analyzerStateOpt)
+        {
+            Debug.Assert(analyzerStateOpt == null || analyzerStateOpt.CurrentOperation == operation);
+
+            if (ShouldExecuteAction(analyzerStateOpt, operationAction))
+            {
+                var operationContext = new OperationAnalysisContext(operation, _analyzerOptions, _addDiagnostic, d => IsSupportedDiagnostic(operationAction.Analyzer, d), _cancellationToken);
+                ExecuteAndCatchIfThrows(operationAction.Analyzer, () => operationAction.Action(operationContext));
+
+                analyzerStateOpt?.ProcessedActions.Add(operationAction);
+            }
+        }
+
         public void ExecuteCodeBlockActions<TLanguageKindEnum>(
             IEnumerable<CodeBlockStartAnalyzerAction<TLanguageKindEnum>> codeBlockStartActions,
             IEnumerable<CodeBlockAnalyzerAction> codeBlockActions,
@@ -707,6 +726,112 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             analyzerStateOpt?.ClearNodeAnalysisState();
         }
 
+        internal static ImmutableDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> GetOperationActionsByKind(IEnumerable<OperationAnalyzerAction> operationActions)
+        {
+            Debug.Assert(operationActions != null && operationActions.Any());
+
+            var operationActionsByKind = PooledDictionary<OperationKind, ArrayBuilder<OperationAnalyzerAction>>.GetInstance();
+            foreach (var operationAction in operationActions)
+            {
+                foreach (var kind in operationAction.Kinds)
+                {
+                    ArrayBuilder<OperationAnalyzerAction> actionsForKind;
+                    if (!operationActionsByKind.TryGetValue(kind, out actionsForKind))
+                    {
+                        operationActionsByKind.Add(kind, actionsForKind = ArrayBuilder<OperationAnalyzerAction>.GetInstance());
+                    }
+
+                    actionsForKind.Add(operationAction);
+                }
+            }
+
+            var tuples = operationActionsByKind.Select(kvp => KeyValuePair.Create(kvp.Key, kvp.Value.ToImmutableAndFree()));
+            var map = ImmutableDictionary.CreateRange(tuples);
+            operationActionsByKind.Free();
+            return map;
+        }
+
+        public void ExecuteOperationActions(
+            IEnumerable<IOperation> operationsToAnalyze,
+            IDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
+            DiagnosticAnalyzer analyzer,
+            SemanticModel model,
+            TextSpan filterSpan,
+            SyntaxReference declaration,
+            AnalysisScope analysisScope,
+            AnalysisState analysisStateOpt)
+        {
+            OperationAnalyzerStateData analyzerStateOpt = null;
+
+            try
+            {
+                if (TryStartAnalyzingOperationReference(declaration, analyzer, analysisScope, analysisStateOpt, out analyzerStateOpt))
+                {
+                    ExecuteOperationActionsCore(operationsToAnalyze, operationActionsByKind, analyzer, model, filterSpan, analyzerStateOpt);
+                }
+            }
+            finally
+            {
+                analyzerStateOpt?.ResetToReadyState();
+            }
+        }
+
+        private void ExecuteOperationActionsCore(
+            IEnumerable<IOperation> operationsToAnalyze,
+            IDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
+            DiagnosticAnalyzer analyzer,
+            SemanticModel model,
+            TextSpan filterSpan,
+            OperationAnalyzerStateData analyzerStateOpt)
+        {
+            var addDiagnostic = GetAddDiagnostic(model.SyntaxTree, filterSpan, analyzer, isSyntaxDiagnostic: false);
+            ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, addDiagnostic, analyzerStateOpt);
+        }
+
+        private void ExecuteOperationActions(
+            IEnumerable<IOperation> operationsToAnalyze,
+            IDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
+            Action<Diagnostic> addDiagnostic,
+            OperationAnalyzerStateData analyzerStateOpt)
+        {
+            Debug.Assert(operationActionsByKind != null);
+            Debug.Assert(operationActionsByKind.Any());
+
+            IOperation partiallyProcessedNode = analyzerStateOpt?.CurrentOperation;
+            if (partiallyProcessedNode != null)
+            {
+                ExecuteOperationActions(partiallyProcessedNode, operationActionsByKind, addDiagnostic, analyzerStateOpt);
+            }
+
+            foreach (var child in operationsToAnalyze)
+            {
+                if (ShouldExecuteOperation(analyzerStateOpt, child))
+                {
+                    SetCurrentOperation(analyzerStateOpt, child);
+
+                    ExecuteOperationActions(child, operationActionsByKind, addDiagnostic, analyzerStateOpt);
+                }
+            }
+        }
+
+        private void ExecuteOperationActions(
+            IOperation operation,
+            IDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
+            Action<Diagnostic> addDiagnostic,
+            OperationAnalyzerStateData analyzerStateOpt)
+        {
+            ImmutableArray<OperationAnalyzerAction> actionsForKind;
+            if (operationActionsByKind.TryGetValue(operation.Kind, out actionsForKind))
+            {
+                foreach (var action in actionsForKind)
+                {
+                    ExecuteOperationAction(action, operation, addDiagnostic, analyzerStateOpt);
+                }
+            }
+
+            analyzerStateOpt?.ClearNodeAnalysisState();
+        }
+
         internal static bool CanHaveExecutableCodeBlock(ISymbol symbol)
         {
             switch (symbol.Kind)
@@ -947,12 +1072,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return analyzerStateOpt == null || !analyzerStateOpt.ProcessedNodes.Contains(node);
         }
 
+        private static bool ShouldExecuteOperation(OperationAnalyzerStateData analyzerStateOpt, IOperation operation)
+        {
+            return analyzerStateOpt == null || !analyzerStateOpt.ProcessedOperations.Contains(operation);
+        }
+
         private static void SetCurrentNode(SyntaxNodeAnalyzerStateData analyzerStateOpt, SyntaxNode node)
         {
             if (analyzerStateOpt != null)
             {
                 Debug.Assert(node != null);
                 analyzerStateOpt.CurrentNode = node;
+            }
+        }
+
+        private static void SetCurrentOperation(OperationAnalyzerStateData analyzerStateOpt, IOperation operation)
+        {
+            if (analyzerStateOpt != null)
+            {
+                Debug.Assert(operation != null);
+                analyzerStateOpt.CurrentOperation = operation;
             }
         }
 
@@ -987,6 +1126,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             analyzerStateOpt = null;
             return analysisStateOpt == null || analysisStateOpt.TryStartAnalyzingDeclaration(syntaxReference, analyzer, out analyzerStateOpt);
+        }
+
+        private static bool TryStartAnalyzingOperationReference(SyntaxReference syntaxReference, DiagnosticAnalyzer analyzer, AnalysisScope analysisScope, AnalysisState analysisStateOpt, out OperationAnalyzerStateData analyzerStateOpt)
+        {
+            Debug.Assert(analysisScope.Analyzers.Contains(analyzer));
+
+            analyzerStateOpt = null;
+            DeclarationAnalyzerStateData declarationAnalyzerStateOpt;
+            if (analysisStateOpt == null)
+            {
+                return true;
+            }
+
+            if (analysisStateOpt.TryStartAnalyzingDeclaration(syntaxReference, analyzer, out declarationAnalyzerStateOpt))
+            {
+                analyzerStateOpt = declarationAnalyzerStateOpt.OperationAnalysisState;
+                return true;
+            }
+
+            analyzerStateOpt = null;
+            return false;
         }
 
         internal TimeSpan ResetAnalyzerExecutionTime(DiagnosticAnalyzer analyzer)

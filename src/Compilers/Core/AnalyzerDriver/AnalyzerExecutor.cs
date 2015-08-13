@@ -313,15 +313,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ExecuteAndCatchIfThrows(syntaxNodeAction.Analyzer, () => syntaxNodeAction.Action(syntaxNodeContext));
         }
 
-        private void ExecuteOperationAction(
-            Action<OperationAnalysisContext> operationAction,
-            IOperation operation,
-            DiagnosticAnalyzer analyzer)
-        {
-            var operationContext = new OperationAnalysisContext(operation, _analyzerOptions, _addDiagnostic, d => IsSupportedDiagnostic(analyzer, d), _cancellationToken);
-            ExecuteAndCatchIfThrows(analyzer, () => operationAction(operationContext));
-        }
-
         /// <summary>
         /// Executes the given code block actions on all the executable code blocks for each declaration info in <paramref name="declarationsInNode"/>.
         /// </summary>
@@ -474,51 +465,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     foreach (var action in actionsForKind)
                     {
                         ExecuteSyntaxNodeAction(action, child, model);
-                    }
-                }
-            }
-        }
-
-        internal static ImmutableDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> GetOperationActionsByKind(IEnumerable<OperationAnalyzerAction> operationActions)
-        {
-            Debug.Assert(operationActions != null && operationActions.Any());
-
-            var operationActionsByKind = PooledDictionary<OperationKind, ArrayBuilder<OperationAnalyzerAction>>.GetInstance();
-            foreach (var operationAction in operationActions)
-            {
-                foreach (var kind in operationAction.Kinds)
-                {
-                    ArrayBuilder<OperationAnalyzerAction> actionsForKind;
-                    if (!operationActionsByKind.TryGetValue(kind, out actionsForKind))
-                    {
-                        operationActionsByKind.Add(kind, actionsForKind = ArrayBuilder<OperationAnalyzerAction>.GetInstance());
-                    }
-
-                    actionsForKind.Add(operationAction);
-                }
-            }
-
-            var tuples = operationActionsByKind.Select(kvp => KeyValuePair.Create(kvp.Key, kvp.Value.ToImmutableAndFree()));
-            var map = ImmutableDictionary.CreateRange(tuples);
-            operationActionsByKind.Free();
-            return map;
-        }
-
-        internal void ExecuteOperationActions(
-            IEnumerable<IOperation> operationsToAnalyze,
-            ImmutableDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind)
-        {
-            Debug.Assert(operationActionsByKind != null);
-            Debug.Assert(operationActionsByKind.Any());
-
-            foreach (IOperation operation in operationsToAnalyze)
-            {
-                ImmutableArray<OperationAnalyzerAction> actionsForKind;
-                if (operationActionsByKind.TryGetValue(operation.Kind, out actionsForKind))
-                {
-                    foreach (OperationAnalyzerAction action in actionsForKind)
-                    {
-                        ExecuteOperationAction(action.Action, operation, action.Analyzer);
                     }
                 }
             }
