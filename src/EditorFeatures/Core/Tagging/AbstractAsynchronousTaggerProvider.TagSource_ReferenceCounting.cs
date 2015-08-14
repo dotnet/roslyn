@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 Contract.ThrowIfFalse(Thread.CurrentThread == _thread);
             }
 #else
-            private void RecordInitialStackTrace()
+            private void DebugRecordInitialStackTrace()
             {
             }
 
