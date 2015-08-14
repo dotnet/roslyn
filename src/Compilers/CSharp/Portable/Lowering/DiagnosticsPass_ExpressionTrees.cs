@@ -529,6 +529,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitMethodGroup(node);
         }
 
+        public override BoundNode VisitNameOfOperator(BoundNameOfOperator node)
+        {
+            // The nameof(...) operator collapses to a constant in an expression tree,
+            // so it does not matter what is recursively within it.
+            return node;
+        }
+
         public override BoundNode VisitNullCoalescingOperator(BoundNullCoalescingOperator node)
         {
             if (_inExpressionLambda && node.LeftOperand.ConstantValue != null && node.LeftOperand.ConstantValue.IsNull)
