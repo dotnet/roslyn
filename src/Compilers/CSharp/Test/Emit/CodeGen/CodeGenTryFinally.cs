@@ -1808,7 +1808,7 @@ class C
     }
     static void ThrowInTryInFinally()
     {
-        try { nop(); }
+        try { }
         finally
         {
             try { throw new Exception(); }
@@ -1887,27 +1887,26 @@ class D
 ");
             compilation.VerifyIL("C.ThrowInTryInFinally",
 @"{
-  // Code size       17 (0x11)
+  // Code size       12 (0xc)
   .maxstack  1
   .try
   {
-    IL_0000:  call       ""void C.nop()""
-    IL_0005:  leave.s    IL_000f
+    IL_0000:  leave.s    IL_000a
   }
   finally
   {
-    IL_0007:  nop
+    IL_0002:  nop
     .try
     {
-      IL_0008:  newobj     ""System.Exception..ctor()""
-      IL_000d:  throw
+      IL_0003:  newobj     ""System.Exception..ctor()""
+      IL_0008:  throw
     }
     finally
     {
-      IL_000e:  endfinally
+      IL_0009:  endfinally
     }
   }
-  IL_000f:  br.s       IL_000f
+  IL_000a:  br.s       IL_000a
 }");
             compilation.VerifyIL("D.ThrowInTry",
 @"{
@@ -2016,24 +2015,24 @@ class C
     static void nop() { }
     static void ThrowInFinally()
     {
-        try { nop(); }
+        try { }
         finally { throw new Exception(); }
     }
     static void ThrowInFinallyInTry()
     {
         try
         {
-            try { nop(); }
+            try { }
             finally { throw new Exception(); }
         }
         finally { }
     }
     static int ThrowInFinallyInFinally()
     {
-        try { nop(); }
+        try { }
         finally
         {
-            try { nop(); }
+            try { }
             finally { throw new Exception(); }
         }
 
@@ -2076,70 +2075,66 @@ class D
             var compilation = CompileAndVerify(source);
             compilation.VerifyIL("C.ThrowInFinally",
 @"{
-  // Code size       15 (0xf)
+  // Code size       10 (0xa)
   .maxstack  1
   .try
   {
-    IL_0000:  call       ""void C.nop()""
-    IL_0005:  leave.s    IL_000d
+    IL_0000:  leave.s    IL_0008
   }
   finally
   {
-    IL_0007:  newobj     ""System.Exception..ctor()""
-    IL_000c:  throw
+    IL_0002:  newobj     ""System.Exception..ctor()""
+    IL_0007:  throw
   }
-  IL_000d:  br.s       IL_000d
+  IL_0008:  br.s       IL_0008
 }");
             compilation.VerifyIL("C.ThrowInFinallyInTry",
 @"{
-  // Code size       16 (0x10)
+  // Code size       11 (0xb)
   .maxstack  1
   .try
   {
     .try
     {
-      IL_0000:  call       ""void C.nop()""
-      IL_0005:  leave.s    IL_000d
+      IL_0000:  leave.s    IL_0008
     }
     finally
     {
-      IL_0007:  newobj     ""System.Exception..ctor()""
-      IL_000c:  throw
+      IL_0002:  newobj     ""System.Exception..ctor()""
+      IL_0007:  throw
     }
-    IL_000d:  br.s       IL_000d
+    IL_0008:  br.s       IL_0008
   }
   finally
   {
-    IL_000f:  endfinally
+    IL_000a:  endfinally
   }
 }");
             // The nop below is to work around a verifier bug.
             // See DevDiv 563799.
             compilation.VerifyIL("C.ThrowInFinallyInFinally",
 @"{
-  // Code size       25 (0x19)
+  // Code size       15 (0xf)
   .maxstack  1
   .try
   {
-    IL_0000:  call       ""void C.nop()""
-    IL_0005:  leave.s    IL_0017
+    IL_0000:  leave.s    IL_000d
   }
   finally
   {
-    IL_0007:  nop
+    IL_0002:  nop
     .try
     {
-      IL_0008:  call       ""void C.nop()""
-      IL_000d:  leave.s    IL_0015
+      IL_0003:  leave.s    IL_000b
     }
     finally
     {
-      IL_000f:  newobj     ""System.Exception..ctor()""
-      IL_0014:  throw
+      IL_0005:  newobj     ""System.Exception..ctor()""
+      IL_000a:  throw
     }
-    IL_0015:  br.s       IL_0015
+    IL_000b:  br.s       IL_000b
   }
-  IL_0017:  br.s       IL_0017
+  IL_000d:  br.s       IL_000d
 }");
             compilation.VerifyIL("D.ThrowInFinally",
 @"{
