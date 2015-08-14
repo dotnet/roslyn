@@ -85,7 +85,7 @@
       <Project>{B0CE9307-FFDB-4838-A5EC-CE1F7CDC4AC2}</Project>
       <Name>CSharpEditorFeatures</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Test\Utilities\Portable\TestUtilities.FX45.csproj">
+    <ProjectReference Include="..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
       <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
       <Name>TestUtilities.FX45</Name>
     </ProjectReference>
