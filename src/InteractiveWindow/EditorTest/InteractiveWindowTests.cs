@@ -55,12 +55,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             return snapshotMock.Object;
         }
 
-        public string GetTextFromCurrentLanguageBuffer
+        public string GetTextFromCurrentLanguageBuffer()
         {
-            get
-            {
-                return Window.CurrentLanguageBuffer.CurrentSnapshot.GetText();
-            }
+            return Window.CurrentLanguageBuffer.CurrentSnapshot.GetText();
         }
 
         #endregion
@@ -621,20 +618,83 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 		[Fact]
         public void CheckHistoryPrevious()
         {
-            const string V = "1 ";
-            Window.InsertCode(V);
-            Assert.Equal(V, GetTextFromCurrentLanguageBuffer);
+            const string inputString = "1 ";
+            Window.InsertCode(inputString);
+            Assert.Equal(inputString, GetTextFromCurrentLanguageBuffer());
             Task.Run(() => Window.Operations.ExecuteInput()).PumpingWait();
             Window.Operations.HistoryPrevious();
-            Assert.Equal(V, GetTextFromCurrentLanguageBuffer);
+            Assert.Equal(inputString, GetTextFromCurrentLanguageBuffer());
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/4121")]
-        public void CheckHistoryAfterResetButtonClick()
+        [Fact]
+        public void CheckHistoryPreviousAfterReset()
         {
-            Task.Run(() => Window.Operations.ResetAsync(initialize: true)).PumpingWait();
-            Task.Run(() => Window.Operations.HistoryPrevious()).PumpingWait();
-            Assert.Equal("#reset", GetTextFromCurrentLanguageBuffer);
+            const string resetCommand = "#reset";
+            Window.InsertCode(resetCommand);
+            Assert.Equal(resetCommand, GetTextFromCurrentLanguageBuffer());
+            Task.Run(() => Window.Operations.ExecuteInput()).PumpingWait();
+            Window.Operations.HistoryPrevious();
+            Assert.Equal(resetCommand, GetTextFromCurrentLanguageBuffer());
+        }
+
+        [Fact]
+        public void ResetCommandArgumentParsing_Success()
+        {
+            bool initialize;
+            Assert.True(ResetCommand.TryParseArguments("", out initialize));
+            Assert.True(initialize);
+
+            Assert.True(ResetCommand.TryParseArguments(" ", out initialize));
+            Assert.True(initialize);
+
+            Assert.True(ResetCommand.TryParseArguments("\r\n", out initialize));
+            Assert.True(initialize);
+
+            Assert.True(ResetCommand.TryParseArguments("noconfig", out initialize));
+            Assert.False(initialize);
+
+            Assert.True(ResetCommand.TryParseArguments(" noconfig ", out initialize));
+            Assert.False(initialize);
+
+            Assert.True(ResetCommand.TryParseArguments("\r\nnoconfig\r\n", out initialize));
+            Assert.False(initialize);
+        }
+
+        [Fact]
+        public void ResetCommandArgumentParsing_Failure()
+        {
+            bool initialize;
+            Assert.False(ResetCommand.TryParseArguments("a", out initialize));
+            Assert.False(ResetCommand.TryParseArguments("noconfi", out initialize));
+            Assert.False(ResetCommand.TryParseArguments("noconfig1", out initialize));
+            Assert.False(ResetCommand.TryParseArguments("noconfig 1", out initialize));
+            Assert.False(ResetCommand.TryParseArguments("1 noconfig", out initialize));
+            Assert.False(ResetCommand.TryParseArguments("noconfig\r\na", out initialize));
+            Assert.False(ResetCommand.TryParseArguments("nOcOnfIg", out initialize));
+        }
+
+        [Fact]
+        public void ResetCommandNoConfigClassification()
+        {
+            Assert.Empty(ResetCommand.GetNoConfigPositions(""));
+            Assert.Empty(ResetCommand.GetNoConfigPositions("a"));
+            Assert.Empty(ResetCommand.GetNoConfigPositions("noconfi"));
+            Assert.Empty(ResetCommand.GetNoConfigPositions("noconfig1"));
+            Assert.Empty(ResetCommand.GetNoConfigPositions("1noconfig"));
+            Assert.Empty(ResetCommand.GetNoConfigPositions("1noconfig1"));
+            Assert.Empty(ResetCommand.GetNoConfigPositions("nOcOnfIg"));
+
+            Assert.Equal(new[] { 0 }, ResetCommand.GetNoConfigPositions("noconfig"));
+            Assert.Equal(new[] { 0 }, ResetCommand.GetNoConfigPositions("noconfig "));
+            Assert.Equal(new[] { 1 }, ResetCommand.GetNoConfigPositions(" noconfig"));
+            Assert.Equal(new[] { 1 }, ResetCommand.GetNoConfigPositions(" noconfig "));
+            Assert.Equal(new[] { 2 }, ResetCommand.GetNoConfigPositions("\r\nnoconfig"));
+            Assert.Equal(new[] { 0 }, ResetCommand.GetNoConfigPositions("noconfig\r\n"));
+            Assert.Equal(new[] { 2 }, ResetCommand.GetNoConfigPositions("\r\nnoconfig\r\n"));
+            Assert.Equal(new[] { 6 }, ResetCommand.GetNoConfigPositions("error noconfig"));
+
+            Assert.Equal(new[] { 0, 9 }, ResetCommand.GetNoConfigPositions("noconfig noconfig"));
+            Assert.Equal(new[] { 0, 15 }, ResetCommand.GetNoConfigPositions("noconfig error noconfig"));
         }
     }
 }

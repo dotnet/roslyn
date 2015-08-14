@@ -23,9 +23,9 @@
       <Project>{4B45CA0C-03A0-400F-B454-3D4BCB16AF38}</Project>
       <Name>csc</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\Utilities\TestUtilities.csproj">
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
-      <Name>TestUtilities</Name>
+      <Name>TestUtilities.Desktop</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
@@ -39,9 +39,9 @@
       <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
       <Name>CompilerTestResources</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Utilities\Core2\CompilerTestUtilities2.csproj">
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.FX45.csproj">
       <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
-      <Name>CompilerTestUtilities2</Name>
+      <Name>TestUtilities.FX45</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj">
       <Project>{4371944A-D3BA-4B5B-8285-82E5FFC6D1F9}</Project>

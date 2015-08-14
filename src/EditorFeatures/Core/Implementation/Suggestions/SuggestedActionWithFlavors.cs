@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // Light bulb will always invoke this property on the UI thread.
             AssertIsForeground();
 
-            if (_actionSets == null)
+            if (_actionSets.IsDefault)
             {
                 var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
 
@@ -78,6 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }, defaultValue: ImmutableArray<SuggestedActionSet>.Empty).ConfigureAwait(true);
             }
 
+            Contract.ThrowIfTrue(_actionSets.IsDefault);
             return _actionSets;
         }
 
