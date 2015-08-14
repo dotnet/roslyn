@@ -810,6 +810,7 @@ using System.Security;
 
 class C
 {
+    static void nop() {}
     static void Main()
     {
             try
@@ -821,7 +822,7 @@ class C
             }
             finally
             {
-                try { }
+                try { nop(); }
                 catch { }
             }
 
@@ -833,36 +834,37 @@ class C
             compilation.VerifyIL("C.Main",
 @"
 {
-  // Code size       13 (0xd)
+  // Code size       18 (0x12)
   .maxstack  1
   .try
-{
-  .try
-{
-  IL_0000:  ldnull
-  IL_0001:  throw
-}
-  catch System.Exception
-{
-  IL_0002:  pop
-  IL_0003:  leave.s    IL_000c
-}
-}
+  {
+    .try
+    {
+      IL_0000:  ldnull
+      IL_0001:  throw
+    }
+    catch System.Exception
+    {
+      IL_0002:  pop
+      IL_0003:  leave.s    IL_0011
+    }
+  }
   finally
-{
-  IL_0005:  nop
-  .try
-{
-  IL_0006:  leave.s    IL_000b
-}
-  catch object
-{
-  IL_0008:  pop
-  IL_0009:  leave.s    IL_000b
-}
-  IL_000b:  endfinally
-}
-  IL_000c:  ret
+  {
+    IL_0005:  nop
+    .try
+    {
+      IL_0006:  call       ""void C.nop()""
+      IL_000b:  leave.s    IL_0010
+    }
+    catch object
+    {
+      IL_000d:  pop
+      IL_000e:  leave.s    IL_0010
+    }
+    IL_0010:  endfinally
+  }
+  IL_0011:  ret
 }
 ");
         }
@@ -1399,6 +1401,7 @@ using System.Threading;
 
 class Program
 {
+    static void nop() { }
     static ManualResetEventSlim s = new ManualResetEventSlim(false);
 
     static void Main(string[] args)
@@ -1425,6 +1428,7 @@ class Program
             {
                 try
                 {
+                    nop();
                 }
                 catch
                 {
@@ -1455,9 +1459,8 @@ try2
 catch3
 ");
             compilation.VerifyIL("Program.Test",
-@"
-{
-  // Code size       82 (0x52)
+@"{
+  // Code size       87 (0x57)
   .maxstack  1
   .try
   {
@@ -1469,56 +1472,56 @@ catch3
         IL_0005:  callvirt   ""void System.Threading.ManualResetEventSlim.Set()""
         IL_000a:  ldsfld     ""System.Threading.ManualResetEventSlim Program.s""
         IL_000f:  brtrue.s   IL_000a
-        IL_0011:  leave.s    IL_0025
+        IL_0011:  leave.s    IL_002a
       }
       catch object
       {
         IL_0013:  pop
         .try
         {
-          IL_0014:  leave.s    IL_0023
+          IL_0014:  call       ""void Program.nop()""
+          IL_0019:  leave.s    IL_0028
         }
         catch object
         {
-          IL_0016:  pop
-          IL_0017:  ldstr      ""catch1""
-          IL_001c:  call       ""void System.Console.WriteLine(string)""
-          IL_0021:  leave.s    IL_0023
+          IL_001b:  pop
+          IL_001c:  ldstr      ""catch1""
+          IL_0021:  call       ""void System.Console.WriteLine(string)""
+          IL_0026:  leave.s    IL_0028
         }
-        IL_0023:  leave.s    IL_0025
+        IL_0028:  leave.s    IL_002a
       }
-      IL_0025:  leave.s    IL_0042
+      IL_002a:  leave.s    IL_0047
     }
     finally
     {
-      IL_0027:  nop
+      IL_002c:  nop
       .try
       {
-        IL_0028:  ldstr      ""try2""
-        IL_002d:  call       ""void System.Console.WriteLine(string)""
-        IL_0032:  leave.s    IL_0041
+        IL_002d:  ldstr      ""try2""
+        IL_0032:  call       ""void System.Console.WriteLine(string)""
+        IL_0037:  leave.s    IL_0046
       }
       catch object
       {
-        IL_0034:  pop
-        IL_0035:  ldstr      ""catch2""
-        IL_003a:  call       ""void System.Console.WriteLine(string)""
-        IL_003f:  leave.s    IL_0041
+        IL_0039:  pop
+        IL_003a:  ldstr      ""catch2""
+        IL_003f:  call       ""void System.Console.WriteLine(string)""
+        IL_0044:  leave.s    IL_0046
       }
-      IL_0041:  endfinally
+      IL_0046:  endfinally
     }
-    IL_0042:  leave.s    IL_0051
+    IL_0047:  leave.s    IL_0056
   }
   catch object
   {
-    IL_0044:  pop
-    IL_0045:  ldstr      ""catch3""
-    IL_004a:  call       ""void System.Console.WriteLine(string)""
-    IL_004f:  leave.s    IL_0051
+    IL_0049:  pop
+    IL_004a:  ldstr      ""catch3""
+    IL_004f:  call       ""void System.Console.WriteLine(string)""
+    IL_0054:  leave.s    IL_0056
   }
-  IL_0051:  ret
-}
-");
+  IL_0056:  ret
+}");
         }
 
         [Fact]
@@ -1788,6 +1791,7 @@ catch2
 @"using System;
 class C
 {
+    static void nop() { }
     static void ThrowInTry()
     {
         try { throw new Exception(); }
@@ -1804,7 +1808,7 @@ class C
     }
     static void ThrowInTryInFinally()
     {
-        try { }
+        try { nop(); }
         finally
         {
             try { throw new Exception(); }
@@ -1814,6 +1818,7 @@ class C
 }
 class D
 {
+    static void nop() { }
     static void ThrowInTry()
     {
         try { throw new Exception(); }
@@ -1833,7 +1838,7 @@ class D
 
     static void ThrowInTryInFinally()
     {
-        try { }
+        try { nop(); }
         catch { }
         finally
         {
@@ -1882,26 +1887,27 @@ class D
 ");
             compilation.VerifyIL("C.ThrowInTryInFinally",
 @"{
-  // Code size       12 (0xc)
+  // Code size       17 (0x11)
   .maxstack  1
   .try
-{
-  IL_0000:  leave.s    IL_000a
-}
+  {
+    IL_0000:  call       ""void C.nop()""
+    IL_0005:  leave.s    IL_000f
+  }
   finally
-{
-  IL_0002:  nop
-  .try
-{
-  IL_0003:  newobj     ""System.Exception..ctor()""
-  IL_0008:  throw
-}
-  finally
-{
-  IL_0009:  endfinally
-}
-}
-  IL_000a:  br.s       IL_000a
+  {
+    IL_0007:  nop
+    .try
+    {
+      IL_0008:  newobj     ""System.Exception..ctor()""
+      IL_000d:  throw
+    }
+    finally
+    {
+      IL_000e:  endfinally
+    }
+  }
+  IL_000f:  br.s       IL_000f
 }");
             compilation.VerifyIL("D.ThrowInTry",
 @"{
@@ -1958,45 +1964,45 @@ class D
 }");
             compilation.VerifyIL("D.ThrowInTryInFinally",
 @"{
-  // Code size       18 (0x12)
+  // Code size       23 (0x17)
   .maxstack  1
   .try
-{
-  .try
-{
-  IL_0000:  leave.s    IL_0011
-}
-  catch object
-{
-  IL_0002:  pop
-  IL_0003:  leave.s    IL_0011
-}
-}
+  {
+    .try
+    {
+      IL_0000:  call       ""void D.nop()""
+      IL_0005:  leave.s    IL_0016
+    }
+    catch object
+    {
+      IL_0007:  pop
+      IL_0008:  leave.s    IL_0016
+    }
+  }
   finally
-{
-  IL_0005:  nop
-  .try
-{
-  .try
-{
-  IL_0006:  newobj     ""System.Exception..ctor()""
-  IL_000b:  throw
-}
-  catch object
-{
-  IL_000c:  pop
-  IL_000d:  leave.s    IL_0010
-}
-}
-  finally
-{
-  IL_000f:  endfinally
-}
-  IL_0010:  endfinally
-}
-  IL_0011:  ret
-}
-");
+  {
+    IL_000a:  nop
+    .try
+    {
+      .try
+      {
+        IL_000b:  newobj     ""System.Exception..ctor()""
+        IL_0010:  throw
+      }
+      catch object
+      {
+        IL_0011:  pop
+        IL_0012:  leave.s    IL_0015
+      }
+    }
+    finally
+    {
+      IL_0014:  endfinally
+    }
+    IL_0015:  endfinally
+  }
+  IL_0016:  ret
+}");
         }
 
         [WorkItem(540716, "DevDiv")]
@@ -2007,26 +2013,27 @@ class D
 @"using System;
 class C
 {
+    static void nop() { }
     static void ThrowInFinally()
     {
-        try { }
+        try { nop(); }
         finally { throw new Exception(); }
     }
     static void ThrowInFinallyInTry()
     {
         try
         {
-            try { }
+            try { nop(); }
             finally { throw new Exception(); }
         }
         finally { }
     }
     static int ThrowInFinallyInFinally()
     {
-        try { }
+        try { nop(); }
         finally
         {
-            try { }
+            try { nop(); }
             finally { throw new Exception(); }
         }
 
@@ -2036,9 +2043,10 @@ class C
 }
 class D
 {
+    static void nop() { }
     static void ThrowInFinally()
     {
-        try { }
+        try { nop(); }
         catch { }
         finally { throw new Exception(); }
     }
@@ -2046,7 +2054,7 @@ class D
     {
         try
         {
-            try { }
+            try { nop(); }
             catch { }
             finally { throw new Exception(); }
         }
@@ -2055,11 +2063,11 @@ class D
     }
     static void ThrowInFinallyInFinally()
     {
-        try { }
+        try { nop(); }
         catch { }
         finally
         {
-            try { }
+            try { nop(); }
             catch { }
             finally { throw new Exception(); }
         }
@@ -2068,93 +2076,98 @@ class D
             var compilation = CompileAndVerify(source);
             compilation.VerifyIL("C.ThrowInFinally",
 @"{
-  // Code size       10 (0xa)
+  // Code size       15 (0xf)
   .maxstack  1
   .try
   {
-    IL_0000:  leave.s    IL_0008
+    IL_0000:  call       ""void C.nop()""
+    IL_0005:  leave.s    IL_000d
   }
   finally
   {
-    IL_0002:  newobj     ""System.Exception..ctor()""
-    IL_0007:  throw     
+    IL_0007:  newobj     ""System.Exception..ctor()""
+    IL_000c:  throw
   }
-  IL_0008:  br.s       IL_0008
+  IL_000d:  br.s       IL_000d
 }");
             compilation.VerifyIL("C.ThrowInFinallyInTry",
 @"{
-  // Code size       11 (0xb)
+  // Code size       16 (0x10)
   .maxstack  1
   .try
   {
     .try
     {
-      IL_0000:  leave.s    IL_0008
+      IL_0000:  call       ""void C.nop()""
+      IL_0005:  leave.s    IL_000d
     }
     finally
     {
-      IL_0002:  newobj     ""System.Exception..ctor()""
-      IL_0007:  throw     
+      IL_0007:  newobj     ""System.Exception..ctor()""
+      IL_000c:  throw
     }
-    IL_0008:  br.s       IL_0008
+    IL_000d:  br.s       IL_000d
   }
   finally
   {
-    IL_000a:  endfinally
+    IL_000f:  endfinally
   }
 }");
             // The nop below is to work around a verifier bug.
             // See DevDiv 563799.
             compilation.VerifyIL("C.ThrowInFinallyInFinally",
 @"{
-  // Code size       15 (0xf)
+  // Code size       25 (0x19)
   .maxstack  1
   .try
   {
-    IL_0000:  leave.s    IL_000d
+    IL_0000:  call       ""void C.nop()""
+    IL_0005:  leave.s    IL_0017
   }
   finally
   {
-    IL_0002:  nop
+    IL_0007:  nop
     .try
     {
-      IL_0003:  leave.s    IL_000b
+      IL_0008:  call       ""void C.nop()""
+      IL_000d:  leave.s    IL_0015
     }
     finally
     {
-      IL_0005:  newobj     ""System.Exception..ctor()""
-      IL_000a:  throw
+      IL_000f:  newobj     ""System.Exception..ctor()""
+      IL_0014:  throw
     }
-    IL_000b:  br.s       IL_000b
+    IL_0015:  br.s       IL_0015
   }
-  IL_000d:  br.s       IL_000d
+  IL_0017:  br.s       IL_0017
 }");
             compilation.VerifyIL("D.ThrowInFinally",
 @"{
-  // Code size       13 (0xd)
+  // Code size       18 (0x12)
   .maxstack  1
   .try
   {
     .try
     {
-      IL_0000:  leave.s    IL_000b
+      IL_0000:  call       ""void D.nop()""
+      IL_0005:  leave.s    IL_0010
     }
     catch object
     {
-      IL_0002:  pop       
-      IL_0003:  leave.s    IL_000b
+      IL_0007:  pop
+      IL_0008:  leave.s    IL_0010
     }
   }
   finally
   {
-    IL_0005:  newobj     ""System.Exception..ctor()""
-    IL_000a:  throw     
+    IL_000a:  newobj     ""System.Exception..ctor()""
+    IL_000f:  throw
   }
-  IL_000b:  br.s       IL_000b
+  IL_0010:  br.s       IL_0010
 }");
             compilation.VerifyIL("D.ThrowInFinallyInTry",
 @"{
-  // Code size       20 (0x14)
+  // Code size       25 (0x19)
   .maxstack  1
   .try
   {
@@ -2164,73 +2177,76 @@ class D
       {
         .try
         {
-          IL_0000:  leave.s    IL_0005
+          IL_0000:  call       ""void D.nop()""
+          IL_0005:  leave.s    IL_000a
         }
         catch object
         {
-          IL_0002:  pop
-          IL_0003:  leave.s    IL_0005
+          IL_0007:  pop
+          IL_0008:  leave.s    IL_000a
         }
-        IL_0005:  leave.s    IL_000d
+        IL_000a:  leave.s    IL_0012
       }
       finally
       {
-        IL_0007:  newobj     ""System.Exception..ctor()""
-        IL_000c:  throw
+        IL_000c:  newobj     ""System.Exception..ctor()""
+        IL_0011:  throw
       }
-      IL_000d:  br.s       IL_000d
+      IL_0012:  br.s       IL_0012
     }
     catch object
     {
-      IL_000f:  pop
-      IL_0010:  leave.s    IL_0013
+      IL_0014:  pop
+      IL_0015:  leave.s    IL_0018
     }
   }
   finally
   {
-    IL_0012:  endfinally
+    IL_0017:  endfinally
   }
-  IL_0013:  ret
+  IL_0018:  ret
 }");
             compilation.VerifyIL("D.ThrowInFinallyInFinally",
 @"{
-  // Code size       21 (0x15)
+  // Code size       31 (0x1f)
   .maxstack  1
   .try
   {
     .try
     {
-      IL_0000:  leave.s    IL_0013
+      IL_0000:  call       ""void D.nop()""
+      IL_0005:  leave.s    IL_001d
     }
     catch object
     {
-      IL_0002:  pop
-      IL_0003:  leave.s    IL_0013
+      IL_0007:  pop
+      IL_0008:  leave.s    IL_001d
     }
   }
   finally
   {
-    IL_0005:  nop
+    IL_000a:  nop
     .try
     {
       .try
       {
-        IL_0006:  leave.s    IL_0011
+        IL_000b:  call       ""void D.nop()""
+        IL_0010:  leave.s    IL_001b
       }
       catch object
       {
-        IL_0008:  pop
-        IL_0009:  leave.s    IL_0011
+        IL_0012:  pop
+        IL_0013:  leave.s    IL_001b
       }
     }
     finally
     {
-      IL_000b:  newobj     ""System.Exception..ctor()""
-      IL_0010:  throw
+      IL_0015:  newobj     ""System.Exception..ctor()""
+      IL_001a:  throw
     }
-    IL_0011:  br.s       IL_0011
+    IL_001b:  br.s       IL_001b
   }
-  IL_0013:  br.s       IL_0013
+  IL_001d:  br.s       IL_001d
 }");
         }
 
@@ -2637,11 +2653,13 @@ class C
 @"using System.IO;
 class C
 {
+    static void nop() { }
     static int F = 0;
     static void M()
     {
         try
         {
+            nop();
         }
         catch (FileNotFoundException e)
         {
@@ -2667,34 +2685,35 @@ class C
             var compilation = CompileAndVerify(source);
             compilation.VerifyIL("C.M",
 @"{
-  // Code size       22 (0x16)
+  // Code size       27 (0x1b)
   .maxstack  2
   .locals init (System.IO.FileNotFoundException V_0) //e
   .try
   {
-    IL_0000:  leave.s    IL_0015
+    IL_0000:  call       ""void C.nop()""
+    IL_0005:  leave.s    IL_001a
   }
   catch System.IO.FileNotFoundException
   {
-    IL_0002:  stloc.0   
-    IL_0003:  ldsfld     ""int C.F""
-    IL_0008:  ldc.i4.0  
-    IL_0009:  ble.s      IL_000d
-    IL_000b:  rethrow   
-    IL_000d:  ldloc.0   
-    IL_000e:  throw     
+    IL_0007:  stloc.0
+    IL_0008:  ldsfld     ""int C.F""
+    IL_000d:  ldc.i4.0
+    IL_000e:  ble.s      IL_0012
+    IL_0010:  rethrow
+    IL_0012:  ldloc.0
+    IL_0013:  throw
   }
   catch System.IO.IOException
   {
-    IL_000f:  pop       
-    IL_0010:  rethrow   
+    IL_0014:  pop
+    IL_0015:  rethrow
   }
   catch object
   {
-    IL_0012:  pop       
-    IL_0013:  rethrow   
+    IL_0017:  pop
+    IL_0018:  rethrow
   }
-  IL_0015:  ret       
+  IL_001a:  ret
 }");
         }
 
@@ -2946,6 +2965,7 @@ class Program
 
     class Program
     {
+        static void nop() { }
         static void F()
         {
             Console.WriteLine(""hello"");
@@ -2955,7 +2975,7 @@ class Program
         {
             try
             {
-                
+                nop();
             }
             catch 
             {
@@ -2975,21 +2995,21 @@ class Program
             var compilation = CompileAndVerify(source, expectedOutput: "hello");
             compilation.VerifyIL("Program.T1",
 @"{
-  // Code size       11 (0xb)
+  // Code size       16 (0x10)
   .maxstack  1
   .try
-{
-  IL_0000:  leave.s    IL_0005
-}
+  {
+    IL_0000:  call       ""void Program.nop()""
+    IL_0005:  leave.s    IL_000a
+  }
   catch object
-{
-  IL_0002:  pop
-  IL_0003:  br.s       IL_0003
-}
-  IL_0005:  call       ""void Program.F()""
-  IL_000a:  ret
-}
-");
+  {
+    IL_0007:  pop
+    IL_0008:  br.s       IL_0008
+  }
+  IL_000a:  call       ""void Program.F()""
+  IL_000f:  ret
+}");
         }
 
         [Fact(), WorkItem(544911, "DevDiv")]
@@ -3294,7 +3314,6 @@ Out");
 ");
         }
 
-
         [Fact(), WorkItem(713418, "DevDiv")]
         public void ConditionalUnconditionalBranches001()
         {
@@ -3366,6 +3385,37 @@ Out");
   IL_0029:  ldstr      ""Out""
   IL_002e:  call       ""void System.Console.WriteLine(string)""
   IL_0033:  ret
+}
+");
+        }
+
+        [Fact(), WorkItem(2443, "https://github.com/dotnet/roslyn/issues/2443")]
+        public void OptimizeEmptyTryBlock()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        try
+        {
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
+}
+";
+            var compilation = CompileAndVerify(source, expectedOutput: @"");
+            compilation.VerifyIL("Program.Main",
+@"
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
 }
 ");
         }

@@ -2154,10 +2154,12 @@ unsafe class C
             var text = @"
 unsafe class C
 {
+    void nop() { }
     void Test()
     {
         try
         {
+            nop();
         }
         catch
         {
@@ -2170,37 +2172,38 @@ unsafe class C
 ";
             // Cleanup not in finally.
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
-                VerifyIL("C.Test", @"
-{
-  // Code size       28 (0x1c)
+                VerifyIL("C.Test",
+@"{
+  // Code size       34 (0x22)
   .maxstack  2
   .locals init (char* V_0, //p
                 pinned string V_1)
   .try
   {
-    IL_0000:  leave.s    IL_001b
+    IL_0000:  ldarg.0
+    IL_0001:  call       ""void C.nop()""
+    IL_0006:  leave.s    IL_0021
   }
   catch object
   {
-    IL_0002:  pop
-    IL_0003:  ldstr      ""hello""
-    IL_0008:  stloc.1
-    IL_0009:  ldloc.1
-    IL_000a:  conv.i
-    IL_000b:  stloc.0
-    IL_000c:  ldloc.0
-    IL_000d:  brfalse.s  IL_0017
-    IL_000f:  ldloc.0
-    IL_0010:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-    IL_0015:  add
-    IL_0016:  stloc.0
-    IL_0017:  ldnull
-    IL_0018:  stloc.1
-    IL_0019:  leave.s    IL_001b
+    IL_0008:  pop
+    IL_0009:  ldstr      ""hello""
+    IL_000e:  stloc.1
+    IL_000f:  ldloc.1
+    IL_0010:  conv.i
+    IL_0011:  stloc.0
+    IL_0012:  ldloc.0
+    IL_0013:  brfalse.s  IL_001d
+    IL_0015:  ldloc.0
+    IL_0016:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
+    IL_001b:  add
+    IL_001c:  stloc.0
+    IL_001d:  ldnull
+    IL_001e:  stloc.1
+    IL_001f:  leave.s    IL_0021
   }
-  IL_001b:  ret
-}
-");
+  IL_0021:  ret
+}");
         }
 
         [Fact]
@@ -2209,10 +2212,12 @@ unsafe class C
             var text = @"
 unsafe class C
 {
+    static void nop() { }
     void Test()
     {
         try
         {
+            nop();
         }
         catch
         {
@@ -2230,7 +2235,7 @@ unsafe class C
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.Test", @"
 {
-  // Code size       32 (0x20)
+  // Code size       37 (0x25)
   .maxstack  2
   .locals init (char* V_0, //p
                 pinned string V_1)
@@ -2238,42 +2243,42 @@ unsafe class C
   {
     .try
     {
-      IL_0000:  leave.s    IL_001f
+      IL_0000:  call       ""void C.nop()""
+      IL_0005:  leave.s    IL_0024
     }
     catch object
     {
-      IL_0002:  pop
+      IL_0007:  pop
       .try
       {
-        IL_0003:  ldstr      ""hello""
-        IL_0008:  stloc.1
-        IL_0009:  ldloc.1
-        IL_000a:  conv.i
-        IL_000b:  stloc.0
-        IL_000c:  ldloc.0
-        IL_000d:  brfalse.s  IL_0017
-        IL_000f:  ldloc.0
-        IL_0010:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-        IL_0015:  add
-        IL_0016:  stloc.0
-        IL_0017:  leave.s    IL_001c
+        IL_0008:  ldstr      ""hello""
+        IL_000d:  stloc.1
+        IL_000e:  ldloc.1
+        IL_000f:  conv.i
+        IL_0010:  stloc.0
+        IL_0011:  ldloc.0
+        IL_0012:  brfalse.s  IL_001c
+        IL_0014:  ldloc.0
+        IL_0015:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
+        IL_001a:  add
+        IL_001b:  stloc.0
+        IL_001c:  leave.s    IL_0021
       }
       finally
       {
-        IL_0019:  ldnull
-        IL_001a:  stloc.1
-        IL_001b:  endfinally
+        IL_001e:  ldnull
+        IL_001f:  stloc.1
+        IL_0020:  endfinally
       }
-      IL_001c:  leave.s    IL_001f
+      IL_0021:  leave.s    IL_0024
     }
   }
   finally
   {
-    IL_001e:  endfinally
+    IL_0023:  endfinally
   }
-  IL_001f:  ret
-}
-");
+  IL_0024:  ret
+}");
         }
 
         [Fact]

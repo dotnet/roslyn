@@ -16,13 +16,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             var origSawAwait = _sawAwait;
             _sawAwait = false;
 
-            ImmutableArray<BoundCatchBlock> catchBlocks = (ImmutableArray<BoundCatchBlock>)this.VisitList(node.CatchBlocks);
+            // When optimizing and we have an empty try block, we can discard the catch blocks.
+            // In theory we could do better by detecting *effectively* empty catch blocks, but this is the most common case.
+            ImmutableArray<BoundCatchBlock> catchBlocks =
+                node.TryBlock.Statements.Length == 0 && this._compilation.Options.OptimizationLevel == OptimizationLevel.Release
+                    ? ImmutableArray<BoundCatchBlock>.Empty
+                    : (ImmutableArray<BoundCatchBlock>)this.VisitList(node.CatchBlocks);
             BoundBlock finallyBlockOpt = (BoundBlock)this.Visit(node.FinallyBlockOpt);
 
             _sawAwaitInExceptionHandler |= _sawAwait;
             _sawAwait |= origSawAwait;
 
-            return node.Update(tryBlock, catchBlocks, finallyBlockOpt, node.PreferFaultHandler);
+            return (catchBlocks.IsDefaultOrEmpty && finallyBlockOpt == null)
+                ? (BoundNode)tryBlock
+                : (BoundNode)node.Update(tryBlock, catchBlocks, finallyBlockOpt, node.PreferFaultHandler);
         }
 
         public override BoundNode VisitCatchBlock(BoundCatchBlock node)
