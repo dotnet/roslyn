@@ -4999,6 +4999,31 @@ class C : TestBase
                 expectedOutput: expectedOutput);
         }
 
+        [Fact]
+        public void LiftedIntPtrConversion()
+        {
+            string source = @"
+using System;
+using System.Linq.Expressions;
+
+class C : TestBase
+{
+    static void Main()
+    {
+        Check(() => (IntPtr?)M(), ""Convert(Call(null.[System.Nullable`1[System.Int32] M()]() Type:System.Nullable`1[System.Int32]) Lifted LiftedToNull Method:[IntPtr op_Explicit(Int32)] Type:System.Nullable`1[System.IntPtr])"");
+        Console.WriteLine(""DONE"");
+    }
+
+    static int? M() { return 0; }
+}
+";
+
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: "DONE");
+        }
+
         /// <summary>
         /// Ignore inaccessible members of System.Linq.Expressions.Expression.
         /// </summary>
