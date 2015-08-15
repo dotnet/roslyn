@@ -16,20 +16,60 @@ namespace Microsoft.CodeAnalysis.CSharp
             var origSawAwait = _sawAwait;
             _sawAwait = false;
 
-            // When optimizing and we have an empty try block, we can discard the catch blocks.
-            // In theory we could do better by detecting *effectively* empty catch blocks, but this is the most common case.
+            var optimizing = this._compilation.Options.OptimizationLevel == OptimizationLevel.Release;
             ImmutableArray<BoundCatchBlock> catchBlocks =
-                node.TryBlock.Statements.Length == 0 && this._compilation.Options.OptimizationLevel == OptimizationLevel.Release
-                    ? ImmutableArray<BoundCatchBlock>.Empty
-                    : (ImmutableArray<BoundCatchBlock>)this.VisitList(node.CatchBlocks);
+                // When optimizing and we have a morally empty try block, we can discard the catch blocks.
+                (optimizing && IsMorallyEmpty(tryBlock)) ? ImmutableArray<BoundCatchBlock>.Empty
+                : this.VisitList(node.CatchBlocks);
             BoundBlock finallyBlockOpt = (BoundBlock)this.Visit(node.FinallyBlockOpt);
 
             _sawAwaitInExceptionHandler |= _sawAwait;
             _sawAwait |= origSawAwait;
 
+            if (optimizing && IsMorallyEmpty(finallyBlockOpt))
+            {
+                finallyBlockOpt = null;
+            }
+
             return (catchBlocks.IsDefaultOrEmpty && finallyBlockOpt == null)
                 ? (BoundNode)tryBlock
                 : (BoundNode)node.Update(tryBlock, catchBlocks, finallyBlockOpt, node.PreferFaultHandler);
+        }
+
+        /// <summary>
+        /// Is there no code to execute in the given statement that could have side-effects,
+        /// such as throwing an exception?
+        /// </summary>
+        private static bool IsMorallyEmpty(BoundStatement statement)
+        {
+            if (statement == null) return true;
+            switch (statement.Kind)
+            {
+                case BoundKind.NoOpStatement:
+                    return true;
+                case BoundKind.Block:
+                    {
+                        var block = (BoundBlock)statement;
+                        for (int i = 0; i < block.Statements.Length; i++)
+                        {
+                            if (!IsMorallyEmpty(block.Statements[i])) return false;
+                        }
+                        return true;
+                    }
+                case BoundKind.SequencePoint:
+                    {
+                        var sequence = (BoundSequencePoint)statement;
+                        return IsMorallyEmpty(sequence.StatementOpt);
+                    }
+                case BoundKind.SequencePointWithSpan:
+                    {
+                        var sequence = (BoundSequencePointWithSpan)statement;
+                        return IsMorallyEmpty(sequence.StatementOpt);
+                    }
+                default:
+                    return false;
+            }
+
         }
 
         public override BoundNode VisitCatchBlock(BoundCatchBlock node)

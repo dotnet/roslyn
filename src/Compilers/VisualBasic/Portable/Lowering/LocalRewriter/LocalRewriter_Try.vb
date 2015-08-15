@@ -14,10 +14,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(_unstructuredExceptionHandling.Context Is Nothing)
 
             Dim rewrittenTryBlock = RewriteTryBlock(node.TryBlock)
-            Dim rewrittenCatchBlocks = VisitList(node.CatchBlocks)
+            Dim optimizing = Not Me.OptimizationLevelIsDebug
+            ' When optimizing And we have a morally empty try block, we can discard the catch blocks.
+            Dim rewrittenCatchBlocks = If(optimizing AndAlso IsMorallyEmpty(rewrittenTryBlock), ImmutableArray(Of BoundCatchBlock).Empty, VisitList(node.CatchBlocks))
             Dim rewrittenFinally = RewriteFinallyBlock(node.FinallyBlockOpt)
+            If optimizing AndAlso IsMorallyEmpty(rewrittenFinally) Then rewrittenFinally = Nothing
 
-            Return RewriteTryStatement(node.Syntax, rewrittenTryBlock, rewrittenCatchBlocks, rewrittenFinally, node.ExitLabelOpt)
+            Return If(rewrittenCatchBlocks.IsDefaultOrEmpty AndAlso rewrittenFinally Is Nothing, rewrittenTryBlock, RewriteTryStatement(node.Syntax, rewrittenTryBlock, rewrittenCatchBlocks, rewrittenFinally, node.ExitLabelOpt))
+        End Function
+
+        Private Shared Function IsMorallyEmpty(statement As BoundStatement) As Boolean
+            If statement Is Nothing Then Return True
+            Select Case statement.Kind
+                Case BoundKind.NoOpStatement
+                    Return True
+                Case BoundKind.Block
+                    Dim block = DirectCast(statement, BoundBlock)
+                    For Each s In block.Statements
+                        If Not IsMorallyEmpty(s) Then Return False
+                    Next
+                    Return True
+                Case BoundKind.SequencePoint
+                    Dim sequence = DirectCast(statement, BoundSequencePoint)
+                    Return IsMorallyEmpty(sequence.StatementOpt)
+                Case BoundKind.SequencePointWithSpan
+                    Dim sequence = DirectCast(statement, BoundSequencePointWithSpan)
+                    Return IsMorallyEmpty(sequence.StatementOpt)
+                Case Else
+                    Return False
+            End Select
         End Function
 
         Public Function RewriteTryStatement(

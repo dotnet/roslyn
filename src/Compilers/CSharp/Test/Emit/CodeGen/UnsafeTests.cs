@@ -1976,6 +1976,7 @@ unsafe class C
             var text = @"
 unsafe class C
 {
+    static void nop() { }
     void Test()
     {
         try
@@ -1986,6 +1987,7 @@ unsafe class C
         }
         finally
         {
+            nop();
         }
     }
 }
@@ -1994,7 +1996,7 @@ unsafe class C
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.Test", @"
 {
-  // Code size       27 (0x1b)
+  // Code size       32 (0x20)
   .maxstack  2
   .locals init (char* V_0, //p
                 pinned string V_1)
@@ -2013,7 +2015,7 @@ unsafe class C
       IL_000d:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
       IL_0012:  add
       IL_0013:  stloc.0
-      IL_0014:  leave.s    IL_001a
+      IL_0014:  leave.s    IL_001f
     }
     finally
     {
@@ -2024,9 +2026,10 @@ unsafe class C
   }
   finally
   {
-    IL_0019:  endfinally
+    IL_0019:  call       ""void C.nop()""
+    IL_001e:  endfinally
   }
-  IL_001a:  ret
+  IL_001f:  ret
 }
 ");
         }
@@ -2235,50 +2238,44 @@ unsafe class C
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.Test", @"
 {
-  // Code size       37 (0x25)
+  // Code size       36 (0x24)
   .maxstack  2
   .locals init (char* V_0, //p
                 pinned string V_1)
   .try
   {
+    IL_0000:  call       ""void C.nop()""
+    IL_0005:  leave.s    IL_0023
+  }
+  catch object
+  {
+    IL_0007:  pop
     .try
     {
-      IL_0000:  call       ""void C.nop()""
-      IL_0005:  leave.s    IL_0024
+      IL_0008:  ldstr      ""hello""
+      IL_000d:  stloc.1
+      IL_000e:  ldloc.1
+      IL_000f:  conv.i
+      IL_0010:  stloc.0
+      IL_0011:  ldloc.0
+      IL_0012:  brfalse.s  IL_001c
+      IL_0014:  ldloc.0
+      IL_0015:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
+      IL_001a:  add
+      IL_001b:  stloc.0
+      IL_001c:  leave.s    IL_0021
     }
-    catch object
+    finally
     {
-      IL_0007:  pop
-      .try
-      {
-        IL_0008:  ldstr      ""hello""
-        IL_000d:  stloc.1
-        IL_000e:  ldloc.1
-        IL_000f:  conv.i
-        IL_0010:  stloc.0
-        IL_0011:  ldloc.0
-        IL_0012:  brfalse.s  IL_001c
-        IL_0014:  ldloc.0
-        IL_0015:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-        IL_001a:  add
-        IL_001b:  stloc.0
-        IL_001c:  leave.s    IL_0021
-      }
-      finally
-      {
-        IL_001e:  ldnull
-        IL_001f:  stloc.1
-        IL_0020:  endfinally
-      }
-      IL_0021:  leave.s    IL_0024
+      IL_001e:  ldnull
+      IL_001f:  stloc.1
+      IL_0020:  endfinally
     }
+    IL_0021:  leave.s    IL_0023
   }
-  finally
-  {
-    IL_0023:  endfinally
-  }
-  IL_0024:  ret
-}");
+  IL_0023:  ret
+}
+");
         }
 
         [Fact]
