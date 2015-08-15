@@ -2751,7 +2751,7 @@ End Class
 
             ' Native compiler doesn't produce any error, but neither method is considered overridden by the runtime.
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -3079,7 +3079,7 @@ End Class
 
             ' Native compiler doesn't produce any error, but neither method is considered overridden by the runtime.
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -3181,7 +3181,7 @@ End Class
 
             ' Native compiler doesn't produce any error, but neither method is considered overridden by the runtime.
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -3444,7 +3444,7 @@ End Class
 
             ' Native compiler doesn't produce any error, but neither method is considered overridden by the runtime.
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -3558,7 +3558,7 @@ End Class
 
             ' Native compiler doesn't produce any error, but neither method is considered overridden by the runtime.
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -3668,7 +3668,7 @@ End Class
                 </compilation>
 
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -3777,7 +3777,7 @@ End Class
 
             ' Native compiler: no errors, nothing is overridden
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -3889,7 +3889,7 @@ End Class
             ' Base::M1_2
             ' Roslyn's behavior looks reasonable and it has nothing to do with custom modifiers.
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -3999,7 +3999,7 @@ End Class
                 </compilation>
 
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -4107,7 +4107,7 @@ End Class
                 </compilation>
 
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -4778,7 +4778,7 @@ End Class
             'Base.P2_set
 
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -5000,7 +5000,7 @@ End Class
             'Base.P2_set
 
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -5161,7 +5161,7 @@ End Class
             'Derived.P2_set
 
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -5429,7 +5429,7 @@ End Class
             'Derived.P2_set
 
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -5966,7 +5966,7 @@ End Class
             'Derived.P2_set
 
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 

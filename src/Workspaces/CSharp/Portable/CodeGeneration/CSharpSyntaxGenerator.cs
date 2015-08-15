@@ -2259,16 +2259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var isolated = AsIsolatedDeclaration(declaration);
 
-            var result = PreserveTrivia(isolated, editor);
-
-            if (result == isolated)
-            {
-                return isolated;
-            }
-            else
-            {
-                return result;
-            }
+            return PreserveTrivia(isolated, editor);
         }
 
         private SyntaxNode AsIsolatedDeclaration(SyntaxNode declaration)
