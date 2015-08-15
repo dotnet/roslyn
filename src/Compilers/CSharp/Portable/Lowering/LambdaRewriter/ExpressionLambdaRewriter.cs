@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (literal != null)
             {
                 // for compat reasons enum literals are directly promoted into underlying values
-                return Visit(literal.Update(literal.ConstantValue, promotedType));
+                return Constant(literal.Update(literal.ConstantValue, promotedType));
             }
             else
             {
