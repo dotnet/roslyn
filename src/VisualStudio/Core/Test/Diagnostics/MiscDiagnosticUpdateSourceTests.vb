@@ -42,19 +42,18 @@ class 123 { }
                 Dim foregroundService = workspace.GetService(Of IForegroundNotificationService)()
                 Dim provider = New DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, listeners)
                 Dim tagger = provider.CreateTagger(Of IErrorTag)(buffer)
+                Using disposable = TryCast(tagger, IDisposable)
+                    Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
+                    analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).PumpingWait()
 
-                Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
-                analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).PumpingWait()
+                    listener.CreateWaitTask().PumpingWait()
 
-                listener.CreateWaitTask().PumpingWait()
+                    Dim snapshot = buffer.CurrentSnapshot
+                    Dim spans = tagger.GetTags(New NormalizedSnapshotSpanCollection(New SnapshotSpan(snapshot, 0, snapshot.Length))).ToImmutableArray()
 
-                Dim snapshot = buffer.CurrentSnapshot
-                Dim spans = tagger.GetTags(New NormalizedSnapshotSpanCollection(New SnapshotSpan(snapshot, 0, snapshot.Length))).ToImmutableArray()
-
-                Assert.True(spans.Count() > 0)
-                Assert.True(spans.All(Function(s) s.Span.Length > 0))
-
-                DirectCast(tagger, IDisposable).Dispose()
+                    Assert.True(spans.Count() > 0)
+                    Assert.True(spans.All(Function(s) s.Span.Length > 0))
+                End Using
             End Using
         End Sub
 
