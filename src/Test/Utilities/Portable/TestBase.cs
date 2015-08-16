@@ -586,6 +586,6 @@ namespace Roslyn.Test.Utilities
             return inputString;
         }
 
-        #endregion
+#endregion
     }
 }
