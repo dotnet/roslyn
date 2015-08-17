@@ -50,17 +50,17 @@ namespace Microsoft.VisualStudio.ProjectSystem
         /// <summary>
         /// The intellisense project itself.
         /// </summary>
-        private IVsIntellisenseProject intellisenseEngine;
+        private IVsIntellisenseProject _intellisenseEngine;
 
         /// <summary>
         /// The link that represents the design-time build subscription.
         /// </summary>
-        private IDisposable designTimeBuildSubscriptionLink;
+        private IDisposable _designTimeBuildSubscriptionLink;
 
         /// <summary>
         /// The link that represents the project evaluation subscription.
         /// </summary>
-        private IDisposable evaluationSubscriptionLink;
+        private IDisposable _evaluationSubscriptionLink;
 
         /// <summary>
         /// A map of the full paths to the projects referenced from this project,
@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.ProjectSystem
 
         IVsIntellisenseProject IProjectWithIntellisense.IntellisenseProject
         {
-            get { return this.intellisenseEngine; }
+            get { return this._intellisenseEngine; }
         }
 
         /// <summary>
@@ -256,7 +256,7 @@ namespace Microsoft.VisualStudio.ProjectSystem
                                 (uint)CLSCTX.CLSCTX_INPROC_SERVER,
                                 out pIntellisenseEngine));
 
-                            this.intellisenseEngine = Marshal.GetObjectForIUnknown(pIntellisenseEngine) as IVsIntellisenseProject;
+                            this._intellisenseEngine = Marshal.GetObjectForIUnknown(pIntellisenseEngine) as IVsIntellisenseProject;
                         }
                         finally
                         {
@@ -266,7 +266,7 @@ namespace Microsoft.VisualStudio.ProjectSystem
                             }
                         }
 
-                        Marshal.ThrowExceptionForHR(this.intellisenseEngine.Init(this));
+                        Marshal.ThrowExceptionForHR(this._intellisenseEngine.Init(this));
                         await this.LanguageServiceRegister.RegisterProjectAsync(this);
                     }
                 });
@@ -277,13 +277,13 @@ namespace Microsoft.VisualStudio.ProjectSystem
             {
                 var designTimeBuildBlock = new ActionBlock<IProjectVersionedValue<IProjectSubscriptionUpdate>>(
                     this.ProjectBuildRuleBlock_Changed);
-                this.designTimeBuildSubscriptionLink = this.ActiveConfiguredProjectSubscriptionService.JointRuleBlock.LinkTo(
+                this._designTimeBuildSubscriptionLink = this.ActiveConfiguredProjectSubscriptionService.JointRuleBlock.LinkTo(
                     designTimeBuildBlock,
                     ruleNames: WatchedEvaluationRules.Union(WatchedDesignTimeBuildRules));
 
                 var evaluationBlock = new ActionBlock<IProjectVersionedValue<IProjectSubscriptionUpdate>>(
                     this.ProjectRuleBlock_ChangedAsync);
-                this.evaluationSubscriptionLink = this.ActiveConfiguredProjectSubscriptionService.ProjectRuleBlock.LinkTo(
+                this._evaluationSubscriptionLink = this.ActiveConfiguredProjectSubscriptionService.ProjectRuleBlock.LinkTo(
                     evaluationBlock,
                     ruleNames: WatchedEvaluationRules);
             }
@@ -400,7 +400,7 @@ namespace Microsoft.VisualStudio.ProjectSystem
         EnvDTE.FileCodeModel ICodeModelProvider.GetFileCodeModel(ProjectItem fileItem)
         {
             object result;
-            Marshal.ThrowExceptionForHR(this.intellisenseEngine.GetFileCodeModel(this.ProjectHierarchy.Value, fileItem, out result));
+            Marshal.ThrowExceptionForHR(this._intellisenseEngine.GetFileCodeModel(this.ProjectHierarchy.Value, fileItem, out result));
             return (EnvDTE.FileCodeModel)result;
         }
 
@@ -417,13 +417,13 @@ namespace Microsoft.VisualStudio.ProjectSystem
                 await this.ThreadHandling.AsyncPump.SwitchToMainThreadAsync();
                 if (state.ResolvedPath != null)
                 {
-                    Marshal.ThrowExceptionForHR(this.intellisenseEngine.RemoveAssemblyReference(state.ResolvedPath));
+                    Marshal.ThrowExceptionForHR(this._intellisenseEngine.RemoveAssemblyReference(state.ResolvedPath));
                 }
 
-                Marshal.ThrowExceptionForHR(this.intellisenseEngine.AddP2PReference(intellisenseProject));
+                Marshal.ThrowExceptionForHR(this._intellisenseEngine.AddP2PReference(intellisenseProject));
                 state.AsProjectReference = true;
 
-                Marshal.ThrowExceptionForHR(this.intellisenseEngine.StartIntellisenseEngine());
+                Marshal.ThrowExceptionForHR(this._intellisenseEngine.StartIntellisenseEngine());
             }
         }
 
@@ -434,15 +434,15 @@ namespace Microsoft.VisualStudio.ProjectSystem
             if (this.projectReferenceFullPaths.TryGetValue(unconfiguredProject.FullPath, out state))
             {
                 await this.ThreadHandling.AsyncPump.SwitchToMainThreadAsync();
-                Marshal.ThrowExceptionForHR(this.intellisenseEngine.RemoveP2PReference(intellisenseProject));
+                Marshal.ThrowExceptionForHR(this._intellisenseEngine.RemoveP2PReference(intellisenseProject));
                 state.AsProjectReference = false;
 
                 if (state.ResolvedPath != null)
                 {
-                    Marshal.ThrowExceptionForHR(this.intellisenseEngine.AddAssemblyReference(state.ResolvedPath));
+                    Marshal.ThrowExceptionForHR(this._intellisenseEngine.AddAssemblyReference(state.ResolvedPath));
                 }
 
-                Marshal.ThrowExceptionForHR(this.intellisenseEngine.StartIntellisenseEngine());
+                Marshal.ThrowExceptionForHR(this._intellisenseEngine.StartIntellisenseEngine());
             }
         }
 
@@ -468,16 +468,16 @@ namespace Microsoft.VisualStudio.ProjectSystem
                 this.ThreadHandling.AsyncPump.Run(async delegate
                 {
                     await this.LanguageServiceRegister.UnregisterAsync(this);
-                    if (this.intellisenseEngine != null)
+                    if (this._intellisenseEngine != null)
                     {
                         await this.ThreadHandling.AsyncPump.SwitchToMainThreadAsync();
-                        Marshal.ThrowExceptionForHR(this.intellisenseEngine.StopIntellisenseEngine());
-                        Marshal.ThrowExceptionForHR(this.intellisenseEngine.Close());
-                        this.intellisenseEngine = null;
+                        Marshal.ThrowExceptionForHR(this._intellisenseEngine.StopIntellisenseEngine());
+                        Marshal.ThrowExceptionForHR(this._intellisenseEngine.Close());
+                        this._intellisenseEngine = null;
                     }
 
-                    this.designTimeBuildSubscriptionLink?.Dispose();
-                    this.evaluationSubscriptionLink?.Dispose();
+                    this._designTimeBuildSubscriptionLink?.Dispose();
+                    this._evaluationSubscriptionLink?.Dispose();
                 });
             }
         }
@@ -571,12 +571,12 @@ namespace Microsoft.VisualStudio.ProjectSystem
 
                 foreach (var sourceUnit in sourceFiles.Difference.AddedItems.Select(item => this.SourceFileToLanguageServiceUnit(item, tree)).Where(u => u != null))
                 {
-                    Marshal.ThrowExceptionForHR(this.intellisenseEngine.AddFile(sourceUnit.Item1, sourceUnit.Item2));
+                    Marshal.ThrowExceptionForHR(this._intellisenseEngine.AddFile(sourceUnit.Item1, sourceUnit.Item2));
                 }
 
                 foreach (var sourceUnit in sourceFiles.Difference.RemovedItems.Select(item => this.SourceFileToLanguageServiceUnit(item, tree)).Where(u => u != null))
                 {
-                    Marshal.ThrowExceptionForHR(this.intellisenseEngine.RemoveFile(sourceUnit.Item1, sourceUnit.Item2));
+                    Marshal.ThrowExceptionForHR(this._intellisenseEngine.RemoveFile(sourceUnit.Item1, sourceUnit.Item2));
                 }
 
                 foreach (KeyValuePair<string, string> sourceFileNames in sourceFiles.Difference.RenamedItems)
@@ -585,7 +585,7 @@ namespace Microsoft.VisualStudio.ProjectSystem
                     if (newSourceUnit != null)
                     {
                         string beforeAbsolutePath = this.UnconfiguredProject.MakeRooted(sourceFileNames.Key);
-                        Marshal.ThrowExceptionForHR(this.intellisenseEngine.RenameFile(beforeAbsolutePath, newSourceUnit.Item1, newSourceUnit.Item2));
+                        Marshal.ThrowExceptionForHR(this._intellisenseEngine.RenameFile(beforeAbsolutePath, newSourceUnit.Item1, newSourceUnit.Item2));
                     }
                 }
 
@@ -603,11 +603,11 @@ namespace Microsoft.VisualStudio.ProjectSystem
                     {
                         if (state.ResolvedPath != null && !state.AsProjectReference)
                         {
-                            Marshal.ThrowExceptionForHR(this.intellisenseEngine.RemoveAssemblyReference(state.ResolvedPath));
+                            Marshal.ThrowExceptionForHR(this._intellisenseEngine.RemoveAssemblyReference(state.ResolvedPath));
                         }
 
                         state.AsProjectReference = true;
-                        Marshal.ThrowExceptionForHR(this.intellisenseEngine.AddP2PReference(intellisenseProject));
+                        Marshal.ThrowExceptionForHR(this._intellisenseEngine.AddP2PReference(intellisenseProject));
                     }
                 }
 
@@ -619,7 +619,7 @@ namespace Microsoft.VisualStudio.ProjectSystem
                     IVsIntellisenseProject intellisenseProject;
                     if (this.LanguageServiceRegister.TryGetIntellisenseProject(projectReferencePath, out intellisenseProject))
                     {
-                        Marshal.ThrowExceptionForHR(this.intellisenseEngine.RemoveP2PReference(this.intellisenseEngine));
+                        Marshal.ThrowExceptionForHR(this._intellisenseEngine.RemoveP2PReference(this._intellisenseEngine));
                     }
 
                     ProjectReferenceState state;
@@ -629,7 +629,7 @@ namespace Microsoft.VisualStudio.ProjectSystem
                     }
                 }
 
-                Marshal.ThrowExceptionForHR(this.intellisenseEngine.StartIntellisenseEngine());
+                Marshal.ThrowExceptionForHR(this._intellisenseEngine.StartIntellisenseEngine());
             });
         }
 
@@ -675,15 +675,15 @@ namespace Microsoft.VisualStudio.ProjectSystem
                             }
                         }
 
-                        Marshal.ThrowExceptionForHR(this.intellisenseEngine.AddAssemblyReference(resolvedReferencePath));
+                        Marshal.ThrowExceptionForHR(this._intellisenseEngine.AddAssemblyReference(resolvedReferencePath));
                     }
 
                     foreach (string resolvedReferencePath in resolvedReferenceChange.Difference.RemovedItems)
                     {
-                        Marshal.ThrowExceptionForHR(this.intellisenseEngine.RemoveAssemblyReference(resolvedReferencePath));
+                        Marshal.ThrowExceptionForHR(this._intellisenseEngine.RemoveAssemblyReference(resolvedReferencePath));
                     }
 
-                    Marshal.ThrowExceptionForHR(this.intellisenseEngine.StartIntellisenseEngine());
+                    Marshal.ThrowExceptionForHR(this._intellisenseEngine.StartIntellisenseEngine());
                 }
             }
         }
