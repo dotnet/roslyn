@@ -46,36 +46,38 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     workspace.Services.GetService<IOptionService>(), diagnosticService,
                     workspace.GetService<IForegroundNotificationService>(), listeners);
                 var tagger = provider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
+                using (var disposable = tagger as IDisposable)
+                {
 
-                var service = workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
-                var incrementalAnalyzers = ImmutableArray.Create(analyzerService.CreateIncrementalAnalyzer(workspace));
+                    var service = workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
+                    var incrementalAnalyzers = ImmutableArray.Create(analyzerService.CreateIncrementalAnalyzer(workspace));
 
-                // test first update
-                service.WaitUntilCompletion_ForTestingPurposesOnly(workspace, incrementalAnalyzers);
+                    // test first update
+                    service.WaitUntilCompletion_ForTestingPurposesOnly(workspace, incrementalAnalyzers);
 
-                listener.CreateWaitTask().PumpingWait();
+                    listener.CreateWaitTask().PumpingWait();
 
-                var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
-                var spans = tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToList();
-                Assert.True(spans.First().Span.Contains(new Span(0, 1)));
+                    var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+                    var spans = tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToList();
+                    Assert.True(spans.First().Span.Contains(new Span(0, 1)));
 
-                // test second update
-                analyzer.ChangeSeverity();
+                    // test second update
+                    analyzer.ChangeSeverity();
 
-                var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-                var text = document.GetTextAsync().Result;
-                workspace.TryApplyChanges(document.WithText(text.WithChanges(new TextChange(new TextSpan(text.Length - 1, 1), string.Empty))).Project.Solution);
+                    var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+                    var text = document.GetTextAsync().Result;
+                    workspace.TryApplyChanges(document.WithText(text.WithChanges(new TextChange(new TextSpan(text.Length - 1, 1), string.Empty))).Project.Solution);
 
-                service.WaitUntilCompletion_ForTestingPurposesOnly(workspace, incrementalAnalyzers);
+                    service.WaitUntilCompletion_ForTestingPurposesOnly(workspace, incrementalAnalyzers);
 
-                listener.CreateWaitTask().PumpingWait();
+                    listener.CreateWaitTask().PumpingWait();
 
-                snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
-                spans = tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToList();
-                Assert.True(spans.First().Span.Contains(new Span(0, 1)));
+                    snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+                    spans = tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToList();
+                    Assert.True(spans.First().Span.Contains(new Span(0, 1)));
 
-                ((IDisposable)tagger).Dispose();
-                registrationService.Unregister(workspace);
+                    registrationService.Unregister(workspace);
+                }
             }
         }
 

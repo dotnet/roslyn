@@ -5066,6 +5066,131 @@ public class Program
                 .VerifyDiagnostics();
         }
 
+        [WorkItem(3292, "https://github.com/dotnet/roslyn/issues/3292")]
+        [Fact]
+        public void EnumConversions001()
+        {
+            const string source = @"
+using System;
+using System.Linq.Expressions;
+
+struct S { }
+
+class C //: TestBase
+{
+    enum E1
+    {
+        a,
+        b
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var v = E1.b;
+            Expression<Func<bool>> e = () => E1.b == v;
+
+            System.Console.WriteLine(e);
+        }
+    }
+}";
+
+            const string expectedOutput = @"() => (1 == Convert(value(C+Program+<>c__DisplayClass0_0).v))";
+            CompileAndVerify(
+                new[] {
+                    source,
+                //    ExpressionTestLibrary
+                },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(3292, "https://github.com/dotnet/roslyn/issues/3292")]
+        [Fact]
+        public void EnumConversions002()
+        {
+            const string source = @"
+using System;
+using System.Linq.Expressions;
+
+struct S { }
+
+class C //: TestBase
+{
+    enum E1
+    {
+        a,
+        b
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var v = E1.b;
+            Expression<Func<bool>> e = () => (43 - E1.b) == v;
+
+            System.Console.WriteLine(e);
+        }
+    }
+}";
+
+            const string expectedOutput = @"() => (42 == Convert(value(C+Program+<>c__DisplayClass0_0).v))";
+            CompileAndVerify(
+                new[] {
+                    source,
+                //    ExpressionTestLibrary
+                },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(3292, "https://github.com/dotnet/roslyn/issues/3292")]
+        [Fact]
+        public void EnumConversions003()
+        {
+            const string source = @"
+using System;
+using System.Linq.Expressions;
+
+struct S { }
+
+class C //: TestBase
+{
+    enum E1
+    {
+        a,
+        b
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Expression<Func<int>> e = () => foo((int)E1.b);
+
+            System.Console.WriteLine(e);
+        }
+
+        static int foo(int x)
+        {
+            return x;
+        }
+    }
+}";
+
+            const string expectedOutput = @"() => foo(1)";
+            CompileAndVerify(
+                new[] {
+                    source,
+                //    ExpressionTestLibrary
+                },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+
         #endregion Regression Tests
 
         #region helpers

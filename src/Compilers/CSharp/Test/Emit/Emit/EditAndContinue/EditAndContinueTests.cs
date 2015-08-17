@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -85,18 +86,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, preserveLocalVariables: true)));
 
-            var reader1 = diff1.GetMetadata().Reader;
-
-            var assemblyDef = reader1.GetAssemblyDefinition();
-            Assert.False(assemblyDef.Name.IsNil);
-            Assert.Equal(0, assemblyDef.Version.Major);
-            Assert.Equal(0, assemblyDef.Version.Minor);
-            Assert.Equal(0, assemblyDef.Version.Revision);
-            Assert.Equal(0, assemblyDef.Version.Build);
-            Assert.True(assemblyDef.PublicKey.IsNil);
-            Assert.True(assemblyDef.Culture.IsNil);
-            Assert.Equal((AssemblyFlags)0, assemblyDef.Flags);
-            Assert.Equal(AssemblyHashAlgorithm.Sha1, assemblyDef.HashAlgorithm);
+            // AssemblyDef record is not emitted to delta since changes in assembly identity are not allowed:
+            Assert.True(md0.MetadataReader.IsAssembly);
+            Assert.False(diff1.GetMetadata().Reader.IsAssembly);
         }
 
         [Fact]
@@ -3931,7 +3923,7 @@ class C
 ");
             // expect a single TypeRef for System.Object
             var md1 = diff1.GetMetadata();
-            AssertEx.Equal(new[] { "[0x23000002] 0x0000028b.0x00000298" }, DumpTypeRefs(md1.Reader));
+            AssertEx.Equal(new[] { "[0x23000002] 0x00000266.0x00000273" }, DumpTypeRefs(md1.Reader));
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -3954,7 +3946,7 @@ class C
 ");
             // expect a single TypeRef for System.Object
             var md2 = diff2.GetMetadata();
-            AssertEx.Equal(new[] { "[0x23000003] 0x000002f9.0x00000306" }, DumpTypeRefs(md2.Reader));
+            AssertEx.Equal(new[] { "[0x23000003] 0x000002af.0x000002bc" }, DumpTypeRefs(md2.Reader));
         }
 
         [Fact]
@@ -4039,7 +4031,7 @@ class C
 ");
             // expect a single TypeRef for System.Object
             var md2 = diff2.GetMetadata();
-            AssertEx.Equal(new[] { "[0x23000003] 0x0000032c.0x00000339" }, DumpTypeRefs(md2.Reader));
+            AssertEx.Equal(new[] { "[0x23000003] 0x000002e2.0x000002ef" }, DumpTypeRefs(md2.Reader));
         }
 
         private static IEnumerable<string> DumpTypeRefs(MetadataReader reader)
