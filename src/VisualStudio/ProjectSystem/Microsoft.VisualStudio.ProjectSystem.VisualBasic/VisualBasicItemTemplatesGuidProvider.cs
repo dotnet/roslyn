@@ -22,17 +22,18 @@ namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic
         }
 
         [Import]
-        private UnconfiguredProject UnconfiguredProject { get; set; }
+        private UnconfiguredProject UnconfiguredProject
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Returns the item templates Guid.
         /// </summary>
         public Guid AddItemTemplatesGuid
         {
-            get
-            {
-                return VBProjectType;
-            }
+            get { return VBProjectType; }
         }
     }
 }

@@ -45,7 +45,8 @@ namespace Microsoft.VisualStudio.ProjectSystem.CSharp
         [Import]
         private UnconfiguredProject UnconfiguredProject
         {
-            get; set;
+            get;
+            set;
         }
 
         /// <summary>

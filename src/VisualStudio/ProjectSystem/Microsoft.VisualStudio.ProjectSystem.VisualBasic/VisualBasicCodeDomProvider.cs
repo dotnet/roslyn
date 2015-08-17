@@ -21,7 +21,11 @@ namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic
         /// Gets the unconfigured project.
         /// </summary>
         [Import]
-        protected UnconfiguredProject UnconfiguredProject { get; private set; }
+        protected UnconfiguredProject UnconfiguredProject
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Gets the CodeDomProvider.

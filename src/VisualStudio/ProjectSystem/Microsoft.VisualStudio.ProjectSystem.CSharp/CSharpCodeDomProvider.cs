@@ -20,7 +20,8 @@ namespace Microsoft.VisualStudio.ProjectSystem.CSharp
         [Import]
         protected UnconfiguredProject UnconfiguredProject
         {
-            get; private set;
+            get;
+            private set;
         }
 
         [ExportVsProfferedProjectService(typeof(CodeDomProvider))]
