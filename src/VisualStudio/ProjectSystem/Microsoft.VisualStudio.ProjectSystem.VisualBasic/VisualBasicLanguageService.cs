@@ -20,9 +20,6 @@ namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic
         /// </summary>
         protected static readonly Guid VBIntellisenseProvider = new Guid(0xA1B799FA, 0xB147, 0x4999, 0xA8, 0x6E, 0x1F, 0x37, 0x76, 0x5E, 0x6F, 0xB5);
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="VisualBasicLanguageService"/> class.
-        /// </summary>
         [ImportingConstructor]
         public VisualBasicLanguageService(UnconfiguredProject unconfiguredProject)
             : base(unconfiguredProject)

@@ -12,9 +12,6 @@ namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic
     [AppliesTo(ProjectCapabilities.AlwaysApplicable)]
     internal class VisualBasicProjectXmlProjectCapabilityProvider : ProjectCapabilitiesFromImportXmlProvider
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="VisualBasicProjectXmlProjectCapabilityProvider"/> class.
-        /// </summary>
         [ImportingConstructor]
         public VisualBasicProjectXmlProjectCapabilityProvider()
             : base("VisualBasic.targets", ProjectCapabilities.VB)

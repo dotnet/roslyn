@@ -68,9 +68,6 @@ namespace Microsoft.VisualStudio.ProjectSystem
         /// </summary>
         private ImmutableDictionary<string, ProjectReferenceState> projectReferenceFullPaths = ImmutableDictionary<string, ProjectReferenceState>.Empty.WithComparers(StringComparer.OrdinalIgnoreCase);
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="LanguageServiceBase"/> class.
-        /// </summary>
         protected LanguageServiceBase(UnconfiguredProject unconfiguredProject)
         {
             this.ProjectHierarchies = new OrderPrecedenceImportCollection<IVsHierarchy>(projectCapabilityCheckProvider: unconfiguredProject);

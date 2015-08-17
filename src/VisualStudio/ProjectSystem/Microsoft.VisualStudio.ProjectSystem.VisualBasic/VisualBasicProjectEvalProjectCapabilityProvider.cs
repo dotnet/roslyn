@@ -12,9 +12,6 @@ namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic
     [AppliesTo(ProjectCapabilities.AlwaysApplicable)]
     internal class VisualBasicProjectEvalProjectCapabilityProvider : ProjectCapabilitiesFromImportEvaluationProvider
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="VisualBasicProjectEvalProjectCapabilityProvider"/> class.
-        /// </summary>
         [ImportingConstructor]
         public VisualBasicProjectEvalProjectCapabilityProvider()
             : base(@"VisualBasic.targets", ProjectCapabilities.VB)

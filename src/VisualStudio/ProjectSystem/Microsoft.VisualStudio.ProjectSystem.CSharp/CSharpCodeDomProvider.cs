@@ -12,7 +12,6 @@ namespace Microsoft.VisualStudio.ProjectSystem.CSharp
     /// </summary>
     internal class CSharpCodeDomProvider
     {
-
         [ImportingConstructor]
         public CSharpCodeDomProvider()
         {

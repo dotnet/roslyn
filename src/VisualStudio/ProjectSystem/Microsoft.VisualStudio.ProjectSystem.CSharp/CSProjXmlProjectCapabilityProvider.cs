@@ -12,9 +12,6 @@ namespace Microsoft.VisualStudio.ProjectSystem.CSharp
     [AppliesTo(ProjectCapabilities.AlwaysApplicable)]
     internal class CSProjXmlProjectCapabilityProvider : ProjectCapabilitiesFromImportXmlProvider
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CSProjXmlProjectCapabilityProvider"/> class.
-        /// </summary>
         [ImportingConstructor]
         public CSProjXmlProjectCapabilityProvider()
             : base("CSharp.targets", ProjectCapabilities.CSharp)
