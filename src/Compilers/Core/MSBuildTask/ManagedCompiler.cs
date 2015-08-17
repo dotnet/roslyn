@@ -72,6 +72,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(CodePage), 0); }
         }
 
+        [Output]
+        public string CommandLineInvocation
+        {
+            set { _store[nameof(CommandLineInvocation)] = value; }
+            get { return _store.GetOrDefault(nameof(CommandLineInvocation), string.Empty); }
+        }
+
         public string DebugType
         {
             set { _store[nameof(DebugType)] = value; }
@@ -187,6 +194,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(Prefer32Bit), false); }
         }
 
+        public bool ProvideCommandLineInvocation
+        {
+            set { _store[nameof(ProvideCommandLineInvocation)] = value; }
+            get { return _store.GetOrDefault(nameof(ProvideCommandLineInvocation), false); }
+        }
+
         public ITaskItem[] References
         {
             set { _store[nameof(References)] = value; }
@@ -209,6 +222,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store[nameof(ResponseFiles)] = value; }
             get { return (ITaskItem[])_store[nameof(ResponseFiles)]; }
+        }
+
+        public bool SkipCompilerExecution
+        {
+            set { _store[nameof(SkipCompilerExecution)] = value; }
+            get { return _store.GetOrDefault(nameof(SkipCompilerExecution), false); }
         }
 
         public ITaskItem[] Sources
@@ -312,6 +331,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
+            if (ProvideCommandLineInvocation)
+            {
+                CommandLineInvocation = GenerateResponseFileContents();
+            }
+
+            if (SkipCompilerExecution)
+            {
+                return 0;
+            }
+
             if (!UseSharedCompilation || !String.IsNullOrEmpty(this.ToolPath))
             {
                 return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);

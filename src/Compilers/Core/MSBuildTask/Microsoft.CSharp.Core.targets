@@ -19,7 +19,7 @@
                  @(_DebugSymbolsIntermediatePath);
                  $(NonExistentFile);
                  @(CustomAdditionalCompileOutputs)"
-          Returns=""
+          Returns="$(CscCommandLineInvocation)"
           DependsOnTargets="$(CoreCompileDependsOn)"
     >
     <!-- These two compiler warnings are raised when a reference is bound to a different version
@@ -105,10 +105,12 @@
           Platform="$(PlatformTarget)"
           Prefer32Bit="$(Prefer32Bit)"
           PreferredUILang="$(PreferredUILang)"
+          ProvideCommandLineInvocation="$(ProvideCommandLineInvocation)"
           References="@(ReferencePath)"
           ReportAnalyzer="$(ReportAnalyzer)"
           Resources="@(_CoreCompileResourceInputs);@(CompiledLicenseFile)"
           ResponseFiles="$(CompilerResponseFile)"
+          SkipCompilerExecution="$(SkipCompilerExecution)"
           Sources="@(Compile)"
           SubsystemVersion="$(SubsystemVersion)"
           TargetType="$(OutputType)"
@@ -125,7 +127,9 @@
           Win32Icon="$(ApplicationIcon)"
           Win32Manifest="$(Win32Manifest)"
           Win32Resource="$(Win32Resource)"
-              />
+          >
+      <Output TaskParameter="CommandLineInvocation" PropertyName="CscCommandLineInvocation" />
+    </Csc>
 
     <ItemGroup>
       <_CoreCompileResourceInputs Remove="@(_CoreCompileResourceInputs)" />
