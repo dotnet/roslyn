@@ -1694,7 +1694,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             else if (_identLen > 0 && ch > 127 && SyntaxFacts.IsIdentifierPartCharacter(ch))
                             {
                                 //// BUG 424819 : Handle identifier chars > 0xFFFF via surrogate pairs
-                                if (SyntaxFacts.IsFormattingChar(ch))
+                                if (UnicodeCharacterUtilities.IsFormattingChar(ch))
                                 {
                                     if (isEscaped)
                                     {
@@ -1982,7 +1982,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             else if (_identLen > 0 && consumedChar > 127 && SyntaxFacts.IsIdentifierPartCharacter(consumedChar))
                             {
                                 //// BUG 424819 : Handle identifier chars > 0xFFFF via surrogate pairs
-                                if (SyntaxFacts.IsFormattingChar(consumedChar))
+                                if (UnicodeCharacterUtilities.IsFormattingChar(consumedChar))
                                 {
                                     continue; // Ignore formatting characters
                                 }
