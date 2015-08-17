@@ -4218,7 +4218,7 @@ Class Program
         Dim s = 0
         Select Case s
             Case 0
-            ' Comment should be indented
+            ' Comment should not be indented
             Case 2
                 ' comment
                 Console.WriteLine(s)
@@ -4234,7 +4234,7 @@ Class Program
         Dim s = 0
         Select Case s
             Case 0
-            ' Comment should be indented
+            ' Comment should not be indented
             Case 2
                 ' comment
                 Console.WriteLine(s)
