@@ -21,7 +21,6 @@ namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic
         /// Gets the unconfigured project.
         /// </summary>
         [Import]
-        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called by MEF.")]
         protected UnconfiguredProject UnconfiguredProject { get; private set; }
 
         /// <summary>

@@ -38,7 +38,10 @@ namespace Microsoft.VisualStudio.ProjectSystem.CSharp
         /// Get the unconfigured project
         /// </summary>
         [Import]
-        private UnconfiguredProject UnconfiguredProject { get; set; }
+        private UnconfiguredProject UnconfiguredProject
+        {
+            get; set;
+        }
 
         /// <summary>
         /// Transforms a tree in some way (perhaps customizing icons or menus).

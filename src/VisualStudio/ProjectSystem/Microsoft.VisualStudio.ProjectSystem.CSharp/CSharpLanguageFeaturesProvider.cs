@@ -43,8 +43,10 @@ namespace Microsoft.VisualStudio.ProjectSystem.CSharp
         }
 
         [Import]
-        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called by MEF")]
-        private UnconfiguredProject UnconfiguredProject { get; set; }
+        private UnconfiguredProject UnconfiguredProject
+        {
+            get; set;
+        }
 
         /// <summary>
         /// Makes a proper identifier from the given string.

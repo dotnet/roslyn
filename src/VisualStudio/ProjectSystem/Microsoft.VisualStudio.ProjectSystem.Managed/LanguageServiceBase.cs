@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.ProjectSystem
         ICodeModelProvider,
         IProjectWithIntellisense
     {
-/// <summary>
+        /// <summary>
         /// The names of the rules that represent items that are interesting to the language service.
         /// </summary>
         private static readonly ImmutableHashSet<string> WatchedEvaluationRules = Empty.OrdinalIgnoreCaseStringSet
@@ -73,115 +73,145 @@ namespace Microsoft.VisualStudio.ProjectSystem
             this.ProjectHierarchies = new OrderPrecedenceImportCollection<IVsHierarchy>(projectCapabilityCheckProvider: unconfiguredProject);
         }
 
-        #region LanguageServiceRegister.IProjectWithIntellisense Properties
-
-        /// <inheritdoc/>
         IVsIntellisenseProject IProjectWithIntellisense.IntellisenseProject
         {
             get { return this.intellisenseEngine; }
         }
 
-        #endregion
-
         /// <summary>
         /// Gets the unconfigured project.
         /// </summary>
         [Import]
-        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called by MEF")]
-        public UnconfiguredProject UnconfiguredProject { get; private set; }
+        public UnconfiguredProject UnconfiguredProject
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Gets the GUID of the Intellisense provider to create.
         /// </summary>
-        protected abstract Guid ProviderGuid { get; }
+        protected abstract Guid ProviderGuid
+        {
+            get;
+        }
 
         /// <summary>
         /// Gets or sets exports from the active configured project.
         /// </summary>
         [Import]
-        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called by MEF")]
-        private ActiveConfiguredProject<ActiveConfiguredProjectHelper> ActiveConfigurationExports { get; set; }
+        private ActiveConfiguredProject<ActiveConfiguredProjectHelper> ActiveConfigurationExports
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Gets or sets the Visual Studio IServiceProvider.
         /// </summary>
         [Import]
-        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called by MEF")]
-        private SVsServiceProvider ServiceProvider { get; set; }
+        private SVsServiceProvider ServiceProvider
+        {
+            get; set;
+        }
 
         /// <summary>
         /// Gets or sets IVsHierarchies.
         /// </summary>
         [ImportMany(ExportContractNames.VsTypes.IVsHierarchy)]
-        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called by MEF")]
-        private OrderPrecedenceImportCollection<IVsHierarchy> ProjectHierarchies { get; set; }
+        private OrderPrecedenceImportCollection<IVsHierarchy> ProjectHierarchies
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Gets or sets the project node as an IVsHierarchy.
         /// </summary>
         private Lazy<IVsHierarchy> ProjectHierarchy
         {
-            get
-            {
-                return this.ProjectHierarchies.First();
-            }
+            get { return this.ProjectHierarchies.First(); }
         }
 
         /// <summary>
         /// Gets or sets the project tree service.
         /// </summary>
         [Import(ExportContractNames.ProjectTreeProviders.PhysicalProjectTreeService)]
-        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called by MEF")]
-        private IProjectTreeService ProjectTreeService { get; set; }
+        private IProjectTreeService ProjectTreeService
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Gets or sets the project subscription service.
         /// </summary>
         [Import]
-        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called by MEF")]
-        private IActiveConfiguredProjectSubscriptionService ActiveConfiguredProjectSubscriptionService { get; set; }
+        private IActiveConfiguredProjectSubscriptionService ActiveConfiguredProjectSubscriptionService
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Gets or sets the project fault handler service.
         /// </summary>
         [Import]
-        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called by MEF")]
-        private IProjectFaultHandlerService ProjectFaultHandlerService { get; set; }
+        private IProjectFaultHandlerService ProjectFaultHandlerService
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Gets or sets the asynchronous task service.
         /// </summary>
         [Import(ExportContractNames.Scopes.UnconfiguredProject)]
-        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called by MEF")]
-        private IProjectAsynchronousTasksService ProjectAsynchronousTasksService { get; set; }
+        private IProjectAsynchronousTasksService ProjectAsynchronousTasksService
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// The thread handling service.
         /// </summary>
         [Import]
-        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called by MEF")]
-        private IThreadHandling ThreadHandling { get; set; }
+        private IThreadHandling ThreadHandling
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Gets the physical tree provider.
         /// </summary>
         [Import(ExportContractNames.ProjectTreeProviders.PhysicalViewTree)]
-        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called by MEF")]
-        private Lazy<IProjectTreeProvider> PhysicalProjectTreeProvider { get; set; }
+        private Lazy<IProjectTreeProvider> PhysicalProjectTreeProvider
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Gets or sets the service where we register our language service projects.
         /// </summary>
         [Import]
-        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called by MEF")]
-        private ILanguageServiceRegister LanguageServiceRegister { get; set; }
+        private ILanguageServiceRegister LanguageServiceRegister
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Gets the project async load dashboard.
         /// </summary>
         [Import]
-        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called by MEF")]
-        private IProjectAsyncLoadDashboard ProjectAsyncLoadDashboard { get; set; }
+        private IProjectAsyncLoadDashboard ProjectAsyncLoadDashboard
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Invoked when the UnconfiguredProject is first loaded to initialize language services.
@@ -661,7 +691,6 @@ namespace Microsoft.VisualStudio.ProjectSystem
         /// <summary>
         /// A class that has ConfiguredProject-level imports.
         /// </summary>
-        [SuppressMessage("Microsoft.Performance", "CA1812:AvoidUninstantiatedInternalClasses", Justification = "Exported via MEF")]
         [Export]
         private class ActiveConfiguredProjectHelper
         {
@@ -669,13 +698,21 @@ namespace Microsoft.VisualStudio.ProjectSystem
             /// Gets the configured project instance.
             /// </summary>
             [Import]
-            internal ConfiguredProject ConfiguredProject { get; private set; }
+            internal ConfiguredProject ConfiguredProject
+            {
+                get;
+                private set;
+            }
 
             /// <summary>
             /// Gets the project properties rule accessors.
             /// </summary>
             [Import]
-            internal Lazy<ProjectProperties> Properties { get; set; }
+            internal Lazy<ProjectProperties> Properties
+            {
+                get;
+                set;
+            }
         }
 
         /// <summary>
@@ -687,7 +724,11 @@ namespace Microsoft.VisualStudio.ProjectSystem
             /// Gets or sets the resolved path for the referenced project.
             /// </summary>
             /// <value>An absolute path, or <c>null</c> if the resolved path is not (yet) available.</value>
-            public string ResolvedPath { get; set; }
+            public string ResolvedPath
+            {
+                get;
+                set;
+            }
 
             /// <summary>
             /// Gets or sets a value indicating whether the reference has been added to Intellisense as a project reference.
@@ -696,7 +737,11 @@ namespace Microsoft.VisualStudio.ProjectSystem
             /// <c>true</c> if the reference is a P2P reference in Intellisense.
             /// <c>false</c> if the reference is a file reference in Intellisense.
             /// </value>
-            public bool AsProjectReference { get; set; }
+            public bool AsProjectReference
+            {
+                get;
+                set;
+            }
         }
     }
 }

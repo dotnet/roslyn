@@ -39,7 +39,6 @@ namespace Microsoft.VisualStudio.ProjectSystem.CSharp
         /// </summary>
         [UnconfiguredProjectAutoLoad(afterInitialActiveConfigurationKnown: true)]
         [AppliesTo(ProjectCapabilities.CSharp + " & " + ProjectCapabilities.LanguageService)]
-        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called by MEF")]
         private void Initialize()
         {
             var nowait = this.InitializeAsync();

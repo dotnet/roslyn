@@ -22,7 +22,6 @@ namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic
         }
 
         [Import]
-        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called by MEF")]
         private UnconfiguredProject UnconfiguredProject { get; set; }
 
         /// <summary>

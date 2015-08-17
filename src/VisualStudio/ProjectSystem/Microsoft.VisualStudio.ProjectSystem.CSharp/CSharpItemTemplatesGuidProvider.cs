@@ -22,18 +22,17 @@ namespace Microsoft.VisualStudio.ProjectSystem.CSharp
         }
 
         [Import]
-        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called by MEF")]
-        private UnconfiguredProject UnconfiguredProject { get; set; }
+        private UnconfiguredProject UnconfiguredProject
+        {
+            get; set;
+        }
 
         /// <summary>
         /// Returns the item templates Guid.
         /// </summary>
         public Guid AddItemTemplatesGuid
         {
-            get
-            {
-                return CSharpProjectType;
-            }
+            get { return CSharpProjectType; }
         }
     }
 }
