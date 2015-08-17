@@ -133,7 +133,7 @@
     <Compile Include="CSharpLanguageFeaturesProvider.cs" />
     <Compile Include="CSharpLanguageService.cs" />
     <Compile Include="CSharpProjectTreeModifier.cs" />
-    <Compile Include="CSProjXmlProjectCapabilityProvider.cs" />
+    <Compile Include="CSharpProjectXmlProjectCapabilityProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

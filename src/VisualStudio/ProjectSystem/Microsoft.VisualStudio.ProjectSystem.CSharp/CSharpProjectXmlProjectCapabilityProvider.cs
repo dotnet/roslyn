@@ -10,10 +10,10 @@ namespace Microsoft.VisualStudio.ProjectSystem.CSharp
     /// </summary>
     [Export(ExportContractNames.Scopes.UnconfiguredProject, typeof(IProjectCapabilitiesProvider))]
     [AppliesTo(ProjectCapabilities.AlwaysApplicable)]
-    internal class CSProjXmlProjectCapabilityProvider : ProjectCapabilitiesFromImportXmlProvider
+    internal class CSharpProjectXmlProjectCapabilityProvider : ProjectCapabilitiesFromImportXmlProvider
     {
         [ImportingConstructor]
-        public CSProjXmlProjectCapabilityProvider()
+        public CSharpProjectXmlProjectCapabilityProvider()
             : base("CSharp.targets", ProjectCapabilities.CSharp)
         {
         }
