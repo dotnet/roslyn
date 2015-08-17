@@ -1946,7 +1946,7 @@ fruit.Skip(1).Where(s => s.Length > 4).Count()
         }
 
         [WorkItem(541166)]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void DefineExtensionMethods()
         {
             var engine = new CSharpScriptEngine();
@@ -2140,17 +2140,23 @@ new System.Data.DataSet()
         [Fact]
         public void SearchPaths_BaseDirectory()
         {
+            var dir1 = Path.Combine(System.Environment.CurrentDirectory, "nodir1");
+            var dir2 = Path.Combine(System.Environment.CurrentDirectory, "nodir2");
+
+            var dllPath = Path.Combine(dir1, "x.dll");
+            var csxPath = Path.Combine(dir1, "a.csx");
+
             var engine = new CSharpScriptEngine(new MetadataReferenceProvider(new Dictionary<string, PortableExecutableReference>
             {
-                { @"C:\dir\x.dll", (PortableExecutableReference)SystemCoreRef }
+                { dllPath, (PortableExecutableReference)SystemCoreRef }
             }));
 
             engine.MetadataReferenceResolver = new VirtualizedFileReferenceResolver(
                 existingFullPaths: new[]
                 {
-                    @"C:\dir\x.dll"
+                   dllPath
                 },
-                baseDirectory: @"C:\foo\bar"
+                baseDirectory: dir2
             );
 
             var session = engine.CreateSession();
@@ -2163,7 +2169,7 @@ var x = from a in new[] { 1,2,3 }
         select a + 1;
 ";
 
-            var submission = session.CompileSubmission<object>(source, @"C:\dir\a.csx", isInteractive: false);
+            var submission = session.CompileSubmission<object>(source, csxPath, isInteractive: false);
             submission.Execute();
         }
 
@@ -2269,7 +2275,7 @@ new Metadata.ICSPropImpl()
             Assert.NotNull(result);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void MissingDependency()
         {
             var engine = new CSharpScriptEngine();

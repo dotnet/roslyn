@@ -348,7 +348,8 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests
 
             options = new ObjectFormattingOptions(maxLineLength: 20, memberFormat: MemberDisplayFormat.List);
             var str = CSharpObjectFormatter.Instance.FormatObject(obj, options);
-            Assert.Equal("LongMembers {\r\n  LongName012345 ...\r\n  LongValue: \"01 ...\r\n}\r\n", str);
+            Assert.Equal("LongMembers {" + Environment.NewLine + "  LongName012345 ..." + Environment.NewLine +
+                    "  LongValue: \"01 ..." + Environment.NewLine + "}" + Environment.NewLine, str);
         }
 
         [Fact]
@@ -416,7 +417,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests
             Assert.Equal("object[0, 0] { }", str);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void DebuggerProxy_FrameworkTypes_IEnumerable()
         {
             string str;
