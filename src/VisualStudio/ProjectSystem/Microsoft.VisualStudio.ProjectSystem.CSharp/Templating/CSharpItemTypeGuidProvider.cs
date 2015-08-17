@@ -5,19 +5,19 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 
-namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic
+namespace Microsoft.VisualStudio.ProjectSystem.CSharp.Templating
 {
     /// <summary>
-    /// Implementation of the item type provider for Visual Basic project system.
+    /// Implementation of the item type provider for CSharp project system.
     /// </summary>
-    //[Export(typeof(IItemTypeGuidProvider))]
-    [AppliesTo(ProjectCapabilities.VB)]
-    internal class VisualBasicItemTypeGuidProvider : IItemTypeGuidProvider
+    // [Export(typeof(IItemTypeGuidProvider))]
+    [AppliesTo(ProjectCapabilities.CSharp)]
+    internal class CSharpItemTypeGuidProvider : IItemTypeGuidProvider
     {
-        private static readonly Guid VBProjectType = new Guid("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}");
+        private static readonly Guid CSharpProjectType = new Guid("{FAE04EC0-301F-11d3-BF4B-00C04F79EFBC}");
 
         [ImportingConstructor]
-        internal VisualBasicItemTypeGuidProvider()
+        public CSharpItemTypeGuidProvider()
         {
         }
 
@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic
         /// </summary>
         public Guid ProjectTypeGuid
         {
-            get { return VBProjectType; }
+            get { return CSharpProjectType; }
         }
     }
 }

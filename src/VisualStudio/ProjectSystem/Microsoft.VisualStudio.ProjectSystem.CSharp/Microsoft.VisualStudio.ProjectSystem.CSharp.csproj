@@ -127,13 +127,13 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CSharpCodeDomProvider.cs" />
-    <Compile Include="CSharpItemTemplatesGuidProvider.cs" />
-    <Compile Include="CSharpItemTypeGuidProvider.cs" />
-    <Compile Include="CSharpLanguageFeaturesProvider.cs" />
-    <Compile Include="CSharpLanguageService.cs" />
-    <Compile Include="CSharpProjectTreeModifier.cs" />
-    <Compile Include="CSharpProjectXmlProjectCapabilityProvider.cs" />
+    <Compile Include="LanguageServices\CSharpCodeDomProvider.cs" />
+    <Compile Include="Templating\CSharpItemTemplatesGuidProvider.cs" />
+    <Compile Include="Templating\CSharpItemTypeGuidProvider.cs" />
+    <Compile Include="LanguageServices\CSharpLanguageFeaturesProvider.cs" />
+    <Compile Include="LanguageServices\CSharpLanguageService.cs" />
+    <Compile Include="ProjectTree\CSharpProjectTreeModifier.cs" />
+    <Compile Include="Capabilities\CSharpProjectXmlProjectCapabilityProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -5,7 +5,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 
-namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic
+namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic.Templating
 {
     /// <summary>
     /// Implementation of the item templates Guid provider for Visual Basic project system.

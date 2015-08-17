@@ -21,7 +21,7 @@ using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.OLE.Interop;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.VisualStudio.ProjectSystem
+namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
 {
     /// <summary>
     /// Provides integration with the language services.

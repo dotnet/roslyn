@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.ProjectSystem.Designers;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 using Microsoft.VisualStudio.ProjectSystem.Utilities.Designers;
 
-namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic
+namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic.ProjectTree
 {
     /// <summary>
     /// Applies VB-specific project item icons.

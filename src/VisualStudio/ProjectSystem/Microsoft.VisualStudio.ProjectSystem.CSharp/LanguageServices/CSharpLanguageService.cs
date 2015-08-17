@@ -5,23 +5,24 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 using Microsoft.VisualStudio.ProjectSystem.VS;
+using Microsoft.VisualStudio.ProjectSystem.LanguageServices;
 
-namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic
+namespace Microsoft.VisualStudio.ProjectSystem.CSharp.LanguageServices
 {
     /// <summary>
-    /// Provides integration with the VB language service.
+    /// Provides integration with the C# language service.
     /// </summary>
-    [AppliesTo(ProjectCapabilities.VB + " & " + ProjectCapabilities.LanguageService)]
+    [AppliesTo(ProjectCapabilities.CSharp + " & " + ProjectCapabilities.LanguageService)]
     [Export(typeof(ICodeModelProvider))]
-    internal class VisualBasicLanguageService : LanguageServiceBase
+    internal class CSharpLanguageService : LanguageServiceBase
     {
         /// <summary>
-        /// The VB.NET language service provider.
+        /// The C# language service provider.
         /// </summary>
-        protected static readonly Guid VBIntellisenseProvider = new Guid(0xA1B799FA, 0xB147, 0x4999, 0xA8, 0x6E, 0x1F, 0x37, 0x76, 0x5E, 0x6F, 0xB5);
+        protected static readonly Guid CSharpIntellisenseProvider = new Guid(0x7D842D0C, 0xFDD6, 0x4e3b, 0x9E, 0x21, 0x0C, 0x26, 0x3F, 0x4B, 0x6E, 0xC2);
 
         [ImportingConstructor]
-        public VisualBasicLanguageService(UnconfiguredProject unconfiguredProject)
+        public CSharpLanguageService(UnconfiguredProject unconfiguredProject)
             : base(unconfiguredProject)
         {
         }
@@ -31,14 +32,14 @@ namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic
         /// </summary>
         protected override Guid ProviderGuid
         {
-            get { return VBIntellisenseProvider; }
+            get { return CSharpIntellisenseProvider; }
         }
 
         /// <summary>
         /// Invoked when the UnconfiguredProject is first loaded to initialize language services.
         /// </summary>
         [UnconfiguredProjectAutoLoad(afterInitialActiveConfigurationKnown: true)]
-        [AppliesTo(ProjectCapabilities.VB + " & " + ProjectCapabilities.LanguageService)]
+        [AppliesTo(ProjectCapabilities.CSharp + " & " + ProjectCapabilities.LanguageService)]
         private void Initialize()
         {
             var nowait = this.InitializeAsync();

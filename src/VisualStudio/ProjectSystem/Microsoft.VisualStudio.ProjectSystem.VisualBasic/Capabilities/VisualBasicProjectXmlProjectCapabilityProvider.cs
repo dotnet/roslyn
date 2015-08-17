@@ -3,18 +3,18 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 
-namespace Microsoft.VisualStudio.ProjectSystem.CSharp
+namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic.Capabilities
 {
     /// <summary>
-    /// Adds the "CSharp" and other capabilities to projects that import *.CSharp.targets.
+    /// Adds the "VB" capability to projects that import Microsoft.VisualBasic.targets.
     /// </summary>
     [Export(ExportContractNames.Scopes.UnconfiguredProject, typeof(IProjectCapabilitiesProvider))]
     [AppliesTo(ProjectCapabilities.AlwaysApplicable)]
-    internal class CSharpProjectXmlProjectCapabilityProvider : ProjectCapabilitiesFromImportXmlProvider
+    internal class VisualBasicProjectXmlProjectCapabilityProvider : ProjectCapabilitiesFromImportXmlProvider
     {
         [ImportingConstructor]
-        public CSharpProjectXmlProjectCapabilityProvider()
-            : base("CSharp.targets", ProjectCapabilities.CSharp)
+        public VisualBasicProjectXmlProjectCapabilityProvider()
+            : base("VisualBasic.targets", ProjectCapabilities.VB)
         {
         }
     }
