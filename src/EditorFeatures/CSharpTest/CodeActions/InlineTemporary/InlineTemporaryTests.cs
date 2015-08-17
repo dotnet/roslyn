@@ -3769,7 +3769,7 @@ class A
 
         [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void DontParenthesizeInterpolatedString()
+        public void DontParenthesizeInterpolatedStringWithNoInterpolation()
         {
             Test(
             @"
@@ -3787,6 +3787,30 @@ class C
     public void M()
     {
         var s2 = string.Replace($""hello"", ""world"");
+    }
+}");
+        }
+
+        [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public void DontParenthesizeInterpolatedStringWithInterpolation()
+        {
+            Test(
+            @"
+class C
+{
+    public void M(int x)
+    {
+        var [|s1|] = $""hello {x}"";
+        var s2 = string.Replace(s1, ""world"");
+    }
+}
+", @"
+class C
+{
+    public void M(int x)
+    {
+        var s2 = string.Replace($""hello {x}"", ""world"");
     }
 }");
         }
