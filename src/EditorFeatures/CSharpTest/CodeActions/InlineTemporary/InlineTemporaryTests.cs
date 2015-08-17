@@ -3766,5 +3766,29 @@ class A
     }
 }");
         }
+
+        [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public void DontParenthesizeInterpolatedString()
+        {
+            Test(
+            @"
+class C
+{
+    public void M()
+    {
+        var [|s1|] = $""hello"";
+        var s2 = string.Replace(s1, ""world"");
+    }
+}
+", @"
+class C
+{
+    public void M()
+    {
+        var s2 = string.Replace($""hello"", ""world"");
+    }
+}");
+        }
     }
 }

@@ -4072,5 +4072,22 @@ End With
             Test(code, expected, compareTokens:=False)
         End Sub
 
+        <WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Sub DontParenthesizeInterpolatedString()
+            Dim code =
+<MethodBody>
+Dim [||]s1 = $"hello"
+Dim s2 = AscW(s1)
+</MethodBody>
+
+            Dim expected =
+<MethodBody>
+Dim s2 = AscW($"hello")
+</MethodBody>
+
+            Test(code, expected, compareTokens:=False)
+        End Sub
+
     End Class
 End Namespace
