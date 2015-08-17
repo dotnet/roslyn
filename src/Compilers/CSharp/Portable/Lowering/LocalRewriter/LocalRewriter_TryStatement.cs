@@ -18,15 +18,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var optimizing = this._compilation.Options.OptimizationLevel == OptimizationLevel.Release;
             ImmutableArray<BoundCatchBlock> catchBlocks =
-                // When optimizing and we have a morally empty try block, we can discard the catch blocks.
-                (optimizing && IsMorallyEmpty(tryBlock)) ? ImmutableArray<BoundCatchBlock>.Empty
+`                // When optimizing and we have a try block without side-effects, we can discard the catch blocks.
+                (optimizing && !HasSideEffects(tryBlock)) ? ImmutableArray<BoundCatchBlock>.Empty
                 : this.VisitList(node.CatchBlocks);
             BoundBlock finallyBlockOpt = (BoundBlock)this.Visit(node.FinallyBlockOpt);
 
             _sawAwaitInExceptionHandler |= _sawAwait;
             _sawAwait |= origSawAwait;
 
-            if (optimizing && IsMorallyEmpty(finallyBlockOpt))
+            if (optimizing && !HasSideEffects(finallyBlockOpt))
             {
                 finallyBlockOpt = null;
             }
@@ -37,12 +37,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Is there no code to execute in the given statement that could have side-effects,
-        /// such as throwing an exception?
+        /// Is there any code to execute in the given statement that could have side-effects,
+        /// such as throwing an exception? This implementation is conserviative, in the sense
+        /// that it may return true when the statement actually may have no side effects.
         /// </summary>
-        private static bool IsMorallyEmpty(BoundStatement statement)
+        private static bool HasSideEffects(BoundStatement statement)
         {
-            if (statement == null) return true;
+            if (statement == null) return false;
             switch (statement.Kind)
             {
                 case BoundKind.NoOpStatement:
@@ -50,24 +51,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Block:
                     {
                         var block = (BoundBlock)statement;
-                        for (int i = 0; i < block.Statements.Length; i++)
+                        foreach (var stmt in block.Statements)
                         {
-                            if (!IsMorallyEmpty(block.Statements[i])) return false;
+                            if (HasSideEffects(stmt)) return true;
                         }
-                        return true;
+                        return false;
                     }
                 case BoundKind.SequencePoint:
                     {
                         var sequence = (BoundSequencePoint)statement;
-                        return IsMorallyEmpty(sequence.StatementOpt);
+                        return HasSideEffects(sequence.StatementOpt);
                     }
                 case BoundKind.SequencePointWithSpan:
                     {
                         var sequence = (BoundSequencePointWithSpan)statement;
-                        return IsMorallyEmpty(sequence.StatementOpt);
+                        return HasSideEffects(sequence.StatementOpt);
                     }
                 default:
-                    return false;
+                    return true;
             }
 
         }

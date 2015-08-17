@@ -2929,41 +2929,33 @@ unsafe class C
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.<>c.<Test>b__0_0()", @"
 {
-  // Code size       27 (0x1b)
+  // Code size       26 (0x1a)
   .maxstack  2
   .locals init (char* V_0, //p
                 pinned string V_1)
   .try
   {
-    .try
-    {
-      IL_0000:  ldstr      ""hello""
-      IL_0005:  stloc.1
-      IL_0006:  ldloc.1
-      IL_0007:  conv.i
-      IL_0008:  stloc.0
-      IL_0009:  ldloc.0
-      IL_000a:  brfalse.s  IL_0014
-      IL_000c:  ldloc.0
-      IL_000d:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-      IL_0012:  add
-      IL_0013:  stloc.0
-      IL_0014:  leave.s    IL_001a
-    }
-    finally
-    {
-      IL_0016:  ldnull
-      IL_0017:  stloc.1
-      IL_0018:  endfinally
-    }
+    IL_0000:  ldstr      ""hello""
+    IL_0005:  stloc.1
+    IL_0006:  ldloc.1
+    IL_0007:  conv.i
+    IL_0008:  stloc.0
+    IL_0009:  ldloc.0
+    IL_000a:  brfalse.s  IL_0014
+    IL_000c:  ldloc.0
+    IL_000d:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
+    IL_0012:  add
+    IL_0013:  stloc.0
+    IL_0014:  leave.s    IL_0019
   }
   finally
   {
-    IL_0019:  endfinally
+    IL_0016:  ldnull
+    IL_0017:  stloc.1
+    IL_0018:  endfinally
   }
-  IL_001a:  ret
-}
-");
+  IL_0019:  ret
+}");
         }
 
         [Fact]
@@ -3092,41 +3084,33 @@ unsafe class C
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.<>c.<.ctor>b__1_0()", @"
 {
-  // Code size       27 (0x1b)
+  // Code size       26 (0x1a)
   .maxstack  2
   .locals init (char* V_0, //p
                 pinned string V_1)
   .try
   {
-    .try
-    {
-      IL_0000:  ldstr      ""hello""
-      IL_0005:  stloc.1
-      IL_0006:  ldloc.1
-      IL_0007:  conv.i
-      IL_0008:  stloc.0
-      IL_0009:  ldloc.0
-      IL_000a:  brfalse.s  IL_0014
-      IL_000c:  ldloc.0
-      IL_000d:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-      IL_0012:  add
-      IL_0013:  stloc.0
-      IL_0014:  leave.s    IL_001a
-    }
-    finally
-    {
-      IL_0016:  ldnull
-      IL_0017:  stloc.1
-      IL_0018:  endfinally
-    }
+    IL_0000:  ldstr      ""hello""
+    IL_0005:  stloc.1
+    IL_0006:  ldloc.1
+    IL_0007:  conv.i
+    IL_0008:  stloc.0
+    IL_0009:  ldloc.0
+    IL_000a:  brfalse.s  IL_0014
+    IL_000c:  ldloc.0
+    IL_000d:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
+    IL_0012:  add
+    IL_0013:  stloc.0
+    IL_0014:  leave.s    IL_0019
   }
   finally
   {
-    IL_0019:  endfinally
+    IL_0016:  ldnull
+    IL_0017:  stloc.1
+    IL_0018:  endfinally
   }
-  IL_001a:  ret
-}
-");
+  IL_0019:  ret
+}");
         }
 
         [Fact]

@@ -14,34 +14,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(_unstructuredExceptionHandling.Context Is Nothing)
 
             Dim rewrittenTryBlock = RewriteTryBlock(node.TryBlock)
-            Dim optimizing = Not Me.OptimizationLevelIsDebug
-            ' When optimizing And we have a morally empty try block, we can discard the catch blocks.
-            Dim rewrittenCatchBlocks = If(optimizing AndAlso IsMorallyEmpty(rewrittenTryBlock), ImmutableArray(Of BoundCatchBlock).Empty, VisitList(node.CatchBlocks))
+            Dim rewrittenCatchBlocks = VisitList(node.CatchBlocks)
             Dim rewrittenFinally = RewriteFinallyBlock(node.FinallyBlockOpt)
-            If optimizing AndAlso IsMorallyEmpty(rewrittenFinally) Then rewrittenFinally = Nothing
 
-            Return If(rewrittenCatchBlocks.IsDefaultOrEmpty AndAlso rewrittenFinally Is Nothing, rewrittenTryBlock, RewriteTryStatement(node.Syntax, rewrittenTryBlock, rewrittenCatchBlocks, rewrittenFinally, node.ExitLabelOpt))
+            Return RewriteTryStatement(node.Syntax, rewrittenTryBlock, rewrittenCatchBlocks, rewrittenFinally, node.ExitLabelOpt)
         End Function
 
-        Private Shared Function IsMorallyEmpty(statement As BoundStatement) As Boolean
-            If statement Is Nothing Then Return True
+        ''' <summary>
+        ''' Is there any code to execute in the given statement that could have side-effects,
+        ''' such as throwing an exception? This implementation is conserviative, in the sense
+        ''' that it may return true when the statement actually may have no side effects.
+        ''' </summary>
+        Private Shared Function HasSideEffects(statement As BoundStatement) As Boolean
+            If statement Is Nothing Then
+                Return False
+            End If
+
             Select Case statement.Kind
                 Case BoundKind.NoOpStatement
-                    Return True
+                    Return False
                 Case BoundKind.Block
                     Dim block = DirectCast(statement, BoundBlock)
                     For Each s In block.Statements
-                        If Not IsMorallyEmpty(s) Then Return False
+                        If HasSideEffects(s) Then
+                            Return True
+                        End If
                     Next
-                    Return True
+                    Return False
                 Case BoundKind.SequencePoint
                     Dim sequence = DirectCast(statement, BoundSequencePoint)
-                    Return IsMorallyEmpty(sequence.StatementOpt)
+                    Return HasSideEffects(sequence.StatementOpt)
                 Case BoundKind.SequencePointWithSpan
                     Dim sequence = DirectCast(statement, BoundSequencePointWithSpan)
-                    Return IsMorallyEmpty(sequence.StatementOpt)
+                    Return HasSideEffects(sequence.StatementOpt)
                 Case Else
-                    Return False
+                    Return True
             End Select
         End Function
 
@@ -52,6 +59,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             finallyBlockOpt As BoundBlock,
             exitLabelOpt As LabelSymbol
         ) As BoundStatement
+            If Not Me.OptimizationLevelIsDebug Then
+                ' When optimizing and the try block has no side effects, we can discard the catch blocks.
+                If Not HasSideEffects(tryBlock) Then
+                    catchBlocks = ImmutableArray(Of BoundCatchBlock).Empty
+                End If
+
+                ' A finally block with no side effects can be omitted.
+                If Not HasSideEffects(finallyBlockOpt) Then
+                    finallyBlockOpt = Nothing
+                End If
+
+                If catchBlocks.IsDefaultOrEmpty AndAlso finallyBlockOpt Is Nothing Then
+                    Return tryBlock
+                End If
+            End If
 
             Dim newTry As BoundStatement = New BoundTryStatement(syntaxNode, tryBlock, catchBlocks, finallyBlockOpt, exitLabelOpt)
 
