@@ -11,6 +11,11 @@ namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic
     /// </summary>
     internal class VisualBasicCodeDomProvider
     {
+        [ImportingConstructor]
+        public VisualBasicCodeDomProvider()
+        {
+        }
+
         /// <summary>
         /// Gets the unconfigured project.
         /// </summary>

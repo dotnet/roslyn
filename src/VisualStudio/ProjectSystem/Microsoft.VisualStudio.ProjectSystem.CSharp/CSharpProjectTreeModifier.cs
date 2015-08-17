@@ -28,6 +28,11 @@ namespace Microsoft.VisualStudio.ProjectSystem.CSharp
         private static readonly ImmutableHashSet<string> DefaultAppDesignerFolderCapabilities =
             ProjectTreeCapabilities.EmptyCapabilities.Add(ProjectTreeCapabilities.AppDesignerFolder).Add(ProjectTreeCapabilities.BubbleUp);
 
+        [ImportingConstructor]
+        public CSharpProjectTreeModifier()
+        {
+        }
+
         /// <summary>
         /// Get the unconfigured project
         /// </summary>

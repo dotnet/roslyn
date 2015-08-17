@@ -36,6 +36,11 @@ namespace Microsoft.VisualStudio.ProjectSystem.CSharp
             .Add(UnicodeCategory.OtherLetter)
             .Add(UnicodeCategory.ConnectorPunctuation);
 
+        [ImportingConstructor]
+        public CSharpLanguageFeaturesProvider()
+        {
+        }
+
         [Import]
         [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called by MEF")]
         private UnconfiguredProject UnconfiguredProject { get; set; }

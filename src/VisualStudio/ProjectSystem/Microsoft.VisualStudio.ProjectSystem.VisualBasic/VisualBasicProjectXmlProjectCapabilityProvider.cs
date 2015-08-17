@@ -14,6 +14,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic
         /// <summary>
         /// Initializes a new instance of the <see cref="VisualBasicProjectXmlProjectCapabilityProvider"/> class.
         /// </summary>
+        [ImportingConstructor]
         public VisualBasicProjectXmlProjectCapabilityProvider()
             : base("VisualBasic.targets", ProjectCapabilities.VB)
         {

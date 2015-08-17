@@ -15,8 +15,10 @@ namespace Microsoft.VisualStudio.ProjectSystem.CSharp
     {
         private static readonly Guid CSharpProjectType = new Guid("{FAE04EC0-301F-11d3-BF4B-00C04F79EFBC}");
 
-        private CSharpItemTemplatesGuidProvider()
-        { }
+        [ImportingConstructor]
+        public CSharpItemTemplatesGuidProvider()
+        {
+        }
 
         [Import]
         [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called by MEF")]

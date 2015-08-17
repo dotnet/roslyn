@@ -22,6 +22,11 @@ namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic
         /// </summary>
         private const string MyProjectFolderName = "My Project";
 
+        [ImportingConstructor]
+        public VisualBasicProjectTreeModifier()
+        {
+        }
+
         /// <summary>
         /// A common set of project tree capabilities with the case-insensitive comparer.
         /// </summary>

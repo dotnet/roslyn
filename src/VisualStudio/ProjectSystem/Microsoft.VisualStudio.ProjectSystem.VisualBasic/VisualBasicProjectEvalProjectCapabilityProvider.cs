@@ -14,6 +14,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic
         /// <summary>
         /// Initializes a new instance of the <see cref="VisualBasicProjectEvalProjectCapabilityProvider"/> class.
         /// </summary>
+        [ImportingConstructor]
         public VisualBasicProjectEvalProjectCapabilityProvider()
             : base(@"VisualBasic.targets", ProjectCapabilities.VB)
         {

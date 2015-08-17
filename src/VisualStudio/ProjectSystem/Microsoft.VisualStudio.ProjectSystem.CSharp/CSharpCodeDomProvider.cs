@@ -11,6 +11,12 @@ namespace Microsoft.VisualStudio.ProjectSystem.CSharp
     /// </summary>
     internal class CSharpCodeDomProvider
     {
+
+        [ImportingConstructor]
+        public CSharpCodeDomProvider()
+        {
+        }
+
         /// <summary>
         /// Gets the unconfigured project.
         /// </summary>

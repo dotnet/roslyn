@@ -15,8 +15,10 @@ namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic
     {
         private static readonly Guid VBProjectType = new Guid("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}");
 
-        private VisualBasicItemTemplatesGuidProvider()
-        { }
+        [ImportingConstructor]
+        public VisualBasicItemTemplatesGuidProvider()
+        {
+        }
 
         [Import]
         [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called by MEF")]
