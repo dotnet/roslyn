@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.ProjectSystem.Designers;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 using Microsoft.VisualStudio.ProjectSystem.Utilities.Designers;
 
-namespace Microsoft.VisualStudio.ProjectSystem.CSharp.Implementation
+namespace Microsoft.VisualStudio.ProjectSystem.CSharp
 {
     /// <summary>
     /// Applies C#-specific project item icons.

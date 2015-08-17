@@ -8,7 +8,7 @@ using System.Linq;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 using Microsoft.VisualStudio.ProjectSystem.VS;
 
-namespace Microsoft.VisualStudio.ProjectSystem.CSharp.Implementation
+namespace Microsoft.VisualStudio.ProjectSystem.CSharp
 {
     /// <summary>
     /// Unconfigured project level component to provide C# language specific features.

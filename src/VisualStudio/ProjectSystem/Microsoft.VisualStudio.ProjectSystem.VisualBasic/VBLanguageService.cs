@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 using Microsoft.VisualStudio.ProjectSystem.VS;
 
-namespace Microsoft.VisualStudio.ProjectSystem.VB.Implementation
+namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic
 {
     /// <summary>
     /// Provides integration with the VB language service.

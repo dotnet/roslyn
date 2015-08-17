@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 using Microsoft.VisualStudio.ProjectSystem.VS;
 
-namespace Microsoft.VisualStudio.ProjectSystem.CSharp.Implementation
+namespace Microsoft.VisualStudio.ProjectSystem.CSharp
 {
     /// <summary>
     /// Provides integration with the C# language service.

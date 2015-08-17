@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.ProjectSystem.Designers;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 using Microsoft.VisualStudio.ProjectSystem.Utilities.Designers;
 
-namespace Microsoft.VisualStudio.ProjectSystem.VB.Implementation
+namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic
 {
     /// <summary>
     /// Applies VB-specific project item icons.

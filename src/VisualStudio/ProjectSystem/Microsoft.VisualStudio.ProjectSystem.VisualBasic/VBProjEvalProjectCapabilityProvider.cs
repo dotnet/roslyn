@@ -2,7 +2,7 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 
-namespace Microsoft.VisualStudio.ProjectSystem.VB.Implementation
+namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic
 {
     /// <summary>
     /// Adds the "VB" capability to projects that import Microsoft.VisualBasic.targets.
