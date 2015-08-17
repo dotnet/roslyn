@@ -7,15 +7,15 @@ namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic
     /// <summary>
     /// Adds the "VB" capability to projects that import Microsoft.VisualBasic.targets.
     /// </summary>
-    [Export(ExportContractNames.Scopes.UnconfiguredProject, typeof(IProjectCapabilitiesProvider))]
+    [Export(ExportContractNames.Scopes.ConfiguredProject, typeof(IProjectCapabilitiesProvider))]
     [AppliesTo(ProjectCapabilities.AlwaysApplicable)]
-    internal class VBProjXmlProjectCapabilityProvider : ProjectCapabilitiesFromImportXmlProvider
+    internal class VisualBasicProjectEvalProjectCapabilityProvider : ProjectCapabilitiesFromImportEvaluationProvider
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="VBProjXmlProjectCapabilityProvider"/> class.
+        /// Initializes a new instance of the <see cref="VisualBasicProjectEvalProjectCapabilityProvider"/> class.
         /// </summary>
-        public VBProjXmlProjectCapabilityProvider()
-            : base("VisualBasic.targets", ProjectCapabilities.VB)
+        public VisualBasicProjectEvalProjectCapabilityProvider()
+            : base(@"VisualBasic.targets", ProjectCapabilities.VB)
         {
         }
     }

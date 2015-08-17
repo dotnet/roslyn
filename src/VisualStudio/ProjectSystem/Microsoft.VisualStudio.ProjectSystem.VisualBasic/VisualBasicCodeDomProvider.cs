@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic
     /// <summary>
     /// Provides the VB CodeDomProvider.
     /// </summary>
-    internal class VBCodeDomProvider
+    internal class VisualBasicCodeDomProvider
     {
         /// <summary>
         /// Gets the unconfigured project.

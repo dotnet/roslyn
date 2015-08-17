@@ -127,12 +127,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="VBCodeDomProvider.cs" />
-    <Compile Include="VBItemTemplatesGuidProvider.cs" />
-    <Compile Include="VBItemTypeGuidProvider.cs" />
-    <Compile Include="VBLanguageService.cs" />
-    <Compile Include="VBProjEvalProjectCapabilityProvider.cs" />
-    <Compile Include="VBProjXmlProjectCapabilityProvider.cs" />
+    <Compile Include="VisualBasicCodeDomProvider.cs" />
+    <Compile Include="VisualBasicItemTemplatesGuidProvider.cs" />
+    <Compile Include="VisualBasicItemTypeGuidProvider.cs" />
+    <Compile Include="VisualBasicLanguageService.cs" />
+    <Compile Include="VisualBasicProjectEvalProjectCapabilityProvider.cs" />
+    <Compile Include="VisualBasicProjectXmlProjectCapabilityProvider.cs" />
     <Compile Include="VisualBasicProjectTreeModifier.cs" />
   </ItemGroup>
   <ItemGroup>

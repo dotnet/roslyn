@@ -11,11 +11,11 @@ namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic
     /// </summary>
     //[Export(typeof(IItemTypeGuidProvider))]
     [AppliesTo(ProjectCapabilities.VB)]
-    internal class VBItemTypeGuidProvider : IItemTypeGuidProvider
+    internal class VisualBasicItemTypeGuidProvider : IItemTypeGuidProvider
     {
         private static readonly Guid VBProjectType = new Guid("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}");
 
-        private VBItemTypeGuidProvider()
+        private VisualBasicItemTypeGuidProvider()
         {}
 
         [Import]
