@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using System.CodeDom.Compiler;
+using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.VisualStudio.ProjectSystem.Utilities;
 
 namespace Microsoft.VisualStudio.ProjectSystem.VB.Implementation
 {
-    using System.CodeDom.Compiler;
-    using System.ComponentModel.Composition;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.VisualStudio.ProjectSystem.Utilities;
-
     /// <summary>
     /// Provides the VB CodeDomProvider.
     /// </summary>

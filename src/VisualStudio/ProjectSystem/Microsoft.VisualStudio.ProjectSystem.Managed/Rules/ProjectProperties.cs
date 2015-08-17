@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.ProjectSystem.Properties;
+using Microsoft.VisualStudio.ProjectSystem.Utilities;
 
 namespace Microsoft.VisualStudio.ProjectSystem
 {
-    using System.ComponentModel.Composition;
-    using Microsoft.VisualStudio.ProjectSystem.Properties;
-    using Microsoft.VisualStudio.ProjectSystem.Utilities;
-
     /// <summary>
     /// Provides rule-based property access.
     /// </summary>

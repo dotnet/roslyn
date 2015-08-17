@@ -1,28 +1,27 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
+using EnvDTE;
+using Microsoft.VisualStudio.ProjectSystem.Designers;
+using Microsoft.VisualStudio.ProjectSystem.Utilities;
+using Microsoft.VisualStudio.ProjectSystem.VS;
+using Microsoft.VisualStudio.ProjectSystem.VS.Designers;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
+using Microsoft.VisualStudio.OLE.Interop;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.ProjectSystem
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Collections.Immutable;
-    using System.ComponentModel.Composition;
-    using System.Diagnostics.CodeAnalysis;
-    using System.IO;
-    using System.Linq;
-    using System.Runtime.InteropServices;
-    using System.Threading.Tasks;
-    using System.Threading.Tasks.Dataflow;
-    using EnvDTE;
-    using Microsoft.VisualStudio.ProjectSystem.Designers;
-    using Microsoft.VisualStudio.ProjectSystem.Utilities;
-    using Microsoft.VisualStudio.ProjectSystem.VS;
-    using Microsoft.VisualStudio.ProjectSystem.VS.Designers;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.VisualStudio.Threading;
-    using OLE.Interop;
-    using Task = System.Threading.Tasks.Task;
-
     /// <summary>
     /// Provides integration with the language services.
     /// </summary>

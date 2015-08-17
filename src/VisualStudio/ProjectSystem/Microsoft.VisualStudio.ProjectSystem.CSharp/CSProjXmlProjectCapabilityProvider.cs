@@ -1,10 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.ProjectSystem.Utilities;
 
 namespace Microsoft.VisualStudio.ProjectSystem.CSharp.Implementation
 {
-    using System.ComponentModel.Composition;
-    using Microsoft.VisualStudio.ProjectSystem.Utilities;
-
     /// <summary>
     /// Adds the "CSharp" and other capabilities to projects that import *.CSharp.targets.
     /// </summary>

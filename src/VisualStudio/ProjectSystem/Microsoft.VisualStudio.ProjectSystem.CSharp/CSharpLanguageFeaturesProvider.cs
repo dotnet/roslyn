@@ -1,16 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using System;
+using System.Collections.Immutable;
+using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Linq;
+using Microsoft.VisualStudio.ProjectSystem.Utilities;
+using Microsoft.VisualStudio.ProjectSystem.VS;
 
 namespace Microsoft.VisualStudio.ProjectSystem.CSharp.Implementation
 {
-    using System;
-    using System.Collections.Immutable;
-    using System.ComponentModel.Composition;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Linq;
-    using Microsoft.VisualStudio.ProjectSystem.Utilities;
-    using Microsoft.VisualStudio.ProjectSystem.VS;
-
     /// <summary>
     /// Unconfigured project level component to provide C# language specific features.
     /// </summary>

@@ -123,7 +123,6 @@
     <Compile Include="IAddItemTemplatesGuidProvider.cs" />
     <Compile Include="IItemTypeGuidProvider.cs" />
     <Compile Include="LanguageServiceBase.cs" />
-    <Compile Include="ProjectProperties.cs" />
     <Compile Include="Rules\ProjectProperties.cs" />
   </ItemGroup>
   <ItemGroup>
