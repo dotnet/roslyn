@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.VB.Implementation
     /// <summary>
     /// Implementation of the item type provider for Visual Basic project system.
     /// </summary>
-    [Export(typeof(IItemTypeGuidProvider))]
+    //[Export(typeof(IItemTypeGuidProvider))]
     [AppliesTo(ProjectCapabilities.VB)]
     internal class VBItemTypeGuidProvider : IItemTypeGuidProvider
     {

@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.VB.Implementation
     /// <summary>
     /// Implementation of the item templates Guid provider for Visual Basic project system.
     /// </summary>
-    [Export(typeof(IAddItemTemplatesGuidProvider))]
+    //[Export(typeof(IAddItemTemplatesGuidProvider))]
     [AppliesTo(ProjectCapabilities.VB)]
     internal class VBItemTemplatesGuidProvider : IAddItemTemplatesGuidProvider
     {

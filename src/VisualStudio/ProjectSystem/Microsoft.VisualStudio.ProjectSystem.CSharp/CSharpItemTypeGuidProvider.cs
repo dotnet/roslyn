@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.CSharp.Implementation
     /// <summary>
     /// Implementation of the item type provider for CSharp project system.
     /// </summary>
-    [Export(typeof(IItemTypeGuidProvider))]
+    // [Export(typeof(IItemTypeGuidProvider))]
     [AppliesTo(ProjectCapabilities.CSharp)]
     internal class CSharpItemTypeGuidProvider : IItemTypeGuidProvider
     {

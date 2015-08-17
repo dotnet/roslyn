@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.CSharp.Implementation
     /// <summary>
     /// Implementation of the item templates Guid provider for CSharp project system.
     /// </summary>
-    [Export(typeof(IAddItemTemplatesGuidProvider))]
+    // [Export(typeof(IAddItemTemplatesGuidProvider))]
     [AppliesTo(ProjectCapabilities.CSharp)]
     internal class CSharpItemTemplatesGuidProvider : IAddItemTemplatesGuidProvider
     {
