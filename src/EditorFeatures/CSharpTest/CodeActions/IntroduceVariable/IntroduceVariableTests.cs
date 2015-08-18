@@ -2620,5 +2620,24 @@ class C
 }";
             Test(code, expected, index: 0, compareTokens: false);
         }
+
+        [WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void BlockContextPreferredOverAutoPropertyInitializerContext()
+        {
+            var code =
+@"using System;
+class C
+{
+    Func<int, int> X { get; } = a => { return [|7|]; };
+}";
+            var expected =
+@"using System;
+class C
+{
+    Func<int, int> X { get; } = a => { const int {|Rename:V|} = 7; return V; };
+}";
+            Test(code, expected, index: 2, compareTokens: false);
+        }
     }
 }

@@ -130,11 +130,10 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     return false;
                 }
 
-                // The ordering of checks is important here. If we are inside a block within an Expression 
-                // bodied member, we should treat it as if we are in block context.
-                // For example, in such a scenario we should generate inside the block, instead of rewriting
-                // a concise expression bodied member to its equivalent that has a body with a block.
-                // For this reason, block should precede expression bodied member check.
+                /* NOTE: All checks from this point forward are intentionally ordered to be AFTER the check for Block Context. */
+
+                // If we are inside a block within an Expression bodied member we should generate inside the block, 
+                // instead of rewriting a concise expression bodied member to its equivalent that has a body with a block.
                 if (_service.IsInExpressionBodiedMember(this.Expression))
                 {
                     if (CanGenerateInto<TTypeDeclarationSyntax>(cancellationToken))
