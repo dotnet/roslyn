@@ -3814,5 +3814,71 @@ class C
     }
 }");
         }
+
+        [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public void InlineFormattableStringIntoCallSiteRequiringFormattableString()
+        {
+            const string initial = CodeSnippets.FormattableStringType + @"
+class C
+{
+    static void M(FormattableString s)
+    {
+    }
+
+    static void N(int x, int y)
+    {
+        FormattableString [||]s = $""{x}, {y}"";
+        M(s);
+    }
+}";
+
+            const string expected = CodeSnippets.FormattableStringType + @"
+class C
+{
+    static void M(FormattableString s)
+    {
+    }
+
+    static void N(int x, int y)
+    {
+        C.M($""{x}, {y}"");
+    }
+}";
+
+            Test(initial, expected, compareTokens: false);
+        }
+
+        [WorkItem(4624, "https://github.com/dotnet/roslyn/issues/4624")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/4624"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public void InlineFormattableStringIntoCallSiteWithFormattableStringOverload()
+        {
+            const string initial = CodeSnippets.FormattableStringType + @"
+class C
+{
+    static void M(string s) { }
+    static void M(FormattableString s) { }
+
+    static void N(int x, int y)
+    {
+        FormattableString [||]s = $""{x}, {y}"";
+        M(s);
+    }
+}";
+
+            const string expected = CodeSnippets.FormattableStringType + @"
+class C
+{
+    static void M(string s) { }
+    static void M(FormattableString s) { }
+
+    static void N(int x, int y)
+    {
+        C.M((FormattableString)$""{x}, {y}"");
+    }
+}";
+
+            Test(initial, expected, compareTokens: false);
+        }
     }
 }

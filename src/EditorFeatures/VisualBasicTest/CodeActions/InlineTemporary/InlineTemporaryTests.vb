@@ -461,7 +461,7 @@ Console.WriteLine(i + 1 * k)
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <Fact(skip:="551797"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(Skip:="551797"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         <WorkItem(551797)>
         Public Sub InlineIntoExpression3()
             Dim code =
@@ -4104,6 +4104,70 @@ Dim s2 = AscW(s1)
 Dim x = 42
 Dim s2 = AscW($"hello {x}")
 </MethodBody>
+
+            Test(code, expected, compareTokens:=False)
+        End Sub
+
+        <WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Sub InlineFormattableStringIntoCallSiteRequiringFormattableString()
+            Dim code = FormattableStringType & "
+Class C
+    Sub M(s As FormattableString)
+    End Sub
+
+    Sub N(x As Integer, y As Integer)
+        Dim [||]s As FormattableString = $""{x}, {y}""
+        M(s)
+    End Sub
+End Class
+"
+
+            Dim expected = FormattableStringType & "
+Class C
+    Sub M(s As FormattableString)
+    End Sub
+
+    Sub N(x As Integer, y As Integer)
+        M($""{x}, {y}"")
+    End Sub
+End Class
+"
+
+            Test(code, expected, compareTokens:=False)
+        End Sub
+
+        <WorkItem(4624, "https://github.com/dotnet/roslyn/issues/4624")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/4624"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Sub InlineFormattableStringIntoCallSiteWithFormattableStringOverload()
+            Dim code = FormattableStringType & "
+Class C
+    Sub M(s As String)
+    End Sub
+
+    Sub M(s As FormattableString)
+    End Sub
+
+    Sub N(x As Integer, y As Integer)
+        Dim [||]s As FormattableString = $""{x}, {y}""
+        M(s)
+    End Sub
+End Class
+"
+
+            Dim expected = FormattableStringType & "
+Class C
+    Sub M(s As String)
+    End Sub
+
+    Sub M(s As FormattableString)
+    End Sub
+
+    Sub N(x As Integer, y As Integer)
+        M(CType($""{x}, {y}"", FormattableString))
+    End Sub
+End Class
+"
 
             Test(code, expected, compareTokens:=False)
         End Sub
