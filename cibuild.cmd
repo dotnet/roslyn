@@ -17,6 +17,7 @@ call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd
 REM Build the compiler so we can self host it for the full build
 .nuget\NuGet.exe restore .nuget/packages.config -packagesdirectory packages -Config .nuget/NuGet.Config
 .nuget\NuGet.exe restore %RoslynRoot%/build/Toolset.sln -packagesdirectory packages
+.nuget\V3\NuGet.exe restore .nuget/V3/packages.config -packagesdirectory packages -Config .nuget/NuGet.Config
 msbuild /nologo /v:m /m %RoslynRoot%/build/Toolset.sln /p:Configuration=%BuildConfiguration%
 
 mkdir %RoslynRoot%\Binaries\Bootstrap

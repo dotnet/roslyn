@@ -237,7 +237,10 @@ which mono
 # Linux runs to fail frequently enough that we need to employ a 
 # temporary work around.  
 echo Restoring NuGet packages
-run_nuget restore CrossPlatform.sln
+
+run_nuget restore CrossPlatform.sln -PackagesDirectory packages
+run_nuget restore .nuget/packages.config -PackagesDirectory packages
+
 run_nuget install xunit.runners -PreRelease -Version $XUNIT_VERSION -OutputDirectory packages
 
 compile_toolset
