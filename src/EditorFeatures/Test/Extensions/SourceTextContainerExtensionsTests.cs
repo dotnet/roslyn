@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 
             var textContainer = Microsoft.CodeAnalysis.Text.Extensions.TextBufferContainer.From(bufferMock.Object);
 
-            Assert.DoesNotThrow(() => Microsoft.CodeAnalysis.Text.Extensions.GetTextBuffer(textContainer));
+            Microsoft.CodeAnalysis.Text.Extensions.GetTextBuffer(textContainer);
         }
     }
 }

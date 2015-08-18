@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var csharpProviders = providersPerLanguage[LanguageNames.CSharp];
 
             // ExtensionOrderer.CheckForCycles() will throw ArgumentException if cycle is detected.
-            Assert.DoesNotThrow(() => ExtensionOrderer.CheckForCycles(csharpProviders));
+            ExtensionOrderer.CheckForCycles(csharpProviders);
 
             // ExtensionOrderer.Order() will not throw even if cycle is detected. However, it will
             // break the cycle and the resulting order will end up being unpredictable.
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 actualOrder.IndexOf(p => p.Metadata.Name == PredefinedCodeFixProviderNames.RenameTracking));
 
             var vbProviders = providersPerLanguage[LanguageNames.VisualBasic];
-            Assert.DoesNotThrow(() => ExtensionOrderer.CheckForCycles(vbProviders));
+            ExtensionOrderer.CheckForCycles(vbProviders);
             actualOrder = ExtensionOrderer.Order(vbProviders).ToArray();
             Assert.True(actualOrder.Length > 0);
             Assert.True(actualOrder.IndexOf(p => p.Metadata.Name == PredefinedCodeFixProviderNames.AddUsingOrImport) <
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var csharpProviders = providersPerLanguage[LanguageNames.CSharp];
 
             // ExtensionOrderer.CheckForCycles() will throw ArgumentException if cycle is detected.
-            Assert.DoesNotThrow(() => ExtensionOrderer.CheckForCycles(csharpProviders));
+            ExtensionOrderer.CheckForCycles(csharpProviders);
 
             // ExtensionOrderer.Order() will not throw even if cycle is detected. However, it will
             // break the cycle and the resulting order will end up being unpredictable.
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             Assert.Equal(1, actualOrder.Length);
 
             var vbProviders = providersPerLanguage[LanguageNames.VisualBasic];
-            Assert.DoesNotThrow(() => ExtensionOrderer.CheckForCycles(vbProviders));
+            ExtensionOrderer.CheckForCycles(vbProviders);
             actualOrder = ExtensionOrderer.Order(vbProviders).ToArray();
             Assert.Equal(1, actualOrder.Length);
         }
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var csharpProviders = providersPerLanguage[LanguageNames.CSharp];
 
             // ExtensionOrderer.CheckForCycles() will throw ArgumentException if cycle is detected.
-            Assert.DoesNotThrow(() => ExtensionOrderer.CheckForCycles(csharpProviders));
+            ExtensionOrderer.CheckForCycles(csharpProviders);
 
             // ExtensionOrderer.Order() will not throw even if cycle is detected. However, it will
             // break the cycle and the resulting order will end up being unpredictable.
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             Assert.True(actualOrder.Length > 0);
 
             var vbProviders = providersPerLanguage[LanguageNames.VisualBasic];
-            Assert.DoesNotThrow(() => ExtensionOrderer.CheckForCycles(vbProviders));
+            ExtensionOrderer.CheckForCycles(vbProviders);
             actualOrder = ExtensionOrderer.Order(vbProviders).ToArray();
             Assert.True(actualOrder.Length > 0);
         }

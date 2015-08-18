@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         <Fact>
         Public Sub ComputeDistance_Node()
             Dim distance = SyntaxComparer.ComputeDistance(MakeLiteral(101), MakeLiteral(150))
-            Assert.Equal(1, Math.Round(distance, 2))
+            Assert.Equal(1.0, Math.Round(distance, 2))
         End Sub
 
         <Fact>
@@ -125,37 +125,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                 Nothing,
                 ImmutableArray.Create(SyntaxFactory.Token(SyntaxKind.StaticKeyword)))
 
-            Assert.Equal(1, Math.Round(distance, 2))
+            Assert.Equal(1.0, Math.Round(distance, 2))
 
             distance = SyntaxComparer.ComputeDistance(
                 Nothing,
                 ImmutableArray.Create(MakeLiteral(0)))
 
-            Assert.Equal(1, Math.Round(distance, 2))
+            Assert.Equal(1.0, Math.Round(distance, 2))
 
             distance = SyntaxComparer.ComputeDistance(
                 Nothing,
                 SpecializedCollections.EmptyArray(Of SyntaxNode))
 
-            Assert.Equal(0, Math.Round(distance, 2))
+            Assert.Equal(0.0, Math.Round(distance, 2))
 
             distance = SyntaxComparer.ComputeDistance(
                 SpecializedCollections.EmptyArray(Of SyntaxNode),
                 Nothing)
 
-            Assert.Equal(0, Math.Round(distance, 2))
+            Assert.Equal(0.0, Math.Round(distance, 2))
 
             distance = SyntaxComparer.ComputeDistance(
                 Nothing,
                 SpecializedCollections.EmptyArray(Of SyntaxToken))
 
-            Assert.Equal(0, Math.Round(distance, 2))
+            Assert.Equal(0.0, Math.Round(distance, 2))
 
             distance = SyntaxComparer.ComputeDistance(
                 SpecializedCollections.EmptyArray(Of SyntaxToken),
                 Nothing)
 
-            Assert.Equal(0, Math.Round(distance, 2))
+            Assert.Equal(0.0, Math.Round(distance, 2))
         End Sub
     End Class
 End Namespace
