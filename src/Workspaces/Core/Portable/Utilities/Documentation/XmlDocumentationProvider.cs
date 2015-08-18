@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal abstract class XmlDocumentationProvider : DocumentationProvider
+    public abstract class XmlDocumentationProvider : DocumentationProvider
     {
         private readonly NonReentrantLock _gate = new NonReentrantLock();
         private Dictionary<string, string> _docComments;

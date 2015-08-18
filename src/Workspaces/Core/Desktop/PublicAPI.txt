@@ -1,4 +1,6 @@
 Microsoft.CodeAnalysis.CommandLineProject
+Microsoft.CodeAnalysis.FileBasedXmlDocumentationProvider
+Microsoft.CodeAnalysis.FileBasedXmlDocumentationProvider.FileBasedXmlDocumentationProvider(string filePath) -> void
 Microsoft.CodeAnalysis.FileTextLoader
 Microsoft.CodeAnalysis.FileTextLoader.DefaultEncoding.get -> System.Text.Encoding
 Microsoft.CodeAnalysis.FileTextLoader.FileTextLoader(string path, System.Text.Encoding defaultEncoding) -> void
@@ -27,6 +29,8 @@ Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.OpenSolutionAsync(string solutio
 Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Properties.get -> System.Collections.Immutable.ImmutableDictionary<string, string>
 Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.SkipUnrecognizedProjects.get -> bool
 Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.SkipUnrecognizedProjects.set -> void
+override Microsoft.CodeAnalysis.FileBasedXmlDocumentationProvider.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.FileBasedXmlDocumentationProvider.GetHashCode() -> int
 override Microsoft.CodeAnalysis.FileTextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
 override Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.CanApplyChange(Microsoft.CodeAnalysis.ApplyChangesKind feature) -> bool
 override Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.TryApplyChanges(Microsoft.CodeAnalysis.Solution newSolution) -> bool

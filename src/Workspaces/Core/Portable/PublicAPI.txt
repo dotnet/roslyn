@@ -830,6 +830,7 @@ Microsoft.CodeAnalysis.WorkspaceKind
 Microsoft.CodeAnalysis.WorkspaceRegistration
 Microsoft.CodeAnalysis.WorkspaceRegistration.Workspace.get -> Microsoft.CodeAnalysis.Workspace
 Microsoft.CodeAnalysis.WorkspaceRegistration.WorkspaceChanged -> System.EventHandler
+Microsoft.CodeAnalysis.XmlDocumentationProvider
 abstract Microsoft.CodeAnalysis.CodeActions.CodeAction.Title.get -> string
 abstract Microsoft.CodeAnalysis.CodeActions.CodeActionWithOptions.ComputeOperationsAsync(object options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeActions.CodeActionOperation>>
 abstract Microsoft.CodeAnalysis.CodeActions.CodeActionWithOptions.GetOptions(System.Threading.CancellationToken cancellationToken) -> object
@@ -985,6 +986,7 @@ abstract Microsoft.CodeAnalysis.Host.HostWorkspaceServices.GetService<TWorkspace
 abstract Microsoft.CodeAnalysis.Host.HostWorkspaceServices.HostServices.get -> Microsoft.CodeAnalysis.Host.HostServices
 abstract Microsoft.CodeAnalysis.Host.HostWorkspaceServices.Workspace.get -> Microsoft.CodeAnalysis.Workspace
 abstract Microsoft.CodeAnalysis.TextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
+abstract Microsoft.CodeAnalysis.XmlDocumentationProvider.GetSourceStream(System.Threading.CancellationToken cancellationToken) -> System.IO.Stream
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.ClassName = "class name" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.Comment = "comment" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.DelegateName = "delegate name" -> string
@@ -1076,6 +1078,7 @@ override Microsoft.CodeAnalysis.VersionStamp.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.VersionStamp.GetHashCode() -> int
 override Microsoft.CodeAnalysis.VersionStamp.ToString() -> string
 override Microsoft.CodeAnalysis.WorkspaceDiagnostic.ToString() -> string
+override Microsoft.CodeAnalysis.XmlDocumentationProvider.GetDocumentationForSymbol(string documentationMemberID, System.Globalization.CultureInfo preferredCulture, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> string
 static Microsoft.CodeAnalysis.Classification.Classifier.GetClassifiedSpans(Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.Text.TextSpan textSpan, Microsoft.CodeAnalysis.Workspace workspace, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Classification.ClassifiedSpan>
 static Microsoft.CodeAnalysis.Classification.Classifier.GetClassifiedSpansAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan textSpan, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Classification.ClassifiedSpan>>
 static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> createChangedDocument, string equivalenceKey = null) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
@@ -1246,6 +1249,7 @@ static Microsoft.CodeAnalysis.VersionStamp.operator !=(Microsoft.CodeAnalysis.Ve
 static Microsoft.CodeAnalysis.VersionStamp.operator ==(Microsoft.CodeAnalysis.VersionStamp left, Microsoft.CodeAnalysis.VersionStamp right) -> bool
 static Microsoft.CodeAnalysis.Workspace.GetWorkspaceRegistration(Microsoft.CodeAnalysis.Text.SourceTextContainer textContainer) -> Microsoft.CodeAnalysis.WorkspaceRegistration
 static Microsoft.CodeAnalysis.Workspace.TryGetWorkspace(Microsoft.CodeAnalysis.Text.SourceTextContainer textContainer, out Microsoft.CodeAnalysis.Workspace workspace) -> bool
+static Microsoft.CodeAnalysis.XmlDocumentationProvider.Create(byte[] xmlDocCommentBytes) -> Microsoft.CodeAnalysis.XmlDocumentationProvider
 virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.ComputeOperationsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeActions.CodeActionOperation>>
 virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.ComputePreviewOperationsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeActions.CodeActionOperation>>
 virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.EquivalenceKey.get -> string

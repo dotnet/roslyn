@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class FileBasedXmlDocumentationProvider : XmlDocumentationProvider
+    public sealed class FileBasedXmlDocumentationProvider : XmlDocumentationProvider
     {
         private readonly string _filePath;
 
