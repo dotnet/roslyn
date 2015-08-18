@@ -4999,6 +4999,31 @@ class C : TestBase
                 expectedOutput: expectedOutput);
         }
 
+        [Fact]
+        public void LiftedIntPtrConversion()
+        {
+            string source = @"
+using System;
+using System.Linq.Expressions;
+
+class C : TestBase
+{
+    static void Main()
+    {
+        Check(() => (IntPtr?)M(), ""Convert(Call(null.[System.Nullable`1[System.Int32] M()]() Type:System.Nullable`1[System.Int32]) Lifted LiftedToNull Method:[IntPtr op_Explicit(Int32)] Type:System.Nullable`1[System.IntPtr])"");
+        Console.WriteLine(""DONE"");
+    }
+
+    static int? M() { return 0; }
+}
+";
+
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: "DONE");
+        }
+
         /// <summary>
         /// Ignore inaccessible members of System.Linq.Expressions.Expression.
         /// </summary>
@@ -5040,6 +5065,156 @@ class C
                 result.Diagnostics.Verify();
             }
         }
+
+
+        [WorkItem(3923, "https://github.com/dotnet/roslyn/issues/3923")]
+        [Fact]
+        public void NameofInExpressionTree()
+        {
+            string program = @"
+using System;
+using System.Linq.Expressions;
+
+public class Program
+{
+    public static void Main()
+    {
+        Expression<Func<string>> func = () => nameof(Main);
+        Console.WriteLine(func.Compile().Invoke());
+    }
+}
+";
+            CompileAndVerify(
+                sources: new string[] { program },
+                additionalRefs: new[] { SystemCoreRef },
+                expectedOutput: @"Main")
+                .VerifyDiagnostics();
+        }
+
+        [WorkItem(3292, "https://github.com/dotnet/roslyn/issues/3292")]
+        [Fact]
+        public void EnumConversions001()
+        {
+            const string source = @"
+using System;
+using System.Linq.Expressions;
+
+struct S { }
+
+class C //: TestBase
+{
+    enum E1
+    {
+        a,
+        b
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var v = E1.b;
+            Expression<Func<bool>> e = () => E1.b == v;
+
+            System.Console.WriteLine(e);
+        }
+    }
+}";
+
+            const string expectedOutput = @"() => (1 == Convert(value(C+Program+<>c__DisplayClass0_0).v))";
+            CompileAndVerify(
+                new[] {
+                    source,
+                //    ExpressionTestLibrary
+                },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(3292, "https://github.com/dotnet/roslyn/issues/3292")]
+        [Fact]
+        public void EnumConversions002()
+        {
+            const string source = @"
+using System;
+using System.Linq.Expressions;
+
+struct S { }
+
+class C //: TestBase
+{
+    enum E1
+    {
+        a,
+        b
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var v = E1.b;
+            Expression<Func<bool>> e = () => (43 - E1.b) == v;
+
+            System.Console.WriteLine(e);
+        }
+    }
+}";
+
+            const string expectedOutput = @"() => (42 == Convert(value(C+Program+<>c__DisplayClass0_0).v))";
+            CompileAndVerify(
+                new[] {
+                    source,
+                //    ExpressionTestLibrary
+                },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(3292, "https://github.com/dotnet/roslyn/issues/3292")]
+        [Fact]
+        public void EnumConversions003()
+        {
+            const string source = @"
+using System;
+using System.Linq.Expressions;
+
+struct S { }
+
+class C //: TestBase
+{
+    enum E1
+    {
+        a,
+        b
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Expression<Func<int>> e = () => foo((int)E1.b);
+
+            System.Console.WriteLine(e);
+        }
+
+        static int foo(int x)
+        {
+            return x;
+        }
+    }
+}";
+
+            const string expectedOutput = @"() => foo(1)";
+            CompileAndVerify(
+                new[] {
+                    source,
+                //    ExpressionTestLibrary
+                },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
 
         #endregion Regression Tests
 

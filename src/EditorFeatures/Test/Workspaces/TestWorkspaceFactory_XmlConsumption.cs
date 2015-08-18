@@ -30,6 +30,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
     public partial class TestWorkspaceFactory
     {
+        /// <summary>
+        /// This place-holder value is used to set a project's file path to be null.  It was explicitly chosen to be
+        /// convoluted to avoid any accidental usage (e.g., what if I really wanted FilePath to be the string "null"?),
+        /// obvious to anybody debugging that it is a special value, and invalid as an actual file path.
+        /// </summary>
+        public const string NullFilePath = "NullFilePath::{AFA13775-BB7D-4020-9E58-C68CF43D8A68}";
+
         private class TestDocumentationProvider : DocumentationProvider
         {
             protected override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default(CancellationToken))
@@ -225,6 +232,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             if (projectElement.Attribute(FilePathAttributeName) != null)
             {
                 filePath = projectElement.Attribute(FilePathAttributeName).Value;
+                if (string.Compare(filePath, NullFilePath, StringComparison.Ordinal) == 0)
+                {
+                    // allow explicit null file path
+                    filePath = null;
+                }
             }
             else
             {

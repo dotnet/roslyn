@@ -6231,42 +6231,48 @@ class Program
             AssertFormat(expected, code);
         }
 
+        [WorkItem(4421, "https://github.com/dotnet/roslyn/issues/4421")]
         [WorkItem(4240, "https://github.com/dotnet/roslyn/issues/4240")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void VerifySpacingAfterMethodDeclarationName_Default()
         {
-            var code = @"class Program
+            var code = @"class Program<T>
 {
     public static Program operator +   (Program p1, Program p2) { return null; }
     public static implicit operator string (Program p) { return null; }
     public static void M  () { }
+    public void F<T>    () { }
 }";
-            var expected = @"class Program
+            var expected = @"class Program<T>
 {
     public static Program operator +(Program p1, Program p2) { return null; }
     public static implicit operator string(Program p) { return null; }
     public static void M() { }
+    public void F<T>() { }
 }";
             AssertFormat(expected, code);
         }
 
         [WorkItem(4240, "https://github.com/dotnet/roslyn/issues/4240")]
+        [WorkItem(4421, "https://github.com/dotnet/roslyn/issues/4421")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void VerifySpacingAfterMethodDeclarationName_NonDefault()
         {
             var changingOptions = new Dictionary<OptionKey, object>();
             changingOptions.Add(CSharpFormattingOptions.SpacingAfterMethodDeclarationName, true);
-            var code = @"class Program
+            var code = @"class Program<T>
 {
     public static Program operator +   (Program p1, Program p2) { return null; }
     public static implicit operator string     (Program p) { return null; }
     public static void M  () { }
+    public void F<T>   () { }
 }";
-            var expected = @"class Program
+            var expected = @"class Program<T>
 {
     public static Program operator + (Program p1, Program p2) { return null; }
     public static implicit operator string (Program p) { return null; }
     public static void M () { }
+    public void F<T> () { }
 }";
             AssertFormat(expected, code, changedOptionSet: changingOptions);
         }

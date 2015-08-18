@@ -43,6 +43,9 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\..\Helpers\CoreClrShim.cs">
+      <Link>CoreClrShim.cs</Link>
+    </Compile>
     <Compile Include="AdditionalTextFile.cs" />
     <Compile Include="AssemblyReferenceResolver.cs" />
     <Compile Include="AssemblyUtilities.cs" />

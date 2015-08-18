@@ -206,6 +206,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                 _window._buffer.Flush();
 
+                if (State == State.WaitingForInput)
+                {
+                    Debug.Assert(_window._projectionSpans.Last().Kind == ReplSpanKind.Language);
+                    StoreUncommittedInput();
+                    RemoveProjectionSpans(_window._projectionSpans.Count - 2, 2);
+                    _window._currentLanguageBuffer = null;
+                }
+
                 // replace the task being interrupted by a "reset" task:
                 State = State.Resetting;
                 _currentTask = _window._evaluator.ResetAsync(initialize);
