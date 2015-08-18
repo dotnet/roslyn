@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.Text;
 using Moq;
@@ -26,15 +27,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _testHost = new InteractiveWindowTestHost(_states.Add);
         }
 
-        public void Dispose()
+        void IDisposable.Dispose()
         {
             _testHost.Dispose();
         }
 
-        public IInteractiveWindow Window => _testHost.Window;
+        private IInteractiveWindow Window => _testHost.Window;
         internal List<ReplSpan> ProjectionSpans => ((InteractiveWindow)Window).ProjectionSpans;
 
-        public static IEnumerable<IInteractiveWindowCommand> MockCommands(params string[] commandNames)
+        private static IEnumerable<IInteractiveWindowCommand> MockCommands(params string[] commandNames)
         {
             foreach (var name in commandNames)
             {
@@ -44,7 +45,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             }
         }
 
-        public static ITextSnapshot MockSnapshot(string content)
+        private static ITextSnapshot MockSnapshot(string content)
         {
             var snapshotMock = new Mock<ITextSnapshot>();
             snapshotMock.Setup(m => m[It.IsAny<int>()]).Returns<int>(index => content[index]);
@@ -55,12 +56,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             return snapshotMock.Object;
         }
 
-        public string GetTextFromCurrentLanguageBuffer
+        private string GetTextFromCurrentLanguageBuffer()
         {
-            get
-            {
-                return Window.CurrentLanguageBuffer.CurrentSnapshot.GetText();
-            }
+            return Window.CurrentLanguageBuffer.CurrentSnapshot.GetText();
         }
 
         #endregion
@@ -623,10 +621,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         {
             const string V = "1 ";
             Window.InsertCode(V);
-            Assert.Equal(V, GetTextFromCurrentLanguageBuffer);
+            Assert.Equal(V, GetTextFromCurrentLanguageBuffer());
             Task.Run(() => Window.Operations.ExecuteInput()).PumpingWait();
             Window.Operations.HistoryPrevious();
-            Assert.Equal(V, GetTextFromCurrentLanguageBuffer);
+            Assert.Equal(V, GetTextFromCurrentLanguageBuffer());
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/4121")]
@@ -634,7 +632,156 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         {
             Task.Run(() => Window.Operations.ResetAsync(initialize: true)).PumpingWait();
             Task.Run(() => Window.Operations.HistoryPrevious()).PumpingWait();
-            Assert.Equal("#reset", GetTextFromCurrentLanguageBuffer);
+            Assert.Equal("#reset", GetTextFromCurrentLanguageBuffer());
+        }
+
+        [Fact]
+        public void CopyWithinInput()
+        {
+            Clipboard.Clear();
+
+            Window.InsertCode("1 + 2");
+            Window.Operations.SelectAll();
+            Window.Operations.Copy();
+            VerifyClipboardData("1 + 2");
+
+            // Shrink the selection.
+            var selection = Window.TextView.Selection;
+            var span = selection.SelectedSpans[0];
+            selection.Select(new SnapshotSpan(span.Snapshot, span.Start + 1, span.Length - 2), isReversed: false);
+
+            Window.Operations.Copy();
+            VerifyClipboardData(" + ");
+        }
+
+        [Fact]
+        public void CopyInputAndOutput()
+        {
+            Clipboard.Clear();
+
+            Submit(
+@"foreach (var o in new[] { 1, 2, 3 })
+System.Console.WriteLine();",
+@"1
+2
+3
+");
+            var caret = Window.TextView.Caret;
+            caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+            Window.Operations.SelectAll();
+            Window.Operations.Copy();
+            VerifyClipboardData(@"foreach (var o in new[] { 1, 2, 3 })
+System.Console.WriteLine();
+1
+2
+3
+",
+@"> foreach (var o in new[] \{ 1, 2, 3 \})\par > System.Console.WriteLine();\par 1\par 2\par 3\par > ");
+
+            // Shrink the selection.
+            var selection = Window.TextView.Selection;
+            var span = selection.SelectedSpans[0];
+            selection.Select(new SnapshotSpan(span.Snapshot, span.Start + 3, span.Length - 6), isReversed: false);
+
+            Window.Operations.Copy();
+            VerifyClipboardData(@"oreach (var o in new[] { 1, 2, 3 })
+System.Console.WriteLine();
+1
+2
+3",
+@"oreach (var o in new[] \{ 1, 2, 3 \})\par > System.Console.WriteLine();\par 1\par 2\par 3");
+        }
+
+        [Fact]
+        public void CutWithinInput()
+        {
+            Clipboard.Clear();
+
+            Window.InsertCode("foreach (var o in new[] { 1, 2, 3 })");
+            Window.Operations.BreakLine();
+            Window.InsertCode("System.Console.WriteLine();");
+            Window.Operations.BreakLine();
+
+            var caret = Window.TextView.Caret;
+            caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+            Window.Operations.SelectAll();
+            // Shrink the selection.
+            var selection = Window.TextView.Selection;
+            var span = selection.SelectedSpans[0];
+            selection.Select(new SnapshotSpan(span.Snapshot, span.Start + 3, span.Length - 6), isReversed: false);
+
+            Window.Operations.Cut();
+            VerifyClipboardData(
+@"each (var o in new[] { 1, 2, 3 })
+System.Console.WriteLine()",
+                expectedRtf: null);
+        }
+
+        [Fact]
+        public void CutInputAndOutput()
+        {
+            Clipboard.Clear();
+
+            Submit(
+@"foreach (var o in new[] { 1, 2, 3 })
+System.Console.WriteLine();",
+@"1
+2
+3
+");
+            var caret = Window.TextView.Caret;
+            caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+            Window.Operations.SelectAll();
+            Window.Operations.Cut();
+            VerifyClipboardData(null);
+        }
+
+        private void Submit(string submission, string output)
+        {
+            Task.Run(() => Window.SubmitAsync(new[] { submission })).PumpingWait();
+            // TestInteractiveEngine.ExecuteCodeAsync() simply returns
+            // success rather than executing the submission, so add the
+            // expected output to the output buffer.
+            var buffer = Window.OutputBuffer;
+            using (var edit = buffer.CreateEdit())
+            {
+                edit.Replace(buffer.CurrentSnapshot.Length, 0, output);
+                edit.Apply();
+            }
+        }
+
+        private static void VerifyClipboardData(string expectedText)
+        {
+            VerifyClipboardData(expectedText, expectedText);
+        }
+
+        private static void VerifyClipboardData(string expectedText, string expectedRtf)
+        {
+            var data = Clipboard.GetDataObject();
+            Assert.Equal(expectedText, data.GetData(DataFormats.StringFormat));
+            Assert.Equal(expectedText, data.GetData(DataFormats.Text));
+            Assert.Equal(expectedText, data.GetData(DataFormats.UnicodeText));
+            var actualRtf = (string)data.GetData(DataFormats.Rtf);
+            if (expectedRtf == null)
+            {
+                Assert.Null(actualRtf);
+            }
+            else
+            {
+                Assert.True(actualRtf.StartsWith(@"{\rtf"));
+                Assert.True(actualRtf.EndsWith(expectedRtf + "}"));
+            }
+        }
+    }
+
+    internal static class OperationsExtensions
+    {
+        internal static void Copy(this IInteractiveWindowOperations operations)
+        {
+            ((IInteractiveWindowOperations2)operations).Copy();
         }
     }
 }
