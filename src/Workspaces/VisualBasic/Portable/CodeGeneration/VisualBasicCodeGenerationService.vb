@@ -26,6 +26,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return New ImportsStatementsAdder(document)
         End Function
 
+        Protected Overrides Function GetMemberComparer() As IComparer(Of SyntaxNode)
+            Return VisualBasicDeclarationComparer.Instance
+        End Function
+
         Protected Overrides Function GetAvailableInsertionIndices(destination As SyntaxNode, cancellationToken As CancellationToken) As IList(Of Boolean)
             ' NOTE(cyrusn): We know that the destination overlaps some hidden regions.
             If TypeOf destination Is TypeBlockSyntax Then
@@ -493,8 +497,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Overrides Function CreateMethodDeclaration(method As IMethodSymbol,
                                                           destination As CodeGenerationDestination,
                                                           options As CodeGenerationOptions) As SyntaxNode
+            ' Synthesized methods for properties/events are not things we actually generate 
+            ' declarations for.
+            If method.AssociatedSymbol IsNot Nothing Then
+                Return Nothing
+            End If
+
             If method.IsConstructor() Then
                 Return ConstructorGenerator.GenerateConstructorDeclaration(method, destination, options)
+            ElseIf method.IsUserDefinedOperator() Then
+                Return OperatorGenerator.GenerateOperatorDeclaration(method, destination, options)
+            ElseIf method.IsConversion() Then
+                Return ConversionGenerator.GenerateConversionDeclaration(method, destination, options)
             Else
                 Return MethodGenerator.GenerateMethodDeclaration(method, destination, options)
             End If
