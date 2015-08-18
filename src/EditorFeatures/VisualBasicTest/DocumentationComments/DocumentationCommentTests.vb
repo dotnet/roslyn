@@ -1043,6 +1043,15 @@ End Class
             VerifyOpenLineAbove(code, expected)
         End Sub
 
+        <WorkItem(538482)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        Public Sub Command_NotOnSecondPropertyOnLine()
+            Dim code =
+                StringFromLines("Module M",
+                                "    Property i As Integer : Property $$j As Integer",
+                                "End Module")
+        End Sub
+
         <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
         <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub TestOpenLineAbove3()
