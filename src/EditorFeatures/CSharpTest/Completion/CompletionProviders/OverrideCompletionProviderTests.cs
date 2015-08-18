@@ -16,6 +16,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class OverrideCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
+        public OverrideCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        {
+        }
+
         internal override CompletionListProvider CreateCompletionProvider()
         {
             return new OverrideCompletionProvider(TestWaitIndicator.Default);

@@ -2,12 +2,17 @@
 
 Imports System.ComponentModel.Composition.Hosting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
 
     Public Class ObjectCreationExpressionSignatureHelpProviderTests
         Inherits AbstractVisualBasicSignatureHelpProviderTests
+
+        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
+            MyBase.New(workspaceFixture)
+        End Sub
 
         Friend Overrides Function CreateSignatureHelpProvider() As ISignatureHelpProvider
             Return New ObjectCreationExpressionSignatureHelpProvider()

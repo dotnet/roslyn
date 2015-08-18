@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.CSharp;
@@ -11,6 +12,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
 {
     public class GenericNamePartiallyWrittenSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
     {
+        public GenericNamePartiallyWrittenSignatureHelpProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        {
+        }
+
         internal override ISignatureHelpProvider CreateSignatureHelpProvider()
         {
             return new GenericNamePartiallyWrittenSignatureHelpProvider();
