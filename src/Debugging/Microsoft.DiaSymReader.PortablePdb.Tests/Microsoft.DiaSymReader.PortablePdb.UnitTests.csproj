@@ -103,6 +103,7 @@
     <Compile Include="SymReaderTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ImportGroup Label="Targets">

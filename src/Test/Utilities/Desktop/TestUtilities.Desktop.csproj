@@ -161,6 +161,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\App.config" />
     <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\Shared\TestUtilities.projitems" Label="Shared" />

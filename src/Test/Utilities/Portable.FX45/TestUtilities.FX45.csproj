@@ -65,6 +65,7 @@
     <PlatformTarget>
     </PlatformTarget>
   </PropertyGroup>
+<<<<<<< HEAD
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
     <OutDir>..\..\..\..\Binaries\Debug\amd64</OutDir>
@@ -86,6 +87,8 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+=======
+>>>>>>> This adds xUnit config settings per Unit Test Assembly
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
@@ -129,6 +132,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\App.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ImportGroup Label="Targets">
