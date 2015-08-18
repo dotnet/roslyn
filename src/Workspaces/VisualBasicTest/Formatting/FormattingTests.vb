@@ -4034,7 +4034,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub ConditionalAccessFormatting()
-            Dim text = <Code>
+            Const code = "
 Module Module1
     Class G
         Public t As String
@@ -4045,15 +4045,17 @@ Module Module1
         Dim q = x ? . t ? ( 0 )
         Dim me = Me ? . ToString()
         Dim mb = MyBase ? . ToString()
-        Dim mc = MyClas ? . ToString()
+        Dim mc = MyClass ? . ToString()
         Dim i = New With {.a = 3} ? . ToString()
-        Dim s = "Test" ? . ToString()
+        Dim s = ""Test"" ? . ToString()
+        Dim s2 = $""Test"" ? . ToString()
+        Dim x1 = <a></a> ? . <b>
+        Dim x2 = <a/> ? . <b>
     End Sub
 End Module
+"
 
-</Code>
-
-            Dim expected = <Code>
+            Const expected = "
 Module Module1
     Class G
         Public t As String
@@ -4064,15 +4066,17 @@ Module Module1
         Dim q = x?.t?(0)
         Dim me = Me?.ToString()
         Dim mb = MyBase?.ToString()
-        Dim mc = MyClas?.ToString()
+        Dim mc = MyClass?.ToString()
         Dim i = New With {.a = 3}?.ToString()
-        Dim s = "Test"?.ToString()
+        Dim s = ""Test""?.ToString()
+        Dim s2 = $""Test""?.ToString()
+        Dim x1 = <a></a>?.<b>
+        Dim x2 = <a/>?.<b>
     End Sub
 End Module
+"
 
-</Code>
-
-            AssertFormat(text.Value, expected.Value, experimental:=True)
+            AssertFormat(code, expected)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
