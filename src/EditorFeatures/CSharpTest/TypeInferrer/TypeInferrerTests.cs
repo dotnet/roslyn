@@ -15,6 +15,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
 {
     public partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestWorkspaceFixture>
     {
+        public TypeInferrerTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        {
+        }
+
         protected override void TestWorker(Document document, TextSpan textSpan, string expectedType, bool useNodeStartPosition)
         {
             var root = document.GetSyntaxTreeAsync().Result.GetRoot();

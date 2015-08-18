@@ -12,6 +12,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
     Public Class SuggestionModeCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
+        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
+            MyBase.New(workspaceFixture)
+        End Sub
+
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub FieldDeclaration1()
             Dim markup = <a>Class C

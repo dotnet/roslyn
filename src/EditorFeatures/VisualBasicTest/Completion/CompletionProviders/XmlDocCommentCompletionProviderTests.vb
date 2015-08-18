@@ -2,11 +2,16 @@
 
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProviders
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
 
 Public Class XmlDocCommentCompletionProviderTests
     Inherits AbstractVisualBasicCompletionProviderTests
+
+    Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
+        MyBase.New(workspaceFixture)
+    End Sub
 
     Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
         Return New XmlDocCommentCompletionProvider()
