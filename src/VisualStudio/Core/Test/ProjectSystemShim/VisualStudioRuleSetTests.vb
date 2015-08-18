@@ -219,7 +219,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim ruleSet2 = ruleSetManager.GetOrCreateRuleSet(ruleSetPath)
 
                 Assert.Equal(expected:=1, actual:=fileChangeService.WatchedFileCount)
-                Assert.ReferenceEquals(ruleSet1, ruleSet2)
+                Assert.Same(ruleSet1, ruleSet2)
             End Using
 
             Assert.Equal(expected:=0, actual:=fileChangeService.WatchedFileCount)
