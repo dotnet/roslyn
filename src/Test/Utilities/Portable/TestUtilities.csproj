@@ -3,7 +3,6 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
     <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-    <Import Project="..\..\..\..\build\Targets\PortableCompilerTestReferences.targets" />
     <Import Project="TestUtilities.projitems" Label="Shared" />
   </ImportGroup>
   <PropertyGroup>
@@ -15,13 +14,10 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nonshipping>true</Nonshipping>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
-    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <ImplicitlyExpandTargetFramework>False</ImplicitlyExpandTargetFramework>
-    <NoStdLib>true</NoStdLib>
+    <TargetFrameworkProfile></TargetFrameworkProfile>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <DefineConstants>$(DefineConstants);DNX</DefineConstants>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -113,7 +109,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="project.json" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
