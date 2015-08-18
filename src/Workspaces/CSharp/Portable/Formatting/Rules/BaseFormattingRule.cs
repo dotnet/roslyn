@@ -166,5 +166,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             return FormattingOperations.CreateAdjustSpacesOperation(space, option);
         }
+
+        protected void AddBraceSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        {
+            var bracePair = node.GetBracePair();
+            if (!bracePair.IsValidBracePair())
+            {
+                return;
+            }
+
+            var firstTokenOfNode = node.GetFirstToken(includeZeroWidth: true);
+
+            if (node.IsLambdaBodyBlock())
+            {
+                // include lambda itself.
+                firstTokenOfNode = node.Parent.GetFirstToken(includeZeroWidth: true);
+            }
+
+            // suppress wrapping on whole construct that owns braces and also brace pair itself if it is on same line
+            AddSuppressWrappingIfOnSingleLineOperation(list, firstTokenOfNode, bracePair.Item2);
+            AddSuppressWrappingIfOnSingleLineOperation(list, bracePair.Item1, bracePair.Item2);
+        }
     }
 }
