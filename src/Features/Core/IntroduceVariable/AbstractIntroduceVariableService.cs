@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         protected abstract bool IsInParameterInitializer(TExpressionSyntax expression);
         protected abstract bool IsInConstructorInitializer(TExpressionSyntax expression);
         protected abstract bool IsInAttributeArgumentInitializer(TExpressionSyntax expression);
+        protected abstract bool IsInAutoPropertyInitializer(TExpressionSyntax expression);
         protected abstract bool IsInExpressionBodiedMember(TExpressionSyntax expression);
 
         protected abstract IEnumerable<SyntaxNode> GetContainingExecutableBlocks(TExpressionSyntax expression);
@@ -91,6 +92,11 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false));
             }
             else if (state.InConstructorInitializerContext)
+            {
+                actions.Add(CreateAction(state, allOccurrences: false, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false));
+                actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false));
+            }
+            else if (state.InAutoPropertyInitializerContext)
             {
                 actions.Add(CreateAction(state, allOccurrences: false, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false));
                 actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false));

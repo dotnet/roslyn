@@ -90,11 +90,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 Return True
             End If
 
-            Dim propertyStatement = expression.GetAncestorOrThis(Of PropertyStatementSyntax)()
-            If propertyStatement IsNot Nothing Then
-                Return expression.GetAncestorsOrThis(Of AsClauseSyntax).Contains(propertyStatement.AsClause)
-            End If
-
             Return False
         End Function
 
@@ -115,6 +110,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
         Protected Overrides Function IsInParameterInitializer(expression As ExpressionSyntax) As Boolean
             Return expression.GetAncestorOrThis(Of EqualsValueSyntax)().IsParentKind(SyntaxKind.Parameter)
+        End Function
+
+        Protected Overrides Function IsInAutoPropertyInitializer(expression As ExpressionSyntax) As Boolean
+            Dim propertyStatement = expression.GetAncestorOrThis(Of PropertyStatementSyntax)()
+            If propertyStatement IsNot Nothing Then
+                Return expression.GetAncestorsOrThis(Of AsClauseSyntax).Contains(propertyStatement.AsClause) OrElse
+                    expression.GetAncestorOrThis(Of EqualsValueSyntax).Contains(propertyStatement.Initializer)
+            End If
+
+            Return False
         End Function
 
         Protected Overrides Function IsInExpressionBodiedMember(expression As ExpressionSyntax) As Boolean
