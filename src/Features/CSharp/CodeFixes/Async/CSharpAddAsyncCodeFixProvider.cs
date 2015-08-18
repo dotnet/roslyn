@@ -68,13 +68,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                     case SyntaxKind.ParenthesizedLambdaExpression:
                     case SyntaxKind.SimpleLambdaExpression:
                     case SyntaxKind.AnonymousMethodExpression:
+                        if ((node as AnonymousFunctionExpressionSyntax)?.AsyncKeyword != SyntaxFactory.Token(SyntaxKind.AsyncKeyword))
+                        {
+                            return node;
+                        }
+                        break;
                     case SyntaxKind.MethodDeclaration:
-                        if (node.TypeSwitch(
-                            (ParenthesizedLambdaExpressionSyntax e) => !HasAsyncKeyword(e),
-                            (SimpleLambdaExpressionSyntax e) => !HasAsyncKeyword(e),
-                            (AnonymousMethodExpressionSyntax e) => !HasAsyncKeyword(e),
-                            (MethodDeclarationSyntax e) => !HasAsyncKeyword(e),
-                            (SyntaxNode e) => false))
+                        if (!((node as MethodDeclarationSyntax)?.Modifiers.Any(SyntaxKind.AsyncKeyword) == true))
                         {
                             return node;
                         }
@@ -86,11 +86,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
 
             return null;
         }
-
-        private static bool HasAsyncKeyword(ParenthesizedLambdaExpressionSyntax e) => e.AsyncKeyword == SyntaxFactory.Token(SyntaxKind.AsyncKeyword);
-        private static bool HasAsyncKeyword(SimpleLambdaExpressionSyntax e) => e.AsyncKeyword == SyntaxFactory.Token(SyntaxKind.AsyncKeyword);
-        private static bool HasAsyncKeyword(AnonymousMethodExpressionSyntax e) => e.AsyncKeyword == SyntaxFactory.Token(SyntaxKind.AsyncKeyword);
-        private static bool HasAsyncKeyword(MethodDeclarationSyntax e) => e.Modifiers.Any(SyntaxKind.AsyncKeyword);
 
         private Task<SyntaxNode> ConvertToAsync(SyntaxNode node, SemanticModel semanticModel, Document document, CancellationToken cancellationToken)
         {
