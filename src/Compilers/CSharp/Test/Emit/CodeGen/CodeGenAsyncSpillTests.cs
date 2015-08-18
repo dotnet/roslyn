@@ -933,6 +933,50 @@ hello
             CompileAndVerify(source, expectedOutput: expected);
         }
 
+        [WorkItem(4638, "https://github.com/dotnet/roslyn/issues/4638")]
+        [Fact]
+        public void AsyncWithShortCircuiting004()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+namespace AsyncConditionalBug
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            try
+            {
+                DoSomething(Tuple.Create(1.ToString(), Guid.NewGuid())).GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                System.Console.Write(ex.Message);
+            }
+        }
+
+        public static async Task DoSomething(Tuple<string, Guid> item)
+        {
+            if (item.Item2 != null || await IsValid(item.Item2))
+            {
+                throw new Exception(""Not Valid!"");
+            };
+        }
+
+        private static async Task<bool> IsValid(Guid id)
+        {
+            return false;
+        }
+    }
+}";
+            var expected = @"
+Not Valid!
+";
+            CompileAndVerify(source, expectedOutput: expected);
+        }
+
         [Fact]
         public void SpillSequencesInLogicalBinaryOperator1()
         {
