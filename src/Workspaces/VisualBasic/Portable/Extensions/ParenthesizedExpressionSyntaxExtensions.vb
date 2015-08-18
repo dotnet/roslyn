@@ -68,6 +68,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return True
             End If
 
+            ' Case:
+            '   ($"")
+            If expression.IsKind(SyntaxKind.InterpolatedStringExpression) Then
+                Return True
+            End If
+
             ' Cases:
             '   (Me)
             '   (MyBase)
