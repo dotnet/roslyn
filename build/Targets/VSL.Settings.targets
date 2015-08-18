@@ -35,7 +35,7 @@
 
     <RoslynSemanticVersion Condition="'$(RoslynSemanticVersion)' == ''">1.1.0</RoslynSemanticVersion>
     <SystemReflectionMetadataAssemblyVersion Condition="'$(SystemReflectionMetadataAssemblyVersion)' == ''">1.1.0</SystemReflectionMetadataAssemblyVersion>
-    <SystemCollectionsImmutableAssemblyVersion Condition="'$(SystemCollectionsImmutableAssemblyVersion)' == ''">1.1.36</SystemCollectionsImmutableAssemblyVersion>
+    <SystemCollectionsImmutableAssemblyVersion Condition="'$(SystemCollectionsImmutableAssemblyVersion)' == ''">1.1.37</SystemCollectionsImmutableAssemblyVersion>
     <NuGetCommandLineAssemblyVersion Condition="'$(NuGetCommandLineAssemblyVersion)' == ''">2.8.5</NuGetCommandLineAssemblyVersion>
     <MicrosoftCompositionAssemblyVersion Condition="'$(MicrosoftCompositionAssemblyVersion)' == ''">1.0.27</MicrosoftCompositionAssemblyVersion>
     <SystemReflectionMetadataVersion>$(SystemReflectionMetadataAssemblyVersion)-alpha-00012</SystemReflectionMetadataVersion>
