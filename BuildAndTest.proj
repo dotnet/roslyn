@@ -3,10 +3,6 @@
   DefaultTargets="BuildAndTest"
   ToolsVersion="12.0">
 
-  <UsingTask
-    AssemblyFile="packages\xunit.runners.2.0.0-alpha-build2576\tools\xunit.runner.msbuild.dll"
-    TaskName="Xunit.Runner.MSBuild.xunit" />
-
   <!-- At the moment Jenkins runs on a machine without any build of Visual Studio 2015.  Hence we must
        use a 2013 compatible solution. -->
   <PropertyGroup>
@@ -15,13 +11,14 @@
     <RunTestArgs>$(RunTestArgs) -xml</RunTestArgs>
     <RunTestArgs Condition="'$(Test64)' == 'true'">$(RunTestArgs) -test64</RunTestArgs>
     <IncludePattern Condition="'$(IncludePattern)' == ''">*.UnitTests*.dll</IncludePattern>
+    <OutputDirectory>Binaries\$(Configuration)</OutputDirectory>
+    <NuGetPackageRoot>$(UserProfile)\.nuget\packages</NuGetPackageRoot>
+    <XunitVersion>1.9.2</XunitVersion>
   </PropertyGroup>
 
   <Target Name="RestorePackages">
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)\.nuget\Nuget.exe&quot; install xunit.runners -pre -version 2.0.0-alpha-build2576 -outputdirectory packages"/>
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)\.nuget\Nuget.exe&quot; restore .nuget\packages.config -PackagesDirectory packages" />
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)\.nuget\V3\Nuget.exe&quot; restore .nuget\V3\packages.config -PackagesDirectory packages" />
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)\.nuget\V3\Nuget.exe&quot; restore &quot;$(RoslynSolution)&quot;" />
+    <Exec Command="nuget.exe restore &quot;$(MSBuildThisFileDirectory)build\ToolsetPackages\project.json&quot; "/>
+    <Exec Command="nuget.exe restore &quot;$(MSBuildThisFileDirectory)Roslyn.sln&quot; "/>
   </Target>
 
   <Target Name="Build" DependsOnTargets="RestorePackages">
@@ -47,10 +44,20 @@
 
   <Target Name="Test">
     <ItemGroup>
-      <TestAssemblies Include="Binaries\$(Configuration)\**\$(IncludePattern)" />
+      <AssembliesToCopyLocal Include="$(NuGetPackageRoot)\xunit\$(XunitVersion)\*.dll
+        ;$(NuGetPackageRoot)\xunit.assert\2.1.0-beta4-build3109\lib\portable-net45+netcore45+wp8+wpa81\*.dll" />
+    </ItemGroup>
+    <!-- Copy xunit stuff to output directory -->
+    <Copy SourceFiles="@(AssembliesToCopyLocal)"
+          DestinationFolder="$(OutputDirectory)"
+          SkipUnchangedFiles="true"
+          UseHardlinksIfPossible="true" />
+
+    <ItemGroup>
+      <TestAssemblies Include="$(OutputDirectory)\**\$(IncludePattern)" />
     </ItemGroup>
 
-    <Exec Command="Binaries\$(Configuration)\RunTests.exe packages\xunit.runners.2.0.0-alpha-build2576\tools $(RunTestArgs) @(TestAssemblies, ' ')" />
+    <Exec Command="$(OutputDirectory)\RunTests.exe $(NuGetPackageRoot)\xunit.runners\2.0.0-alpha-build2576\tools $(RunTestArgs) @(TestAssemblies, ' ')" />
 
   </Target>
 
