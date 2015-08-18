@@ -143,17 +143,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             if (exceptions.Count == 1)
             {
-                throw new Xunit.Sdk.AssertException(
-                    "A exception was encountered during execution and trapped by the editor:\r\n" +
-                    exceptions.Single().Message + "\r\n" +
-                    exceptions.Single().StackTrace);
+                throw exceptions.Single();
             }
             else if (exceptions.Count > 1)
             {
-                throw new Xunit.Sdk.AssertException(
-                    "More than one exception was encountered during execution and trapped by the editor:\r\n" +
-                    exceptions.First().Message + "\r\n" +
-                    exceptions.First().StackTrace);
+				throw new AggregateException(exceptions);
             }
 
             if (SynchronizationContext.Current != null)
