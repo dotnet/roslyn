@@ -11,6 +11,10 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Completio
 Public Class OverrideCompletionProviderTests
     Inherits AbstractVisualBasicCompletionProviderTests
 
+    Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
+        MyBase.New(workspaceFixture)
+    End Sub
+
     Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
         Return New OverrideCompletionProvider(TestWaitIndicator.Default)
     End Function

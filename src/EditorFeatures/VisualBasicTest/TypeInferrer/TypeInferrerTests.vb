@@ -13,6 +13,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TypeInferrer
     Partial Public Class TypeInferrerTests
         Inherits TypeInferrerTestBase(Of VisualBasicTestWorkspaceFixture)
 
+        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
+            MyBase.New(workspaceFixture)
+        End Sub
+
         Protected Overrides Sub TestWorker(document As Document, textSpan As TextSpan, expectedType As String, useNodeStartPosition As Boolean)
             Dim root = document.GetSyntaxTreeAsync().Result.GetRoot()
             Dim node = FindExpressionSyntaxFromSpan(root, textSpan)
