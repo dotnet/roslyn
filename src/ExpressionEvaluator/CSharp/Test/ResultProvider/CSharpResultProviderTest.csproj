@@ -21,7 +21,7 @@
     <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Metadata.dll" />
   </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.FX45.csproj">
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
       <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
       <Name>TestUtilities.FX45</Name>
     </ProjectReference>
@@ -50,7 +50,7 @@
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
       <Name>TestUtilities.Desktop</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Scripting\Test\ScriptingTest.csproj">
+    <ProjectReference Include="..\..\..\..\Scripting\CoreTest\ScriptingTest.csproj">
       <Project>{2DAE4406-7A89-4B5F-95C3-BC5472CE47CE}</Project>
       <Name>ScriptingTest</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
