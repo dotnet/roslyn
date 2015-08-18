@@ -482,7 +482,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Assert.Equal(expectedColumn, actualColumn);
         }
 
-        [Fact]
+        [WpfFact]
         public void ResetCommandArgumentParsing_Success()
         {
             bool initialize;
