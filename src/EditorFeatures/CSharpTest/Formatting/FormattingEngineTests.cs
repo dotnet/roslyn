@@ -1116,6 +1116,30 @@ class C : Attribute
             AssertFormatAfterTypeChar(code, expected, optionSet);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoNotFormatIncompleteBlockOnSingleLine1()
+        {
+            var code = @"namespace ConsoleApplication1
+{
+    class Program
+    {
+        static bool Property
+        {
+            get { return true;$$
+    }
+}";
+            var expected = @"namespace ConsoleApplication1
+{
+    class Program
+    {
+        static bool Property
+        {
+            get { return true;
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
         private static void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey, object> changedOptionSet = null)
         {
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(code))
