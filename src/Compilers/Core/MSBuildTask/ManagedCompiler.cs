@@ -73,10 +73,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         [Output]
-        public string CommandLineInvocation
+        public ITaskItem[] CommandLineArgs
         {
-            set { _store[nameof(CommandLineInvocation)] = value; }
-            get { return _store.GetOrDefault(nameof(CommandLineInvocation), string.Empty); }
+            set { _store[nameof(CommandLineArgs)] = value; }
+            get { return (ITaskItem[])_store[nameof(CommandLineArgs)]; }
         }
 
         public string DebugType
@@ -194,10 +194,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(Prefer32Bit), false); }
         }
 
-        public bool ProvideCommandLineInvocation
+        public bool ProvideCommandLineArgs
         {
-            set { _store[nameof(ProvideCommandLineInvocation)] = value; }
-            get { return _store.GetOrDefault(nameof(ProvideCommandLineInvocation), false); }
+            set { _store[nameof(ProvideCommandLineArgs)] = value; }
+            get { return _store.GetOrDefault(nameof(ProvideCommandLineArgs), false); }
         }
 
         public ITaskItem[] References
@@ -331,9 +331,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
-            if (ProvideCommandLineInvocation)
+            if (ProvideCommandLineArgs)
             {
-                CommandLineInvocation = GenerateResponseFileContents();
+                CommandLineArgs = GetArguments(commandLineCommands, responseFileCommands, false)
+                    .Select(arg => new TaskItem(arg)).ToArray();
             }
 
             if (SkipCompilerExecution)
@@ -354,7 +355,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         Language,
                         TryGetClientDir() ?? Path.GetDirectoryName(pathToTool),
                         CurrentDirectoryToUse(),
-                        GetArguments(commandLineCommands, responseFileCommands),
+                        GetArguments(commandLineCommands, responseFileCommands, true),
                         _sharedCompileCts.Token,
                         libEnvVariable: LibDirectoryToUse());
 
@@ -523,10 +524,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Get the command line arguments to pass to the compiler.
         /// </summary>
-        private string[] GetArguments(string commandLineCommands, string responseFileCommands)
+        private string[] GetArguments(string commandLineCommands, string responseFileCommands, bool emitServerLog)
         {
-            CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
-            CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
+            if (emitServerLog)
+            {
+                CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
+                CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
+            }
 
             var commandLineArguments =
                 CommandLineParser.SplitCommandLineIntoArguments(commandLineCommands, removeHashComments: true);

@@ -19,7 +19,7 @@
                  @(_DebugSymbolsIntermediatePath);
                  $(NonExistentFile);
                  @(CustomAdditionalCompileOutputs)"
-          Returns="$(VbcCommandLineInvocation)"
+          Returns="@(VbcCommandLineArgs)"
           DependsOnTargets="$(CoreCompileDependsOn)"
     >
     <PropertyGroup>
@@ -97,7 +97,7 @@
           Platform="$(PlatformTarget)"
           Prefer32Bit="$(Prefer32Bit)"
           PreferredUILang="$(PreferredUILang)"
-          ProvideCommandLineInvocation="$(ProvideCommandLineInvocation)"
+          ProvideCommandLineArgs="$(ProvideCommandLineArgs)"
           References="@(ReferencePath)"
           RemoveIntegerChecks="$(RemoveIntegerChecks)"
           ReportAnalyzer="$(ReportAnalyzer)"
@@ -126,7 +126,7 @@
           Win32Resource="$(Win32Resource)"
           VBRuntime="$(VBRuntime)"
           >
-      <Output TaskParameter="CommandLineInvocation" PropertyName="CscCommandLineInvocation" />
+      <Output TaskParameter="CommandLineArgs" ItemName="VbcCommandLineArgs" />
     </Vbc>
     <ItemGroup>
       <_CoreCompileResourceInputs Remove="@(_CoreCompileResourceInputs)" />
