@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var optimizing = this._compilation.Options.OptimizationLevel == OptimizationLevel.Release;
             ImmutableArray<BoundCatchBlock> catchBlocks =
-`                // When optimizing and we have a try block without side-effects, we can discard the catch blocks.
+                // When optimizing and we have a try block without side-effects, we can discard the catch blocks.
                 (optimizing && !HasSideEffects(tryBlock)) ? ImmutableArray<BoundCatchBlock>.Empty
                 : this.VisitList(node.CatchBlocks);
             BoundBlock finallyBlockOpt = (BoundBlock)this.Visit(node.FinallyBlockOpt);
