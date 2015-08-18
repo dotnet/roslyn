@@ -34,7 +34,7 @@
       <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
       <Name>CompilerTestResources</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.FX45.csproj">
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
       <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
       <Name>TestUtilities.FX45</Name>
     </ProjectReference>
