@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             if (ProvideCommandLineArgs)
             {
-                CommandLineArgs = GetArguments(commandLineCommands, responseFileCommands, false)
+                CommandLineArgs = GetArguments(commandLineCommands, responseFileCommands)
                     .Select(arg => new TaskItem(arg)).ToArray();
             }
 
@@ -351,11 +351,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 try
                 {
+                    CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
+                    CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
+
                     var responseTask = BuildClient.TryRunServerCompilation(
                         Language,
                         TryGetClientDir() ?? Path.GetDirectoryName(pathToTool),
                         CurrentDirectoryToUse(),
-                        GetArguments(commandLineCommands, responseFileCommands, true),
+                        GetArguments(commandLineCommands, responseFileCommands),
                         _sharedCompileCts.Token,
                         libEnvVariable: LibDirectoryToUse());
 
@@ -524,14 +527,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Get the command line arguments to pass to the compiler.
         /// </summary>
-        private string[] GetArguments(string commandLineCommands, string responseFileCommands, bool emitServerLog)
+        private string[] GetArguments(string commandLineCommands, string responseFileCommands)
         {
-            if (emitServerLog)
-            {
-                CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
-                CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
-            }
-
             var commandLineArguments =
                 CommandLineParser.SplitCommandLineIntoArguments(commandLineCommands, removeHashComments: true);
             var responseFileArguments =

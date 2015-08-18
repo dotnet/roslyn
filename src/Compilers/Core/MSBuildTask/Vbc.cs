@@ -273,12 +273,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 return false;
             }
 
-            if (SkipCompilerExecution)
+            if (!SkipCompilerExecution)
             {
-                return !Log.HasLoggedErrors;
+                MovePdbFileIfNecessary(OutputAssembly.ItemSpec);
             }
-
-            MovePdbFileIfNecessary(OutputAssembly.ItemSpec);
 
             return !Log.HasLoggedErrors;
         }
