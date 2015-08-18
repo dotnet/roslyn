@@ -3819,7 +3819,9 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InlineFormattableStringIntoCallSiteRequiringFormattableString()
         {
-            const string initial = CodeSnippets.FormattableStringType + @"
+            const string initial = @"
+using System;
+" + CodeSnippets.FormattableStringType + @"
 class C
 {
     static void M(FormattableString s)
@@ -3833,7 +3835,9 @@ class C
     }
 }";
 
-            const string expected = CodeSnippets.FormattableStringType + @"
+            const string expected = @"
+using System;
+" + CodeSnippets.FormattableStringType + @"
 class C
 {
     static void M(FormattableString s)
@@ -3842,7 +3846,7 @@ class C
 
     static void N(int x, int y)
     {
-        C.M($""{x}, {y}"");
+        M($""{x}, {y}"");
     }
 }";
 
@@ -3850,10 +3854,12 @@ class C
         }
 
         [WorkItem(4624, "https://github.com/dotnet/roslyn/issues/4624")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/4624"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InlineFormattableStringIntoCallSiteWithFormattableStringOverload()
         {
-            const string initial = CodeSnippets.FormattableStringType + @"
+            const string initial = @"
+using System;
+" + CodeSnippets.FormattableStringType + @"
 class C
 {
     static void M(string s) { }
@@ -3866,7 +3872,9 @@ class C
     }
 }";
 
-            const string expected = CodeSnippets.FormattableStringType + @"
+            const string expected = @"
+using System;
+" + CodeSnippets.FormattableStringType + @"
 class C
 {
     static void M(string s) { }
@@ -3874,10 +3882,9 @@ class C
 
     static void N(int x, int y)
     {
-        C.M((FormattableString)$""{x}, {y}"");
+        M((FormattableString)$""{x}, {y}"");
     }
 }";
-
             Test(initial, expected, compareTokens: false);
         }
     }
