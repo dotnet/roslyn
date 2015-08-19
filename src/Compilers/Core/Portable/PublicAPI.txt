@@ -1576,13 +1576,11 @@ Microsoft.CodeAnalysis.Semantics.ConditionalChoice.ConstantValue.get -> object
 Microsoft.CodeAnalysis.Semantics.Assignment
 Microsoft.CodeAnalysis.Semantics.Assignment.Assignment(Microsoft.CodeAnalysis.Semantics.IReference target, Microsoft.CodeAnalysis.Semantics.IExpression value, Microsoft.CodeAnalysis.SyntaxNode syntax) -> void
 Microsoft.CodeAnalysis.Semantics.Assignment.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
-Microsoft.CodeAnalysis.Semantics.Assignment.Syntax.set -> void
 Microsoft.CodeAnalysis.Semantics.Assignment.Kind.get -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.Assignment.Expression.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.CompoundAssignment
 Microsoft.CodeAnalysis.Semantics.CompoundAssignment.CompoundAssignment(Microsoft.CodeAnalysis.Semantics.IReference target, Microsoft.CodeAnalysis.Semantics.IExpression value, Microsoft.CodeAnalysis.Semantics.BinaryOperationKind binaryKind, Microsoft.CodeAnalysis.IMethodSymbol operatorMethod, Microsoft.CodeAnalysis.SyntaxNode syntax) -> void
 Microsoft.CodeAnalysis.Semantics.CompoundAssignment.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
-Microsoft.CodeAnalysis.Semantics.CompoundAssignment.Syntax.set -> void
 Microsoft.CodeAnalysis.Semantics.CompoundAssignment.Kind.get -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.CompoundAssignment.Expression.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IntegerLiteral
@@ -1590,27 +1588,20 @@ Microsoft.CodeAnalysis.Semantics.IntegerLiteral.IntegerLiteral(long value, Micro
 Microsoft.CodeAnalysis.Semantics.IntegerLiteral.LiteralClass.get -> Microsoft.CodeAnalysis.Semantics.LiteralKind
 Microsoft.CodeAnalysis.Semantics.IntegerLiteral.Spelling.get -> string
 Microsoft.CodeAnalysis.Semantics.IntegerLiteral.ResultType.get -> Microsoft.CodeAnalysis.ITypeSymbol
-Microsoft.CodeAnalysis.Semantics.IntegerLiteral.ResultType.set -> void
 Microsoft.CodeAnalysis.Semantics.IntegerLiteral.Kind.get -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.IntegerLiteral.ConstantValue.get -> object
 Microsoft.CodeAnalysis.Semantics.IntegerLiteral.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
-Microsoft.CodeAnalysis.Semantics.IntegerLiteral.Syntax.set -> void
 Microsoft.CodeAnalysis.Semantics.Binary
 Microsoft.CodeAnalysis.Semantics.Binary.Binary(Microsoft.CodeAnalysis.Semantics.BinaryOperationKind binaryKind, Microsoft.CodeAnalysis.Semantics.IExpression left, Microsoft.CodeAnalysis.Semantics.IExpression right, Microsoft.CodeAnalysis.ITypeSymbol resultType, Microsoft.CodeAnalysis.SyntaxNode syntax) -> void
 Microsoft.CodeAnalysis.Semantics.Binary.BinaryKind.get -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
-Microsoft.CodeAnalysis.Semantics.Binary.BinaryKind.set -> void
 Microsoft.CodeAnalysis.Semantics.Binary.Left.get -> Microsoft.CodeAnalysis.Semantics.IExpression
-Microsoft.CodeAnalysis.Semantics.Binary.Left.set -> void
 Microsoft.CodeAnalysis.Semantics.Binary.Right.get -> Microsoft.CodeAnalysis.Semantics.IExpression
-Microsoft.CodeAnalysis.Semantics.Binary.Right.set -> void
 Microsoft.CodeAnalysis.Semantics.Binary.UsesOperatorMethod.get -> bool
 Microsoft.CodeAnalysis.Semantics.Binary.Operator.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.Semantics.Binary.ResultType.get -> Microsoft.CodeAnalysis.ITypeSymbol
-Microsoft.CodeAnalysis.Semantics.Binary.ResultType.set -> void
 Microsoft.CodeAnalysis.Semantics.Binary.Kind.get -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.Binary.ConstantValue.get -> object
 Microsoft.CodeAnalysis.Semantics.Binary.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
-Microsoft.CodeAnalysis.Semantics.Binary.Syntax.set -> void
 Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IExpression.ResultType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Semantics.IExpression.ConstantValue.get -> object
@@ -1639,13 +1630,13 @@ Microsoft.CodeAnalysis.Semantics.ILocalReference
 Microsoft.CodeAnalysis.Semantics.ILocalReference.Local.get -> Microsoft.CodeAnalysis.ILocalSymbol
 Microsoft.CodeAnalysis.Semantics.IParameterReference
 Microsoft.CodeAnalysis.Semantics.IParameterReference.Parameter.get -> Microsoft.CodeAnalysis.IParameterSymbol
-Microsoft.CodeAnalysis.Semantics.ITemporaryReference
-Microsoft.CodeAnalysis.Semantics.ITemporaryReference.TemporaryKind.get -> Microsoft.CodeAnalysis.Semantics.TemporaryKind
-Microsoft.CodeAnalysis.Semantics.ITemporaryReference.ContainingStatement.get -> Microsoft.CodeAnalysis.Semantics.IStatement
-Microsoft.CodeAnalysis.Semantics.TemporaryKind
-Microsoft.CodeAnalysis.Semantics.TemporaryKind.None = 0 -> Microsoft.CodeAnalysis.Semantics.TemporaryKind
-Microsoft.CodeAnalysis.Semantics.TemporaryKind.StepValue = 1 -> Microsoft.CodeAnalysis.Semantics.TemporaryKind
-Microsoft.CodeAnalysis.Semantics.TemporaryKind.LimitValue = 2 -> Microsoft.CodeAnalysis.Semantics.TemporaryKind
+Microsoft.CodeAnalysis.Semantics.ISyntheticLocalReference
+Microsoft.CodeAnalysis.Semantics.ISyntheticLocalReference.SyntheticLocalKind.get -> Microsoft.CodeAnalysis.Semantics.SyntheticLocalKind
+Microsoft.CodeAnalysis.Semantics.ISyntheticLocalReference.ContainingStatement.get -> Microsoft.CodeAnalysis.Semantics.IStatement
+Microsoft.CodeAnalysis.Semantics.SyntheticLocalKind
+Microsoft.CodeAnalysis.Semantics.SyntheticLocalKind.None = 0 -> Microsoft.CodeAnalysis.Semantics.SyntheticLocalKind
+Microsoft.CodeAnalysis.Semantics.SyntheticLocalKind.StepValue = 1 -> Microsoft.CodeAnalysis.Semantics.SyntheticLocalKind
+Microsoft.CodeAnalysis.Semantics.SyntheticLocalKind.LimitValue = 2 -> Microsoft.CodeAnalysis.Semantics.SyntheticLocalKind
 Microsoft.CodeAnalysis.Semantics.IThisReference
 Microsoft.CodeAnalysis.Semantics.IThisReference.IsExplicit.get -> bool
 Microsoft.CodeAnalysis.Semantics.IMemberReference
@@ -1663,7 +1654,7 @@ Microsoft.CodeAnalysis.Semantics.IPropertyReference.Property.get -> Microsoft.Co
 Microsoft.CodeAnalysis.Semantics.ReferenceKind
 Microsoft.CodeAnalysis.Semantics.ReferenceKind.Local = 0 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
 Microsoft.CodeAnalysis.Semantics.ReferenceKind.Parameter = 1 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
-Microsoft.CodeAnalysis.Semantics.ReferenceKind.Temporary = 2 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
+Microsoft.CodeAnalysis.Semantics.ReferenceKind.SyntheticLocal = 2 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
 Microsoft.CodeAnalysis.Semantics.ReferenceKind.ArrayElement = 3 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
 Microsoft.CodeAnalysis.Semantics.ReferenceKind.PointerIndirection = 4 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
 Microsoft.CodeAnalysis.Semantics.ReferenceKind.StaticField = 5 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind

@@ -121,19 +121,19 @@ namespace Microsoft.CodeAnalysis.Semantics
             this.Syntax = syntax;
         }
 
-        public RelationalOperationKind RelationalKind { get; private set; }
+        public RelationalOperationKind RelationalKind { get; }
         
-        public IExpression Left { get; private set; }
+        public IExpression Left { get; }
         
-        public IExpression Right { get; private set; }
+        public IExpression Right { get; }
         
-        public SyntaxNode Syntax { get; private set; }
+        public SyntaxNode Syntax { get; }
 
         public bool UsesOperatorMethod => this.Operator != null;
 
-        public IMethodSymbol Operator { get; private set; }
+        public IMethodSymbol Operator { get; }
 
-        public ITypeSymbol ResultType { get; private set; }
+        public ITypeSymbol ResultType { get; }
 
         public OperationKind Kind => OperationKind.RelationalOperator;
 
@@ -151,15 +151,15 @@ namespace Microsoft.CodeAnalysis.Semantics
             this.Syntax = syntax;
         }
 
-        public IExpression Condition { get; private set; }
+        public IExpression Condition { get; }
 
-        public IExpression IfTrue { get; private set; }
+        public IExpression IfTrue { get; }
 
-        public IExpression IfFalse { get; private set; }
+        public IExpression IfFalse { get; }
 
-        public ITypeSymbol ResultType { get; private set; }
+        public ITypeSymbol ResultType { get; }
 
-        public SyntaxNode Syntax { get; private set; }
+        public SyntaxNode Syntax { get; }
 
         public OperationKind Kind => OperationKind.ConditionalChoice;
 
@@ -176,17 +176,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             this.Syntax = syntax;
         }
 
-        public SyntaxNode Syntax { get; set; }
+        public SyntaxNode Syntax { get; }
 
-        public OperationKind Kind
-        {
-            get { return OperationKind.ExpressionStatement; }
-        }
+        public OperationKind Kind => OperationKind.ExpressionStatement;
 
-        public IExpression Expression
-        {
-            get { return this.assignment; }
-        }
+        public IExpression Expression => this.assignment;
 
         class AssignmentExpression : IAssignment
         {
@@ -197,50 +191,35 @@ namespace Microsoft.CodeAnalysis.Semantics
                 this.Syntax = syntax;
             }
 
-            public IReference Target { get; set; }
+            public IReference Target { get; }
 
-            public IExpression Value { get; set; }
+            public IExpression Value { get; }
 
-            public SyntaxNode Syntax { get; set; }
+            public SyntaxNode Syntax { get; }
 
-            public ITypeSymbol ResultType
-            {
-                get { return this.Target.ResultType; }
-            }
+            public ITypeSymbol ResultType => this.Target.ResultType;
 
-            public OperationKind Kind
-            {
-                get { return OperationKind.Assignment; }
-            }
+            public OperationKind Kind => OperationKind.Assignment;
 
-            public object ConstantValue
-            {
-                get { return null; }
-            }
+            public object ConstantValue => null;
         }
     }
 
     public class CompoundAssignment : IExpressionStatement
     {
-        CompoundAssignmentExpression compoundAssignment;
+        CompoundAssignmentExpression _compoundAssignment;
 
         public CompoundAssignment(IReference target, IExpression value, BinaryOperationKind binaryKind, IMethodSymbol operatorMethod, SyntaxNode syntax)
         {
-            this.compoundAssignment = new CompoundAssignmentExpression(target, value, binaryKind, operatorMethod, syntax);
+            _compoundAssignment = new CompoundAssignmentExpression(target, value, binaryKind, operatorMethod, syntax);
             this.Syntax = syntax;
         }
 
-        public SyntaxNode Syntax { get; set; }
+        public SyntaxNode Syntax { get; }
 
-        public OperationKind Kind
-        {
-            get { return OperationKind.ExpressionStatement; }
-        }
+        public OperationKind Kind => OperationKind.ExpressionStatement;
 
-        public IExpression Expression
-        {
-            get { return this.compoundAssignment; }
-        }
+        public IExpression Expression => _compoundAssignment;
 
         class CompoundAssignmentExpression : ICompoundAssignment
         {
@@ -253,72 +232,48 @@ namespace Microsoft.CodeAnalysis.Semantics
                 this.Syntax = syntax;
             }
 
-            public IReference Target { get; set; }
+            public IReference Target { get; }
 
-            public IExpression Value { get; set; }
+            public IExpression Value { get; }
 
-            public BinaryOperationKind BinaryKind { get; set; }
+            public BinaryOperationKind BinaryKind { get; }
 
-            public IMethodSymbol Operator { get; set; }
+            public IMethodSymbol Operator { get; }
 
-            public SyntaxNode Syntax { get; set; }
+            public SyntaxNode Syntax { get; }
 
-            public ITypeSymbol ResultType
-            {
-                get { return this.Target.ResultType; }
-            }
+            public ITypeSymbol ResultType => this.Target.ResultType;
 
-            public OperationKind Kind
-            {
-                get { return OperationKind.CompoundAssignment; }
-            }
+            public OperationKind Kind => OperationKind.CompoundAssignment;
 
-            public object ConstantValue
-            {
-                get { return null; }
-            }
+            public object ConstantValue => null;
 
-            public bool UsesOperatorMethod
-            {
-                get { return this.Operator != null; }
-            }
+            public bool UsesOperatorMethod => this.Operator != null;
         }
     }
 
     public class IntegerLiteral : ILiteral
     {
-        long value;
+        long _value;
 
         public IntegerLiteral(long value, ITypeSymbol resultType, SyntaxNode syntax)
         {
-            this.value = value;
+            _value = value;
             this.ResultType = resultType;
             this.Syntax = syntax;
         }
 
-        public LiteralKind LiteralClass
-        {
-            get { return LiteralKind.Integer; }
-        }
+        public LiteralKind LiteralClass => LiteralKind.Integer;
 
-        public string Spelling
-        {
-            get { return this.value.ToString(); }
-        }
+        public string Spelling =>_value.ToString();
 
-        public ITypeSymbol ResultType { get; set; }
+        public ITypeSymbol ResultType { get; }
 
-        public OperationKind Kind
-        {
-            get { return OperationKind.Literal; }
-        }
+        public OperationKind Kind => OperationKind.Literal;
 
-        public object ConstantValue
-        {
-            get { return this.value; }
-        }
+        public object ConstantValue => _value;
 
-        public SyntaxNode Syntax { get; set; }
+        public SyntaxNode Syntax { get; }
     }
 
     public class Binary : IBinary
@@ -332,34 +287,22 @@ namespace Microsoft.CodeAnalysis.Semantics
             this.Syntax = syntax;
         }
 
-        public BinaryOperationKind BinaryKind { get; set; }
+        public BinaryOperationKind BinaryKind { get; }
 
-        public IExpression Left { get; set; }
+        public IExpression Left { get; }
 
-        public IExpression Right { get; set; }
+        public IExpression Right { get; }
 
-        public bool UsesOperatorMethod
-        {
-            get { return false; }
-        }
+        public bool UsesOperatorMethod => false;
 
-        public IMethodSymbol Operator
-        {
-            get { return null; }
-        }
+        public IMethodSymbol Operator => null;
 
-        public ITypeSymbol ResultType { get; set; }
+        public ITypeSymbol ResultType { get; }
 
-        public OperationKind Kind
-        {
-            get { return OperationKind.BinaryOperator; }
-        }
+        public OperationKind Kind => OperationKind.BinaryOperator;
 
-        public object ConstantValue
-        {
-            get { return null; }
-        }
+        public object ConstantValue => null;
 
-        public SyntaxNode Syntax { get; set; }
+        public SyntaxNode Syntax { get; }
     }
 }
