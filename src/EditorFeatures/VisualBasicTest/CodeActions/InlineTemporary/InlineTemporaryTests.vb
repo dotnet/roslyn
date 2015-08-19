@@ -4042,8 +4042,8 @@ End Class
 <File>
 Class C
     Sub M(args As String())
-        Dim y = (&lt;xml&gt;Hello&lt;/xml&gt;).&lt;xmlelement&gt;
-        Dim y1 = (&lt;xml&gt;Hello&lt;/xml&gt;)?.&lt;xmlelement&gt;
+        Dim y = &lt;xml&gt;Hello&lt;/xml&gt;.&lt;xmlelement&gt;
+        Dim y1 = &lt;xml&gt;Hello&lt;/xml&gt;?.&lt;xmlelement&gt;
     End Sub
 End Class
 </File>
