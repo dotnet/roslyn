@@ -37,6 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             IVsPackage setupPackage;
             var shell = (IVsShell)this.GetService(typeof(SVsShell));
             shell.LoadPackage(Guids.RoslynPackageId, out setupPackage);
+            shell.LoadPackage(Microsoft.VisualStudio.InteractiveWindow.Shell.Guids.InteractiveWindowPackageId, out setupPackage);
 
             _componentModel = (IComponentModel)GetService(typeof(SComponentModel));
             _interactiveWindowProvider = _componentModel.DefaultExportProvider.GetExportedValue<TVsInteractiveWindowProvider>();
