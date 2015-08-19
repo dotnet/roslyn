@@ -33,6 +33,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         {
             base.Initialize();
 
+            // Load the Roslyn package so that its FatalError handlers are hooked up.
+            IVsPackage setupPackage;
+            var shell = (IVsShell)this.GetService(typeof(SVsShell));
+            shell.LoadPackage(Guids.RoslynPackageId, out setupPackage);
+
             _componentModel = (IComponentModel)GetService(typeof(SComponentModel));
             _interactiveWindowProvider = _componentModel.DefaultExportProvider.GetExportedValue<TVsInteractiveWindowProvider>();
 
