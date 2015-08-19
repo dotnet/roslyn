@@ -763,7 +763,6 @@
     <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioMetadataReferenceManager.Factory.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <PublicAPI Include="PublicAPI.txt" />
   </ItemGroup>
   <ItemGroup>
