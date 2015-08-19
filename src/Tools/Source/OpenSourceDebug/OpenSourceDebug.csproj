@@ -147,27 +147,6 @@
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Diagnostics\FxCop\Core\AnalyzerPowerPack.Common.csproj">
-      <Project>{36755424-5267-478c-9434-37a507e22711}</Project>
-      <Name>AnalyzerPowerPack.Common</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bContentFilesProjectOutputGroup%3bBuiltProjectOutputGroupDependencies</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Diagnostics\FxCop\CSharp\AnalyzerPowerPack.CSharp.csproj">
-      <Project>{3ba13187-2a3b-4b08-9199-c11fda1d5ad0}</Project>
-      <Name>AnalyzerPowerPack.CSharp</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bContentFilesProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Diagnostics\FxCop\VisualBasic\AnalyzerPowerPack.VisualBasic.vbproj">
-      <Project>{2fccb9be-dd4e-48f2-b678-80e6fb196948}</Project>
-      <Name>AnalyzerPowerPack.VisualBasic</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bContentFilesProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
       <Name>Workspaces.Desktop</Name>
