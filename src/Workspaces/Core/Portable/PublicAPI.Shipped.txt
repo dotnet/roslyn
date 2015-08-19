@@ -524,7 +524,6 @@ Microsoft.CodeAnalysis.Project.GetLatestDocumentVersionAsync(System.Threading.Ca
 Microsoft.CodeAnalysis.Project.GetSemanticVersionAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.VersionStamp>
 Microsoft.CodeAnalysis.Project.HasDocuments.get -> bool
 Microsoft.CodeAnalysis.Project.Id.get -> Microsoft.CodeAnalysis.ProjectId
-Microsoft.CodeAnalysis.Project.IsSubmission.get -> bool
 Microsoft.CodeAnalysis.Project.Language.get -> string
 Microsoft.CodeAnalysis.Project.LanguageServices.get -> Microsoft.CodeAnalysis.Host.HostLanguageServices
 Microsoft.CodeAnalysis.Project.MetadataReferences.get -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.MetadataReference>
@@ -541,7 +540,7 @@ Microsoft.CodeAnalysis.Project.Solution.get -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Project.SupportsCompilation.get -> bool
 Microsoft.CodeAnalysis.Project.TryGetCompilation(out Microsoft.CodeAnalysis.Compilation compilation) -> bool
 Microsoft.CodeAnalysis.Project.Version.get -> Microsoft.CodeAnalysis.VersionStamp
-Microsoft.CodeAnalysis.Project.WithAnalyzerReferences(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference> analyzerReferences) -> Microsoft.CodeAnalysis.Project
+Microsoft.CodeAnalysis.Project.WithAnalyzerReferences(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference> analyzerReferencs) -> Microsoft.CodeAnalysis.Project
 Microsoft.CodeAnalysis.Project.WithAssemblyName(string assemblyName) -> Microsoft.CodeAnalysis.Project
 Microsoft.CodeAnalysis.Project.WithCompilationOptions(Microsoft.CodeAnalysis.CompilationOptions options) -> Microsoft.CodeAnalysis.Project
 Microsoft.CodeAnalysis.Project.WithMetadataReferences(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> metadataReferences) -> Microsoft.CodeAnalysis.Project
@@ -787,7 +786,6 @@ Microsoft.CodeAnalysis.Workspace.ScheduleTask<T>(System.Func<T> func, string tas
 Microsoft.CodeAnalysis.Workspace.Services.get -> Microsoft.CodeAnalysis.Host.HostWorkspaceServices
 Microsoft.CodeAnalysis.Workspace.SetCurrentSolution(Microsoft.CodeAnalysis.Solution solution) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Workspace.UnregisterText(Microsoft.CodeAnalysis.Text.SourceTextContainer textContainer) -> void
-Microsoft.CodeAnalysis.Workspace.UpdateReferencesAfterAdd() -> void
 Microsoft.CodeAnalysis.Workspace.Workspace(Microsoft.CodeAnalysis.Host.HostServices host, string workspaceKind) -> void
 Microsoft.CodeAnalysis.Workspace.WorkspaceChanged -> System.EventHandler<Microsoft.CodeAnalysis.WorkspaceChangeEventArgs>
 Microsoft.CodeAnalysis.Workspace.WorkspaceFailed -> System.EventHandler<Microsoft.CodeAnalysis.WorkspaceDiagnosticEventArgs>
