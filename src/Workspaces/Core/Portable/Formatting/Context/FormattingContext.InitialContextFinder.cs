@@ -22,11 +22,13 @@ namespace Microsoft.CodeAnalysis.Formatting
             private readonly TokenStream _tokenStream;
             private readonly ChainedFormattingRules _formattingRules;
             private readonly SyntaxNode _rootNode;
+            private readonly SyntaxToken _lastToken;
 
             public InitialContextFinder(
                 TokenStream tokenStream,
                 ChainedFormattingRules formattingRules,
-                SyntaxNode rootNode)
+                SyntaxNode rootNode,
+                SyntaxToken lastToken)
             {
                 Contract.ThrowIfNull(tokenStream);
                 Contract.ThrowIfNull(formattingRules);
@@ -35,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 _tokenStream = tokenStream;
                 _formattingRules = formattingRules;
                 _rootNode = rootNode;
+                _lastToken = lastToken;
             }
 
             public ValueTuple<List<IndentBlockOperation>, List<SuppressOperation>> Do(SyntaxToken startToken, SyntaxToken endToken)
@@ -76,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     node.DescendantNodesAndSelf(n => n != previous && n.Span.IntersectsWith(span) && !span.Contains(n.Span))
                         .Do(n =>
                             {
-                                _formattingRules.AddIndentBlockOperations(list, n);
+                                _formattingRules.AddIndentBlockOperations(list, n, _lastToken);
                                 foreach (var element in list)
                                 {
                                     if (element != null)
@@ -179,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var currentIndentationNode = startNode;
                 while (currentIndentationNode != null)
                 {
-                    _formattingRules.AddSuppressOperations(list, currentIndentationNode);
+                    _formattingRules.AddSuppressOperations(list, currentIndentationNode, _lastToken);
 
                     list.RemoveAll(predicate);
                     if (list.Count > 0)

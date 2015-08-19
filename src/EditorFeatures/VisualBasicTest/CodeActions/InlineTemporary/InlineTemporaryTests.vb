@@ -4042,8 +4042,8 @@ End Class
 <File>
 Class C
     Sub M(args As String())
-        Dim y = (&lt;xml&gt;Hello&lt;/xml&gt;).&lt;xmlelement&gt;
-        Dim y1 = (&lt;xml&gt;Hello&lt;/xml&gt;)?.&lt;xmlelement&gt;
+        Dim y = &lt;xml&gt;Hello&lt;/xml&gt;.&lt;xmlelement&gt;
+        Dim y1 = &lt;xml&gt;Hello&lt;/xml&gt;?.&lt;xmlelement&gt;
     End Sub
 End Class
 </File>
@@ -4111,7 +4111,9 @@ Dim s2 = AscW($"hello {x}")
         <WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineFormattableStringIntoCallSiteRequiringFormattableString()
-            Dim code = FormattableStringType & "
+            Dim code = "
+Imports System
+" & FormattableStringType & "
 Class C
     Sub M(s As FormattableString)
     End Sub
@@ -4123,7 +4125,9 @@ Class C
 End Class
 "
 
-            Dim expected = FormattableStringType & "
+            Dim expected = "
+Imports System
+" & FormattableStringType & "
 Class C
     Sub M(s As FormattableString)
     End Sub
@@ -4138,9 +4142,11 @@ End Class
         End Sub
 
         <WorkItem(4624, "https://github.com/dotnet/roslyn/issues/4624")>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/4624"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineFormattableStringIntoCallSiteWithFormattableStringOverload()
-            Dim code = FormattableStringType & "
+            Dim code = "
+Imports System
+" & FormattableStringType & "
 Class C
     Sub M(s As String)
     End Sub
@@ -4155,7 +4161,9 @@ Class C
 End Class
 "
 
-            Dim expected = FormattableStringType & "
+            Dim expected = "
+Imports System
+" & FormattableStringType & "
 Class C
     Sub M(s As String)
     End Sub
