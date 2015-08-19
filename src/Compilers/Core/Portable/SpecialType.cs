@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     /// <remarks>
     /// Only types explicitly mentioned in "Co-located core types" spec 
-    /// (http://devdiv/sites/docs/Dev11/CLR/Specs/CoreFx/Co-located%20core%20types.docx)
+    /// (https://github.com/dotnet/roslyn/blob/master/docs/compilers/Co-located%20core%20types.md)
     /// can be in this enum.
     /// The following things should be in sync:
     ///     1) SpecialType enum

@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Reflection
 Imports Microsoft.CodeAnalysis.Scripting.Test
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Roslyn.Test.Utilities
@@ -85,7 +86,7 @@ End If
         Public Sub DiagnosticsPass()
             Dim engine = New VisualBasicScriptEngine()
             Dim session = engine.CreateSession()
-            session.AddReference(GetType(Expressions.Expression).Assembly)
+            session.AddReference(GetType(Expressions.Expression).GetTypeInfo().Assembly)
             session.Execute(
 "Function F(e As System.Linq.Expressions.Expression(Of System.Func(Of Object))) As Object
     Return e.Compile()()

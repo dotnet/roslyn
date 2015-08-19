@@ -85,7 +85,7 @@
       <Project>{B0CE9307-FFDB-4838-A5EC-CE1F7CDC4AC2}</Project>
       <Name>CSharpEditorFeatures</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Test\Utilities\Portable\TestUtilities.FX45.csproj">
+    <ProjectReference Include="..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
       <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
       <Name>TestUtilities.FX45</Name>
     </ProjectReference>
@@ -97,7 +97,7 @@
       <Project>{76C6F005-C89D-4348-BB4A-39189DDBEB52}</Project>
       <Name>ServicesTestUtilities</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\Test\ScriptingTest.csproj">
+    <ProjectReference Include="..\..\Scripting\CoreTest\ScriptingTest.csproj">
       <Project>{2DAE4406-7A89-4B5F-95C3-BC5472CE47CE}</Project>
       <Name>ScriptingTest</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

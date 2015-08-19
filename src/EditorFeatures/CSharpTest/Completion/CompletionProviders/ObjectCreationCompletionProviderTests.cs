@@ -248,7 +248,7 @@ class Program
 
         [WorkItem(2836, "https://github.com/dotnet/roslyn/issues/2836")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void AfterNewFollowedByAssignment_GrandParentIsEqualsValueClause()
+        public void AfterNewFollowedBySimpleAssignment_GrandParentIsEqualsValueClause()
         {
             var markup = @"
 class Program
@@ -258,6 +258,40 @@ class Program
         bool b;
         Program p = new $$
         b = false;
+    }
+}";
+            VerifyItemExists(markup, "Program");
+        }
+
+        [WorkItem(2836, "https://github.com/dotnet/roslyn/issues/2836")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void AfterNewFollowedByCompoundAssignment_GrandParentIsEqualsValueClause()
+        {
+            var markup = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        int i;
+        Program p = new $$
+        i += 5;
+    }
+}";
+            VerifyItemExists(markup, "Program");
+        }
+
+        [WorkItem(2836, "https://github.com/dotnet/roslyn/issues/2836")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void AfterNewFollowedByCompoundAssignment_GrandParentIsEqualsValueClause2()
+        {
+            var markup = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        int i = 1000;
+        Program p = new $$
+        i <<= 4;
     }
 }";
             VerifyItemExists(markup, "Program");

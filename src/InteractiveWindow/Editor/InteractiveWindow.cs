@@ -18,6 +18,8 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
+using Microsoft.VisualStudio.Text.Formatting;
+using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
 
@@ -30,7 +32,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     /// <summary>
     /// Provides implementation of a Repl Window built on top of the VS editor using projection buffers.
     /// </summary>
-    internal partial class InteractiveWindow : IInteractiveWindow, IInteractiveWindowOperations
+    internal partial class InteractiveWindow : IInteractiveWindow, IInteractiveWindowOperations2
     {
         private bool _adornmentToMinimize;
 
@@ -84,6 +86,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         private readonly InteractiveWindowWriter _errorOutputWriter;
 
         private readonly string _lineBreakString;
+        private readonly IRtfBuilderService _rtfBuilderService;
 
         private const string BoxSelectionCutCopyTag = "MSDEVColumnSelect";
 
@@ -734,6 +737,55 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
         }
 
+        /// <summary>
+        /// Copy the entire selection to the clipboard for RTF format and
+        /// copy the selection minus any prompt text for other formats.
+        /// That allows paste into code editors of just the code and
+        /// paste of the entire content for editors that support RTF.
+        /// </summary>
+        private void CopySelection()
+        {
+            var spans = _textView.Selection.SelectedSpans;
+            var text = spans.Aggregate(new StringBuilder(), GetTextWithoutPrompts, b => b.ToString());
+            var rtf = _rtfBuilderService.GenerateRtf(spans, _textView);
+            var data = new DataObject();
+            data.SetData(DataFormats.StringFormat, text);
+            data.SetData(DataFormats.Text, text);
+            data.SetData(DataFormats.UnicodeText, text);
+            data.SetData(DataFormats.Rtf, rtf);
+            Clipboard.SetDataObject(data, true);
+        }
+
+        private StringBuilder GetTextWithoutPrompts(StringBuilder builder, SnapshotSpan span)
+        {
+            // Find the range of projection spans that cover the span.
+            int startIndex = GetProjectionSpanIndex(_projectionSpans, span.Start);
+            int endIndex = GetProjectionSpanIndex(_projectionSpans, span.End);
+            Debug.Assert(startIndex >= 0);
+            Debug.Assert(endIndex >= startIndex);
+
+            // Add the text for all non-prompt spans within that range.
+            var snapshot = span.Snapshot;
+            for (int i = startIndex; i <= endIndex; i++)
+            {
+                var projectionSpan = _projectionSpans[i];
+                if (!projectionSpan.Kind.IsPrompt())
+                {
+                    var trackingSpan = projectionSpan.TrackingSpan;
+                    var buffer = trackingSpan.TextBuffer;
+                    var mappedSpans = _textView.BufferGraph.MapDownToBuffer(span, SpanTrackingMode.EdgeInclusive, buffer);
+                    foreach (var mappedSpan in mappedSpans)
+                    {
+                        var intersection = trackingSpan.GetSpan(buffer.CurrentSnapshot).Intersection(mappedSpan);
+                        Debug.Assert(intersection.HasValue);
+                        builder.Append(intersection.Value.GetText());
+                    }
+                }
+            }
+
+            return builder;
+        }
+
         private bool ReduceBoxSelectionToEditableBox(bool isDelete = true)
         {
             Debug.Assert(_textView.Selection.Mode == TextSelectionMode.Box);
@@ -890,6 +942,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             MoveCaretToClosestEditableBuffer();
+        }
+
+        void IInteractiveWindowOperations2.Copy()
+        {
+            CopySelection();
         }
 
         bool IInteractiveWindowOperations.Backspace()
@@ -1428,7 +1485,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             return CreatePrompt(_evaluator.GetPrompt(), ReplSpanKind.Prompt, LastLineNumber);
         }
 
-        private ReplSpan CreatePrompt(string prompt, ReplSpanKind promptKind, int lineNumber)
+        private static ReplSpan CreatePrompt(string prompt, ReplSpanKind promptKind, int lineNumber)
         {
             Debug.Assert(promptKind.IsPrompt());
             return new ReplSpan(prompt, promptKind, lineNumber);
@@ -1460,7 +1517,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             return _projectionSpans.BinarySearch(new ReplSpan("", ReplSpanKind.Prompt, lineNumber), ReplSpanComparer.Instance);
         }
 
-        private class ReplSpanComparer : IComparer<ReplSpan>
+        private sealed class ReplSpanComparer : IComparer<ReplSpan>
         {
             public static readonly IComparer<ReplSpan> Instance = new ReplSpanComparer();
 
@@ -1501,6 +1558,63 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     default:
                         throw new InvalidOperationException($"Unexpected {nameof(ReplSpanKind)} '{span.Kind}'");
                 }
+            }
+        }
+
+        private static int GetProjectionSpanIndex(List<ReplSpan> projectionSpans, SnapshotPoint point)
+        {
+            ITextSnapshotLine line;
+            int column;
+            point.GetLineAndColumn(out line, out column);
+            int lineNumber = line.LineNumber;
+
+            // Get the index of one of the projection spans on the line.
+            int index = projectionSpans.BinarySearch(new ReplSpan("", ReplSpanKind.Prompt, lineNumber), ReplSpanLineOnlyComparer.Instance);
+            if (index < 0)
+            {
+                index = ~index - 1;
+            }
+            Debug.Assert(index >= 0);
+            Debug.Assert(index < projectionSpans.Count);
+
+            Debug.Assert(projectionSpans[index].LineNumber <= lineNumber);
+            lineNumber = projectionSpans[index].LineNumber;
+
+            // Walk back to the first projection span on the line.
+            while ((index > 0) && (projectionSpans[index - 1].LineNumber == lineNumber))
+            {
+                index--;
+            }
+
+            // Find the projection span at the offset within the line.
+            var projectionSpan = projectionSpans[index];
+            int offset = column;
+            while (true)
+            {
+                offset -= projectionSpans[index].Length;
+                if (offset <= 0)
+                {
+                    break;
+                }
+                index++;
+            }
+
+            Debug.Assert(index >= 0);
+            Debug.Assert(index < projectionSpans.Count);
+            return index;
+        }
+
+        private sealed class ReplSpanLineOnlyComparer : IComparer<ReplSpan>
+        {
+            public static readonly IComparer<ReplSpan> Instance = new ReplSpanLineOnlyComparer();
+
+            private ReplSpanLineOnlyComparer()
+            {
+            }
+
+            int IComparer<ReplSpan>.Compare(ReplSpan x, ReplSpan y)
+            {
+                return x.LineNumber - y.LineNumber;
             }
         }
 
@@ -1932,12 +2046,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
             }
 
-            private int IndexOfEditableBuffer(ReadOnlyCollection<SnapshotPoint> sourceInsertionPoints)
+            private int IndexOfEditableBuffer(ReadOnlyCollection<SnapshotPoint> points)
             {
-                for (int i = sourceInsertionPoints.Count - 1; i >= 0; i--)
+                for (int i = points.Count - 1; i >= 0; i--)
                 {
-                    var insertionBuffer = sourceInsertionPoints[i].Snapshot.TextBuffer;
-                    if (insertionBuffer == _window._currentLanguageBuffer || insertionBuffer == _window._standardInputBuffer)
+                    if (IsEditableBuffer(points[i].Snapshot.TextBuffer))
                     {
                         return i;
                     }
@@ -1946,18 +2059,22 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 return -1;
             }
 
-            private int IndexOfEditableBuffer(ReadOnlyCollection<SnapshotSpan> sourceInsertionPoints)
+            private int IndexOfEditableBuffer(ReadOnlyCollection<SnapshotSpan> spans)
             {
-                for (int i = sourceInsertionPoints.Count - 1; i >= 0; i--)
+                for (int i = spans.Count - 1; i >= 0; i--)
                 {
-                    var insertionBuffer = sourceInsertionPoints[i].Snapshot.TextBuffer;
-                    if (insertionBuffer == _window._currentLanguageBuffer || insertionBuffer == _window._standardInputBuffer)
+                    if (IsEditableBuffer(spans[i].Snapshot.TextBuffer))
                     {
                         return i;
                     }
                 }
 
                 return -1;
+            }
+
+            private bool IsEditableBuffer(ITextBuffer buffer)
+            {
+                return buffer == _window._currentLanguageBuffer || buffer == _window._standardInputBuffer;
             }
         }
 

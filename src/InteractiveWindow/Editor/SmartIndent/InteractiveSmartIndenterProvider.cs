@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         public ISmartIndent CreateSmartIndent(ITextView view)
         {
-            var window = InteractiveWindow.FromBuffer(view.TextBuffer);
+            var window = view.TextBuffer.GetInteractiveWindow();
             if (window == null || window.CurrentLanguageBuffer == null)
             {
                 return null;

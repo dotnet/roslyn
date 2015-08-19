@@ -1214,11 +1214,14 @@ class Class1
                 {
                     i = 1;
                 }
-                finally {}
+                finally
+                {
+                    j = 2;
+                }
                 break;
 
             default:
-                i = 2;                
+                i = 2;
                 break;
         }
 
@@ -1229,45 +1232,46 @@ class Class1
             var compVerifier = CompileAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("Class1.Main", @"
 {
-  // Code size       28 (0x1c)
+  // Code size       30 (0x1e)
   .maxstack  1
   .locals init (int V_0, //j
-  int V_1) //i
+                int V_1) //i
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   IL_0002:  ldc.i4.3
   IL_0003:  stloc.1
   IL_0004:  ldloc.0
-  IL_0005:  brtrue.s   IL_0012
+  IL_0005:  brtrue.s   IL_0014
   IL_0007:  nop
   .try
-{
-  .try
-{
-  IL_0008:  ldc.i4.0
-  IL_0009:  stloc.1
-  IL_000a:  leave.s    IL_0014
-}
-  catch object
-{
-  IL_000c:  pop
-  IL_000d:  ldc.i4.1
-  IL_000e:  stloc.1
-  IL_000f:  leave.s    IL_0014
-}
-}
+  {
+    .try
+    {
+      IL_0008:  ldc.i4.0
+      IL_0009:  stloc.1
+      IL_000a:  leave.s    IL_0016
+    }
+    catch object
+    {
+      IL_000c:  pop
+      IL_000d:  ldc.i4.1
+      IL_000e:  stloc.1
+      IL_000f:  leave.s    IL_0016
+    }
+  }
   finally
-{
-  IL_0011:  endfinally
-}
-  IL_0012:  ldc.i4.2
-  IL_0013:  stloc.1
-  IL_0014:  ldloc.1
-  IL_0015:  call       ""void System.Console.Write(int)""
-  IL_001a:  ldloc.1
-  IL_001b:  ret
-}
-"
+  {
+    IL_0011:  ldc.i4.2
+    IL_0012:  stloc.0
+    IL_0013:  endfinally
+  }
+  IL_0014:  ldc.i4.2
+  IL_0015:  stloc.1
+  IL_0016:  ldloc.1
+  IL_0017:  call       ""void System.Console.Write(int)""
+  IL_001c:  ldloc.1
+  IL_001d:  ret
+}"
             );
         }
 

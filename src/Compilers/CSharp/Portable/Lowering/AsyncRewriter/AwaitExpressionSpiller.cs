@@ -707,11 +707,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 left = Spill(leftBuilder, left);
                 if (node.OperatorKind == BinaryOperatorKind.LogicalBoolOr || node.OperatorKind == BinaryOperatorKind.LogicalBoolAnd)
                 {
+                    var tmp = _F.SynthesizedLocal(node.Type, kind: SynthesizedLocalKind.AwaitSpill, syntax: _F.Syntax);
+                    leftBuilder.AddLocal(tmp, _F.Diagnostics);
+                    leftBuilder.AddStatement(_F.Assignment(_F.Local(tmp), left));
                     leftBuilder.AddStatement(_F.If(
-                        node.OperatorKind == BinaryOperatorKind.LogicalBoolAnd ? left : _F.Not(left),
-                        UpdateStatement(builder, _F.Assignment(left, right), substituteTemps: false)));
+                        node.OperatorKind == BinaryOperatorKind.LogicalBoolAnd ? _F.Local(tmp) : _F.Not(_F.Local(tmp)),
+                        UpdateStatement(builder, _F.Assignment(_F.Local(tmp), right), substituteTemps: false)));
 
-                    return UpdateExpression(leftBuilder, left);
+                    return UpdateExpression(leftBuilder, _F.Local(tmp));
                 }
                 else
                 {
@@ -876,11 +879,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 left = VisitExpression(ref leftBuilder, node.LeftOperand);
                 left = Spill(leftBuilder, left);
 
+                var tmp = _F.SynthesizedLocal(node.Type, kind: SynthesizedLocalKind.AwaitSpill, syntax: _F.Syntax);
+                leftBuilder.AddLocal(tmp, _F.Diagnostics);
+                leftBuilder.AddStatement(_F.Assignment(_F.Local(tmp), left));
                 leftBuilder.AddStatement(_F.If(
-                    _F.ObjectEqual(left, _F.Null(left.Type)),
-                    UpdateStatement(builder, _F.Assignment(left, right), substituteTemps: false)));
+                    _F.ObjectEqual(_F.Local(tmp), _F.Null(left.Type)),
+                    UpdateStatement(builder, _F.Assignment(_F.Local(tmp), right), substituteTemps: false)));
 
-                return UpdateExpression(leftBuilder, left);
+                return UpdateExpression(leftBuilder, _F.Local(tmp));
             }
 
             return UpdateExpression(builder, node.Update(left, right, node.LeftConversion, node.Type));
