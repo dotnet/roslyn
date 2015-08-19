@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
     /// buffers that have been reset but which we still want to look good.
     /// </summary>
     [Export(typeof(IClassifierProvider))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
     [TextViewRole(PredefinedTextViewRoles.Document)]
     internal partial class InertClassifierProvider : IClassifierProvider
     {
