@@ -133,7 +133,6 @@
     <Compile Include="IVsInteractiveWindowOleCommandTargetProvider.cs" />
     <Compile Include="MenuIds.cs" />
     <Compile Include="ProvideInteractiveWindowAttribute.cs" />
-    <Compile Include="Utils.cs" />
     <Compile Include="VsInteractiveWindow.cs" />
     <Compile Include="VsInteractiveWindowCommandFilter.cs" />
     <Compile Include="VsInteractiveWindowExtensions.cs" />
