@@ -38,6 +38,7 @@
   </Commands>
   
   <VisibilityConstraints>
+    <VisibilityItem context="guidCSProjectContext" guid="guidCSharpInteractiveCommandSet" id="cmdidCSharpInteractiveToolWindow" />
     <VisibilityItem context="guidCSProjectContext" guid="guidCSharpInteractiveCommandSet" id="cmdidResetInteractiveFromProject" />
   </VisibilityConstraints>
   
