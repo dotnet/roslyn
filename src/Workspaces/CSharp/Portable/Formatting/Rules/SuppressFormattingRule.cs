@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         internal const string Name = "CSharp Suppress Formatting Rule";
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
         {
             nextOperation.Invoke(list);
 
             AddInitializerSuppressOperations(list, node);
 
-            AddBraceSuppressOperations(list, node);
+            AddBraceSuppressOperations(list, node, lastToken);
 
             AddStatementExceptBlockSuppressOperations(list, node);
 
