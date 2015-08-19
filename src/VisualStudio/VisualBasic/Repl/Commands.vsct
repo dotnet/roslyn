@@ -38,6 +38,7 @@
   </Commands>
 
   <VisibilityConstraints>
+    <VisibilityItem context="guidVBProjectContext" guid="guidVisualBasicInteractiveCommandSet" id="cmdidVisualBasicInteractiveToolWindow" />
     <VisibilityItem context="guidVBProjectContext" guid="guidVisualBasicInteractiveCommandSet" id="cmdidResetInteractiveFromProject" />
   </VisibilityConstraints>
   
