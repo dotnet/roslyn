@@ -123,7 +123,13 @@
     <Compile Include="IAddItemTemplatesGuidProvider.cs" />
     <Compile Include="IItemTypeGuidProvider.cs" />
     <Compile Include="LanguageServices\LanguageServiceBase.cs" />
+    <Compile Include="ProjectTree\AppDesignerFolderProjectTreeModifierBase.cs" />
+    <Compile Include="ProjectTree\ProjectRootProjectTreeModifierBase.cs" />
+    <Compile Include="ProjectTree\ProjectTreeExtensions.cs" />
+    <Compile Include="ProjectTree\ProjectTreeModifierBase.cs" />
+    <Compile Include="ProjectTree\SpecialItemProjectTreeModifierBase.cs" />
     <Compile Include="Rules\ProjectProperties.cs" />
+    <Compile Include="StringComparers.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

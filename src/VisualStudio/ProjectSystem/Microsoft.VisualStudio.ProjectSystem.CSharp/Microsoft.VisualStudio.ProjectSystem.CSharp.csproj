@@ -128,11 +128,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="LanguageServices\CSharpCodeDomProvider.cs" />
+    <Compile Include="ProjectTree\CSharpProjectRootProjectTreeModifier.cs" />
+    <Compile Include="ProjectTree\PropertiesFolderProjectTreeModifier.cs" />
     <Compile Include="Templating\CSharpItemTemplatesGuidProvider.cs" />
     <Compile Include="Templating\CSharpItemTypeGuidProvider.cs" />
     <Compile Include="LanguageServices\CSharpLanguageFeaturesProvider.cs" />
     <Compile Include="LanguageServices\CSharpLanguageService.cs" />
-    <Compile Include="ProjectTree\CSharpProjectTreeModifier.cs" />
     <Compile Include="Capabilities\CSharpProjectXmlProjectCapabilityProvider.cs" />
   </ItemGroup>
   <ItemGroup>

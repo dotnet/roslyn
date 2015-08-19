@@ -128,12 +128,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="LanguageServices\VisualBasicCodeDomProvider.cs" />
+    <Compile Include="ProjectTree\MyProjectFolderProjectTreeModifier.cs" />
+    <Compile Include="ProjectTree\VisualBasicProjectRootProjectTreeModifier.cs" />
     <Compile Include="Templating\VisualBasicItemTemplatesGuidProvider.cs" />
     <Compile Include="Templating\VisualBasicItemTypeGuidProvider.cs" />
     <Compile Include="LanguageServices\VisualBasicLanguageService.cs" />
     <Compile Include="Capabilities\VisualBasicProjectEvalProjectCapabilityProvider.cs" />
     <Compile Include="Capabilities\VisualBasicProjectXmlProjectCapabilityProvider.cs" />
-    <Compile Include="ProjectTree\VisualBasicProjectTreeModifier.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
