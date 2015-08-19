@@ -585,6 +585,8 @@ System.Console.WriteLine();",
             var caret = Window.TextView.Caret;
             caret.MoveToPreviousCaretPosition();
             caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+            Window.Operations.SelectAll();
             Window.Operations.SelectAll();
             Window.Operations.Copy();
             VerifyClipboardData(@"foreach (var o in new[] { 1, 2, 3 })
@@ -622,6 +624,7 @@ System.Console.WriteLine();
             var caret = Window.TextView.Caret;
             caret.MoveToPreviousCaretPosition();
             caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
             Window.Operations.SelectAll();
             // Shrink the selection.
             var selection = Window.TextView.Selection;
@@ -650,6 +653,8 @@ System.Console.WriteLine();",
             var caret = Window.TextView.Caret;
             caret.MoveToPreviousCaretPosition();
             caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+            Window.Operations.SelectAll();
             Window.Operations.SelectAll();
             Window.Operations.Cut();
             VerifyClipboardData(null);
