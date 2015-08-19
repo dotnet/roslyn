@@ -108,7 +108,6 @@
     <Compile Include="Output\SortedSpans.cs" />
     <Compile Include="Output\ZoomableInlineAdornment.cs" />
     <Compile Include="PredefinedInteractiveTextViewRoles.cs" />
-    <Compile Include="ReplInput.cs" />
     <Compile Include="ReplSpanKind.cs" />
     <Compile Include="SmartIndent\InteractiveSmartIndenter.cs" />
     <Compile Include="SmartIndent\InteractiveSmartIndenterProvider.cs" />

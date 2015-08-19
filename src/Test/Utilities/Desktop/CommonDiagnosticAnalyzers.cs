@@ -299,6 +299,25 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class AnalyzerWithInvalidDiagnosticId : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+                "Invalid ID",
+                "Title1",
+                "Message1",
+                "Category1",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCompilationAction(compilationContext =>
+                    compilationContext.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None)));
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public sealed class AnalyzerThatThrowsInGetMessage : DiagnosticAnalyzer
         {
             public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
@@ -341,7 +360,7 @@ namespace Microsoft.CodeAnalysis
         public class HiddenDiagnosticsCompilationAnalyzer : DiagnosticAnalyzer
         {
             public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
-                "ID 1000",
+                "ID1000",
                 "Description1",
                 string.Empty,
                 "Analysis",

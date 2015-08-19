@@ -2,15 +2,14 @@
 
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Async;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Resources = Microsoft.CodeAnalysis.CSharp.CSharpFeaturesResources;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
@@ -45,16 +44,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
 
         protected override async Task<SyntaxNode> GetNewRoot(SyntaxNode root, SyntaxNode oldNode, SemanticModel semanticModel, Diagnostic diagnostic, Document document, CancellationToken cancellationToken)
         {
-            var methodNode = GetContainingMember(oldNode);
-            if (methodNode == null)
+            var nodeToModify = GetContainingMember(oldNode);
+            if (nodeToModify == null)
             {
                 return null;
             }
 
-            var newMethodNode = await ConvertToAsync(methodNode, semanticModel, document, cancellationToken).ConfigureAwait(false);
-            if (newMethodNode != null)
+            var modifiedNode = await ConvertToAsync(nodeToModify, semanticModel, document, cancellationToken).ConfigureAwait(false);
+            if (modifiedNode != null)
             {
-                return root.ReplaceNode(methodNode, newMethodNode);
+                return root.ReplaceNode(nodeToModify, modifiedNode);
             }
 
             return null;
@@ -62,53 +61,40 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
 
         private static SyntaxNode GetContainingMember(SyntaxNode oldNode)
         {
-            var parenthesizedLambda = oldNode
-                .Ancestors()
-                .FirstOrDefault(n =>
-                    n.IsKind(SyntaxKind.ParenthesizedLambdaExpression));
-
-            if (parenthesizedLambda != null)
+            foreach (var node in oldNode.Ancestors())
             {
-                return parenthesizedLambda;
-            }
-
-            var simpleLambda = oldNode
-                .Ancestors()
-                .FirstOrDefault(n =>
-                    n.IsKind(SyntaxKind.SimpleLambdaExpression));
-
-            if (simpleLambda != null)
-            {
-                return simpleLambda;
-            }
-
-            return oldNode
-                .Ancestors()
-                .FirstOrDefault(n =>
-                    n.IsKind(SyntaxKind.MethodDeclaration));
-        }
-
-        private async Task<SyntaxNode> ConvertToAsync(SyntaxNode node, SemanticModel semanticModel, Document document, CancellationToken cancellationToken)
-        {
-            var methodNode = node as MethodDeclarationSyntax;
-            if (methodNode != null)
-            {
-                return await ConvertMethodToAsync(document, semanticModel, methodNode, cancellationToken).ConfigureAwait(false);
-            }
-
-            var parenthesizedLambda = node as ParenthesizedLambdaExpressionSyntax;
-            if (parenthesizedLambda != null)
-            {
-                return ConvertParenthesizedLambdaToAsync(parenthesizedLambda);
-            }
-
-            var simpleLambda = node as SimpleLambdaExpressionSyntax;
-            if (simpleLambda != null)
-            {
-                return ConvertSimpleLambdaToAsync(simpleLambda);
+                switch (node.Kind())
+                {
+                    case SyntaxKind.ParenthesizedLambdaExpression:
+                    case SyntaxKind.SimpleLambdaExpression:
+                    case SyntaxKind.AnonymousMethodExpression:
+                        if ((node as AnonymousFunctionExpressionSyntax)?.AsyncKeyword.Kind() != SyntaxKind.AsyncKeyword)
+                        {
+                            return node;
+                        }
+                        break;
+                    case SyntaxKind.MethodDeclaration:
+                        if ((node as MethodDeclarationSyntax)?.Modifiers.Any(SyntaxKind.AsyncKeyword) == false)
+                        {
+                            return node;
+                        }
+                        break;
+                    default:
+                        continue;
+                }
             }
 
             return null;
+        }
+
+        private Task<SyntaxNode> ConvertToAsync(SyntaxNode node, SemanticModel semanticModel, Document document, CancellationToken cancellationToken)
+        {
+            return node.TypeSwitch(
+                (MethodDeclarationSyntax methodNode) => ConvertMethodToAsync(document, semanticModel, methodNode, cancellationToken),
+                (ParenthesizedLambdaExpressionSyntax parenthesizedLambda) => Task.FromResult(ConvertParenthesizedLambdaToAsync(parenthesizedLambda)),
+                (SimpleLambdaExpressionSyntax simpleLambda) => Task.FromResult(ConvertSimpleLambdaToAsync(simpleLambda)),
+                (AnonymousMethodExpressionSyntax anonymousMethod) => Task.FromResult(ConvertAnonymousMethodToAsync(anonymousMethod)),
+                @default => Task.FromResult<SyntaxNode>(null));
         }
 
         private static SyntaxNode ConvertParenthesizedLambdaToAsync(ParenthesizedLambdaExpressionSyntax parenthesizedLambda)
@@ -118,6 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                                 parenthesizedLambda.ParameterList,
                                 parenthesizedLambda.ArrowToken,
                                 parenthesizedLambda.Body)
+                                .WithTriviaFrom(parenthesizedLambda)
                                 .WithAdditionalAnnotations(Formatter.Annotation);
         }
 
@@ -128,6 +115,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                                 simpleLambda.Parameter,
                                 simpleLambda.ArrowToken,
                                 simpleLambda.Body)
+                                .WithTriviaFrom(simpleLambda)
+                                .WithAdditionalAnnotations(Formatter.Annotation);
+        }
+
+        private static SyntaxNode ConvertAnonymousMethodToAsync(AnonymousMethodExpressionSyntax anonymousMethod)
+        {
+            return SyntaxFactory.AnonymousMethodExpression(
+                                SyntaxFactory.Token(SyntaxKind.AsyncKeyword),
+                                anonymousMethod.DelegateKeyword,
+                                anonymousMethod.ParameterList,
+                                anonymousMethod.Block)
+                                .WithTriviaFrom(anonymousMethod)
                                 .WithAdditionalAnnotations(Formatter.Annotation);
         }
 

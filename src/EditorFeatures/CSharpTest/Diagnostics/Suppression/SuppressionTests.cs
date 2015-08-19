@@ -513,52 +513,12 @@ using System;
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestDiagnosticWithBadIdSuppressed()
                 {
-                    Test(
+                    // Diagnostics with bad/invalid ID are not reported.
+                    TestMissing(
             @"
 using System;
 
 [|class Class|]
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}",
-            @"
-using System;
-
-#pragma warning disable @~DiagnosticWithBadId // DiagnosticWithBadId
-class Class
-#pragma warning restore @~DiagnosticWithBadId // DiagnosticWithBadId
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}");
-
-                    // Verify that the original suppression doesn't really work and that the diagnostic can be suppressed again.
-                    Test(
-            @"
-using System;
-
-#pragma warning disable @~DiagnosticWithBadId // DiagnosticWithBadId
-[|class Class|]
-#pragma warning restore @~DiagnosticWithBadId // DiagnosticWithBadId
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}",
-            @"
-using System;
-
-#pragma warning disable @~DiagnosticWithBadId // DiagnosticWithBadId
-#pragma warning disable @~DiagnosticWithBadId // DiagnosticWithBadId
-class Class
-#pragma warning restore @~DiagnosticWithBadId // DiagnosticWithBadId
-#pragma warning restore @~DiagnosticWithBadId // DiagnosticWithBadId
 {
     int Method()
     {

@@ -422,10 +422,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                 return $"using static {staticNamespaceString};";
             }
 
-            // If we get here then neither a namespace or an extern alias can be added.
-            // There is no valid string to show to the user and there is 
-            // likely a bug that we should know about.
-            throw ExceptionUtilities.Unreachable;
+            // We can't find a string to show to the user, we should not show this codefix.
+            return null;
         }
 
         protected override async Task<Document> AddImportAsync(
