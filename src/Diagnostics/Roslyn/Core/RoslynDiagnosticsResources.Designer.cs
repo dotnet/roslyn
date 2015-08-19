@@ -350,6 +350,15 @@ namespace Roslyn.Diagnostics.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The contents of the public API files are invalid: {0}.
+        /// </summary>
+        internal static string PublicApiFilesInvalid {
+            get {
+                return ResourceManager.GetString("PublicApiFilesInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes..
         /// </summary>
         internal static string RemoveDeletedApiDescription {

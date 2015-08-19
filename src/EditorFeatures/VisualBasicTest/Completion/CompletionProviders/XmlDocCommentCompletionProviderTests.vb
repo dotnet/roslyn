@@ -206,6 +206,23 @@ End Class
     End Sub
 
     <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    Public Sub IndexerParamTypeParam()
+        Dim text = <File>
+Class C(Of T)
+    ''' &lt;$$
+    Default Public Property Item(bar as T)
+        Get
+        End Get
+        Set
+        End Set
+    End Sub
+End Property
+</File>.Value
+
+        VerifyItemsExist(text, "param name=""bar""")
+    End Sub
+
+    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub TypeTypeParam()
         Dim text = <File>
     ''' &lt;$$

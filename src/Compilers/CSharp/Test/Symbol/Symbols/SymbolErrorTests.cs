@@ -6553,7 +6553,7 @@ public static int AT = (new { field = 2 }).field;
 ";
 
             ImmutableArray<Byte> ilBytes;
-            using (var reference = SharedCompilationUtils.IlasmTempAssembly(ilSource, appendDefaultHeader: false))
+            using (var reference = IlasmUtilities.CreateTempAssembly(ilSource, appendDefaultHeader: false))
             {
                 ilBytes = ReadFromFile(reference.Path);
             }
@@ -6622,7 +6622,7 @@ interface ITest20
 ";
 
             ImmutableArray<Byte> ilBytes;
-            using (var reference = SharedCompilationUtils.IlasmTempAssembly(ilSource, appendDefaultHeader: false))
+            using (var reference = IlasmUtilities.CreateTempAssembly(ilSource, appendDefaultHeader: false))
             {
                 ilBytes = ReadFromFile(reference.Path);
             }

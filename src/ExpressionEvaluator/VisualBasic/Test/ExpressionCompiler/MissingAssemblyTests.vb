@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Reflection
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -249,7 +250,7 @@ End Class
             Dim context = CreateMethodContextWithReferences(comp, "C.M", ImmutableArray.Create(MscorlibRef).Concat(runtimeAssemblies))
             Dim globalNamespace = context.Compilation.GlobalNamespace
 
-            Dim expectedIdentity = New AssemblyIdentity("Windows.Storage", contentType:=Reflection.AssemblyContentType.WindowsRuntime)
+            Dim expectedIdentity = New AssemblyIdentity("Windows.Storage", contentType:=AssemblyContentType.WindowsRuntime)
 
             Dim actualIdentity = GetMissingAssemblyIdentities(ERRID.ERR_UndefinedType1, {"Windows.Storage"}, globalNamespace).Single()
             Assert.Equal(expectedIdentity, actualIdentity)
@@ -261,7 +262,7 @@ End Class
             Assert.Equal(expectedIdentity, actualIdentity)
 
 
-            expectedIdentity = New AssemblyIdentity("Windows.UI.Xaml", contentType:=Reflection.AssemblyContentType.WindowsRuntime)
+            expectedIdentity = New AssemblyIdentity("Windows.UI.Xaml", contentType:=AssemblyContentType.WindowsRuntime)
 
             actualIdentity = GetMissingAssemblyIdentities(ERRID.ERR_UndefinedType1, {"Windows.UI.Xaml"}, globalNamespace).Single()
             Assert.Equal(expectedIdentity, actualIdentity)

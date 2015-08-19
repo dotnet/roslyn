@@ -4,7 +4,6 @@ Imports System.ComponentModel.Design
 Imports System.Runtime.InteropServices
 Imports Microsoft.VisualStudio.LanguageServices.Interactive
 Imports Microsoft.VisualStudio.Shell
-Imports Roslyn.Utilities
 Imports Microsoft.VisualStudio.InteractiveWindow.Shell
 Imports LanguageServiceGuids = Microsoft.VisualStudio.LanguageServices.Guids
 
@@ -12,8 +11,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
 
     <Guid(LanguageServiceGuids.VisualBasicReplPackageIdString)>
     <PackageRegistration(UseManagedResourcesOnly:=True)>
-    <ProvideMenuResource("Menus.ctmenu", 16)>
-    <ProvideAutoLoad(VSConstants.UICONTEXT.VBProject_string)>
+    <ProvideMenuResource("Menus.ctmenu", 17)>
     <ProvideInteractiveWindow(
         VisualBasicVsInteractiveWindowPackage.IdString,
         Orientation:=ToolWindowOrientation.Bottom,

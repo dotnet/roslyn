@@ -209,6 +209,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                 _window._buffer.Flush();
 
+                if (State == State.WaitingForInput)
+                {
+                    Debug.Assert(_window._projectionSpans.Last().Kind == ReplSpanKind.Language);
+                    StoreUncommittedInput();
+                    RemoveProjectionSpans(_window._projectionSpans.Count - 2, 2);
+                    _window._currentLanguageBuffer = null;
+                }
+
                 // replace the task being interrupted by a "reset" task:
                 State = State.Resetting;
                 _currentTask = _window._evaluator.ResetAsync(initialize);
@@ -337,6 +345,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             public void AddInput(string command)
             {
+                // If the language buffer is readonly then input can not be added. Return immediately.
+                // The language buffer gets marked as readonly in SubmitAsync method when input on the prompt 
+                // gets submitted. So it would be readonly when the user types #reset on the prompt. In that 
+                // case it is the right thing to bail out of this method.
+                if (_window._currentLanguageBuffer != null && _window._currentLanguageBuffer.IsReadOnly(0))
+                {
+                    return;
+                }
+
                 if (State == State.ExecutingInput || _window._currentLanguageBuffer == null)
                 {
                     AddLanguageBuffer();

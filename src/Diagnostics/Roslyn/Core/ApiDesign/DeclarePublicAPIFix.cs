@@ -53,7 +53,7 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
 
         private static TextDocument GetPublicSurfaceAreaDocument(Project project)
         {
-            return project.AdditionalDocuments.FirstOrDefault(doc => doc.Name.Equals(DeclarePublicAPIAnalyzer.PublicApiFileName, StringComparison.OrdinalIgnoreCase));
+            return project.AdditionalDocuments.FirstOrDefault(doc => doc.Name.Equals(DeclarePublicAPIAnalyzer.UnshippedFileName, StringComparison.Ordinal));
         }
 
         private async Task<Solution> GetFix(TextDocument publicSurfaceAreaDocument, string newSymbolName, CancellationToken cancellationToken)

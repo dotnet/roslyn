@@ -276,4 +276,7 @@
   <data name="ExposedNoninstantiableTypeTitle" xml:space="preserve">
     <value>Constructor make noninheritable base class inheritable</value>
   </data>
+  <data name="PublicApiFilesInvalid" xml:space="preserve">
+    <value>The contents of the public API files are invalid: {0}</value>
+  </data>
 </root>

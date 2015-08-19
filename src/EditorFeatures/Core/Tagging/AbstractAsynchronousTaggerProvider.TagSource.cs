@@ -97,6 +97,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _notificationService = notificationService;
                 _tagSpanComparer = new TagSpanComparer(_dataSource.TagComparer);
 
+                DebugRecordInitialStackTrace();
+
                 this._workQueue = new AsynchronousSerialWorkQueue(asyncListener);
                 this.CachedTagTrees = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
 
