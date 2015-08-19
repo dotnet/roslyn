@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.Shared.TestHooks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     Public Class DashboardTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameWithNoOverload()
             Dim changingOptions = New Dictionary(Of OptionKey, Object)()
@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     changedOptionSet:=changingOptions)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameWithOverload()
             Dim changingOptions = New Dictionary(Of OptionKey, Object)()
@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     changedOptionSet:=changingOptions)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(883263)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameWithInvalidOverload()
@@ -101,7 +101,7 @@ class Program
                 severity:=DashboardSeverity.Error)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(853839)>
         Public Sub RenameAttributeAlias()
@@ -121,7 +121,7 @@ class AttributeAttribute : System.Attribute { }
                     severity:=DashboardSeverity.Info)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(700923), WorkItem(700925)>
         Public Sub RenameWithOverloadAndInStringsAndComments()
@@ -160,7 +160,7 @@ class AttributeAttribute : System.Attribute { }
                     changedOptionSet:=changingOptions)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(700923), WorkItem(700925)>
         Public Sub RenameInComments()
@@ -200,7 +200,7 @@ class $$Program
                     changedOptionSet:=changingOptions)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(700923), WorkItem(700925)>
         Public Sub RenameInStrings()
@@ -240,7 +240,7 @@ class $$Program
                     changedOptionSet:=changingOptions)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(700923), WorkItem(700925)>
         Public Sub RenameInCommentsAndStrings()
@@ -281,7 +281,7 @@ class $$Program
                     changedOptionSet:=changingOptions)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub NonConflictingEditWithMultipleLocations()
             VerifyDashboard(
@@ -302,7 +302,7 @@ class $$Program
                     searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferencesInFile, 3))
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub NonConflictingEditWithSingleLocation()
             VerifyDashboard(
@@ -323,7 +323,7 @@ class $$Program
                     searchResultText:=EditorFeaturesResources.RenameWillUpdateReferenceInFile)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ParameterConflictingWithInstanceField()
             VerifyDashboard(
@@ -348,7 +348,7 @@ class $$Program
         End Sub
 
         <WorkItem(5923, "DevDiv_Projects/Roslyn")>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ParameterConflictingWithInstanceFieldMoreThanOnce()
             VerifyDashboard(
@@ -372,7 +372,7 @@ class $$Program
                 severity:=DashboardSeverity.Info)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ParameterConflictingWithLocal_Unresolvable()
             VerifyDashboard(
@@ -395,7 +395,7 @@ class $$Program
                 severity:=DashboardSeverity.Error)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub MoreThanOneUnresolvableConflicts()
             VerifyDashboard(
@@ -420,7 +420,7 @@ class $$Program
                 severity:=DashboardSeverity.Error)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictsAcrossLanguages_Resolvable()
             VerifyDashboard(
@@ -457,7 +457,7 @@ class $$Program
                    severity:=DashboardSeverity.Info)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameWithNameof_FromDefinition_DoesNotForceRenameOverloadsOption()
             VerifyDashboard(
@@ -481,7 +481,7 @@ class C
                    isRenameOverloadsEditable:=True)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameWithNameof_FromReference_DoesForceRenameOverloadsOption()
             VerifyDashboard(
@@ -505,7 +505,7 @@ class C
                    isRenameOverloadsEditable:=False)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameWithNameof_FromDefinition_WithRenameOverloads_Cascading()
             Dim changingOptions = New Dictionary(Of OptionKey, Object)()

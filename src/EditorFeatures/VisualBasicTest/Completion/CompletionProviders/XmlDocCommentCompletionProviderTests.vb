@@ -29,7 +29,7 @@ Public Class XmlDocCommentCompletionProviderTests
         Next
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub AnyLevelTags1()
         Dim text = <File>
 Class C
@@ -42,7 +42,7 @@ End Class
         VerifyItemsExist(text, "see", "seealso", "![CDATA[", "!--")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub AnyLevelTags2()
         Dim text = <File>
 Class C
@@ -57,7 +57,7 @@ End Class
         VerifyItemsExist(text, "see", "seealso", "![CDATA[", "!--")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub AnyLevelTags3()
         Dim text = <File>
 Class C
@@ -73,7 +73,7 @@ End Class
         VerifyItemsExist(text, "see", "seealso", "![CDATA[", "!--")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub RepeatableNestedTags1()
         Dim text = <File>
 Class C
@@ -86,7 +86,7 @@ End Class
         VerifyItemsAbsent(text, "code", "list", "para", "paramref", "typeparamref")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub RepeatableNestedTags2()
         Dim text = <File>
 Class C
@@ -101,7 +101,7 @@ End Class
         VerifyItemsExist(text, "code", "list", "para", "paramref", "typeparamref")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub RepeatableTopLevelOnlyTags1()
         Dim text = <File>
 Class C
@@ -116,7 +116,7 @@ End Class
         VerifyItemsAbsent(text, "exception", "include", "permission")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub RepeatableTopLevelOnlyTags2()
         Dim text = <File>
 Class C
@@ -129,7 +129,7 @@ End Class
         VerifyItemsExist(text, "exception", "include", "permission")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub TopLevelOnlyTags1()
         Dim text = <File>
 Class C
@@ -144,7 +144,7 @@ End Class
         VerifyItemsAbsent(text, "example", "remarks", "summary", "value")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub TopLevelOnlyTags2()
         Dim text = <File>
 Class C
@@ -157,7 +157,7 @@ End Class
         VerifyItemsExist(text, "example", "remarks", "summary")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub TopLevelOnlyTags3()
         Dim text = <File>
 Class C
@@ -171,7 +171,7 @@ End Class
         VerifyItemsAbsent(text, "example", "remarks", "summary", "value")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub ListOnlyTags()
         Dim text = <File>
 Class C
@@ -184,7 +184,7 @@ End Class
         VerifyItemsExist(text, "listheader", "item", "term", "description")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub ListHeaderTags()
         Dim text = <File>
 Class C
@@ -197,7 +197,7 @@ End Class
         VerifyItemsExist(text, "term", "description")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub MethodParamTypeParam()
         Dim text = <File>
 Class C(Of T)
@@ -210,7 +210,7 @@ End Class
         VerifyItemsExist(text, "param name=""bar""", "typeparam name=""T""")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub IndexerParamTypeParam()
         Dim text = <File>
 Class C(Of T)
@@ -227,7 +227,7 @@ End Property
         VerifyItemsExist(text, "param name=""bar""")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub TypeTypeParam()
         Dim text = <File>
     ''' &lt;$$
@@ -240,7 +240,7 @@ End Class
         VerifyItemsExist(text, "typeparam name=""T""")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub NoRepeatParam()
         Dim text = <File>
 Class C(Of T)
@@ -254,7 +254,7 @@ End Class
         VerifyItemIsAbsent(text, "param name=""bar""")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub AttributeAfterName()
         Dim text = <File>
 Class C(Of T)
@@ -267,7 +267,7 @@ End Class
         VerifyItemExists(text, "cref")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub AttributeAfterNamePartiallyTyped()
         Dim text = <File>
 Class C(Of T)
@@ -280,7 +280,7 @@ End Class
         VerifyItemExists(text, "cref")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub AttributeAfterAttribute()
         Dim text = <File>
 Class C(Of T)
@@ -293,7 +293,7 @@ End Class
         VerifyItemExists(text, "cref")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub ParameterNameInsideAttribute()
         Dim text = <File>
 Class C(Of T)
@@ -308,7 +308,7 @@ End Class
 
     <WorkItem(623219)>
     <WorkItem(746919)>
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitParam()
         Dim text = <File>
 Class C(Of T)
@@ -330,7 +330,7 @@ End Class
     End Sub
 
     <WorkItem(623158)>
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CloseTag()
         Dim text = <File>
 Class C
@@ -344,7 +344,7 @@ End Class
     End Sub
 
     <WorkItem(638805)>
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub NoParentElement()
         Dim text = <File><![CDATA[
 ''' <summary>
@@ -356,7 +356,7 @@ End Module]]></File>.Value
         VerifyItemsExist(text, "see", "seealso", "![CDATA[", "!--")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub NestedTagsOnSameLineAsCompletedTag()
         Dim text = <File><![CDATA[
 ''' <summary>
@@ -369,7 +369,7 @@ End Module]]></File>.Value
         VerifyItemsExist(text, "code", "list", "para", "paramref", "typeparamref")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub NotInCref()
         Dim text = <File><![CDATA[
 ''' <summary>
@@ -382,7 +382,7 @@ End Module]]></File>.Value
     End Sub
 
     <WorkItem(638653)>
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub AllowTypingDoubleQuote()
         Dim text = <File>
 Class C(Of T)
@@ -404,7 +404,7 @@ End Class
     End Sub
 
     <WorkItem(638653)>
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub AllowTypingSpace()
         Dim text = <File>
 Class C(Of T)
@@ -425,7 +425,7 @@ End Class
         VerifyCustomCommitProvider(text, "param name=""bar""", expected, Microsoft.CodeAnalysis.SourceCodeKind.Regular, commitChar:=" "c)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CompletionList()
         Dim text = <File>
 Class C

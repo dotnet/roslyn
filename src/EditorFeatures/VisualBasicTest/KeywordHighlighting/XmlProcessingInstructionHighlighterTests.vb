@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return New XmlProcessingInstructionHighlighter()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestXmlProcessingInstruction1()
             Test(<Text><![CDATA[
 Class C
@@ -20,7 +20,7 @@ End Sub
 End Class]]></Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestXmlProcessingInstruction2()
             Test(<Text><![CDATA[
 Class C
@@ -30,7 +30,7 @@ End Sub
 End Class]]></Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestXmlProcessingInstruction3()
             Test(<Text><![CDATA[
 Class C

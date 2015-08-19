@@ -15,7 +15,7 @@ Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     Public Class InlineRenameTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub SimpleEditAndCommit()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(540120)>
         Public Sub SimpleEditAndVerifyTagsPropagatedAndCommit()
@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             VerifyTagsAreCorrect(workspace, replacementText)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(700921)>
         Public Sub RenameOverloadsCSharp()
@@ -147,7 +147,7 @@ class Program
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(700921)>
         Public Sub RenameOverloadsVisualBasic()
@@ -188,7 +188,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(960955)>
         Public Sub RenameParameterShouldNotAffectCommentsInOtherDocuments()
@@ -212,7 +212,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(1040098)>
         Public Sub RenameInLinkedFilesDoesNotCrash()
@@ -229,7 +229,7 @@ End Class
             VerifyRenameOptionChangedSessionCommit(workspace, "C", "AB", renameInComments:=True)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(1040098)>
         Public Sub RenameInLinkedFilesHandlesBothProjects()
@@ -253,7 +253,7 @@ public partial class C { }
             VerifyRenameOptionChangedSessionCommit(workspace, "C", "AB", renameInComments:=True)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(1040098)>
         Public Sub RenameInLinkedFilesWithPrivateAccessibility()
@@ -282,7 +282,7 @@ public partial class C { }
             VerifyRenameOptionChangedSessionCommit(workspace, "F", "AB", renameInComments:=True)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(1040098)>
         Public Sub RenameInLinkedFilesWithPublicAccessibility()
@@ -311,7 +311,7 @@ public partial class C { }
             VerifyRenameOptionChangedSessionCommit(workspace, "F", "AB", renameInComments:=True)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(3623, "https://github.com/dotnet/roslyn/issues/3623")>
         Public Sub RenameTypeInLinkedFiles()
@@ -422,7 +422,7 @@ class Program
             VerifyRenameOptionChangedSessionCommit(workspace, "foo", "bar", renameInComments:=True, renameInStrings:=True)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(700923), WorkItem(700925), WorkItem(1486, "https://github.com/dotnet/roslyn/issues/1486")>
         Public Sub RenameInCommentsAndStringsVisualBasic()
@@ -508,7 +508,7 @@ End Class
             VerifyRenameOptionChangedSessionCommit(workspace, "foo", "bar", renameInComments:=True, renameInStrings:=True)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub SimpleEditAndCancel()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -542,7 +542,7 @@ End Class
         End Sub
 
 
-        <Fact>
+        <WpfFact>
         <WorkItem(539513)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CanRenameTypeNamedDynamic()
@@ -574,7 +574,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ReadOnlyRegionsCreated()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -607,7 +607,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(543018)>
         Public Sub ReadOnlyRegionsCreatedWhichHandleBeginningOfFileEdgeCase()
@@ -632,7 +632,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameWithInheritenceCascadingWithClass()
             Using result = RenameEngineResult.Create(
@@ -665,7 +665,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(530467)>
         Public Sub VerifyNoRenameTrackingAfterInlineRenameTyping()
@@ -699,7 +699,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VerifyNoRenameTrackingAfterInlineRenameTyping2()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -728,7 +728,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(579210)>
         Public Sub VerifyNoRenameTrackingAfterInlineRenameCommit()
@@ -765,7 +765,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(530765)>
         Public Sub VerifyNoRenameTrackingAfterInlineRenameCancel()
@@ -801,7 +801,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VerifyRenameTrackingWorksAfterInlineRenameCommit()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -840,7 +840,7 @@ End Class
             End Using
         End Sub
 
-        <Fact, WorkItem(978099)>
+        <WpfFact, WorkItem(978099)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VerifyPreviewChangesCalled()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -880,7 +880,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VerifyPreviewChangesCancellation()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -925,7 +925,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VerifyLinkedFiles_MethodWithReferences()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -971,7 +971,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VerifyLinkedFiles_FieldWithReferences()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1016,7 +1016,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         <WorkItem(554, "https://github.com/dotnet/roslyn/issues/554")>
@@ -1095,7 +1095,7 @@ class C
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMethodWithNameof_FromDefinition_NoOverloads()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1127,7 +1127,7 @@ class C
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMethodWithNameof_FromReference_NoOverloads()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1159,7 +1159,7 @@ class C
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMethodWithNameof_FromDefinition_WithOverloads()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1193,7 +1193,7 @@ class C
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMethodWithNameof_FromReference_WithOverloads()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1227,7 +1227,7 @@ class C
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMethodWithNameof_FromDefinition_WithOverloads_WithRenameOverloadsOption()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1251,7 +1251,7 @@ class C
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(1142095)>
         Public Sub RenameCommitsWhenDebuggingStarts()
@@ -1294,7 +1294,7 @@ class C
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(1142095)>
         Public Sub RenameCommitsWhenExitingDebuggingBreakMode()
@@ -1338,7 +1338,7 @@ class C
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(3316, "https://github.com/dotnet/roslyn/issues/3316")>
         Public Sub InvalidInvocationExpression()

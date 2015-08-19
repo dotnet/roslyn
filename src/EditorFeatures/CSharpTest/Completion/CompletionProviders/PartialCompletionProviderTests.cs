@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             return new PartialCompletionProvider(TestWaitIndicator.Default);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NoPartialMethods1()
         {
             var text = @"class c
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             VerifyNoItemsExist(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NoPartialMethods2()
         {
             var text = @"class c
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             VerifyNoItemsExist(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void PartialMethodInPartialClass()
         {
             var text = @"partial class c
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             VerifyItemExists(text, "foo()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void PartialMethodInPartialGenericClass()
         {
             var text = @"partial class c<T>
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             VerifyItemExists(text, "foo(T bar)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void PartialMethodInPartialStruct()
         {
             var text = @"partial struct c
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             VerifyItemExists(text, "foo()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CompletionOnPartial1()
         {
             var text = @"partial class c
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             VerifyItemExists(text, "foo()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CompletionOnPartial2()
         {
             var text = @"partial class c
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             VerifyItemExists(text, "foo()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void StaticUnsafePartial()
         {
             var text = @"partial class c
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             VerifyItemExists(text, "foo()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void PartialCompletionWithPrivate()
         {
             var text = @"partial class c
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             VerifyItemExists(text, "foo()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotCompletionDespiteValidModifier()
         {
             var text = @"partial class c
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             VerifyNoItemsExist(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotIfPublic()
         {
             var text = @"partial class c
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             VerifyNoItemsExist(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotIfInternal()
         {
             var text = @"partial class c
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             VerifyNoItemsExist(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotIfProtected()
         {
             var text = @"partial class c
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             VerifyNoItemsExist(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotIfProtectedInternal()
         {
             var text = @"partial class c
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             VerifyNoItemsExist(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotIfExtern()
         {
             var text = @"partial class c
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             VerifyNoItemsExist(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotIfVirtual()
         {
             var text = @"partial class c
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             VerifyNoItemsExist(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotIfNonVoidReturnType()
         {
             var text = @"partial class c
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             VerifyNoItemsExist(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotInsideInterface()
         {
             var text = @"partial interface i
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             VerifyNoItemsExist(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitInPartialClass()
         {
             var markupBeforeCommit = @"partial class c
@@ -259,7 +259,7 @@ partial class c
             VerifyCustomCommitProvider(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitGenericPartialMethod()
         {
             var markupBeforeCommit = @"partial class c<T>
@@ -284,7 +284,7 @@ partial class c<T>
             VerifyCustomCommitProvider(markupBeforeCommit, "foo(T bar)", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitMethodErasesPrivate()
         {
             var markupBeforeCommit = @"partial class c
@@ -309,7 +309,7 @@ partial class c
             VerifyCustomCommitProvider(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitInPartialClassPart()
         {
             var markupBeforeCommit = @"partial class c
@@ -340,7 +340,7 @@ partial class c
             VerifyCustomCommitProvider(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitInPartialStruct()
         {
             var markupBeforeCommit = @"partial struct c
@@ -365,7 +365,7 @@ partial struct c
             VerifyCustomCommitProvider(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotIfNoPartialKeyword()
         {
             var text = @"partial class C
@@ -382,7 +382,7 @@ partial struct c
         }
 
         [WorkItem(578757)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void DoNotConsiderFollowingDeclarationPartial()
         {
             var text = @"class Program
@@ -399,7 +399,7 @@ partial struct c
         }
 
         [WorkItem(578078)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitAsync()
         {
             var markupBeforeCommit = @"using System;
@@ -427,7 +427,7 @@ partial class Bar
         }
 
         [WorkItem(578078)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void AmbiguityCommittingWithParen()
         {
             var markupBeforeCommit = @"using System;
@@ -455,7 +455,7 @@ partial class Bar
         }
 
         [WorkItem(965677)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NoDefaultParameterValues()
         {
             var text = @"namespace PartialClass

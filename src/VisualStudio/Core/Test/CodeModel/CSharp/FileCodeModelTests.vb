@@ -11,7 +11,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
     Public Class CSharpFileCodeModelTests
         Inherits AbstractFileCodeModelTests
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestEnumerationWithCountAndItem()
             Dim code =
 <Code>
@@ -51,7 +51,7 @@ delegate void D();
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AssemblyLevelAttribute()
             Dim code =
 <Code>
@@ -101,7 +101,7 @@ class FooAttribute : System.Attribute
 
 #Region "AddAttribute tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttribute1()
             Dim code =
 <Code>
@@ -122,7 +122,7 @@ class C
             TestAddAttribute(code, expected, New AttributeData With {.Name = "System.CLSCompliant", .Value = "true"})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttribute2()
             Dim code =
 <Code>
@@ -142,7 +142,7 @@ class C
             TestAddAttribute(code, expected, New AttributeData With {.Name = "System.CLSCompliant", .Value = "true", .Position = "C"})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttribute3()
             Dim code =
 <Code>
@@ -159,7 +159,7 @@ $$[assembly: System.Reflection.AssemblyCompany("Microsoft")]
             TestAddAttribute(code, expected, New AttributeData With {.Name = "System.CLSCompliant", .Value = "true", .Position = -1})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttribute4()
             Dim code =
 <Code>
@@ -179,7 +179,7 @@ class C { }
             TestAddAttribute(code, expected, New AttributeData With {.Name = "System.CLSCompliant", .Value = "true", .Position = -1})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttribute5()
             Dim code =
 <Code>
@@ -201,7 +201,7 @@ class C { }
             TestAddAttribute(code, expected, New AttributeData With {.Name = "System.CLSCompliant", .Value = "true", .Position = -1})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttribute6()
             Dim code =
 <Code>
@@ -223,7 +223,7 @@ class C { }
 
 #Region "AddClass tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddClass1()
             Dim code =
 <Code>
@@ -246,7 +246,7 @@ class C
             TestAddClass(code, expected, New ClassData With {.Name = "B"})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddClass2()
             Dim code =
 <Code>
@@ -265,7 +265,7 @@ class C { }
             TestAddClass(code, expected, New ClassData With {.Name = "B"})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddClass3()
             Dim code =
 <Code>
@@ -288,7 +288,7 @@ class B
             TestAddClass(code, expected, New ClassData With {.Name = "B", .Position = "C"})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddClass4()
             Dim code =
 <Code>
@@ -307,7 +307,7 @@ class B
             TestAddClass(code, expected, New ClassData With {.Name = "B", .Position = "C"})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddClass5()
             Dim code =
 <Code>
@@ -330,7 +330,7 @@ class B : C
             TestAddClass(code, expected, New ClassData With {.Name = "B", .Position = "C", .Bases = {"C"}})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddClass6()
             Dim code =
 <Code>
@@ -353,7 +353,7 @@ class B : C
             TestAddClass(code, expected, New ClassData With {.Name = "B", .Position = "C", .Bases = "C"})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddClass7()
             Dim code =
 <Code>
@@ -376,7 +376,7 @@ class C : I
             TestAddClass(code, expected, New ClassData With {.Name = "C", .Position = "I", .Bases = {"I"}})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddClass8()
             Dim code =
 <Code>
@@ -399,7 +399,7 @@ class C : I
             TestAddClass(code, expected, New ClassData With {.Name = "C", .Position = "I", .Bases = "I"})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddClass9()
             Dim code =
 <Code>
@@ -420,7 +420,7 @@ class C : B, I
             TestAddClass(code, expected, New ClassData With {.Name = "C", .Position = "I", .Bases = "B", .ImplementedInterfaces = "I"})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddClass10()
             Dim code =
 <Code>
@@ -447,7 +447,7 @@ class C : B, IFoo, IBar
 
 #Region "AddDelegate tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddDelegate1()
             Dim code =
 <Code>
@@ -468,7 +468,7 @@ class C
             TestAddDelegate(code, expected, New DelegateData With {.Name = "D", .Type = "void"})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddDelegate2()
             Dim code =
 <Code>
@@ -493,7 +493,7 @@ delegate int D();
 
 #Region "AddEnum tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddEnum1()
             Dim code =
 <Code>
@@ -516,7 +516,7 @@ class C
             TestAddEnum(code, expected, New EnumData With {.Name = "E"})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddEnum2()
             Dim code =
 <Code>
@@ -543,7 +543,7 @@ enum E
 
 #Region "AddImport tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddImport1()
             Dim code =
 <Code>
@@ -564,7 +564,7 @@ class C
             TestAddImport(code, expected, New ImportData With {.[Namespace] = "System"})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddImport2()
             Dim code =
 <Code>
@@ -585,7 +585,7 @@ class C
             TestAddImport(code, expected, New ImportData With {.[Namespace] = "System", .Alias = "S"})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddImport3()
             Dim code =
 <Code>
@@ -609,7 +609,7 @@ class C
             TestAddImport(code, expected, New ImportData With {.[Namespace] = "System"})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddImport4()
             Dim code =
 <Code>
@@ -637,7 +637,7 @@ class C
 
 #Region "AddInterface tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddInterface1()
             Dim code =
 <Code>
@@ -660,7 +660,7 @@ class C
             TestAddInterface(code, expected, New InterfaceData With {.Name = "I"})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddInterface2()
             Dim code =
 <Code>
@@ -687,7 +687,7 @@ interface I
 
 #Region "AddNamespace tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddNamespace1()
             Dim code =
 <Code>
@@ -710,7 +710,7 @@ class C
             TestAddNamespace(code, expected, New NamespaceData With {.Name = "N"})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddNamespace2()
             Dim code =
 <Code>
@@ -733,7 +733,7 @@ class C
             TestAddNamespace(code, expected, New NamespaceData With {.Name = "N", .Position = 0})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddNamespace3()
             Dim code =
 <Code>
@@ -756,7 +756,7 @@ namespace N
             TestAddNamespace(code, expected, New NamespaceData With {.Name = "N", .Position = "C"})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddNamespace4()
             Dim code =
 <Code>$$</Code>
@@ -771,7 +771,7 @@ namespace N
             TestAddNamespace(code, expected, New NamespaceData With {.Name = "N"})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddNamespace5()
             Dim code =
 <Code>
@@ -790,7 +790,7 @@ namespace N
             TestAddNamespace(code, expected, New NamespaceData With {.Name = "N"})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddNamespace6()
             Dim code =
 <Code>
@@ -809,7 +809,7 @@ namespace N
             TestAddNamespace(code, expected, New NamespaceData With {.Name = "N", .Position = 0})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddNamespace7()
             Dim code =
 <Code>
@@ -832,7 +832,7 @@ namespace N
 
 #Region "AddStruct tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddStruct1()
             Dim code =
 <Code>
@@ -855,7 +855,7 @@ class C
             TestAddStruct(code, expected, New StructData With {.Name = "S"})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddStruct2()
             Dim code =
 <Code>
@@ -882,7 +882,7 @@ struct S
 
 #Region "Remove tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Remove1()
             Dim code =
 <Code>
@@ -898,7 +898,7 @@ class $$C
             TestRemoveChild(code, expected, "C")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Remove2()
             Dim code =
 <Code>
@@ -920,7 +920,7 @@ Class $$C
 #End Region
 
         <WorkItem(921220)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub ClosedDocument()
             Dim code =
 <Code>
@@ -946,7 +946,7 @@ class $$C
         End Sub
 
         <WorkItem(1980, "https://github.com/dotnet/roslyn/issues/1980")>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub CreateUnknownElementForConversionOperator()
             Dim oldCode =
 <Code>
@@ -997,7 +997,7 @@ class D
         End Sub
 
         <WorkItem(925569)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub ChangeClassNameAndGetNameOfChildFunction()
             Dim code =
 <Code>
@@ -1024,7 +1024,7 @@ class C
         End Sub
 
         <WorkItem(858153)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestCodeElements_PropertyAccessor()
             Dim code =
 <code>
@@ -1077,7 +1077,7 @@ class C
         End Sub
 
         <WorkItem(858153)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestCodeElements_EventAccessor()
             Dim code =
 <code>

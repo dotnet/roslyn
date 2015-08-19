@@ -25,13 +25,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
             base.VerifyWorker(code, position, expectedItemOrNull, expectedDescriptionOrNull, SourceCodeKind.Regular, usePreviousCharAsTrigger, checkForAbsence, experimental, glyph);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void IsCommitCharacterTest()
         {
             VerifyCommonCommitCharacters("class C { void M() { System.Console.$$", textTypedSoFar: "");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void IsTextualTriggerCharacterTest()
         {
             TestCommonIsTextualTriggerCharacter();
@@ -40,33 +40,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
             VerifyTextualTriggerCharacter("Abc$$ ", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SendEnterThroughToEditorTest()
         {
             VerifySendEnterThroughToEnter("class C { void M() { System.Console.$$", "Beep", sendThroughEnterEnabled: false, expected: false);
             VerifySendEnterThroughToEnter("class C { void M() { System.Console.$$", "Beep", sendThroughEnterEnabled: true, expected: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InvalidLocation1()
         {
             VerifyItemIsAbsent(@"System.Console.$$", @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InvalidLocation2()
         {
             VerifyItemIsAbsent(@"using System;
 Console.$$", @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InvalidLocation3()
         {
             VerifyItemIsAbsent(@"using System.Console.$$", @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InvalidLocation4()
         {
             VerifyItemIsAbsent(@"class C {
@@ -75,7 +75,7 @@ System.Console.$$
 #endif", @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InvalidLocation5()
         {
             VerifyItemIsAbsent(@"class C {
@@ -84,7 +84,7 @@ System.Console.$$
 #endif", @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InvalidLocation6()
         {
             VerifyItemIsAbsent(@"using System;
@@ -93,7 +93,7 @@ class C {
 // Console.$$", @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InvalidLocation7()
         {
             VerifyItemIsAbsent(@"using System;
@@ -102,7 +102,7 @@ class C {
 /*  Console.$$   */", @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InvalidLocation8()
         {
             VerifyItemIsAbsent(@"using System;
@@ -111,7 +111,7 @@ class C {
 /// Console.$$", @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InvalidLocation9()
         {
             VerifyItemIsAbsent(@"using System;
@@ -124,7 +124,7 @@ class C {
 }", @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InvalidLocation10()
         {
             VerifyItemIsAbsent(@"using System;
@@ -135,19 +135,19 @@ class C {
         /**  Console.$$   */", @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InvalidLocation11()
         {
             VerifyItemIsAbsent(AddUsingDirectives("using System;", AddInsideMethod("string s = \"Console.$$")), @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InvalidLocation12()
         {
             VerifyItemIsAbsent(@"[assembly: System.Console.$$]", @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InvalidLocation13()
         {
             var content = @"[Console.$$]
@@ -156,13 +156,13 @@ class CL {}";
             VerifyItemIsAbsent(AddUsingDirectives("using System;", content), @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InvalidLocation14()
         {
             VerifyItemIsAbsent(AddUsingDirectives("using System;", @"class CL<[Console.$$]T> {}"), @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InvalidLocation15()
         {
             var content = @"class CL {
@@ -172,13 +172,13 @@ class CL {}";
             VerifyItemIsAbsent(AddUsingDirectives("using System;", content), @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InvalidLocation16()
         {
             VerifyItemIsAbsent(AddUsingDirectives("using System;", @"class CL<Console.$$"), @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InvalidLocation17()
         {
             VerifyItemIsAbsent(@"using System;
@@ -191,7 +191,7 @@ class Program {
 }", @"Main");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InvalidLocation18()
         {
             VerifyItemIsAbsent(@"using System;
@@ -205,7 +205,7 @@ class Program {
 }", @"Main");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InvalidLocation19()
         {
             VerifyItemIsAbsent(@"using System;
@@ -218,7 +218,7 @@ class Program {
 }", @"SByte");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InsideMethodBody()
         {
             VerifyItemExists(@"using System;
@@ -229,13 +229,13 @@ class C {
         Console.$$", @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void UsingDirectiveGlobal()
         {
             VerifyItemExists(@"using global::$$;", @"System");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InsideAccessor()
         {
             VerifyItemExists(@"using System;
@@ -248,7 +248,7 @@ class C {
             Console.$$", @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void FieldInitializer()
         {
             VerifyItemExists(@"using System;
@@ -257,7 +257,7 @@ class C {
     int i = Console.$$", @"Beep");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void FieldInitializer2()
         {
             VerifyItemExists(@"
@@ -265,7 +265,7 @@ class C {
     object i = $$", @"System");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ImportedProperty()
         {
             VerifyItemExists(@"using System.Collections.Generic;
@@ -276,7 +276,7 @@ class C {
        new List<string>().$$", @"Capacity");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void FieldInitializerWithProperty()
         {
             VerifyItemExists(@"using System.Collections.Generic;
@@ -284,7 +284,7 @@ class C {
     int i =  new List<string>().$$", @"Count");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void StaticMethods()
         {
             VerifyItemExists(@"using System;
@@ -296,13 +296,13 @@ class C {
 ", @"Method");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void EndOfFile()
         {
             VerifyItemExists(@"static class E { public static void Method() { E.$$", @"Method");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InheritedStaticFields()
         {
             var code = @"class A { public static int X; }

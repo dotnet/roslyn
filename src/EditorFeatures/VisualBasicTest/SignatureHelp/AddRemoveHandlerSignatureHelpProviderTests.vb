@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
             Return New AddRemoveHandlerSignatureHelpProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationForAddHandler()
             Dim markup = <a><![CDATA[
 Class C
@@ -36,7 +36,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationForAddHandlerAfterComma()
             Dim markup = <a><![CDATA[
 Class C
@@ -58,7 +58,7 @@ End Class
         End Sub
 
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationForRemoveHandler()
             Dim markup = <a><![CDATA[
 Class C
@@ -78,7 +78,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationForRemoveHandlerAfterComma()
             Dim markup = <a><![CDATA[
 Class C

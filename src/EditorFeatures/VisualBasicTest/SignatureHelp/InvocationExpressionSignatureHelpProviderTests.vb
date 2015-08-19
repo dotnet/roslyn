@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
 
 #Region "Regular tests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationWithoutParameters()
             Dim markup = <a><![CDATA[
 Class C
@@ -36,7 +36,7 @@ End Class
         End Sub
 
         <WorkItem(958593)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationInsideStringLiteral()
             Dim markup = <a><![CDATA[
 Class C
@@ -52,7 +52,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationWithoutParametersMethodXmlComments()
             Dim markup = <a><![CDATA[
 Class C
@@ -71,7 +71,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationWithParametersOn1()
             Dim markup = <a><![CDATA[
 Class C
@@ -87,7 +87,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationWithParametersXmlCommentsOn1()
             Dim markup = <a><![CDATA[
 Class C
@@ -108,7 +108,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationWithParametersOn2()
             Dim markup = <a><![CDATA[
 Class C
@@ -124,7 +124,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationWithParametersXmlCommentsOn2()
             Dim markup = <a><![CDATA[
 Class C
@@ -145,7 +145,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationWithoutClosingParen()
             Dim markup = <a><![CDATA[
 Class C
@@ -161,7 +161,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationWithoutClosingParenWithParametersOn1()
             Dim markup = <a><![CDATA[
 Class C
@@ -177,7 +177,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationWithoutClosingParenWithParametersOn2()
             Dim markup = <a><![CDATA[
 Class C
@@ -194,7 +194,7 @@ End Class
         End Sub
 
         <WorkItem(968188)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationOnBaseExpression_ProtectedAccessibility()
             Dim markup = <a><![CDATA[
 Imports System
@@ -221,7 +221,7 @@ End Class
         End Sub
 
         <WorkItem(968188)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationOnBaseExpression_AbstractBase()
             Dim markup = <a><![CDATA[
 Imports System
@@ -248,7 +248,7 @@ End Class
         End Sub
 
         <WorkItem(968188)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationOnThisExpression_ProtectedAccessibility()
             Dim markup = <a><![CDATA[
 Imports System
@@ -272,7 +272,7 @@ End Class
         End Sub
 
         <WorkItem(968188)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationOnThisExpression_ProtectedAccessibility_Overridden()
             Dim markup = <a><![CDATA[
 Imports System
@@ -298,7 +298,7 @@ End Class
         End Sub
 
         <WorkItem(968188)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationOnThisExpression_ProtectedAccessibility_AbstractBase()
             Dim markup = <a><![CDATA[
 Imports System
@@ -322,7 +322,7 @@ End Class
         End Sub
 
         <WorkItem(968188)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationOnThisExpression_ProtectedAccessibility_AbstractBase_Overridden()
             Dim markup = <a><![CDATA[
 Imports System
@@ -348,7 +348,7 @@ End Class
         End Sub
 
         <WorkItem(968188)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationOnBaseExpression_ProtectedFriendAccessibility()
             Dim markup = <a><![CDATA[
 Imports System
@@ -374,7 +374,7 @@ End Class
         End Sub
 
         <WorkItem(968188)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationOnBaseMember_ProtectedAccessibility_ThroughType()
             Dim markup = <a><![CDATA[
 Imports System
@@ -398,7 +398,7 @@ End Class
         End Sub
 
         <WorkItem(968188)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationOnBaseExpression_PrivateAccessibility()
             Dim markup = <a><![CDATA[
 Imports System
@@ -422,7 +422,7 @@ End Class
         End Sub
 
         <WorkItem(968188)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationOnBaseExpression_Constructor()
             Dim markup = <a><![CDATA[
 Imports System
@@ -445,7 +445,7 @@ End Class
         End Sub
 
         <WorkItem(968188), WorkItem(544989)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationOnBaseExpression_Finalizer()
             Dim markup = <a><![CDATA[
 Class C
@@ -460,7 +460,7 @@ End Class]]></a>.Value
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationOnSubLambda()
             Dim markup = <a><![CDATA[
 Imports System
@@ -479,7 +479,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationOnFunctionLambda()
             Dim markup = <a><![CDATA[
 Imports System
@@ -498,7 +498,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationOnLambdaInsideAnonType()
             Dim markup = <a><![CDATA[
 Class C
@@ -515,7 +515,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationOnMemberAccessExpression()
             Dim markup = <a><![CDATA[
 Class C
@@ -534,7 +534,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestExtensionMethod1()
             Dim markup = <a><![CDATA[
 Imports System.Runtime.CompilerServices
@@ -561,7 +561,7 @@ End Module
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestProperty()
             Dim markup = <a><![CDATA[
 Class C
@@ -579,7 +579,7 @@ End Class]]></a>.Value
         End Sub
 
         <WorkItem(544068)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestExtension()
             Dim markup = <a><![CDATA[
 Imports System.Runtime.CompilerServices
@@ -606,7 +606,7 @@ End Module
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationOnAnonymousType()
             Dim markup = <a><![CDATA[
 Imports System.Collections.Generic
@@ -639,7 +639,7 @@ $"List(Of 'a).Add(item As 'a)
         End Sub
 
         <WorkItem(545118)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestStatic1()
             Dim markup = <a><![CDATA[
 Class C
@@ -665,7 +665,7 @@ End Class
         End Sub
 
         <WorkItem(545118)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestStatic2()
             Dim markup = <a><![CDATA[
 Class C
@@ -692,7 +692,7 @@ End Class
         End Sub
 
         <WorkItem(539111)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestFilteringInOverloadedGenericMethods()
             Dim markup = <a><![CDATA[
 Class C
@@ -734,7 +734,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub AwaitableItem()
             Dim markup = <a><![CDATA[
 Imports System.Threading.Tasks
@@ -758,7 +758,7 @@ End Class
             TestSignatureHelpWithMscorlib45(markup, expectedOrderedItems, LanguageNames.VisualBasic)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub AwaitableItem2()
             Dim markup = <a><![CDATA[
 Imports System.Threading.Tasks
@@ -786,7 +786,7 @@ End Class
 
 #Region "Default Properties"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestDefaultProperty()
             Dim markup = <a><![CDATA[
 Class C
@@ -818,7 +818,7 @@ End Class
 
 #Region "Current Parameter Name"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestCurrentParameterName()
 
             Dim markup = <a><![CDATA[
@@ -836,7 +836,7 @@ End Class
 
 #Region "Trigger tests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationOnTriggerParens()
 
             Dim markup = <a><![CDATA[
@@ -853,7 +853,7 @@ End Class
             Test(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationOnTriggerComma()
 
             Dim markup = <a><![CDATA[
@@ -870,7 +870,7 @@ End Class
             Test(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestNoInvocationOnSpace()
 
             Dim markup = <a><![CDATA[
@@ -886,7 +886,7 @@ End Class
             Test(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub ConditionalIndexing()
             Dim markup = <a><![CDATA[
 Class C
@@ -903,7 +903,7 @@ End Class
             Test(markup, {expected}, experimental:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub ConditionalMethodCall()
             Dim markup = <a><![CDATA[
 Class C
@@ -921,7 +921,7 @@ End Class
             Test(markup, expected, experimental:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub ConditionalDelegateInvocation()
             Dim markup = <a><![CDATA[
 Imports System
@@ -938,7 +938,7 @@ End Class
             Test(markup, expected, experimental:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub NonIdentifierConditionalIndexer()
             Dim expected = {New SignatureHelpTestItem("String(index As Integer) As Char")}
 
@@ -979,7 +979,7 @@ End Class
 ", {New SignatureHelpTestItem("System.Collections.Generic.List(Of Integer)(index As Integer) As Integer")})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TriggerCharacterInComment01()
             Dim markup = "
 Class C
@@ -991,7 +991,7 @@ End Class
             Test(markup, Enumerable.Empty(Of SignatureHelpTestItem)(), usePreviousCharAsTrigger:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TriggerCharacterInString01()
             Dim markup = "
 Class C
@@ -1003,7 +1003,7 @@ End Class
             Test(markup, Enumerable.Empty(Of SignatureHelpTestItem)(), usePreviousCharAsTrigger:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestTriggerCharacters()
             Dim expectedTriggerCharacters() As Char = {","c, "("c}
             Dim unexpectedTriggerCharacters() As Char = {" "c, "["c, "<"c}
@@ -1016,7 +1016,7 @@ End Class
 #Region "EditorBrowsable tests"
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Method_BrowsableStateAlways()
 
             Dim markup = <Text><![CDATA[
@@ -1046,7 +1046,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Method_BrowsableStateNever()
 
             Dim markup = <Text><![CDATA[
@@ -1077,7 +1077,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Method_BrowsableStateAdvanced()
 
             Dim markup = <Text><![CDATA[
@@ -1117,7 +1117,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Method_Overloads_OneBrowsableAlways_OneBrowsableNever()
 
             Dim markup = <Text><![CDATA[
@@ -1157,7 +1157,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Method_Overloads_BothBrowsableNever()
 
             Dim markup = <Text><![CDATA[
@@ -1189,7 +1189,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub OverriddenSymbolsFilteredFromSigHelp()
 
             Dim markup = <Text><![CDATA[
@@ -1226,7 +1226,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_BrowsableStateAlwaysMethodInBrowsableStateNeverClass()
 
             Dim markup = <Text><![CDATA[
@@ -1257,7 +1257,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_BrowsableStateAlwaysMethodInBrowsableStateNeverBaseClass()
 
             Dim markup = <Text><![CDATA[
@@ -1296,7 +1296,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_HidingWithDifferentParameterList()
 
             Dim markup = <Text><![CDATA[
@@ -1332,7 +1332,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_BrowsableStateNeverMethodsInBaseClass()
 
             Dim markup = <Text><![CDATA[
@@ -1363,7 +1363,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BothBrowsableAlways()
 
             Dim markup = <Text><![CDATA[
@@ -1396,7 +1396,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BrowsableMixed1()
 
             Dim markup = <Text><![CDATA[
@@ -1434,7 +1434,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BrowsableMixed2()
 
             Dim markup = <Text><![CDATA[
@@ -1471,7 +1471,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BothBrowsableNever()
 
             Dim markup = <Text><![CDATA[
@@ -1507,7 +1507,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_GenericType2CausingMethodSignatureEquality_BothBrowsableAlways()
 
             Dim markup = <Text><![CDATA[
@@ -1541,7 +1541,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_GenericType2CausingMethodSignatureEquality_BrowsableMixed()
 
             Dim markup = <Text><![CDATA[
@@ -1578,7 +1578,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_GenericType2CausingMethodSignatureEquality_BothBrowsableNever()
 
             Dim markup = <Text><![CDATA[
@@ -1614,7 +1614,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_DefaultProperty_BrowsableStateAlways()
 
             Dim markup = <Text><![CDATA[
@@ -1651,7 +1651,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_DefaultProperty_BrowsableStateNever()
 
             Dim markup = <Text><![CDATA[
@@ -1688,7 +1688,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_DefaultProperty_BrowsableStateAdvanced()
 
             Dim markup = <Text><![CDATA[
@@ -1737,7 +1737,7 @@ End Class
 #End Region
 
         <WorkItem(543038)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub SignatureHelpWhenALambdaExpressionDeclaredAndInvokedAtTheSameTime()
             Dim markup = <text>
 Class C
@@ -1756,7 +1756,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub MethodUnavailableInOneLinkedFile()
             Dim markup = <text><![CDATA[<Workspace>
                              <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="FOO=true">
@@ -1781,7 +1781,7 @@ end class
             VerifyItemWithReferenceWorker(markup, {expectedDescription}, False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub ExcludeLinkedFilesWithInactiveRegions()
             Dim markup = <text><![CDATA[<Workspace>
                              <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="FOO=true,BAR=true">
@@ -1813,7 +1813,7 @@ class C
 
         <WorkItem(699, "https://github.com/dotnet/roslyn/issues/699")>
         <WorkItem(1068424)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestGenericParameters1()
             Dim markup = <a><![CDATA[
 Class C
@@ -1840,7 +1840,7 @@ End Class
 
         <WorkItem(699, "https://github.com/dotnet/roslyn/issues/699")>
         <WorkItem(1068424)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestGenericParameters2()
             Dim markup = <a><![CDATA[
 Class C
@@ -1866,7 +1866,7 @@ End Class
         End Sub
 
         <WorkItem(3537, "https://github.com/dotnet/roslyn/issues/3537")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestEscapedIdentifiers()
             Dim markup = "
 Class C
@@ -1880,7 +1880,7 @@ End Class
         End Sub
 
         <WorkItem(4144, "https://github.com/dotnet/roslyn/issues/4144")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestSigHelpIsVisibleOnInaccessibleItem()
             Dim markup = "
 Imports System.Collections.Generic

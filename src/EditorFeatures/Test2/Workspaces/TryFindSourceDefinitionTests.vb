@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Return snapshot.Projects.Single(Function(p) p.AssemblyName = assemblyName)
         End Function
 
-        <Fact>
+        <WpfFact>
         Public Sub FindTypeInCSharpToVisualBasicProject()
             Dim workspaceDefinition =
 <Workspace>
@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub FindTypeInVisualBasicToCSharpProject()
             Dim workspaceDefinition =
 <Workspace>
@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(1068631)>
         Public Sub FindMethodInVisualBasicToCSharpPortableProject()
             Dim workspaceDefinition =
@@ -138,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")>
         Public Sub FindMethodInVisualBasicToCSharpProject_RefKindRef()
             Dim workspaceDefinition =
@@ -176,7 +176,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")>
         Public Sub FindMethodInVisualBasicToCSharpProject_RefKindOut()
             Dim workspaceDefinition =

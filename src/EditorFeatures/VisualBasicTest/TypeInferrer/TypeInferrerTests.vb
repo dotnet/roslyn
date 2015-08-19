@@ -61,137 +61,137 @@ End Class</text>.Value.Replace("$", text)
             Return Nothing
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestConditional1()
             TestInMethod("Dim q = If([|Foo()|], 1, 2)", "System.Boolean")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestConditional2()
             TestInMethod("Dim q = If(a, [|Foo()|], 2)", "System.Int32")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestConditional3()
             TestInMethod("Dim q = If(a, """", [|Foo()|])", "System.String")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestVariableDeclarator1()
             TestInMethod("Dim q As Integer = [|Foo()|]", "System.Int32")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestVariableDeclarator2()
             TestInMethod("Dim q = [|Foo()|]", "System.Object")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(542834)>
         Public Sub TestCoalesce1()
             TestInMethod("Dim q = If([|Foo()|], 1)", "System.Int32?")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(542834)>
         Public Sub TestCoalesce2()
             TestInMethod(<text>Dim b as Boolean?
     Dim q = If(b, [|Foo()|])</text>.Value, "System.Boolean")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(542834)>
         Public Sub TestCoalesce3()
             TestInMethod(<text>Dim s As String
     Dim q = If(s, [|Foo()|])</text>.Value, "System.String")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(542834)>
         Public Sub TestCoalesce4()
             TestInMethod("Dim q = If([|Foo()|], String.Empty)", "System.String")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestBinaryExpression1()
             TestInMethod(<text>Dim s As String
     Dim q = s + [|Foo()|]</text>.Value, "System.String")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestBinaryExpression1_1()
             TestInMethod(<text>Dim s As String
     Dim q = s &amp; [|Foo()|]</text>.Value, "System.String")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestBinaryExpression2()
             TestInMethod(<text>Dim s
     Dim q = s OrElse [|Foo()|]</text>.Value, "System.Boolean")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestBinaryOperator1()
             TestInMethod("Dim q = x << [|Foo()|]", "System.Int32")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestBinaryOperator2()
             TestInMethod("Dim q = x >> [|Foo()|]", "System.Int32")
         End Sub
 
-        <Fact, WorkItem(817192), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, WorkItem(817192), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestBinaryOperator3()
             TestInMethod("Dim q : q <<= [|Foo()|]", "System.Int32")
         End Sub
 
-        <Fact, WorkItem(817192), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, WorkItem(817192), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestBinaryOperator4()
             TestInMethod("Dim q : q >>= [|Foo()|]", "System.Int32")
         End Sub
 
-        <Fact, WorkItem(817192), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, WorkItem(817192), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestBinaryOperator5()
             TestInMethod("Dim q : [|somefield|] <<= q", "System.Int32", testPosition:=False)
         End Sub
 
-        <Fact, WorkItem(817192), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, WorkItem(817192), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestBinaryOperator6()
             TestInMethod("Dim q : [|somefield|] >>= q", "System.Int32", testPosition:=False)
         End Sub
 
-        <Fact, WorkItem(817192), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, WorkItem(817192), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestBinaryOperator7()
             TestInMethod("Dim q As String : q >>= [|Foo()|]", "System.Int32")
         End Sub
 
-        <Fact, WorkItem(817192), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, WorkItem(817192), Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestBinaryOperator8()
             TestInMethod("Dim q As String : [|somefield|] >>= q", "System.Int32", testPosition:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestReturn1()
             TestInClass("Function M() As Integer : Return [|Foo()|] : End Function", "System.Int32")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestReturn2()
             TestInMethod("Return [|Foo()|]", "Global.System.Void")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestReturn3()
             TestInClass("Property Prop As Integer : Get : Return [|Foo()|] : End Get : End Property", "System.Int32")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(827897)>
         Public Sub TestYieldReturn()
             TestInClass("Iterator Function M() As System.Collections.Generic.IEnumerable(Of Integer) : Yield [|abc|] : End Function", "System.Int32")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(529479)>
         Public Sub TestReturnInLambda()
             TestInMethod(<Code>Dim F As System.Func(Of String, Integer) = Function (s)
@@ -199,7 +199,7 @@ End Class</text>.Value.Replace("$", text)
                                                                    End Function</Code>.Value, "System.Int32")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(529479)>
         Public Sub TestInsideLambda2()
             Dim text = <text>Imports System
@@ -211,87 +211,87 @@ End Class</text>.Value
             Test(text, "System.Int32")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(529479)>
         Public Sub TestLambda()
             TestInMethod("Dim f As System.Func(Of String, Integer) = Function (s) [|Foo()|]", "System.Int32")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestThrow()
             TestInMethod("Throw [|Foo()|]", "Global.System.Exception")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestCatch()
             TestInMethod("Try : Catch e As [|Foo|] : End Try", "Global.System.Exception")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestIf()
             TestInMethod("If [|Foo()|] : End If", "System.Boolean")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestWhile()
             TestInMethod("While [|Foo()|] : End While", "System.Boolean")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestDo()
             TestInMethod("Do : Loop While [|Foo()|]", "System.Boolean")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(542835)>
         Public Sub TestFor2()
             TestInMethod("For i As Integer = 1 To 2 Step [|Foo|]", "System.Int32")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestUsing1()
             TestInMethod("Using [|Foo()|] : End Using", "Global.System.IDisposable")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestUsing2()
             TestInMethod("Using i As Integer = [|Foo()|] : End Using", "System.Int32")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(544611)>
         Public Sub TestUsing3()
             TestInMethod("Using v = [|Foo()|] : End Using", "Global.System.IDisposable")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(542838)>
         Public Sub TestForEach()
             TestInMethod("For Each v As Integer in [|Foo()|] : Next", "Global.System.Collections.Generic.IEnumerable(Of System.Int32)")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestPrefixExpression1()
             TestInMethod("Dim q = +[|Foo()|]", "System.Int32")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestPrefixExpression2()
             TestInMethod("Dim q = -[|Foo()|]", "System.Int32")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(542839)>
         Public Sub TestPrefixExpression3()
             TestInMethod("Dim q = Not [|Foo()|] And 5", "System.Int32")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestPrefixExpression4()
             TestInMethod("Dim q = Not [|Foo()|]", "System.Boolean")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(542837)>
         Public Sub TestArrayRankSpecifier1()
             TestInMethod("Dim q As String() = New String([|Foo()|])", "System.Char()")
@@ -303,78 +303,78 @@ End Class</text>.Value
             TestInMethod("Dim q As String() = New String([|Foo()|]) { }", "System.Int32")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestSwitch1()
             TestInMethod("Select Case [|Foo()|] : End Select", "System.Int32")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestSwitch2()
             TestInMethod("Select Case [|Foo()|] : Case Else: End Select", "System.Int32")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestSwitch3()
             TestInMethod("Select Case [|Foo()|] : Case ""a"": End Select", "System.String")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestMethodCall1()
             TestInMethod("Bar([|Foo()|])", "System.Object")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestMethodCall2()
             TestInClass("Sub M() : Bar([|Foo()|]) : End Sub : Sub Bar(i As Integer) : End Sub", "System.Int32")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestMethodCall3()
             TestInClass("Sub M() : Bar([|Foo()|]) : End Sub : Sub Bar() : End Sub", "System.Object")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestMethodCall4()
             TestInClass("Sub M() : Bar([|Foo()|]) : End Sub : Sub Bar(i As Integer, s As String) : End Sub", "System.Int32")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestMethodCall5()
             TestInClass("Sub M() : Bar(s:=[|Foo()|]) : End Sub : Sub Bar(i As Integer, s As String) : End Sub", "System.String")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestConstructorCall1()
             TestInMethod("Dim l = New C([|Foo()|])", "System.Object")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestConstructorCall2()
             TestInClass("Sub M() : Dim l = New C([|Foo()|]) : End Sub : Sub New(i As Integer) : End Sub", "System.Int32")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestConstructorCall3()
             TestInClass("Sub M() : Dim l = New C([|Foo()|]) : End Sub : Sub New() : End Sub", "System.Object")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestConstructorCall4()
             TestInClass("Sub M() : Dim l = New C([|Foo()|]) : End Sub : Sub New(i As Integer, s As String) : End Sub", "System.Int32")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestConstructorCall5()
             TestInClass("Sub M() : Dim l = New C(s:=[|Foo()|]) : End Sub : Sub New(i As Integer, s As String) : End Sub", "System.String")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(542837)>
         Public Sub TestIndexAccess1()
             TestInMethod("Dim i As String() : Dim j = i([|Foo()|])", "System.Int32")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(529480)>
         <Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestCollectionInitializer1()
@@ -388,7 +388,7 @@ End Class</text>.Value
             Test(text, "System.Int32", testPosition:=False)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(529480)>
         <Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestCollectionInitializer2()
@@ -403,7 +403,7 @@ End Class</text>.Value
             Test(text, "System.Int32", testPosition:=False)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(529480)>
         <Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestCollectionInitializer3()
@@ -418,7 +418,7 @@ End Class</text>.Value
             Test(text, "System.String", testPosition:=False)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(529480)>
         <Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestCustomCollectionInitializerAddMethod1()
@@ -444,7 +444,7 @@ End Class
             Test(text, "System.Int32", testPosition:=False)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(529480)>
         <Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestCustomCollectionInitializerAddMethod2()
@@ -469,7 +469,7 @@ End Class</text>.Value
             Test(text, "System.Boolean", testPosition:=False)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(529480)>
         <Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestCustomCollectionInitializerAddMethod3()
@@ -494,7 +494,7 @@ End Class</text>.Value
             Test(text, "System.String", testPosition:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestArrayInference1()
             ' TODO: review this
             Dim text = <text>
@@ -506,7 +506,7 @@ End Class</text>.Value
             Test(text, "Global.A")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestArrayInference2()
             ' TODO: review this
             Dim text = <text>
@@ -518,7 +518,7 @@ End Class</text>.Value
             Test(text, "Global.A()")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestArrayInference3()
             ' TODO: review this
             Dim text = <text>
@@ -530,7 +530,7 @@ End Class</text>.Value
             Test(text, "Global.A()")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestDynamic1()
             Dim text = <text>
 Class C
@@ -541,7 +541,7 @@ End Class</text>.Value
             Test(text, "System.Object")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(553584)>
         Public Sub TestAwaitTaskOfT()
             Dim text = <text>
@@ -555,7 +555,7 @@ End Class</text>.Value
             Test(text, "Global.System.Threading.Tasks.Task(Of System.Int32)")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(553584)>
         Public Sub TestAwaitTaskOfTaskOfT()
             Dim text = <text>
@@ -569,7 +569,7 @@ End Class</text>.Value
             Test(text, "Global.System.Threading.Tasks.Task(Of Global.System.Threading.Tasks.Task(Of System.Int32))")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(553584)>
         Public Sub TestAwaitTask()
             Dim text = <text>
@@ -583,13 +583,13 @@ End Class</text>.Value
             Test(text, "Global.System.Threading.Tasks.Task")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(827897)>
         Public Sub TestReturnFromAsyncTaskOfT()
             TestInClass("Async Function M() As System.Threading.Tasks.Task(Of Integer) : Return [|abc|] : End Function", "System.Int32")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(530816)>
         Public Sub TestNamedFieldInitializer()
             Dim text = <text>
@@ -611,7 +611,7 @@ End Class
             Test(text, "Global.Color")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(853840)>
         Public Sub TestAttributeArguments1()
             Dim text = <text>
@@ -629,7 +629,7 @@ End Class
             Test(text, "Global.System.DayOfWeek")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(853840)>
         Public Sub TestAttributeArguments2()
             Dim text = <text>
@@ -647,7 +647,7 @@ End Class
             Test(text, "System.Double")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(853840)>
         Public Sub TestAttributeArguments3()
             Dim text = <text>
@@ -665,35 +665,35 @@ End Class
             Test(text, "System.String")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(994388)>
         Public Sub TestCatchFilterClause()
             Dim text = "Try : Catch ex As Exception When [|foo()|]"
             TestInMethod(text, "System.Boolean")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(994388)>
         Public Sub TestCatchFilterClause1()
             Dim text = "Try : Catch ex As Exception When [|foo|]"
             TestInMethod(text, "System.Boolean")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(994388)>
         Public Sub TestCatchFilterClause2()
             Dim text = "Try : Catch ex As Exception When [|foo|].N"
             TestInMethod(text, "System.Object", testPosition:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(1041260)>
         Public Sub ConditionalInvocation()
             Dim text = "Dim args As String() : args?([|foo|])"
             TestInMethod(text, "System.Int32", testPosition:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
         Public Sub TestAwaitExpressionWithChainingMethod()
             Dim text = "Imports System
@@ -707,7 +707,7 @@ End Module"
             Test(text, "Global.System.Threading.Tasks.Task(Of System.Boolean)", testPosition:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
         Public Sub TestAwaitExpressionWithChainingMethod2()
             Dim text = "Imports System
@@ -721,7 +721,7 @@ End Module"
             Test(text, "Global.System.Threading.Tasks.Task(Of System.Boolean)", testPosition:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(3518, "https://github.com/dotnet/roslyn/issues/3518")>
         Public Sub NoTypeAfterInvocationWithCompletionListTagTypeAsFirstParameter()
             Dim text = "Class C

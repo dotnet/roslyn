@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
             Return New BinaryConditionalExpressionSignatureHelpProvider
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationForIf()
             Dim markup = <a><![CDATA[
 Class C
@@ -40,7 +40,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationForIfAfterComma()
             Dim markup = <a><![CDATA[
 Class C

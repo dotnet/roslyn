@@ -9,32 +9,32 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class AliasKeywordRecommenderTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AliasAfterLibNameInSub()
             VerifyRecommendationsAreExactly(<ClassDeclaration>Declare Sub foo Lib "Foo" |</ClassDeclaration>, "Alias")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AliasAfterLibNameInFunction()
             VerifyRecommendationsAreExactly(<ClassDeclaration>Declare Function foo Lib "Foo" |</ClassDeclaration>, "Alias")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AliasNotAfterLibKeyword()
             VerifyRecommendationsAreExactly(<ClassDeclaration>Declare Sub foo Lib |</ClassDeclaration>, Array.Empty(Of String)())
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NothingAfterBrokenAlias()
             VerifyRecommendationsAreExactly(<ClassDeclaration>Declare Sub foo Lib "Foo" Alais |</ClassDeclaration>, Array.Empty(Of String)())
         End Sub
 
         <WorkItem(530953)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoAliasAfterEol()
             VerifyRecommendationsMissing(
 <ClassDeclaration>Declare Function foo Lib "Foo" 
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
         End Sub
 
         <WorkItem(530953)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AliasAfterExplicitLineContinuation()
             VerifyRecommendationsAreExactly(
 <ClassDeclaration>Declare Function foo Lib "Foo" _

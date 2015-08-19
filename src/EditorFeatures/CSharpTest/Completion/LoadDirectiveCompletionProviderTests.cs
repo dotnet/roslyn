@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
             VerifyItemIsAbsent(markup, expected, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Interactive, usePreviousCharAsTrigger: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NetworkPath()
         {
             VerifyItemExistsInInteractive(
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
                 @"\\");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NetworkPathAfterInitialBackslash()
         {
             VerifyItemExistsInInteractive(
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
                 @"\\");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void UpOneDirectoryNotShownAtRoot()
         {
             // after so many ".." we should be at the root drive an should no longer suggest the parent.  we can determine

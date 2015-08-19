@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 {
     public class RenameTrackingTaggerProviderTests
     {
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingNotOnCreation()
         {
@@ -28,7 +28,7 @@ class C$$
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingNotInBlankFile()
         {
@@ -40,7 +40,7 @@ class C$$
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingTypingAtEnd()
         {
@@ -55,7 +55,7 @@ class C$$
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingTypingAtBeginning()
         {
@@ -70,7 +70,7 @@ class $$C
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingTypingInMiddle()
         {
@@ -85,7 +85,7 @@ class AB$$CD
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingDeleteFromEnd()
         {
@@ -100,7 +100,7 @@ class ABC$$
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingDeleteFromBeginning()
         {
@@ -115,7 +115,7 @@ class $$ABC
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingDeleteFromMiddle()
         {
@@ -130,7 +130,7 @@ class AB$$C
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingNotOnClassKeyword()
         {
@@ -145,7 +145,7 @@ class$$ ABCD
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingNotAtMethodArgument()
         {
@@ -168,7 +168,7 @@ class ABCD
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingSessionContinuesAfterViewingTag()
         {
@@ -186,7 +186,7 @@ class C$$
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingNotInString()
         {
@@ -205,7 +205,7 @@ class C
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingHandlesAtSignAsCSharpEscape()
         {
@@ -220,7 +220,7 @@ class $$C
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingHandlesSquareBracketsAsVisualBasicEscape()
         {
@@ -238,7 +238,7 @@ End Class";
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingNotOnSquareBracketsInCSharp()
         {
@@ -257,7 +257,7 @@ class $$C
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingHandlesUnicode()
         {
@@ -272,7 +272,7 @@ class C$$
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingThroughKeyword()
         {
@@ -293,7 +293,7 @@ class i$$
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingThroughIllegalStartCharacter()
         {
@@ -312,7 +312,7 @@ class $$abc
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingOnBothSidesOfIdentifier()
         {
@@ -331,7 +331,7 @@ class $$Def
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingThroughSameIdentifier()
         {
@@ -352,7 +352,7 @@ class C$$
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingThroughEmptyString()
         {
@@ -370,7 +370,7 @@ class C$$
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingThroughEmptyStringWithCaretMove()
         {
@@ -390,7 +390,7 @@ class C$$
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingNotThroughEmptyStringResumeOnDifferentSpace()
         {
@@ -410,7 +410,7 @@ class  C$$
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingReplaceIdentifierSuffix()
         {
@@ -426,7 +426,7 @@ class Identifi[|er|]$$
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingReplaceIdentifierPrefix()
         {
@@ -442,7 +442,7 @@ class $$[|Ident|]ifier
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingReplaceIdentifierCompletely()
         {
@@ -458,7 +458,7 @@ class [|Cat|]$$
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingNotAfterInvoke()
         {
@@ -475,7 +475,7 @@ class Cat$$
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingInvokeAndChangeBackToOriginal()
         {
@@ -495,7 +495,7 @@ class Cat$$
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingUndoOnceAndStartNewSession()
         {
@@ -519,7 +519,7 @@ class Cat$$
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingUndoTwiceAndContinueSession()
         {
@@ -543,7 +543,7 @@ class Cat$$
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingRedoAlwaysClearsState()
         {
@@ -570,7 +570,7 @@ class Cat$$
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingUndoTwiceRedoTwiceUndoStillWorks()
         {
@@ -602,7 +602,7 @@ class Cat$$
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingOnReference_ParameterAsArgument()
         {
@@ -621,7 +621,7 @@ class C
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingOnReference_ParameterAsNamedArgument()
         {
@@ -640,7 +640,7 @@ class C
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingOnReference_Namespace()
         {
@@ -662,7 +662,7 @@ namespace NS
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingNotifiesThirdPartiesOfRenameOperation()
         {
@@ -694,7 +694,7 @@ class Cats
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingHonorsThirdPartyRequestsForCancellationBeforeRename()
         {
@@ -728,7 +728,7 @@ class Cat
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingAlertsAboutThirdPartyRequestsForCancellationAfterRename()
         {
@@ -761,7 +761,7 @@ class Cats
             }
         }
 
-        [Fact, WorkItem(530469)]
+        [WpfFact, WorkItem(530469)]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingNotWhenStartedFromTextualWordInTrivia()
         {
@@ -778,7 +778,7 @@ End Module";
             }
         }
 
-        [Fact, WorkItem(530495)]
+        [WpfFact, WorkItem(530495)]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingNotWhenCaseCorrectingReference()
         {
@@ -797,7 +797,7 @@ End Module";
             }
         }
 
-        [Fact, WorkItem(599508)]
+        [WpfFact, WorkItem(599508)]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingNotWhenNewIdentifierReferenceBinds()
         {
@@ -819,7 +819,7 @@ End Module";
             }
         }
 
-        [Fact, WorkItem(530400)]
+        [WpfFact, WorkItem(530400)]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingNotWhenDeclaringEnumMembers()
         {
@@ -835,7 +835,7 @@ End Enum";
             }
         }
 
-        [Fact, WorkItem(1028072)]
+        [WpfFact, WorkItem(1028072)]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingDoesNotThrowAggregateException()
         {
@@ -859,7 +859,7 @@ End Enum";
             Assert.Throws<AggregateException>(() => RenameTrackingTaggerProvider.WaitForIsRenamableIdentifier(source.Task, CancellationToken.None));
         }
 
-        [Fact, WorkItem(1063943)]
+        [WpfFact, WorkItem(1063943)]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingNotFromReferenceWithWrongNumberOfArguments()
         {
@@ -879,7 +879,7 @@ class C
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void CancelRenameTracking()
         {
@@ -896,7 +896,7 @@ class C$$
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingNotWhenDeclaringEnumMembersEvenAfterCancellation()
         {
@@ -915,7 +915,7 @@ End Enum";
             }
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(540, "https://github.com/dotnet/roslyn/issues/540")]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingDoesNotProvideDiagnosticAfterCancellation()
@@ -938,7 +938,7 @@ class C$$
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTracking_Nameof_FromMethodGroupReference()
         {
@@ -978,7 +978,7 @@ class C
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTracking_Nameof_FromMethodDefinition_NoOverloads()
         {
@@ -1010,7 +1010,7 @@ class C
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTracking_Nameof_FromMethodDefinition_WithOverloads()
         {
@@ -1050,7 +1050,7 @@ class C
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTracking_Nameof_FromReferenceToMetadata_NoTag()
         {
@@ -1069,7 +1069,7 @@ class C
             }
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(762964)]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTracking_NoTagWhenFirstEditChangesReferenceToAnotherSymbol()
@@ -1091,7 +1091,7 @@ class C
             }
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTracking_CannotRenameToVarInCSharp()
@@ -1122,7 +1122,7 @@ class C
             }
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTracking_CannotRenameFromVarInCSharp()
@@ -1143,7 +1143,7 @@ class C
             }
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTracking_CanRenameToVarInVisualBasic()
@@ -1164,7 +1164,7 @@ End Class";
             }
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTracking_CannotRenameToDynamicInCSharp()

@@ -6,7 +6,7 @@ Imports Microsoft.VisualStudio.Text.Projection
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Public Class CSharpCompletionCommandHandlerTests_Projections
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TestSimpleWithJustSubjectBuffer()
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -32,7 +32,7 @@ public override void Execute() {
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TestAfterDot()
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -70,7 +70,7 @@ class C
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TestInObjectCreationExpression()
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -106,7 +106,7 @@ class C
         End Sub
 
         <WorkItem(771761)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TestRegionCompletionCommitFormatting()
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
