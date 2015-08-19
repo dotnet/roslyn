@@ -1117,7 +1117,7 @@ class C : Attribute
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void DoNotFormatIncompleteBlockOnSingleLineIfNotTypingCloseCurly()
+        public void DoNotFormatIncompleteBlockOnSingleLineIfNotTypingCloseCurly1()
         {
             var code = @"namespace ConsoleApplication1
 {
@@ -1141,7 +1141,27 @@ class C : Attribute
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void DoNotFormatCompleteBlockOnSingleLineIfTypingCloseCurly()
+        public void DoNotFormatIncompleteBlockOnSingleLineIfNotTypingCloseCurly2()
+        {
+            var code = @"namespace ConsoleApplication1
+{
+    class Program
+    {
+        static bool Property { get { return true;$$
+    }
+}";
+            var expected = @"namespace ConsoleApplication1
+{
+    class Program
+    {
+        static bool Property { get { return true;
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoNotFormatCompleteBlockOnSingleLineIfTypingCloseCurly1()
         {
             var code = @"namespace ConsoleApplication1
 {
@@ -1163,7 +1183,25 @@ class C : Attribute
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void FormatIncompleteBlockOnMultipleLinesIfTypingCloseCurly()
+        public void DoNotFormatCompleteBlockOnSingleLineIfTypingCloseCurly2()
+        {
+            var code = @"namespace ConsoleApplication1
+{
+    class Program
+    {
+        static bool Property { get { return true; }$$
+}";
+            var expected = @"namespace ConsoleApplication1
+{
+    class Program
+    {
+        static bool Property { get { return true; }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void FormatIncompleteBlockOnMultipleLinesIfTypingCloseCurly1()
         {
             var code = @"namespace ConsoleApplication1
 {
@@ -1185,6 +1223,32 @@ class C : Attribute
                 return true;
             }
 }";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void FormatIncompleteBlockOnMultipleLinesIfTypingCloseCurly2()
+        {
+            var code = @"namespace ConsoleApplication1
+{
+    class Program
+    {
+        static bool Property
+        {
+            get { return true;
+    }
+}$$";
+            var expected = @"namespace ConsoleApplication1
+{
+    class Program
+    {
+        static bool Property
+        {
+            get
+            {
+                return true;
+            }
+        }";
             AssertFormatAfterTypeChar(code, expected);
         }
 
