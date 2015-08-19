@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             var endBrace = bracePair.Item2;
             if (lastToken.Kind() != SyntaxKind.CloseBraceToken && 
-                lastToken.Kind () != SyntaxKind.EndOfFileToken &&
+                lastToken.Kind() != SyntaxKind.EndOfFileToken &&
                 !endBrace.IsMissing)
             {
                 // The user didn't just type the close brace.  So any close brace we have may 

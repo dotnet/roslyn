@@ -1161,6 +1161,26 @@ class C : Attribute
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoNotFormatIncompleteBlockOnSingleLineIfNotTypingCloseCurly3()
+        {
+            var code = @"namespace ConsoleApplication1
+{
+    class Program
+    {
+        static bool Property { get;$$
+    }
+}";
+            var expected = @"namespace ConsoleApplication1
+{
+    class Program
+    {
+        static bool Property { get;
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void DoNotFormatCompleteBlockOnSingleLineIfTypingCloseCurly1()
         {
             var code = @"namespace ConsoleApplication1
