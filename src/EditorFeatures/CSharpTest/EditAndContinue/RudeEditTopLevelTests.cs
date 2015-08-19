@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     {
         #region Usings
 
-        [Fact]
+        [WpfFact]
         public void UsingDelete1()
         {
             string src1 = @"
@@ -31,7 +31,7 @@ using System.Diagnostics;
             Assert.Equal(edits.Edits.First().NewNode, null);
         }
 
-        [Fact]
+        [WpfFact]
         public void UsingDelete2()
         {
             string src1 = @"
@@ -52,7 +52,7 @@ using System.Collections.Generic;
                 Diagnostic(RudeEditKind.Delete, null, CSharpFeaturesResources.UsingDirective));
         }
 
-        [Fact]
+        [WpfFact]
         public void UsingInsert()
         {
             string src1 = @"
@@ -73,7 +73,7 @@ using System.Collections.Generic;
                 Diagnostic(RudeEditKind.Insert, "using System.Collections;", CSharpFeaturesResources.UsingDirective));
         }
 
-        [Fact]
+        [WpfFact]
         public void UsingUpdate1()
         {
             string src1 = @"
@@ -95,7 +95,7 @@ using System.Collections.Generic;
                 Diagnostic(RudeEditKind.Update, "using X = System.Collections;", CSharpFeaturesResources.UsingDirective));
         }
 
-        [Fact]
+        [WpfFact]
         public void UsingUpdate2()
         {
             string src1 = @"
@@ -117,7 +117,7 @@ using System.Collections.Generic;
                 Diagnostic(RudeEditKind.Update, "using X2 = System.Collections;", CSharpFeaturesResources.UsingDirective));
         }
 
-        [Fact]
+        [WpfFact]
         public void UsingUpdate3()
         {
             string src1 = @"
@@ -139,7 +139,7 @@ using System.Collections.Generic;
                 Diagnostic(RudeEditKind.Update, "using System;", CSharpFeaturesResources.UsingDirective));
         }
 
-        [Fact]
+        [WpfFact]
         public void UsingReorder1()
         {
             string src1 = @"
@@ -158,7 +158,7 @@ using System.Diagnostics;
                 "Reorder [using System.Diagnostics;]@2 -> @64");
         }
 
-        [Fact]
+        [WpfFact]
         public void UsingInsertDelete1()
         {
             string src1 = @"
@@ -188,7 +188,7 @@ namespace M
                 "Delete [using System.Collections;]@22");
         }
 
-        [Fact]
+        [WpfFact]
         public void UsingInsertDelete2()
         {
             string src1 = @"
@@ -215,7 +215,7 @@ namespace N
 
         #region Attributes
 
-        [Fact]
+        [WpfFact]
         public void UpdateAttributes1()
         {
             var src1 = "[A1]class C { }";
@@ -230,7 +230,7 @@ namespace N
                 Diagnostic(RudeEditKind.Update, "A2", FeaturesResources.Attribute));
         }
 
-        [Fact]
+        [WpfFact]
         public void UpdateAttributes2()
         {
             var src1 = "[A(1)]class C { }";
@@ -245,7 +245,7 @@ namespace N
                 Diagnostic(RudeEditKind.Update, "A(2)", FeaturesResources.Attribute));
         }
 
-        [Fact]
+        [WpfFact]
         public void DeleteAttributes()
         {
             var src1 = "[A, B]class C { }";
@@ -261,7 +261,7 @@ namespace N
                 Diagnostic(RudeEditKind.Delete, "[A]", FeaturesResources.Attribute));
         }
 
-        [Fact]
+        [WpfFact]
         public void InsertAttributes1()
         {
             var src1 = "[A]class C { }";
@@ -277,7 +277,7 @@ namespace N
                 Diagnostic(RudeEditKind.Insert, "B", FeaturesResources.Attribute));
         }
 
-        [Fact]
+        [WpfFact]
         public void InsertAttributes2()
         {
             var src1 = "class C { }";
@@ -293,7 +293,7 @@ namespace N
                 Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.Attribute));
         }
 
-        [Fact]
+        [WpfFact]
         public void ReorderAttributes1()
         {
             var src1 = "[A(1), B(2), C(3)]class C { }";
@@ -307,7 +307,7 @@ namespace N
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void ReorderAttributes2()
         {
             var src1 = "[A, B, C]class C { }";
@@ -321,7 +321,7 @@ namespace N
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void ReorderAndUpdateAttributes()
         {
             var src1 = "[A(1), B, C]class C { }";
@@ -341,7 +341,7 @@ namespace N
 
         #region Classes, Structs, Interfaces
 
-        [Fact]
+        [WpfFact]
         public void TypeKindUpdate()
         {
             var src1 = "class C { }";
@@ -356,7 +356,7 @@ namespace N
                 Diagnostic(RudeEditKind.TypeKindUpdate, "struct C", CSharpFeaturesResources.Struct));
         }
 
-        [Fact]
+        [WpfFact]
         public void Class_Modifiers_Update()
         {
             var src1 = "public static class C { }";
@@ -371,7 +371,7 @@ namespace N
                 Diagnostic(RudeEditKind.ModifiersUpdate, "public class C", FeaturesResources.Class));
         }
 
-        [Fact]
+        [WpfFact]
         public void Interface_Modifiers_Update()
         {
             var src1 = "public interface C { }";
@@ -386,7 +386,7 @@ namespace N
                 Diagnostic(RudeEditKind.ModifiersUpdate, "interface C", FeaturesResources.Interface));
         }
 
-        [Fact]
+        [WpfFact]
         public void Struct_Modifiers_Update()
         {
             var src1 = "struct C { }";
@@ -401,7 +401,7 @@ namespace N
                 Diagnostic(RudeEditKind.ModifiersUpdate, "public struct C", CSharpFeaturesResources.Struct));
         }
 
-        [Fact]
+        [WpfFact]
         public void Struct_UnsafeModifier_Update()
         {
             var src1 = "unsafe struct C { }";
@@ -416,7 +416,7 @@ namespace N
                 Diagnostic(RudeEditKind.ModifiersUpdate, "struct C", CSharpFeaturesResources.Struct));
         }
 
-        [Fact]
+        [WpfFact]
         public void Class_Name_Update1()
         {
             var src1 = "class C { }";
@@ -431,7 +431,7 @@ namespace N
                 Diagnostic(RudeEditKind.Renamed, "class D", FeaturesResources.Class));
         }
 
-        [Fact]
+        [WpfFact]
         public void Class_Name_Update2()
         {
             var src1 = "class LongerName { }";
@@ -446,7 +446,7 @@ namespace N
                 Diagnostic(RudeEditKind.Renamed, "class LongerMame", FeaturesResources.Class));
         }
 
-        [Fact]
+        [WpfFact]
         public void Interface_Name_Update()
         {
             var src1 = "interface C { }";
@@ -461,7 +461,7 @@ namespace N
                 Diagnostic(RudeEditKind.Renamed, "interface D", FeaturesResources.Interface));
         }
 
-        [Fact]
+        [WpfFact]
         public void Struct_Name_Update()
         {
             var src1 = "struct C { }";
@@ -473,7 +473,7 @@ namespace N
                 Diagnostic(RudeEditKind.Renamed, "struct D", CSharpFeaturesResources.Struct));
         }
 
-        [Fact]
+        [WpfFact]
         public void Interface_NoModifiers_Insert()
         {
             var src1 = "";
@@ -484,7 +484,7 @@ namespace N
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void Interface_NoModifiers_IntoNamespace_Insert()
         {
             var src1 = "namespace N { } ";
@@ -495,7 +495,7 @@ namespace N
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void Interface_NoModifiers_IntoType_Insert()
         {
             var src1 = "interface N { }";
@@ -506,7 +506,7 @@ namespace N
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void Class_NoModifiers_Insert()
         {
             var src1 = "";
@@ -517,7 +517,7 @@ namespace N
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void Class_NoModifiers_IntoNamespace_Insert()
         {
             var src1 = "namespace N { }";
@@ -528,7 +528,7 @@ namespace N
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void Class_NoModifiers_IntoType_Insert()
         {
             var src1 = "struct N { }";
@@ -539,7 +539,7 @@ namespace N
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void Struct_NoModifiers_Insert()
         {
             var src1 = "";
@@ -550,7 +550,7 @@ namespace N
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void Struct_NoModifiers_IntoNamespace_Insert()
         {
             var src1 = "namespace N { }";
@@ -561,7 +561,7 @@ namespace N
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void Struct_NoModifiers_IntoType_Insert()
         {
             var src1 = "struct N { }";
@@ -572,7 +572,7 @@ namespace N
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void BaseTypeUpdate1()
         {
             var src1 = "class C { }";
@@ -587,7 +587,7 @@ namespace N
                  Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "class C", FeaturesResources.Class));
         }
 
-        [Fact]
+        [WpfFact]
         public void BaseTypeUpdate2()
         {
             var src1 = "class C : D1 { }";
@@ -602,7 +602,7 @@ namespace N
                  Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "class C", FeaturesResources.Class));
         }
 
-        [Fact]
+        [WpfFact]
         public void BaseInterfaceUpdate1()
         {
             var src1 = "class C { }";
@@ -617,7 +617,7 @@ namespace N
                  Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "class C", FeaturesResources.Class));
         }
 
-        [Fact]
+        [WpfFact]
         public void BaseInterfaceUpdate2()
         {
             var src1 = "class C : IFoo, IBar { }";
@@ -632,7 +632,7 @@ namespace N
                  Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "class C", FeaturesResources.Class));
         }
 
-        [Fact]
+        [WpfFact]
         public void BaseInterfaceUpdate3()
         {
             var src1 = "class C : IFoo, IBar { }";
@@ -647,7 +647,7 @@ namespace N
                  Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "class C", FeaturesResources.Class));
         }
 
-        [Fact]
+        [WpfFact]
         public void ClassInsert_AbstractVirtualOverride()
         {
             var src1 = "";
@@ -663,7 +663,7 @@ public abstract class C<T>
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void InterfaceInsert()
         {
             var src1 = "";
@@ -681,7 +681,7 @@ public interface I
 
         #region Enums
 
-        [Fact]
+        [WpfFact]
         public void Enum_NoModifiers_Insert()
         {
             var src1 = "";
@@ -692,7 +692,7 @@ public interface I
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void Enum_NoModifiers_IntoNamespace_Insert()
         {
             var src1 = "namespace N { }";
@@ -703,7 +703,7 @@ public interface I
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void Enum_NoModifiers_IntoType_Insert()
         {
             var src1 = "struct N { }";
@@ -714,7 +714,7 @@ public interface I
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void EnumAttributeInsert()
         {
             var src1 = "enum E { }";
@@ -730,7 +730,7 @@ public interface I
                 Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.Attribute));
         }
 
-        [Fact]
+        [WpfFact]
         public void EnumMemberAttributeDelete()
         {
             var src1 = "enum E { [A]X }";
@@ -746,7 +746,7 @@ public interface I
                 Diagnostic(RudeEditKind.Delete, "X", FeaturesResources.Attribute));
         }
 
-        [Fact]
+        [WpfFact]
         public void EnumMemberAttributeInsert()
         {
             var src1 = "enum E { X }";
@@ -762,7 +762,7 @@ public interface I
                 Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.Attribute));
         }
 
-        [Fact]
+        [WpfFact]
         public void EnumMemberAttributeUpdate()
         {
             var src1 = "enum E { [A1]X }";
@@ -777,7 +777,7 @@ public interface I
                 Diagnostic(RudeEditKind.Update, "A2", FeaturesResources.Attribute));
         }
 
-        [Fact]
+        [WpfFact]
         public void EnumNameUpdate()
         {
             var src1 = "enum Color { Red = 1, Blue = 2, }";
@@ -792,7 +792,7 @@ public interface I
                  Diagnostic(RudeEditKind.Renamed, "enum Colors", FeaturesResources.Enum));
         }
 
-        [Fact]
+        [WpfFact]
         public void EnumBaseTypeAdd()
         {
             var src1 = "enum Color { Red = 1, Blue = 2, }";
@@ -806,7 +806,7 @@ public interface I
                  Diagnostic(RudeEditKind.EnumUnderlyingTypeUpdate, "enum Color", FeaturesResources.Enum));
         }
 
-        [Fact]
+        [WpfFact]
         public void EnumBaseTypeUpdate()
         {
             var src1 = "enum Color : ushort { Red = 1, Blue = 2, }";
@@ -820,7 +820,7 @@ public interface I
                  Diagnostic(RudeEditKind.EnumUnderlyingTypeUpdate, "enum Color", FeaturesResources.Enum));
         }
 
-        [Fact]
+        [WpfFact]
         public void EnumBaseTypeDelete()
         {
             var src1 = "enum Color : ushort { Red = 1, Blue = 2, }";
@@ -834,7 +834,7 @@ public interface I
                  Diagnostic(RudeEditKind.EnumUnderlyingTypeUpdate, "enum Color", FeaturesResources.Enum));
         }
 
-        [Fact]
+        [WpfFact]
         public void EnumModifierUpdate()
         {
             var src1 = "public enum Color { Red = 1, Blue = 2, }";
@@ -849,7 +849,7 @@ public interface I
                  Diagnostic(RudeEditKind.ModifiersUpdate, "enum Color", FeaturesResources.Enum));
         }
 
-        [Fact]
+        [WpfFact]
         public void EnumInitializerUpdate()
         {
             var src1 = "enum Color { Red = 1, Blue = 2, }";
@@ -864,7 +864,7 @@ public interface I
                  Diagnostic(RudeEditKind.InitializerUpdate, "Blue = 3", FeaturesResources.EnumValue));
         }
 
-        [Fact]
+        [WpfFact]
         public void EnumInitializerUpdate2()
         {
             var src1 = "enum Color { Red = 1, Blue = 2, }";
@@ -880,7 +880,7 @@ public interface I
                  Diagnostic(RudeEditKind.InitializerUpdate, "Blue = 2 << 1", FeaturesResources.EnumValue));
         }
 
-        [Fact]
+        [WpfFact]
         public void EnumInitializerUpdate3()
         {
             var src1 = "enum Color { Red = int.MinValue }";
@@ -894,7 +894,7 @@ public interface I
                  Diagnostic(RudeEditKind.InitializerUpdate, "Red = int.MaxValue", FeaturesResources.EnumValue));
         }
 
-        [Fact]
+        [WpfFact]
         public void EnumInitializerAdd()
         {
             var src1 = "enum Color { Red, }";
@@ -909,7 +909,7 @@ public interface I
                  Diagnostic(RudeEditKind.InitializerUpdate, "Red = 1", FeaturesResources.EnumValue));
         }
 
-        [Fact]
+        [WpfFact]
         public void EnumInitializerDelete()
         {
             var src1 = "enum Color { Red = 1, }";
@@ -925,7 +925,7 @@ public interface I
         }
 
         [WorkItem(754916)]
-        [Fact]
+        [WpfFact]
         public void EnumMemberAdd()
         {
             var src1 = "enum Color { Red }";
@@ -941,7 +941,7 @@ public interface I
                  Diagnostic(RudeEditKind.Insert, "Blue", FeaturesResources.EnumValue));
         }
 
-        [Fact]
+        [WpfFact]
         public void EnumMemberAdd2()
         {
             var src1 = "enum Color { Red, }";
@@ -956,7 +956,7 @@ public interface I
         }
 
         [WorkItem(754916)]
-        [Fact]
+        [WpfFact]
         public void EnumMemberAdd3()
         {
             var src1 = "enum Color { Red, }";
@@ -971,7 +971,7 @@ public interface I
                  Diagnostic(RudeEditKind.Insert, "Blue", FeaturesResources.EnumValue));
         }
 
-        [Fact]
+        [WpfFact]
         public void EnumMemberUpdate()
         {
             var src1 = "enum Color { Red }";
@@ -987,7 +987,7 @@ public interface I
         }
 
         [WorkItem(754916)]
-        [Fact]
+        [WpfFact]
         public void EnumMemberDelete()
         {
             var src1 = "enum Color { Red, Blue}";
@@ -1003,7 +1003,7 @@ public interface I
                  Diagnostic(RudeEditKind.Delete, "enum Color", FeaturesResources.EnumValue));
         }
 
-        [Fact]
+        [WpfFact]
         public void EnumMemberDelete2()
         {
             var src1 = "enum Color { Red, Blue}";
@@ -1018,7 +1018,7 @@ public interface I
         }
 
         [WorkItem(754916), WorkItem(793197)]
-        [Fact]
+        [WpfFact]
         public void EnumTrailingCommaAdd()
         {
             var src1 = "enum Color { Red }";
@@ -1033,7 +1033,7 @@ public interface I
         }
 
         [WorkItem(754916), WorkItem(793197)]
-        [Fact]
+        [WpfFact]
         public void EnumTrailingCommaAdd_WithInitializer()
         {
             var src1 = "enum Color { Red = 1 }";
@@ -1048,7 +1048,7 @@ public interface I
         }
 
         [WorkItem(754916), WorkItem(793197)]
-        [Fact]
+        [WpfFact]
         public void EnumTrailingCommaDelete()
         {
             var src1 = "enum Color { Red, }";
@@ -1062,7 +1062,7 @@ public interface I
         }
 
         [WorkItem(754916), WorkItem(793197)]
-        [Fact]
+        [WpfFact]
         public void EnumTrailingCommaDelete_WithInitializer()
         {
             var src1 = "enum Color { Red = 1, }";
@@ -1079,7 +1079,7 @@ public interface I
 
         #region Delegates
 
-        [Fact]
+        [WpfFact]
         public void Delegates_NoModifiers_Insert()
         {
             var src1 = "";
@@ -1090,7 +1090,7 @@ public interface I
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void Delegates_NoModifiers_IntoNamespace_Insert()
         {
             var src1 = "namespace N { }";
@@ -1101,7 +1101,7 @@ public interface I
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void Delegates_NoModifiers_IntoType_Insert()
         {
             var src1 = "class C { }";
@@ -1112,7 +1112,7 @@ public interface I
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void Delegates_Public_IntoType_Insert()
         {
             var src1 = "class C { }";
@@ -1127,7 +1127,7 @@ public interface I
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void Delegates_Generic_Insert()
         {
             var src1 = "class C { }";
@@ -1145,7 +1145,7 @@ public interface I
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void Delegates_Delete()
         {
             var src1 = "class C { private delegate void D(); }";
@@ -1161,7 +1161,7 @@ public interface I
                 Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Delegate));
         }
 
-        [Fact]
+        [WpfFact]
         public void Delegates_Rename()
         {
             var src1 = "public delegate void D();";
@@ -1176,7 +1176,7 @@ public interface I
                 Diagnostic(RudeEditKind.Renamed, "public delegate void Z()", FeaturesResources.Delegate));
         }
 
-        [Fact]
+        [WpfFact]
         public void Delegates_Update_Modifiers()
         {
             var src1 = "public delegate void D();";
@@ -1191,7 +1191,7 @@ public interface I
                 Diagnostic(RudeEditKind.ModifiersUpdate, "private delegate void D()", FeaturesResources.Delegate));
         }
 
-        [Fact]
+        [WpfFact]
         public void Delegates_Update_ReturnType()
         {
             var src1 = "public delegate int D();";
@@ -1206,7 +1206,7 @@ public interface I
                 Diagnostic(RudeEditKind.TypeUpdate, "public delegate void D()", FeaturesResources.Delegate));
         }
 
-        [Fact]
+        [WpfFact]
         public void Delegates_Parameter_Insert()
         {
             var src1 = "public delegate int D();";
@@ -1221,7 +1221,7 @@ public interface I
                 Diagnostic(RudeEditKind.Insert, "int a", FeaturesResources.Parameter));
         }
 
-        [Fact]
+        [WpfFact]
         public void Delegates_Parameter_Delete()
         {
             var src1 = "public delegate int D(int a);";
@@ -1236,7 +1236,7 @@ public interface I
                 Diagnostic(RudeEditKind.Delete, "public delegate int D()", FeaturesResources.Parameter));
         }
 
-        [Fact]
+        [WpfFact]
         public void Delegates_Parameter_Rename()
         {
             var src1 = "public delegate int D(int a);";
@@ -1251,7 +1251,7 @@ public interface I
                 Diagnostic(RudeEditKind.Renamed, "int b", FeaturesResources.Parameter));
         }
 
-        [Fact]
+        [WpfFact]
         public void Delegates_Parameter_Update()
         {
             var src1 = "public delegate int D(int a);";
@@ -1266,7 +1266,7 @@ public interface I
                 Diagnostic(RudeEditKind.TypeUpdate, "byte a", FeaturesResources.Parameter));
         }
 
-        [Fact]
+        [WpfFact]
         public void Delegates_Parameter_UpdateModifier()
         {
             var src1 = "public delegate int D(int[] a);";
@@ -1281,7 +1281,7 @@ public interface I
                 Diagnostic(RudeEditKind.ModifiersUpdate, "params int[] a", FeaturesResources.Parameter));
         }
 
-        [Fact]
+        [WpfFact]
         public void Delegates_Parameter_AddAttribute()
         {
             var src1 = "public delegate int D(int a);";
@@ -1297,7 +1297,7 @@ public interface I
                 Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.Attribute));
         }
 
-        [Fact]
+        [WpfFact]
         public void Delegates_TypeParameter_Insert()
         {
             var src1 = "public delegate int D();";
@@ -1313,7 +1313,7 @@ public interface I
                 Diagnostic(RudeEditKind.Insert, "<T>", FeaturesResources.TypeParameter));
         }
 
-        [Fact]
+        [WpfFact]
         public void Delegates_TypeParameter_Delete()
         {
             var src1 = "public delegate int D<T>();";
@@ -1329,7 +1329,7 @@ public interface I
                 Diagnostic(RudeEditKind.Delete, "public delegate int D()", FeaturesResources.TypeParameter));
         }
 
-        [Fact]
+        [WpfFact]
         public void Delegates_TypeParameter_Rename()
         {
             var src1 = "public delegate int D<T>();";
@@ -1344,7 +1344,7 @@ public interface I
                 Diagnostic(RudeEditKind.Renamed, "S", FeaturesResources.TypeParameter));
         }
 
-        [Fact]
+        [WpfFact]
         public void Delegates_TypeParameter_Variance1()
         {
             var src1 = "public delegate int D<T>();";
@@ -1359,7 +1359,7 @@ public interface I
                 Diagnostic(RudeEditKind.VarianceUpdate, "T", FeaturesResources.TypeParameter));
         }
 
-        [Fact]
+        [WpfFact]
         public void Delegates_TypeParameter_Variance2()
         {
             var src1 = "public delegate int D<out T>();";
@@ -1374,7 +1374,7 @@ public interface I
                 Diagnostic(RudeEditKind.VarianceUpdate, "T", FeaturesResources.TypeParameter));
         }
 
-        [Fact]
+        [WpfFact]
         public void Delegates_TypeParameter_Variance3()
         {
             var src1 = "public delegate int D<out T>();";
@@ -1389,7 +1389,7 @@ public interface I
                 Diagnostic(RudeEditKind.VarianceUpdate, "T", FeaturesResources.TypeParameter));
         }
 
-        [Fact]
+        [WpfFact]
         public void Delegates_TypeParameter_AddAttribute()
         {
             var src1 = "public delegate int D<T>();";
@@ -1405,7 +1405,7 @@ public interface I
                 Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.Attribute));
         }
 
-        [Fact]
+        [WpfFact]
         public void Delegates_AddAttribute()
         {
             var src1 = "public delegate int D(int a);";
@@ -1425,7 +1425,7 @@ public interface I
 
         #region Nested Types
 
-        [Fact]
+        [WpfFact]
         public void NestedClass_ClassMove1()
         {
             var src1 = @"class C { class D { } }";
@@ -1440,7 +1440,7 @@ public interface I
                 Diagnostic(RudeEditKind.Move, "class D", FeaturesResources.Class));
         }
 
-        [Fact]
+        [WpfFact]
         public void NestedClass_ClassMove2()
         {
             var src1 = @"class C { class D { }  class E { }  class F { } }";
@@ -1455,7 +1455,7 @@ public interface I
                 Diagnostic(RudeEditKind.Move, "class E", FeaturesResources.Class));
         }
 
-        [Fact]
+        [WpfFact]
         public void NestedClass_ClassInsertMove1()
         {
             var src1 = @"class C { class D { } }";
@@ -1471,7 +1471,7 @@ public interface I
                 Diagnostic(RudeEditKind.Move, "class D", FeaturesResources.Class));
         }
 
-        [Fact]
+        [WpfFact]
         public void NestedClass_Insert1()
         {
             var src1 = @"class C {  }";
@@ -1486,7 +1486,7 @@ public interface I
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void NestedClass_Insert2()
         {
             var src1 = @"class C {  }";
@@ -1501,7 +1501,7 @@ public interface I
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void NestedClass_Insert3()
         {
             var src1 = @"class C {  }";
@@ -1516,7 +1516,7 @@ public interface I
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void NestedClass_Insert4()
         {
             var src1 = @"class C {  }";
@@ -1538,7 +1538,7 @@ public interface I
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void NestedClass_InsertMemberWithInitializer1()
         {
             var src1 = @"
@@ -1562,7 +1562,7 @@ class C
         }
 
         [WorkItem(835827)]
-        [Fact]
+        [WpfFact]
         public void NestedClass_Insert_PInvoke()
         {
             string src1 = @"
@@ -1607,7 +1607,7 @@ class C
         }
 
         [WorkItem(835827)]
-        [Fact]
+        [WpfFact]
         public void NestedClass_Insert_VirtualAbstract()
         {
             string src1 = @"
@@ -1641,7 +1641,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void NestedClass_TypeReorder1()
         {
             var src1 = @"class C { struct E { } class F { } delegate void D(); interface I {} }";
@@ -1656,7 +1656,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void NestedClass_MethodDeleteInsert()
         {
             var src1 = @"public class C { public void foo() {} }";
@@ -1675,7 +1675,7 @@ class C
                 Diagnostic(RudeEditKind.Delete, "public class C", FeaturesResources.Method));
         }
 
-        [Fact]
+        [WpfFact]
         public void NestedClass_ClassDeleteInsert()
         {
             var src1 = @"public class C { public class X {} }";
@@ -1695,7 +1695,7 @@ class C
 
         #region Namespaces
 
-        [Fact]
+        [WpfFact]
         public void NamespaceMove1()
         {
             var src1 = @"namespace C { namespace D { } }";
@@ -1710,7 +1710,7 @@ class C
                 Diagnostic(RudeEditKind.Move, "namespace D", FeaturesResources.Namespace));
         }
 
-        [Fact]
+        [WpfFact]
         public void NamespaceReorder1()
         {
             var src1 = @"namespace C { namespace D { } class T { } namespace E { } }";
@@ -1725,7 +1725,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void NamespaceReorder2()
         {
             var src1 = @"namespace C { namespace D1 { } namespace D2 { } namespace D3 { } class T { } namespace E { } }";
@@ -1744,7 +1744,7 @@ class C
 
         #region Methods
 
-        [Fact]
+        [WpfFact]
         public void Method_Update()
         {
             string src1 = @"
@@ -1790,7 +1790,7 @@ class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Main"), preserveLocalVariables: false) });
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodWithExpressionBody_Update()
         {
             string src1 = @"
@@ -1818,7 +1818,7 @@ class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Main"), preserveLocalVariables: false) });
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodWithLambda_Update()
         {
             string src1 = @"
@@ -1854,7 +1854,7 @@ class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap[0]) });
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_LocalVariableDeclaration()
         {
             string src1 = @"
@@ -1890,7 +1890,7 @@ class C
     }]@18");
         }
 
-        [Fact]
+        [WpfFact]
         public void Method_Delete()
         {
             string src1 = @"
@@ -1922,7 +1922,7 @@ class C
                  Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Method));
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodWithExpressionBody_Delete()
         {
             string src1 = @"
@@ -1954,7 +1954,7 @@ class C
                  Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Method));
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodDelete_WithParameters()
         {
             string src1 = @"
@@ -1988,7 +1988,7 @@ class C
         }
 
         [WorkItem(754853)]
-        [Fact]
+        [WpfFact]
         public void MethodDelete_WithAttribute()
         {
             string src1 = @"
@@ -2026,7 +2026,7 @@ class C
         }
 
         [WorkItem(754853)]
-        [Fact]
+        [WpfFact]
         public void MethodDelete_PInvoke()
         {
             string src1 = @"
@@ -2070,7 +2070,7 @@ class C
                 Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Method));
         }
 
-        [Fact]
+        [WpfFact]
         public void PrivateMethodInsert()
         {
             string src1 = @"
@@ -2102,7 +2102,7 @@ class C
         }
 
         [WorkItem(755784)]
-        [Fact]
+        [WpfFact]
         public void PrivateMethodInsert_WithParameters()
         {
             string src1 = @"
@@ -2141,7 +2141,7 @@ class C
         }
 
         [WorkItem(755784)]
-        [Fact]
+        [WpfFact]
         public void PrivateMethodInsert_WithAttribute()
         {
             string src1 = @"
@@ -2177,7 +2177,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodInsert_Virtual()
         {
             string src1 = @"
@@ -2196,7 +2196,7 @@ class C
                 Diagnostic(RudeEditKind.InsertVirtual, "public virtual void F()", FeaturesResources.Method));
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodInsert_Abstract()
         {
             string src1 = @"
@@ -2215,7 +2215,7 @@ abstract class C
                 Diagnostic(RudeEditKind.InsertVirtual, "public abstract void F()", FeaturesResources.Method));
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodInsert_Override()
         {
             string src1 = @"
@@ -2235,7 +2235,7 @@ class C
         }
 
         [WorkItem(755784), WorkItem(835827)]
-        [Fact]
+        [WpfFact]
         public void PrivateMethodInsert_PInvoke1()
         {
             string src1 = @"
@@ -2279,7 +2279,7 @@ class C
                 Diagnostic(RudeEditKind.InsertExtern, "private static extern int puts(string c)", FeaturesResources.Method));
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodReorder1()
         {
             var src1 = "class C { void f(int a, int b) { a = b; } void g() { } }";
@@ -2289,7 +2289,7 @@ class C
             edits.VerifyEdits("Reorder [void g() { }]@42 -> @10");
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodInsertDelete1()
         {
             var src1 = "class C { class D { } void f(int a, int b) { a = b; } }";
@@ -2307,7 +2307,7 @@ class C
                 "Delete [int b]@36");
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_AddParameter()
         {
             string src1 = @"
@@ -2335,7 +2335,7 @@ class C
                 Diagnostic(RudeEditKind.Insert, "string[] args", FeaturesResources.Parameter));
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_UpdateParameter()
         {
             string src1 = @"
@@ -2363,7 +2363,7 @@ class C
                 Diagnostic(RudeEditKind.Renamed, "string[] b", FeaturesResources.Parameter));
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_RenameMethodName()
         {
             string src1 = @"
@@ -2398,7 +2398,7 @@ class C
                 Diagnostic(RudeEditKind.Renamed, "static void EntryPoint(string[] args)", FeaturesResources.Method));
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_ReorderParameter()
         {
             string src1 = @"
@@ -2426,7 +2426,7 @@ class C
                 Diagnostic(RudeEditKind.Move, "char c", FeaturesResources.Parameter));
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_DeleteParameter()
         {
             string src1 = @"
@@ -2448,7 +2448,7 @@ class C
                 Diagnostic(RudeEditKind.Delete, "static void Main()", FeaturesResources.Parameter));
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_RemoveAsyncModifier()
         {
             string src1 = @"
@@ -2475,7 +2475,7 @@ class Test
                 Diagnostic(RudeEditKind.ModifiersUpdate, "public Task<int> WaitAsync()", "method"));
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_AddAsyncModifier()
         {
             string src1 = @"
@@ -2501,7 +2501,7 @@ class Test
             VerifyPreserveLocalVariables(edits, preserveLocalVariables: false);
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_AsyncMethod0()
         {
             string src1 = @"
@@ -2528,7 +2528,7 @@ class Test
             VerifyPreserveLocalVariables(edits, preserveLocalVariables: true);
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_AsyncMethod1()
         {
             string src1 = @"
@@ -2577,7 +2577,7 @@ class Test
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_DeleteParameterModifierThis()
         {
             string src1 = @"
@@ -2621,7 +2621,7 @@ public static class Extensions
                 Diagnostic(RudeEditKind.ModifiersUpdate, "string s", FeaturesResources.Parameter));
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_DeleteParameterModifiersRefAndOut()
         {
             string src1 = @"
@@ -2673,7 +2673,7 @@ class C
                 Diagnostic(RudeEditKind.ModifiersUpdate, "int b", FeaturesResources.Parameter));
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_AddAttribute()
         {
             string src1 = @"
@@ -2701,7 +2701,7 @@ class Test
                 Diagnostic(RudeEditKind.Insert, "[Obsolete]", FeaturesResources.Attribute));
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_AddAttribute2()
         {
             string src1 = @"
@@ -2731,7 +2731,7 @@ class Test
                 Diagnostic(RudeEditKind.Insert, "Serializable", FeaturesResources.Attribute));
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_AddAttribute3()
         {
             string src1 = @"
@@ -2762,7 +2762,7 @@ class Test
                 Diagnostic(RudeEditKind.Insert, "[Serializable]", FeaturesResources.Attribute));
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_AddAttribute4()
         {
             string src1 = @"
@@ -2793,7 +2793,7 @@ class Test
                  Diagnostic(RudeEditKind.Insert, "[Obsolete, Serializable]", FeaturesResources.Attribute));
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_UpdateAttribute()
         {
             string src1 = @"
@@ -2823,7 +2823,7 @@ class Test
         }
 
         [WorkItem(754853)]
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_DeleteAttribute()
         {
             string src1 = @"
@@ -2853,7 +2853,7 @@ class Test
                 Diagnostic(RudeEditKind.Delete, "static void Main(string[] args)", FeaturesResources.Attribute));
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_DeleteAttribute2()
         {
             string src1 = @"
@@ -2883,7 +2883,7 @@ class Test
                 Diagnostic(RudeEditKind.Delete, "[Obsolete]", FeaturesResources.Attribute));
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_DeleteAttribute3()
         {
             string src1 = @"
@@ -2914,7 +2914,7 @@ class Test
                 Diagnostic(RudeEditKind.Delete, "static void Main(string[] args)", FeaturesResources.Attribute));
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_ExplicitlyImplemented1()
         {
             string src1 = @"
@@ -2938,7 +2938,7 @@ class C : I, J
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_ExplicitlyImplemented2()
         {
             string src1 = @"
@@ -2963,7 +2963,7 @@ class C : I, J
         }
 
         [WorkItem(754255)]
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_UpdateStackAlloc()
         {
             string src1 = @"
@@ -3016,7 +3016,7 @@ class C
                 Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.Method));
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_UpdateStackAllocInLambda1()
         {
             var src1 = "class C { void M() { F(1, () => { int* a = stackalloc int[10]; }); } }";
@@ -3027,7 +3027,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_UpdateStackAllocInLambda2()
         {
             var src1 = "class C { void M() { F(1, x => { int* a = stackalloc int[10]; }); } }";
@@ -3038,7 +3038,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_UpdateAnonymousMethod()
         {
             var src1 = "class C { void M() { F(1, delegate(int a) { return a; }); } }";
@@ -3049,7 +3049,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodWithExpressionBody_Update_UpdateAnonymousMethod()
         {
             var src1 = "class C { void M() => F(1, delegate(int a) { return a; }); }";
@@ -3060,7 +3060,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_Query()
         {
             var src1 = "class C { void M() { F(1, from foo in bar select baz); } }";
@@ -3071,7 +3071,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodWithExpressionBody_Update_Query()
         {
             var src1 = "class C { void M() => F(1, from foo in bar select baz); }";
@@ -3082,7 +3082,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_AnonymousType()
         {
             var src1 = "class C { void M() { F(1, new { A = 1, B = 2 }); } }";
@@ -3093,7 +3093,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodWithExpressionBody_Update_AnonymousType()
         {
             var src1 = "class C { void M() => F(new { A = 1, B = 2 }); }";
@@ -3104,7 +3104,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_Iterator_YieldReturn()
         {
             var src1 = "class C { IEnumerable<int> M() { yield return 1; } }";
@@ -3117,7 +3117,7 @@ class C
             VerifyPreserveLocalVariables(edits, preserveLocalVariables: true);
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_AddYieldReturn()
         {
             var src1 = "class C { IEnumerable<int> M() { return new[] { 1, 2, 3}; } }";
@@ -3130,7 +3130,7 @@ class C
             VerifyPreserveLocalVariables(edits, preserveLocalVariables: false);
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_Iterator_YieldBreak()
         {
             var src1 = "class C { IEnumerable<int> M() { F(); yield break; } }";
@@ -3144,7 +3144,7 @@ class C
         }
 
         [WorkItem(1087305)]
-        [Fact]
+        [WpfFact]
         public void MethodUpdate_LabeledStatement()
         {
             string src1 = @"
@@ -3183,7 +3183,7 @@ class C
 
         #region Operators
 
-        [Fact]
+        [WpfFact]
         public void OperatorInsert()
         {
             string src1 = @"
@@ -3211,7 +3211,7 @@ class C
                 Diagnostic(RudeEditKind.InsertOperator, "public static C operator +(C c, C d)", FeaturesResources.Operator));
         }
 
-        [Fact]
+        [WpfFact]
         public void OperatorDelete()
         {
             string src1 = @"
@@ -3239,7 +3239,7 @@ class C
                 Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Operator));
         }
 
-        [Fact]
+        [WpfFact]
         public void OperatorUpdate()
         {
             string src1 = @"
@@ -3278,7 +3278,7 @@ class C
             });
         }
 
-        [Fact]
+        [WpfFact]
         public void OperatorWithExpressionBody_Update()
         {
             string src1 = @"
@@ -3303,7 +3303,7 @@ class C
             });
         }
 
-        [Fact]
+        [WpfFact]
         public void OperatorReorder1()
         {
             string src1 = @"
@@ -3327,7 +3327,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void OperatorReorder2()
         {
             string src1 = @"
@@ -3355,7 +3355,7 @@ class C
 
         #region Constructor, Destructor
 
-        [Fact]
+        [WpfFact]
         public void ConstructorInitializer_Update1()
         {
             string src1 = @"
@@ -3376,7 +3376,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void ConstructorInitializer_Update2()
         {
             string src1 = @"
@@ -3398,7 +3398,7 @@ class C<T>
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "public C(int a)", FeaturesResources.Constructor));
         }
 
-        [Fact]
+        [WpfFact]
         public void ConstructorInitializer_Update3()
         {
             string src1 = @"
@@ -3419,7 +3419,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void ConstructorInitializer_Update4()
         {
             string src1 = @"
@@ -3442,7 +3442,7 @@ class C<T>
         }
 
         [WorkItem(743552)]
-        [Fact]
+        [WpfFact]
         public void ConstructorUpdate_AddParameter()
         {
             string src1 = @"
@@ -3475,7 +3475,7 @@ class C
                 Diagnostic(RudeEditKind.Insert, "int b", FeaturesResources.Parameter));
         }
 
-        [Fact]
+        [WpfFact]
         public void DestructorDelete()
         {
             string src1 = @"
@@ -3525,7 +3525,7 @@ class B
                 Diagnostic(RudeEditKind.Delete, "class B", CSharpFeaturesResources.Destructor));
         }
 
-        [Fact]
+        [WpfFact]
         public void DestructorDelete_InsertConstructor()
         {
             string src1 = @"
@@ -3582,7 +3582,7 @@ class B
                 Diagnostic(RudeEditKind.Delete, "class B", CSharpFeaturesResources.Destructor));
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(789577)]
         public void ConstructorUpdate_AnonymousTypeInFieldInitializer()
         {
@@ -3594,7 +3594,7 @@ class B
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void StaticCtorDelete()
         {
             var src1 = "class C { static C() { } }";
@@ -3606,7 +3606,7 @@ class B
                 Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Constructor));
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtorDelete_Public()
         {
             var src1 = "class C { public C() { } }";
@@ -3619,7 +3619,7 @@ class B
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single()) });
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtorDelete_Private1()
         {
             var src1 = "class C { C() { } }";
@@ -3631,7 +3631,7 @@ class B
                 Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Constructor));
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtorDelete_Private2()
         {
             var src1 = "class C { private C() { } }";
@@ -3643,7 +3643,7 @@ class B
                 Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Constructor));
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtorDelete_Protected()
         {
             var src1 = "class C { protected C() { } }";
@@ -3655,7 +3655,7 @@ class B
                 Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Constructor));
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtorDelete_Internal()
         {
             var src1 = "class C { internal C() { } }";
@@ -3667,7 +3667,7 @@ class B
                 Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Constructor));
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtorDelete_ProtectedInternal()
         {
             var src1 = "class C { protected internal C() { } }";
@@ -3679,7 +3679,7 @@ class B
                 Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Constructor));
         }
 
-        [Fact]
+        [WpfFact]
         public void StaticCtorInsert()
         {
             var src1 = "class C { }";
@@ -3692,7 +3692,7 @@ class B
                 new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<NamedTypeSymbol>("C").StaticConstructors.Single()) });
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtorInsert_Public_Implicit()
         {
             var src1 = "class C { }";
@@ -3705,7 +3705,7 @@ class B
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true) });
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtorInsert_Public_NoImplicit()
         {
             var src1 = "class C { public C(int a) { } }";
@@ -3716,7 +3716,7 @@ class B
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtorInsert_Private_Implicit1()
         {
             var src1 = "class C { }";
@@ -3728,7 +3728,7 @@ class B
                 Diagnostic(RudeEditKind.ChangingConstructorVisibility, "private C()"));
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtorInsert_Private_Implicit2()
         {
             var src1 = "class C { }";
@@ -3740,7 +3740,7 @@ class B
                 Diagnostic(RudeEditKind.ChangingConstructorVisibility, "C()"));
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtorInsert_Protected_PublicImplicit()
         {
             var src1 = "class C { }";
@@ -3752,7 +3752,7 @@ class B
                 Diagnostic(RudeEditKind.ChangingConstructorVisibility, "protected C()"));
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtorInsert_Internal_PublicImplicit()
         {
             var src1 = "class C { }";
@@ -3764,7 +3764,7 @@ class B
                 Diagnostic(RudeEditKind.ChangingConstructorVisibility, "internal C()"));
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtorInsert_Internal_ProtectedImplicit()
         {
             var src1 = "abstract class C { }";
@@ -3776,7 +3776,7 @@ class B
                 Diagnostic(RudeEditKind.ChangingConstructorVisibility, "internal C()"));
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtorUpdate_ProtectedImplicit()
         {
             var src1 = "abstract class C { }";
@@ -3792,7 +3792,7 @@ class B
                 });
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtorInsert_Private_NoImplicit()
         {
             var src1 = "class C { public C(int a) { } }";
@@ -3809,7 +3809,7 @@ class B
                 });
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtorInsert_Internal_NoImplicit()
         {
             var src1 = "class C { public C(int a) { } }";
@@ -3820,7 +3820,7 @@ class B
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtorInsert_Protected_NoImplicit()
         {
             var src1 = "class C { public C(int a) { } }";
@@ -3831,7 +3831,7 @@ class B
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtorInsert_InternalProtected_NoImplicit()
         {
             var src1 = "class C { public C(int a) { } }";
@@ -3842,7 +3842,7 @@ class B
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void StaticCtor_Partial_Delete()
         {
             var srcA1 = "partial class C { static C() { } }";
@@ -3863,7 +3863,7 @@ class B
                 });
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtor_Partial_DeletePrivate()
         {
             var srcA1 = "partial class C { C() { } }";
@@ -3884,7 +3884,7 @@ class B
                 });
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtor_Partial_DeletePublic()
         {
             var srcA1 = "partial class C { public C() { } }";
@@ -3905,7 +3905,7 @@ class B
                 });
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtor_Partial_DeletePrivateToPublic()
         {
             var srcA1 = "partial class C { C() { } }";
@@ -3924,7 +3924,7 @@ class B
                 Diagnostic(RudeEditKind.Delete, "partial class C", FeaturesResources.Constructor));
         }
 
-        [Fact]
+        [WpfFact]
         public void StaticCtor_Partial_Insert()
         {
             var srcA1 = "partial class C { }";
@@ -3945,7 +3945,7 @@ class B
                 });
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtor_Partial_InsertPublic()
         {
             var srcA1 = "partial class C { }";
@@ -3966,7 +3966,7 @@ class B
                 });
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtor_Partial_InsertPrivate()
         {
             var srcA1 = "partial class C { }";
@@ -3987,7 +3987,7 @@ class B
                 });
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtor_Partial_InsertInternal()
         {
             var srcA1 = "partial class C { }";
@@ -4008,7 +4008,7 @@ class B
                 });
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtor_Partial_InsertPrivateToPublic()
         {
             var srcA1 = "partial class C { }";
@@ -4027,7 +4027,7 @@ class B
                 Diagnostic(RudeEditKind.ChangingConstructorVisibility, "public C()"));
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtor_Partial_InsertPrivateToInternal()
         {
             var srcA1 = "partial class C { }";
@@ -4046,7 +4046,7 @@ class B
                 Diagnostic(RudeEditKind.ChangingConstructorVisibility, "internal C()"));
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtor_Partial_Update_LambdaInInitializer1()
         {
             string src1 = @"
@@ -4097,7 +4097,7 @@ partial class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0]) });
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtor_Partial_Update_LambdaInInitializer_Trivia1()
         {
             string src1 = @"
@@ -4142,7 +4142,7 @@ partial class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0]) });
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtor_Partial_Update_LambdaInInitializer_ExplicitInterfaceImpl1()
         {
             string src1 = @"
@@ -4201,7 +4201,7 @@ partial class C : I, J
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0]) });
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceCtor_Partial_Insert_Parameterless_LambdaInInitializer1()
         {
             string src1 = @"
@@ -4247,7 +4247,7 @@ partial class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0]) });
         }
 
-        [Fact, WorkItem(2504)]
+        [WpfFact, WorkItem(2504)]
         public void InstanceCtor_Partial_Insert_WithParameters_LambdaInInitializer1()
         {
             string src1 = @"
@@ -4298,7 +4298,7 @@ partial class C
         }
 
         [WorkItem(2068)]
-        [Fact]
+        [WpfFact]
         public void Insert_ExternConstruct()
         {
             var src1 = "class C { }";
@@ -4318,7 +4318,7 @@ partial class C
 
         #region Fields and Properties with Initializers
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializer_Update1()
         {
             var src1 = "class C { int a = 0; }";
@@ -4334,7 +4334,7 @@ partial class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true) });
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyInitializer_Update1()
         {
             var src1 = "class C { int a { get; } = 0; }";
@@ -4350,7 +4350,7 @@ partial class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true) });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializer_Update2()
         {
             var src1 = "class C { int a = 0; }";
@@ -4364,7 +4364,7 @@ partial class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyInitializer_Update2()
         {
             var src1 = "class C { int a { get; } = 0; }";
@@ -4380,7 +4380,7 @@ partial class C
                 Diagnostic(RudeEditKind.MethodBodyAdd, "get", CSharpFeaturesResources.PropertyGetter));
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializer_Update3()
         {
             var src1 = "class C { int a; }";
@@ -4396,7 +4396,7 @@ partial class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true) });
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyInitializer_Update3()
         {
             var src1 = "class C { int a { get { return 1; } } }";
@@ -4412,7 +4412,7 @@ partial class C
                 Diagnostic(RudeEditKind.MethodBodyDelete, "get", CSharpFeaturesResources.PropertyGetter));
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_StaticCtorUpdate1()
         {
             var src1 = "class C { static int a; static C() { } }";
@@ -4430,7 +4430,7 @@ partial class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").StaticConstructors.Single()) });
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyInitializerUpdate_StaticCtorUpdate1()
         {
             var src1 = "class C { static int a { get; } = 1; static C() { } }";
@@ -4443,7 +4443,7 @@ partial class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").StaticConstructors.Single()) });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_InstanceCtorUpdate_Private()
         {
             var src1 = "class C { int a; C() { } }";
@@ -4455,7 +4455,7 @@ partial class C
                 Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Constructor));
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyInitializerUpdate_InstanceCtorUpdate_Private()
         {
             var src1 = "class C { int a { get; } = 1; C() { } }";
@@ -4467,7 +4467,7 @@ partial class C
                 Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Constructor));
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_InstanceCtorUpdate_Public()
         {
             var src1 = "class C { int a; public C() { } }";
@@ -4480,7 +4480,7 @@ partial class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single()) });
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyInitializerUpdate_InstanceCtorUpdate_Public()
         {
             var src1 = "class C { int a { get; } = 1; public C() { } }";
@@ -4493,7 +4493,7 @@ partial class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single()) });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_StaticCtorUpdate2()
         {
             var src1 = "class C { static int a; static C() { } }";
@@ -4509,7 +4509,7 @@ partial class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").StaticConstructors.Single(), preserveLocalVariables: true) });
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyInitializerUpdate_StaticCtorUpdate2()
         {
             var src1 = "class C { static int a { get; } = 1; static C() { } }";
@@ -4522,7 +4522,7 @@ partial class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").StaticConstructors.Single(), preserveLocalVariables: true) });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_InstanceCtorUpdate2()
         {
             var src1 = "class C { int a; public C() { } }";
@@ -4538,7 +4538,7 @@ partial class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true) });
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyInitializerUpdate_InstanceCtorUpdate2()
         {
             var src1 = "class C { int a { get; } = 1; public C() { } }";
@@ -4551,7 +4551,7 @@ partial class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true) });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_InstanceCtorUpdate3()
         {
             var src1 = "class C { int a; }";
@@ -4567,7 +4567,7 @@ partial class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true) });
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyInitializerUpdate_InstanceCtorUpdate3()
         {
             var src1 = "class C { int a { get; } = 1; }";
@@ -4580,7 +4580,7 @@ partial class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true) });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_InstanceCtorUpdate4()
         {
             var src1 = "class C { int a = 0; }";
@@ -4596,7 +4596,7 @@ partial class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true) });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_InstanceCtorUpdate5()
         {
             var src1 = "class C { int a;     private C(int a) { }    private C(bool a) { } }";
@@ -4616,7 +4616,7 @@ partial class C
                 });
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyInitializerUpdate_InstanceCtorUpdate5()
         {
             var src1 = "class C { int a { get; } = 1;     private C(int a) { }    private C(bool a) { } }";
@@ -4633,7 +4633,7 @@ partial class C
                 });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_InstanceCtorUpdate6()
         {
             var src1 = "class C { int a;     private C(int a) : this(true) { } private C(bool a) { } }";
@@ -4652,7 +4652,7 @@ partial class C
                 });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_StaticCtorInsertImplicit()
         {
             var src1 = "class C { static int a; }";
@@ -4668,7 +4668,7 @@ partial class C
                 new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<NamedTypeSymbol>("C").StaticConstructors.Single()) });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_StaticCtorInsertExplicit()
         {
             var src1 = "class C { static int a; }";
@@ -4686,7 +4686,7 @@ partial class C
                 new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<NamedTypeSymbol>("C").StaticConstructors.Single()) });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_InstanceCtorInsertExplicit()
         {
             var src1 = "class C { int a; }";
@@ -4699,7 +4699,7 @@ partial class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true) });
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyInitializerUpdate_InstanceCtorInsertExplicit()
         {
             var src1 = "class C { int a { get; } = 1; }";
@@ -4712,7 +4712,7 @@ partial class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true) });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_GenericType()
         {
             var src1 = "class C<T> { int a = 1; }";
@@ -4727,7 +4727,7 @@ partial class C
                 Diagnostic(RudeEditKind.GenericTypeInitializerUpdate, "a = 2", FeaturesResources.Field));
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyInitializerUpdate_GenericType()
         {
             var src1 = "class C<T> { int a { get; } = 1; }";
@@ -4739,7 +4739,7 @@ partial class C
                 Diagnostic(RudeEditKind.GenericTypeInitializerUpdate, "int a", FeaturesResources.AutoProperty));
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_StackAllocInConstructor()
         {
             var src1 = "unsafe class C { int a = 1; public C() { int* a = stackalloc int[10]; } }";
@@ -4755,7 +4755,7 @@ partial class C
                 Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.Constructor));
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyInitializerUpdate_StackAllocInConstructor1()
         {
             var src1 = "unsafe class C { int a { get; } = 1; public C() { int* a = stackalloc int[10]; } }";
@@ -4768,7 +4768,7 @@ partial class C
                 Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.Constructor));
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyInitializerUpdate_StackAllocInConstructor2()
         {
             var src1 = "unsafe class C { int a { get; } = 1; public C() : this(1) { int* a = stackalloc int[10]; } public C(int a) { } }";
@@ -4779,7 +4779,7 @@ partial class C
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyInitializerUpdate_StackAllocInConstructor3()
         {
             var src1 = "unsafe class C { int a { get; } = 1; public C() { } public C(int b) { int* a = stackalloc int[10]; } }";
@@ -4792,7 +4792,7 @@ partial class C
                 Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.Constructor));
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_LambdaInConstructor()
         {
             var src1 = "class C { int a = 1; public C() { F(() => {}); } static void F(System.Action a) {} }";
@@ -4806,7 +4806,7 @@ partial class C
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyInitializerUpdate_LambdaInConstructor()
         {
             var src1 = "class C { int a { get; } = 1; public C() { F(() => {}); } static void F(System.Action a) {} }";
@@ -4817,7 +4817,7 @@ partial class C
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_QueryInConstructor()
         {
             var src1 = "using System.Linq; class C { int a = 1; public C() { F(from a in new[] {1,2,3} select a + 1); } static void F(System.Collections.Generic.IEnumerable<int> x) {} }";
@@ -4831,7 +4831,7 @@ partial class C
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyInitializerUpdate_QueryInConstructor()
         {
             var src1 = "using System.Linq; class C { int a { get; } = 1; public C() { F(from a in new[] {1,2,3} select a + 1); } static void F(System.Collections.Generic.IEnumerable<int> x) {} }";
@@ -4842,7 +4842,7 @@ partial class C
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_AnonymousTypeInConstructor()
         {
             var src1 = "class C { int a = 1; C() { F(new { A = 1, B = 2 }); } static void F(object x) {} }";
@@ -4853,7 +4853,7 @@ partial class C
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyInitializerUpdate_AnonymousTypeInConstructor()
         {
             var src1 = "class C { int a { get; } = 1; C() { F(new { A = 1, B = 2 }); } static void F(object x) {} }";
@@ -4864,7 +4864,7 @@ partial class C
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_PartialTypeWithSingleDeclaration()
         {
             var src1 = "partial class C { int a = 1; }";
@@ -4879,7 +4879,7 @@ partial class C
                 Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "a = 2", FeaturesResources.Field));
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyInitializerUpdate_PartialTypeWithSingleDeclaration()
         {
             var src1 = "partial class C { int a { get; } = 1; }";
@@ -4891,7 +4891,7 @@ partial class C
                 Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "int a { get; } = 2;", FeaturesResources.AutoProperty));
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_PartialTypeWithMultipleDeclarations()
         {
             var src1 = "partial class C { int a = 1; } partial class C { }";
@@ -4906,7 +4906,7 @@ partial class C
                 Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "a = 2", FeaturesResources.Field));
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyInitializerUpdate_PartialTypeWithMultipleDeclarations()
         {
             var src1 = "partial class C { int a { get; } = 1; } partial class C { }";
@@ -4918,7 +4918,7 @@ partial class C
                 Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "int a { get; } = 2;", FeaturesResources.AutoProperty));
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_ParenthesizedLambda()
         {
             var src1 = "class C { int a = F(1, (x, y) => x + y); }";
@@ -4928,7 +4928,7 @@ partial class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyInitializerUpdate_ParenthesizedLambda()
         {
             var src1 = "class C { int a { get; } = F(1, (x, y) => x + y); }";
@@ -4939,7 +4939,7 @@ partial class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_SimpleLambda()
         {
             var src1 = "class C { int a = F(1, x => x); }";
@@ -4950,7 +4950,7 @@ partial class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyInitializerUpdate_SimpleLambda()
         {
             var src1 = "class C { int a { get; } = F(1, x => x); }";
@@ -4961,7 +4961,7 @@ partial class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_Query()
         {
             var src1 = "class C { int a = F(1, from foo in bar select baz); }";
@@ -4972,7 +4972,7 @@ partial class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyInitializerUpdate_Query()
         {
             var src1 = "class C { int a { get; } = F(1, from foo in bar select baz); }";
@@ -4983,7 +4983,7 @@ partial class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_AnonymousType()
         {
             var src1 = "class C { int a = F(1, new { A = 1, B = 2 }); }";
@@ -4994,7 +4994,7 @@ partial class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyInitializerUpdate_AnonymousType()
         {
             var src1 = "class C { int a { get; } = F(1, new { A = 1, B = 2 }); }";
@@ -5005,7 +5005,7 @@ partial class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_Lambdas_ImplicitCtor_EditInitializerWithLambda1()
         {
             string src1 = @"
@@ -5038,7 +5038,7 @@ class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0]) });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_Lambdas_ImplicitCtor_EditInitializerWithoutLambda1()
         {
             string src1 = @"
@@ -5071,7 +5071,7 @@ class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0]) });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_Lambdas_CtorIncludingInitializers_EditInitializerWithLambda1()
         {
             string src1 = @"
@@ -5108,7 +5108,7 @@ class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0]) });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_Lambdas_CtorIncludingInitializers_EditInitializerWithoutLambda1()
         {
             string src1 = @"
@@ -5145,7 +5145,7 @@ class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0]) });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializers_EditInitializerWithLambda1()
         {
             string src1 = @"
@@ -5188,7 +5188,7 @@ class C
                 });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditInitializerWithLambda1()
         {
             string src1 = @"
@@ -5231,7 +5231,7 @@ class C
                 });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditInitializerWithLambda_Trivia1()
         {
             string src1 = @"
@@ -5274,7 +5274,7 @@ class C
                 });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditConstructorWithLambda1()
         {
             string src1 = @"
@@ -5316,7 +5316,7 @@ class C
                 });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditConstructorWithLambda_Trivia1()
         {
             string src1 = @"
@@ -5358,7 +5358,7 @@ class C
                 });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditConstructorWithoutLambda1()
         {
             string src1 = @"
@@ -5400,7 +5400,7 @@ class C
                 });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_Lambdas_EditConstructorNotIncludingInitializers()
         {
             string src1 = @"
@@ -5442,7 +5442,7 @@ class C
                 });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_Lambdas_RemoveCtorInitializer1()
         {
             string src1 = @"
@@ -5484,7 +5484,7 @@ class C
                 });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_Lambdas_AddCtorInitializer1()
         {
             string src1 = @"
@@ -5525,7 +5525,7 @@ class C
                 });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_Lambdas_UpdateBaseCtorInitializerWithLambdas1()
         {
             string src1 = @"
@@ -5583,7 +5583,7 @@ class C : B
                 });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInitializerUpdate_ActiveStatements1()
         {
             string src1 = @"
@@ -5627,7 +5627,7 @@ class C
 
         #region Fields
 
-        [Fact]
+        [WpfFact]
         public void FieldNameUpdate1()
         {
             var src1 = "class C { int a = 0; }";
@@ -5642,7 +5642,7 @@ class C
                 Diagnostic(RudeEditKind.Renamed, "b = 0", FeaturesResources.Field));
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldUpdate_FieldKind()
         {
             var src1 = "class C { Action a; }";
@@ -5657,7 +5657,7 @@ class C
                 Diagnostic(RudeEditKind.FieldKindUpdate, "event Action a", CSharpFeaturesResources.EventField));
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldReorder()
         {
             var src1 = "class C { int a = 0; int b = 1; int c = 2; }";
@@ -5672,7 +5672,7 @@ class C
                 Diagnostic(RudeEditKind.Move, "int c = 2", FeaturesResources.Field));
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInsert_Private()
         {
             var src1 = "class C {  }";
@@ -5694,7 +5694,7 @@ class C
                 });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInsert_PrivateReadonly()
         {
             var src1 = "class C {  }";
@@ -5710,7 +5710,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInsert_Public()
         {
             var src1 = "class C {  }";
@@ -5726,7 +5726,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInsert_Protected()
         {
             var src1 = "class C {  }";
@@ -5742,7 +5742,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInsert_IntoStruct()
         {
             var src1 = @"
@@ -5775,7 +5775,7 @@ struct S
                 Diagnostic(RudeEditKind.InsertIntoStruct, "d", CSharpFeaturesResources.EventField, CSharpFeaturesResources.Struct));
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInsert_IntoLayoutClass_Auto()
         {
             var src1 = @"
@@ -5812,7 +5812,7 @@ class C
                 });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInsert_IntoLayoutClass_Explicit()
         {
             var src1 = @"
@@ -5851,7 +5851,7 @@ class C
                 Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "d", FeaturesResources.Field, FeaturesResources.Class));
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInsert_IntoLayoutClass_Sequential()
         {
             var src1 = @"
@@ -5884,7 +5884,7 @@ class C
                 Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "d", FeaturesResources.Field, FeaturesResources.Class));
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInsert_WithInitializersAndLambdas1()
         {
             string src1 = @"
@@ -5930,7 +5930,7 @@ class C
                 });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldInsert_ParameterlessConstructorInsert_WithInitializersAndLambdas1()
         {
             string src1 = @"
@@ -5971,7 +5971,7 @@ class C
                 });
         }
 
-        [Fact, WorkItem(2504)]
+        [WpfFact, WorkItem(2504)]
         public void FieldInsert_ConstructorInsert_WithInitializersAndLambdas1()
         {
             string src1 = @"
@@ -6016,7 +6016,7 @@ class C
             //    });
         }
 
-        [Fact, WorkItem(2504)]
+        [WpfFact, WorkItem(2504)]
         public void FieldInsert_ConstructorInsert_WithInitializersButNoExistingLambdas1()
         {
             string src1 = @"
@@ -6057,7 +6057,7 @@ class C
                 });
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldDelete1()
         {
             var src1 = "class C { int a = 1; }";
@@ -6074,7 +6074,7 @@ class C
                 Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Field));
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldUnsafeModifierUpdate()
         {
             var src1 = "struct Node { unsafe Node* left; }";
@@ -6088,7 +6088,7 @@ class C
                 Diagnostic(RudeEditKind.ModifiersUpdate, "Node* left", FeaturesResources.Field));
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldModifierAndTypeUpdate()
         {
             var src1 = "struct Node { unsafe Node* left; }";
@@ -6105,7 +6105,7 @@ class C
                 Diagnostic(RudeEditKind.TypeUpdate, "Node left", FeaturesResources.Field));
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldTypeUpdateNullable()
         {
             var src1 = "class C { int left; }";
@@ -6119,7 +6119,7 @@ class C
                 Diagnostic(RudeEditKind.TypeUpdate, "int? left", FeaturesResources.Field));
         }
 
-        [Fact]
+        [WpfFact]
         public void EventFieldReorder()
         {
             var src1 = "class C { int a = 0; int b = 1; event int c = 2; }";
@@ -6138,7 +6138,7 @@ class C
 
         #region Properties
 
-        [Fact]
+        [WpfFact]
         public void PropertyWithExpressionBody_Update()
         {
             var src1 = "class C { int P => 1; }";
@@ -6154,7 +6154,7 @@ class C
             });
         }
 
-        [Fact]
+        [WpfFact]
         public void Property_ExpressionBodyToBlockBody1()
         {
             var src1 = "class C { int P => 1; }";
@@ -6173,7 +6173,7 @@ class C
             });
         }
 
-        [Fact]
+        [WpfFact]
         public void Property_ExpressionBodyToBlockBody2()
         {
             var src1 = "class C { int P => 1; }";
@@ -6194,7 +6194,7 @@ class C
             });
         }
 
-        [Fact]
+        [WpfFact]
         public void Property_BlockBodyToExpressionBody1()
         {
             var src1 = "class C { int P { get { return 2; } } }";
@@ -6213,7 +6213,7 @@ class C
             });
         }
 
-        [Fact]
+        [WpfFact]
         public void Property_BlockBodyToExpressionBody2()
         {
             var src1 = "class C { int P { get { return 2; } set { } } }";
@@ -6231,7 +6231,7 @@ class C
                 Diagnostic(RudeEditKind.Delete, "int P", CSharpFeaturesResources.PropertySetter));
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyRename1()
         {
             var src1 = "class C { int P { get { return 1; } } }";
@@ -6243,7 +6243,7 @@ class C
                 Diagnostic(RudeEditKind.Renamed, "int Q", FeaturesResources.Property));
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyRename2()
         {
             var src1 = "class C { int I.P { get { return 1; } } }";
@@ -6255,7 +6255,7 @@ class C
                 Diagnostic(RudeEditKind.Renamed, "int J.P", FeaturesResources.Property));
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyReorder1()
         {
             var src1 = "class C { int P { get { return 1; } } int Q { get { return 1; } }  }";
@@ -6271,7 +6271,7 @@ class C
                 Diagnostic(RudeEditKind.Move, "int Q", FeaturesResources.Property));
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyReorder2()
         {
             var src1 = "class C { int P { get; set; } int Q { get; set; }  }";
@@ -6286,7 +6286,7 @@ class C
                 Diagnostic(RudeEditKind.Move, "int Q", FeaturesResources.AutoProperty));
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyAccessorReorder()
         {
             var src1 = "class C { int P { get { return 1; } set { } } }";
@@ -6300,7 +6300,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyTypeUpdate()
         {
             var src1 = "class C { int P { get; set; } }";
@@ -6316,7 +6316,7 @@ class C
         }
 
         [WorkItem(835827)]
-        [Fact]
+        [WpfFact]
         public void PropertyInsert_PInvoke()
         {
             string src1 = @"
@@ -6342,7 +6342,7 @@ class C
                 Diagnostic(RudeEditKind.InsertExtern, "private static extern int P", FeaturesResources.Property));
         }
 
-        [Fact]
+        [WpfFact]
         public void Property_InsertIntoStruct()
         {
             var src1 = @"
@@ -6374,7 +6374,7 @@ struct S
                 Diagnostic(RudeEditKind.InsertIntoStruct, "private static int i { get; set; } = 1;", FeaturesResources.AutoProperty, CSharpFeaturesResources.Struct));
         }
 
-        [Fact]
+        [WpfFact]
         public void PropertyInsert_IntoLayoutClass_Sequential()
         {
             var src1 = @"
@@ -6419,7 +6419,7 @@ class C
 
         // Design: Adding private accessors should also be allowed since we now allow adding private methods
         // and adding public properties and/or public accessors are not allowed.
-        [Fact]
+        [WpfFact]
         public void PrivateProperty_AccessorAdd()
         {
             var src1 = "class C { int _p; int P { get { return 1; } } }";
@@ -6433,7 +6433,7 @@ class C
         }
 
         [WorkItem(755975)]
-        [Fact]
+        [WpfFact]
         public void PrivatePropertyAccessorDelete()
         {
             var src1 = "class C { int _p; int P { get { return 1; } set { _p = value; } } }";
@@ -6447,7 +6447,7 @@ class C
                 Diagnostic(RudeEditKind.Delete, "int P", CSharpFeaturesResources.PropertySetter));
         }
 
-        [Fact]
+        [WpfFact]
         public void PrivateAutoPropertyAccessorAdd1()
         {
             var src1 = "class C { int P { get; } }";
@@ -6460,7 +6460,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void PrivateAutoPropertyAccessorAdd2()
         {
             var src1 = "class C { public int P { get; } }";
@@ -6473,7 +6473,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void PrivateAutoPropertyAccessorAdd4()
         {
             var src1 = "class C { public int P { get; } }";
@@ -6486,7 +6486,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void PrivateAutoPropertyAccessorAdd5()
         {
             var src1 = "class C { public int P { get; } }";
@@ -6499,7 +6499,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void PrivateAutoPropertyAccessorAdd6()
         {
             var src1 = "class C { int P { get; } = 1; }";
@@ -6513,7 +6513,7 @@ class C
         }
 
         [WorkItem(755975)]
-        [Fact]
+        [WpfFact]
         public void PrivateAutoPropertyAccessorDelete1()
         {
             var src1 = "class C { int P { get; set; } }";
@@ -6527,7 +6527,7 @@ class C
                 Diagnostic(RudeEditKind.Delete, "int P", CSharpFeaturesResources.PropertyGetter));
         }
 
-        [Fact]
+        [WpfFact]
         public void PrivateAutoPropertyAccessorDelete2()
         {
             var src1 = "class C { int P { get; set; } = 1; }";
@@ -6541,7 +6541,7 @@ class C
                 Diagnostic(RudeEditKind.Delete, "int P", CSharpFeaturesResources.PropertyGetter));
         }
 
-        [Fact]
+        [WpfFact]
         public void AutoPropertyAccessorUpdate()
         {
             var src1 = "class C { int P { get; } }";
@@ -6556,7 +6556,7 @@ class C
         }
 
         [WorkItem(992578)]
-        [Fact]
+        [WpfFact]
         public void InsertIncompleteProperty()
         {
             var src1 = "class C { }";
@@ -6573,7 +6573,7 @@ class C
 
         #region Indexers
 
-        [Fact]
+        [WpfFact]
         public void Indexer_GetterUpdate()
         {
             var src1 = "class C { int this[int a] { get { return 1; } } }";
@@ -6590,7 +6590,7 @@ class C
             });
         }
 
-        [Fact]
+        [WpfFact]
         public void Indexer_SetterUpdate()
         {
             var src1 = "class C { int this[int a] { get { return 1; } set { System.Console.WriteLine(value); } } }";
@@ -6607,7 +6607,7 @@ class C
             });
         }
 
-        [Fact]
+        [WpfFact]
         public void IndexerWithExpressionBody_Update()
         {
             var src1 = "class C { int this[int a] => 1; }";
@@ -6624,7 +6624,7 @@ class C
             });
         }
 
-        [Fact]
+        [WpfFact]
         public void Indexer_Rename()
         {
             var src1 = "class C { int I.this[int a] { get { return 1; } } }";
@@ -6636,7 +6636,7 @@ class C
                 Diagnostic(RudeEditKind.Renamed, "int J.this[int a]", CSharpFeaturesResources.Indexer));
         }
 
-        [Fact]
+        [WpfFact]
         public void Indexer_Reorder1()
         {
             var src1 = "class C { int this[int a] { get { return 1; } } int this[string a] { get { return 1; } }  }";
@@ -6650,7 +6650,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void Indexer_AccessorReorder()
         {
             var src1 = "class C { int this[int a] { get { return 1; } set { } } }";
@@ -6664,7 +6664,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void Indexer_TypeUpdate()
         {
             var src1 = "class C { int this[int a] { get; set; } }";
@@ -6679,7 +6679,7 @@ class C
                 Diagnostic(RudeEditKind.TypeUpdate, "string this[int a]", CSharpFeaturesResources.Indexer));
         }
 
-        [Fact]
+        [WpfFact]
         public void Indexer_ParameterUpdate()
         {
             var src1 = "class C { int this[int a] { get; set; } }";
@@ -6691,7 +6691,7 @@ class C
                 Diagnostic(RudeEditKind.TypeUpdate, "string a", FeaturesResources.Parameter));
         }
 
-        [Fact]
+        [WpfFact]
         public void Indexer_AddGetAccessor()
         {
             string src1 = @"
@@ -6738,7 +6738,7 @@ class SampleCollection<T>
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void Indexer_AddSetAccessor()
         {
             string src1 = @"
@@ -6786,7 +6786,7 @@ class SampleCollection<T>
         }
 
         [WorkItem(750109)]
-        [Fact]
+        [WpfFact]
         public void Indexer_DeleteGetAccessor()
         {
             string src1 = @"
@@ -6834,7 +6834,7 @@ class SampleCollection<T>
                 Diagnostic(RudeEditKind.Delete, "public T this[int i]", CSharpFeaturesResources.IndexerGetter));
         }
 
-        [Fact]
+        [WpfFact]
         public void Indexer_DeleteSetAccessor()
         {
             string src1 = @"
@@ -6882,7 +6882,7 @@ class SampleCollection<T>
                 Diagnostic(RudeEditKind.Delete, "public T this[int i]", CSharpFeaturesResources.IndexerSetter));
         }
 
-        [Fact, WorkItem(1174850)]
+        [WpfFact, WorkItem(1174850)]
         public void Indexer_Insert()
         {
             var src1 = "struct C { }";
@@ -6893,7 +6893,7 @@ class SampleCollection<T>
         }
 
         [WorkItem(1120407)]
-        [Fact]
+        [WpfFact]
         public void ConstField_Update()
         {
             var src1 = "class C { const int x = 0; }";
@@ -6907,7 +6907,7 @@ class SampleCollection<T>
                 Diagnostic(RudeEditKind.Update, "x = 1", FeaturesResources.ConstField));
         }
 
-        [Fact]
+        [WpfFact]
         public void ConstField_Delete()
         {
             var src1 = "class C { const int x = 0; }";
@@ -6921,7 +6921,7 @@ class SampleCollection<T>
                 Diagnostic(RudeEditKind.ModifiersUpdate, "int x = 0", FeaturesResources.Field));
         }
 
-        [Fact]
+        [WpfFact]
         public void ConstField_Add()
         {
             var src1 = "class C { int x = 0; }";
@@ -6939,7 +6939,7 @@ class SampleCollection<T>
 
         #region Events
 
-        [Fact]
+        [WpfFact]
         public void EventAccessorReorder1()
         {
             var src1 = "class C { event int E { add { } remove { } } }";
@@ -6953,7 +6953,7 @@ class SampleCollection<T>
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void EventAccessorReorder2()
         {
             var src1 = "class C { event int E1 { add { } remove { } }    event int E1 { add { } remove { } } }";
@@ -6968,7 +6968,7 @@ class SampleCollection<T>
                 "Reorder [remove { }]@72 -> @64");
         }
 
-        [Fact]
+        [WpfFact]
         public void EventAccessorReorder3()
         {
             var src1 = "class C { event int E1 { add { } remove { } }    event int E2 { add { } remove { } } }";
@@ -6982,7 +6982,7 @@ class SampleCollection<T>
                 "Reorder [remove { }]@33 -> @64");
         }
 
-        [Fact]
+        [WpfFact]
         public void EventInsert_IntoLayoutClass_Sequential()
         {
             var src1 = @"
@@ -7014,7 +7014,7 @@ class C
 
         #region Parameter
 
-        [Fact]
+        [WpfFact]
         public void ParameterRename_Method1()
         {
             var src1 = @"class C { public void M(int a) {} }";
@@ -7025,7 +7025,7 @@ class C
                 "Update [int a]@24 -> [int b]@24");
         }
 
-        [Fact]
+        [WpfFact]
         public void ParameterRename_Ctor1()
         {
             var src1 = @"class C { public C(int a) {} }";
@@ -7036,7 +7036,7 @@ class C
                 "Update [int a]@19 -> [int b]@19");
         }
 
-        [Fact]
+        [WpfFact]
         public void ParameterRename_Operator1()
         {
             var src1 = @"class C { public static implicit operator int(C a) {} }";
@@ -7047,7 +7047,7 @@ class C
                 "Update [C a]@46 -> [C b]@46");
         }
 
-        [Fact]
+        [WpfFact]
         public void ParameterRename_Operator2()
         {
             var src1 = @"class C { public static int operator +(C a, C b) { return 0; } }";
@@ -7058,7 +7058,7 @@ class C
                 "Update [C b]@44 -> [C x]@44");
         }
 
-        [Fact]
+        [WpfFact]
         public void ParameterRename_Indexer2()
         {
             var src1 = @"class C { public int this[int a, int b] { get { return 0; } } }";
@@ -7069,7 +7069,7 @@ class C
                 "Update [int b]@33 -> [int x]@33");
         }
 
-        [Fact]
+        [WpfFact]
         public void ParameterModifierUpdate1()
         {
             var src1 = @"class C { public int this[int a, ref int b] { get { return 0; } } }";
@@ -7080,7 +7080,7 @@ class C
                 "Update [ref int b]@33 -> [int b]@33");
         }
 
-        [Fact]
+        [WpfFact]
         public void ParameterInsert1()
         {
             var src1 = @"class C { public void M() {} }";
@@ -7091,7 +7091,7 @@ class C
                 "Insert [int a]@24");
         }
 
-        [Fact]
+        [WpfFact]
         public void ParameterInsert2()
         {
             var src1 = @"class C { public void M(int a) {} }";
@@ -7103,7 +7103,7 @@ class C
                 "Insert [ref int b]@31");
         }
 
-        [Fact]
+        [WpfFact]
         public void ParameterDelete1()
         {
             var src1 = @"class C { public void M(int a) {} }";
@@ -7114,7 +7114,7 @@ class C
                 "Delete [int a]@24");
         }
 
-        [Fact]
+        [WpfFact]
         public void ParameterDelete2()
         {
             var src1 = @"class C { public void M(int a, int b) {} }";
@@ -7126,7 +7126,7 @@ class C
                 "Delete [int a]@24");
         }
 
-        [Fact]
+        [WpfFact]
         public void ParameterUpdate()
         {
             var src1 = @"class C { public void M(int a) {} }";
@@ -7137,7 +7137,7 @@ class C
                 "Update [int a]@24 -> [int b]@24");
         }
 
-        [Fact]
+        [WpfFact]
         public void ParameterReorder()
         {
             var src1 = @"class C { public void M(int a, int b) {} }";
@@ -7148,7 +7148,7 @@ class C
                 "Reorder [int b]@31 -> @24");
         }
 
-        [Fact]
+        [WpfFact]
         public void ParameterReorderAndUpdate()
         {
             var src1 = @"class C { public void M(int a, int b) {} }";
@@ -7160,7 +7160,7 @@ class C
                 "Update [int a]@24 -> [int c]@31");
         }
 
-        [Fact]
+        [WpfFact]
         public void ParameterAttributeInsert1()
         {
             var src1 = @"class C { public void M(int a) {} }";
@@ -7172,7 +7172,7 @@ class C
                 "Insert [A]@25");
         }
 
-        [Fact]
+        [WpfFact]
         public void ParameterAttributeInsert2()
         {
             var src1 = @"class C { public void M([A]int a) {} }";
@@ -7184,7 +7184,7 @@ class C
                 "Insert [B]@28");
         }
 
-        [Fact]
+        [WpfFact]
         public void ParameterAttributeDelete()
         {
             var src1 = @"class C { public void M([A]int a) {} }";
@@ -7196,7 +7196,7 @@ class C
                 "Delete [A]@25");
         }
 
-        [Fact]
+        [WpfFact]
         public void ParameterAttributeUpdate()
         {
             var src1 = @"class C { public void M([A(1), C]int a) {} }";
@@ -7212,7 +7212,7 @@ class C
 
         #region Method Type Parameter
 
-        [Fact]
+        [WpfFact]
         public void MethodTypeParameterInsert1()
         {
             var src1 = @"class C { public void M() {} }";
@@ -7224,7 +7224,7 @@ class C
                 "Insert [A]@24");
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodTypeParameterInsert2()
         {
             var src1 = @"class C { public void M<A>() {} }";
@@ -7236,7 +7236,7 @@ class C
                 "Insert [B]@26");
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodTypeParameterDelete1()
         {
             var src1 = @"class C { public void M<A>() {} }";
@@ -7248,7 +7248,7 @@ class C
                 "Delete [A]@24");
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodTypeParameterDelete2()
         {
             var src1 = @"class C { public void M<A,B>() {} }";
@@ -7260,7 +7260,7 @@ class C
                 "Delete [A]@24");
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodTypeParameterUpdate()
         {
             var src1 = @"class C { public void M<A>() {} }";
@@ -7271,7 +7271,7 @@ class C
                 "Update [A]@24 -> [B]@24");
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodTypeParameterReorder()
         {
             var src1 = @"class C { public void M<A,B>() {} }";
@@ -7282,7 +7282,7 @@ class C
                 "Reorder [B]@26 -> @24");
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodTypeParameterReorderAndUpdate()
         {
             var src1 = @"class C { public void M<A,B>() {} }";
@@ -7294,7 +7294,7 @@ class C
                 "Update [A]@24 -> [C]@26");
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodTypeParameterAttributeInsert1()
         {
             var src1 = @"class C { public void M<T>() {} }";
@@ -7306,7 +7306,7 @@ class C
                 "Insert [A]@25");
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodTypeParameterAttributeInsert2()
         {
             var src1 = @"class C { public void M<[A]T>() {} }";
@@ -7318,7 +7318,7 @@ class C
                 "Insert [B]@28");
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodTypeParameterAttributeDelete()
         {
             var src1 = @"class C { public void M<[A]T>() {} }";
@@ -7330,7 +7330,7 @@ class C
                 "Delete [A]@25");
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodTypeParameterAttributeUpdate()
         {
             var src1 = @"class C { public void M<[A(1), C]T>() {} }";
@@ -7346,7 +7346,7 @@ class C
 
         #region Type Type Parameter
 
-        [Fact]
+        [WpfFact]
         public void TypeTypeParameterInsert1()
         {
             var src1 = @"class C {}";
@@ -7362,7 +7362,7 @@ class C
                 Diagnostic(RudeEditKind.Insert, "<A>", FeaturesResources.TypeParameter));
         }
 
-        [Fact]
+        [WpfFact]
         public void TypeTypeParameterInsert2()
         {
             var src1 = @"class C<A> {}";
@@ -7378,7 +7378,7 @@ class C
                 Diagnostic(RudeEditKind.Insert, "B", FeaturesResources.TypeParameter));
         }
 
-        [Fact]
+        [WpfFact]
         public void TypeTypeParameterDelete1()
         {
             var src1 = @"class C<A> { }";
@@ -7390,7 +7390,7 @@ class C
                 "Delete [A]@8");
         }
 
-        [Fact]
+        [WpfFact]
         public void TypeTypeParameterDelete2()
         {
             var src1 = @"class C<A,B> {}";
@@ -7406,7 +7406,7 @@ class C
                 Diagnostic(RudeEditKind.Delete, "class C<B>", FeaturesResources.TypeParameter));
         }
 
-        [Fact]
+        [WpfFact]
         public void TypeTypeParameterUpdate()
         {
             var src1 = @"class C<A> {}";
@@ -7421,7 +7421,7 @@ class C
                 Diagnostic(RudeEditKind.Renamed, "B", FeaturesResources.TypeParameter));
         }
 
-        [Fact]
+        [WpfFact]
         public void TypeTypeParameterReorder()
         {
             var src1 = @"class C<A,B> { }";
@@ -7436,7 +7436,7 @@ class C
                 Diagnostic(RudeEditKind.Move, "B", FeaturesResources.TypeParameter));
         }
 
-        [Fact]
+        [WpfFact]
         public void TypeTypeParameterReorderAndUpdate()
         {
             var src1 = @"class C<A,B> {}";
@@ -7453,7 +7453,7 @@ class C
                 Diagnostic(RudeEditKind.Renamed, "C", FeaturesResources.TypeParameter));
         }
 
-        [Fact]
+        [WpfFact]
         public void TypeTypeParameterAttributeInsert1()
         {
             var src1 = @"class C<T> {}";
@@ -7469,7 +7469,7 @@ class C
                 Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.Attribute));
         }
 
-        [Fact]
+        [WpfFact]
         public void TypeTypeParameterAttributeInsert2()
         {
             var src1 = @"class C<[A]T> {}";
@@ -7485,7 +7485,7 @@ class C
                 Diagnostic(RudeEditKind.Insert, "B", FeaturesResources.Attribute));
         }
 
-        [Fact]
+        [WpfFact]
         public void TypeTypeParameterAttributeDelete()
         {
             var src1 = @"class C<[A]T> {}";
@@ -7501,7 +7501,7 @@ class C
                 Diagnostic(RudeEditKind.Delete, "T", FeaturesResources.Attribute));
         }
 
-        [Fact]
+        [WpfFact]
         public void TypeTypeParameterAttributeUpdate()
         {
             var src1 = @"class C<[A(1), C]T> {}";
@@ -7522,7 +7522,7 @@ class C
 
         #region Type Parameter Constraints
 
-        [Fact]
+        [WpfFact]
         public void TypeConstraintInsert()
         {
             var src1 = "class C<T> { }";
@@ -7537,7 +7537,7 @@ class C
                 Diagnostic(RudeEditKind.Insert, "where T : class", FeaturesResources.TypeConstraint));
         }
 
-        [Fact]
+        [WpfFact]
         public void TypeConstraintInsert2()
         {
             var src1 = "class C<S,T> where T : class { }";
@@ -7552,7 +7552,7 @@ class C
                 Diagnostic(RudeEditKind.Insert, "where S : new()", FeaturesResources.TypeConstraint));
         }
 
-        [Fact]
+        [WpfFact]
         public void TypeConstraintDelete1()
         {
             var src1 = "class C<S,T> where T : class { }";
@@ -7567,7 +7567,7 @@ class C
                 Diagnostic(RudeEditKind.Delete, "class C<S,T>", FeaturesResources.TypeConstraint));
         }
 
-        [Fact]
+        [WpfFact]
         public void TypeConstraintDelete2()
         {
             var src1 = "class C<S,T> where S : new() where T : class  { }";
@@ -7582,7 +7582,7 @@ class C
                 Diagnostic(RudeEditKind.Delete, "class C<S,T>", FeaturesResources.TypeConstraint));
         }
 
-        [Fact]
+        [WpfFact]
         public void TypeConstraintReorder()
         {
             var src1 = "class C<S,T> where S : struct where T : class  { }";
@@ -7596,7 +7596,7 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
-        [Fact]
+        [WpfFact]
         public void TypeConstraintUpdateAndReorder()
         {
             var src1 = "class C<S,T> where S : new() where T : class  { }";

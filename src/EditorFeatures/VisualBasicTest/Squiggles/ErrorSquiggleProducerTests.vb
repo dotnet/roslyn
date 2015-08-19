@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Sub ErrorTagGeneratedForSimpleError()
             ' Make sure we have errors from the tree
             Dim spans = ProduceSquiggles("^")
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, firstSpan.Tag.ErrorType)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Sub ArgOutOfRangeExceptionBug_904382()
             Dim spans = ProduceSquiggles("Class C1", "Sub Foo(", "End Class")
 
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
             Dim count = spans.Count
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Sub ErrorDoesNotCrashPastEOF()
             Dim spans = ProduceSquiggles("Class C1",
                                          "    Sub Foo()",
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
             Assert.Equal(5, spans.Count())
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Sub SemanticError()
             Dim spans = ProduceSquiggles(
 "Class C1",
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
             Assert.Contains("Bar", DirectCast(firstSpan.Tag.ToolTipContent, String), StringComparison.Ordinal)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Sub SuggestionTagsForUnnecessaryCode()
 
             Dim analyzerMap = New Dictionary(Of String, DiagnosticAnalyzer())

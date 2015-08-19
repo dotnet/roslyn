@@ -7,7 +7,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
 {
     public class NameGenerationTests : AbstractCodeGenerationTests
     {
-        [Fact]
+        [WpfFact]
         public void TestIdentifierName()
         {
             TestName(
@@ -16,7 +16,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "a");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestIdentifierNameCSharpKeyword()
         {
             TestName(
@@ -25,7 +25,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "int");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestIdentifierNameVisualBasicKeyword()
         {
             TestName(
@@ -34,7 +34,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "[Integer]");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestGenericName1()
         {
             TestName(
@@ -43,7 +43,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "Outer(Of Inner1)");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestGenericName2()
         {
             TestName(
@@ -52,7 +52,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "Outer(Of Inner1, Inner2)");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestGenericNameCSharpKeyword()
         {
             TestName(
@@ -61,7 +61,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "int(Of [string], bool)");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestGenericNameVisualBasicKeyword()
         {
             TestName(
@@ -70,7 +70,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "[Integer](Of [String], [Boolean])");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestQualifiedName1()
         {
             TestName(
@@ -79,7 +79,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "Outer.Inner1");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestQualifiedNameCSharpKeywords1()
         {
             TestName(
@@ -88,7 +88,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "int.string");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestQualifiedNameVBKeywords1()
         {
             TestName(
@@ -97,7 +97,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "[Integer].String");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestQualifiedGenericName1()
         {
             TestName(
@@ -110,7 +110,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "One.Outer(Of Inner1, Inner2)");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestQualifiedGenericName2()
         {
             TestName(

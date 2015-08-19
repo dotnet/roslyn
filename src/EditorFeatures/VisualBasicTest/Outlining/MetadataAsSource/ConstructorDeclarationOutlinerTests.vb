@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
             Return consStatement
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Sub NoCommentsOrAttributes()
             Dim code =
 <code><![CDATA[
@@ -40,7 +40,7 @@ End Class
 
 
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Sub WithAttributes()
             Dim code =
 <code><![CDATA[
@@ -63,7 +63,7 @@ End Class
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Sub WithCommentsAndAttributes()
             Dim code =
 <code><![CDATA[
@@ -88,7 +88,7 @@ End Class
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Sub WithCommentsAttributesAndModifiers()
             Dim code =
 <code><![CDATA[

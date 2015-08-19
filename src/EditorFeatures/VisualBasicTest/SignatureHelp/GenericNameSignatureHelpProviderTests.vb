@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
 
 #Region "Declaring generic type objects"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub DeclaringGenericTypeWith1ParameterUnterminated()
             Dim markup = <a><![CDATA[
 Class G(Of T)
@@ -38,7 +38,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub DeclaringGenericTypeWith1ParameterTerminated()
             Dim markup = <a><![CDATA[
 Class G(Of T)
@@ -57,7 +57,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub DeclaringGenericTypeWith2ParametersOn1()
             Dim markup = <a><![CDATA[
 Class G(Of S, T)
@@ -76,7 +76,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub DeclaringGenericTypeWith2ParametersOn2()
             Dim markup = <a><![CDATA[
 Class G(Of S, T)
@@ -95,7 +95,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub DeclaringGenericTypeWith2ParametersOn1XmlDoc()
             Dim markup = <a><![CDATA[
 ''' <summary>
@@ -119,7 +119,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub DeclaringGenericTypeWith2ParametersOn2XmlDoc()
             Dim markup = <a><![CDATA[
 ''' <summary>
@@ -144,7 +144,7 @@ End Class
         End Sub
 
         <WorkItem(827031)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub DeclaringGenericTypeWith2ParametersOn1XmlDocReferencingTypeParams()
             Dim markup = <a><![CDATA[
 ''' <summary>
@@ -169,7 +169,7 @@ End Class
         End Sub
 
         <WorkItem(827031)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub DeclaringGenericTypeWith2ParametersOn2XmlDocReferencingTypeParams()
             Dim markup = <a><![CDATA[
 ''' <summary>
@@ -196,7 +196,7 @@ End Class
 #End Region
 
 #Region "Constraints on generic types"
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub DeclaringGenericTypeWithConstraintsStructure()
             Dim markup = <a><![CDATA[
 Class G(Of S As Structure, T)
@@ -215,7 +215,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub DeclaringGenericTypeWithConstraintsClass()
             Dim markup = <a><![CDATA[
 Class G(Of S As Class, T)
@@ -234,7 +234,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub DeclaringGenericTypeWithConstraintsNew()
             Dim markup = <a><![CDATA[
 Class G(Of S As New, T)
@@ -253,7 +253,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub DeclaringGenericTypeWithConstraintsBase()
             Dim markup = <a><![CDATA[
 Class SomeBaseClass
@@ -275,7 +275,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub DeclaringGenericTypeWithConstraintsBaseGenericWithGeneric()
             Dim markup = <a><![CDATA[
 Class SomeBaseClass(Of X)
@@ -297,7 +297,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub DeclaringGenericTypeWithConstraintsBaseGenericWithNonGeneric()
             Dim markup = <a><![CDATA[
 Class SomeBaseClass(Of X)
@@ -319,7 +319,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub DeclaringGenericTypeWithConstraintsBaseGenericWithGenericNested()
             Dim markup = <a><![CDATA[
 Class SomeBaseClass(Of X)
@@ -341,7 +341,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub DeclaringGenericTypeWithConstraintsDeriveFromAnotherGenericParameter()
             Dim markup = <a><![CDATA[
 Class G(Of S As T, T)
@@ -360,7 +360,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub DeclaringGenericTypeWithConstraintsMixed1()
             Dim markup = <a><![CDATA[
 Class SomeBaseClass
@@ -390,7 +390,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub DeclaringGenericTypeWithConstraintsMixed2()
             Dim markup = <a><![CDATA[
 Class SomeBaseClass
@@ -424,7 +424,7 @@ End Class
 
 #Region "Generic member invocation"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub InvokingGenericMethodWith1ParameterUnterminated()
             Dim markup = <a><![CDATA[
 Class C
@@ -443,7 +443,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub InvokingGenericMethodWith1ParameterTerminated()
             Dim markup = <a><![CDATA[
 Class C
@@ -462,7 +462,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub InvokingGenericMethodWith2ParametersOn1()
             Dim markup = <a><![CDATA[
 Class C
@@ -481,7 +481,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub InvokingGenericMethodWith2ParametersOn2()
             Dim markup = <a><![CDATA[
 Class C
@@ -500,7 +500,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub InvokingGenericMethodWith2ParametersOn1XmlDoc()
             Dim markup = <a><![CDATA[
 Class C
@@ -524,7 +524,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub InvokingGenericMethodWith2ParametersOn2XmlDoc()
             Dim markup = <a><![CDATA[
 Class C
@@ -551,7 +551,7 @@ End Class
         <WorkItem(544124)>
         <WorkItem(544123)>
         <WorkItem(684631)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub CallingGenericExtensionMethod()
             Dim markup = <a><![CDATA[
 Imports System
@@ -582,7 +582,7 @@ End Class
 #End Region
 
 #Region "Constraints on generic methods"
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub InvokingGenericMethodTypeWithConstraintsMixed1()
             Dim markup = <a><![CDATA[
 Class SomeBaseClass
@@ -612,7 +612,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub InvokingGenericMethodWithConstraintsMixed2()
             Dim markup = <a><![CDATA[
 Class SomeBaseClass
@@ -645,7 +645,7 @@ End Class
 
 #Region "Trigger tests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationOnTriggerSpace()
 
             Dim markup = <a><![CDATA[
@@ -665,7 +665,7 @@ End Class
             Test(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationOnTriggerComma()
 
             Dim markup = <a><![CDATA[
@@ -685,7 +685,7 @@ End Class
             Test(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestTriggerCharacters()
             Dim expectedTriggerCharacters() As Char = {","c, " "c}
             Dim unexpectedTriggerCharacters() As Char = {"["c, "<"c, "("c}
@@ -697,7 +697,7 @@ End Class
 
 #Region "EditorBrowsable tests"
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub EditorBrowsable_GenericMethod_BrowsableAlways()
             Dim markup = <Text><![CDATA[
 Class Program
@@ -729,7 +729,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub EditorBrowsable_GenericMethod_BrowsableNever()
             Dim markup = <Text><![CDATA[
 Class Program
@@ -761,7 +761,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub EditorBrowsable_GenericMethod_BrowsableAdvanced()
             Dim markup = <Text><![CDATA[
 Class Program
@@ -801,7 +801,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub EditorBrowsable_GenericMethod_BrowsableMixed()
             Dim markup = <Text><![CDATA[
 Class Program
@@ -840,7 +840,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub EditorBrowsable_GenericType_BrowsableAlways()
             Dim markup = <Text><![CDATA[
 Class Program
@@ -868,7 +868,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub EditorBrowsable_GenericType_BrowsableNever()
             Dim markup = <Text><![CDATA[
 Class Program
@@ -896,7 +896,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub EditorBrowsable_GenericType_BrowsableAdvanced()
             Dim markup = <Text><![CDATA[
 Class Program

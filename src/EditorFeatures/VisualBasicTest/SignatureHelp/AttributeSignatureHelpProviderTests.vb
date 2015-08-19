@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_AttributeConstructor_BrowsableStateAlways()
 
             Dim markup = <Text><![CDATA[
@@ -47,7 +47,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_AttributeConstructor_BrowsableStateNever()
 
             Dim markup = <Text><![CDATA[
@@ -76,7 +76,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_AttributeConstructor_BrowsableStateAdvanced()
 
             Dim markup = <Text><![CDATA[
@@ -114,7 +114,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_AttributeConstructor_BrowsableStateMixed()
 
             Dim markup = <Text><![CDATA[
@@ -149,7 +149,7 @@ End Class
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AttributeConstructor_OnInvocation()
             Dim markup = <Text><![CDATA[
 Class SomethingAttribute
@@ -173,7 +173,7 @@ End Class
             Test(markupWithPositionAndOptSpan:=markup, expectedOrderedItemsOrNull:=expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AttributeConstructor_CurrentParameterName()
             Dim markup = <Text><![CDATA[
 Class SomethingAttribute
@@ -192,7 +192,7 @@ End Class
         End Sub
 
         <WorkItem(1094379)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestAttributeSigHelpWithNoArgumentList()
             Dim markup = "
 Imports System

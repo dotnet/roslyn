@@ -3,7 +3,7 @@
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class HandlesKeywordRecommenderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HandlesAfterMethodInClass()
             VerifyRecommendationsContain(<File>
 Class Foo
@@ -11,7 +11,7 @@ Sub Foo() |
 |</File>, "Handles")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HandlesAfterMethodInModule()
             VerifyRecommendationsContain(<File>
 Module Foo
@@ -19,7 +19,7 @@ Sub Foo() |
 |</File>, "Handles")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HandlesAfterFunction()
             VerifyRecommendationsContain(<File>
 Module Foo
@@ -27,7 +27,7 @@ Function Foo() As Integer |
 |</File>, "Handles")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HandlesNotAfterMethodInStructure()
             VerifyRecommendationsMissing(<File>
 Structure Foo
@@ -35,7 +35,7 @@ Sub Foo() |
 |</File>, "Handles")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HandlesNotAfterNewLine()
             VerifyRecommendationsMissing(<File>
 Class Foo
@@ -45,7 +45,7 @@ Sub Foo()
         End Sub
 
         <WorkItem(577941)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoHandlesAfterIterator()
             VerifyRecommendationsMissing(<File>
 Class C

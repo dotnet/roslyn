@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
             return new CodeRefactoringProvider();
         }
 
-        [Fact]
+        [WpfFact]
         public void TestCodeActionPreviewAndApply()
         {
             using (var workspace = TestWorkspaceFactory.CreateWorkspace(WorkspaceXml))
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestWorkspaceTryApplyChangesDirectCall()
         {
             using (var workspace = TestWorkspaceFactory.CreateWorkspace(WorkspaceXml))

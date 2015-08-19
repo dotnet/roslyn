@@ -9,19 +9,19 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class CustomEventKeywordRecommenderTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub CustomEventInClassDeclaration()
             VerifyRecommendationsContain(<ClassDeclaration>|</ClassDeclaration>, "Custom Event")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub CustomEventInStructureDeclaration()
             VerifyRecommendationsContain(<StructureDeclaration>|</StructureDeclaration>, "Custom Event")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(544999)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub CustomEventNotInInterfaceDeclaration()
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
         End Sub
 
         <WorkItem(674791)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotAfterHash()
             VerifyRecommendationsMissing(<File>
 Imports System

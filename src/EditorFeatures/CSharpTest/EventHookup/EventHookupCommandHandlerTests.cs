@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
 {
     public class EventHookupCommandHandlerTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public void HandlerName_EventInThisClass()
         {
             var markup = @"
@@ -28,7 +28,7 @@ class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public void HandlerName_EventOnLocal()
         {
             var markup = @"
@@ -54,7 +54,7 @@ class D
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public void HandlerName_EventOnFieldOfObject()
         {
             var markup = @"
@@ -85,7 +85,7 @@ class E
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public void NoHookupOnIntegerPlusEquals()
         {
             var markup = @"
@@ -120,7 +120,7 @@ class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public void HandlerName_DefaultHandlerNameAlreadyExistsWithSameNonStaticState()
         {
             var markup = @"
@@ -146,7 +146,7 @@ class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public void HandlerName_DefaultHandlerNameAlreadyExistsWithDifferentStaticState()
         {
             var markup = @"
@@ -172,7 +172,7 @@ class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public void HandlerName_DefaultHandlerNameAlreadyExistsAsField()
         {
             var markup = @"
@@ -194,7 +194,7 @@ class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public void HookupInLambdaInLocalDeclaration()
         {
             var markup = @"
@@ -216,7 +216,7 @@ class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public void TypingSpacesDoesNotDismiss()
         {
             var markup = @"
@@ -240,7 +240,7 @@ class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public void TypingLettersDismisses()
         {
             var markup = @"
@@ -264,7 +264,7 @@ class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public void TypingEqualsInSessionDismisses()
         {
             var markup = @"
@@ -288,7 +288,7 @@ class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public void CancelViaLeftKey()
         {
             var markup = @"
@@ -320,7 +320,7 @@ class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public void CancelViaBackspace()
         {
             var markup = @"
@@ -348,7 +348,7 @@ class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public void EventHookupBeforeEventHookup()
         {
             var markup = @"
@@ -396,7 +396,7 @@ class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public void EventHookupBeforeComment()
         {
             var markup = @"
@@ -444,7 +444,7 @@ class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public void EventHookupInArgument()
         {
             var markup = @"
@@ -488,7 +488,7 @@ class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public void HookupInFieldDeclarationSingleLineLambda()
         {
             var markup = @"
@@ -518,7 +518,7 @@ class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public void HookupInFieldDeclarationMultiLineLambda()
         {
             var markup = @"
@@ -554,7 +554,7 @@ class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public void EventHookupInUnformattedPosition1()
         {
             var markup = @"
@@ -589,7 +589,7 @@ class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public void EventHookupInUnformattedPosition2()
         {
             var markup = @"
@@ -642,7 +642,7 @@ class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public void SessionCancelledByCharacterBeforeEventHookupDeterminationCompleted()
         {
             var markup = @"
@@ -667,7 +667,7 @@ class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public void TabBeforeEventHookupDeterminationCompleted()
         {
             var markup = @"
@@ -710,7 +710,7 @@ class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public void MoveCaretOutOfSpanBeforeEventHookupDeterminationCompleted()
         {
             var markup = @"
@@ -735,7 +735,7 @@ class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public void EnsureNameUniquenessInPartialClasses()
         {
             var markup = @"
@@ -763,7 +763,7 @@ public partial class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public void EnsureNameUniquenessAgainstBaseClasses()
         {
             var markup = @"
@@ -787,7 +787,7 @@ class Program : Base
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public void EnsureNameUniquenessAgainstParameters()
         {
             var markup = @"
@@ -808,7 +808,7 @@ class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public void DelegateInvokeMethodReturnsNonVoid()
         {
             var markup = @"
@@ -848,7 +848,7 @@ class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         [WorkItem(553660)]
         public void PlusEqualsInsideComment()
         {
@@ -869,7 +869,7 @@ class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         [WorkItem(951664)]
         public void UseInvocationLocationTypeNameWhenEventIsMemberOfBaseType()
         {

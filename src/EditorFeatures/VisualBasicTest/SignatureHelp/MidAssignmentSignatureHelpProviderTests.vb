@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
             Return New MidAssignmentSignatureHelpProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationForMidAssignmentFirstArgument()
             Dim markup = <a><![CDATA[
 Class C
@@ -36,7 +36,7 @@ End Class
             Test(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationForMidAssignmentSecondArgument()
             Dim markup = <a><![CDATA[
 Class C
@@ -56,7 +56,7 @@ End Class
             Test(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationForMidAssignmentThirdArgument()
             Dim markup = <a><![CDATA[
 Class C

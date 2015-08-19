@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 {
     public class ErrorSquiggleProducerTests : AbstractSquiggleProducerTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public void ErrorTagGeneratedForError()
         {
             var spans = GetErrorSpans("class C {");
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, firstSpan.Tag.ErrorType);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public void ErrorTagGeneratedForWarning()
         {
             var spans = GetErrorSpans("class C { long x = 5l; }");
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
             Assert.Equal(PredefinedErrorTypeNames.Warning, spans.First().Tag.ErrorType);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public void ErrorTagGeneratedForWarningAsError()
         {
             var workspaceXml =
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public void SuggestionTagsForUnnecessaryCode()
         {
             var workspaceXml =
@@ -132,14 +132,14 @@ class Program
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public void ErrorDoesNotCrashPastEOF()
         {
             var spans = GetErrorSpans("class C { int x =");
             Assert.Equal(3, spans.Count());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public void SemanticErrorReported()
         {
             var spans = GetErrorSpans("class C : Bar { }");
@@ -150,7 +150,7 @@ class Program
             Assert.Contains("Bar", (string)firstSpan.Tag.ToolTipContent, StringComparison.Ordinal);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public void BuildErrorZeroLengthSpan()
         {
             var workspaceXml =
@@ -183,7 +183,7 @@ class Program
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public void LiveErrorZeroLengthSpan()
         {
             var workspaceXml =

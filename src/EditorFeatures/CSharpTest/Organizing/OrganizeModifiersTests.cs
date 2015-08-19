@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
 {
     public class OrganizeModifiersTests : AbstractOrganizerTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void TestTypes1()
         {
             var initial =
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             Check(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void TestTypes2()
         {
             var initial =
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             Check(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void TestTypes3()
         {
             var initial =
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             Check(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void TestTypes4()
         {
             var initial =
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             Check(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void TestTypes5()
         {
             var initial =

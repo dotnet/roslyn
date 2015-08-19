@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Public Class VisualBasicSignatureHelpCommandHandlerTests
 
         <WorkItem(544551)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestFilterOnNamedParameters1()
             Using state = TestState.CreateVisualBasicTestState(
                               <Document>
@@ -47,7 +47,7 @@ End Class
         End Sub
 
         <WorkItem(544551)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestFilterOnNamedParameters2()
             Using state = TestState.CreateVisualBasicTestState(
                               <Document>
@@ -85,7 +85,7 @@ End Class
         End Sub
 
         <WorkItem(539100), WorkItem(530081)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestSigHelpShowsOnBackspace()
             Using state = TestState.CreateVisualBasicTestState(
                               <Document>
@@ -105,7 +105,7 @@ End Module
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestSigHelpInLinkedFiles()
             Using state = TestState.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -145,7 +145,7 @@ End Class
         End Sub
 
         <WorkItem(1060850)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestSigHelpNotDismissedAfterQuote()
             Using state = TestState.CreateVisualBasicTestState(
                               <Document><![CDATA[
@@ -168,7 +168,7 @@ End Class
         End Sub
 
         <WorkItem(1060850)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestSigHelpDismissedAfterComment()
             Using state = TestState.CreateVisualBasicTestState(
                               <Document><![CDATA[
@@ -190,7 +190,7 @@ End Class
         End Sub
 
         <WorkItem(1082128)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestSigHelpNotDismissedAfterSpace()
             Using state = TestState.CreateVisualBasicTestState(
                               <Document><![CDATA[
@@ -207,7 +207,7 @@ End Class
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestGenericNameSigHelpInTypeParameterListAfterConditionalAccess()
             Using state = TestState.CreateVisualBasicTestState(
                               <Document><![CDATA[
@@ -227,7 +227,7 @@ End Class
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestGenericNameSigHelpInTypeParameterListAfterMultipleConditionalAccess()
             Using state = TestState.CreateVisualBasicTestState(
                               <Document><![CDATA[
@@ -247,7 +247,7 @@ End Class
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestGenericNameSigHelpInTypeParameterListMuchAfterConditionalAccess()
             Using state = TestState.CreateVisualBasicTestState(
                               <Document><![CDATA[

@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Semantics
     Public Class SpeculationAnalyzerTests
         Inherits SpeculationAnalyzerTestsBase
 
-        <Fact, WorkItem(672396)>
+        <WpfFact, WorkItem(672396)>
         Public Sub SpeculationAnalyzerExtensionMethodExplicitInvocation()
             Test(<Code>
 Module Oombr

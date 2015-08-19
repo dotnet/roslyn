@@ -2,10 +2,11 @@
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
     Public Class VisualStudioWorkspaceDiagnosticAnalyzerProviderServiceTests
-        <Fact>
+        <WpfFact>
         Public Sub GetHostAnalyzerPackagesWithNameTest()
             Dim extensionManager = New MockExtensionManager("Microsoft.VisualStudio.Analyzer", "$RootFolder$\test\test.dll", "$ShellFolder$\test\test.dll", "test\test.dll")
             Dim packages = VisualStudioWorkspaceDiagnosticAnalyzerProviderService.GetHostAnalyzerPackagesWithName(extensionManager, "ResolvedRootFolder", "ResolvedShellFolder")
@@ -25,7 +26,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Assert.Equal(packages(2).Assemblies(0), "\InstallPath\test\test.dll")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub GetHostAnalyzerPackagesTest()
             Dim extensionManager = New MockExtensionManager("Microsoft.VisualStudio.Analyzer", "installPath1", "installPath2", "installPath3")
             Dim packages = VisualStudioWorkspaceDiagnosticAnalyzerProviderService.GetHostAnalyzerPackages(extensionManager)

@@ -20,26 +20,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
             return new KeywordCompletionProvider();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void IsCommitCharacterTest()
         {
             VerifyCommonCommitCharacters("$$", textTypedSoFar: "");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void IsTextualTriggerCharacterTest()
         {
             TestCommonIsTextualTriggerCharacter();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void SendEnterThroughToEditorTest()
         {
             VerifySendEnterThroughToEnter("$$", "class", sendThroughEnterEnabled: false, expected: false);
             VerifySendEnterThroughToEnter("$$", "class", sendThroughEnterEnabled: true, expected: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void InEmptyFile()
         {
             var markup = "$$";
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
             VerifyAnyItemExists(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInInactiveCode()
         {
             var markup = @"class C
@@ -60,7 +60,7 @@ $$
             VerifyNoItemsExist(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInCharLiteral()
         {
             var markup = @"class C
@@ -73,7 +73,7 @@ $$
             VerifyNoItemsExist(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInUnterminatedCharLiteral()
         {
             var markup = @"class C
@@ -85,7 +85,7 @@ $$
             VerifyNoItemsExist(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInUnterminatedCharLiteralAtEndOfFile()
         {
             var markup = @"class C
@@ -97,7 +97,7 @@ $$
             VerifyNoItemsExist(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInString()
         {
             var markup = @"class C
@@ -110,7 +110,7 @@ $$
             VerifyNoItemsExist(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInStringInDirective()
         {
             var markup = "#r \"$$\"";
@@ -118,7 +118,7 @@ $$
             VerifyNoItemsExist(markup, SourceCodeKind.Interactive);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInUnterminatedString()
         {
             var markup = @"class C
@@ -130,7 +130,7 @@ $$
             VerifyNoItemsExist(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInUnterminatedStringInDirective()
         {
             var markup = "#r \"$$\"";
@@ -138,7 +138,7 @@ $$
             VerifyNoItemsExist(markup, SourceCodeKind.Interactive);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInUnterminatedStringAtEndOfFile()
         {
             var markup = @"class C
@@ -150,7 +150,7 @@ $$
             VerifyNoItemsExist(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInVerbatimString()
         {
             var markup = @"class C
@@ -165,7 +165,7 @@ $$
             VerifyNoItemsExist(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInUnterminatedVerbatimString()
         {
             var markup = @"class C
@@ -179,7 +179,7 @@ $$
             VerifyNoItemsExist(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInUnterminatedVerbatimStringAtEndOfFile()
         {
             var markup = @"class C
@@ -191,7 +191,7 @@ $$
             VerifyNoItemsExist(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInSingleLineComment()
         {
             var markup = @"class C
@@ -204,7 +204,7 @@ $$
             VerifyNoItemsExist(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInSingleLineCommentAtEndOfFile()
         {
             var markup = @"namespace A
@@ -214,7 +214,7 @@ $$
             VerifyNoItemsExist(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInMutliLineComment()
         {
             var markup = @"class C
@@ -230,7 +230,7 @@ $$
         }
 
         [WorkItem(968256)]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void UnionOfItemsFromBothContexts()
         {
             var markup = @"<Workspace>

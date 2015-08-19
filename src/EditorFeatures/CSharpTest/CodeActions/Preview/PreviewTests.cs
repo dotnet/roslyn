@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             previews = editHandler.GetPreviews(workspace, action.GetPreviewOperationsAsync(CancellationToken.None).Result, CancellationToken.None);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestPickTheRightPreview_NoPreference()
         {
             using (var workspace = CreateWorkspaceFromFile("class D {}", null, null))
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestPickTheRightPreview_WithPreference()
         {
             using (var workspace = CreateWorkspaceFromFile("class D {}", null, null))

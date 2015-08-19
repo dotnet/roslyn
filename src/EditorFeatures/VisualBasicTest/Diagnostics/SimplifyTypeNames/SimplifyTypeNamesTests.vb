@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Simpli
             Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(New VisualBasicSimplifyTypeNamesDiagnosticAnalyzer(), New SimplifyTypeNamesCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestGenericNames()
             Dim source =
         <Code>
@@ -53,7 +53,7 @@ End Class
             Test(source.Value, expected.Value)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestArgument()
             Test(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As [|System.String|]()) \n End Sub \n End Module"),
@@ -61,7 +61,7 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Imports System
 index:=0)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestAliasWithMemberAccess()
             Test(
 NewLines("Imports Foo = System.Int32 \n Module Program \n Sub Main(args As String()) \n Dim x = [|System.Int32|].MaxValue \n End Sub \n End Module"),
@@ -69,7 +69,7 @@ NewLines("Imports Foo = System.Int32 \n Module Program \n Sub Main(args As Strin
 index:=0)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestWithCursorAtBeginning()
             Test(
 NewLines("Imports System.IO \n Module Program \n Sub Main(args As String()) \n Dim x As [|System.IO.File|] \n End Sub \n End Module"),
@@ -77,7 +77,7 @@ NewLines("Imports System.IO \n Module Program \n Sub Main(args As String()) \n D
 index:=0)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestMinimalSimplifyOnNestedNamespaces()
             Dim source =
 NewLines("Imports Outer \n Namespace Outer \n Namespace Inner \n Class Foo \n End Class \n End Namespace \n End Namespace \n Module Program \n Sub Main(args As String()) \n Dim x As [|Outer.Inner.Foo|] \n End Sub \n End Module")
@@ -89,7 +89,7 @@ index:=0)
         End Sub
 
         <WorkItem(540567)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestMinimalSimplifyOnNestedNamespacesFromMetadataAlias()
             Test(
 NewLines("Imports A1 = System.IO.File \n Class Foo \n Dim x As [|System.IO.File|] \n End Class"),
@@ -98,7 +98,7 @@ index:=0)
         End Sub
 
         <WorkItem(540567)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestMinimalSimplifyOnNestedNamespacesFromMetadata()
             Test(
 NewLines("Imports System \n Class Foo \n Dim x As [|System.IO.File|] \n End Class"),
@@ -107,7 +107,7 @@ index:=0)
         End Sub
 
         <WorkItem(540569)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestFixAllOccurrences()
             Dim actionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.SimplifyNamesDiagnosticId, "NS1.SomeClass")
             Test(
@@ -117,7 +117,7 @@ fixAllActionEquivalenceKey:=actionId)
         End Sub
 
         <WorkItem(578686)>
-        <Fact(Skip:="1033012"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact(Skip:="1033012"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Sub TestFixAllOccurrencesForAliases()
             Test(
@@ -126,7 +126,7 @@ NewLines("Imports System \n Imports foo = C.D \n Imports bar = A.B \n Namespace 
 index:=1)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestSimplifyFromReference()
             Test(
         NewLines("Imports System.Threading \n Class Class1 \n Dim v As [|System.Threading.Thread|] \n End Class"),
@@ -134,7 +134,7 @@ index:=1)
         index:=0)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestGenericClassDefinitionAsClause()
             Test(
         NewLines("Imports SomeNamespace \n Namespace SomeNamespace \n Class Base \n End Class \n End Namespace \n Class SomeClass(Of x As [|SomeNamespace.Base|]) \n End Class"),
@@ -142,7 +142,7 @@ index:=1)
         index:=0)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestGenericClassInstantiationOfClause()
             Test(
         NewLines("Imports SomeNamespace \n Namespace SomeNamespace \n Class SomeClass \n End Class \n End Namespace \n Class GenericClass(Of T) \n End Class \n Class Foo \n Sub Method1() \n Dim q As GenericClass(Of [|SomeNamespace.SomeClass|]) \n End Sub \n End Class"),
@@ -150,7 +150,7 @@ index:=1)
         index:=0)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestGenericMethodDefinitionAsClause()
             Test(
         NewLines("Imports SomeNamespace \n Namespace SomeNamespace \n Class SomeClass \n End Class \n End Namespace \n Class Foo \n Sub Method1(Of T As [|SomeNamespace.SomeClass|]) \n End Sub \n End Class"),
@@ -158,7 +158,7 @@ index:=1)
         index:=0)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestGenericMethodInvocationOfClause()
             Test(
         NewLines("Imports SomeNamespace \n Namespace SomeNamespace \n Class SomeClass \n End Class \n End Namespace \n Class Foo \n Sub Method1(Of T) \n End Sub \n Sub Method2() \n Method1(Of [|SomeNamespace.SomeClass|]) \n End Sub \n End Class"),
@@ -167,7 +167,7 @@ index:=1)
         End Sub
 
         <WorkItem(6872, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestAttributeApplication()
             Test(
         NewLines("Imports SomeNamespace \n <[|SomeNamespace.Something|]()> \n Class Foo \n End Class \n Namespace SomeNamespace \n Class SomethingAttribute \n Inherits System.Attribute \n End Class \n End Namespace"),
@@ -176,7 +176,7 @@ index:=1)
         End Sub
 
         <WorkItem(6872, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestMultipleAttributeApplicationBelow()
 
             'IMPLEMENT NOT ESCAPE ATTRIBUTE DEPENDENT ON CONTEXT
@@ -188,7 +188,7 @@ index:=1)
         End Sub
 
         <WorkItem(6872, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestMultipleAttributeApplicationAbove()
             Test(
         NewLines("Imports System \n Imports SomeNamespace \n <[|SomeNamespace.Something|]()> \n <Existing()> \n Class Foo \n End Class \n Class ExistingAttribute \n Inherits System.Attribute \n End Class \n Namespace SomeNamespace \n Class SomethingAttribute \n Inherits System.Attribute \n End Class \n End Namespace"),
@@ -196,7 +196,7 @@ index:=1)
         index:=0)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestSimplifiedLeftmostQualifierIsEscapedWhenMatchesKeyword()
             Test(
         NewLines("Imports Outer \n Class SomeClass \n Dim x As [|Outer.Namespace.Something|] \n End Class \n Namespace Outer \n Namespace [Namespace] \n Class Something \n End Class \n End Namespace \n End Namespace"),
@@ -204,7 +204,7 @@ index:=1)
         index:=0)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestTypeNameIsEscapedWhenMatchingKeyword()
             Test(
         NewLines("Imports Outer \n Class SomeClass \n Dim x As [|Outer.Class|] \n End Class \n Namespace Outer \n Class [Class] \n End Class \n End Namespace"),
@@ -212,25 +212,25 @@ index:=1)
         index:=0)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestSimplifyNotSuggestedInImportsStatement()
             TestMissing(
         NewLines("[|Imports SomeNamespace \n Imports SomeNamespace.InnerNamespace \n Namespace SomeNamespace \n Namespace InnerNamespace \n Class SomeClass \n End Class \n End Namespace \n End Namespace|]"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestNoSimplifyInGenericAsClauseIfConflictsWithTypeParameterName()
             TestMissing(
         NewLines("[|Imports SomeNamespace \n Class Class1 \n Sub Foo(Of SomeClass)(x As SomeNamespace.SomeClass) \n End Sub \n End Class \n Namespace SomeNamespace \n Class SomeClass \n End Class \n End Namespace|]"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestSimplifyNotOfferedIfSimplifyingWouldCauseAmbiguity()
             TestMissing(
         NewLines("[|Imports SomeNamespace \n Class SomeClass \n End Class \n Class Class1 \n Dim x As SomeNamespace.SomeClass \n End Class \n Namespace SomeNamespace \n Class SomeClass \n End Class \n End Namespace|]"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestSimplifyInGenericAsClauseIfNoConflictWithTypeParameterName()
             Test(
         NewLines("Imports SomeNamespace \n Class Class1 \n Sub Foo(Of T)(x As [|SomeNamespace.SomeClass|]) \n End Sub \n End Class \n Namespace SomeNamespace \n Class SomeClass \n End Class \n End Namespace"),
@@ -238,7 +238,7 @@ index:=1)
         index:=0)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestCaseInsensitivity()
             Test(
         NewLines("Imports SomeNamespace \n Class Foo \n Dim x As [|SomeNamespace.someclass|] \n End Class \n Namespace SomeNamespace \n Class SomeClass \n End Class \n End Namespace"),
@@ -246,7 +246,7 @@ index:=1)
         index:=0)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestSimplifyGenericTypeWithArguments()
             Dim source =
         NewLines("Imports System.Collections.Generic \n Class Foo \n Function F() As [|System.Collections.Generic.List(Of Integer)|] \n End Function \n End Class")
@@ -257,7 +257,7 @@ index:=1)
             TestActionCount(source, 1)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestParameterType()
             Test(
         NewLines("Imports System.IO \n Module Program \n Sub Main(args As String(), f As [|System.IO.FileMode|]) \n End Sub \n End Module"),
@@ -266,7 +266,7 @@ index:=1)
         End Sub
 
         <WorkItem(540565)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestLocation1()
             Test(
         NewLines("Imports Foo \n Namespace Foo \n Class FooClass \n End Class \n End Namespace \n Module Program \n Sub Main(args As String()) \n Dim x As [|Foo.FooClass|] \n End Sub \n End Module"),
@@ -274,7 +274,7 @@ index:=1)
         index:=0)
         End Sub
 
-        <Fact(Skip:="1033012"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact(Skip:="1033012"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Sub TestFixAllFixesUnrelatedTypes()
             Test(
@@ -282,7 +282,7 @@ index:=1)
         NewLines("Imports A \n Imports B \n Imports C \n Module Program \n Sub Method1(a As FooA, b As FooB, c As FooC) \n Dim qa As FooA \n Dim qb As FooB \n Dim qc As FooC \n End Sub \n End Module \n Namespace A \n Class FooA \n End Class \n End Namespace \n Namespace B \n Class FooB \n End Class \n End Namespace \n Namespace C \n Class FooC \n End Class \n End Namespace"))
         End Sub
 
-        <Fact(Skip:="1033012"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact(Skip:="1033012"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Sub TestSimplifyFixesAllNestedTypeNames()
             Dim source =
@@ -295,7 +295,7 @@ index:=1)
         End Sub
 
         <WorkItem(551040)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestSimplifyNestedType()
             Dim source =
         NewLines("Class Preserve \n Public Class X \n Public Shared Y \n End Class \n End Class \n Class Z(Of T) \n Inherits Preserve \n End Class \n Class M \n Public Shared Sub Main() \n Redim [|Z(Of Integer).X|].Y(1) \n End Function \n End Class")
@@ -307,7 +307,7 @@ index:=1)
         End Sub
 
         <WorkItem(551040)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestSimplifyStaticMemberAccess()
             Dim source =
         NewLines("Class Preserve \n Public Shared Y \n End Class \n Class Z(Of T) \n Inherits Preserve \n End Class \n Class M \n Public Shared Sub Main() \n Redim [|Z(Of Integer).Y(1)|] \n End Function \n End Class")
@@ -319,7 +319,7 @@ index:=1)
         End Sub
 
         <WorkItem(540398)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestImplementsClause()
             Test(
         NewLines("Imports System \n Class Foo \n Implements IComparable(Of String) \n Public Function CompareTo(other As String) As Integer Implements [|System.IComparable(Of String).CompareTo|] \n Return Nothing \n End Function \n End Class"),
@@ -327,7 +327,7 @@ index:=1)
         index:=0)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestSimpleArray()
             Test(
         NewLines("Imports System.Collections.Generic \n Namespace N1 \n Class Test \n Private a As [|System.Collections.Generic.List(Of System.String())|] \n End Class \n End Namespace"),
@@ -335,7 +335,7 @@ index:=1)
         index:=0)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestSimpleMultiDimArray()
             Test(
         NewLines("Imports System.Collections.Generic \n Namespace N1 \n Class Test \n Private a As [|System.Collections.Generic.List(Of System.String()(,)(,,,)) |]  \n End Class \n End Namespace"),
@@ -344,13 +344,13 @@ index:=1)
         End Sub
 
         <WorkItem(542093)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestNoSimplificationOfParenthesizedPredefinedTypes()
             TestMissing(
         NewLines("[|Module M \n Sub Main() \n Dim x = (System.String).Equals("", "") \n End Sub \n End Module|]"))
         End Sub
 
-        <Fact(Skip:="1033012"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact(Skip:="1033012"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Sub TestConflicts()
             Test(
@@ -491,7 +491,7 @@ End Namespace
         End Sub
 
         <WorkItem(542138)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestSimplifyModuleWithReservedName()
             Test(
         NewLines("Namespace X \n Module [String] \n Sub Main() \n [|X.String.Main|] \n End Sub \n End Module \n End Namespace"),
@@ -500,7 +500,7 @@ End Namespace
         End Sub
 
         <WorkItem(542348)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestPreserve1()
             Test(
         NewLines("Module M \n Dim preserve() \n Sub Main() \n ReDim [|M.preserve|](1) \n End Sub \n End Module"),
@@ -510,7 +510,7 @@ End Namespace
 
         <WorkItem(551040)>
         <WorkItem(542348)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestPreserve3()
             Test(
         NewLines("Class Preserve \n Class X \n Public Shared Dim Y \n End Class \n End Class \n Class Z(Of T) \n Inherits Preserve \n End Class \n Module M \n Sub Main() \n ReDim [|Z(Of Integer).X.Y|](1) ' Simplify Z(Of Integer).X \n End Sub \n End Module"),
@@ -518,21 +518,21 @@ End Namespace
         End Sub
 
         <WorkItem(545603)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestNullableInImports1()
             TestMissing(
         NewLines("Imports [|System.Nullable(Of Integer)|]"))
         End Sub
 
         <WorkItem(545603)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestNullableInImports2()
             TestMissing(
         NewLines("Imports [|System.Nullable(Of Integer)|]"))
         End Sub
 
         <WorkItem(545795)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestColorColor1()
             Test(
         NewLines("Namespace N \n Class Color \n Shared Sub Foo() \n End Class \n  \n Class Program \n Shared Property Color As Color \n  \n Shared Sub Main() \n Dim c = [|N.Color.Foo|]() \n End Sub \n End Class \n End Namespace"),
@@ -540,7 +540,7 @@ End Namespace
         End Sub
 
         <WorkItem(545795)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestColorColor2()
             Test(
         NewLines("Namespace N \n Class Color \n Shared Sub Foo() \n End Class \n  \n Class Program \n Shared Property Color As Color \n  \n Shared Sub Main() \n Dim c = [|N.Color.Foo|]() \n End Sub \n End Class \n End Namespace"),
@@ -548,7 +548,7 @@ End Namespace
         End Sub
 
         <WorkItem(545795)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestColorColor3()
             Test(
         NewLines("Namespace N \n Class Color \n Shared Sub Foo() \n End Class \n  \n Class Program \n Shared Property Color As Color \n  \n Shared Sub Main() \n Dim c = [|N.Color.Foo|]() \n End Sub \n End Class \n End Namespace"),
@@ -556,7 +556,7 @@ End Namespace
         End Sub
 
         <WorkItem(546829)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestKeyword1()
             Test(
         NewLines("Module m \n Sub main() \n Dim x = [|m.Equals|](1, 1) \n End Sub \n End Module"),
@@ -564,7 +564,7 @@ End Namespace
         End Sub
 
         <WorkItem(546844)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestKeyword2()
             Test(
         NewLines("Module M \n Sub main() \n Dim x = [|M.Class|] \n End Sub \n Dim [Class] \n End Module"),
@@ -572,14 +572,14 @@ End Namespace
         End Sub
 
         <WorkItem(546907)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestDoNotSimplifyNullableInMemberAccessExpression()
             TestMissing(
         NewLines("Imports System \n Module Program \n Dim x = [|Nullable(Of Guid).op_Implicit|](Nothing) \n End Module"))
         End Sub
 
         <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestMissingNullableSimplificationInsideCref()
             TestMissing(
 "Imports System
@@ -591,7 +591,7 @@ End Class")
         End Sub
 
         <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestMissingNullableSimplificationInsideCref2()
             TestMissing(
 "''' <summary>
@@ -602,7 +602,7 @@ End Class")
         End Sub
 
         <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestMissingNullableSimplificationInsideCref3()
             TestMissing(
 "''' <summary>
@@ -613,7 +613,7 @@ End Class")
         End Sub
 
         <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestMissingNullableSimplificationInsideCref4()
             TestMissing(
 "Imports System
@@ -627,7 +627,7 @@ End Class")
         <WorkItem(2196, "https://github.com/dotnet/roslyn/issues/2196")>
         <WorkItem(2197, "https://github.com/dotnet/roslyn/issues/2197")>
         <WorkItem(29, "https: //github.com/dotnet/roslyn/issues/29")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestNullableSimplificationInsideCref()
             ' NOTE: This will probably stop working if issues 2196 / 2197 related to VB compiler and semantic model are fixed.
             ' It is unclear whether Nullable(Of Integer) is legal in the below case. Currently the VB compiler allows this while
@@ -652,7 +652,7 @@ End Class")
         <WorkItem(2189, "https://github.com/dotnet/roslyn/issues/2189")>
         <WorkItem(2196, "https://github.com/dotnet/roslyn/issues/2196")>
         <WorkItem(2197, "https://github.com/dotnet/roslyn/issues/2197")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestNullableSimplificationInsideCref2()
             ' NOTE: This will probably stop working if issues 2196 / 2197 related to VB compiler and semantic model are fixed.
             ' It is unclear whether Nullable(Of Integer) is legal in the below case. Currently the VB compiler allows this while
@@ -678,7 +678,7 @@ End Class")
         End Sub
 
         <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestNullableSimplificationInsideCref3()
             Test(
 "Imports System
@@ -700,7 +700,7 @@ End Structure")
         End Sub
 
         <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestNullableSimplificationInsideCref4()
             Test(
 "Imports System
@@ -724,7 +724,7 @@ End Structure")
         End Sub
 
         <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestNullableSimplificationInsideCref5()
             Test(
 "Imports System
@@ -748,7 +748,7 @@ End Structure")
         End Sub
 
         <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestNullableSimplificationInsideCref6()
             Test(
 "Imports System
@@ -772,34 +772,34 @@ End Structure")
         End Sub
 
         <WorkItem(529930)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestReservedNameInAttribute1()
             TestMissing(
         NewLines("<[|Global.Assembly|]> ' Simplify \n Class Assembly \n Inherits Attribute \n End Class"))
         End Sub
 
         <WorkItem(529930)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestReservedNameInAttribute2()
             TestMissing(
         NewLines("<[|Global.Assembly|]> ' Simplify \n Class Assembly \n Inherits Attribute \n End Class"))
         End Sub
 
         <WorkItem(529930)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestReservedNameInAttribute3()
             TestMissing(
         NewLines("<[|Global.Module|]> ' Simplify \n Class Module \n Inherits Attribute \n End Class"))
         End Sub
 
         <WorkItem(529930)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestReservedNameInAttribute4()
             TestMissing(
         NewLines("<[|Global.Module|]> ' Simplify \n Class Module \n Inherits Attribute \n End Class"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestAliasedType()
             Dim source =
         NewLines("Class Program \n Sub Foo() \n Dim x As New [|Global.Program|] \n End Sub \n End Class")
@@ -810,7 +810,7 @@ End Structure")
         End Sub
 
         <WorkItem(674789)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub CheckForAssemblyNameInFullWidthIdentifier()
             Dim source =
         <Code>
@@ -839,7 +839,7 @@ End Namespace
         End Sub
 
         <WorkItem(568043)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub DontSimplifyNamesWhenThereAreParseErrors()
             Dim source =
         <Code>
@@ -858,7 +858,7 @@ End Module
             TestMissing(source.Value)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub ShowModuleNameAsUnnecessaryMemberAccess()
             Dim source =
         <Code>
@@ -902,7 +902,7 @@ End Namespace
             Test(source.Value, expected.Value)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub ShowModuleNameAsUnnecessaryQualifiedName()
             Dim source =
         <Code>
@@ -952,7 +952,7 @@ End Namespace
         End Sub
 
         <WorkItem(608200)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub Bugfix_608200()
             Dim source =
         <Code>
@@ -992,7 +992,7 @@ End Module
         End Sub
 
         <WorkItem(578686)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub DontUseAlias()
             Dim source =
         <Code>
@@ -1038,7 +1038,7 @@ End Namespace
         End Sub
 
         <WorkItem(547246)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub CreateCodeIssueWithProperIssueSpan()
             Dim source =
         <Code>
@@ -1072,7 +1072,7 @@ End Module
         End Sub
 
         <WorkItem(629572)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub DoNotIncludeAliasNameIfLastTargetNameIsTheSame_1()
             Dim source =
         <Code>
@@ -1120,7 +1120,7 @@ End Namespace
         End Sub
 
         <WorkItem(629572)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub DoNotIncludeAliasNameIfLastTargetNameIsTheSame_2()
             Dim source =
         <Code>
@@ -1154,7 +1154,7 @@ End Module
         End Sub
 
         <WorkItem(686306)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub DontSimplifyNameSyntaxToTypeSyntaxInVBCref()
             Dim source =
         <Code>
@@ -1168,7 +1168,7 @@ End Module
         End Sub
 
         <WorkItem(721817)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub DontSimplifyNameSyntaxToPredefinedTypeSyntaxInVBCref()
             Dim source =
         <Code>
@@ -1189,7 +1189,7 @@ Public Class Test
         End Sub
 
         <WorkItem(721694)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub EnableReducersInsideVBCref()
             Dim source =
         <Code>
@@ -1216,7 +1216,7 @@ Public Class Test_Dev11
         End Sub
 
         <WorkItem(736377)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub DontSimplifyTypeNameBrokenCode()
             Dim source =
         <Code>
@@ -1236,7 +1236,7 @@ End Class
         End Sub
 
         <WorkItem(860565)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub SimplifyGenericTypeName_Bug860565()
             Dim source =
         <Code>
@@ -1256,7 +1256,7 @@ End Interface
         End Sub
 
         <WorkItem(813385)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub DontSimplifyAliases()
             Dim source =
         <Code>
@@ -1273,7 +1273,7 @@ End Class
         End Sub
 
         <WorkItem(942568)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestIntrinsicTypesInLocalDeclarationDefaultValue_1()
             Dim source =
         <Code>
@@ -1297,7 +1297,7 @@ End Module
         End Sub
 
         <WorkItem(942568)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestIntrinsicTypesInLocalDeclarationDefaultValue_2()
             Dim source =
         <Code>
@@ -1322,7 +1322,7 @@ End Module
 
         <WorkItem(942568)>
         <WorkItem(954536)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestIntrinsicTypesInCref1()
             Dim source =
         <Code>
@@ -1344,7 +1344,7 @@ End Module
 
         <WorkItem(942568)>
         <WorkItem(954536)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestIntrinsicTypesInCref2()
             Dim source =
         <Code>
@@ -1364,7 +1364,7 @@ End Module
 
         <WorkItem(1012713)>
         <WorkItem(942568)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestIntrinsicTypesInCref3()
             Dim source =
         <Code>
@@ -1377,7 +1377,7 @@ End Module
         End Sub
 
         <WorkItem(942568)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestIntrinsicTypesInLocalDeclarationNonDefaultValue_1()
             Dim source =
         <Code>
@@ -1392,7 +1392,7 @@ End Class
         End Sub
 
         <WorkItem(942568)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestIntrinsicTypesInLocalDeclarationNonDefaultValue_2()
             Dim source =
         <Code>
@@ -1407,7 +1407,7 @@ End Class
         End Sub
 
         <WorkItem(942568)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestIntrinsicTypesInLocalDeclarationNonDefaultValue_3()
             Dim source =
         <Code>
@@ -1422,7 +1422,7 @@ End Class
         End Sub
 
         <WorkItem(942568)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestIntrinsicTypesInMemberAccess_Default_1()
             Dim source =
         <Code>
@@ -1448,7 +1448,7 @@ End Module
         End Sub
 
         <WorkItem(942568)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestIntrinsicTypesInMemberAccess_Default_2()
             Dim source =
         <Code>
@@ -1470,7 +1470,7 @@ End Module
         End Sub
 
         <WorkItem(956667)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestIntrinsicTypesInMemberAccess_Default_3()
             Dim source =
         <Code>
@@ -1491,7 +1491,7 @@ End Class
         End Sub
 
         <WorkItem(942568)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestIntrinsicTypesInMemberAccess_NonDefault_1()
             Dim source =
         <Code>
@@ -1505,7 +1505,7 @@ End Module
         End Sub
 
         <WorkItem(942568)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestIntrinsicTypesInMemberAccess_NonDefault_2()
             Dim source =
         <Code>
@@ -1520,7 +1520,7 @@ End Module
         End Sub
 
         <WorkItem(954536)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestIntrinsicTypesInCref_NonDefault_1()
             Dim source =
         <Code>
@@ -1533,7 +1533,7 @@ End Module
         End Sub
 
         <WorkItem(954536)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestIntrinsicTypesInCref_NonDefault_2()
             Dim source =
         <Code>
@@ -1553,7 +1553,7 @@ End Module
         End Sub
 
         <WorkItem(954536)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestIntrinsicTypesInCref_NonDefault_3()
             Dim source =
         <Code>
@@ -1566,7 +1566,7 @@ End Module
         End Sub
 
         <WorkItem(954536)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestIntrinsicTypesInCref_NonDefault_4()
             Dim source =
         <Code>
@@ -1586,7 +1586,7 @@ End Module
         End Sub
 
         <WorkItem(965208)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestSimplifyDiagnosticId()
             Dim source =
         <Code>
@@ -1636,7 +1636,7 @@ End Module
         End Sub
 
         <WorkItem(995168)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub SimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf1()
             TestMissing("Imports System
 Module Program
@@ -1647,7 +1647,7 @@ End Module")
         End Sub
 
         <WorkItem(995168)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub SimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf2()
             TestMissing("
 Module Program
@@ -1658,7 +1658,7 @@ End Module")
         End Sub
 
         <WorkItem(995168)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub SimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf3()
             TestMissing("Imports System
 Module Program
@@ -1669,7 +1669,7 @@ End Module")
         End Sub
 
         <WorkItem(995168)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub SimplifyTypeNameInsideNameOf()
             Test("Imports System
 Module Program

@@ -19,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser.CSharp
             Return New ObjectBrowserLibraryManager(serviceProvider)
         End Function
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub SimpleContent_NamespaceTypeAndMember()
             Dim code =
 <Code>
@@ -52,7 +52,7 @@ namespace N
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub SimpleContent_NoNamespaceWithoutType()
             Dim code =
 <Code>
@@ -72,7 +72,7 @@ namespace N
         End Sub
 
         <WorkItem(932387)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Content_InheritedMembers1()
             Dim code =
 <Code>
@@ -126,7 +126,7 @@ class C : B
         End Sub
 
         <WorkItem(932387)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Content_InheritedMembers2()
             Dim code =
 <Code>
@@ -181,7 +181,7 @@ class C : B
         End Sub
 
         <WorkItem(932387)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Content_InheritedMembers3()
             Dim code =
 <Code>
@@ -236,7 +236,7 @@ class C : B
         End Sub
 
         <WorkItem(932387)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Content_HelpKeyword_Ctor()
             Dim code =
 <Code>
@@ -261,7 +261,7 @@ namespace N
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_Project()
             Dim code =
 <Code>
@@ -276,7 +276,7 @@ namespace N { }
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_Namespace()
             Dim code =
 <Code>
@@ -297,7 +297,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_Class1()
             Dim code =
 <Code>
@@ -318,7 +318,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_Class2()
             Dim code =
 <Code>
@@ -336,7 +336,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_ClassWithConstraints()
             Dim code =
 <Code>
@@ -364,7 +364,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_Interfaces()
             Dim code =
 <Code>
@@ -388,7 +388,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_Struct1()
             Dim code =
 <Code>
@@ -406,7 +406,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_Method()
             Dim code =
 <Code>
@@ -431,7 +431,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
         End Sub
 
         <WorkItem(939739)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_MethodInInterface()
             Dim code =
 <Code>
@@ -455,7 +455,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "I")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_ExtensionMethod()
             Dim code =
 <Code>
@@ -479,7 +479,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_MethodWithParameters()
             Dim code =
 <Code>
@@ -506,7 +506,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_MethodWithOptionalParameter1()
             Dim code =
 <Code>
@@ -530,7 +530,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_MethodWithOptionalParameter2()
             Dim code =
 <Code>
@@ -556,7 +556,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_MethodWithOptionalParameter3()
             Dim code =
 <Code>
@@ -580,7 +580,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_MethodWithOptionalParameter4()
             Dim code =
 <Code>
@@ -604,7 +604,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_MethodWithOptionalParameter5()
             Dim code =
 <Code>
@@ -628,7 +628,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_UnsafeMethod()
             Dim code =
 <Code>
@@ -653,7 +653,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "UnsafeC")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_MethodWithConstraints()
             Dim code =
 <Code>
@@ -685,7 +685,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_ReadOnlyField()
             Dim code =
 <Code>
@@ -707,7 +707,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_ConstField()
             Dim code =
 <Code>
@@ -729,7 +729,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_Property1()
             Dim code =
 <Code>
@@ -755,7 +755,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_Property2()
             Dim code =
 <Code>
@@ -780,7 +780,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_Property3()
             Dim code =
 <Code>
@@ -805,7 +805,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_Property4()
             Dim code =
 <Code>
@@ -827,7 +827,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_Property5()
             Dim code =
 <Code>
@@ -849,7 +849,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_Property6()
             Dim code =
 <Code>
@@ -871,7 +871,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_Indexer1()
             Dim code =
 <Code>
@@ -897,7 +897,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_Indexer2()
             Dim code =
 <Code>
@@ -922,7 +922,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_Indexer3()
             Dim code =
 <Code>
@@ -947,7 +947,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_Enum1()
             Dim code =
 <Code>
@@ -968,7 +968,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_Enum2()
             Dim code =
 <Code>
@@ -989,7 +989,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_Enum3()
             Dim code =
 <Code>
@@ -1010,7 +1010,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "CSharpAssembly1")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_EnumMember()
             Dim code =
 <Code>
@@ -1032,7 +1032,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "E")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_Event1()
             Dim code =
 <Code>
@@ -1055,7 +1055,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_Event2()
             Dim code =
 <Code>
@@ -1082,7 +1082,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_XmlDocComment()
             Dim code =
 <Code>
@@ -1120,7 +1120,7 @@ ServicesVSResources.Library_Returns & vbCrLf &
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_Operator_Add()
             Dim code =
 <Code>
@@ -1145,7 +1145,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_Operator_Subtract()
             Dim code =
 <Code>
@@ -1170,7 +1170,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_Operator_Multiply()
             Dim code =
 <Code>
@@ -1195,7 +1195,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_Operator_Divide()
             Dim code =
 <Code>
@@ -1220,7 +1220,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_Operator_Implicit()
             Dim code =
 <Code>
@@ -1245,7 +1245,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_Operator_Explicit()
             Dim code =
 <Code>
@@ -1270,7 +1270,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_ExternMethod()
             Dim code =
 <Code>
@@ -1295,7 +1295,7 @@ $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}")
         End Sub
 
         <WorkItem(942021)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub NavInfo_Class()
             Dim code =
 <Code>
@@ -1321,7 +1321,7 @@ namespace EditorFunctionalityHelper
         End Sub
 
         <WorkItem(942021)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub NavInfo_NestedEnum()
             Dim code =
 <Code>

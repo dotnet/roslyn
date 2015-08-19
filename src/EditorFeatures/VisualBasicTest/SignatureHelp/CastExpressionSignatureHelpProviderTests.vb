@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
             Return New CastExpressionSignatureHelpProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationForCType()
             Dim markup = <a><![CDATA[
 Class C
@@ -36,7 +36,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationForCTypeAfterComma()
             Dim markup = <a><![CDATA[
 Class C
@@ -57,7 +57,7 @@ End Class
             Test(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationForDirectCast()
             Dim markup = <a><![CDATA[
 Class C
@@ -78,7 +78,7 @@ End Class
         End Sub
 
         <WorkItem(530132)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationForTryCast()
             Dim markup = <a><![CDATA[
 Class C
