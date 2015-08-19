@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
         public AsynchronousWorkerTests()
         {
             TestWorkspace.ResetThreadAffinity();
-            SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
             _foregroundSyncContext = SynchronizationContext.Current;
             Assert.NotNull(_foregroundSyncContext);
         }
