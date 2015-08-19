@@ -557,26 +557,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return false;
             }
         }
-
-        private static bool IsInExplicitCheckedOrUncheckedContext(CastExpressionSyntax cast)
-        {
-            SyntaxNode currentNode = cast;
-
-            do
-            {
-                switch (currentNode.Kind())
-                {
-                    case SyntaxKind.UncheckedExpression:
-                    case SyntaxKind.UncheckedStatement:
-                    case SyntaxKind.CheckedExpression:
-                    case SyntaxKind.CheckedStatement:
-                        return true;
-                }
-
-                currentNode = currentNode.Parent;
-            } while (currentNode is ExpressionSyntax || currentNode is StatementSyntax);
-
-            return false;
-        }
     }
 }
