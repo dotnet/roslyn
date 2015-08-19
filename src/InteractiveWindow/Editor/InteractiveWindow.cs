@@ -767,13 +767,19 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             Debug.Assert(endIndex >= startIndex);
 
             // Add the text for all non-prompt spans within that range.
-            var snapshot = span.Snapshot;
             for (int i = startIndex; i <= endIndex; i++)
             {
                 var sourceSpan = sourceSpans[i];
-                if (IsPrompt(sourceSpan.Snapshot))
+                var sourceSnapshot = sourceSpan.Snapshot;
+                if (!IsPrompt(sourceSnapshot))
                 {
-                    builder.Append(sourceSpan.GetText());
+                    var mappedSpans = _textView.BufferGraph.MapDownToBuffer(span, SpanTrackingMode.EdgeExclusive, sourceSnapshot.TextBuffer);
+                    foreach (var mappedSpan in mappedSpans)
+                    {
+                        var intersection = sourceSpan.Span.Intersection(mappedSpan);
+                        Debug.Assert(intersection.HasValue);
+                        builder.Append(sourceSnapshot.GetText(intersection.Value));
+                    }
                 }
             }
 
@@ -1477,21 +1483,21 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         #region Buffers, Spans and Prompts
         private ITrackingSpan CreateStandardInputPrompt()
         {
-            return CreateTrackingSpan(_standardInputPromptBuffer, string.Empty, ReplSpanKind.StandardInputPrompt);
+            return CreateTrackingSpan(_standardInputPromptBuffer, string.Empty);
         }
 
         private ITrackingSpan CreatePrimaryPrompt()
         {
-            return CreateTrackingSpan(_promptBuffer, _evaluator.GetPrompt(), ReplSpanKind.Prompt);
+            return CreateTrackingSpan(_promptBuffer, _evaluator.GetPrompt());
         }
 
         private ITrackingSpan CreateSecondaryPrompt()
         {
             // TODO (crwilcox) format prompt used to get a blank here but now gets "> " from get prompt.
-            return CreateTrackingSpan(_secondaryPromptBuffer, _evaluator.GetPrompt(), ReplSpanKind.SecondaryPrompt);
+            return CreateTrackingSpan(_secondaryPromptBuffer, _evaluator.GetPrompt());
         }
 
-        private static ITrackingSpan CreateTrackingSpan(ITextBuffer buffer, string textToAppend, ReplSpanKind kind)
+        private static ITrackingSpan CreateTrackingSpan(ITextBuffer buffer, string textToAppend)
         {
             using (var edit = buffer.CreateEdit())
             {

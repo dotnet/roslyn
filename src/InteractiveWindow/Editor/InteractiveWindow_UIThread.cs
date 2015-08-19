@@ -707,7 +707,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
                 else if (insertLineBreak)
                 {
-                    InsertProjectionSpan(lineBreakProjectionSpanIndex, CreateTrackingSpan(_window._outputLineBreakBuffer, _window._lineBreakString, ReplSpanKind.Output));
+                    InsertProjectionSpan(lineBreakProjectionSpanIndex, CreateTrackingSpan(_window._outputLineBreakBuffer, _window._lineBreakString));
                 }
 
                 // caret didn't move since last time we moved it to track output:
