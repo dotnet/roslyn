@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
             return new GenericNamePartiallyWrittenSignatureHelpProvider();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void NestedGenericUnterminated()
         {
             var markup = @"
@@ -42,7 +42,7 @@ class C
         }
 
         [WorkItem(544088)]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void DeclaringGenericTypeWith1ParameterUnterminated()
         {
             var markup = @"
@@ -62,7 +62,7 @@ class C
             Test(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void CallingGenericAsyncMethod()
         {
             var markup = @"
@@ -91,7 +91,7 @@ class Program
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void EditorBrowsable_GenericMethod_BrowsableAlways()
         {
             var markup = @"
@@ -124,7 +124,7 @@ public class C
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void EditorBrowsable_GenericMethod_BrowsableNever()
         {
             var markup = @"
@@ -157,7 +157,7 @@ public class C
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void EditorBrowsable_GenericMethod_BrowsableAdvanced()
         {
             var markup = @"
@@ -199,7 +199,7 @@ public class C
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void EditorBrowsable_GenericMethod_BrowsableMixed()
         {
             var markup = @"
@@ -238,7 +238,7 @@ public class C
                                                        referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void GenericExtensionMethod()
         {
             var markup = @"
@@ -272,7 +272,7 @@ class Program
         }
 
         [WorkItem(544088)]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void InvokingGenericMethodWith1ParameterUnterminated()
         {
             var markup = @"
@@ -297,7 +297,7 @@ class C
             Test(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void TestInvocationOnTriggerBracket()
         {
             var markup = @"
@@ -317,7 +317,7 @@ class C
             Test(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void TestInvocationOnTriggerComma()
         {
             var markup = @"
@@ -338,7 +338,7 @@ class C
         }
 
         [WorkItem(1067933)]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void InvokedWithNoToken()
         {
             var markup = @"

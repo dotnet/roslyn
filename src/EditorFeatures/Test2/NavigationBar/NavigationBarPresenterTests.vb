@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             Inherits AsynchronousOperationListener
         End Class
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957)>
         Public Sub DoNotRecomputeAfterFullRecompute()
             Using workspace = TestWorkspaceFactory.CreateWorkspace(
                 <Workspace>
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957)>
         Public Sub ProjectionBuffersWork()
             Using workspace = TestWorkspaceFactory.CreateWorkspace(
                 <Workspace>
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Sub TestNavigationBarInCSharpLinkedFiles()
             Using workspace = TestWorkspaceFactory.CreateWorkspace(
                 <Workspace>
@@ -141,7 +141,7 @@ class C
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Sub TestNavigationBarInVisualBasicLinkedFiles()
             Using workspace = TestWorkspaceFactory.CreateWorkspace(
                 <Workspace>
@@ -201,7 +201,7 @@ End Class
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Sub TestProjectItemsAreSortedCSharp()
             Using workspace = TestWorkspaceFactory.CreateWorkspace(
                 <Workspace>
@@ -244,7 +244,7 @@ class C
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Sub TestProjectItemsAreSortedVisualBasic()
             Using workspace = TestWorkspaceFactory.CreateWorkspace(
                 <Workspace>
@@ -283,7 +283,7 @@ End Class
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Sub TestNavigationBarRefreshesAfterProjectRename()
             Using workspace = TestWorkspaceFactory.CreateWorkspace(
                 <Workspace>

@@ -18,7 +18,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
     Public Class MiscDiagnosticUpdateSourceTests
-        <Fact>
+        <WpfFact>
         Public Sub TestMiscSquiggles()
             Dim code = <code>
 class 123 { }
@@ -60,7 +60,7 @@ class 123 { }
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestMiscCSharpErrorSource()
             Dim code = <code>
 class 123 { }
@@ -84,7 +84,7 @@ class 123 { }
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestMiscVBErrorSource()
             Dim code = <code>
 Class 123

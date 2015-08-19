@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class SyntacticClassifierTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_IfTrue()
         {
             var code =
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_IfTrueWithComment()
         {
             var code =
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_IfFalse()
         {
             var code =
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_IfFOO()
         {
             var code =
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_IfNotTrue()
         {
             var code =
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_IfNotFalse()
         {
             var code =
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_IfNotFOO()
         {
             var code =
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_IfTrueWithParens()
         {
             var code =
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_IfFalseWithParens()
         {
             var code =
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_IfFOOWithParens()
         {
             var code =
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_IfOrExpression()
         {
             var code =
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_IfAndExpression()
         {
             var code =
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_IfOrAndExpression()
         {
             var code =
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_IfOrExpressionWithParens()
         {
             var code =
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_IfAndExpressionWithParens()
         {
             var code =
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_IfOrAndExpressionWithParens()
         {
             var code =
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_If1()
         {
             Test("#if foo",
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Identifier("foo"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_If2()
         {
             Test(" #if foo",
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Identifier("foo"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_If3()
         {
             var code =
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_If4()
         {
             var code =
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_If5()
         {
             var code =
@@ -333,7 +333,7 @@ aoeu
      PPKeyword("endif"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_If6()
         {
             var code =
@@ -348,7 +348,7 @@ aeu";
                 Identifier("aeu"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_If7()
         {
             var code =
@@ -366,7 +366,7 @@ aeu";
                 Identifier("aeu"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_If8()
         {
             var code =
@@ -390,7 +390,7 @@ aeu";
                 Identifier("aeu"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_If9()
         {
             var code =
@@ -417,7 +417,7 @@ aeu";
                 Identifier("aeu"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_Region1()
         {
             Test("#region Foo",
@@ -426,7 +426,7 @@ aeu";
                 PPText("Foo"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_Region2()
         {
             Test("   #region foo",
@@ -435,7 +435,7 @@ aeu";
                 PPText("foo"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_EndRegion1()
         {
             Test("#endregion",
@@ -443,7 +443,7 @@ aeu";
                 PPKeyword("endregion"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_EndRegion2()
         {
             Test("   #endregion",
@@ -451,7 +451,7 @@ aeu";
                 PPKeyword("endregion"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_EndRegion3()
         {
             Test("#endregion adsf",
@@ -460,7 +460,7 @@ aeu";
                 PPText("adsf"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_EndRegion4()
         {
             Test("   #endregion adsf",
@@ -469,7 +469,7 @@ aeu";
                 PPText("adsf"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_RegionEndRegion1()
         {
             Test(
@@ -481,7 +481,7 @@ aeu";
                 PPKeyword("endregion"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_CommentAfterRegion1()
         {
             Test(
@@ -494,7 +494,7 @@ aeu";
                 PPKeyword("endregion"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_CommentAfterRegion2()
         {
             Test(
@@ -507,7 +507,7 @@ aeu";
                 PPKeyword("endregion"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_CommentAfterEndRegion1()
         {
             Test(
@@ -520,7 +520,7 @@ aeu";
                 PPText("adsf //comment"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_CommentAfterEndRegion2()
         {
             Test(
@@ -533,7 +533,7 @@ aeu";
                 Comment("//comment"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_DeclarationDirectives()
         {
             Test(
@@ -547,7 +547,7 @@ aeu";
                 Identifier("B"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_IfElseEndIfDirectives()
         {
             var code =
@@ -568,7 +568,7 @@ aeu";
                 PPKeyword("endif"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_DefineDirective()
         {
             var code = @"#define FOO";
@@ -578,7 +578,7 @@ aeu";
                 Identifier("FOO"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_DefineDirectiveWithCommentAndNoName()
         {
             var code = @"#define //Foo";
@@ -588,7 +588,7 @@ aeu";
                 Comment("//Foo"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_DefineDirectiveWithComment()
         {
             var code = @"#define FOO //Foo";
@@ -599,7 +599,7 @@ aeu";
                 Comment("//Foo"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_UndefDirectives()
         {
             var code = @"#undef FOO";
@@ -610,7 +610,7 @@ aeu";
                 Identifier("FOO"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_UndefDirectiveWithCommentAndNoName()
         {
             var code = @"#undef //Foo";
@@ -620,7 +620,7 @@ aeu";
                 Comment("//Foo"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_UndefDirectiveWithComment()
         {
             var code = @"#undef FOO //Foo";
@@ -631,7 +631,7 @@ aeu";
                 Comment("//Foo"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_ErrorDirective()
         {
             var code = @"#error FOO";
@@ -642,7 +642,7 @@ aeu";
                 PPText("FOO"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_ErrorDirectiveWithComment()
         {
             var code = @"#error FOO //Foo";
@@ -653,7 +653,7 @@ aeu";
                 PPText("FOO //Foo"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_WarningDirective()
         {
             var code = @"#warning FOO";
@@ -664,7 +664,7 @@ aeu";
                 PPText("FOO"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_WarningDirectiveWithComment()
         {
             var code = @"#warning FOO //Foo";
@@ -675,7 +675,7 @@ aeu";
                 PPText("FOO //Foo"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_LineHidden()
         {
             var code = @"#line hidden";
@@ -686,7 +686,7 @@ aeu";
                 PPKeyword("hidden"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_LineHiddenWithComment()
         {
             var code = @"#line hidden //Foo";
@@ -698,7 +698,7 @@ aeu";
                 Comment("//Foo"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_LineDefault()
         {
             var code = @"#line default";
@@ -709,7 +709,7 @@ aeu";
                 PPKeyword("default"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_LineDefaultWithComment()
         {
             var code = @"#line default //Foo";
@@ -721,7 +721,7 @@ aeu";
                 Comment("//Foo"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_LineNumber()
         {
             var code = @"#line 100";
@@ -732,7 +732,7 @@ aeu";
                 Number("100"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_LineNumberWithComment()
         {
             var code = @"#line 100 //Foo";
@@ -744,7 +744,7 @@ aeu";
                 Comment("//Foo"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_LineNumberWithFilename()
         {
             var code = @"#line 100 ""C:\Foo""";
@@ -756,7 +756,7 @@ aeu";
                 String("\"C:\\Foo\""));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_LineNumberWithFilenameAndComment()
         {
             var code = @"#line 100 ""C:\Foo"" //Foo";
@@ -769,7 +769,7 @@ aeu";
                 Comment("//Foo"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_PragmaChecksum1()
         {
             Test(
@@ -780,7 +780,7 @@ aeu";
                 PPText("stuff"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_PragmaChecksum2()
         {
             Test(
@@ -793,7 +793,7 @@ aeu";
                 String("\"2453\""));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_PragmaChecksum3()
         {
             Test(
@@ -807,7 +807,7 @@ aeu";
                 Comment("// Foo"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_PragmaWarningDisableOne()
         {
             var code = @"#pragma warning disable 100";
@@ -820,7 +820,7 @@ aeu";
                 Number("100"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_PragmaWarningDisableOneWithComment()
         {
             var code = @"#pragma warning disable 100 //Foo";
@@ -834,7 +834,7 @@ aeu";
                 Comment("//Foo"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_PragmaWarningRestoreOne()
         {
             var code = @"#pragma warning restore 100";
@@ -847,7 +847,7 @@ aeu";
                 Number("100"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_PragmaWarningRestoreOneWithComment()
         {
             var code = @"#pragma warning restore 100 //Foo";
@@ -861,7 +861,7 @@ aeu";
                 Comment("//Foo"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_PragmaWarningDisableTwo()
         {
             var code = @"#pragma warning disable 100, 101";
@@ -876,7 +876,7 @@ aeu";
                 Number("101"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_PragmaWarningRestoreTwo()
         {
             var code = @"#pragma warning restore 100, 101";
@@ -891,7 +891,7 @@ aeu";
                 Number("101"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_PragmaWarningDisableThree()
         {
             var code = @"#pragma warning disable 100, 101, 102";
@@ -908,7 +908,7 @@ aeu";
                 Number("102"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PP_PragmaWarningRestoreThree()
         {
             var code = @"#pragma warning restore 100, 101, 102";

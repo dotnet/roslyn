@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
             Return New GetXmlNamespaceExpressionSignatureHelpProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestInvocationForGetType()
             Dim markup = <a><![CDATA[
 Class C

@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Sub
         End Class
 
-        <Fact>
+        <WpfFact>
         Public Sub ChainingTaskStartsAsyncOperation()
             Dim controller = New Mock(Of IController(Of Model))
             Dim modelComputation = TestModelComputation.Create(controller:=controller.Object)
@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             controller.Verify(Sub(c) c.BeginAsyncOperation())
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub ChainingTaskThatCompletesNotifiesController()
             Dim controller = New Mock(Of IController(Of Model))
             Dim modelComputation = TestModelComputation.Create(controller:=controller.Object)
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             controller.Verify(Sub(c) c.OnModelUpdated(model))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub ControllerIsOnlyUpdatedAfterLastTaskCompletes()
             Dim controller = New Mock(Of IController(Of Model))
             Dim modelComputation = TestModelComputation.Create(controller:=controller.Object)
@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             controller.Verify(Sub(c) c.OnModelUpdated(model), Times.Once)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub ControllerIsNotUpdatedIfComputationIsCancelled()
             Dim controller = New Mock(Of IController(Of Model))
             Dim token = New Mock(Of IAsyncToken)

@@ -6,7 +6,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class ContainsGraphQueryTests
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub TypesContainedInCSharpDocument()
             Using testState = New ProgressionTestState(
                     <Workspace>
@@ -48,7 +48,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub TypesContainedInCSharpDocumentInsideNamespace()
             Using testState = New ProgressionTestState(
                     <Workspace>
@@ -93,7 +93,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub TypesContainedInVisualBasicDocument()
             Using testState = New ProgressionTestState(
                     <Workspace>
@@ -147,7 +147,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub MembersContainedInCSharpScriptDocument()
             Using testState = New ProgressionTestState(
                     <Workspace>
@@ -189,7 +189,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub MembersContainedInClass()
             Using testState = New ProgressionTestState(
                     <Workspace>
@@ -222,7 +222,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         <WorkItem(543892)>
         Public Sub NestedTypesContainedInClass()
             Using testState = New ProgressionTestState(
@@ -254,7 +254,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545018)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545018)>
         Public Sub EnumMembersInEnum()
             Using testState = New ProgressionTestState(
                     <Workspace>
@@ -285,7 +285,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(610147)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(610147)>
         Public Sub NothingInBrokenCode()
             Using testState = New ProgressionTestState(
                     <Workspace>
@@ -314,7 +314,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(610147)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(610147)>
         Public Sub NothingInBrokenCode2()
             Using testState = New ProgressionTestState(
                     <Workspace>
@@ -343,7 +343,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(608653)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(608653)>
         Public Sub NothingInBrokenCode3()
             Using testState = New ProgressionTestState(
                     <Workspace>

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
             return outliner.GetOutliningSpans(destructorDeclaration, CancellationToken.None).WhereNotNull();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestDestructor()
         {
             var tree = ParseLines("class C",
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestDestructorWithComments()
         {
             var tree = ParseLines("class C",
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
             AssertRegion(expectedRegion2, actualRegions[1]);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestDestructorMissingCloseParenAndBody()
         {
             // Expected behavior is that the class should be outlined, but the destructor should not.

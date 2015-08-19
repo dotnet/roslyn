@@ -12,7 +12,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     Public Class CharacterTypingTests
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub XmlEndConstructApplied()
             VerifyEndConstructAppliedAfterChar(
                 before:=<Code>
@@ -35,7 +35,7 @@ End Class]]>
                 endCaretPos:={3, 21})
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub XmlEndConstructNotApplied()
             VerifyEndConstructNotAppliedAfterChar(
                 before:=<Code>
@@ -58,7 +58,7 @@ End Class]]>
                 endCaretPos:={3, 14})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub XmlCommentEndConstructApplied()
             VerifyEndConstructAppliedAfterChar(
                 before:=<Code>
@@ -81,7 +81,7 @@ End Class]]>
                 endCaretPos:={3, 25})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub XmlCommentEndConstructNotApplied()
             VerifyEndConstructNotAppliedAfterChar(
                 before:=<Code>
@@ -104,7 +104,7 @@ End Class]]>
                 endCaretPos:={3, 19})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub XmlEmbeddedExpressionEndConstructApplied()
             VerifyEndConstructAppliedAfterChar(
                 before:=<Code>
@@ -127,7 +127,7 @@ End Class]]>
                 endCaretPos:={3, 30})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub XmlEmbeddedExpressionEndConstructNotApplied()
             VerifyEndConstructNotAppliedAfterChar(
                 before:=<Code>
@@ -150,7 +150,7 @@ End Class]]>
                 endCaretPos:={3, 15})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub XmlCDataEndConstructApplied()
             VerifyEndConstructAppliedAfterChar(
                 before:=<Code>
@@ -173,7 +173,7 @@ End Class]]>
                 endCaretPos:={3, 30})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub XmlCDataEndConstructNotApplied()
             VerifyEndConstructNotAppliedAfterChar(
                 before:=<Code>
@@ -196,7 +196,7 @@ End Class]]>
                 endCaretPos:={3, 18})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub XmlProcessingInstructionEndConstructApplied()
             VerifyEndConstructAppliedAfterChar(
                 before:=<Code>
@@ -219,7 +219,7 @@ End Class]]>
                 endCaretPos:={3, 18})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub XmlProcessingInstructionEndConstructNotApplied()
             VerifyEndConstructNotAppliedAfterChar(
                 before:=<Code>

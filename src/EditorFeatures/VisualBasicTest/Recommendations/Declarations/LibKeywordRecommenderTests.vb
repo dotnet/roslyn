@@ -9,26 +9,26 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class LibKeywordRecommenderTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub LibAfterNameInSub()
             VerifyRecommendationsAreExactly(<ClassDeclaration>Declare Sub foo |</ClassDeclaration>, "Lib")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub LibAfterNameInFunction()
             VerifyRecommendationsAreExactly(<ClassDeclaration>Declare Function foo |</ClassDeclaration>, "Lib")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub LibNotAfterLibKeyword()
             VerifyRecommendationsMissing(<ClassDeclaration>Declare Sub foo Lib |</ClassDeclaration>, "Lib")
         End Sub
 
         <WorkItem(530953)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotAfterEol()
             VerifyRecommendationsMissing(
 <ClassDeclaration>Declare Sub foo 
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
         End Sub
 
         <WorkItem(530953)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AfterExplicitLineContinuation()
             VerifyRecommendationsContain(
 <ClassDeclaration>Declare Sub foo _

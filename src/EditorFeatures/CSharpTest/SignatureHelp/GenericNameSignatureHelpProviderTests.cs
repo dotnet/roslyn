@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
 
         #region "Declaring generic type objects"
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void NestedGenericTerminated()
         {
             var markup = @"
@@ -43,7 +43,7 @@ class C
             Test(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void DeclaringGenericTypeWith1ParameterTerminated()
         {
             var markup = @"
@@ -63,7 +63,7 @@ class C
             Test(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void DeclaringGenericTypeWith2ParametersOn1()
         {
             var markup = @"
@@ -83,7 +83,7 @@ class C
             Test(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void DeclaringGenericTypeWith2ParametersOn2()
         {
             var markup = @"
@@ -103,7 +103,7 @@ class C
             Test(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void DeclaringGenericTypeWith2ParametersOn1XmlDoc()
         {
             var markup = @"
@@ -131,7 +131,7 @@ class C
             Test(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void DeclaringGenericTypeWith2ParametersOn2XmlDoc()
         {
             var markup = @"
@@ -160,7 +160,7 @@ class C
 
         #region "Constraints on generic types"
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void DeclaringGenericTypeWithConstraintsStruct()
         {
             var markup = @"
@@ -181,7 +181,7 @@ class C
             Test(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void DeclaringGenericTypeWithConstraintsClass()
         {
             var markup = @"
@@ -202,7 +202,7 @@ class C
             Test(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void DeclaringGenericTypeWithConstraintsNew()
         {
             var markup = @"
@@ -223,7 +223,7 @@ class C
             Test(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void DeclaringGenericTypeWithConstraintsBase()
         {
             var markup = @"
@@ -246,7 +246,7 @@ class C
             Test(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void DeclaringGenericTypeWithConstraintsBaseGenericWithGeneric()
         {
             var markup = @"
@@ -269,7 +269,7 @@ class C
             Test(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void DeclaringGenericTypeWithConstraintsBaseGenericWithNonGeneric()
         {
             var markup = @"
@@ -292,7 +292,7 @@ class C
             Test(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void DeclaringGenericTypeWithConstraintsBaseGenericNested()
         {
             var markup = @"
@@ -315,7 +315,7 @@ class C
             Test(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void DeclaringGenericTypeWithConstraintsDeriveFromAnotherGenericParameter()
         {
             var markup = @"
@@ -336,7 +336,7 @@ class C
             Test(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void DeclaringGenericTypeWithConstraintsMixed1()
         {
             var markup = @"
@@ -368,7 +368,7 @@ class C
             Test(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void DeclaringGenericTypeWithConstraintsMixed2()
         {
             var markup = @"
@@ -404,7 +404,7 @@ class C
 
         #region "Generic member invocation"
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void InvokingGenericMethodWith1ParameterTerminated()
         {
             var markup = @"
@@ -425,7 +425,7 @@ class C
         }
 
         [WorkItem(544091)]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void InvokingGenericMethodWith2ParametersOn1()
         {
             var markup = @"
@@ -454,7 +454,7 @@ class C
         }
 
         [WorkItem(544091)]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void InvokingGenericMethodWith2ParametersOn2()
         {
             var markup = @"
@@ -475,7 +475,7 @@ class C
         }
 
         [WorkItem(544091)]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void InvokingGenericMethodWith2ParametersOn1XmlDoc()
         {
             var markup = @"
@@ -501,7 +501,7 @@ class C
         }
 
         [WorkItem(544091)]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void InvokingGenericMethodWith2ParametersOn2XmlDoc()
         {
             var markup = @"
@@ -526,7 +526,7 @@ class C
             Test(markup, expectedOrderedItems);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void CallingGenericExtensionMethod()
         {
             var markup = @"
@@ -559,7 +559,7 @@ static class FooClass
         #region "Constraints on generic methods"
 
         [WorkItem(544091)]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void InvokingGenericMethodWithConstraintsMixed1()
         {
             var markup = @"
@@ -591,7 +591,7 @@ class C
         }
 
         [WorkItem(544091)]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void InvokingGenericMethodWithConstraintsMixed2()
         {
             var markup = @"
@@ -626,7 +626,7 @@ class C
 
         #region "Trigger tests"
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void TestTriggerCharacters()
         {
             char[] expectedCharacters = { ',', '<' };
@@ -635,7 +635,7 @@ class C
             VerifyTriggerCharacters(expectedCharacters, unexpectedCharacters);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void FieldUnavailableInOneLinkedFile()
         {
             var markup = @"<Workspace>
@@ -664,7 +664,7 @@ class C
             VerifyItemWithReferenceWorker(markup, new[] { expectedDescription }, false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void ExcludeFilesWithInactiveRegions()
         {
             var markup = @"<Workspace>
@@ -705,7 +705,7 @@ class C
         #region "EditorBrowsable tests"
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void EditorBrowsable_GenericType_BrowsableAlways()
         {
             var markup = @"
@@ -735,7 +735,7 @@ public class C<T>
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void EditorBrowsable_GenericType_BrowsableNever()
         {
             var markup = @"
@@ -765,7 +765,7 @@ public class C<T>
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void EditorBrowsable_GenericType_BrowsableAdvanced()
         {
             var markup = @"
@@ -805,7 +805,7 @@ public class C<T>
         #endregion
 
         [WorkItem(1083601)]
-        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void DeclaringGenericTypeWithBadTypeArgumentList()
         {
             var markup = @"

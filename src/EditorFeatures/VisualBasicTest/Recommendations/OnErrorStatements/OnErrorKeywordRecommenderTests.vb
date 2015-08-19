@@ -9,19 +9,19 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OnErrorStatements
     Public Class OnErrorKeywordRecommenderTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub OnErrorResumeNextInMethodBody()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "On Error Resume Next")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub OnErrorGoToInMethodBody()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "On Error GoTo")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub OnErrorResumeNextNotInLambda()
             VerifyRecommendationsMissing(<MethodBody>
@@ -31,7 +31,7 @@ End Sub
 </MethodBody>, "On Error Resume Next")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub OnErrorGoToNotInLambda()
             VerifyRecommendationsMissing(<MethodBody>

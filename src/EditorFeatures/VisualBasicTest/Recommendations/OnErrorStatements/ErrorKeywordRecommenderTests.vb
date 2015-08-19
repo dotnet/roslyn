@@ -9,14 +9,14 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OnErrorStatements
     Public Class ErrorKeywordRecommenderTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ErrorOptionsAfterOn()
             ' We can always exit a Sub/Function, so it should be there
             VerifyRecommendationsAreExactly(<MethodBody>On |</MethodBody>, "Error Resume Next", "Error GoTo")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ErrorStatementInMethodBody()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Error")

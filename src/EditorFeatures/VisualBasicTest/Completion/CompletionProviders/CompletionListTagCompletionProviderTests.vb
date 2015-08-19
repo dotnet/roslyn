@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             MyBase.New(workspaceFixture)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_EnumTypeDotMemberAlways()
             Dim markup = <Text><![CDATA[
 Class P
@@ -40,7 +40,7 @@ End Class
                 referencedLanguage:=LanguageNames.VisualBasic)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_EnumTypeDotMemberNever()
             Dim markup = <Text><![CDATA[
 Class P
@@ -67,7 +67,7 @@ End Class
                 referencedLanguage:=LanguageNames.VisualBasic)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_EnumTypeDotMemberAdvanced()
             Dim markup = <Text><![CDATA[
 Class P
@@ -105,7 +105,7 @@ End Class
                 hideAdvancedMembers:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TriggeredOnOpenParen()
             Dim markup = <Text><![CDATA[
 Module Program
@@ -130,7 +130,7 @@ End Class
             VerifyItemExists(markup, "Color.Y", usePreviousCharAsTrigger:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub RightSideOfAssignment()
             Dim markup = <Text><![CDATA[
 Module Program
@@ -151,7 +151,7 @@ End Class
             VerifyItemExists(markup, "Color.Y", usePreviousCharAsTrigger:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub DoNotCrashInObjectInitializer()
             Dim markup = <Text><![CDATA[
 Module Program
@@ -175,7 +175,7 @@ End Module
             VerifyNoItemsExist(markup)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InYieldReturn()
             Dim markup = <Text><![CDATA[
 Imports System
@@ -198,7 +198,7 @@ End Class
             VerifyItemExists(markup, "Color.X")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InAsyncMethodReturnStatement()
             Dim markup = <Text><![CDATA[
 Imports System.Threading.Tasks
@@ -219,7 +219,7 @@ End Class
             VerifyItemExists(markup, "Color.X")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InIndexedProperty()
             Dim markup = <Text><![CDATA[
 Module Module1
@@ -255,7 +255,7 @@ End Module
             VerifyItemExists(markup, "Color.Y")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub FullyQualified()
             Dim markup = <Text><![CDATA[
 Namespace ColorNamespace
@@ -277,7 +277,7 @@ End Class
             VerifyItemExists(markup, "ColorNamespace.Color.Y", glyph:=CType(Glyph.EnumMember, Integer))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TriggeredForNamedArgument()
             Dim markup = <Text><![CDATA[
 Class C
@@ -295,7 +295,7 @@ End Class
             VerifyItemExists(markup, "Color.X", usePreviousCharAsTrigger:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NotInObjectCreation()
             Dim markup = <Text><![CDATA[
 ''' <completionlist cref="Program"/>
@@ -311,7 +311,7 @@ End Class
         End Sub
 
         <WorkItem(954694)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AnyAccessibleMember()
             Dim markup = <Text><![CDATA[
 Public Class Program
@@ -330,7 +330,7 @@ End Class
             VerifyItemExists(markup, "Program.field1")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(815963)>
         Public Sub LocalNoAs()
             Dim markup = <Text><![CDATA[
@@ -348,7 +348,7 @@ End Class
         End Sub
 
         <WorkItem(3518, "https://github.com/dotnet/roslyn/issues/3518")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NotInTrivia()
             Dim markup = <Text><![CDATA[
 Class C
@@ -374,7 +374,7 @@ End Class
         End Sub
 
         <WorkItem(3518, "https://github.com/dotnet/roslyn/issues/3518")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NotAfterInvocationWithCompletionListTagTypeAsFirstParameter()
             Dim markup = <Text><![CDATA[
 Class C

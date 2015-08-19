@@ -9,14 +9,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     public class ParamsKeywordRecommenderTests : KeywordRecommenderTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotAtRoot_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotAfterClass_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotAfterGlobalStatement_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
@@ -32,7 +32,7 @@ $$");
 $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotAfterGlobalVariableDeclaration_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
@@ -40,70 +40,70 @@ $$");
 $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInUsingAlias()
         {
             VerifyAbsence(
 @"using Foo = $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotAfterAngle()
         {
             VerifyAbsence(
 @"interface IFoo<$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void InterfaceTypeVarianceNotAfterIn()
         {
             VerifyAbsence(
 @"interface IFoo<in $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void InterfaceTypeVarianceNotAfterComma()
         {
             VerifyAbsence(
 @"interface IFoo<Foo, $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void InterfaceTypeVarianceNotAfterAttribute()
         {
             VerifyAbsence(
 @"interface IFoo<[Foo]$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void DelegateTypeVarianceNotAfterAngle()
         {
             VerifyAbsence(
 @"delegate void D<$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void DelegateTypeVarianceNotAfterComma()
         {
             VerifyAbsence(
 @"delegate void D<Foo, $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void DelegateTypeVarianceNotAfterAttribute()
         {
             VerifyAbsence(
 @"delegate void D<[Foo]$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotParamsBaseListAfterAngle()
         {
             VerifyAbsence(
 @"interface IFoo : Bar<$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInGenericMethod()
         {
             VerifyAbsence(
@@ -111,7 +111,7 @@ $$");
     void Foo<$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotAfterParams()
         {
             VerifyAbsence(
@@ -119,7 +119,7 @@ $$");
     void Foo(ref $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotAfterOut()
         {
             VerifyAbsence(
@@ -127,7 +127,7 @@ $$");
     void Foo(out $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotAfterThis()
         {
             VerifyAbsence(
@@ -135,7 +135,7 @@ $$");
     static void Foo(this $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void AfterMethodOpenParen()
         {
             VerifyKeyword(
@@ -143,7 +143,7 @@ $$");
     void Foo($$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void AfterMethodComma()
         {
             VerifyKeyword(
@@ -151,7 +151,7 @@ $$");
     void Foo(int i, $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void AfterMethodAttribute()
         {
             VerifyKeyword(
@@ -159,7 +159,7 @@ $$");
     void Foo(int i, [Foo]$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void AfterConstructorOpenParen()
         {
             VerifyKeyword(
@@ -167,7 +167,7 @@ $$");
     public C($$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void AfterConstructorComma()
         {
             VerifyKeyword(
@@ -175,7 +175,7 @@ $$");
     public C(int i, $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void AfterConstructorAttribute()
         {
             VerifyKeyword(
@@ -183,28 +183,28 @@ $$");
     public C(int i, [Foo]$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void AfterDelegateOpenParen()
         {
             VerifyKeyword(
 @"delegate void D($$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void AfterDelegateComma()
         {
             VerifyKeyword(
 @"delegate void D(int i, $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void AfterDelegateAttribute()
         {
             VerifyKeyword(
 @"delegate void D(int i, [Foo]$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotAfterOperator()
         {
             VerifyAbsence(
@@ -212,7 +212,7 @@ $$");
     static int operator +($$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotAfterDestructor()
         {
             VerifyAbsence(
@@ -220,7 +220,7 @@ $$");
     ~C($$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotAfterIndexer()
         {
             VerifyAbsence(
@@ -228,7 +228,7 @@ $$");
     int this[$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInObjectCreationAfterOpenParen()
         {
             VerifyAbsence(
@@ -237,7 +237,7 @@ $$");
       new Bar($$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotAfterParamsParam()
         {
             VerifyAbsence(
@@ -246,7 +246,7 @@ $$");
       new Bar(ref $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotAfterOutParam()
         {
             VerifyAbsence(
@@ -255,7 +255,7 @@ $$");
       new Bar(out $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInObjectCreationAfterComma()
         {
             VerifyAbsence(
@@ -264,7 +264,7 @@ $$");
       new Bar(baz, $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInObjectCreationAfterSecondComma()
         {
             VerifyAbsence(
@@ -273,7 +273,7 @@ $$");
       new Bar(baz, quux, $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInObjectCreationAfterSecondNamedParam()
         {
             VerifyAbsence(
@@ -282,7 +282,7 @@ $$");
       new Bar(baz: 4, quux: $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInInvocationExpression()
         {
             VerifyAbsence(
@@ -291,7 +291,7 @@ $$");
       Bar($$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInInvocationAfterComma()
         {
             VerifyAbsence(
@@ -300,7 +300,7 @@ $$");
       Bar(baz, $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInInvocationAfterSecondComma()
         {
             VerifyAbsence(
@@ -309,7 +309,7 @@ $$");
       Bar(baz, quux, $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInInvocationAfterSecondNamedParam()
         {
             VerifyAbsence(

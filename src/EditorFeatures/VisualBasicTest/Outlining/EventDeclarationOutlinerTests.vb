@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return outliner.GetOutliningSpans(eventDeclaration, CancellationToken.None).WhereNotNull()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestEvent()
             Dim syntaxTree = ParseLines("Class C1",
                                   "  Event AnEvent(ByVal EventNumber As Integer)",
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Assert.Equal(0, actualRegions.Count)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestEventWithComments()
             Dim syntaxTree = ParseLines("Class C1",
                                   "  'My",
@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion1, actualRegions(0))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestCustomEvent()
             Dim syntaxTree = ParseLines("Class C1",
                                   "  Custom Event eventName As EventHandler",
@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion1, actualRegions(0))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestPrivateCustomEvent()
             Dim syntaxTree = ParseLines("Class C1",
                                   "  Private Custom Event eventName As EventHandler",
@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion1, actualRegions(0))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestCustomEventWithComments()
             Dim syntaxTree = ParseLines("Class C1",
                                   "  'My",

@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
             Return outliner.GetOutliningSpans(node, CancellationToken.None).WhereNotNull()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Sub NoCommentsOrAttributes()
             Dim code =
 <code><![CDATA[
@@ -32,7 +32,7 @@ End Class
             Assert.Empty(GetRegions(consDecl))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Sub WithAttributes()
             Dim code =
 <code><![CDATA[
@@ -56,7 +56,7 @@ End Class
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Sub WithCommentsAndAttributes()
             Dim code =
 <code><![CDATA[
@@ -82,7 +82,7 @@ End Class
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Sub WithCommentsAttributesAndModifiers()
             Dim code =
 <code><![CDATA[
@@ -108,7 +108,7 @@ End Class
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact(Skip:="530915"), Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <WpfFact(Skip:="530915"), Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Sub WithCustomKeyword()
             Dim code =
 <code><![CDATA[

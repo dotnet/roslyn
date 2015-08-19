@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             return new SpeculativeTCompletionProvider();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void IsCommitCharacterTest()
         {
             const string markup = @"
@@ -31,13 +31,13 @@ class C
             VerifyCommonCommitCharacters(markup, textTypedSoFar: "");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void IsTextualTriggerCharacterTest()
         {
             TestCommonIsTextualTriggerCharacter();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SendEnterThroughToEditorTest()
         {
             const string markup = @"
@@ -50,7 +50,7 @@ class C
             VerifySendEnterThroughToEnter(markup, "T", sendThroughEnterEnabled: true, expected: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InClass()
         {
             var markup = @"
@@ -62,7 +62,7 @@ class C
             VerifyItemExists(markup, "T");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InInterface()
         {
             var markup = @"
@@ -74,7 +74,7 @@ interface I
             VerifyItemExists(markup, "T");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InStruct()
         {
             var markup = @"
@@ -86,7 +86,7 @@ struct S
             VerifyItemExists(markup, "T");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotInNamespace()
         {
             var markup = @"
@@ -98,7 +98,7 @@ namespace N
             VerifyItemIsAbsent(markup, "T");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotInEnum()
         {
             var markup = @"
@@ -110,7 +110,7 @@ enum E
             VerifyItemIsAbsent(markup, "T");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void AfterDelegate()
         {
             var markup = @"
@@ -122,7 +122,7 @@ class C
             VerifyItemExists(markup, "T");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotAfterVoid()
         {
             var markup = @"
@@ -134,7 +134,7 @@ class C
             VerifyItemIsAbsent(markup, "T");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotAfterInt()
         {
             var markup = @"
@@ -146,7 +146,7 @@ class C
             VerifyItemIsAbsent(markup, "T");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InGeneric()
         {
             var markup = @"
@@ -159,7 +159,7 @@ class C
             VerifyItemExists(markup, "T");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InNestedGeneric1()
         {
             var markup = @"
@@ -172,7 +172,7 @@ class C
             VerifyItemExists(markup, "T");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InNestedGeneric2()
         {
             var markup = @"
@@ -185,7 +185,7 @@ class C
             VerifyItemExists(markup, "T");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InScript()
         {
             var markup = @"$$";
@@ -193,7 +193,7 @@ class C
             VerifyItemExists(markup, "T", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotAfterVoidInScript()
         {
             var markup = @"void $$";
@@ -201,7 +201,7 @@ class C
             VerifyItemIsAbsent(markup, "T", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotAfterIntInScript()
         {
             var markup = @"int $$";
@@ -209,7 +209,7 @@ class C
             VerifyItemIsAbsent(markup, "T", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InGenericInScript()
         {
             var markup = @"
@@ -220,7 +220,7 @@ Func<$$
             VerifyItemExists(markup, "T", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InNestedGenericInScript1()
         {
             var markup = @"
@@ -231,7 +231,7 @@ Func<Func<$$
             VerifyItemExists(markup, "T", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InNestedGenericInScript2()
         {
             var markup = @"
@@ -242,7 +242,7 @@ Func<Func<int,$$
             VerifyItemExists(markup, "T", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotInComment()
         {
             var markup = @"
@@ -254,7 +254,7 @@ class C
             VerifyItemIsAbsent(markup, "T");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotInXmlDocComment()
         {
             var markup = @"
@@ -269,7 +269,7 @@ class C
             VerifyItemIsAbsent(markup, "T");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void AfterAsyncTask()
         {
             var markup = @"
@@ -282,7 +282,7 @@ class Program
             VerifyItemExists(markup, "T");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotAfterAsync()
         {
             var markup = @"
@@ -296,7 +296,7 @@ class Program
         }
 
         [WorkItem(968256)]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void UnionOfItemsFromBothContexts()
         {
             var markup = @"<Workspace>
@@ -325,7 +325,7 @@ $$
         }
 
         [WorkItem(1020654)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void AfterAsyncTaskWithBraceCompletion()
         {
             var markup = @"

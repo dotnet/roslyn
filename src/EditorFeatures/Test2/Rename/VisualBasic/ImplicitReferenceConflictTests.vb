@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
     Public Class ImplicitReferenceConflictTests
 
-        <Fact>
+        <WpfFact>
         <WorkItem(528966)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMoveNextCausesConflictInForEach()
@@ -43,7 +43,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(528966)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMoveNextToChangeCasingDoesntCauseConflictInForEach()
@@ -80,7 +80,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(528966)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMoveNextToChangeCasingInCSDoesntCauseConflictInForEach()
@@ -131,7 +131,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(528966)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMoveNextInCSCauseConflictInForEach()

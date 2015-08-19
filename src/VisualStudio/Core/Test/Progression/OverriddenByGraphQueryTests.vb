@@ -7,7 +7,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
     Public Class OverriddenByGraphQueryTests
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub TestOverriddenByMethod1()
             Using testState = New ProgressionTestState(
                     <Workspace>
@@ -49,7 +49,7 @@ class Foo : Base, IComparable
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub TestOverriddenByMethod2()
             Using testState = New ProgressionTestState(
                     <Workspace>

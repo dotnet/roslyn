@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             MyBase.New(workspaceFixture)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(545678)>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_EnumTypeDotMemberAlways()
@@ -38,7 +38,7 @@ End Enum
                 referencedLanguage:=LanguageNames.VisualBasic)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(545678)>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_EnumTypeDotMemberNever()
@@ -64,7 +64,7 @@ End Enum
                 referencedLanguage:=LanguageNames.VisualBasic)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(545678)>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_EnumTypeDotMemberAdvanced()
@@ -101,7 +101,7 @@ End Enum
                 hideAdvancedMembers:=False)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(566787)>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TriggeredOnOpenParen()
@@ -126,7 +126,7 @@ End
             VerifyItemExists(markup, "Foo.AMember", usePreviousCharAsTrigger:=True)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(674390)>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub RightSideOfAssignment()
@@ -148,7 +148,7 @@ End
             VerifyItemExists(markup, "Foo.AMember", usePreviousCharAsTrigger:=True)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(530491)>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub DoNotCrashInObjectInitializer()
@@ -174,7 +174,7 @@ End Module
             VerifyNoItemsExist(markup)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(809332)>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub CaseStatement()
@@ -200,7 +200,7 @@ End Module
             VerifyItemExists(markup, "E.A", usePreviousCharAsTrigger:=True)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(854099)>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NotInComment()
@@ -226,7 +226,7 @@ End Module
             VerifyNoItemsExist(markup, usePreviousCharAsTrigger:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(827897)>
         Public Sub InYieldReturn()
             Dim markup = <Text><![CDATA[
@@ -243,7 +243,7 @@ End Class
             VerifyItemExists(markup, "DayOfWeek.Friday")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(827897)>
         Public Sub InAsyncMethodReturnStatement()
             Dim markup = <Text><![CDATA[
@@ -261,7 +261,7 @@ End Class
             VerifyItemExists(markup, "DayOfWeek.Friday")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(900625)>
         Public Sub InIndexedProperty()
             Dim markup = <Text><![CDATA[
@@ -296,7 +296,7 @@ End Module
             VerifyItemExists(markup, "MyEnum.flower")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(916483)>
         Public Sub FullyQualified()
             Dim markup = <Text><![CDATA[
@@ -314,7 +314,7 @@ End Class
             VerifyItemExists(markup, "System.DayOfWeek.Friday")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(916467)>
         Public Sub TriggeredForNamedArgument()
             Dim markup = <Text><![CDATA[
@@ -332,7 +332,7 @@ End Class
             VerifyItemExists(markup, "DayOfWeek.A", usePreviousCharAsTrigger:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(916467)>
         Public Sub NotTriggeredAfterAssignmentEquals()
             Dim markup = <Text><![CDATA[
@@ -350,7 +350,7 @@ End Class
             VerifyItemIsAbsent(markup, "DayOfWeek.A", usePreviousCharAsTrigger:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(815963)>
         Public Sub CaseStatementWithInt32InferredType()
             Dim markup = <Text><![CDATA[
@@ -372,7 +372,7 @@ End Class
             VerifyItemExists(markup, "DayOfWeek.B")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(815963)>
         Public Sub NotInTrivia()
             Dim markup = <Text><![CDATA[
@@ -394,7 +394,7 @@ End Class
             VerifyNoItemsExist(markup)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(815963)>
         Public Sub LocalNoAs()
             Dim markup = <Text><![CDATA[
@@ -412,7 +412,7 @@ End Class
             VerifyItemIsAbsent(markup, "e As E")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(815963)>
         Public Sub IncludeEnumAfterTyping()
             Dim markup = <Text><![CDATA[
@@ -429,7 +429,7 @@ End Class
             VerifyItemExists(markup, "E")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(1015797)>
         Public Sub CommitOnComma()
             Dim markup = <Text><![CDATA[

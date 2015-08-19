@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void Operation()
         {
             using (var sleepHelper = new SleepHelper())
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void QueuedOperation()
         {
             using (var sleepHelper = new SleepHelper())
@@ -130,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        [Fact(/*Skip = "Throwing ContractFailure on a TPL thread?"*/)]
+        [WpfFact(/*Skip = "Throwing ContractFailure on a TPL thread?"*/)]
         public void Cancel()
         {
             using (var sleepHelper = new SleepHelper())
@@ -165,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void Nested()
         {
             using (var sleepHelper = new SleepHelper())
@@ -200,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void MultipleEnqueues()
         {
             using (var sleepHelper = new SleepHelper())
@@ -247,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void IgnoredCancel()
         {
             using (var sleepHelper = new SleepHelper())
@@ -297,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void SecondCompletion()
         {
             using (var sleepHelper = new SleepHelper())

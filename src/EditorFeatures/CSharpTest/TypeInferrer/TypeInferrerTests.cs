@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
             return null;
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestConditional1()
         {
             // We do not support position inference here as we're before the ? and we only look
@@ -80,95 +80,95 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
                 testPosition: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestConditional2()
         {
             TestInMethod("var q = a ? [|Foo()|] : 2;", "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestConditional3()
         {
             TestInMethod(@"var q = a ? """" : [|Foo()|];", "System.String");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestVariableDeclarator1()
         {
             TestInMethod("int q = [|Foo()|];", "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestVariableDeclarator2()
         {
             TestInMethod("var q = [|Foo()|];", "System.Object");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestCoalesce1()
         {
             TestInMethod("var q = [|Foo()|] ?? 1;", "System.Int32?", testPosition: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestCoalesce2()
         {
             TestInMethod(@"bool? b;
     var q = b ?? [|Foo()|];", "System.Boolean");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestCoalesce3()
         {
             TestInMethod(@"string s;
     var q = s ?? [|Foo()|];", "System.String");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestCoalesce4()
         {
             TestInMethod("var q = [|Foo()|] ?? string.Empty;", "System.String", testPosition: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestBinaryExpression1()
         {
             TestInMethod(@"string s;
     var q = s + [|Foo()|];", "System.String");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestBinaryExpression2()
         {
             TestInMethod(@"var s;
     var q = s || [|Foo()|];", "System.Boolean");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestBinaryOperator1()
         {
             TestInMethod(@"var q = x << [|Foo()|];", "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestBinaryOperator2()
         {
             TestInMethod(@"var q = x >> [|Foo()|];", "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestAssignmentOperator3()
         {
             TestInMethod(@"var q <<= [|Foo()|];", "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestAssignmentOperator4()
         {
             TestInMethod(@"var q >>= [|Foo()|];", "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestOverloadedConditionalLogicalOperatorsInferBool()
         {
@@ -186,7 +186,7 @@ class C
 }", "System.Boolean");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestConditionalLogicalOrOperatorAlwaysInfersBool()
         {
@@ -201,7 +201,7 @@ class C
             Test(text, "System.Boolean");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestConditionalLogicalAndOperatorAlwaysInfersBool()
         {
@@ -216,7 +216,7 @@ class C
             Test(text, "System.Boolean");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestLogicalOrOperatorInference1()
         {
@@ -231,7 +231,7 @@ class C
             Test(text, "System.Boolean", testPosition: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestLogicalOrOperatorInference2()
         {
@@ -246,7 +246,7 @@ class C
             Test(text, "System.Boolean", testPosition: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestLogicalOrOperatorInference3()
         {
@@ -261,7 +261,7 @@ class C
             Test(text, "System.Boolean");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestLogicalOrOperatorInference4()
         {
@@ -280,7 +280,7 @@ class C
             Test(text, "Program", testPosition: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestLogicalOrOperatorInference5()
         {
@@ -299,7 +299,7 @@ class C
             Test(text, "System.Boolean");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestLogicalOrOperatorInference6()
         {
@@ -314,7 +314,7 @@ class C
             Test(text, "System.Int32", testPosition: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestLogicalOrOperatorInference7()
         {
@@ -329,7 +329,7 @@ class C
             Test(text, "System.Boolean");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestLogicalAndOperatorInference1()
         {
@@ -344,7 +344,7 @@ class C
             Test(text, "System.Boolean", testPosition: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestLogicalAndOperatorInference2()
         {
@@ -359,7 +359,7 @@ class C
             Test(text, "System.Boolean", testPosition: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestLogicalAndOperatorInference3()
         {
@@ -374,7 +374,7 @@ class C
             Test(text, "System.Boolean");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestLogicalAndOperatorInference4()
         {
@@ -393,7 +393,7 @@ class C
             Test(text, "Program", testPosition: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestLogicalAndOperatorInference5()
         {
@@ -412,7 +412,7 @@ class C
             Test(text, "System.Boolean");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestLogicalAndOperatorInference6()
         {
@@ -427,7 +427,7 @@ class C
             Test(text, "System.Int32", testPosition: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestLogicalAndOperatorInference7()
         {
@@ -442,7 +442,7 @@ class C
             Test(text, "System.Boolean");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestLogicalXorOperatorInference1()
         {
@@ -457,7 +457,7 @@ class C
             Test(text, "System.Boolean", testPosition: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestLogicalXorOperatorInference2()
         {
@@ -472,7 +472,7 @@ class C
             Test(text, "System.Boolean", testPosition: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestLogicalXorOperatorInference3()
         {
@@ -487,7 +487,7 @@ class C
             Test(text, "System.Boolean");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestLogicalXorOperatorInference4()
         {
@@ -506,7 +506,7 @@ class C
             Test(text, "Program", testPosition: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestLogicalXorOperatorInference5()
         {
@@ -525,7 +525,7 @@ class C
             Test(text, "System.Boolean");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestLogicalXorOperatorInference6()
         {
@@ -540,7 +540,7 @@ class C
             Test(text, "System.Int32", testPosition: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestLogicalXorOperatorInference7()
         {
@@ -555,7 +555,7 @@ class C
             Test(text, "System.Boolean");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestLogicalOrEqualsOperatorInference1()
         {
@@ -570,7 +570,7 @@ class C
             Test(text, "System.Boolean");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestLogicalOrEqualsOperatorInference2()
         {
@@ -585,7 +585,7 @@ class C
             Test(text, "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestLogicalAndEqualsOperatorInference1()
         {
@@ -600,7 +600,7 @@ class C
             Test(text, "System.Boolean");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestLogicalAndEqualsOperatorInference2()
         {
@@ -615,7 +615,7 @@ class C
             Test(text, "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestLogicalXorEqualsOperatorInference1()
         {
@@ -630,7 +630,7 @@ class C
             Test(text, "System.Boolean");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633)]
         public void TestLogicalXorEqualsOperatorInference2()
         {
@@ -645,25 +645,25 @@ class C
             Test(text, "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestReturn1()
         {
             TestInClass(@"int M() { return [|Foo()|]; }", "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestReturn2()
         {
             TestInMethod("return [|Foo()|];", "void");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestReturn3()
         {
             TestInClass(@"int Property { get { return [|Foo()|]; } }", "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(827897)]
         public void TestYieldReturn()
         {
@@ -680,252 +680,252 @@ class Program
             Test(markup, "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestReturnInLambda()
         {
             TestInMethod("System.Func<string,int> f = s => { return [|Foo()|]; };", "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestLambda()
         {
             TestInMethod("System.Func<string, int> f = s => [|Foo()|];", "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestThrow()
         {
             TestInMethod("throw [|Foo()|];", "global::System.Exception");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestCatch()
         {
             TestInMethod("try { } catch ([|Foo|] ex) { }", "global::System.Exception");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestIf()
         {
             TestInMethod(@"if ([|Foo()|]) { }", "System.Boolean");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestWhile()
         {
             TestInMethod(@"while ([|Foo()|]) { }", "System.Boolean");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestDo()
         {
             TestInMethod(@"do { } while ([|Foo()|])", "System.Boolean");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestFor1()
         {
             TestInMethod(@"for (int i = 0; [|Foo()|]; i++) { }", "System.Boolean");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestFor2()
         {
             TestInMethod(@"for (string i = [|Foo()|]; ; ) { }", "System.String");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestFor3()
         {
             TestInMethod(@"for (var i = [|Foo()|]; ; ) { }", "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestUsing1()
         {
             TestInMethod(@"using ([|Foo()|]) { }", "global::System.IDisposable");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestUsing2()
         {
             TestInMethod(@"using (int i = [|Foo()|]) { }", "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestUsing3()
         {
             TestInMethod(@"using (var v = [|Foo()|]) { }", "global::System.IDisposable");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestForEach()
         {
             TestInMethod(@"foreach (int v in [|Foo()|]) { }", "global::System.Collections.Generic.IEnumerable<System.Int32>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestPrefixExpression1()
         {
             TestInMethod(@"var q = +[|Foo()|];", "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestPrefixExpression2()
         {
             TestInMethod(@"var q = -[|Foo()|];", "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestPrefixExpression3()
         {
             TestInMethod(@"var q = ~[|Foo()|];", "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestPrefixExpression4()
         {
             TestInMethod(@"var q = ![|Foo()|];", "System.Boolean");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestArrayRankSpecifier()
         {
             TestInMethod(@"var q = new string[[|Foo()|]];", "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestSwitch1()
         {
             TestInMethod(@"switch ([|Foo()|]) { }", "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestSwitch2()
         {
             TestInMethod(@"switch ([|Foo()|]) { default: }", "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestSwitch3()
         {
             TestInMethod(@"switch ([|Foo()|]) { case ""a"": }", "System.String");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestMethodCall1()
         {
             TestInMethod(@"Bar([|Foo()|]);", "System.Object");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestMethodCall2()
         {
             TestInClass(@"void M() { Bar([|Foo()|]); } void Bar(int i);", "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestMethodCall3()
         {
             TestInClass(@"void M() { Bar([|Foo()|]); } void Bar();", "System.Object");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestMethodCall4()
         {
             TestInClass(@"void M() { Bar([|Foo()|]); } void Bar(int i, string s);", "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestMethodCall5()
         {
             TestInClass(@"void M() { Bar(s: [|Foo()|]); } void Bar(int i, string s);", "System.String");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestConstructorCall1()
         {
             TestInMethod(@"new C([|Foo()|]);", "System.Object");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestConstructorCall2()
         {
             TestInClass(@"void M() { new C([|Foo()|]); } C(int i) { }", "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestConstructorCall3()
         {
             TestInClass(@"void M() { new C([|Foo()|]); } C() { }", "System.Object");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestConstructorCall4()
         {
             TestInClass(@"void M() { new C([|Foo()|]); } C(int i, string s) { }", "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestConstructorCall5()
         {
             TestInClass(@"void M() { new C(s: [|Foo()|]); } C(int i, string s) { }", "System.String");
         }
 
         [WorkItem(858112)]
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestThisConstructorInitializer1()
         {
             Test(@"class MyClass { public MyClass(int x) : this([|test|]) { } }", "System.Int32");
         }
 
         [WorkItem(858112)]
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestThisConstructorInitializer2()
         {
             Test(@"class MyClass { public MyClass(int x, string y) : this(5, [|test|]) { } }", "System.String");
         }
 
         [WorkItem(858112)]
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestBaseConstructorInitializer()
         {
             Test(@"class B { public B(int x) { } } class D : B { public D() : base([|test|]) { } }", "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestIndexAccess1()
         {
             TestInMethod(@"string[] i; i[[|Foo()|]];", "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestIndexerCall1()
         {
             TestInMethod(@"this[[|Foo()|]];", "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestIndexerCall2()
         {
             // Update this when binding of indexers is working.
             TestInClass(@"void M() { this[[|Foo()|]]; } int this [int i] { get; }", "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestIndexerCall3()
         {
             // Update this when binding of indexers is working.
             TestInClass(@"void M() { this[[|Foo()|]]; } int this [int i, string s] { get; }", "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestIndexerCall5()
         {
             TestInClass(@"void M() { this[s: [|Foo()|]]; } int this [int i, string s] { get; }", "System.String");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestArrayInitializerInImplicitArrayCreationSimple()
         {
             var text =
@@ -942,7 +942,7 @@ class C
             Test(text, "System.Int32");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestArrayInitializerInImplicitArrayCreation1()
         {
             var text =
@@ -962,7 +962,7 @@ class C
             Test(text, "System.Int32");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestArrayInitializerInImplicitArrayCreation2()
         {
             var text =
@@ -981,7 +981,7 @@ class C
             Test(text, "System.Int32");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestArrayInitializerInImplicitArrayCreation3()
         {
             var text =
@@ -998,7 +998,7 @@ class C
             Test(text, "System.Object");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestArrayInitializerInEqualsValueClauseSimple()
         {
             var text =
@@ -1015,7 +1015,7 @@ class C
             Test(text, "System.Int32");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestArrayInitializerInEqualsValueClause()
         {
             var text =
@@ -1034,7 +1034,7 @@ class C
             Test(text, "System.Int32");
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(529480)]
         [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestCollectionInitializer1()
@@ -1053,7 +1053,7 @@ class C
             Test(text, "System.Int32");
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(529480)]
         [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestCollectionInitializer2()
@@ -1073,7 +1073,7 @@ class C
             Test(text, "System.Int32");
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(529480)]
         [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestCollectionInitializer3()
@@ -1093,7 +1093,7 @@ class C
             Test(text, "System.String");
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(529480)]
         [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestCustomCollectionInitializerAddMethod1()
@@ -1118,7 +1118,7 @@ class C
             Test(text, "System.Int32", testPosition: false);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(529480)]
         [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestCustomCollectionInitializerAddMethod2()
@@ -1143,7 +1143,7 @@ class C
             Test(text, "System.Boolean");
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(529480)]
         [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestCustomCollectionInitializerAddMethod3()
@@ -1168,7 +1168,7 @@ class C
             Test(text, "System.String");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestArrayInference1()
         {
             var text =
@@ -1184,7 +1184,7 @@ class A
             Test(text, "global::A", testPosition: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestArrayInference1_Position()
         {
             var text =
@@ -1200,7 +1200,7 @@ class A
             Test(text, "global::A[]", testNode: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestArrayInference2()
         {
             var text =
@@ -1216,7 +1216,7 @@ class A
             Test(text, "global::A", testPosition: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestArrayInference2_Position()
         {
             var text =
@@ -1232,7 +1232,7 @@ class A
             Test(text, "global::A[][]", testNode: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestArrayInference3()
         {
             var text =
@@ -1248,7 +1248,7 @@ class A
             Test(text, "global::A[]", testPosition: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestArrayInference3_Position()
         {
             var text =
@@ -1264,7 +1264,7 @@ class A
             Test(text, "global::A[][]", testNode: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestArrayInference4()
         {
             var text =
@@ -1282,7 +1282,7 @@ class A
         }
 
         [WorkItem(538993)]
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestInsideLambda2()
         {
             var text =
@@ -1299,7 +1299,7 @@ class C
         }
 
         [WorkItem(539813)]
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestPointer1()
         {
             var text =
@@ -1315,7 +1315,7 @@ class C
         }
 
         [WorkItem(539813)]
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestDynamic1()
         {
             var text =
@@ -1330,7 +1330,7 @@ class C
             Test(text, "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestChecked1()
         {
             var text =
@@ -1345,7 +1345,7 @@ class C
             Test(text, "System.String");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(553584)]
         public void TestAwaitTaskOfT()
         {
@@ -1362,7 +1362,7 @@ class C
             Test(text, "global::System.Threading.Tasks.Task<System.Int32>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(553584)]
         public void TestAwaitTaskOfTaskOfT()
         {
@@ -1379,7 +1379,7 @@ class C
             Test(text, "global::System.Threading.Tasks.Task<global::System.Threading.Tasks.Task<System.Int32>>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(553584)]
         public void TestAwaitTask()
         {
@@ -1396,7 +1396,7 @@ class C
             Test(text, "global::System.Threading.Tasks.Task");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617622)]
         public void TestLockStatement()
         {
@@ -1414,7 +1414,7 @@ class C
             Test(text, "System.Object");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617622)]
         public void TestAwaitExpressionInLockStatement()
         {
@@ -1432,7 +1432,7 @@ class C
             Test(text, "global::System.Threading.Tasks.Task<System.Object>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(827897)]
         public void TestReturnFromAsyncTaskOfT()
         {
@@ -1449,7 +1449,7 @@ class Program
             Test(markup, "System.Int32");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(853840)]
         public void TestAttributeArguments1()
         {
@@ -1468,7 +1468,7 @@ class AAttribute : System.Attribute
             Test(markup, "global::System.DayOfWeek");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(853840)]
         public void TestAttributeArguments2()
         {
@@ -1487,7 +1487,7 @@ class AAttribute : System.Attribute
             Test(markup, "System.Double");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(853840)]
         public void TestAttributeArguments3()
         {
@@ -1506,7 +1506,7 @@ class AAttribute : System.Attribute
             Test(markup, "System.String");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(757111)]
         public void TestReturnStatementWithinDelegateWithinAMethodCall()
         {
@@ -1530,7 +1530,7 @@ class Program
             Test(text, "System.String");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(994388)]
         public void TestCatchFilterClause()
         {
@@ -1543,7 +1543,7 @@ catch (Exception) if ([|M()|])
             TestInMethod(text, "System.Boolean");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(994388)]
         public void TestCatchFilterClause1()
         {
@@ -1556,7 +1556,7 @@ catch (Exception) if ([|M|])
             TestInMethod(text, "System.Boolean");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(994388)]
         public void TestCatchFilterClause2()
         {
@@ -1569,7 +1569,7 @@ catch (Exception) if ([|M|].N)
             TestInMethod(text, "System.Object", testPosition: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")]
         public void TestAwaitExpressionWithChainingMethod()
         {
@@ -1587,7 +1587,7 @@ class C
             Test(text, "global::System.Threading.Tasks.Task<System.Boolean>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")]
         public void TestAwaitExpressionWithChainingMethod2()
         {

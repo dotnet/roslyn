@@ -14,7 +14,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
     Public Class CommitWithViewTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub CommitAfterTypingAndDownArrow()
             Using testData = New CommitTestData(
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub DontCrashOnPastingCarriageReturnContainingString()
             Using testData = New CommitTestData(
@@ -55,7 +55,7 @@ End Module
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(539305)>
         Public Sub CommitAfterTypingAndUpArrowInLambdaFooter()
@@ -81,7 +81,7 @@ End Module
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(539469)>
         Public Sub CommitAfterTypingAndUpArrowInLambdaFooter2()
@@ -109,7 +109,7 @@ End Module
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(539457)>
         Public Sub CommitAfterTypingAndUpArrowIntoBlankLine()
@@ -134,7 +134,7 @@ End Module
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(539411)>
         Public Sub CommitAfterTypingInTrivia()
@@ -157,7 +157,7 @@ $$</Document>
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(539599)>
         <WorkItem(631913)>
@@ -184,7 +184,7 @@ End Module
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(545355)>
         Public Sub CommitAfterTypingAttributeOfType()
@@ -206,7 +206,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(545355)>
         Public Sub CommitAfterTypingAttributeOfMethod()
@@ -230,7 +230,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(545355)>
         Public Sub CommitAfterTypingInMethodNameAndThenMovingToAttribute()
@@ -254,7 +254,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub NoCommitDuringInlineRename()
             Using testData = New CommitTestData(
@@ -278,7 +278,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(539599)>
         Public Sub CommitAfterLeavingStatementAfterLineContinuation()
@@ -310,7 +310,7 @@ End Module
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(539318)>
         Public Sub CommitAfterDeletingIndentationFixesIndentation()
@@ -343,7 +343,7 @@ End Module
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub CommitIfThenOnlyAfterStartingNewBlock()
             Using testData = New CommitTestData(
@@ -369,7 +369,7 @@ End Module
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub CommitEndIfOnlyAfterStartingNewBlock()
             Using testData = New CommitTestData(
@@ -395,7 +395,7 @@ End Module
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub CommitFullIfBlockAfterCommittingElseIf()
             Using testData = New CommitTestData(
@@ -421,7 +421,7 @@ End Module
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub CommitFullIfBlockAfterCommittingEndIf()
             Using testData = New CommitTestData(
@@ -447,7 +447,7 @@ End Module
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub CommitTryBlockAfterCommittingCatch()
             Using testData = New CommitTestData(
@@ -473,7 +473,7 @@ End Module
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub CommitTryBlockAfterCommittingFinally()
             Using testData = New CommitTestData(
@@ -499,7 +499,7 @@ End Module
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub CommitDoLoopBlockAfterCommittingLoop()
             Using testData = New CommitTestData(
@@ -525,7 +525,7 @@ End Module
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub CommitEnumBlockAfterCommittingEndEnum()
             Using testData = New CommitTestData(
@@ -551,7 +551,7 @@ End Namespace
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub CommitGetAccessorBlockAfterCommittingEndGet()
             Using testData = New CommitTestData(
@@ -576,7 +576,7 @@ End Namespace
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub CommitSyncLockBlockAfterCommittingEndSyncLock()
             Using testData = New CommitTestData(
@@ -602,7 +602,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(539613)>
         Public Sub RelativeIndentationBug()
@@ -656,7 +656,7 @@ End Module
 
         <WorkItem(16493, "DevDiv_Projects/Roslyn")>
         <WorkItem(539544)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub BetterStartIndentation()
             Using testData = New CommitTestData(
@@ -712,7 +712,7 @@ End Module
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(544104)>
         Public Sub CommitAfterMoveDownAfterIfStatement()
@@ -743,7 +743,7 @@ End Class</Code>
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub CommitAfterXmlElementStartTag()
             Using testData = New CommitTestData(
@@ -770,7 +770,7 @@ End Class</Code>
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(545358)>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub CommitWithNextStatementWithMultipleControlVariables()
@@ -806,7 +806,7 @@ End Module</Code>
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(608438)>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub Bugfix_608438()
@@ -834,7 +834,7 @@ End Module|]</Document>
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(924578)>
         Public Sub MultiLineString1()
@@ -865,7 +865,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(924578)>
         Public Sub MultiLineString2()
@@ -896,7 +896,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(924578)>
         Public Sub MultiLineString3()
@@ -927,7 +927,7 @@ End Class
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineCommit)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub EnableWarningDirective1()
             Using testData = New CommitTestData(
                 <Workspace>
@@ -951,7 +951,7 @@ End Class
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineCommit)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub EnableWarningDirective2()
             Using testData = New CommitTestData(
                 <Workspace>
@@ -975,7 +975,7 @@ End Class
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineCommit)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub DisableWarningDirective1()
             Using testData = New CommitTestData(
                 <Workspace>
@@ -1005,7 +1005,7 @@ End Module
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineCommit)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub DisableWarningDirective2()
             Using testData = New CommitTestData(
                 <Workspace>
@@ -1031,7 +1031,7 @@ End Module
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineCommit)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub IncompleteWarningDirective()
             Using testData = New CommitTestData(
                 <Workspace>

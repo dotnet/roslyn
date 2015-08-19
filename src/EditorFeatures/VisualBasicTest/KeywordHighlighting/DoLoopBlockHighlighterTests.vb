@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return New DoLoopBlockHighlighter()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestDoWhileLoop1()
             Test(<Text>
 Class C
@@ -26,7 +26,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestDoWhileLoop2()
             Test(<Text>
 Class C
@@ -42,7 +42,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestDoWhileLoop3()
             Test(<Text>
 Class C
@@ -58,7 +58,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestDoWhileLoop4()
             Test(<Text>
 Class C
@@ -74,7 +74,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestDoUntilLoop1()
             Test(<Text>
 Class C
@@ -90,7 +90,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestDoUntilLoop2()
             Test(<Text>
 Class C
@@ -106,7 +106,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestDoUntilLoop3()
             Test(<Text>
 Class C
@@ -122,7 +122,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestDoUntilLoop4()
             Test(<Text>
 Class C
@@ -138,7 +138,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestDoLoopWhile1()
             Test(<Text>
 Class C
@@ -154,7 +154,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestDoLoopWhile2()
             Test(<Text>
 Class C
@@ -170,7 +170,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestDoLoopWhile3()
             Test(<Text>
 Class C
@@ -186,7 +186,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestDoLoopWhile4()
             Test(<Text>
 Class C
@@ -202,7 +202,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestDoLoopUntil1()
             Test(<Text>
 Class C
@@ -218,7 +218,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestDoLoopUntil2()
             Test(<Text>
 Class C
@@ -234,7 +234,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestDoLoopUntil3()
             Test(<Text>
 Class C
@@ -250,7 +250,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestDoLoopUntil4()
             Test(<Text>
 Class C

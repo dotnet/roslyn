@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
     {
         private readonly ExportProvider _exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         public void TestNoCyclesInFixProviders()
         {
             // This test will fail if a cycle is detected in the ordering of our code fix providers.
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 actualOrder.IndexOf(p => p.Metadata.Name == PredefinedCodeFixProviderNames.RenameTracking));
         }
 
-        [Fact]
+        [WpfFact]
         public void TestNoCyclesInSuppressionProviders()
         {
             // This test will fail if a cycle is detected in the ordering of our suppression fix providers.
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             Assert.Equal(1, actualOrder.Length);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestNoCyclesInRefactoringProviders()
         {
             // This test will fail if a cycle is detected in the ordering of our code refactoring providers.

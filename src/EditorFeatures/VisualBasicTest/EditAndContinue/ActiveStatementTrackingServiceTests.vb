@@ -6,7 +6,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     Public Class ActiveStatementTrackingServiceTests
         Inherits RudeEditTestBase
 
-        <Fact, WorkItem(846042)>
+        <WpfFact, WorkItem(846042)>
         Public Sub MovedOutsideOfMethod1()
             Dim src1 = "
 Class C
@@ -33,7 +33,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MovedOutsideOfMethod2()
             Dim src1 = "
 Class C
@@ -59,7 +59,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MovedOutsideOfLambda1()
             Dim src1 = "
 Class C
@@ -85,7 +85,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MovedOutsideOfLambda2()
             Dim src1 = "
 Class C
