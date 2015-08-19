@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
+using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
@@ -23,9 +24,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     /// <summary>
     /// Provides implementation of a Repl Window built on top of the VS editor using projection buffers.
     /// </summary>
-    internal partial class InteractiveWindow : IInteractiveWindow, IInteractiveWindowOperations
+    internal partial class InteractiveWindow
     {
-        private UIThreadOnly _dangerous_uiOnly;
+        private readonly UIThreadOnly _dangerous_uiOnly;
 
         #region Initialization
 
@@ -36,6 +37,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             IProjectionBufferFactoryService projectionBufferFactory,
             IEditorOperationsFactoryService editorOperationsFactory,
             ITextEditorFactoryService editorFactory,
+            IRtfBuilderService rtfBuilderService,
             IIntellisenseSessionStackMapService intellisenseSessionStackMap,
             ISmartIndentationService smartIndenterService,
             IInteractiveEvaluator evaluator)
@@ -69,7 +71,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 ProjectionBufferOptions.None,
                 replContentType);
 
-            // we need to set IReplPromptProvider property before TextViewHost is instantiated so that ReplPromptTaggerProvider can bind to it 
             projBuffer.Properties.AddProperty(typeof(InteractiveWindow), this);
 
             _projectionBuffer = projBuffer;
@@ -103,6 +104,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             _errorOutputWriter = new InteractiveWindowWriter(this, errorSpans);
             OutputClassifierProvider.AttachToBuffer(_outputBuffer, errorSpans);
 
+            _rtfBuilderService = rtfBuilderService;
+
             RequiresUIThread();
             evaluator.CurrentWindow = this;
             _evaluator = evaluator;
@@ -134,7 +137,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         #endregion
 
-        private class UIThreadOnly
+        private sealed class UIThreadOnly
         {
             private readonly InteractiveWindow _window;
 

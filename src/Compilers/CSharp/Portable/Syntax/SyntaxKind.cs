@@ -528,5 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         InterpolatedStringText = 8919,
         InterpolationAlignmentClause = 8920,
         InterpolationFormatClause = 8921,
+
+        ShebangCommentTrivia = 8922,
     }
 }

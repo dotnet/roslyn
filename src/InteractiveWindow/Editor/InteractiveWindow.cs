@@ -18,6 +18,8 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
+using Microsoft.VisualStudio.Text.Formatting;
+using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
 
@@ -30,7 +32,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     /// <summary>
     /// Provides implementation of a Repl Window built on top of the VS editor using projection buffers.
     /// </summary>
-    internal partial class InteractiveWindow : IInteractiveWindow, IInteractiveWindowOperations
+    internal partial class InteractiveWindow : IInteractiveWindow, IInteractiveWindowOperations2
     {
         private bool _adornmentToMinimize;
 
@@ -85,6 +87,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         private readonly InteractiveWindowWriter _errorOutputWriter;
 
         private readonly string _lineBreakString;
+        private readonly IRtfBuilderService _rtfBuilderService;
 
         private const string BoxSelectionCutCopyTag = "MSDEVColumnSelect";
 
@@ -735,6 +738,48 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
         }
 
+        /// <summary>
+        /// Copy the entire selection to the clipboard for RTF format and
+        /// copy the selection minus any prompt text for other formats.
+        /// That allows paste into code editors of just the code and
+        /// paste of the entire content for editors that support RTF.
+        /// </summary>
+        private void CopySelection()
+        {
+            var spans = _textView.Selection.SelectedSpans;
+            var text = spans.Aggregate(new StringBuilder(), GetTextWithoutPrompts, b => b.ToString());
+            var rtf = _rtfBuilderService.GenerateRtf(spans, _textView);
+            var data = new DataObject();
+            data.SetData(DataFormats.StringFormat, text);
+            data.SetData(DataFormats.Text, text);
+            data.SetData(DataFormats.UnicodeText, text);
+            data.SetData(DataFormats.Rtf, rtf);
+            Clipboard.SetDataObject(data, true);
+        }
+
+        private StringBuilder GetTextWithoutPrompts(StringBuilder builder, SnapshotSpan span)
+        {
+            // Find the range of source spans that cover the span.
+            var sourceSpans = GetSourceSpans(span.Snapshot);
+            int startIndex = GetSourceSpanIndex(sourceSpans, span.Start);
+            int endIndex = GetSourceSpanIndex(sourceSpans, span.End);
+            Debug.Assert(startIndex >= 0);
+            Debug.Assert(endIndex >= startIndex);
+
+            // Add the text for all non-prompt spans within that range.
+            var snapshot = span.Snapshot;
+            for (int i = startIndex; i <= endIndex; i++)
+            {
+                var sourceSpan = sourceSpans[i];
+                if (IsPrompt(sourceSpan.Snapshot))
+                {
+                    builder.Append(sourceSpan.GetText());
+                }
+            }
+
+            return builder;
+        }
+
         private bool ReduceBoxSelectionToEditableBox(bool isDelete = true)
         {
             Debug.Assert(_textView.Selection.Mode == TextSelectionMode.Box);
@@ -891,6 +936,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             MoveCaretToClosestEditableBuffer();
+        }
+
+        void IInteractiveWindowOperations2.Copy()
+        {
+            CopySelection();
         }
 
         bool IInteractiveWindowOperations.Backspace()
@@ -1513,6 +1563,17 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private int GetPromptIndexForPoint(ReadOnlyCollection<SnapshotSpan> sourceSpans, SnapshotPoint point)
         {
+            int index = GetSourceSpanIndex(sourceSpans, point);
+            // Find the nearest preceding prompt.
+            while (!IsPrompt(sourceSpans[index].Snapshot))
+            {
+                index--;
+            }
+            return index;
+        }
+
+        private int GetSourceSpanIndex(ReadOnlyCollection<SnapshotSpan> sourceSpans, SnapshotPoint point)
+        {
             int index = BinarySearch(
                 sourceSpans,
                 sourceSpan =>
@@ -1537,13 +1598,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             Debug.Assert(index >= 0);
             Debug.Assert(index < sourceSpans.Count);
-
-            // Find the nearest preceding prompt.
-            while (!IsPrompt(sourceSpans[index].Snapshot))
-            {
-                index--;
-            }
-
             return index;
         }
 
@@ -1906,12 +1960,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
             }
 
-            private int IndexOfEditableBuffer(ReadOnlyCollection<SnapshotPoint> sourceInsertionPoints)
+            private int IndexOfEditableBuffer(ReadOnlyCollection<SnapshotPoint> points)
             {
-                for (int i = sourceInsertionPoints.Count - 1; i >= 0; i--)
+                for (int i = points.Count - 1; i >= 0; i--)
                 {
-                    var insertionBuffer = sourceInsertionPoints[i].Snapshot.TextBuffer;
-                    if (insertionBuffer == _window._currentLanguageBuffer || insertionBuffer == _window._standardInputBuffer)
+                    if (IsEditableBuffer(points[i].Snapshot.TextBuffer))
                     {
                         return i;
                     }
@@ -1920,18 +1973,22 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 return -1;
             }
 
-            private int IndexOfEditableBuffer(ReadOnlyCollection<SnapshotSpan> sourceInsertionPoints)
+            private int IndexOfEditableBuffer(ReadOnlyCollection<SnapshotSpan> spans)
             {
-                for (int i = sourceInsertionPoints.Count - 1; i >= 0; i--)
+                for (int i = spans.Count - 1; i >= 0; i--)
                 {
-                    var insertionBuffer = sourceInsertionPoints[i].Snapshot.TextBuffer;
-                    if (insertionBuffer == _window._currentLanguageBuffer || insertionBuffer == _window._standardInputBuffer)
+                    if (IsEditableBuffer(spans[i].Snapshot.TextBuffer))
                     {
                         return i;
                     }
                 }
 
                 return -1;
+            }
+
+            private bool IsEditableBuffer(ITextBuffer buffer)
+            {
+                return buffer == _window._currentLanguageBuffer || buffer == _window._standardInputBuffer;
             }
         }
 

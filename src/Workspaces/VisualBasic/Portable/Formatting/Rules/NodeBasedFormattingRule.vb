@@ -162,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                         Return
                     End If
 
-                    AddIndentBlockOperation(operations, pair.Item1, pair.Item2, dontIncludeNextTokenTrailingTrivia:=True)
+                    AddIndentBlockOperation(operations, pair.Item1, pair.Item2)
                     Return
                 End If
             End If

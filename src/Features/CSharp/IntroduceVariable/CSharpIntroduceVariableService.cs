@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.IntroduceVariable;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -49,6 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         protected override bool IsInConstructorInitializer(ExpressionSyntax expression)
         {
             return expression.GetAncestorOrThis<ConstructorInitializerSyntax>() != null;
+        }
+
+        protected override bool IsInAutoPropertyInitializer(ExpressionSyntax expression)
+        {
+            return expression.GetAncestorOrThis<EqualsValueClauseSyntax>().IsParentKind(SyntaxKind.PropertyDeclaration);
         }
 
         protected override bool IsInExpressionBodiedMember(ExpressionSyntax expression)

@@ -25,7 +25,9 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         static ScriptEngine()
         {
+#if TODO
             DefaultReferenceSearchPaths = ImmutableArray.Create(RuntimeEnvironment.GetRuntimeDirectory());
+#endif
         }
 
         internal ScriptEngine(ScriptOptions options, MetadataFileReferenceProvider metadataReferenceProvider)
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         internal abstract Script<T> Create<T>(string code, ScriptOptions options, Type globalsType);
 
-        #region Session
+#region Session
 
         public Session CreateSession()  // TODO (tomat): bool isCancellable = false
         {
@@ -113,9 +115,9 @@ namespace Microsoft.CodeAnalysis.Scripting
             }
 
             Type actualType = hostObject.GetType();
-            if (!hostObjectType.IsAssignableFrom(actualType))
+            if (!hostObjectType.GetTypeInfo().IsAssignableFrom(actualType.GetTypeInfo()))
             {
-                throw new ArgumentException(String.Format(ScriptingResources.CantAssignTo, actualType, hostObjectType), "hostObjectType");
+                throw new ArgumentException(string.Format(ScriptingResources.CantAssignTo, actualType, hostObjectType), "hostObjectType");
             }
 
             return new Session(this, _options, hostObject, hostObjectType);
@@ -132,9 +134,9 @@ namespace Microsoft.CodeAnalysis.Scripting
             return new Session(this, _options, hostObject, typeof(THostObject));
         }
 
-        #endregion
+#endregion
 
-        #region State
+#region State
 
         /// <summary>
         /// The base directory used to resolve relative paths to assembly references and 
@@ -278,6 +280,6 @@ namespace Microsoft.CodeAnalysis.Scripting
             }
         }
 
-        #endregion
+#endregion
     }
 }

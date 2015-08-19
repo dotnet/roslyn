@@ -19,8 +19,8 @@ Supported Platforms:
     <tags>DiaSymReader ISymUnmanagedReader PDB COM interop debugging</tags>
   </metadata>
   <files>
-    <file src="Microsoft.DiaSymReader.dll" target="lib\net45" />
-    <file src="Microsoft.DiaSymReader.xml" target="lib\net45" />
+    <file src="Microsoft.DiaSymReader.dll" target="lib\portable-net45+win8" />
+    <file src="Microsoft.DiaSymReader.xml" target="lib\portable-net45+win8" />
     <file src="NetFX20\Microsoft.DiaSymReader.dll" target="lib\net20" />
     <file src="NetFX20\Microsoft.DiaSymReader.xml" target="lib\net20" />
   </files>

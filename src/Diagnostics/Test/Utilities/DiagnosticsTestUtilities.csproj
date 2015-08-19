@@ -26,7 +26,7 @@
       <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
       <Name>CSharpCodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Utilities\Portable\TestUtilities.FX45.csproj">
+    <ProjectReference Include="..\..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
       <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
       <Name>TestUtilities.FX45</Name>
     </ProjectReference>
