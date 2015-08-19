@@ -68,13 +68,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                     case SyntaxKind.ParenthesizedLambdaExpression:
                     case SyntaxKind.SimpleLambdaExpression:
                     case SyntaxKind.AnonymousMethodExpression:
-                        if ((node as AnonymousFunctionExpressionSyntax)?.AsyncKeyword != SyntaxFactory.Token(SyntaxKind.AsyncKeyword))
+                        if ((node as AnonymousFunctionExpressionSyntax)?.AsyncKeyword.Kind() != SyntaxKind.AsyncKeyword)
                         {
                             return node;
                         }
                         break;
                     case SyntaxKind.MethodDeclaration:
-                        if (!((node as MethodDeclarationSyntax)?.Modifiers.Any(SyntaxKind.AsyncKeyword) == true))
+                        if ((node as MethodDeclarationSyntax)?.Modifiers.Any(SyntaxKind.AsyncKeyword) == false)
                         {
                             return node;
                         }
