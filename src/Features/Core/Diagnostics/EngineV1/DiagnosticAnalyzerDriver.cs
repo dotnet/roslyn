@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetry;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 {
@@ -107,47 +108,61 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         public async Task<ActionCounts> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer)
         {
-            var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
-            var compWithAnalyzers = this.GetCompilationWithAnalyzers(compilation);
-            return await compWithAnalyzers.GetAnalyzerActionCountsAsync(analyzer, _cancellationToken).ConfigureAwait(false);
+            try
+            {
+                var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
+                var compWithAnalyzers = this.GetCompilationWithAnalyzers(compilation);
+                return await compWithAnalyzers.GetAnalyzerActionCountsAsync(analyzer, _cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         public async Task<ImmutableArray<Diagnostic>> GetSyntaxDiagnosticsAsync(DiagnosticAnalyzer analyzer)
         {
-            var compilation = _document.Project.SupportsCompilation ? await _document.Project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false) : null;
-
-            Contract.ThrowIfNull(_document);
-
-            var documentAnalyzer = analyzer as DocumentDiagnosticAnalyzer;
-            if (documentAnalyzer != null)
+            try
             {
-                using (var pooledObject = SharedPools.Default<List<Diagnostic>>().GetPooledObject())
-                {
-                    var diagnostics = pooledObject.Object;
-                    _cancellationToken.ThrowIfCancellationRequested();
+                var compilation = _document.Project.SupportsCompilation ? await _document.Project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false) : null;
 
-                    try
+                Contract.ThrowIfNull(_document);
+
+                var documentAnalyzer = analyzer as DocumentDiagnosticAnalyzer;
+                if (documentAnalyzer != null)
+                {
+                    using (var pooledObject = SharedPools.Default<List<Diagnostic>>().GetPooledObject())
                     {
-                        await documentAnalyzer.AnalyzeSyntaxAsync(_document, diagnostics.Add, _cancellationToken).ConfigureAwait(false);
-                        return GetFilteredDocumentDiagnostics(diagnostics, compilation).ToImmutableArray();
-                    }
-                    catch (Exception e) when (!IsCanceled(e, _cancellationToken))
-                    {
-                        OnAnalyzerException(e, analyzer, compilation);
-                        return ImmutableArray<Diagnostic>.Empty;
+                        var diagnostics = pooledObject.Object;
+                        _cancellationToken.ThrowIfCancellationRequested();
+
+                        try
+                        {
+                            await documentAnalyzer.AnalyzeSyntaxAsync(_document, diagnostics.Add, _cancellationToken).ConfigureAwait(false);
+                            return GetFilteredDocumentDiagnostics(diagnostics, compilation).ToImmutableArray();
+                        }
+                        catch (Exception e) when (!IsCanceled(e, _cancellationToken))
+                        {
+                            OnAnalyzerException(e, analyzer, compilation);
+                            return ImmutableArray<Diagnostic>.Empty;
+                        }
                     }
                 }
-            }
 
-            if (!_document.SupportsSyntaxTree)
+                if (!_document.SupportsSyntaxTree)
+                {
+                    return ImmutableArray<Diagnostic>.Empty;
+                }
+
+                var compilationWithAnalyzers = GetCompilationWithAnalyzers(compilation);
+                var syntaxDiagnostics = await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(_root.SyntaxTree, ImmutableArray.Create(analyzer), _cancellationToken).ConfigureAwait(false);
+                await UpdateAnalyzerTelemetryDataAsync(analyzer, compilationWithAnalyzers).ConfigureAwait(false);
+                return GetFilteredDocumentDiagnostics(syntaxDiagnostics, compilation, onlyLocationFiltering: true).ToImmutableArray();
+            }
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
-                return ImmutableArray<Diagnostic>.Empty;
+                throw ExceptionUtilities.Unreachable;
             }
-
-            var compilationWithAnalyzers = GetCompilationWithAnalyzers(compilation);
-            var syntaxDiagnostics = await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(_root.SyntaxTree, ImmutableArray.Create(analyzer), _cancellationToken).ConfigureAwait(false);
-            await UpdateAnalyzerTelemetryDataAsync(analyzer, compilationWithAnalyzers).ConfigureAwait(false);
-            return GetFilteredDocumentDiagnostics(syntaxDiagnostics, compilation, onlyLocationFiltering: true).ToImmutableArray();
         }
 
         private IEnumerable<Diagnostic> GetFilteredDocumentDiagnostics(IEnumerable<Diagnostic> diagnostics, Compilation compilation, bool onlyLocationFiltering = false)
@@ -185,96 +200,131 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         public async Task<ImmutableArray<Diagnostic>> GetSemanticDiagnosticsAsync(DiagnosticAnalyzer analyzer)
         {
-            var model = await _document.GetSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
-            var compilation = model?.Compilation;
-
-            Contract.ThrowIfNull(_document);
-
-            var documentAnalyzer = analyzer as DocumentDiagnosticAnalyzer;
-            if (documentAnalyzer != null)
+            try
             {
-                using (var pooledObject = SharedPools.Default<List<Diagnostic>>().GetPooledObject())
+                var model = await _document.GetSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
+                var compilation = model?.Compilation;
+
+                Contract.ThrowIfNull(_document);
+
+                var documentAnalyzer = analyzer as DocumentDiagnosticAnalyzer;
+                if (documentAnalyzer != null)
                 {
-                    var diagnostics = pooledObject.Object;
-                    _cancellationToken.ThrowIfCancellationRequested();
-
-                    try
+                    using (var pooledObject = SharedPools.Default<List<Diagnostic>>().GetPooledObject())
                     {
-                        await documentAnalyzer.AnalyzeSemanticsAsync(_document, diagnostics.Add, _cancellationToken).ConfigureAwait(false);
-                    }
-                    catch (Exception e) when (!IsCanceled(e, _cancellationToken))
-                    {
-                        OnAnalyzerException(e, analyzer, compilation);
-                        return ImmutableArray<Diagnostic>.Empty;
-                    }
+                        var diagnostics = pooledObject.Object;
+                        _cancellationToken.ThrowIfCancellationRequested();
 
-                    return GetFilteredDocumentDiagnostics(diagnostics, compilation).ToImmutableArray();
+                        try
+                        {
+                            await documentAnalyzer.AnalyzeSemanticsAsync(_document, diagnostics.Add, _cancellationToken).ConfigureAwait(false);
+                        }
+                        catch (Exception e) when (!IsCanceled(e, _cancellationToken))
+                        {
+                            OnAnalyzerException(e, analyzer, compilation);
+                            return ImmutableArray<Diagnostic>.Empty;
+                        }
+
+                        return GetFilteredDocumentDiagnostics(diagnostics, compilation).ToImmutableArray();
+                    }
                 }
-            }
 
-            if (!_document.SupportsSyntaxTree)
+                if (!_document.SupportsSyntaxTree)
+                {
+                    return ImmutableArray<Diagnostic>.Empty;
+                }
+
+                var compilationWithAnalyzers = GetCompilationWithAnalyzers(compilation);
+                var semanticDiagnostics = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, _span, ImmutableArray.Create(analyzer), _cancellationToken).ConfigureAwait(false);
+                await UpdateAnalyzerTelemetryDataAsync(analyzer, compilationWithAnalyzers).ConfigureAwait(false);
+                return semanticDiagnostics;
+            }
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
-                return ImmutableArray<Diagnostic>.Empty;
+                throw ExceptionUtilities.Unreachable;
             }
-
-            var compilationWithAnalyzers = GetCompilationWithAnalyzers(compilation);
-            var semanticDiagnostics = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, _span, ImmutableArray.Create(analyzer), _cancellationToken).ConfigureAwait(false);
-            await UpdateAnalyzerTelemetryDataAsync(analyzer, compilationWithAnalyzers).ConfigureAwait(false);
-            return semanticDiagnostics;
         }
 
         public async Task<ImmutableArray<Diagnostic>> GetProjectDiagnosticsAsync(DiagnosticAnalyzer analyzer)
         {
-            Contract.ThrowIfNull(_project);
-            Contract.ThrowIfFalse(_document == null);
-
-            using (var diagnostics = SharedPools.Default<List<Diagnostic>>().GetPooledObject())
+            try
             {
-                if (_project.SupportsCompilation)
+                Contract.ThrowIfNull(_project);
+                Contract.ThrowIfFalse(_document == null);
+
+                using (var diagnostics = SharedPools.Default<List<Diagnostic>>().GetPooledObject())
                 {
-                    await this.GetCompilationDiagnosticsAsync(analyzer, diagnostics.Object).ConfigureAwait(false);
+                    if (_project.SupportsCompilation)
+                    {
+                        await this.GetCompilationDiagnosticsAsync(analyzer, diagnostics.Object).ConfigureAwait(false);
+                    }
+
+                    await this.GetProjectDiagnosticsWorkerAsync(analyzer, diagnostics.Object).ConfigureAwait(false);
+
+                    return diagnostics.Object.ToImmutableArray();
                 }
-
-                await this.GetProjectDiagnosticsWorkerAsync(analyzer, diagnostics.Object).ConfigureAwait(false);
-
-                return diagnostics.Object.ToImmutableArray();
+            }
+            catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+            {
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
         private async Task GetProjectDiagnosticsWorkerAsync(DiagnosticAnalyzer analyzer, List<Diagnostic> diagnostics)
         {
-            var projectAnalyzer = analyzer as ProjectDiagnosticAnalyzer;
-            if (projectAnalyzer == null)
-            {
-                return;
-            }
-
             try
             {
-                await projectAnalyzer.AnalyzeProjectAsync(_project, diagnostics.Add, _cancellationToken).ConfigureAwait(false);
+                var projectAnalyzer = analyzer as ProjectDiagnosticAnalyzer;
+                if (projectAnalyzer == null)
+                {
+                    return;
+                }
+
+                try
+                {
+                    await projectAnalyzer.AnalyzeProjectAsync(_project, diagnostics.Add, _cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception e) when (!IsCanceled(e, _cancellationToken))
+                {
+                    var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
+                    OnAnalyzerException(e, analyzer, compilation);
+                }
             }
-            catch (Exception e) when (!IsCanceled(e, _cancellationToken))
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
-                var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
-                OnAnalyzerException(e, analyzer, compilation);
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
         private async Task GetCompilationDiagnosticsAsync(DiagnosticAnalyzer analyzer, List<Diagnostic> diagnostics)
         {
-            Contract.ThrowIfFalse(_project.SupportsCompilation);
+            try
+            {
+                Contract.ThrowIfFalse(_project.SupportsCompilation);
 
-            var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
-            var compilationWithAnalyzers = GetCompilationWithAnalyzers(compilation);
-            var compilationDiagnostics = await compilationWithAnalyzers.GetAnalyzerCompilationDiagnosticsAsync(ImmutableArray.Create(analyzer), _cancellationToken).ConfigureAwait(false);
-            await UpdateAnalyzerTelemetryDataAsync(analyzer, compilationWithAnalyzers).ConfigureAwait(false);
-            diagnostics.AddRange(compilationDiagnostics);
+                var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
+                var compilationWithAnalyzers = GetCompilationWithAnalyzers(compilation);
+                var compilationDiagnostics = await compilationWithAnalyzers.GetAnalyzerCompilationDiagnosticsAsync(ImmutableArray.Create(analyzer), _cancellationToken).ConfigureAwait(false);
+                await UpdateAnalyzerTelemetryDataAsync(analyzer, compilationWithAnalyzers).ConfigureAwait(false);
+                diagnostics.AddRange(compilationDiagnostics);
+            }
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         private async Task UpdateAnalyzerTelemetryDataAsync(DiagnosticAnalyzer analyzer, CompilationWithAnalyzers compilationWithAnalyzers)
         {
-            var actionCounts = await compilationWithAnalyzers.GetAnalyzerActionCountsAsync(analyzer, _cancellationToken).ConfigureAwait(false);
-            DiagnosticAnalyzerLogger.UpdateAnalyzerTypeCount(analyzer, actionCounts, _project, _owner.DiagnosticLogAggregator);
+            try
+            {
+                var actionCounts = await compilationWithAnalyzers.GetAnalyzerActionCountsAsync(analyzer, _cancellationToken).ConfigureAwait(false);
+                DiagnosticAnalyzerLogger.UpdateAnalyzerTypeCount(analyzer, actionCounts, _project, _owner.DiagnosticLogAggregator);
+            }
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         private static bool IsCanceled(Exception ex, CancellationToken cancellationToken)
