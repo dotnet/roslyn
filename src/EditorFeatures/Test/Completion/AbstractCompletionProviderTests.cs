@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         protected AbstractCompletionProviderTests(TWorkspaceFixture workspaceFixture)
         {
-            SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
             MockCompletionSession = new Mock<ICompletionSession>(MockBehavior.Strict);
 
             this.WorkspaceFixture = workspaceFixture;
