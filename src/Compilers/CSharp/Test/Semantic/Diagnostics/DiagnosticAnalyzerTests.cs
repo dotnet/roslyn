@@ -984,6 +984,21 @@ public class B
             }
         }
 
+        [Fact, WorkItem(4376, "https://github.com/dotnet/roslyn/issues/4376")]
+        public void TestReportingDiagnosticWithInvalidId()
+        {
+            string source = @"";
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerWithInvalidDiagnosticId() };
+            string message = new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticIdReported, AnalyzerWithInvalidDiagnosticId.Descriptor.Id), "diagnostic").Message;
+
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
+                     expected: Diagnostic("AD0001")
+                     .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithInvalidDiagnosticId", "System.ArgumentException", message)
+                     .WithLocation(1, 1));
+        }
+
         [Fact, WorkItem(1473, "https://github.com/dotnet/roslyn/issues/1473")]
         public void TestReportingNotConfigurableDiagnostic()
         {

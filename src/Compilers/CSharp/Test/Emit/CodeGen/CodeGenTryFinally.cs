@@ -2185,51 +2185,45 @@ class C
                 expectedOutput: "TryFilterCatchFinally");
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       66 (0x42)
+  // Code size       54 (0x36)
   .maxstack  2
   .locals init (int V_0) //x
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   .try
-{
-  .try
-{
-  IL_0002:  ldstr      ""Try""
-  IL_0007:  call       ""void System.Console.Write(string)""
-  IL_000c:  ldloc.0
-  IL_000d:  dup
-  IL_000e:  div
-  IL_000f:  stloc.0
-  IL_0010:  leave.s    IL_0041
-}
-  filter
-{
-  IL_0012:  isinst     ""object""
-  IL_0017:  dup
-  IL_0018:  brtrue.s   IL_001e
-  IL_001a:  pop
-  IL_001b:  ldc.i4.0
-  IL_001c:  br.s       IL_0027
-  IL_001e:  pop
-  IL_001f:  call       ""bool C.Filter()""
-  IL_0024:  ldc.i4.0
-  IL_0025:  cgt.un
-  IL_0027:  endfilter
-}  // end filter
-{  // handler
-  IL_0029:  pop
-  IL_002a:  ldstr      ""Catch""
-  IL_002f:  call       ""void System.Console.Write(string)""
-  IL_0034:  leave.s    IL_0041
-}
-}
+  {
+    .try
+    {
+      IL_0002:  ldstr      ""Try""
+      IL_0007:  call       ""void System.Console.Write(string)""
+      IL_000c:  ldloc.0
+      IL_000d:  dup
+      IL_000e:  div
+      IL_000f:  stloc.0
+      IL_0010:  leave.s    IL_0035
+    }
+    filter
+    {
+      IL_0012:  pop
+      IL_0013:  call       ""bool C.Filter()""
+      IL_0018:  ldc.i4.0
+      IL_0019:  cgt.un
+      IL_001b:  endfilter
+    }  // end filter
+    {  // handler
+      IL_001d:  pop
+      IL_001e:  ldstr      ""Catch""
+      IL_0023:  call       ""void System.Console.Write(string)""
+      IL_0028:  leave.s    IL_0035
+    }
+  }
   finally
-{
-  IL_0036:  ldstr      ""Finally""
-  IL_003b:  call       ""void System.Console.Write(string)""
-  IL_0040:  endfinally
-}
-  IL_0041:  ret
+  {
+    IL_002a:  ldstr      ""Finally""
+    IL_002f:  call       ""void System.Console.Write(string)""
+    IL_0034:  endfinally
+  }
+  IL_0035:  ret
 }");
         }
 
@@ -2393,7 +2387,7 @@ class C
             var comp = CompileAndVerify(src, expectedOutput: "TryCatchS1Finally");
             comp.VerifyIL("C.Main", @"
 {
-  // Code size      107 (0x6b)
+  // Code size       95 (0x5f)
   .maxstack  2
   .locals init (int V_0) //x
   IL_0000:  ldc.i4.0
@@ -2408,47 +2402,41 @@ class C
       IL_000d:  dup
       IL_000e:  div
       IL_000f:  stloc.0
-      IL_0010:  leave.s    IL_006a
+      IL_0010:  leave.s    IL_005e
     }
     filter
     {
-      IL_0012:  isinst     ""object""
-      IL_0017:  dup
-      IL_0018:  brtrue.s   IL_001e
-      IL_001a:  pop
-      IL_001b:  ldc.i4.0
-      IL_001c:  br.s       IL_0046
-      IL_001e:  pop
-      IL_001f:  ldsfld     ""System.Func<bool> C.<>c.<>9__1_0""
-      IL_0024:  dup
-      IL_0025:  brtrue.s   IL_003e
-      IL_0027:  pop
-      IL_0028:  ldsfld     ""C.<>c C.<>c.<>9""
-      IL_002d:  ldftn      ""bool C.<>c.<Main>b__1_0()""
-      IL_0033:  newobj     ""System.Func<bool>..ctor(object, System.IntPtr)""
-      IL_0038:  dup
-      IL_0039:  stsfld     ""System.Func<bool> C.<>c.<>9__1_0""
-      IL_003e:  callvirt   ""bool System.Func<bool>.Invoke()""
-      IL_0043:  ldc.i4.0
-      IL_0044:  cgt.un
-      IL_0046:  endfilter
+      IL_0012:  pop
+      IL_0013:  ldsfld     ""System.Func<bool> C.<>c.<>9__1_0""
+      IL_0018:  dup
+      IL_0019:  brtrue.s   IL_0032
+      IL_001b:  pop
+      IL_001c:  ldsfld     ""C.<>c C.<>c.<>9""
+      IL_0021:  ldftn      ""bool C.<>c.<Main>b__1_0()""
+      IL_0027:  newobj     ""System.Func<bool>..ctor(object, System.IntPtr)""
+      IL_002c:  dup
+      IL_002d:  stsfld     ""System.Func<bool> C.<>c.<>9__1_0""
+      IL_0032:  callvirt   ""bool System.Func<bool>.Invoke()""
+      IL_0037:  ldc.i4.0
+      IL_0038:  cgt.un
+      IL_003a:  endfilter
     }  // end filter
     {  // handler
-      IL_0048:  pop
-      IL_0049:  ldstr      ""Catch""
-      IL_004e:  ldsfld     ""string C.str""
-      IL_0053:  call       ""string string.Concat(string, string)""
-      IL_0058:  call       ""void System.Console.Write(string)""
-      IL_005d:  leave.s    IL_006a
+      IL_003c:  pop
+      IL_003d:  ldstr      ""Catch""
+      IL_0042:  ldsfld     ""string C.str""
+      IL_0047:  call       ""string string.Concat(string, string)""
+      IL_004c:  call       ""void System.Console.Write(string)""
+      IL_0051:  leave.s    IL_005e
     }
   }
   finally
   {
-    IL_005f:  ldstr      ""Finally""
-    IL_0064:  call       ""void System.Console.Write(string)""
-    IL_0069:  endfinally
+    IL_0053:  ldstr      ""Finally""
+    IL_0058:  call       ""void System.Console.Write(string)""
+    IL_005d:  endfinally
   }
-  IL_006a:  ret
+  IL_005e:  ret
 }
 ");
         }

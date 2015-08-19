@@ -764,7 +764,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <PublicAPI Include="PublicAPI.txt" />
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
     <VSCTCompile Include="Commands.vsct">

@@ -811,9 +811,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             object typeCheckFailedLabel = null;
 
-            var exceptionType = ((object)catchBlock.ExceptionTypeOpt != null) ?
-                _module.Translate(catchBlock.ExceptionTypeOpt, catchBlock.Syntax, _diagnostics) :
-                _module.GetSpecialType(SpecialType.System_Object, catchBlock.Syntax, _diagnostics);
 
             _builder.AdjustStack(1); // Account for exception on the stack.
 
@@ -822,6 +819,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // converts to what we want.
             if (catchBlock.ExceptionFilterOpt == null)
             {
+                var exceptionType = ((object)catchBlock.ExceptionTypeOpt != null) ?
+                    _module.Translate(catchBlock.ExceptionTypeOpt, catchBlock.Syntax, _diagnostics) :
+                    _module.GetSpecialType(SpecialType.System_Object, catchBlock.Syntax, _diagnostics);
+
                 _builder.OpenLocalScope(ScopeType.Catch, exceptionType);
 
                 if (catchBlock.IsSynthesizedAsyncCatchAll)
@@ -866,13 +867,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 var typeCheckPassedLabel = new object();
                 typeCheckFailedLabel = new object();
 
-                _builder.EmitOpCode(ILOpCode.Isinst);
-                _builder.EmitToken(exceptionType, catchBlock.Syntax, _diagnostics);
-                _builder.EmitOpCode(ILOpCode.Dup);
-                _builder.EmitBranch(ILOpCode.Brtrue, typeCheckPassedLabel);
-                _builder.EmitOpCode(ILOpCode.Pop);
-                _builder.EmitIntConstant(0);
-                _builder.EmitBranch(ILOpCode.Br, typeCheckFailedLabel);
+                if ((object)catchBlock.ExceptionTypeOpt != null)
+                {
+                    var exceptionType = _module.Translate(catchBlock.ExceptionTypeOpt, catchBlock.Syntax, _diagnostics);
+
+                    _builder.EmitOpCode(ILOpCode.Isinst);
+                    _builder.EmitToken(exceptionType, catchBlock.Syntax, _diagnostics);
+                    _builder.EmitOpCode(ILOpCode.Dup);
+                    _builder.EmitBranch(ILOpCode.Brtrue, typeCheckPassedLabel);
+                    _builder.EmitOpCode(ILOpCode.Pop);
+                    _builder.EmitIntConstant(0);
+                    _builder.EmitBranch(ILOpCode.Br, typeCheckFailedLabel);
+                }
+                else
+                {
+                    // no formal exception type means we always pass the check
+                }
 
                 _builder.MarkLabel(typeCheckPassedLabel);
             }
