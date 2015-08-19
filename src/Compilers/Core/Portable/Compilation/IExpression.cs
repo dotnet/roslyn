@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         Local,
         Parameter,
-        Temporary,
+        SyntheticLocal,
         ArrayElement,
         PointerIndirection,
         StaticField,
@@ -199,25 +199,31 @@ namespace Microsoft.CodeAnalysis.Semantics
         IParameterSymbol Parameter { get; }
     }
 
-    public interface ITemporaryReference : IReference
+    /// <summary>
+    /// Represents a reference to a local variable synthesized by language analysis.
+    /// </summary>
+    public interface ISyntheticLocalReference : IReference
     {
-        TemporaryKind TemporaryKind { get; }
+        SyntheticLocalKind SyntheticLocalKind { get; }
+        /// <summary>
+        /// Statement defining the lifetime of the synthetic local.
+        /// </summary>
         IStatement ContainingStatement { get; }
     }
 
     /// <summary>
-    /// Kinds of temporary references.
+    /// Kinds of synthetic local references.
     /// </summary>
-    public enum TemporaryKind
+    public enum SyntheticLocalKind
     {
         None,
 
         /// <summary>
-        /// Temporary created for the step value of a for loop.
+        /// Created to capture the step value of a VB for loop.
         /// </summary>
         StepValue,
         /// <summary>
-        /// Temporary created for the limit value of a for loop.
+        /// Created to capture the limit value of a VB for loop.
         /// </summary>
         LimitValue
     }
@@ -765,7 +771,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         UnaryOperationKind IncrementKind { get; }
     }
 
-    public interface IParenthesized: IExpression
+    public interface IParenthesized : IExpression
     {
         IExpression Operand { get; }
     }

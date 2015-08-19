@@ -1311,6 +1311,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         executableCodeBlocks = declInNode.ExecutableCodeBlocks;
 
+                        // Execute operation actions.
                         if (shouldExecuteOperationActions && executableCodeBlocks.Any())
                         {
                             var operationsToAnalyze = GetOperationsToAnalyze(executableCodeBlocks, semanticModel, cancellationToken);

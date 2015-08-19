@@ -329,7 +329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     stepValue = New BoundLiteral(Nothing, Semantics.Expression.SynthesizeNumeric(controlType, 1), controlType)
                                 End If
 
-                                Dim stepOperand As IExpression = If(stepValue.IsConstant, DirectCast(stepValue, IExpression), New Temporary(TemporaryKind.StepValue, BoundFor, stepValue))
+                                Dim stepOperand As IExpression = If(stepValue.IsConstant, DirectCast(stepValue, IExpression), New Temporary(SyntheticLocalKind.StepValue, BoundFor, stepValue))
                                 statements.Add(New CompoundAssignment(controlReference, stepOperand, Semantics.Expression.DeriveAdditionKind(controlType), Nothing, stepValue.Syntax))
                             End If
                         End If
@@ -358,12 +358,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         ' T0 = LimitValue
                         If Not Me.LimitValue.IsConstant Then
-                            statements.Add(New Assignment(New Temporary(TemporaryKind.LimitValue, BoundFor, BoundFor.LimitValue), BoundFor.LimitValue, BoundFor.LimitValue.Syntax))
+                            statements.Add(New Assignment(New Temporary(SyntheticLocalKind.LimitValue, BoundFor, BoundFor.LimitValue), BoundFor.LimitValue, BoundFor.LimitValue.Syntax))
                         End If
 
                         ' T1 = StepValue
                         If BoundFor.StepValue IsNot Nothing AndAlso Not BoundFor.StepValue.IsConstant Then
-                            statements.Add(New Assignment(New Temporary(TemporaryKind.StepValue, BoundFor, BoundFor.StepValue), BoundFor.StepValue, BoundFor.StepValue.Syntax))
+                            statements.Add(New Assignment(New Temporary(SyntheticLocalKind.StepValue, BoundFor, BoundFor.StepValue), BoundFor.StepValue, BoundFor.StepValue.Syntax))
                         End If
 
                         Return statements.ToImmutableAndFree()
@@ -386,7 +386,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return LoopConditionMappings.GetValue(
                     Me,
                     Function(BoundFor)
-                        Dim limitValue As IExpression = If(BoundFor.LimitValue.IsConstant, DirectCast(BoundFor.LimitValue, IExpression), New Temporary(TemporaryKind.LimitValue, BoundFor, BoundFor.LimitValue))
+                        Dim limitValue As IExpression = If(BoundFor.LimitValue.IsConstant, DirectCast(BoundFor.LimitValue, IExpression), New Temporary(SyntheticLocalKind.LimitValue, BoundFor, BoundFor.LimitValue))
                         Dim controlVariable As BoundExpression = BoundFor.ControlVariable
 
                         Dim booleanType As ITypeSymbol = controlVariable.ExpressionSymbol.DeclaringCompilation.GetSpecialType(SpecialType.System_Boolean)
@@ -404,7 +404,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Else
                                 ' If(StepValue >= 0, ControlVariable <= LimitValue, ControlVariable >= LimitValue)
 
-                                Dim stepValue As IExpression = New Temporary(TemporaryKind.StepValue, BoundFor, BoundFor.StepValue)
+                                Dim stepValue As IExpression = New Temporary(SyntheticLocalKind.StepValue, BoundFor, BoundFor.StepValue)
                                 Dim stepRelationalCode As RelationalOperationKind = DeriveRelationalOperationKind(BinaryOperatorKind.GreaterThanOrEqual, BoundFor.StepValue)
                                 Dim stepCondition As IExpression = New Relational(stepRelationalCode, stepValue, New BoundLiteral(Nothing, Semantics.Expression.SynthesizeNumeric(stepValue.ResultType, 0), BoundFor.StepValue.Type), booleanType, Nothing, BoundFor.StepValue.Syntax)
 
@@ -438,13 +438,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Class Temporary
-            Implements ITemporaryReference
+            Implements ISyntheticLocalReference
 
-            Private _temporaryKind As TemporaryKind
+            Private _temporaryKind As SyntheticLocalKind
             Private _containingStatement As IStatement
             Private _capturedValue As IExpression
 
-            Public Sub New(temporaryKind As TemporaryKind, containingStatement As IStatement, capturedValue As IExpression)
+            Public Sub New(temporaryKind As SyntheticLocalKind, containingStatement As IStatement, capturedValue As IExpression)
                 Me._temporaryKind = temporaryKind
                 Me._containingStatement = containingStatement
                 Me._capturedValue = capturedValue
@@ -476,17 +476,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public ReadOnly Property ReferenceKind As ReferenceKind Implements IReference.ReferenceKind
                 Get
-                    Return ReferenceKind.Temporary
+                    Return ReferenceKind.SyntheticLocal
                 End Get
             End Property
 
-            Public ReadOnly Property ContainingStatement As IStatement Implements ITemporaryReference.ContainingStatement
+            Public ReadOnly Property ContainingStatement As IStatement Implements ISyntheticLocalReference.ContainingStatement
                 Get
                     Return Me._containingStatement
                 End Get
             End Property
 
-            Public ReadOnly Property TemporaryKind As TemporaryKind Implements ITemporaryReference.TemporaryKind
+            Public ReadOnly Property SyntheticLocalKind As SyntheticLocalKind Implements ISyntheticLocalReference.SyntheticLocalKind
                 Get
                     Return Me._temporaryKind
                 End Get

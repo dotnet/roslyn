@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         Range,
         /// <summary>
-        /// Indicates default: in C3 or Case Else in VB.
+        /// Indicates default in C3 or Case Else in VB.
         /// </summary>
         Default
     }
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# using or VB Using statement.
     /// </summary>
-    public interface IUsing: IStatement
+    public interface IUsing : IStatement
     {
         /// <summary>
         /// Body of the using, over which the resources of the using are maintained.

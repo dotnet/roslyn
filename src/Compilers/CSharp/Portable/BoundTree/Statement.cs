@@ -342,11 +342,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind StatementKind => OperationKind.LabeledStatement;
     }
 
-    partial class BoundExpressionStatement:IExpressionStatement
+    partial class BoundExpressionStatement : IExpressionStatement
     {
         IExpression IExpressionStatement.Expression => this.Expression;
 
         protected override OperationKind StatementKind => OperationKind.ExpressionStatement;
     }
-
 }
