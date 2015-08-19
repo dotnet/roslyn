@@ -60,6 +60,7 @@
   <ItemGroup>
     <Compile Include="ObjectFormatterTestBase.cs" />
     <Compile Include="ObjectFormatterTests.Fixtures.cs" />
+    <Compile Include="RedirectedOutput.cs" />
     <Compile Include="ScriptEngine.cs" />
     <Compile Include="ScriptingTestHelpers.cs" />
     <Compile Include="Session.cs" />
