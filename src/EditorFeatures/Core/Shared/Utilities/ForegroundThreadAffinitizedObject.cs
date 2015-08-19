@@ -4,7 +4,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
@@ -15,7 +14,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     /// </summary>
     internal class ForegroundThreadAffinitizedObject
     {
+        [ThreadStatic]
         private static Thread s_foregroundThread;
+
+        [ThreadStatic]
         private static TaskScheduler s_foregroundTaskScheduler;
 
         internal static Thread ForegroundThread
@@ -46,20 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
 
             s_foregroundThread = Thread.CurrentThread;
-
-            var previousContext = SynchronizationContext.Current;
-            try
-            {
-                // None of the work posted to the foregroundTaskScheduler should block pending keyboard/mouse input from the user.
-                // So instead of using the default priority which is above user input, we use Background priority which is 1 level
-                // below user input.
-                SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher, DispatcherPriority.Background));
-                s_foregroundTaskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
-            }
-            finally
-            {
-                SynchronizationContext.SetSynchronizationContext(previousContext);
-            }
+            s_foregroundTaskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
 
             return new ForegroundThreadAffinitizedObject();
         }
