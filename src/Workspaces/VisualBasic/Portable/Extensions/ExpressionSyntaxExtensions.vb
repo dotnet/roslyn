@@ -220,15 +220,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             targetType As ITypeSymbol,
             <Out> ByRef isResultPredefinedCast As Boolean) As ExpressionSyntax
 
-            ' Parenthesize the expression, except for collection initializer where parenthesizing changes the semantics.
-            Dim parenthesized = If(expression.Kind = SyntaxKind.CollectionInitializer,
-                expression,
-                expression.Parenthesize())
+            ' Parenthesize the expression, except for collection initializers and interpolated strings,
+            ' where parenthesizing changes semantics.
+            Dim newExpression = expression
 
-            Dim leadingTrivia = parenthesized.GetLeadingTrivia()
-            Dim trailingTrivia = parenthesized.GetTrailingTrivia()
+            If Not expression.IsKind(SyntaxKind.CollectionInitializer, SyntaxKind.InterpolatedStringExpression) Then
+                newExpression = expression.Parenthesize()
+            End If
 
-            Dim stripped = parenthesized.WithoutLeadingTrivia().WithoutTrailingTrivia()
+            Dim leadingTrivia = newExpression.GetLeadingTrivia()
+            Dim trailingTrivia = newExpression.GetTrailingTrivia()
+
+            Dim stripped = newExpression.WithoutLeadingTrivia().WithoutTrailingTrivia()
 
             Dim castKeyword = targetType.SpecialType.GetPredefinedCastKeyword()
             If castKeyword = SyntaxKind.None Then
