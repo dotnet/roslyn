@@ -360,9 +360,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // Explicit reference conversions can cause an exception or data loss, hence can never be removed.
                 return false;
             }
-            else if (expressionToCastType.IsExplicit && expressionToCastType.IsNumeric && IsInExplicitCheckedOrUncheckedContext(cast))
+            else if (expressionToCastType.IsExplicit && expressionToCastType.IsNumeric)
             {
-                // Don't remove any explicit numeric casts in explicit checked/unchecked context.
+                // Don't remove any explicit numeric casts.
                 // https://github.com/dotnet/roslyn/issues/2987 tracks improving on this conservative approach.
                 return false;
             }
