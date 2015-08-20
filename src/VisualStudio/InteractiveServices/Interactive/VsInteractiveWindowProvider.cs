@@ -165,30 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                 matchFound = false;
             }
             return interactiveCommands.ToImmutableArray();
-
-            //for (int i = 0; i < specializedInteractiveCommands.Length; i++)
-            //{
-            //    for (int j = 0; j < interactiveCommands.Length; j++)
-            //    {
-            //        //Each command can have multiple names so we need to compare every name
-            //        bool matchFound = false;
-            //        foreach (var s1 in specializedInteractiveCommands[i].Names)
-            //        {
-            //            if (matchFound) break;
-            //            foreach (var s2 in interactiveCommands[j].Names)
-            //            {
-            //                if (string.Equals(s1, s2, StringComparison.Ordinal))
-            //                {
-            //                    interactiveCommands[j] = specializedInteractiveCommands[i];
-            //                    matchFound = true;
-            //                    break;
-            //                }
-            //            }
-            //        }
-            //    }
-            //}
-            //return interactiveCommands.ToImmutableArray();
-        }
+            }
 
     }
 }
