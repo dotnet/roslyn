@@ -167,7 +167,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             switch ((VSConstants.VSStd97CmdID)commandId)
             {
                 case VSConstants.VSStd97CmdID.GotoDefn:
-                    ExecuteGotoDefinition(subjectBuffer, contentType, executeNextCommandTarget);
+                    ExecuteGoToDefinition(subjectBuffer, contentType, executeNextCommandTarget);
                     break;
 
                 case VSConstants.VSStd97CmdID.FindReferences:
@@ -868,7 +868,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 lastHandler: executeNextCommandTarget);
         }
 
-        private void ExecuteGotoDefinition(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
+        private void ExecuteGoToDefinition(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
             CurrentHandlers.Execute<GoToDefinitionCommandArgs>(contentType,
                 args: new GoToDefinitionCommandArgs(ConvertTextView(), subjectBuffer),
