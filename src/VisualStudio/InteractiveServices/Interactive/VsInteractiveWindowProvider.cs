@@ -1,15 +1,17 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Interactive;
+using Microsoft.VisualStudio.Editor.Interactive;
+using Microsoft.VisualStudio.InteractiveWindow.Commands;
+using Microsoft.VisualStudio.InteractiveWindow.Shell;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.VisualStudio.InteractiveWindow.Commands;
-using Microsoft.VisualStudio.InteractiveWindow.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
@@ -40,7 +42,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             _classifierAggregator = classifierAggregator;
             _contentTypeRegistry = contentTypeRegistry;
             _vsWorkspace = workspace;
-            _commands = FilterCommands(commands, contentType: PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName);
+            _commands = GetApplicableCommands(commands, coreContentType: PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName,
+                specializedContentType: PredefinedRoslynInteractiveCommandsContentTypes.RoslynInteractiveCommandContentTypeName);
             _vsInteractiveWindowFactory = interactiveWindowFactory;
             _commandsFactory = commandsFactory;
         }
@@ -114,11 +117,78 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             return _vsInteractiveWindow;
         }
 
-        private static ImmutableArray<IInteractiveWindowCommand> FilterCommands(IInteractiveWindowCommand[] commands, string contentType)
+        private static ImmutableArray<IInteractiveWindowCommand> GetApplicableCommands(IInteractiveWindowCommand[] commands, string coreContentType, string specializedContentType)
         {
-            return commands.Where(
+            // get all commands of coreContentType - generic interactive window commands
+            var interactiveCommands = commands.Where(
                 c => c.GetType().GetCustomAttributes(typeof(ContentTypeAttribute), inherit: true).Any(
-                    a => ((ContentTypeAttribute)a).ContentTypes == contentType)).ToImmutableArray();
+                    a => ((ContentTypeAttribute)a).ContentTypes == coreContentType)).ToArray();
+
+            // get all commands of specializedContentType - smart C#/VB command implementations
+            var specializedInteractiveCommands = commands.Where(
+                c => c.GetType().GetCustomAttributes(typeof(ContentTypeAttribute), inherit: true).Any(
+                    a => ((ContentTypeAttribute)a).ContentTypes == specializedContentType)).ToArray();
+
+            // We should choose specialized C#/VB commands over generic core interactive window commands
+            // so we replace the generic commands with specialized commands if both exist.
+            // Command can have multiple names. We need to compare every name to find match.
+            // Build a map of names and associated command first
+
+            Dictionary<string, int> interactiveCommandMap = new Dictionary<string, int>();
+            Dictionary<string, int> specializedInteractiveCommandMap = new Dictionary<string, int>();
+
+            for (int i = 0; i < interactiveCommands.Length; i++)
+            {
+                foreach (var name in interactiveCommands[i].Names)
+                        interactiveCommandMap.Add(name, i);
+            }
+
+            for (int i = 0; i < specializedInteractiveCommands.Length; i++)
+            {
+                foreach (var name in specializedInteractiveCommands[i].Names)
+                    specializedInteractiveCommandMap.Add(name, i);
+            }
+
+            //swap out generic commands with the specialized version
+            bool matchFound = false;
+            foreach ( var entry1 in interactiveCommandMap)
+            {
+                foreach( var entry2 in specializedInteractiveCommandMap)
+                {
+                    if (string.Equals(entry1.Key, entry2.Key, StringComparison.Ordinal))
+                    {
+                        Debug.Assert(matchFound == false, "Found two specialized commands with same name");
+                        interactiveCommands[entry1.Value] = specializedInteractiveCommands[entry2.Value];
+                        matchFound = true;
+                    }
+                }
+                matchFound = false;
+            }
+            return interactiveCommands.ToImmutableArray();
+
+            //for (int i = 0; i < specializedInteractiveCommands.Length; i++)
+            //{
+            //    for (int j = 0; j < interactiveCommands.Length; j++)
+            //    {
+            //        //Each command can have multiple names so we need to compare every name
+            //        bool matchFound = false;
+            //        foreach (var s1 in specializedInteractiveCommands[i].Names)
+            //        {
+            //            if (matchFound) break;
+            //            foreach (var s2 in interactiveCommands[j].Names)
+            //            {
+            //                if (string.Equals(s1, s2, StringComparison.Ordinal))
+            //                {
+            //                    interactiveCommands[j] = specializedInteractiveCommands[i];
+            //                    matchFound = true;
+            //                    break;
+            //                }
+            //            }
+            //        }
+            //    }
+            //}
+            //return interactiveCommands.ToImmutableArray();
         }
+
     }
 }
