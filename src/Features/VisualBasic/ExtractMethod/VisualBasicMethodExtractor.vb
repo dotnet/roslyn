@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End If
 
             ' if it is type parameter, make sure we are getting same type parameter
-            Dim binding = DirectCast(Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False), SemanticModel)
+            Dim binding = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
             For Each typeParameter In TypeParameterCollector.Collect(type)
                 Dim vbType = DirectCast(typeParameter, ITypeSymbol)
@@ -140,9 +140,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return nextOperation.Invoke()
             End Function
 
-            Private Function IsLessThanInAttribute(commonToken As SyntaxToken) As Boolean
+            Private Function IsLessThanInAttribute(token As SyntaxToken) As Boolean
                 ' < in attribute
-                Dim token = CType(commonToken, SyntaxToken)
                 If token.Kind = SyntaxKind.LessThanToken AndAlso
                    token.Parent.Kind = SyntaxKind.AttributeList AndAlso
                    DirectCast(token.Parent, AttributeListSyntax).LessThanToken.Equals(token) Then

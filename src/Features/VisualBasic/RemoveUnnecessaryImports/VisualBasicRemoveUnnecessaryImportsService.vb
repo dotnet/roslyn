@@ -48,8 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
             End Using
         End Function
 
-        Private Shared Function GetIndividualUnnecessaryImports(model As SemanticModel, root As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxNode)
-            Dim semanticModel = DirectCast(model, SemanticModel)
+        Private Shared Function GetIndividualUnnecessaryImports(semanticModel As SemanticModel, root As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxNode)
             Dim diagnostics = semanticModel.GetDiagnostics(cancellationToken:=cancellationToken)
 
             Dim unnecessaryImports = New HashSet(Of ImportsClauseSyntax)
@@ -118,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                 Return
             End If
 
-            Dim compilation = DirectCast(semanticModel.Compilation, Compilation)
+            Dim compilation = semanticModel.Compilation
             Dim aliasSymbol = compilation.AliasImports.FirstOrDefault(Function(a) a.Name = clause.Alias.Identifier.ValueText)
             If aliasSymbol IsNot Nothing AndAlso aliasSymbol.Target.Equals(semanticInfo.Symbol) Then
                 unnecessaryImports.Add(clause)
@@ -137,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                 Return
             End If
 
-            Dim compilation = DirectCast(semanticModel.Compilation, Compilation)
+            Dim compilation = semanticModel.Compilation
             If compilation.MemberImports.Contains(namespaceOrType) Then
                 unnecessaryImports.Add(clause)
             End If

@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
                         assemblyInfo,
                         SyntaxTriviaList.Create(SyntaxFactory.CarriageReturnLineFeed)))
 
-            Dim oldRoot = DirectCast(Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False), SyntaxNode)
+            Dim oldRoot = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim newRoot = oldRoot.WithLeadingTrivia({
                 SyntaxFactory.Trivia(regionTrivia),
                 SyntaxFactory.CommentTrivia("' " & assemblyPath),
@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
         Protected Overrides Async Function ConvertDocCommentsToRegularComments(document As Document, docCommentFormattingService As IDocumentationCommentFormattingService, cancellationToken As CancellationToken) As Task(Of Document)
             Dim syntaxRoot = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
-            Dim newSyntaxRoot = DocCommentConverter.ConvertToRegularComments(DirectCast(syntaxRoot, SyntaxNode), docCommentFormattingService, cancellationToken)
+            Dim newSyntaxRoot = DocCommentConverter.ConvertToRegularComments(syntaxRoot, docCommentFormattingService, cancellationToken)
 
             Return document.WithSyntaxRoot(newSyntaxRoot)
         End Function
