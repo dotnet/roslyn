@@ -37,7 +37,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
                 Dim presenter = New MockNavigableItemsPresenter()
 
                 Dim success = GoToDefinitionHelpers.TryGoToDefinition(
-                    symbolInfo.Symbol, document.Project, {New Lazy(Of INavigableItemsPresenter)(Function() presenter)}, Nothing, throwOnHiddenDefinition:=False, cancellationToken:=CancellationToken.None)
+                    symbolInfo.Symbol, document.Project, {New Lazy(Of INavigableItemsPresenter)(Function() presenter)}, thirdPartyNavigationAllowed:=True, throwOnHiddenDefinition:=False, cancellationToken:=CancellationToken.None)
 
                 Assert.Equal(expectSuccess, success)
             End Using
