@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
 
             // realize the list here so that the consumer await'ing the result doesn't lazily cause
             // them to be created on an inappropriate thread.
-            return NavigableItemFactory.GetItemsfromPreferredSourceLocations(document.Project.Solution, symbol).ToList();
+            return NavigableItemFactory.GetItemsFromPreferredSourceLocations(document.Project.Solution, symbol).ToList();
         }
 
         public bool TryGoToDefinition(Document document, int position, CancellationToken cancellationToken)

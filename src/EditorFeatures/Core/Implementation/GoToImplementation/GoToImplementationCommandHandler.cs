@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
                 {
                     // We have multiple symbols, so we'll build a list of all preferred locations for all the symbols
                     var navigableItems = implementations.SelectMany(implementation =>
-                        NavigableItemFactory.GetItemsfromPreferredSourceLocations(solution, implementation));
+                        NavigableItemFactory.GetItemsFromPreferredSourceLocations(solution, implementation));
 
                     var presenter = _navigatableItemPresenters.First();
                     presenter.Value.DisplayResult(navigableItems);
