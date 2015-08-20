@@ -34,10 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
 
         public void ExecuteCommand(GoToDefinitionCommandArgs args, Action nextHandler)
         {
-            var textBuffer = args.SubjectBuffer;
-
             var caretPos = args.TextView.GetCaretPoint(args.SubjectBuffer);
-            if (caretPos.HasValue && TryExecuteCommand(textBuffer.CurrentSnapshot, caretPos.Value))
+            if (caretPos.HasValue && TryExecuteCommand(args.SubjectBuffer.CurrentSnapshot, caretPos.Value))
             {
                 return;
             }
