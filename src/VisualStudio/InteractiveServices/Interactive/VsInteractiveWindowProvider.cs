@@ -157,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                 {
                     if (string.Equals(entry1.Key, entry2.Key, StringComparison.Ordinal))
                     {
-                        Debug.Assert(matchFound == false, "Found two specialized commands with same name");
+                        Debug.Assert(matchFound == false, "Found more than one specialized commands with same name");
                         interactiveCommands[entry1.Value] = specializedInteractiveCommands[entry2.Value];
                         matchFound = true;
                     }
