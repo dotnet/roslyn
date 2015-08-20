@@ -1,0 +1,16 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="PortableCompilerReferences.targets" />
+  <ItemGroup Label="Contracts">
+    <Reference Include="$(NuGetPackagesPath)\System.Dynamic.Runtime.4.0.10\ref\dotnet\System.Dynamic.Runtime.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\System.Linq.Expressions.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Linq.Expressions.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\Microsoft.CSharp.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\Microsoft.CSharp.dll">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup Label="Facades">
+  </ItemGroup>
+</Project>

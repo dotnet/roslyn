@@ -577,6 +577,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Reported diagnostic has an ID &apos;{0}&apos;, which is not a valid identifier..
+        /// </summary>
+        internal static string InvalidDiagnosticIdReported {
+            get {
+                return ResourceManager.GetString("InvalidDiagnosticIdReported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid hash..
         /// </summary>
         internal static string InvalidHash {

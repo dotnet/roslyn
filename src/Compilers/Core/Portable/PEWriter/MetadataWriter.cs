@@ -120,6 +120,12 @@ namespace Microsoft.Cci
         }
 
         /// <summary>
+        /// NetModules and EnC deltas don't have AssemblyDef record.
+        /// We don't emit it for EnC deltas since assembly identity has to be preserved across generations (CLR/debugger get confused otherwise).
+        /// </summary>
+        private bool EmitAssemblyDefinition => module.AsAssembly != null && !IsMinimalDelta;
+
+        /// <summary>
         /// Returns metadata generation ordinal. Zero for
         /// full metadata and non-zero for delta.
         /// </summary>
@@ -459,7 +465,7 @@ namespace Microsoft.Cci
         {
             var rowCounts = new int[MetadataTokens.TableCount];
 
-            rowCounts[(int)TableIndex.Assembly] = (this.module.AsAssembly != null) ? 1 : 0;
+            rowCounts[(int)TableIndex.Assembly] = EmitAssemblyDefinition ? 1 : 0;
             rowCounts[(int)TableIndex.AssemblyRef] = _assemblyRefTable.Count;
             rowCounts[(int)TableIndex.ClassLayout] = _classLayoutTable.Count;
             rowCounts[(int)TableIndex.Constant] = _constantTable.Count;
@@ -2584,12 +2590,12 @@ namespace Microsoft.Cci
 
         private void PopulateAssemblyTableRows()
         {
-            IAssembly assembly = this.module.AsAssembly;
-            if (assembly == null)
+            if (!EmitAssemblyDefinition)
             {
                 return;
             }
 
+            IAssembly assembly = this.module.AsAssembly;
             _assemblyKey = heaps.GetBlobIndex(assembly.PublicKey);
             _assemblyName = this.GetStringIndexForPathAndCheckLength(assembly.Name, assembly);
             _assemblyCulture = heaps.GetStringIndex(assembly.Culture);
@@ -4070,12 +4076,12 @@ namespace Microsoft.Cci
 
         private void SerializeAssemblyTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
-            IAssembly assembly = this.module.AsAssembly;
-            if (assembly == null)
+            if (!EmitAssemblyDefinition)
             {
                 return;
             }
 
+            IAssembly assembly = this.module.AsAssembly;
             writer.WriteUInt32((uint)assembly.HashAlgorithm);
             writer.WriteUInt16((ushort)assembly.Version.Major);
             writer.WriteUInt16((ushort)assembly.Version.Minor);

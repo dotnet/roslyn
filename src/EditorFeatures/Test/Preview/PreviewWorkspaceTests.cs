@@ -238,34 +238,35 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                 var leftBuffer = diffView.LeftView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
                 var leftProvider = new DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, listeners);
                 var leftTagger = leftProvider.CreateTagger<IErrorTag>(leftBuffer);
-
-                var rightBuffer = diffView.RightView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
-                var rightProvider = new DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, listeners);
-                var rightTagger = rightProvider.CreateTagger<IErrorTag>(rightBuffer);
-
-                // wait up to 20 seconds for diagnostics
-                taskSource.Task.Wait(20000);
-                if (!taskSource.Task.IsCompleted)
+                using (var leftDisposable = leftTagger as IDisposable)
                 {
-                    // something is wrong
-                    FatalError.Report(new System.Exception("not finished after 20 seconds"));
+                    var rightBuffer = diffView.RightView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
+                    var rightProvider = new DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, listeners);
+                    var rightTagger = rightProvider.CreateTagger<IErrorTag>(rightBuffer);
+                    using (var rightDisposable = rightTagger as IDisposable)
+                    {
+                        // wait up to 20 seconds for diagnostics
+                        taskSource.Task.Wait(20000);
+                        if (!taskSource.Task.IsCompleted)
+                        {
+                            // something is wrong
+                            FatalError.Report(new System.Exception("not finished after 20 seconds"));
+                        }
+
+                        // wait taggers
+                        waiter.CreateWaitTask().PumpingWait();
+
+                        // check left buffer
+                        var leftSnapshot = leftBuffer.CurrentSnapshot;
+                        var leftSpans = leftTagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(leftSnapshot, 0, leftSnapshot.Length))).ToList();
+                        Assert.Equal(1, leftSpans.Count);
+
+                        // check right buffer
+                        var rightSnapshot = rightBuffer.CurrentSnapshot;
+                        var rightSpans = rightTagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(rightSnapshot, 0, rightSnapshot.Length))).ToList();
+                        Assert.Equal(0, rightSpans.Count);
+                    }
                 }
-
-                // wait taggers
-                waiter.CreateWaitTask().PumpingWait();
-
-                // check left buffer
-                var leftSnapshot = leftBuffer.CurrentSnapshot;
-                var leftSpans = leftTagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(leftSnapshot, 0, leftSnapshot.Length))).ToList();
-                Assert.Equal(1, leftSpans.Count);
-
-                // check right buffer
-                var rightSnapshot = rightBuffer.CurrentSnapshot;
-                var rightSpans = rightTagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(rightSnapshot, 0, rightSnapshot.Length))).ToList();
-                Assert.Equal(0, rightSpans.Count);
-
-                ((IDisposable)leftTagger).Dispose();
-                ((IDisposable)rightTagger).Dispose();
             }
         }
 

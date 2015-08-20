@@ -391,14 +391,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                             promotedType = _nullableType.Construct(promotedType);
                         }
 
-                        loweredLeft = Convert(loweredLeft, left.Type, promotedType, isChecked, false);
-                        loweredRight = Convert(loweredRight, right.Type, promotedType, isChecked, false);
+                        loweredLeft = PromoteEnumOperand(left, loweredLeft, promotedType, isChecked);
+                        loweredRight = PromoteEnumOperand(right, loweredRight, promotedType, isChecked);
 
                         var result = MakeBinary(methodOpt, type, isLifted, requiresLifted, opName, loweredLeft, loweredRight);
                         return Demote(result, type, isChecked);
                     }
                 default:
                     return MakeBinary(methodOpt, type, isLifted, requiresLifted, opName, loweredLeft, loweredRight);
+            }
+        }
+
+        private BoundExpression PromoteEnumOperand(BoundExpression operand, BoundExpression loweredOperand, TypeSymbol promotedType, bool isChecked)
+        {
+            var literal = operand as BoundLiteral;
+            if (literal != null)
+            {
+                // for compat reasons enum literals are directly promoted into underlying values
+                return Constant(literal.Update(literal.ConstantValue, promotedType));
+            }
+            else
+            {
+                return Convert(loweredOperand, operand.Type, promotedType, isChecked, false);
             }
         }
 

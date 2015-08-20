@@ -27,6 +27,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal static void VerifyArguments(Diagnostic diagnostic, Func<Diagnostic, bool> isSupportedDiagnostic)
         {
+            if (diagnostic is DiagnosticWithInfo)
+            {
+                // Compiler diagnostic, skip validations.
+                return;
+            }
+
             if (diagnostic == null)
             {
                 throw new ArgumentNullException(nameof(diagnostic));
@@ -36,6 +42,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 throw new ArgumentException(string.Format(CodeAnalysisResources.UnsupportedDiagnosticReported, diagnostic.Id), nameof(diagnostic));
             }
+
+            if (!UnicodeCharacterUtilities.IsValidIdentifier(diagnostic.Id))
+            {
+                // Disallow invalid diagnostic IDs.
+                // Note that the parsing logic in Csc/Vbc MSBuild tasks to decode command line compiler output relies on diagnostics having a valid ID.
+                // See https://github.com/dotnet/roslyn/issues/4376 for details.
+                throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticIdReported, diagnostic.Id), nameof(diagnostic));
+            } 
         }
 
         private static void VerifyAction<TContext>(Action<TContext> action)

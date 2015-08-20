@@ -69,6 +69,8 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             var compilation = script.GetCompilation();
 
+            var entryPoint = compilation.GetEntryPoint(cancellationToken);
+
             using (var peStream = new MemoryStream())
             {
                 var emitResult = compilation.Emit(
@@ -102,13 +104,9 @@ namespace Microsoft.CodeAnalysis.Scripting
                 peStream.Position = 0;
 
                 var assembly = _assemblyLoader.Load(peStream, pdbStream: null);
+                var runtimeEntryPoint = GetEntryPointRuntimeMethod(entryPoint, assembly, cancellationToken);
 
-                // TODO: GetEntryPoint currently doesn't work for scripts/submissions.
-                // See https://github.com/dotnet/roslyn/issues/3719.
-                // var entryPoint = compilation.GetEntryPoint(cancellationToken);
-                var entryPointMethod = GetEntryPointRuntimeMethod(emitResult.EntryPointOpt, assembly, cancellationToken);
-
-                return entryPointMethod.CreateDelegate<Func<object[], Task<T>>>();
+                return runtimeEntryPoint.CreateDelegate<Func<object[], Task<T>>>();
             }
         }
 

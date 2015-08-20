@@ -19,9 +19,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 {
 #if DEBUG
                     Contract.Fail($@"Should have been disposed!
+DataSource-StackTrace:
+{_dataSource.StackTrace}
 
-{_stackTrace}
-");
+StackTrace:
+{_stackTrace}");
 #else
                     Contract.Fail($@"Should have been disposed! Try running in Debug to get the allocation callstack");
 #endif
@@ -102,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 Contract.ThrowIfFalse(Thread.CurrentThread == _thread);
             }
 #else
-            private void RecordInitialStackTrace()
+            private void DebugRecordInitialStackTrace()
             {
             }
 
