@@ -1061,6 +1061,24 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Locating implementations....
+        /// </summary>
+        internal static string GoToImplementationMessage {
+            get {
+                return ResourceManager.GetString("GoToImplementationMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Go To Implementation.
+        /// </summary>
+        internal static string GoToImplementationTitle {
+            get {
+                return ResourceManager.GetString("GoToImplementationTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Highlighted Definition.
         /// </summary>
         internal static string HighlightedDefinition {
@@ -1678,6 +1696,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string SymbolCannotBeNamespace {
             get {
                 return ResourceManager.GetString("SymbolCannotBeNamespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The symbol has no implementations..
+        /// </summary>
+        internal static string SymbolHasNoImplementations {
+            get {
+                return ResourceManager.GetString("SymbolHasNoImplementations", resourceCulture);
             }
         }
         
