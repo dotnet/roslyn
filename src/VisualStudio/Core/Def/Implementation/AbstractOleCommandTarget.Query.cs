@@ -58,6 +58,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 return QueryAppCommandStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
             }
+            else if (pguidCmdGroup == Guids.RoslynGroupId)
+            {
+                return QueryRoslynGroupStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
+            }
             else
             {
                 return NextCommandTarget.QueryStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
@@ -124,6 +128,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 case ID.Menu.Organize:
                 case ID.Menu.ContextOrganize:
                     return QueryOrganizeMenu(ref pguidCmdGroup, commandCount, prgCmds, commandText);
+
+                default:
+                    return NextCommandTarget.QueryStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
+            }
+        }
+
+        private int QueryRoslynGroupStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
+        {
+            switch (prgCmds[0].cmdID)
+            {
+                case ID.RoslynCommands.GoToImplementation:
+                    return QueryGoToImplementationStatus(prgCmds);
 
                 default:
                     return NextCommandTarget.QueryStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
@@ -292,6 +308,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         private int QueryGoToDefinitionStatus(OLECMD[] prgCmds)
+        {
+            prgCmds[0].cmdf = (uint)(OLECMDF.OLECMDF_ENABLED | OLECMDF.OLECMDF_SUPPORTED);
+            return VSConstants.S_OK;
+        }
+
+        private int QueryGoToImplementationStatus(OLECMD[] prgCmds)
         {
             prgCmds[0].cmdf = (uint)(OLECMDF.OLECMDF_ENABLED | OLECMDF.OLECMDF_SUPPORTED);
             return VSConstants.S_OK;

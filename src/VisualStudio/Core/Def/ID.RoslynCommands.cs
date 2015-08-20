@@ -31,6 +31,8 @@ namespace Microsoft.VisualStudio.LanguageServices
             public const int AddSuppressionsInSource = 0x011f;
             public const int AddSuppressionsInSuppressionFile = 0x0120;
             public const int RemoveSuppressions = 0x0121;
+
+            public const int GoToImplementation = 0x0200;
         }
     }
 }
