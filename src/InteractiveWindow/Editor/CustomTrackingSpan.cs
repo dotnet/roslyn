@@ -16,23 +16,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         private readonly ITrackingPoint _start;
         private readonly ITrackingPoint _end;
 
-        private CustomTrackingSpan(ITrackingPoint start, ITrackingPoint end)
-        {
-            Debug.Assert(start.TextBuffer == end.TextBuffer);
-            _start = start;
-            _end = end;
-        }
-
         public CustomTrackingSpan(ITextSnapshot snapshot, Span span, PointTrackingMode startTrackingMode, PointTrackingMode endTrackingMode)
-            : this(snapshot.CreateTrackingPoint(span.Start, startTrackingMode), snapshot.CreateTrackingPoint(span.End, endTrackingMode))
         {
-        }
-
-        public CustomTrackingSpan WithEndTrackingMode(PointTrackingMode endTrackingMode)
-        {
-            var snapshot = TextBuffer.CurrentSnapshot;
-            var newEnd = snapshot.CreateTrackingPoint(_end.GetPosition(snapshot), endTrackingMode);
-            return new CustomTrackingSpan(_start, newEnd);
+            _start = snapshot.CreateTrackingPoint(span.Start, startTrackingMode);
+            _end = snapshot.CreateTrackingPoint(span.End, endTrackingMode);
         }
 
         #region ITrackingSpan Members
