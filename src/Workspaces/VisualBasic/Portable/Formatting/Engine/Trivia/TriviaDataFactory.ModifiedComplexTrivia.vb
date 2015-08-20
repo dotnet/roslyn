@@ -14,7 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class TriviaDataFactory
         Private Class ModifiedComplexTrivia
-            Inherits TriviaDataWithList(Of SyntaxTrivia)
+            Inherits TriviaDataWithList
 
             Private ReadOnly _original As ComplexTrivia
 
