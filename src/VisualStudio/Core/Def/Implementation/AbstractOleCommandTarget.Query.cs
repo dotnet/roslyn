@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             switch ((VSConstants.VSStd97CmdID)prgCmds[0].cmdID)
             {
                 case VSConstants.VSStd97CmdID.GotoDefn:
-                    return QueryGotoDefinitionStatus(prgCmds);
+                    return QueryGoToDefinitionStatus(prgCmds);
 
                 case VSConstants.VSStd97CmdID.FindReferences:
                     return QueryFindReferencesStatus(prgCmds);
@@ -291,7 +291,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 ref pguidCmdGroup, commandCount, prgCmds, commandText);
         }
 
-        private int QueryGotoDefinitionStatus(OLECMD[] prgCmds)
+        private int QueryGoToDefinitionStatus(OLECMD[] prgCmds)
         {
             prgCmds[0].cmdf = (uint)(OLECMDF.OLECMDF_ENABLED | OLECMDF.OLECMDF_SUPPORTED);
             return VSConstants.S_OK;
