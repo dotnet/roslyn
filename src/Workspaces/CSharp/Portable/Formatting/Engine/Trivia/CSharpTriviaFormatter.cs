@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
-    internal partial class CSharpTriviaFormatter : AbstractTriviaFormatter<SyntaxTrivia>
+    internal partial class CSharpTriviaFormatter : AbstractTriviaFormatter
     {
         private bool _succeeded = true;
 
@@ -68,11 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             return _newLine;
-        }
-
-        protected override SyntaxTrivia Convert(SyntaxTrivia trivia)
-        {
-            return (SyntaxTrivia)trivia;
         }
 
         protected override LineColumnRule GetLineColumnRuleBetween(SyntaxTrivia trivia1, LineColumnDelta existingWhitespaceBetween, bool implicitLineBreak, SyntaxTrivia trivia2)
