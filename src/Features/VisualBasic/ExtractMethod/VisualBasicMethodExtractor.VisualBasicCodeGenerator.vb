@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 MyBase.New(insertionPoint, selectionResult, analyzerResult)
                 Contract.ThrowIfFalse(Me.SemanticDocument Is selectionResult.SemanticDocument)
 
-                Me._methodName = CType(CreateMethodName(), SyntaxToken).WithAdditionalAnnotations(MethodNameAnnotation)
+                Me._methodName = CreateMethodName().WithAdditionalAnnotations(MethodNameAnnotation)
             End Sub
 
             Private ReadOnly Property VBSelectionResult() As VisualBasicSelectionResult
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End Function
 
             Protected Overrides Async Function GenerateBodyForCallSiteContainerAsync(cancellationToken As CancellationToken) As Task(Of SyntaxNode)
-                Dim container = CType(GetOutermostCallSiteContainerToProcess(cancellationToken), SyntaxNode)
+                Dim container = GetOutermostCallSiteContainerToProcess(cancellationToken)
                 Dim variableMapToRemove = CreateVariableDeclarationToRemoveMap(AnalyzerResult.GetVariablesToMoveIntoMethodDefinition(cancellationToken), cancellationToken)
                 Dim firstStatementToRemove = GetFirstStatementOrInitializerSelectedAtCallSite()
                 Dim lastStatementToRemove = GetLastStatementOrInitializerSelectedAtCallSite()
@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End Function
 
             Private Async Function CreateStatementsToInsertAtCallSiteAsync(cancellationToken As CancellationToken) As Task(Of IEnumerable(Of StatementSyntax))
-                Dim semanticModel = CType(SemanticDocument.SemanticModel, SemanticModel)
+                Dim semanticModel = SemanticDocument.SemanticModel
                 Dim context = InsertionPoint.GetContext()
                 Dim postProcessor = New PostProcessor(semanticModel, context.SpanStart)
                 Dim statements = SpecializedCollections.EmptyEnumerable(Of StatementSyntax)()
@@ -169,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                 statements = statements.Concat(returnStatements)
 
-                Dim semanticModel = CType(Me.SemanticDocument.SemanticModel, SemanticModel)
+                Dim semanticModel = SemanticDocument.SemanticModel
                 Dim context = Me.InsertionPoint.GetContext()
                 Dim postProcessor = New PostProcessor(semanticModel, context.SpanStart)
                 statements = postProcessor.RemoveDeclarationAssignmentPattern(statements)
