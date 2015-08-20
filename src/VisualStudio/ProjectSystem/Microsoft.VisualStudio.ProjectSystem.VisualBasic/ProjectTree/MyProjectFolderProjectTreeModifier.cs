@@ -26,6 +26,10 @@ namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic.ProjectTree
 
         protected override string GetAppDesignerFolderName()
         {
+            string folderName = base.GetAppDesignerFolderName();
+            if (!string.IsNullOrEmpty(folderName))
+                return folderName;
+
             return "My Project";        // Not localized
         }
     }

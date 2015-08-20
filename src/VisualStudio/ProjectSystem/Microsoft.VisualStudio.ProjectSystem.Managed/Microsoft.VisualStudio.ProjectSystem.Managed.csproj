@@ -123,6 +123,7 @@
     <Compile Include="IAddItemTemplatesGuidProvider.cs" />
     <Compile Include="IItemTypeGuidProvider.cs" />
     <Compile Include="LanguageServices\LanguageServiceBase.cs" />
+    <Compile Include="ProjectCapability.cs" />
     <Compile Include="ProjectTree\AppDesignerFolderProjectTreeModifierBase.cs" />
     <Compile Include="ProjectTree\ProjectRootProjectTreeModifierBase.cs" />
     <Compile Include="ProjectTree\ProjectTreeExtensions.cs" />
