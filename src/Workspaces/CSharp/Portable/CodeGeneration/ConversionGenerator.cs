@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return AddMembersTo(destination, members);
         }
 
-        private static ConversionOperatorDeclarationSyntax GenerateConversionDeclaration(
+        internal static ConversionOperatorDeclarationSyntax GenerateConversionDeclaration(
             IMethodSymbol method,
             CodeGenerationDestination destination,
             CodeGenerationOptions options)
