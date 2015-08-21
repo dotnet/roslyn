@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim n As Integer = Me._pathFromRoot.Count
 
                     While i < n
-                        Dim child = node.ChildNodesAndTokens().ElementAt(Me._pathFromRoot(i))
+                        Dim child = node.ChildNodesAndTokens()(Me._pathFromRoot(i))
 
                         If child.IsToken Then
                             i = i + 1
