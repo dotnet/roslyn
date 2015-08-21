@@ -21,7 +21,6 @@ namespace Microsoft.VisualStudio.ProjectSystem.CSharp.ProjectTree
         {
         }
 
-
         public override ImageMoniker ProjectRootIcon
         {
             get { return KnownMonikers.CSProjectNode; }
