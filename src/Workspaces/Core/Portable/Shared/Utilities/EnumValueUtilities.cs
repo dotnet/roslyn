@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 case SpecialType.System_UInt16:
                     return (ushort)1;
                 case SpecialType.System_Int32:
-                    return 1;
+                    return (int)1;
                 case SpecialType.System_UInt32:
                     return (uint)1;
                 case SpecialType.System_Int64:
@@ -81,10 +81,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private static IComparable Multiply(IComparable value, uint number)
         {
             return value.TypeSwitch(
-                (long v) => unchecked((v * number)),
-                (ulong v) => unchecked((v * number)),
+                (long v) => unchecked((long)(v * number)),
+                (ulong v) => unchecked((ulong)(v * number)),
                 (int v) => unchecked((int)(v * number)),
-                (uint v) => unchecked((v * number)),
+                (uint v) => unchecked((uint)(v * number)),
                 (short v) => unchecked((short)(v * number)),
                 (ushort v) => unchecked((ushort)(v * number)),
                 (sbyte v) => unchecked((sbyte)(v * number)),
@@ -95,10 +95,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private static IComparable Add(IComparable value, uint number)
         {
             return value.TypeSwitch(
-                (long v) => unchecked((v + number)),
-                (ulong v) => unchecked((v + number)),
+                (long v) => unchecked((long)(v + number)),
+                (ulong v) => unchecked((ulong)(v + number)),
                 (int v) => unchecked((int)(v + number)),
-                (uint v) => unchecked((v + number)),
+                (uint v) => unchecked((uint)(v + number)),
                 (short v) => unchecked((short)(v + number)),
                 (ushort v) => unchecked((ushort)(v + number)),
                 (sbyte v) => unchecked((sbyte)(v + number)),

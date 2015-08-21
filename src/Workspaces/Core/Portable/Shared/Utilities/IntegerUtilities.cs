@@ -27,14 +27,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public static bool HasOneBitSet(IComparable value)
         {
             return value.TypeSwitch(
-                (long v) => HasOneBitSet(v),
+                (long v) => HasOneBitSet((long)v),
                 (ulong v) => HasOneBitSet(unchecked((long)v)),
-                (int v) => HasOneBitSet(v),
-                (uint v) => HasOneBitSet(v),
-                (short v) => HasOneBitSet(v),
-                (ushort v) => HasOneBitSet(v),
-                (sbyte v) => HasOneBitSet(v),
-                (byte v) => HasOneBitSet(v));
+                (int v) => HasOneBitSet((long)v),
+                (uint v) => HasOneBitSet((long)v),
+                (short v) => HasOneBitSet((long)v),
+                (ushort v) => HasOneBitSet((long)v),
+                (sbyte v) => HasOneBitSet((long)v),
+                (byte v) => HasOneBitSet((long)v));
         }
 
         public static bool HasOneBitSet(long v)
