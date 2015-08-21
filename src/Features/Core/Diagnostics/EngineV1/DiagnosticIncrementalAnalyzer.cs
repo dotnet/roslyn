@@ -664,7 +664,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             // get right arg id for the given analyzer
             var id = stateSet.ErrorSourceName != null ?
-                (object)new HostAnalyzerKey(stateSet.Analyzer, type, key, stateSet.ErrorSourceName) : (object)new ArgumentKey(stateSet.Analyzer, type, key);
+                new HostAnalyzerKey(stateSet.Analyzer, type, key, stateSet.ErrorSourceName) : (object)new ArgumentKey(stateSet.Analyzer, type, key);
 
             Owner.RaiseDiagnosticsUpdated(this,
                 new DiagnosticsUpdatedArgs(id, Workspace, solution.Solution, solution.ProjectId, solution.DocumentId, diagnostics));
