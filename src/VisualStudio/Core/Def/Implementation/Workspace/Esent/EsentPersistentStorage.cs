@@ -323,7 +323,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
         private EsentStorage.ProjectDocumentTableAccessor GetAccessor(EsentStorage.Key key)
         {
             return key.DocumentIdOpt.HasValue ?
-                (EsentStorage.ProjectDocumentTableAccessor)_esentStorage.GetDocumentTableAccessor() :
+                _esentStorage.GetDocumentTableAccessor() :
                 (EsentStorage.ProjectDocumentTableAccessor)_esentStorage.GetProjectTableAccessor();
         }
 
