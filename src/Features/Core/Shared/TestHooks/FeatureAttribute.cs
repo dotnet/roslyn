@@ -2,13 +2,11 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-    [ExcludeFromCodeCoverage]
     internal partial class FeatureAttribute : Attribute
     {
         private readonly string _featureName;

@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -70,13 +69,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return false;
             }
 
-            [ExcludeFromCodeCoverage]
             public override SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken)
             {
                 throw ExceptionUtilities.Unreachable;
             }
 
-            [ExcludeFromCodeCoverage]
             public override SyntaxAnnotation IdentifierTokenAnnotation
             {
                 get { throw ExceptionUtilities.Unreachable; }
