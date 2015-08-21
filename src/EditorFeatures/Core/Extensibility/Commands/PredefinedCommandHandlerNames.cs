@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <summary>
         /// Command handler name for Go to Implementation.
         /// </summary>
-        public const string GoToImplementation = "Go To Definition Command Handler";
+        public const string GoToImplementation = "Go To Implementation Command Handler";
 
         /// <summary>
         /// Command handler name for Indent.
