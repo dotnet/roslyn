@@ -3,8 +3,8 @@
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
     <Identity Id="EDDCB5BE-3C18-444E-8E50-AE06CD345872" Version="|%CurrentProject%;GetBuildVersion|" Language="en-US" Publisher="Microsoft" />
-    <DisplayName>C# and Visual Basic project systems</DisplayName>
-    <Description xml:space="preserve">C# and Visual Basic project systems.</Description>
+    <DisplayName>CSharp and Visual Basic project systems</DisplayName>
+    <Description xml:space="preserve">CSharp and Visual Basic project systems.</Description>
   </Metadata>
   <Installation SystemComponent="true" >
     <InstallationTarget Version="[14.0,]" Id="Microsoft.VisualStudio.Pro" />
