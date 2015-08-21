@@ -83,6 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return InCref && !this.Flags.Includes(BinderFlags.CrefParameterOrReturnType); }
         }
 
+        protected virtual bool InUsing => false;
+
         /// <summary>
         /// Returns true if the node is in a position where an unbound type
         /// such as (C&lt;,&gt;) is allowed.
