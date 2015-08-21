@@ -50,7 +50,7 @@
       <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
       <Name>BasicCodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Features\VisualBasic\BasicFeatures.vbproj">
+    <ProjectReference Include="..\..\..\Features\VisualBasic\Portable\BasicFeatures.vbproj">
       <Project>{a1bcd0ce-6c2f-4f8c-9a48-d9d93928e26d}</Project>
       <Name>BasicFeatures</Name>
     </ProjectReference>

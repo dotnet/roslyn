@@ -58,7 +58,7 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\..\Features\VisualBasic\BasicFeatures.vbproj">
+    <ProjectReference Include="..\..\Features\VisualBasic\Portable\BasicFeatures.vbproj">
       <Project>{A1BCD0CE-6C2F-4F8C-9A48-D9D93928E26D}</Project>
       <Name>BasicFeatures</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>

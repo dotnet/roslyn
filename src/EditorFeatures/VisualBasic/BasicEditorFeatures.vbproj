@@ -25,7 +25,7 @@
       <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
       <Name>BasicCodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Features\VisualBasic\BasicFeatures.vbproj">
+    <ProjectReference Include="..\..\Features\VisualBasic\Portable\BasicFeatures.vbproj">
       <Project>{A1BCD0CE-6C2F-4F8C-9A48-D9D93928E26D}</Project>
       <Name>BasicFeatures</Name>
     </ProjectReference>
