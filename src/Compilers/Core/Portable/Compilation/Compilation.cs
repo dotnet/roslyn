@@ -2098,7 +2098,8 @@ namespace Microsoft.CodeAnalysis
 
         internal void MarkImportDirectiveAsUsed(SyntaxTree syntaxTree, int position)
         {
-            if (syntaxTree != null)
+            // Optimization: Don't initialize TreeToUsedImportDirectivesMap in submissions.
+            if (!IsSubmission && syntaxTree != null)
             {
                 var set = TreeToUsedImportDirectivesMap.GetOrAdd(syntaxTree, s_createSetCallback);
                 set.Add(position);
@@ -2107,8 +2108,13 @@ namespace Microsoft.CodeAnalysis
 
         internal bool IsImportDirectiveUsed(SyntaxTree syntaxTree, int position)
         {
-            SmallConcurrentSetOfInts usedImports;
+            if (IsSubmission)
+            {
+                // Since usings apply to subsequent submissions, we have to assume they are used.
+                return true;
+            }
 
+            SmallConcurrentSetOfInts usedImports;
             return syntaxTree != null &&
                 TreeToUsedImportDirectivesMap.TryGetValue(syntaxTree, out usedImports) &&
                 usedImports.Contains(position);
