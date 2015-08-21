@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 ' Adjust the receiver type accordingly.
                 typeParametersToFix = New TypeParameterSymbol(hashSetOfTypeParametersToFix.Count - 1) {}
-                fixWith = New TypeSymbol(typeParametersToFix.Count - 1) {}
+                fixWith = New TypeSymbol(typeParametersToFix.Length - 1) {}
 
                 Dim j As Integer = 0
                 For i As Integer = 0 To possiblyExtensionMethod.Arity - 1
@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Debug.Assert(fixWith(j) IsNot Nothing)
                         j += 1
 
-                        If j = typeParametersToFix.Count Then
+                        If j = typeParametersToFix.Length Then
                             Exit For
                         End If
                     End If
@@ -158,13 +158,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim fixedTypeParameters = ImmutableArray(Of KeyValuePair(Of TypeParameterSymbol, TypeSymbol)).Empty
 
             If typeParametersToFix IsNot Nothing Then
-                Dim fixed(typeParametersToFix.Count - 1) As KeyValuePair(Of TypeParameterSymbol, TypeSymbol)
+                Dim fixed(typeParametersToFix.Length - 1) As KeyValuePair(Of TypeParameterSymbol, TypeSymbol)
 
-                For i As Integer = 0 To fixed.Count - 1
+                For i As Integer = 0 To fixed.Length - 1
                     fixed(i) = New KeyValuePair(Of TypeParameterSymbol, TypeSymbol)(typeParametersToFix(i), fixWith(i))
                 Next
 
-                fixedTypeParameters = fixed.AsImmutableOrNull()
+                fixedTypeParameters = fixed.AsImmutable()
             End If
 
             Return New ReducedExtensionMethodSymbol(receiverType, possiblyExtensionMethod, fixedTypeParameters, proximity)
@@ -209,14 +209,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 _curriedTypeParameters = ImmutableArray(Of ReducedTypeParameterSymbol).Empty
             Else
                 Dim j As Integer = 0
-                For i = 0 To curryTypeArguments.Count - 1
+                For i = 0 To curryTypeArguments.Length - 1
                     If curryTypeArguments(i) Is Nothing Then
                         Dim curried = New ReducedTypeParameterSymbol(Me, curriedFromMethod.TypeParameters(i), j)
                         curriedTypeParameters(j) = curried
                         curryTypeArguments(i) = curried
                         j += 1
 
-                        If j = curriedTypeParameters.Count Then
+                        If j = curriedTypeParameters.Length Then
                             Exit For
                         End If
                     End If

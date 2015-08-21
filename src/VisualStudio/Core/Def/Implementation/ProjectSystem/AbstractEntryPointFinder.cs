@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             // parameterless or takes a string[]
-            if (symbol.Parameters.Count() == 1)
+            if (symbol.Parameters.Length == 1)
             {
                 var parameter = symbol.Parameters.Single();
                 if (parameter.Type is IArrayTypeSymbol)
