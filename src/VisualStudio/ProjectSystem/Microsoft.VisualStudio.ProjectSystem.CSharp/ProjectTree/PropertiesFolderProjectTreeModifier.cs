@@ -1,11 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.ProjectSystem.Designers;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 using Microsoft.VisualStudio.ProjectSystem.ProjectTree;
-using Microsoft.VisualStudio.Imaging.Interop;
 
 namespace Microsoft.VisualStudio.ProjectSystem.CSharp.ProjectTree
 {
