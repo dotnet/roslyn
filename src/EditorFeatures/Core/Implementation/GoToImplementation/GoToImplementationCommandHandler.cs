@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.GoToDefinition,
+    [ExportCommandHandler(PredefinedCommandHandlerNames.GoToImplementation,
         ContentTypeNames.RoslynContentType)]
     internal sealed class GoToImplementationCommandHandler : ICommandHandler<GoToImplementationCommandArgs>
     {
