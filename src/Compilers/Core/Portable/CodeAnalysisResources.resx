@@ -318,6 +318,9 @@
   <data name="UnsupportedHashAlgorithm" xml:space="preserve">
     <value>Unsupported hash algorithm.</value>
   </data>
+  <data name="InconsistentLanguageVersions" xml:space="preserve">
+    <value>Inconsistent language versions</value>
+  </data>
   <data name="CoffResourceInvalidRelocation" xml:space="preserve">
     <value>Win32 resources, assumed to be in COFF object format, have one or more invalid relocation header values.</value>
   </data>

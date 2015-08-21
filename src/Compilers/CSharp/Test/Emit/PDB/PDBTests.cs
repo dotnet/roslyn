@@ -3,9 +3,13 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -135,6 +139,7 @@ public class C
                     win32Resources: null,
                     manifestResources: null,
                     options: null,
+                    debugEntryPoint: null,
                     getHostDiagnostics: null,
                     testData: new CompilationTestData() { SymWriterFactory = () => new MockSymUnmanagedWriter() });
 
@@ -362,6 +367,93 @@ public class C
   </methods>
 </symbols>
 ");
+        }
+
+        [Fact]
+        public void CustomDebugEntryPoint_DLL()
+        {
+            var source = @"class C { static void F() { } }";
+
+            var c = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var f = c.GetMember<MethodSymbol>("C.F");
+
+            c.VerifyPdb(@"
+<symbols>
+  <entryPoint declaringType=""C"" methodName=""F"" />
+  <methods/>
+</symbols>", debugEntryPoint: f, options: PdbToXmlOptions.ExcludeScopes | PdbToXmlOptions.ExcludeSequencePoints | PdbToXmlOptions.ExcludeCustomDebugInformation);
+
+            var peReader = new PEReader(c.EmitToArray(debugEntryPoint: f));
+            int peEntryPointToken = peReader.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress;
+
+            Assert.Equal(0, peEntryPointToken);
+        }
+
+        [Fact]
+        public void CustomDebugEntryPoint_EXE()
+        {
+            var source = @"class M { static void Main() { } } class C { static void F<S>() { } }";
+
+            var c = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var f = c.GetMember<MethodSymbol>("C.F");
+
+            c.VerifyPdb(@"
+<symbols>
+  <entryPoint declaringType=""C"" methodName=""F"" />
+  <methods/>
+</symbols>", debugEntryPoint: f, options: PdbToXmlOptions.ExcludeScopes | PdbToXmlOptions.ExcludeSequencePoints | PdbToXmlOptions.ExcludeCustomDebugInformation);
+
+            var peReader = new PEReader(c.EmitToArray(debugEntryPoint: f));
+            int peEntryPointToken = peReader.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress;
+
+            var mdReader = peReader.GetMetadataReader();
+            var methodDef = mdReader.GetMethodDefinition((MethodDefinitionHandle)MetadataTokens.Handle(peEntryPointToken));
+            Assert.Equal("Main", mdReader.GetString(methodDef.Name));
+        }
+
+        [Fact]
+        public void CustomDebugEntryPoint_Errors()
+        {
+            var source1 = @"class C { static void F() { } } class D<T> { static void G<S>() {} }";
+            var source2 = @"class C { static void F() { } }";
+
+            var c1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+            var c2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
+
+            var f1 = c1.GetMember<MethodSymbol>("C.F");
+            var f2 = c2.GetMember<MethodSymbol>("C.F");
+            var g = c1.GetMember<MethodSymbol>("D.G");
+            var d = c1.GetMember<NamedTypeSymbol>("D");
+            Assert.NotNull(f1);
+            Assert.NotNull(f2);
+            Assert.NotNull(g);
+            Assert.NotNull(d);
+
+            var stInt = c1.GetSpecialType(SpecialType.System_Int32);
+            var d_t_g_int = g.Construct(stInt);
+            var d_int = d.Construct(stInt);
+            var d_int_g = d_int.GetMember<MethodSymbol>("G");
+            var d_int_g_int = d_int_g.Construct(stInt);
+
+            var result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: f2);
+            result.Diagnostics.Verify(
+                // error CS8096: Debug entry point must be a definition of a source method in the current compilation.
+                Diagnostic(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition));
+
+            result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: d_t_g_int);
+            result.Diagnostics.Verify(
+                // error CS8096: Debug entry point must be a definition of a source method in the current compilation.
+                Diagnostic(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition));
+
+            result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: d_int_g);
+            result.Diagnostics.Verify(
+                // error CS8096: Debug entry point must be a definition of a source method in the current compilation.
+                Diagnostic(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition));
+
+            result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: d_int_g_int);
+            result.Diagnostics.Verify(
+                // error CS8096: Debug entry point must be a definition of a source method in the current compilation.
+                Diagnostic(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition));
         }
 
         #endregion
@@ -4221,7 +4313,7 @@ public class T
       </scope>
     </method>
   </methods>
-</symbols>", DebugInformationFormat.Pdb);
+</symbols>", format: DebugInformationFormat.Pdb);
 
             c.VerifyPdb(@"
 <symbols>
@@ -4238,7 +4330,7 @@ public class T
       </scope>
     </method>
   </methods>
-</symbols>", DebugInformationFormat.PortablePdb);
+</symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
         [Fact, WorkItem(546862, "DevDiv")]
@@ -4278,7 +4370,7 @@ public class T
       </scope>
     </method>
   </methods>
-</symbols>", DebugInformationFormat.Pdb);
+</symbols>", format: DebugInformationFormat.Pdb);
 
             c.VerifyPdb(@"
 <symbols>
@@ -4293,7 +4385,7 @@ public class T
       </scope>
     </method>
   </methods>
-</symbols>", DebugInformationFormat.PortablePdb);
+</symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
         [Fact]

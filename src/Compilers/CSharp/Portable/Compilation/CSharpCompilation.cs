@@ -332,6 +332,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (EventQueue != null) EventQueue.Enqueue(new CompilationStartedEvent(this));
         }
 
+        internal override void ValidateDebugEntryPoint(IMethodSymbol debugEntryPoint, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(debugEntryPoint != null);
+
+            // Debug entry point has to be a method definition from this compilation.
+            var methodSymbol = debugEntryPoint as MethodSymbol;
+            if (methodSymbol?.DeclaringCompilation != this || !methodSymbol.IsDefinition)
+            {
+                diagnostics.Add(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition, Location.None);
+            }
+        }
+
         private static LanguageVersion CommonLanguageVersion(ImmutableArray<SyntaxTree> syntaxTrees)
         {
             LanguageVersion? result = null;
@@ -344,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (result != version)
                 {
-                    throw new ArgumentException("inconsistent language versions", nameof(syntaxTrees));
+                    throw new ArgumentException(CodeAnalysisResources.InconsistentLanguageVersions, nameof(syntaxTrees));
                 }
             }
 
@@ -2241,6 +2253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override CommonPEModuleBuilder CreateModuleBuilder(
             EmitOptions emitOptions,
+            IMethodSymbol debugEntryPoint,
             IEnumerable<ResourceDescription> manifestResources,
             CompilationTestData testData,
             DiagnosticBag diagnostics,
@@ -2279,6 +2292,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     kind,
                     moduleProps,
                     manifestResources);
+            }
+
+            if (debugEntryPoint != null)
+            {
+                moduleBeingBuilt.SetDebugEntryPoint((MethodSymbol)debugEntryPoint, diagnostics);
             }
 
             // testData is only passed when running tests.
