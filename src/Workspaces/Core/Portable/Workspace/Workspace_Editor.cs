@@ -639,9 +639,9 @@ namespace Microsoft.CodeAnalysis
             // keep open documents using same text
             foreach (var docId in this.GetOpenDocumentIds())
             {
-                if (newSolution.ContainsDocument((DocumentId)docId))
+                if (newSolution.ContainsDocument(docId))
                 {
-                    newSolution = newSolution.WithDocumentText((DocumentId)docId, this.GetOpenDocumentText(oldSolution, (DocumentId)docId), PreservationMode.PreserveIdentity);
+                    newSolution = newSolution.WithDocumentText(docId, this.GetOpenDocumentText(oldSolution, docId), PreservationMode.PreserveIdentity);
                 }
             }
 
@@ -656,9 +656,9 @@ namespace Microsoft.CodeAnalysis
             // keep open documents open using same text
             foreach (var docId in this.GetOpenDocumentIds(oldProject.Id))
             {
-                if (newSolution.ContainsDocument((DocumentId)docId))
+                if (newSolution.ContainsDocument(docId))
                 {
-                    newSolution = newSolution.WithDocumentText((DocumentId)docId, this.GetOpenDocumentText(oldSolution, (DocumentId)docId), PreservationMode.PreserveIdentity);
+                    newSolution = newSolution.WithDocumentText(docId, this.GetOpenDocumentText(oldSolution, docId), PreservationMode.PreserveIdentity);
                 }
             }
 
