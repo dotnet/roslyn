@@ -583,9 +583,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     var leftTokens = expression.DescendantTokens();
                     List<SyntaxToken> candidateTokens = new List<SyntaxToken>();
 
-                    for (int i = 0; i < leftTokens.Count(); ++i)
+                    foreach (var candidateToken in leftTokens)
                     {
-                        var candidateToken = leftTokens.ElementAt(i);
                         if (candidateToken.Kind() == SyntaxKind.LessThanToken || candidateToken.Kind() == SyntaxKind.GreaterThanToken)
                         {
                             candidateTokens.Add(candidateToken);

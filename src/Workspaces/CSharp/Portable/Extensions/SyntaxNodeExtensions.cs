@@ -840,7 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             while (left <= right)
             {
                 int middle = left + ((right - left) / 2);
-                SyntaxNodeOrToken node = childList.ElementAt(middle);
+                SyntaxNodeOrToken node = childList[middle];
 
                 var span = node.FullSpan;
                 if (position < span.Start)

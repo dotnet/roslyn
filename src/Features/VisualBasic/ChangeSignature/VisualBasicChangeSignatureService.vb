@@ -360,7 +360,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Dim newParameters = New List(Of T)
             For Each newParam In reorderedParameters
                 Dim pos = originalParameters.IndexOf(newParam)
-                Dim param = list.ElementAt(pos)
+                Dim param = list(pos)
                 newParameters.Add(param)
             Next
 
@@ -399,9 +399,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             End If
 
             Dim dictionary = New Dictionary(Of String, XmlElementSyntax)()
-            For i = 0 To paramNodes.Count() - 1
-                Dim paramNode = paramNodes.ElementAt(i)
-
+            Dim i = 0
+            For Each paramNode In paramNodes
                 Dim nameAttribute = paramNode.StartTag.Attributes.OfType(Of XmlNameAttributeSyntax).FirstOrDefault(Function(a) a.Name.ToString() = "name")
                 If nameAttribute Is Nothing Then
                     Return Nothing
@@ -412,7 +411,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                     Return Nothing
                 End If
 
-                dictionary.Add(originalParameters.ElementAt(i).Name.ToString(), paramNode)
+                dictionary.Add(originalParameters(i).Name.ToString(), paramNode)
+                i += 1
             Next
 
             ' Everything lines up, so permute them.
