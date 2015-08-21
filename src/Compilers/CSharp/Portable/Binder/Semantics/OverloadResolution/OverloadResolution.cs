@@ -1551,8 +1551,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (arguments.Count < declaredParameterCount)
                 {
-                    // params parameter isn't used (see ExpressionBinder::TryGetExpandedParams in the native compiler)
-                    parametersUsedIncludingExpansionAndOptional = declaredParameterCount - 1;
+                    ImmutableArray<int> argsToParamsOpt = m.Result.ArgsToParamsOpt;
+
+                    if (argsToParamsOpt.IsDefaultOrEmpty || !argsToParamsOpt.Contains(declaredParameterCount - 1))
+                    {
+                        // params parameter isn't used (see ExpressionBinder::TryGetExpandedParams in the native compiler)
+                        parametersUsedIncludingExpansionAndOptional = declaredParameterCount - 1;
+                    }
+                    else
+                    {
+                        // params parameter is used by a named argument
+                        parametersUsedIncludingExpansionAndOptional = declaredParameterCount;
+                    }
                 }
                 else
                 {
