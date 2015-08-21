@@ -1005,7 +1005,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static IAliasSymbol GetAliasForSymbol(INamespaceOrTypeSymbol symbol, SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            var originalSemanticModel = (SemanticModel)semanticModel.GetOriginalSemanticModel();
+            var originalSemanticModel = semanticModel.GetOriginalSemanticModel();
             if (!originalSemanticModel.SyntaxTree.HasCompilationUnitRoot)
             {
                 return null;
@@ -1037,7 +1037,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return token.Parent;
             }
 
-            var originalSemanticMode = (SemanticModel)semanticModel.GetOriginalSemanticModel();
+            var originalSemanticMode = semanticModel.GetOriginalSemanticModel();
             token = originalSemanticMode.SyntaxTree.GetRoot(cancellationToken).FindToken(semanticModel.OriginalPositionForSpeculation);
 
             return token.Parent;
@@ -2056,7 +2056,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
 
                 var variable = variableDeclaration.Variables.Single();
-                var initializer = (EqualsValueClauseSyntax)variable.Initializer;
+                var initializer = variable.Initializer;
                 var identifier = variable.Identifier;
 
                 if (EqualsValueClauseNotSuitableForVar(identifier, simpleName, initializer, semanticModel, cancellationToken))

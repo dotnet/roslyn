@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsExpressionContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
-            var csharpModel = (SemanticModel)semanticModel;
+            var csharpModel = semanticModel;
             return csharpModel.SyntaxTree.IsExpressionContext(
                 position,
                 csharpModel.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken),
@@ -47,59 +47,59 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsStatementContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
-            var csharpModel = (SemanticModel)semanticModel;
+            var csharpModel = semanticModel;
             return csharpModel.SyntaxTree.IsStatementContext(
                 position, csharpModel.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken), cancellationToken);
         }
 
         public bool IsTypeContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
-            var csharpModel = (SemanticModel)semanticModel;
+            var csharpModel = semanticModel;
             return csharpModel.SyntaxTree.IsTypeContext(position, cancellationToken, csharpModel);
         }
 
         public bool IsNamespaceContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
-            var csharpModel = (SemanticModel)semanticModel;
+            var csharpModel = semanticModel;
             return csharpModel.SyntaxTree.IsNamespaceContext(position, cancellationToken, csharpModel);
         }
 
         public bool IsTypeDeclarationContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
-            var csharpModel = (SemanticModel)semanticModel;
+            var csharpModel = semanticModel;
             return csharpModel.SyntaxTree.IsTypeDeclarationContext(
                 position, csharpModel.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken), cancellationToken);
         }
 
         public bool IsMemberDeclarationContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
-            var csharpModel = (SemanticModel)semanticModel;
+            var csharpModel = semanticModel;
             return csharpModel.SyntaxTree.IsMemberDeclarationContext(
                 position, csharpModel.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken), cancellationToken);
         }
 
         public bool IsPreProcessorDirectiveContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
-            var csharpModel = (SemanticModel)semanticModel;
+            var csharpModel = semanticModel;
             return csharpModel.SyntaxTree.IsPreProcessorDirectiveContext(
                 position, csharpModel.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives: true), cancellationToken);
         }
 
         public bool IsGlobalStatementContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
-            var csharpModel = (SemanticModel)semanticModel;
+            var csharpModel = semanticModel;
             return csharpModel.SyntaxTree.IsGlobalStatementContext(position, cancellationToken);
         }
 
         public bool IsLabelContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
-            var csharpModel = (SemanticModel)semanticModel;
+            var csharpModel = semanticModel;
             return csharpModel.SyntaxTree.IsLabelContext(position, cancellationToken);
         }
 
         public bool IsAttributeNameContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
-            var csharpModel = (SemanticModel)semanticModel;
+            var csharpModel = semanticModel;
             return csharpModel.SyntaxTree.IsAttributeNameContext(position, cancellationToken);
         }
 
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ImmutableHashSet<string> GetAliasNameSet(SemanticModel model, CancellationToken cancellationToken)
         {
-            var original = (SemanticModel)model.GetOriginalSemanticModel();
+            var original = model.GetOriginalSemanticModel();
             if (!original.SyntaxTree.HasCompilationUnitRoot)
             {
                 return ImmutableHashSet.Create<string>();

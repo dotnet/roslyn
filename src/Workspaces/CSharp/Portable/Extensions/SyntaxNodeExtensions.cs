@@ -802,7 +802,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             bool includeDirectives = false,
             bool includeDocumentationComments = false)
         {
-            var skippedTokenFinder = includeSkipped ? s_findSkippedTokenForward : (Func<SyntaxTriviaList, int, SyntaxToken>)null;
+            var skippedTokenFinder = includeSkipped ? s_findSkippedTokenForward : null;
 
             return FindTokenHelper.FindTokenOnRightOfPosition<CompilationUnitSyntax>(
                 root, position, skippedTokenFinder, includeSkipped, includeDirectives, includeDocumentationComments);
@@ -818,7 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             bool includeDirectives = false,
             bool includeDocumentationComments = false)
         {
-            var skippedTokenFinder = includeSkipped ? s_findSkippedTokenBackward : (Func<SyntaxTriviaList, int, SyntaxToken>)null;
+            var skippedTokenFinder = includeSkipped ? s_findSkippedTokenBackward : null;
 
             return FindTokenHelper.FindTokenOnLeftOfPosition<CompilationUnitSyntax>(
                 root, position, skippedTokenFinder, includeSkipped, includeDirectives, includeDocumentationComments);

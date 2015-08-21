@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         protected override SyntaxTrivia Convert(SyntaxTrivia trivia)
         {
-            return (SyntaxTrivia)trivia;
+            return trivia;
         }
 
         protected override LineColumnRule GetLineColumnRuleBetween(SyntaxTrivia trivia1, LineColumnDelta existingWhitespaceBetween, bool implicitLineBreak, SyntaxTrivia trivia2)
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             LineColumn lineColumn, SyntaxTrivia commonTrivia, List<SyntaxTrivia> changes,
             CancellationToken cancellationToken)
         {
-            var trivia = (SyntaxTrivia)commonTrivia;
+            var trivia = commonTrivia;
 
             if (trivia.HasStructure)
             {
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         protected override LineColumnDelta Format(
             LineColumn lineColumn, SyntaxTrivia commonTrivia, List<TextChange> changes, CancellationToken cancellationToken)
         {
-            var trivia = (SyntaxTrivia)commonTrivia;
+            var trivia = commonTrivia;
 
             if (trivia.HasStructure)
             {
