@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -10,21 +11,22 @@ using Roslyn.DebuggerVisualizers.UI;
 using Roslyn.Test.PdbUtilities;
 
 [assembly: DebuggerVisualizer(
-    typeof(PdbDebuggerVisualizer),
+    typeof(PdbDeltaDebuggerVisualizer),
+    typeof(PdbDeltaVisualizerObjectSource),
     Target = typeof(PdbDelta),
     Description = "PDB Visualizer")]
 
 namespace Roslyn.DebuggerVisualizers
 {
-    public sealed class PdbDebuggerVisualizer : DialogDebuggerVisualizer
+    public sealed class PdbDeltaDebuggerVisualizer : DialogDebuggerVisualizer
     {
         protected override void Show(IDialogVisualizerService windowService, IVisualizerObjectProvider objectProvider)
         {
-            StringBuilder sb = new StringBuilder();
-            var pdb = (PdbDelta)objectProvider.GetObject();
-            string xml = PdbToXmlConverter.DeltaPdbToXml(pdb.Stream, Enumerable.Range(0x06000001, 0xff));
+            var stream = objectProvider.GetData();
+            var reader = new StreamReader(stream);
+            var text = reader.ReadToEnd();
 
-            var viewer = new TextViewer(xml, "PDB");
+            var viewer = new TextViewer(text, "PDB");
             viewer.ShowDialog();
         }
     }

@@ -15,7 +15,7 @@ Imports Microsoft.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class VisualBasicTriviaFormatter
-        Inherits AbstractTriviaFormatter(Of SyntaxTrivia)
+        Inherits AbstractTriviaFormatter
 
         Private _lineContinuationTrivia As SyntaxTrivia = SyntaxFactory.LineContinuationTrivia("_")
         Private _newLine As SyntaxTrivia
@@ -50,10 +50,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Protected Overrides Function IsNewLine(ch As Char) As Boolean
             Return SyntaxFacts.IsNewLine(ch)
-        End Function
-
-        Protected Overrides Function Convert(trivia As SyntaxTrivia) As SyntaxTrivia
-            Return trivia
         End Function
 
         Protected Overrides Function CreateWhitespace(text As String) As SyntaxTrivia
