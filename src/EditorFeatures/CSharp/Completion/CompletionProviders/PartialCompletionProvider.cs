@@ -31,10 +31,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
 
         protected override SyntaxNode GetSyntax(SyntaxToken token)
         {
-            return (SyntaxNode)token.GetAncestor<EventFieldDeclarationSyntax>()
-                ?? (SyntaxNode)token.GetAncestor<EventDeclarationSyntax>()
-                ?? (SyntaxNode)token.GetAncestor<PropertyDeclarationSyntax>()
-                ?? (SyntaxNode)token.GetAncestor<IndexerDeclarationSyntax>()
+            return token.GetAncestor<EventFieldDeclarationSyntax>()
+                ?? token.GetAncestor<EventDeclarationSyntax>()
+                ?? token.GetAncestor<PropertyDeclarationSyntax>()
+                ?? token.GetAncestor<IndexerDeclarationSyntax>()
                 ?? (SyntaxNode)token.GetAncestor<MethodDeclarationSyntax>();
         }
 

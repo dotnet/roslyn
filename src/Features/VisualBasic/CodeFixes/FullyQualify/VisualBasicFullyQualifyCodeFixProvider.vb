@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.FullyQualify
             qualifiedName = qualifiedName.WithAdditionalAnnotations(Formatter.Annotation, CaseCorrector.Annotation)
 
             Dim tree = simpleName.SyntaxTree
-            Return tree.GetRoot(cancellationToken).ReplaceNode(DirectCast(simpleName, NameSyntax), qualifiedName)
+            Return tree.GetRoot(cancellationToken).ReplaceNode(simpleName, qualifiedName)
         End Function
     End Class
 End Namespace

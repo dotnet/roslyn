@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 Contract.ThrowIfFalse(this.SemanticDocument == selectionResult.SemanticDocument);
 
-                var nameToken = (SyntaxToken)CreateMethodName();
+                var nameToken = CreateMethodName();
                 _methodName = nameToken.WithAdditionalAnnotations(this.MethodNameAnnotation);
             }
 
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             protected override StatementSyntax CreateAssignmentExpressionStatement(SyntaxToken identifier, ExpressionSyntax rvalue)
             {
-                return SyntaxFactory.ExpressionStatement(CreateAssignmentExpression((SyntaxToken)identifier, rvalue));
+                return SyntaxFactory.ExpressionStatement(CreateAssignmentExpression(identifier, rvalue));
             }
 
             protected override StatementSyntax CreateDeclarationStatement(

@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
                 else if (expressionType.IsDelegateType())
                 {
-                    var delegateType = (INamedTypeSymbol)expressionType;
+                    var delegateType = expressionType;
                     return SpecializedCollections.SingletonEnumerable(delegateType.DelegateInvokeMethod.Parameters);
                 }
             }
