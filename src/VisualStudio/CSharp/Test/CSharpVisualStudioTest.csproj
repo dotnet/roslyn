@@ -98,7 +98,7 @@
       <Project>{C0E80510-4FBE-4B0C-AF2C-4F473787722C}</Project>
       <Name>ServicesVisualStudioImpl</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Features\CSharp\CSharpFeatures.csproj">
+    <ProjectReference Include="..\..\..\Features\CSharp\Portable\CSharpFeatures.csproj">
       <Project>{3973B09A-4FBF-44A5-8359-3D22CEB71F71}</Project>
       <Name>CSharpFeatures</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

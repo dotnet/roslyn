@@ -105,7 +105,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSourceDebug", "src\Tool
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicFeatures", "src\Features\VisualBasic\BasicFeatures.vbproj", "{A1BCD0CE-6C2F-4F8C-9A48-D9D93928E26D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpFeatures", "src\Features\CSharp\CSharpFeatures.csproj", "{3973B09A-4FBF-44A5-8359-3D22CEB71F71}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpFeatures", "src\Features\CSharp\Portable\CSharpFeatures.csproj", "{3973B09A-4FBF-44A5-8359-3D22CEB71F71}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Features", "src\Features\Core\Portable\Features.csproj", "{EDC68A0E-C68D-4A74-91B7-BF38EC909888}"
 EndProject
