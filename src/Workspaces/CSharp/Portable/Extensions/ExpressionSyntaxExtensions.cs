@@ -1723,7 +1723,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                                 if ((namedType.GetBaseTypes().Contains(containingType) &&
                                     !optionSet.GetOption(SimplificationOptions.AllowSimplificationToBaseType)) ||
                                     (!optionSet.GetOption(SimplificationOptions.AllowSimplificationToGenericType) &&
-                                    containingType.TypeArguments.Count() != 0))
+                                    containingType.TypeArguments.Length != 0))
                                 {
                                     return false;
                                 }

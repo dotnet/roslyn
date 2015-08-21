@@ -195,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim params(Me._wrappedMethod.ParameterCount - 1) As ParameterSymbol
-                For i = 0 To params.Count - 1
+                For i = 0 To params.Length - 1
                     Dim curParam = Me._wrappedMethod.Parameters(i)
                     params(i) = SynthesizedMethod.WithNewContainerAndType(Me, curParam.Type.InternalSubstituteTypeParameters(Me._typeMap), curParam)
                 Next

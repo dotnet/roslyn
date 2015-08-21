@@ -1018,11 +1018,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Else
                         Dim parameters(clone.ParameterCount - 1) As ParameterSymbol
 
-                        For i As Integer = 0 To parameters.Count - 1
+                        For i As Integer = 0 To parameters.Length - 1
                             parameters(i) = New SynthesizedComParameter(Me, clone.Parameters(i))
                         Next
 
-                        _parameters = parameters.AsImmutableOrNull()
+                        _parameters = parameters.AsImmutable()
                     End If
                 End Sub
 
@@ -1630,11 +1630,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Else
                         Dim parameters(clone.ParameterCount - 1) As ParameterSymbol
 
-                        For i As Integer = 0 To parameters.Count - 1
+                        For i As Integer = 0 To parameters.Length - 1
                             parameters(i) = New SynthesizedComParameter(Me, clone.Parameters(i))
                         Next
 
-                        _parameters = parameters.AsImmutableOrNull()
+                        _parameters = parameters.AsImmutable()
                     End If
                 End Sub
 

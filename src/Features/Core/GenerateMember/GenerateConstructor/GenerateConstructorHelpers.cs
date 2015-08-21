@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
         public static IMethodSymbol GetDelegatingConstructor(SymbolInfo symbolInfo, ISet<IMethodSymbol> candidateInstanceConstructors, INamedTypeSymbol containingType)
         {
             var symbol = symbolInfo.Symbol as IMethodSymbol;
-            if (symbol == null && symbolInfo.CandidateSymbols.Count() == 1)
+            if (symbol == null && symbolInfo.CandidateSymbols.Length == 1)
             {
                 // Even though the symbol info has a non-viable candidate symbol, we are trying to speculate a base constructor
                 // invocation from a different position then where the invocation to it would be generated.
