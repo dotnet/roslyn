@@ -6627,5 +6627,21 @@ End Class]]>
             Dim expectedDescription = $"Property C.x As Integer"
             VerifyItemInLinkedFiles(markup, "x", expectedDescription)
         End Sub
+
+        <WorkItem(4405, "https://github.com/dotnet/roslyn/issues/4405")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub VerifyDelegateEscapedWhenCommitted()
+            Dim text =
+<code><![CDATA[
+Imports System
+Module Module1
+    Sub Main()
+        Dim x As {0}
+    End Sub
+End Module
+
+]]></code>.Value
+            VerifyProviderCommit(String.Format(text, "$$"), "Delegate", String.Format(text, "[Delegate]"), Nothing, "")
+        End Sub
     End Class
 End Namespace
