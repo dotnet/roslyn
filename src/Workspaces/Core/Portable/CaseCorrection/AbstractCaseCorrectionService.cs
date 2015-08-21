@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
 
         public async Task<Document> CaseCorrectAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
         {
-            var d = document;
             if (!spans.Any())
             {
                 return document;
