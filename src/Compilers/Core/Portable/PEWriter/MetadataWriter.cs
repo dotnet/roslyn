@@ -2119,19 +2119,36 @@ namespace Microsoft.Cci
 
             PopulateTables(methodBodyRvas, mappedFieldDataWriter, managedResourceDataWriter);
 
-            IMethodReference entryPoint = this.module.EntryPoint;
-            if (IsFullMetadata && entryPoint?.GetResolvedMethod(Context) != null)
+            int debugEntryPointToken;
+            if (IsFullMetadata)
             {
-                entryPointToken = GetMethodToken(entryPoint);
+                // PE entry point is set for executable programs
+                IMethodReference entryPoint = module.PEEntryPoint;
+                entryPointToken = entryPoint != null ? GetMethodToken((IMethodDefinition)entryPoint.AsDefinition(Context)) : 0;
+
+                // debug entry point may be different from PE entry point, it may also be set for libraries
+                IMethodReference debugEntryPoint = module.DebugEntryPoint;
+                if (debugEntryPoint != null && debugEntryPoint != entryPoint)
+                {
+                    debugEntryPointToken = GetMethodToken((IMethodDefinition)debugEntryPoint.AsDefinition(Context));
+                }
+                else
+                {
+                    debugEntryPointToken = entryPointToken;
+                }
 
                 // entry point can only be a MethodDef:
-                Debug.Assert((entryPointToken & 0xff000000) == 0x06000000);
+                Debug.Assert(entryPointToken == 0 || (entryPointToken & 0xff000000) == 0x06000000);
+                Debug.Assert(debugEntryPointToken == 0 || (debugEntryPointToken & 0xff000000) == 0x06000000);
 
-                nativePdbWriterOpt?.SetEntryPoint((uint)entryPointToken);
+                if (debugEntryPointToken != 0)
+                {
+                    nativePdbWriterOpt?.SetEntryPoint((uint)debugEntryPointToken);
+                }
             }
             else
             {
-                entryPointToken = 0;
+                entryPointToken = debugEntryPointToken = 0;
             }
 
             heaps.Complete();
@@ -2152,7 +2169,7 @@ namespace Microsoft.Cci
             int mappedFieldDataStreamRva = calculateMappedFieldDataStreamRva(metadataSizes);
 
             int guidHeapStartOffset;
-            SerializeMetadata(metadataWriter, metadataSizes, methodBodyStreamRva, mappedFieldDataStreamRva, entryPointToken, out guidHeapStartOffset);
+            SerializeMetadata(metadataWriter, metadataSizes, methodBodyStreamRva, mappedFieldDataStreamRva, debugEntryPointToken, out guidHeapStartOffset);
             moduleVersionIdOffsetInMetadataStream = GetModuleVersionGuidOffsetInMetadataStream(guidHeapStartOffset);
 
             if (!EmitStandaloneDebugMetadata)
@@ -2176,7 +2193,7 @@ namespace Microsoft.Cci
                 emitStandaloneDebugMetadata: true,
                 isStandaloneDebugMetadata: true);
 
-            SerializeMetadata(debugMetadataWriterOpt, debugMetadataSizes, 0, 0, entryPointToken, out guidHeapStartOffset);
+            SerializeMetadata(debugMetadataWriterOpt, debugMetadataSizes, 0, 0, debugEntryPointToken, out guidHeapStartOffset);
         }
 
         private static int CalculateStrongNameSignatureSize(IModule module)
@@ -2208,7 +2225,7 @@ namespace Microsoft.Cci
             MetadataSizes metadataSizes,
             int methodBodyStreamRva,
             int mappedFieldDataStreamRva,
-            int entryPointToken,
+            int debugEntryPointToken,
             out int guidHeapStartOffset)
         {
             // header:
@@ -2223,7 +2240,7 @@ namespace Microsoft.Cci
             // #Pdb stream
             if (metadataSizes.IsStandaloneDebugMetadata)
             {
-                SerializeStandalonePdbStream(metadataWriter, metadataSizes, entryPointToken);
+                SerializeStandalonePdbStream(metadataWriter, metadataSizes, debugEntryPointToken);
             }
         }
 

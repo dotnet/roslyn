@@ -411,6 +411,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         win32Resources: null,
                         manifestResources: null,
                         options: EmitOptions.Default,
+                        debugEntryPoint: null,
                         testData: null,
                         getHostDiagnostics: null,
                         cancellationToken: default(CancellationToken));

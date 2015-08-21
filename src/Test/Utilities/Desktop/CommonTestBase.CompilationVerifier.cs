@@ -200,47 +200,51 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             public CompilationVerifier VerifyPdb(
                 XElement expectedPdb,
+                IMethodSymbol debugEntryPoint = null,
                 DebugInformationFormat format = 0,
                 PdbToXmlOptions options = 0,
                 [CallerLineNumber]int expectedValueSourceLine = 0,
                 [CallerFilePath]string expectedValueSourcePath = null)
             {
-                _compilation.VerifyPdb(expectedPdb, format, options, expectedValueSourceLine, expectedValueSourcePath);
+                _compilation.VerifyPdb(expectedPdb, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
                 return this;
             }
 
             public CompilationVerifier VerifyPdb(
                 string expectedPdb,
+                IMethodSymbol debugEntryPoint = null,
                 DebugInformationFormat format = 0,
                 PdbToXmlOptions options = 0,
                 [CallerLineNumber]int expectedValueSourceLine = 0,
                 [CallerFilePath]string expectedValueSourcePath = null)
             {
-                _compilation.VerifyPdb(expectedPdb, format, options, expectedValueSourceLine, expectedValueSourcePath);
+                _compilation.VerifyPdb(expectedPdb, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
                 return this;
             }
 
             public CompilationVerifier VerifyPdb(
                 string qualifiedMethodName,
                 string expectedPdb,
+                IMethodSymbol debugEntryPoint = null,
                 DebugInformationFormat format = 0,
                 PdbToXmlOptions options = 0,
                 [CallerLineNumber]int expectedValueSourceLine = 0,
                 [CallerFilePath]string expectedValueSourcePath = null)
             {
-                _compilation.VerifyPdb(qualifiedMethodName, expectedPdb, format, options, expectedValueSourceLine, expectedValueSourcePath);
+                _compilation.VerifyPdb(qualifiedMethodName, expectedPdb, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
                 return this;
             }
 
             public CompilationVerifier VerifyPdb(
                 string qualifiedMethodName,
                 XElement expectedPdb,
+                IMethodSymbol debugEntryPoint = null,
                 DebugInformationFormat format = 0,
                 PdbToXmlOptions options = 0,
                 [CallerLineNumber]int expectedValueSourceLine = 0,
                 [CallerFilePath]string expectedValueSourcePath = null)
             {
-                _compilation.VerifyPdb(qualifiedMethodName, expectedPdb, format, options, expectedValueSourceLine, expectedValueSourcePath);
+                _compilation.VerifyPdb(qualifiedMethodName, expectedPdb, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
                 return this;
             }
 

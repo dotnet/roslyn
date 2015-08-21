@@ -223,6 +223,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         win32Resources: null,
                         manifestResources: manifestResources,
                         options: EmitOptions.Default,
+                        debugEntryPoint: null,
                         testData: testData,
                         getHostDiagnostics: null,
                         cancellationToken: default(CancellationToken));
