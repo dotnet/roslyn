@@ -140,9 +140,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return nextOperation.Invoke()
             End Function
 
-            Private Function IsLessThanInAttribute(commonToken As SyntaxToken) As Boolean
+            Private Function IsLessThanInAttribute(token As SyntaxToken) As Boolean
                 ' < in attribute
-                Dim token = CType(commonToken, SyntaxToken)
                 If token.Kind = SyntaxKind.LessThanToken AndAlso
                    token.Parent.Kind = SyntaxKind.AttributeList AndAlso
                    DirectCast(token.Parent, AttributeListSyntax).LessThanToken.Equals(token) Then
