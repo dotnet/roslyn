@@ -35,7 +35,7 @@
       <Project>{21B239D0-D144-430F-A394-C066D58EE267}</Project>
       <Name>CSharpWorkspace</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Core\Features.csproj">
+    <ProjectReference Include="..\Core\Portable\Features.csproj">
       <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
       <Name>Features</Name>
     </ProjectReference>

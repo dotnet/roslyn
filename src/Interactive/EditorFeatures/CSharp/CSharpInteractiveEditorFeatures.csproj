@@ -39,7 +39,7 @@
       <Project>{3973B09A-4FBF-44A5-8359-3D22CEB71F71}</Project>
       <Name>CSharpFeatures</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Features\Core\Features.csproj">
+    <ProjectReference Include="..\..\..\Features\Core\Portable\Features.csproj">
       <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
       <Name>Features</Name>
     </ProjectReference>
