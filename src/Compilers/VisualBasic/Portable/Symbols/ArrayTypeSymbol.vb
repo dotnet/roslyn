@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend Sub New(elementType As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), rank As Integer, declaringAssembly As AssemblySymbol)
             Me.New(elementType,
-                   customModifiers.NullToEmpty(),
+                   customModifiers,
                    rank,
                    declaringAssembly.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Array),
                    GetArrayInterfaces(elementType, rank, declaringAssembly))
@@ -55,12 +55,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(rank >= 1)
             Debug.Assert(interfaces.Length <= 2)
             Debug.Assert(interfaces.Length = 0 OrElse rank = 1)
-            Debug.Assert(rank = 1 OrElse Not customModifiers.Any())
 
             _elementType = elementType
             _rank = rank
             _systemArray = systemArray
-            _customModifiers = customModifiers
+            _customModifiers = customModifiers.NullToEmpty()
             _interfaces = interfaces
         End Sub
 
