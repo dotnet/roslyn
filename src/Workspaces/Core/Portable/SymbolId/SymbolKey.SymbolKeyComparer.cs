@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis
 
             public bool Equals(SymbolKey x, SymbolKey y)
             {
-                if (x == (object)y)
+                if (ReferenceEquals(x, y))
                 {
                     return true;
                 }

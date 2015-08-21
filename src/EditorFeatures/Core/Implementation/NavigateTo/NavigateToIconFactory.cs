@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
                     // ICONDIRENTRY: Size. We'll come back to this one once we know what it actually is.
                     offsetOfSize = icoStream.Position;
-                    binaryWriter.Write(0);
+                    binaryWriter.Write((int)0);
 
                     // ICONDIRENTRY: offset
                     offsetOfPng = icoStream.Length + sizeof(int);
