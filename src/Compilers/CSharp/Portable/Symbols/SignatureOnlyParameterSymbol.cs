@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsCallerMemberName { get { throw ExceptionUtilities.Unreachable; } }
 
-        internal sealed override bool HasByRefBeforeCustomModifiers { get { throw ExceptionUtilities.Unreachable; } }
+        internal sealed override ushort CountOfCustomModifiersPrecedingByRef { get { return 0; } }
 
         public override Symbol ContainingSymbol { get { throw ExceptionUtilities.Unreachable; } }
 

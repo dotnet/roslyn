@@ -4627,23 +4627,24 @@ namespace Microsoft.Cci
 
         private void SerializeParameterInformation(IParameterTypeInformation parameterTypeInformation, BlobBuilder writer)
         {
-            bool hasByRefBeforeCustomModifiers = parameterTypeInformation.HasByRefBeforeCustomModifiers;
+            ushort countOfCustomModifiersPrecedingByRef = parameterTypeInformation.CountOfCustomModifiersPrecedingByRef;
+            var modifiers = parameterTypeInformation.CustomModifiers;
 
-            Debug.Assert(!hasByRefBeforeCustomModifiers || parameterTypeInformation.IsByReference);
+            Debug.Assert(countOfCustomModifiersPrecedingByRef == 0 || parameterTypeInformation.IsByReference);
 
-            if (hasByRefBeforeCustomModifiers && parameterTypeInformation.IsByReference)
+            if (parameterTypeInformation.IsByReference)
             {
+                for (int i = 0; i < countOfCustomModifiersPrecedingByRef; i++)
+                {
+                    this.SerializeCustomModifier(modifiers[i], writer);
+                }
+
                 writer.WriteByte(0x10);
             }
 
-            foreach (ICustomModifier customModifier in parameterTypeInformation.CustomModifiers)
+            for (int i = countOfCustomModifiersPrecedingByRef; i < modifiers.Length; i++)
             {
-                this.SerializeCustomModifier(customModifier, writer);
-            }
-
-            if (!hasByRefBeforeCustomModifiers && parameterTypeInformation.IsByReference)
-            {
-                writer.WriteByte(0x10);
+                this.SerializeCustomModifier(modifiers[i], writer);
             }
 
             this.SerializeTypeReference(parameterTypeInformation.GetType(Context), writer, false, true);
