@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Host
         internal readonly int MinimumLengthForRecoverableTree;
         private readonly bool _hasCachingService;
 
-        internal HostLanguageServices LanguageServices { get; private set; }
+        internal HostLanguageServices LanguageServices { get; }
 
         public AbstractSyntaxTreeFactoryService(HostLanguageServices languageServices)
         {
