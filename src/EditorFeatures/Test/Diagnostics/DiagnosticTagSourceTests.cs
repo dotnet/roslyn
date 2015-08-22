@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var tagger = provider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
                 using (var disposable = tagger as IDisposable)
                 {
-
                     var service = workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
                     var incrementalAnalyzers = ImmutableArray.Create(analyzerService.CreateIncrementalAnalyzer(workspace));
 
@@ -75,6 +74,55 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
                     spans = tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToList();
                     Assert.True(spans.First().Span.Contains(new Span(0, 1)));
+
+                    registrationService.Unregister(workspace);
+                }
+            }
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void MultipleTaggersAndDispose()
+        {
+            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFiles(new string[] { "class A {" }, CSharpParseOptions.Default))
+            {
+                var registrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
+                registrationService.Register(workspace);
+
+                var analyzer = new Analyzer();
+                var analyzerService = new TestDiagnosticAnalyzerService(
+                    new Dictionary<string, ImmutableArray<DiagnosticAnalyzer>>() { { LanguageNames.CSharp, ImmutableArray.Create<DiagnosticAnalyzer>(analyzer) } }.ToImmutableDictionary());
+
+                var listener = new AsynchronousOperationListener();
+                var listeners = AsynchronousOperationListener.CreateListeners(
+                    ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
+                    ValueTuple.Create(FeatureAttribute.ErrorSquiggles, listener));
+
+                var diagnosticService = new DiagnosticService(SpecializedCollections.SingletonEnumerable<IDiagnosticUpdateSource>(analyzerService), listeners);
+
+                var provider = new DiagnosticsSquiggleTaggerProvider(
+                    workspace.Services.GetService<IOptionService>(), diagnosticService,
+                    workspace.GetService<IForegroundNotificationService>(), listeners);
+
+                // Make two taggers.
+                var tagger1 = provider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
+                var tagger2 = provider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
+
+                // But dispose the first one. We still want the second one to work.
+                ((IDisposable)tagger1).Dispose();
+
+                using (var disposable = tagger2 as IDisposable)
+                {
+                    var service = workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
+
+                    service.WaitUntilCompletion_ForTestingPurposesOnly(workspace,
+                        ImmutableArray.Create(analyzerService.CreateIncrementalAnalyzer(workspace)));
+
+                    listener.CreateWaitTask().PumpingWait();
+
+                    var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+                    var spans = tagger2.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToList();
+                    Assert.False(spans.IsEmpty());
 
                     registrationService.Unregister(workspace);
                 }
