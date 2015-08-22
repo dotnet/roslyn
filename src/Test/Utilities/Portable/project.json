@@ -1,0 +1,60 @@
+{
+  "dependencies": {
+    "Microsoft.NETCore": "5.0.0",
+    //"Microsoft.NETCore.Portable.Compatibility": "1.0.0",
+    "System.Reflection.Metadata": "1.1.0-alpha-00011",
+    //"System.Collections.Immutable": "1.1.37",
+    // FX
+    //"System.AppContext": "4.0.0-beta-23109",
+    "System.Console": "4.0.0-beta-23109",
+    //"System.Collections": "4.0.10-beta-23109",
+    //"System.Diagnostics.Debug": "4.0.10-beta-23109",
+    //"System.Diagnostics.FileVersionInfo": "4.0.0-beta-23109",
+    //"System.Diagnostics.Process": "4.0.0-beta-23109",
+    //"System.Diagnostics.Tools": "4.0.0-beta-23109",
+    //"System.Dynamic.Runtime": "4.0.10-beta-23109",
+    //"System.Globalization": "4.0.10-beta-23109",
+    //"System.IO": "4.0.10-beta-23109",
+    //"System.IO.FileSystem": "4.0.0-beta-23109",
+    //"System.IO.FileSystem.Primitives": "4.0.0-beta-23109",
+    //"System.IO.Pipes": "4.0.0-beta-23109",
+    //"System.Linq": "4.0.0-beta-23109",
+    //"System.Linq.Expressions": "4.0.10-beta-23109",
+    //"System.ObjectModel": "4.0.10-beta-23109",
+    //"System.Reflection": "4.0.10-beta-23109",
+    //"System.Reflection.Extensions": "4.0.0-beta-23109",
+    //"System.Reflection.Primitives": "4.0.0-beta-23109",
+    //"System.Reflection.TypeExtensions": "4.0.0-beta-23109",
+    //"System.Resources.ResourceManager": "4.0.0-beta-23109",
+    //"System.Runtime": "4.0.20-beta-23109",
+    //"System.Runtime.Extensions": "4.0.10-beta-23109",
+    //"System.Runtime.Handles": "4.0.0-beta-23109",
+    //"System.Runtime.InteropServices": "4.0.20-beta-23109",
+    //"System.Runtime.Loader": "4.0.0-beta-23109",
+    //"System.Runtime.Serialization.Json": "4.0.0-beta-23109",
+    //"System.Security.Cryptography.Hashing.Algorithms": "4.0.0-beta-23109",
+    //"System.Security.Principal": "4.0.0-beta-23109",
+    //"System.Text.Encoding": "4.0.10-beta-23109",
+    //"System.Text.Encoding.CodePages": "4.0.0-beta-23019",
+    //"System.Text.Encoding.Extensions": "4.0.10-beta-23109",
+    //"System.Threading": "4.0.10-beta-23109",
+    //"System.Threading.Overlapped": "4.0.0-beta-23109",
+    "System.Threading.Thread": "4.0.0-beta-23109",
+    //"System.Threading.ThreadPool": "4.0.0-beta-23109",
+    "System.Threading.Tasks": "4.0.10-beta-23109",
+    //"System.Threading.Tasks.Parallel": "4.0.0-beta-23109",
+    //"System.Private.Uri": "4.0.0",
+    //"System.Xml.ReaderWriter": "4.0.10-beta-23109",
+    //"System.Xml.XDocument": "4.0.10-beta-23109",
+    "System.Xml.XmlDocument": "4.0.0-beta-23109",
+    // XUnit
+    "xunit.abstractions": "2.0.0.0",
+    "xunit.assert": "2.1.0-beta4-build3109",
+    "xunit.core": "2.1.0-beta4-build3109"
+  },
+  "frameworks": {
+    "dotnet": {
+      "imports": "portable-net452"
+    }
+  }
+}
