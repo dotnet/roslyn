@@ -253,7 +253,7 @@
     <Compile Include="Diagnostics\DiagnosticProviderTestUtilities.cs" />
     <Compile Include="Diagnostics\DiagnosticServiceTests.cs" />
     <Compile Include="Diagnostics\DiagnosticStateTests.cs" />
-    <Compile Include="Diagnostics\DiagnosticTagSourceTests.cs" />
+    <Compile Include="Diagnostics\DiagnosticsSquiggleTaggerProviderTests.cs" />
     <Compile Include="Diagnostics\GenerateType\GenerateTypeTestState.cs" />
     <Compile Include="Diagnostics\GenerateType\TestGenerateTypeOptionsService.cs" />
     <Compile Include="Diagnostics\GenerateType\TestProjectManagementService.cs" />

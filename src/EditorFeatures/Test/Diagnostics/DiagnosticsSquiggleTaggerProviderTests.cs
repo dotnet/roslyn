@@ -21,7 +21,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
-    public class DiagnosticTagSourceTests
+    public class DiagnosticsSquiggleTaggerProviderTests
     {
         private class TaggerWrapper : IDisposable
         {
