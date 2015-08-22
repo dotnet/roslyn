@@ -54,30 +54,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
         internal static IList<ITagSpan<IErrorTag>> GetErrorsFromUpdateSource(TestWorkspace workspace, TestHostDocument document, DiagnosticsUpdatedArgs updateArgs)
         {
             var source = new TestDiagnosticUpdateSource();
-
-            var listener = new AsynchronousOperationListener();
-            var listeners = AsynchronousOperationListener.CreateListeners(
-                ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
-                ValueTuple.Create(FeatureAttribute.ErrorSquiggles, listener));
-
-            var optionsService = workspace.Services.GetService<IOptionService>();
-            var diagnosticService = new DiagnosticService(SpecializedCollections.SingletonEnumerable<IDiagnosticUpdateSource>(source), listeners);
-
-            var foregroundService = workspace.GetService<IForegroundNotificationService>();  //new TestForegroundNotificationService();
-
-            var buffer = document.GetTextBuffer();
-            var provider = new DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, listeners);
-            var tagger = provider.CreateTagger<IErrorTag>(buffer);
-            using (var disposable = tagger as IDisposable)
+            using (var wrapper = new DiagnosticTaggerWrapper(workspace, source))
             {
-                source.RaiseDiagnosticsUpdated(updateArgs);
+                var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
+                using (var disposable = tagger as IDisposable)
+                {
+                    source.RaiseDiagnosticsUpdated(updateArgs);
 
-                listener.CreateWaitTask().PumpingWait();
+                    wrapper.WaitForTags();
 
-                var snapshot = buffer.CurrentSnapshot;
-                var spans = tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToImmutableArray();
+                    var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+                    var spans = tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToImmutableArray();
 
-                return spans;
+                    return spans;
+                }
             }
         }
 

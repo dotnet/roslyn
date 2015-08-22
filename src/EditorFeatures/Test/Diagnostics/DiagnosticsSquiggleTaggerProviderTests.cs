@@ -22,42 +22,63 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
 
-    public class DiagnosticTaggerWrapper : IDisposable
+    internal class DiagnosticTaggerWrapper : IDisposable
     {
-        internal readonly DiagnosticsSquiggleTaggerProvider TaggerProvider;
-        // public readonly Analyzer Analyzer;
+        public readonly DiagnosticsSquiggleTaggerProvider TaggerProvider;
 
         private readonly TestWorkspace workspace;
-        private readonly TestDiagnosticAnalyzerService analyzerService;
+        private readonly DiagnosticAnalyzerService analyzerService;
         private readonly ISolutionCrawlerRegistrationService registrationService;
         private readonly ImmutableArray<IIncrementalAnalyzer> incrementalAnalyzers;
         private readonly SolutionCrawlerRegistrationService solutionCrawlerService;
         private readonly AsynchronousOperationListener asyncListener;
 
         public DiagnosticTaggerWrapper(TestWorkspace workspace, Dictionary<string, DiagnosticAnalyzer[]> analyzerMap = null)
+            : this(workspace, CreateDiagnosticAnalyzerService(analyzerMap), updateSource: null)
         {
+        }
+
+        public DiagnosticTaggerWrapper(TestWorkspace workspace, IDiagnosticUpdateSource updateSource)
+            : this(workspace, null, updateSource)
+        {
+        }
+
+        private static DiagnosticAnalyzerService CreateDiagnosticAnalyzerService(Dictionary<string, DiagnosticAnalyzer[]> analyzerMap)
+        {
+            return analyzerMap == null || analyzerMap.Count == 0
+                ? new TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
+                : new TestDiagnosticAnalyzerService(analyzerMap.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutableArray()));
+        }
+
+        private DiagnosticTaggerWrapper(TestWorkspace workspace, DiagnosticAnalyzerService analyzerService, IDiagnosticUpdateSource updateSource)
+        {
+            if (updateSource == null)
+            {
+                updateSource = analyzerService;
+            }
+
             this.workspace = workspace;
 
             this.registrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
             registrationService.Register(workspace);
-
-            this.analyzerService = analyzerMap == null || analyzerMap.Count == 0
-                ? new TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
-                : new TestDiagnosticAnalyzerService(analyzerMap.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutableArray()));
 
             this.asyncListener = new AsynchronousOperationListener();
             var listeners = AsynchronousOperationListener.CreateListeners(
                 ValueTuple.Create(FeatureAttribute.DiagnosticService, asyncListener),
                 ValueTuple.Create(FeatureAttribute.ErrorSquiggles, asyncListener));
 
-            var diagnosticService = new DiagnosticService(SpecializedCollections.SingletonEnumerable<IDiagnosticUpdateSource>(analyzerService), listeners);
+            this.analyzerService = analyzerService;
+            var diagnosticService = new DiagnosticService(SpecializedCollections.SingletonEnumerable(updateSource), listeners);
 
             this.TaggerProvider = new DiagnosticsSquiggleTaggerProvider(
                 workspace.Services.GetService<IOptionService>(), diagnosticService,
                 workspace.GetService<IForegroundNotificationService>(), listeners);
 
-            this.incrementalAnalyzers = ImmutableArray.Create(analyzerService.CreateIncrementalAnalyzer(workspace));
-            this.solutionCrawlerService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
+            if (analyzerService != null)
+            {
+                this.incrementalAnalyzers = ImmutableArray.Create(analyzerService.CreateIncrementalAnalyzer(workspace));
+                this.solutionCrawlerService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
+            }
         }
 
         public void Dispose()
@@ -67,7 +88,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         public void WaitForTags()
         {
-            solutionCrawlerService.WaitUntilCompletion_ForTestingPurposesOnly(workspace, incrementalAnalyzers);
+            if (solutionCrawlerService != null)
+            {
+                solutionCrawlerService.WaitUntilCompletion_ForTestingPurposesOnly(workspace, incrementalAnalyzers);
+            }
+
             asyncListener.CreateWaitTask().PumpingWait();
         }
     }
