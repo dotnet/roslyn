@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
@@ -118,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     wrapper.WaitForTags();
 
                     var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
-                    var spans = tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToList();
+                    var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
                     Assert.True(spans.First().Span.Contains(new Span(0, 1)));
 
                     // test second update
@@ -131,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     wrapper.WaitForTags();
 
                     snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
-                    spans = tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToList();
+                    spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
                     Assert.True(spans.First().Span.Contains(new Span(0, 1)));
                 }
             }
@@ -155,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     wrapper.WaitForTags();
 
                     var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
-                    var spans = tagger2.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToList();
+                    var spans = tagger2.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
                     Assert.False(spans.IsEmpty());
                 }
             }

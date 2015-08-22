@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             SnapshotPoint? caretPosition = null,
             TextChangeRange? textChangeRange = null,
             CancellationToken cancellationToken = default(CancellationToken))
-            : this(null, new[] { new DocumentSnapshotSpan(document, new SnapshotSpan(snapshot, 0, snapshot.Length)) }, 
+            : this(null, new[] { new DocumentSnapshotSpan(document, snapshot.GetFullSpan()) }, 
                   caretPosition, textChangeRange, null, cancellationToken)
         {
         }

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
                     wrapper.WaitForTags();
 
                     var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
-                    var spans = tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToList();
+                    var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
 
                     return spans;
                 }
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
                     wrapper.WaitForTags();
 
                     var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
-                    var spans = tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToImmutableArray();
+                    var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray();
 
                     return spans;
                 }
