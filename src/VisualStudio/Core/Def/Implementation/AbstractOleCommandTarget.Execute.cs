@@ -523,6 +523,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     ExecuteReorderParameters(subjectBuffer, contentType, executeNextCommandTarget);
                     break;
 
+                case VSConstants.VSStd2KCmdID.ECMD_NEXTMETHOD:
+                    ExecuteGoToNextMethod(subjectBuffer, contentType, executeNextCommandTarget);
+                    break;
+
+                case VSConstants.VSStd2KCmdID.ECMD_PREVMETHOD:
+                    ExecuteGoToPreviousMethod(subjectBuffer, contentType, executeNextCommandTarget);
+                    break;
+
                 default:
                     return NextCommandTarget.Exec(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
             }
@@ -548,6 +556,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             CurrentHandlers.Execute(contentType,
                 args: new ReorderParametersCommandArgs(ConvertTextView(), subjectBuffer),
+                lastHandler: executeNextCommandTarget);
+        }
+
+        private void ExecuteGoToNextMethod(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
+        {
+            CurrentHandlers.Execute(contentType,
+                args: new GoToNextMethodCommandArgs(ConvertTextView(), subjectBuffer),
+                lastHandler: executeNextCommandTarget);
+        }
+
+        private void ExecuteGoToPreviousMethod(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
+        {
+            CurrentHandlers.Execute(contentType,
+                args: new GoToPreviousMethodCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
