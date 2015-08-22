@@ -88,11 +88,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             _textView.Caret.PositionChanged += CaretPositionChanged;
 
-            _textView.Options.SetOptionValue(DefaultTextViewHostOptions.HorizontalScrollBarId, false);
+            _textView.Options.SetOptionValue(DefaultTextViewHostOptions.HorizontalScrollBarId, true);
             _textView.Options.SetOptionValue(DefaultTextViewHostOptions.LineNumberMarginId, false);
             _textView.Options.SetOptionValue(DefaultTextViewHostOptions.OutliningMarginId, false);
             _textView.Options.SetOptionValue(DefaultTextViewHostOptions.GlyphMarginId, false);
-            _textView.Options.SetOptionValue(DefaultTextViewOptions.WordWrapStyleId, WordWrapStyles.WordWrap);
+            _textView.Options.SetOptionValue(DefaultTextViewOptions.WordWrapStyleId, WordWrapStyles.None);
 
             _lineBreakString = _textView.Options.GetNewLineCharacter();
             _dangerous_uiOnly.EditorOperations = editorOperationsFactory.GetEditorOperations(_textView); // Constructor runs on UI thread.
