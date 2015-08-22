@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
     internal abstract class AbstractContainedLanguage : IDisposable
     {
-        public AbstractProject Project { get; private set; }
+        public AbstractProject Project { get; }
 
         /// <summary>
         /// The subject (secondary) buffer that contains the C# or VB code.

@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public LanguageVersion LanguageVersion
         {
-            get; private set;
+            get;
         }
 
         public override INamedTypeSymbol CreateErrorTypeSymbol(INamespaceOrTypeSymbol container, string name, int arity)

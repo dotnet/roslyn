@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
             _esentStorage.Initialize();
         }
 
-        public string EsentDirectory { get; private set; }
+        public string EsentDirectory { get; }
 
         public override Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default(CancellationToken))
         {

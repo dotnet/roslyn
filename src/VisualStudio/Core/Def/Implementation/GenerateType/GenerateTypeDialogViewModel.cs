@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                                                 };
 
         // Below code details with the Access List and the manipulation
-        public List<string> AccessList { get; private set; }
+        public List<string> AccessList { get; }
         private int _accessSelectIndex;
         public int AccessSelectIndex
         {
@@ -503,7 +503,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             }
         }
 
-        public List<ProjectSelectItem> ProjectList { get; private set; }
+        public List<ProjectSelectItem> ProjectList { get; }
 
         private Project _previouslyPopulatedProject = null;
         private List<DocumentSelectItem> _previouslyPopulatedDocumentList = null;
