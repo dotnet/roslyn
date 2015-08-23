@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private readonly string _truePreview;
         private readonly string _falsePreview;
 
-        public IOption Option { get; private set; }
+        public IOption Option { get; }
         public string Description { get; set; }
 
         public CheckBoxOptionViewModel(IOption option, string description, string preview, AbstractOptionPreviewViewModel info, OptionSet options)

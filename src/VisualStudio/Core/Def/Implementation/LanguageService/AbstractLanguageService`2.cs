@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         where TPackage : AbstractPackage<TPackage, TLanguageService>
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
     {
-        internal TPackage Package { get; private set; }
+        internal TPackage Package { get; }
 
         // DevDiv 753309:
         // We've redefined some VS interfaces that had incorrect PIAs. When 

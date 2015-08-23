@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 end = nextToken.Span.End;
             }
 
-            return RoslynTextSpan.FromBounds((int)start, end);
+            return RoslynTextSpan.FromBounds(start, end);
         }
 
         public int GetDataTip(IVsTextLayer textLayer, TextSpan[] selection, TextSpan[] tipSpan, out string text)

@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
                     workspace.GetService<ITextEditorFactoryService>(),
                     workspace.GetService<IEditorOptionsFactoryService>(),
                     workspace.GetService<IProjectionBufferFactoryService>(),
-                    (IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>>)workspace.ExportProvider.GetExports<IAsynchronousOperationListener, FeatureMetadata>());
+                    workspace.ExportProvider.GetExports<IAsynchronousOperationListener, FeatureMetadata>());
 
                 var document = workspace.Documents.First();
                 var textBuffer = document.TextBuffer;

@@ -2066,7 +2066,7 @@ lReportErrorOnTwoTokens:
                     Dim fakeParamsBuilder = ArrayBuilder(Of ParameterSymbol).GetInstance(params.Length)
                     For Each param As ParameterSymbol In params
                         fakeParamsBuilder.Add(New SignatureOnlyParameterSymbol(
-                                                param.Type.InternalSubstituteTypeParameters(replaceMethodTypeParametersWithFakeTypeParameters),
+                                                param.Type.InternalSubstituteTypeParameters(replaceMethodTypeParametersWithFakeTypeParameters).AsTypeSymbolOnly(),
                                                 ImmutableArray(Of CustomModifier).Empty,
                                                 defaultConstantValue:=Nothing,
                                                 isParamArray:=False,
@@ -2080,7 +2080,7 @@ lReportErrorOnTwoTokens:
                                                                             Me.CallingConvention,
                                                                             fakeTypeParameters,
                                                                             fakeParamsBuilder.ToImmutableAndFree(),
-                                                                            retType.InternalSubstituteTypeParameters(replaceMethodTypeParametersWithFakeTypeParameters),
+                                                                            retType.InternalSubstituteTypeParameters(replaceMethodTypeParametersWithFakeTypeParameters).AsTypeSymbolOnly(),
                                                                             ImmutableArray(Of CustomModifier).Empty,
                                                                             ImmutableArray(Of MethodSymbol).Empty,
                                                                             isOverrides:=True))

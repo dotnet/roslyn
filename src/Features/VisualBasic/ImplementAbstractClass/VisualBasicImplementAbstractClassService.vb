@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementAbstractClass
 
                     If abstractClassType.IsAbstractClass() Then
                         Dim classDecl = TryCast(baseClassNode.Parent.Parent, ClassBlockSyntax)
-                        classType = TryCast(model.GetDeclaredSymbol(classDecl.BlockStatement, cancellationToken), INamedTypeSymbol)
+                        classType = model.GetDeclaredSymbol(classDecl.BlockStatement, cancellationToken)
                         cancellationToken.ThrowIfCancellationRequested()
 
                         Return abstractClassType IsNot Nothing AndAlso classType IsNot Nothing

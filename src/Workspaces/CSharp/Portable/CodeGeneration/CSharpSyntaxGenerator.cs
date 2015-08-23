@@ -2415,7 +2415,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (currentList == null)
             {
                 currentList = (declaration.IsKind(SyntaxKind.IndexerDeclaration))
-                    ? (BaseParameterListSyntax)SyntaxFactory.BracketedParameterList()
+                    ? SyntaxFactory.BracketedParameterList()
                     : (BaseParameterListSyntax)SyntaxFactory.ParameterList();
             }
 
@@ -2475,7 +2475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     var roList = AsReadOnlyList(list.Parameters);
                     if (roList.Count == 1 && IsSimpleLambdaParameter(roList[0]))
                     {
-                        return lambda.WithParameter((ParameterSyntax)roList[0]);
+                        return lambda.WithParameter(roList[0]);
                     }
                     else
                     {

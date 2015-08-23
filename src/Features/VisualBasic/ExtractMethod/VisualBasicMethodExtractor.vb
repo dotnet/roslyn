@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End If
 
             ' if it is type parameter, make sure we are getting same type parameter
-            Dim binding = DirectCast(Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False), SemanticModel)
+            Dim binding = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
             For Each typeParameter In TypeParameterCollector.Collect(type)
                 Dim vbType = DirectCast(typeParameter, ITypeSymbol)

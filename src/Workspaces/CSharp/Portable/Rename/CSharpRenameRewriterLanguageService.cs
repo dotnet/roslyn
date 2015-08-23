@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 _renameLocations = parameters.RenameLocations;
                 _conflictLocations = parameters.ConflictLocationSpans;
                 _cancellationToken = parameters.CancellationToken;
-                _semanticModel = (SemanticModel)parameters.SemanticModel;
+                _semanticModel = parameters.SemanticModel;
                 _renamedSymbol = parameters.RenameSymbol;
                 _replacementTextValid = parameters.ReplacementTextValid;
                 _renameSpansTracker = parameters.RenameSpansTracker;
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 var oldSpan = originalNode.Span;
                 var expandParameter = originalNode.GetAncestorsOrThis(n => n is SimpleLambdaExpressionSyntax || n is ParenthesizedLambdaExpressionSyntax).Count() == 0;
 
-                newNode = (SyntaxNode)_simplificationService.Expand(newNode,
+                newNode = _simplificationService.Expand(newNode,
                                                                     _speculativeModel,
                                                                     annotationForReplacedAliasIdentifier: null,
                                                                     expandInsideNode: null,
@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             {
                 if (_aliasSymbol != null && !this.AnnotateForComplexification && newToken.HasAnnotations(AliasAnnotation.Kind))
                 {
-                    newToken = (SyntaxToken)RenameUtilities.UpdateAliasAnnotation(newToken, _aliasSymbol, _replacementText);
+                    newToken = RenameUtilities.UpdateAliasAnnotation(newToken, _aliasSymbol, _replacementText);
                 }
 
                 return newToken;
@@ -1227,7 +1227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
             bool isInNamespaceOrTypeContext = SyntaxFacts.IsInNamespaceOrTypeContext(node as ExpressionSyntax);
             var position = nodeToSpeculate.SpanStart;
-            return SpeculationAnalyzer.CreateSpeculativeSemanticModelForNode(nodeToSpeculate, (SemanticModel)originalSemanticModel, position, isInNamespaceOrTypeContext);
+            return SpeculationAnalyzer.CreateSpeculativeSemanticModelForNode(nodeToSpeculate, originalSemanticModel, position, isInNamespaceOrTypeContext);
         }
 
         #endregion

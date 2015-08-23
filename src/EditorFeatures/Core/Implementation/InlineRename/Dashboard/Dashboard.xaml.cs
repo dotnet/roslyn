@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 var current = _tabNavigableChildren.IndexOf(_focusedElement);
                 current = selector(current);
-                _focusedElement = _tabNavigableChildren.ElementAt(current);
+                _focusedElement = _tabNavigableChildren[current];
             }
 
             _focusedElement.Focus();

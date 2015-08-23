@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                                                 };
 
         // Below code details with the Access List and the manipulation
-        public List<string> AccessList { get; private set; }
+        public List<string> AccessList { get; }
         private int _accessSelectIndex;
         public int AccessSelectIndex
         {
@@ -337,7 +337,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                     var containers = folderPath.Split(new[] { '\\' }, StringSplitOptions.RemoveEmptyEntries);
 
                     // Folder name was mentioned
-                    if (containers.Count() > 1)
+                    if (containers.Length > 1)
                     {
                         _fileName = containers.Last();
                         Folders = new List<string>(containers);
@@ -348,7 +348,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                             _areFoldersValidIdentifiers = false;
                         }
                     }
-                    else if (containers.Count() == 1)
+                    else if (containers.Length == 1)
                     {
                         // File goes at the root of the Directory
                         _fileName = containers[0];
@@ -503,7 +503,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             }
         }
 
-        public List<ProjectSelectItem> ProjectList { get; private set; }
+        public List<ProjectSelectItem> ProjectList { get; }
 
         private Project _previouslyPopulatedProject = null;
         private List<DocumentSelectItem> _previouslyPopulatedDocumentList = null;

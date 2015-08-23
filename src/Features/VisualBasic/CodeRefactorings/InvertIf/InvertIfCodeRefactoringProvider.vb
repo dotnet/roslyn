@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
         End Function
 
         Private Function FindAncestor(Of T As SyntaxNode)(document As SyntacticDocument, startPosition As Integer, cancellationToken As CancellationToken) As T
-            Return DirectCast(document.Root, SyntaxNode).FindToken(startPosition).GetAncestor(Of T)()
+            Return document.Root.FindToken(startPosition).GetAncestor(Of T)()
         End Function
 
         Private Shared ReadOnly s_comparisonInversesMap As Dictionary(Of SyntaxKind, Tuple(Of SyntaxKind, SyntaxKind)) =
@@ -125,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                 .Single() _
                 .AsNode()
 
-            Return DirectCast(result, SyntaxNode)
+            Return result
         End Function
 
         Private Async Function InvertIfAsync(document As Document, node As SyntaxNode, cancellationToken As CancellationToken) As Task(Of Document)

@@ -5301,4 +5301,7 @@
   <data name="FEATURE_BinaryLiterals" xml:space="preserve">
     <value>binary literals</value>
   </data>
+  <data name="ERR_DebugEntryPointNotSourceMethodDefinition" xml:space="preserve">
+    <value>Debug entry point must be a definition of a method declared in the current compilation.</value>
+  </data>
 </root>

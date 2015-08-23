@@ -228,9 +228,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property HasByRefBeforeCustomModifiers As Boolean
+        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
             Get
-                Return False
+                Return 0
             End Get
         End Property
     End Class
@@ -300,7 +300,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                      False,
                                                                      parameterName,
                                                                      valueParameterCustomModifiers,
-                                                                     False)
+                                                                     0US)
         End Function
 
         ''' <summary>
@@ -348,7 +348,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits SynthesizedParameterSymbol
 
         Private ReadOnly _customModifiers As ImmutableArray(Of CustomModifier)
-        Private ReadOnly _hasByRefBeforeCustomModifiers As Boolean
+        Private ReadOnly _countOfCustomModifiersPrecedingByRef As UShort
 
         ''' <summary>
         ''' Initializes a new instance of the <see cref="SynthesizedParameterSymbolWithCustomModifiers" /> class.
@@ -360,11 +360,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="name">The name of this parameter</param>
         ''' <param name="customModifiers">The custom modifiers of this parameter</param>
         Public Sub New(container As MethodSymbol, type As TypeSymbol, ordinal As Integer, isByRef As Boolean, name As String,
-                       customModifiers As ImmutableArray(Of CustomModifier), hasByRefBeforeCustomModifiers As Boolean)
+                       customModifiers As ImmutableArray(Of CustomModifier), countOfCustomModifiersPrecedingByRef As UShort)
             MyBase.New(container, type, ordinal, isByRef, name, isOptional:=False, defaultValue:=Nothing)
 
             Me._customModifiers = customModifiers.NullToEmpty()
-            Me._hasByRefBeforeCustomModifiers = hasByRefBeforeCustomModifiers
+            Me._countOfCustomModifiersPrecedingByRef = countOfCustomModifiersPrecedingByRef
+
+            Debug.Assert(Me._countOfCustomModifiersPrecedingByRef = 0 OrElse Me.IsByRef)
+            Debug.Assert(Me._countOfCustomModifiersPrecedingByRef <= Me._customModifiers.Length)
         End Sub
 
         ''' <summary>
@@ -376,9 +379,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property HasByRefBeforeCustomModifiers As Boolean
+        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
             Get
-                Return Me._hasByRefBeforeCustomModifiers
+                Return Me._countOfCustomModifiersPrecedingByRef
             End Get
         End Property
     End Class
