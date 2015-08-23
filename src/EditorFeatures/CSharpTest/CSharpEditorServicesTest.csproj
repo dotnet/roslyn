@@ -208,6 +208,7 @@
     <Compile Include="Completion\CompletionProviders\XmlDocumentationCommentCompletionProviderTests.cs" />
     <Compile Include="Completion\LoadDirectiveCompletionProviderTests.cs" />
     <Compile Include="Completion\ReferenceDirectiveCompletionProviderTests.cs" />
+    <Compile Include="GoToNextAndPreviousMember\CSharpGoToNextAndPreviousMemberTests.cs" />
     <Compile Include="Diagnostics\AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest.cs" />
     <Compile Include="Diagnostics\AddUsing\AddUsingTests.cs" />
     <Compile Include="Diagnostics\AddUsing\AddUsingTests_ExtensionMethods.cs" />
