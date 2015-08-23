@@ -78,7 +78,6 @@ namespace Microsoft.CodeAnalysis.Editor
                 return;
             }
 
-            // TODO: Better position within the node (e.g. attributes?)
             var targetLocation = new SnapshotPoint(subjectBuffer.CurrentSnapshot, targetPosition.Value);
             var viewLocation = textView.BufferGraph.MapUpToBuffer(targetLocation, PointTrackingMode.Positive, PositionAffinity.Successor, textView.TextBuffer);
             if (viewLocation.HasValue)
@@ -87,7 +86,10 @@ namespace Microsoft.CodeAnalysis.Editor
             }
         }
 
-        private static int? GetTargetPosition(Document document, int caretPosition, bool next, CancellationToken cancellationToken)
+        /// <summary>
+        /// Internal for testing purposes.
+        /// </summary>
+        internal static int? GetTargetPosition(Document document, int caretPosition, bool next, CancellationToken cancellationToken)
         {
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
             if (syntaxFactsService == null)
@@ -127,13 +129,14 @@ namespace Microsoft.CodeAnalysis.Editor
                 }
             }
 
+            // TODO: Better position within the node (e.g. attributes?)
             return members[index].Span.Start;
         }
 
         private static SyntaxNode GetMember(ISyntaxFactsService syntaxFactService, int position, SyntaxNode root)
         {
             var node = root.FindToken(position).Parent;
-            while (!syntaxFactService.IsMethodLevelMember(node))
+            while (node != null && !syntaxFactService.IsMethodLevelMember(node))
             {
                 node = node.Parent;
             }
