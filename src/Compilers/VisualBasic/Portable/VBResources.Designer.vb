@@ -2703,6 +2703,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Debug entry point must be a definition of a source method..
+        '''</summary>
+        Friend ReadOnly Property ERR_DebugEntryPointNotSourceMethodDefinition() As String
+            Get
+                Return ResourceManager.GetString("ERR_DebugEntryPointNotSourceMethodDefinition", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;Declare&apos; statements are not allowed in generic types or types contained in generic types..
         '''</summary>
         Friend ReadOnly Property ERR_DeclaresCantBeInGeneric() As String

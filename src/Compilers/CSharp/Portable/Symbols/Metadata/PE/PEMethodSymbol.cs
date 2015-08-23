@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var builder = ImmutableArray.CreateBuilder<ParameterSymbol>(count);
                 for (int i = 0; i < count; i++)
                 {
-                    builder.Add(new PEParameterSymbol(moduleSymbol, this, i, paramInfo[i + 1], out isBadParameter));
+                    builder.Add(PEParameterSymbol.Create(moduleSymbol, this, i, paramInfo[i + 1], out isBadParameter));
                     if (isBadParameter)
                     {
                         makeBad = true;
@@ -591,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // Dynamify object type if necessary
             paramInfo[0].Type = paramInfo[0].Type.AsDynamicIfNoPia(_containingType);
 
-            var returnParam = new PEParameterSymbol(moduleSymbol, this, 0, paramInfo[0], out isBadParameter);
+            var returnParam = PEParameterSymbol.Create(moduleSymbol, this, 0, paramInfo[0], out isBadParameter);
 
             if (makeBad || isBadParameter)
             {

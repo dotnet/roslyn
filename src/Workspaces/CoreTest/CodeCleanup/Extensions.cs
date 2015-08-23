@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             var members = ((IEnumerable<M>)d.Members).ToList();
             members.RemoveAt(index);
 
-            return (IEnumerable<M>)members;
+            return members;
         }
 
         public static IEnumerable<M> AddMember<M>(this SyntaxNode node, M member, int index)
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             var members = ((IEnumerable<M>)d.Members).ToList();
             members.Insert(index, member);
 
-            return (IEnumerable<M>)members;
+            return members;
         }
     }
 }

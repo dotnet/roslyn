@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<ITypeSymbol> InferTypesWorker(int position)
             {
-                var syntaxTree = (SyntaxTree)_semanticModel.SyntaxTree;
+                var syntaxTree = _semanticModel.SyntaxTree;
                 var token = syntaxTree.FindTokenOnLeftOfPosition(position, _cancellationToken);
                 token = token.GetPreviousTokenIfTouchingWord(position);
                 var parent = token.Parent;
@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // method group info, which is what signature help already does.
                 if (info.CandidateReason == CandidateReason.None)
                 {
-                    methods = ((SemanticModel)_semanticModel).GetMemberGroup(invocation.Expression, _cancellationToken)
+                    methods = _semanticModel.GetMemberGroup(invocation.Expression, _cancellationToken)
                                                             .OfType<IMethodSymbol>();
                 }
                 else

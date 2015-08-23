@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
             this.Id = new Guid(guid);
         }
 
-        public Guid Id { get; private set; }
+        public Guid Id { get; }
 
         public Rectangle Position { get; set; }
 

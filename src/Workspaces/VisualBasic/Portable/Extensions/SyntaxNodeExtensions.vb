@@ -709,7 +709,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim right As Integer = childList.Count - 1
             While left <= right
                 Dim middle As Integer = left + (right - left) \ 2
-                Dim node As SyntaxNodeOrToken = childList.ElementAt(middle)
+                Dim node As SyntaxNodeOrToken = childList(middle)
                 Dim span = node.FullSpan
                 If position < span.Start Then
                     right = middle - 1

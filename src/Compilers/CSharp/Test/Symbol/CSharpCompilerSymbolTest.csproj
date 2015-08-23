@@ -120,6 +120,7 @@
     <Compile Include="Symbols\ConversionTests.cs" />
     <Compile Include="Symbols\CorLibrary\Choosing.cs" />
     <Compile Include="Symbols\CorLibrary\CorTypes.cs" />
+    <Compile Include="Symbols\CustomModifiersTests.cs" />
     <Compile Include="Symbols\DestructorTests.cs" />
     <Compile Include="Symbols\EnumTests.cs" />
     <Compile Include="Symbols\ErrorTypeSymbolTests.cs" />

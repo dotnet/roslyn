@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     ExpressionSyntax expression = null;
 
                     // special case for array initializer
-                    var returnType = (ITypeSymbol)this.AnalyzerResult.ReturnType;
+                    var returnType = this.AnalyzerResult.ReturnType;
                     var containingScope = this.CSharpSelectionResult.GetContainingScope();
 
                     if (returnType.TypeKind == TypeKind.Array && containingScope is InitializerExpressionSyntax)

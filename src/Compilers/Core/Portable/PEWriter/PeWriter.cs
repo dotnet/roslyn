@@ -130,11 +130,6 @@ namespace Microsoft.Cci
             ContentId nativePdbContentId;
             if (nativePdbWriterOpt != null)
             {
-                if (entryPointToken != 0)
-                {
-                    nativePdbWriterOpt.SetEntryPoint((uint)entryPointToken);
-                }
-
                 var assembly = mdWriter.Module.AsAssembly;
                 if (assembly != null && assembly.Kind == OutputKind.WindowsRuntimeMetadata)
                 {

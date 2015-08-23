@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' These parameters will be used in the method invocation as passed parameters.
             Dim lambdaBoundParameters(invokeParameterCount - 1) As BoundExpression
 
-            For parameterIndex = 0 To lambdaSymbolParameters.Count - 1
+            For parameterIndex = 0 To lambdaSymbolParameters.Length - 1
                 Dim lambdaSymbolParameter = lambdaSymbolParameters(parameterIndex)
                 Dim boundParameter = New BoundParameter(syntaxNode,
                                                         lambdaSymbolParameter,

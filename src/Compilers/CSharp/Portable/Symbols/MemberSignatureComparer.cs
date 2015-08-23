@@ -450,16 +450,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (isVoid1)
             {
+                if (considerCustomModifiers && !returnTypeCustomModifiers1.SequenceEqual(returnTypeCustomModifiers2))
+                {
+                    return false;
+                }
+
                 return true;
             }
 
-            var returnType1 = SubstituteType(typeMap1, unsubstitutedReturnType1);
-            var returnType2 = SubstituteType(typeMap2, unsubstitutedReturnType2);
+            var returnType1 = SubstituteType(typeMap1, new TypeWithModifiers(unsubstitutedReturnType1, returnTypeCustomModifiers1));
+            var returnType2 = SubstituteType(typeMap2, new TypeWithModifiers(unsubstitutedReturnType2, returnTypeCustomModifiers2));
 
             // the runtime compares custom modifiers using (effectively) SequenceEqual
             return considerCustomModifiers ?
-                returnType1.Equals(returnType2, ignoreDynamic: true) && returnTypeCustomModifiers1.SequenceEqual(returnTypeCustomModifiers2) :
-                returnType1.Equals(returnType2, ignoreCustomModifiers: true, ignoreDynamic: true);
+                returnType1.Equals(returnType2, ignoreDynamic: true) :
+                returnType1.Type.Equals(returnType2.Type, ignoreCustomModifiers: true, ignoreDynamic: true);
         }
 
         private static TypeMap GetTypeMap(Symbol member)
@@ -534,8 +539,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var substitutedTypes1 = new HashSet<TypeSymbol>(TypeSymbol.EqualsIgnoringDynamicComparer);
             var substitutedTypes2 = new HashSet<TypeSymbol>(TypeSymbol.EqualsIgnoringDynamicComparer);
 
-            SubstituteTypes(constraintTypes1, typeMap1, substitutedTypes1);
-            SubstituteTypes(constraintTypes2, typeMap2, substitutedTypes2);
+            SubstituteConstraintTypes(constraintTypes1, typeMap1, substitutedTypes1);
+            SubstituteConstraintTypes(constraintTypes2, typeMap2, substitutedTypes2);
 
             return AreConstraintTypesSubset(substitutedTypes1, substitutedTypes2, typeParameter2) &&
                 AreConstraintTypesSubset(substitutedTypes2, substitutedTypes1, typeParameter1);
@@ -575,11 +580,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        private static void SubstituteTypes(ImmutableArray<TypeSymbol> types, TypeMap typeMap, HashSet<TypeSymbol> result)
+        private static void SubstituteConstraintTypes(ImmutableArray<TypeSymbol> types, TypeMap typeMap, HashSet<TypeSymbol> result)
         {
             foreach (var type in types)
             {
-                result.Add(typeMap.SubstituteType(type));
+                result.Add(typeMap.SubstituteType(type).Type);
             }
         }
 
@@ -594,20 +599,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var param1 = params1[i];
                 var param2 = params2[i];
 
-                var type1 = SubstituteType(typeMap1, param1.Type);
-                var type2 = SubstituteType(typeMap2, param2.Type);
+                var type1 = SubstituteType(typeMap1, new TypeWithModifiers(param1.Type, param1.CustomModifiers));
+                var type2 = SubstituteType(typeMap2, new TypeWithModifiers(param2.Type, param2.CustomModifiers));
 
                 // the runtime compares custom modifiers using (effectively) SequenceEqual
                 if (considerCustomModifiers)
                 {
-                    if (!type1.Equals(type2, ignoreDynamic: true) ||
-                        !param1.CustomModifiers.SequenceEqual(param2.CustomModifiers) ||
-                        (!param1.CustomModifiers.IsEmpty && param1.RefKind != RefKind.None && param2.RefKind != RefKind.None && param1.HasByRefBeforeCustomModifiers != param2.HasByRefBeforeCustomModifiers))
+                    if (!type1.Equals(type2, ignoreDynamic: true) || (param1.CountOfCustomModifiersPrecedingByRef != param2.CountOfCustomModifiersPrecedingByRef))
                     {
                         return false;
                     }
                 }
-                else if (!type1.Equals(type2, ignoreCustomModifiers: true, ignoreDynamic: true))
+                else if (!type1.Type.Equals(type2.Type, ignoreCustomModifiers: true, ignoreDynamic: true))
                 {
                     return false;
                 }
@@ -635,9 +638,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        private static TypeSymbol SubstituteType(TypeMap typeMap, TypeSymbol typeSymbol)
+        private static TypeWithModifiers SubstituteType(TypeMap typeMap, TypeWithModifiers typeSymbol)
         {
-            return typeMap == null ? typeSymbol : typeMap.SubstituteType(typeSymbol);
+            return typeMap == null ? typeSymbol : typeSymbol.SubstituteType(typeMap);
         }
 
         private static Cci.CallingConvention GetCallingConvention(Symbol member)

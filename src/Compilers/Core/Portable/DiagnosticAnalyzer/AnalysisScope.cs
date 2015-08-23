@@ -16,27 +16,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal class AnalysisScope
     {
-        public SyntaxTree FilterTreeOpt { get; private set; }
-        public TextSpan? FilterSpanOpt { get; private set; }
+        public SyntaxTree FilterTreeOpt { get; }
+        public TextSpan? FilterSpanOpt { get; }
 
-        public ImmutableArray<DiagnosticAnalyzer> Analyzers { get; private set; }
+        public ImmutableArray<DiagnosticAnalyzer> Analyzers { get; }
 
         /// <summary>
         /// Syntax trees on which we need to perform syntax analysis.
         /// </summary>
-        public IEnumerable<SyntaxTree> SyntaxTrees { get; private set; }
+        public IEnumerable<SyntaxTree> SyntaxTrees { get; }
 
-        public bool ConcurrentAnalysis { get; private set; }
+        public bool ConcurrentAnalysis { get; }
 
         /// <summary>
         /// True if we need to categorize diagnostics into local and non-local diagnostics and track the analyzer reporting each diagnostic.
         /// </summary>
-        public bool CategorizeDiagnostics { get; private set; }
+        public bool CategorizeDiagnostics { get; }
 
         /// <summary>
         /// True if we need to perform only syntax analysis for a single tree.
         /// </summary>
-        public bool IsSyntaxOnlyTreeAnalysis { get; private set; }
+        public bool IsSyntaxOnlyTreeAnalysis { get; }
 
         /// <summary>
         /// True if we need to perform analysis for a single tree.

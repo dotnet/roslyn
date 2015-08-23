@@ -102,7 +102,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     bool newParams = alsoCopyParamsModifier ? sourceParameter.IsParams : destinationParameter.IsParams;
-                    builder.Add(destinationParameter.WithCustomModifiersAndParams(sourceParameter.Type, sourceParameter.CustomModifiers, sourceParameter.HasByRefBeforeCustomModifiers, newParams));
+                    builder.Add(destinationParameter.WithCustomModifiersAndParams(sourceParameter.Type, sourceParameter.CustomModifiers, 
+                                                                                  destinationParameter.RefKind != RefKind.None ? sourceParameter.CountOfCustomModifiersPrecedingByRef : (ushort)0,
+                                                                                  newParams));
                 }
                 else if (builder != null)
                 {

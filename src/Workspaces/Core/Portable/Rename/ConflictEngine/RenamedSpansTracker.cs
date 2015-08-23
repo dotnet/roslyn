@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     }
 
                     var annotationAndTrivias = renameAnnotations.GetAnnotatedTrivia<RenameTokenSimplificationAnnotation>(root)
-                        .Select(x => Tuple.Create(renameAnnotations.GetAnnotations<RenameTokenSimplificationAnnotation>(x).First(), (SyntaxTrivia)x));
+                        .Select(x => Tuple.Create(renameAnnotations.GetAnnotations<RenameTokenSimplificationAnnotation>(x).First(), x));
 
                     foreach (var annotationAndTrivia in annotationAndTrivias)
                     {

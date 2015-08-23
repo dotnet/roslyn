@@ -403,7 +403,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 ' directly. Instead, use the parameters from the getter or setter.
                 Dim name As String = Nothing
                 Dim isByRef As Boolean = False
-                Dim hasByRefBeforeCustomModifiers As Boolean = False
                 Dim defaultValue As ConstantValue = Nothing
                 Dim flags As ParameterAttributes = 0
                 Dim paramHandle = info.Handle
@@ -413,7 +412,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 If accessorParameter IsNot Nothing Then
                     name = accessorParameter.Name
                     isByRef = accessorParameter.IsByRef
-                    hasByRefBeforeCustomModifiers = accessorParameter.HasByRefBeforeCustomModifiers
                     defaultValue = accessorParameter.ExplicitDefaultConstantValue
                     flags = accessorParameter.ParamFlags
                     paramHandle = accessorParameter.Handle
@@ -447,10 +445,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         isByRef = True
                     End If
 
-                    If setParameter.HasByRefBeforeCustomModifiers Then
-                        hasByRefBeforeCustomModifiers = True
-                    End If
-
                     ' Do not set IsParamArray unless both accessors use ParamArray.
                     If Not setParameter.IsParamArray Then
                         isParamArray = False
@@ -463,11 +457,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     End If
                 End If
 
-                parameters(i) = New PEParameterSymbol(
+                parameters(i) = PEParameterSymbol.Create(
                     [property],
                     name,
                     isByRef:=isByRef,
-                    hasByRefBeforeCustomModifiers:=hasByRefBeforeCustomModifiers,
+                    countOfCustomModifiersPrecedingByRef:=info.CountOfCustomModifiersPrecedingByRef,
                     type:=info.Type,
                     handle:=paramHandle,
                     flags:=flags,

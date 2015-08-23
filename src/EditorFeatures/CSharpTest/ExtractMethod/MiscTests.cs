@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var root = SyntaxFactory.ParseCompilationUnit(code);
             var result = service.SaveTriviaAroundSelection(root, span);
 
-            var rootWithAnnotation = (SyntaxNode)result.Root;
+            var rootWithAnnotation = result.Root;
 
             // find token to replace
             var publicToken = rootWithAnnotation.DescendantTokens().First(t => t.Kind() == SyntaxKind.PublicKeyword);
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var root = SyntaxFactory.ParseCompilationUnit(code);
             var result = service.SaveTriviaAroundSelection(root, span);
 
-            var rootWithAnnotation = (SyntaxNode)result.Root;
+            var rootWithAnnotation = result.Root;
 
             // find token to replace
             var publicToken = rootWithAnnotation.DescendantTokens().First(t => t.Kind() == SyntaxKind.PublicKeyword);

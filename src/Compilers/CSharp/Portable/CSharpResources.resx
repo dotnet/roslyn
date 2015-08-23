@@ -4644,4 +4644,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ConstantStringTooLong" xml:space="preserve">
     <value>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</value>
   </data>
+  <data name="ERR_DebugEntryPointNotSourceMethodDefinition" xml:space="preserve">
+    <value>Debug entry point must be a definition of a method declared in the current compilation.</value>
+  </data>
 </root>
