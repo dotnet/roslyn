@@ -1,22 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel.Composition;
+using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Roslyn.Utilities;
-using System.Diagnostics;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.CodeAnalysis.Editor.Host;
-using System.ComponentModel.Composition;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
