@@ -114,18 +114,26 @@ namespace Microsoft.CodeAnalysis.Editor
 
             if (next)
             {
-                index++;
-                if (index == members.Count)
+                // If we're in leading trivia, we just want to go to the start of this member.
+                if (caretPosition >= currentMember.Span.Start)
                 {
-                    return null;
+                    index++;
+                    if (index == members.Count)
+                    {
+                        index = 0;
+                    }
                 }
             }
             else
             {
-                index--;
-                if (index < 0)
+                // If we're in trailing trivia, we just want to go to the start of this member.
+                if (caretPosition <= currentMember.Span.End)
                 {
-                    return null;
+                    index--;
+                    if (index < 0)
+                    {
+                        index = members.Count - 1;
+                    }
                 }
             }
 
