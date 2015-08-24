@@ -249,19 +249,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IInvocationKind As InvocationKind Implements IInvocation.InvocationKind
+        Private ReadOnly Property IIsVirtual As Boolean Implements IInvocation.IsVirtual
             Get
                 Dim method As IMethodSymbol = Me.Method
 
-                If method.IsStatic Then
-                    Return InvocationKind.Static
-                End If
-
-                If (method.IsVirtual OrElse method.IsAbstract OrElse method.IsOverride) AndAlso Me.ReceiverOpt.Kind <> BoundKind.MyBaseReference AndAlso Me.ReceiverOpt.Kind <> BoundKind.MyClassReference Then
-                    Return InvocationKind.Virtual
-                End If
-
-                Return InvocationKind.NonVirtualInstance
+                Return (method.IsVirtual OrElse method.IsAbstract OrElse method.IsOverride) AndAlso Me.ReceiverOpt.Kind <> BoundKind.MyBaseReference AndAlso Me.ReceiverOpt.Kind <> BoundKind.MyClassReference
             End Get
         End Property
 

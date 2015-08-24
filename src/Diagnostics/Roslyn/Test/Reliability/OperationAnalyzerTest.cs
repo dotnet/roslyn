@@ -229,10 +229,10 @@ class C
 
             VerifyCSharp(Source, new[]
             {
-                GetCSharpResultAt(16, 27, InvocationTestAnalyzer.OutOfAlphabeticalOrderNamedArgumentsDescriptor),
-                GetCSharpResultAt(17, 21, InvocationTestAnalyzer.OutOfAlphabeticalOrderNamedArgumentsDescriptor),
-                GetCSharpResultAt(17, 33, InvocationTestAnalyzer.OutOfAlphabeticalOrderNamedArgumentsDescriptor),
-                GetCSharpResultAt(17, 38, InvocationTestAnalyzer.OutOfAlphabeticalOrderNamedArgumentsDescriptor),
+                GetCSharpResultAt(16, 21, InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor),
+                GetCSharpResultAt(17, 15, InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor),
+                GetCSharpResultAt(17, 21, InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor),
+                GetCSharpResultAt(17, 33, InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor),
                 GetCSharpResultAt(19, 9, InvocationTestAnalyzer.BigParamarrayArgumentsDescriptor),
                 GetCSharpResultAt(20, 9, InvocationTestAnalyzer.BigParamarrayArgumentsDescriptor)
             });
@@ -263,7 +263,7 @@ End Class
             // ToDo: The VB support for named and paramarray arguments is broken.
             VerifyBasic(Source, new[]
             {
-                GetBasicResultAt(12, 9, InvocationTestAnalyzer.OutOfAlphabeticalOrderNamedArgumentsDescriptor),
+                GetBasicResultAt(12, 9, InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor),
                 GetBasicResultAt(16, 9, InvocationTestAnalyzer.BigParamarrayArgumentsDescriptor)
             });
         }

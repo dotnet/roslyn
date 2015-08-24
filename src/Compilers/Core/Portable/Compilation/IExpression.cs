@@ -33,11 +33,12 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         IExpression Instance { get; }
         /// <summary>
-        /// Kind of the invocation.
+        /// True if the invocation uses a virtual mechanism, and false otherwise.
         /// </summary>
-        InvocationKind InvocationKind { get; }
+        bool IsVirtual { get; }
         /// <summary>
-        /// Arguments of the invocation, excluding the instance argument.
+        /// Arguments of the invocation, excluding the instance argument. Arguments are in parameter order,
+        /// and params/ParamArray arguments have been collected into arrays.
         /// </summary>
         ImmutableArray<IArgument> Arguments { get; }
         /// <summary>
@@ -46,25 +47,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <param name="parameter">Parameter of the target method.</param>
         /// <returns>Argument corresponding to the parameter.</returns>
         IArgument ArgumentMatchingParameter(IParameterSymbol parameter);
-    }
-
-    /// <summary>
-    /// Kinds of invocations.
-    /// </summary>
-    public enum InvocationKind
-    {
-        /// <summary>
-        /// Virtual invocation.
-        /// </summary>
-        Virtual,
-        /// <summary>
-        /// Static or shared invocation with no instance value.
-        /// </summary>
-        Static,
-        /// <summary>
-        /// Non-virtual invocation with an instance value.
-        /// </summary>
-        NonVirtualInstance
     }
 
     /// <summary>
@@ -246,18 +228,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface IMethodReference : IMemberReference
     {
         IMethodSymbol Method { get; }
+        bool IsVirtual { get; }
     }
-
-    public interface IPropertyGetReference : IMemberReference
-    {
-        IMethodSymbol Getter { get; }
-    }
-
-    public interface IPropertySetReference : IMemberReference
-    {
-        IMethodSymbol Setter { get; }
-    }
-
+    
     public interface IPropertyReference : IMemberReference
     {
         IPropertySymbol Property { get; }
@@ -780,5 +753,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         IExpression Instance { get; }
         string MemberName { get; }
+    }
+
+    /// <summary>
+    /// Defines extension methods useful for IExpression instances.
+    /// </summary>
+    public static class IExpressionExtensions
+    {
+        public static bool IsStatic(this IInvocation invocation)
+        {
+            return invocation.TargetMethod.IsStatic;
+        }
     }
 }
