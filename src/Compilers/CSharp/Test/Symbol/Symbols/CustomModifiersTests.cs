@@ -1316,5 +1316,59 @@ Test 5
 MyDelegate
 Test 6");
         }
+
+        [Fact, WorkItem(4623, "https://github.com/dotnet/roslyn/issues/4623")]
+        public void MultiDimensionalArray_01()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit Test1
+       extends [mscorlib]System.Object
+{
+    .method public hidebysig specialname rtspecialname 
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000:  ldarg.0
+      IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+      IL_0006:  ret
+    } // end of method Test1::.ctor
+
+    .method public hidebysig newslot virtual 
+            instance void  Test(int32 modopt([mscorlib]System.Runtime.CompilerServices.IsLong)[0...,0...] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  1
+      IL_0000:  ldstr      ""Test""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } // end of method Test1::Test
+} // end of class Test1
+";
+
+            var source = @"
+class Test
+{
+    static void Main()
+    {
+        Test1 x = new Test1();
+        x.Test(null);
+        x = new Test11();
+        x.Test(null);
+    }
+}
+
+class Test11 : Test1
+{
+    public override void Test(int [,] c)
+    {
+        System.Console.WriteLine(""Overriden"");
+    }
+}";
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(compilation, expectedOutput: @"Test
+Overriden");
+        }
     }
 }

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    rank,
                    declaringAssembly.GetSpecialType(SpecialType.System_Array),
                    GetArrayInterfaces(elementType, rank, declaringAssembly),
-                   customModifiers.NullToEmpty())
+                   customModifiers)
         {
         }
 
@@ -56,13 +56,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(rank >= 1);
             Debug.Assert(constructedInterfaces.Length <= 2);
             Debug.Assert(constructedInterfaces.Length == 0 || rank == 1);
-            Debug.Assert(rank == 1 || !customModifiers.Any());
 
             _elementType = elementType;
             _rank = rank;
             _baseType = array;
             _interfaces = constructedInterfaces;
-            _customModifiers = customModifiers;
+            _customModifiers = customModifiers.NullToEmpty();
         }
 
         private static ImmutableArray<NamedTypeSymbol> GetArrayInterfaces(

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     {
         internal static readonly SymbolFactory Instance = new SymbolFactory();
 
-        internal override TypeSymbol GetArrayTypeSymbol(PEModuleSymbol moduleSymbol, int rank, TypeSymbol elementType)
+        internal override TypeSymbol GetArrayTypeSymbol(PEModuleSymbol moduleSymbol, int rank, TypeSymbol elementType, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
         {
             if (elementType is UnsupportedMetadataTypeSymbol)
             {
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return new UnsupportedMetadataTypeSymbol(); // Found a multi-dimensional array of rank 1 in metadata
             }
 
-            return new ArrayTypeSymbol(moduleSymbol.ContainingAssembly, elementType, ImmutableArray<CustomModifier>.Empty, rank);
+            return new ArrayTypeSymbol(moduleSymbol.ContainingAssembly, elementType, CSharpCustomModifier.Convert(customModifiers), rank);
         }
 
         internal override TypeSymbol GetByRefReturnTypeSymbol(PEModuleSymbol moduleSymbol, TypeSymbol referencedType, ushort countOfCustomModifiersPrecedingByRef)
