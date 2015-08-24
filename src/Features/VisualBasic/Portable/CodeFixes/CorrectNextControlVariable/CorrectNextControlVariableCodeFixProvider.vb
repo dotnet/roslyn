@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.CorrectNextControlVariabl
                     controlVariable = forEachStatement.ControlVariable
                     Exit Select
                 Case Else
-                    Debug.Fail("Unknown next statement")
+                    Debug.Assert(False, "Unknown next statement")
                     Return Nothing
             End Select
 
@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.CorrectNextControlVariabl
                 Case SyntaxKind.VariableDeclarator
                     Return DirectCast(controlVariable, VariableDeclaratorSyntax).Names.Single().Identifier
                 Case Else
-                    Debug.Fail("Unknown control variable expression")
+                    Debug.Assert(False, "Unknown control variable expression")
                     Return Nothing
             End Select
         End Function

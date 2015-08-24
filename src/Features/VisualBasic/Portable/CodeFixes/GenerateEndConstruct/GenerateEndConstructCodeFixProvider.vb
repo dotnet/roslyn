@@ -1,15 +1,14 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
-Imports System.Composition
+Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.GenerateEndConstruct), [Shared]>
@@ -166,11 +165,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
             Dim gen = document.GetLanguageService(Of SyntaxGenerator)()
 
             If getter Is Nothing AndAlso Not updatedProperty.PropertyStatement.Modifiers.Any(SyntaxKind.WriteOnlyKeyword) Then
-                updatedProperty = DirectCast(gen.WithGetAccessorStatements(updatedProperty, Array.Empty(Of SyntaxNode)()), PropertyBlockSyntax)
+                updatedProperty = DirectCast(gen.WithGetAccessorStatements(updatedProperty, SpecializedCollections.EmptyArray(Of SyntaxNode)()), PropertyBlockSyntax)
             End If
 
             If setter Is Nothing AndAlso Not updatedProperty.PropertyStatement.Modifiers.Any(SyntaxKind.ReadOnlyKeyword) Then
-                updatedProperty = DirectCast(gen.WithSetAccessorStatements(updatedProperty, Array.Empty(Of SyntaxNode)()), PropertyBlockSyntax)
+                updatedProperty = DirectCast(gen.WithSetAccessorStatements(updatedProperty, SpecializedCollections.EmptyArray(Of SyntaxNode)()), PropertyBlockSyntax)
             End If
 
             Dim updatedDocument = Await document.ReplaceNodeAsync(node, updatedProperty.WithAdditionalAnnotations(Formatter.Annotation), cancellationToken).ConfigureAwait(False)
