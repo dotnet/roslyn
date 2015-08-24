@@ -108,8 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                      SpecialType.System_Char,
                      SpecialType.System_String,
                      SpecialType.System_Enum,
-                     SpecialType.System_Object,
-                     SpecialType.System_Delegate
+                     SpecialType.System_Object
                     Return True
                 Case Else
                     Return False

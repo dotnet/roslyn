@@ -943,8 +943,8 @@ public class C : I<byte, char>
             var classMethod = global.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<MethodSymbol>().Single(
                 m => m.MethodKind == MethodKind.ExplicitInterfaceImplementation);
 
-            Assert.Equal("void I<T, U>.M(ref I<System.Object modopt(System.Int16) [], dynamic modopt(System.Int32) []> modopt(System.Int64) c)", interfaceMethod.ToTestDisplayString());
-            Assert.Equal("void C.I<System.Byte, System.Char>.M(ref I<dynamic modopt(System.Int16) [], System.Object modopt(System.Int32) []> modopt(System.Int64) c)", classMethod.ToTestDisplayString());
+            Assert.Equal("void I<T, U>.M(ref modopt(System.Int64) I<System.Object modopt(System.Int16) [], dynamic modopt(System.Int32) []> c)", interfaceMethod.ToTestDisplayString());
+            Assert.Equal("void C.I<System.Byte, System.Char>.M(ref modopt(System.Int64) I<dynamic modopt(System.Int16) [], System.Object modopt(System.Int32) []> c)", classMethod.ToTestDisplayString());
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]

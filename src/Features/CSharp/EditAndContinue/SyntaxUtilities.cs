@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return;
                 }
 
-                rightNode = rightNode.ChildNodesAndTokens().ElementAt(childIndex).AsNode();
+                rightNode = rightNode.ChildNodesAndTokens()[childIndex].AsNode();
                 leftNode = leftChild.AsNode();
             }
         }
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 // Can only happen when searching for zero-width node.
                 Debug.Assert(!leftChild.IsToken);
 
-                rightNode = rightNode.ChildNodesAndTokens().ElementAt(childIndex).AsNode();
+                rightNode = rightNode.ChildNodesAndTokens()[childIndex].AsNode();
                 leftNode = leftChild.AsNode();
             }
 

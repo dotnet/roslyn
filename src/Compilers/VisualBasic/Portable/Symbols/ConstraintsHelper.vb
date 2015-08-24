@@ -596,7 +596,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' substitute the type parameter constraints from the original definition of the type parameters
             ' using the TypeSubstitution from the constructed type/method.
             For Each t In typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
-                Dim constraintType = t.InternalSubstituteTypeParameters(substitution)
+                Dim constraintType = t.InternalSubstituteTypeParameters(substitution).Type
 
                 If Not SatisfiesTypeConstraint(typeArgument, constraintType, useSiteDiagnostics) Then
                     If diagnosticsBuilder IsNot Nothing Then

@@ -478,6 +478,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Inconsistent language versions.
+        /// </summary>
+        internal static string InconsistentLanguageVersions {
+            get {
+                return ResourceManager.GetString("InconsistentLanguageVersions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;in-memory assembly&gt;.
         /// </summary>
         internal static string InMemoryAssembly {

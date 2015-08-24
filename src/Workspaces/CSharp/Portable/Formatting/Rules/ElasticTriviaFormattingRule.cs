@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return operation;
             }
 
-            var betweenMemberOperation = GetAdjustNewLinesOperationBetweenMembers((SyntaxToken)previousToken, (SyntaxToken)currentToken);
+            var betweenMemberOperation = GetAdjustNewLinesOperationBetweenMembers(previousToken, currentToken);
             if (betweenMemberOperation != null)
             {
                 return betweenMemberOperation;

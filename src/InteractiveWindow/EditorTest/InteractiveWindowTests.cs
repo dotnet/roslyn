@@ -1,13 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Projection;
 using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -658,6 +659,41 @@ System.Console.WriteLine();",
             Window.Operations.SelectAll();
             Window.Operations.Cut();
             VerifyClipboardData(null);
+        }
+
+        /// <summary>
+        /// When there is no selection, copy
+        /// should copy the current line.
+        /// </summary>
+        [Fact]
+        public void CopyNoSelection()
+        {
+            Submit(
+@"s +
+
+ t",
+@" 1
+
+2 ");
+            CopyNoSelectionAndVerify(0, 7, "s +\r\n", @"> s +\par ");
+            CopyNoSelectionAndVerify(7, 11, "\r\n", @"> \par ");
+            CopyNoSelectionAndVerify(11, 17, " t\r\n", @">  t\par ");
+            CopyNoSelectionAndVerify(17, 21, " 1\r\n", @" 1\par ");
+            CopyNoSelectionAndVerify(21, 23, "\r\n", @"\par ");
+            CopyNoSelectionAndVerify(23, 28, "2 ", "2 > ");
+        }
+
+        private void CopyNoSelectionAndVerify(int start, int end, string expectedText, string expectedRtf)
+        {
+            var caret = Window.TextView.Caret;
+            var snapshot = Window.TextView.TextBuffer.CurrentSnapshot;
+            for (int i = start; i < end; i++)
+            {
+                Clipboard.Clear();
+                caret.MoveTo(new SnapshotPoint(snapshot, i));
+                Window.Operations.Copy();
+                VerifyClipboardData(expectedText, expectedRtf);
+            }
         }
 
         private void Submit(string submission, string output)

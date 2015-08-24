@@ -1332,5 +1332,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         #endregion Abstract base type checks
+
+        [Obsolete("Use TypeWithModifiers.Is method.", true)]
+        internal bool Equals(TypeWithModifiers other)
+        {
+            return other.Is(this);
+        }
     }
 }

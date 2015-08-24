@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      newConstructedWrappedMethod.OriginalDefinition.TypeParameters,
                                                      typeArgs.AsImmutableOrNull())
 
-                Me._interfaces = originalInterfaces.SelectAsArray(Function(i) DirectCast(i.InternalSubstituteTypeParameters(Me._typeMap), NamedTypeSymbol))
+                Me._interfaces = originalInterfaces.SelectAsArray(Function(i) DirectCast(i.InternalSubstituteTypeParameters(Me._typeMap).AsTypeSymbolOnly(), NamedTypeSymbol))
             End If
         End Sub
 

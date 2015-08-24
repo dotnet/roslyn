@@ -451,6 +451,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
+        Friend Overrides Sub ValidateDebugEntryPoint(debugEntryPoint As IMethodSymbol, diagnostics As DiagnosticBag)
+            Debug.Assert(debugEntryPoint IsNot Nothing)
+
+            ' Debug entry point has to be a method definition from this compilation.
+            Dim methodSymbol = TryCast(debugEntryPoint, MethodSymbol)
+            If methodSymbol?.DeclaringCompilation IsNot Me OrElse Not methodSymbol.IsDefinition Then
+                diagnostics.Add(ERRID.ERR_DebugEntryPointNotSourceMethodDefinition, Location.None)
+            End If
+        End Sub
+
         Private Function CommonLanguageVersion(syntaxTrees As ImmutableArray(Of SyntaxTree)) As LanguageVersion
             ' We don't check m_Options.ParseOptions.LanguageVersion for consistency, because
             ' it isn't consistent in practice.  In fact sometimes m_Options.ParseOptions is Nothing.
@@ -460,7 +470,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If result Is Nothing Then
                     result = version
                 ElseIf result <> version Then
-                    Throw New ArgumentException("inconsistent language versions", NameOf(syntaxTrees))
+                    Throw New ArgumentException(CodeAnalysisResources.InconsistentLanguageVersions, NameOf(syntaxTrees))
                 End If
             Next
 
@@ -2123,6 +2133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides Function CreateModuleBuilder(
             emitOptions As EmitOptions,
+            debugEntryPoint As IMethodSymbol,
             manifestResources As IEnumerable(Of ResourceDescription),
             testData As CompilationTestData,
             diagnostics As DiagnosticBag,
@@ -2130,6 +2141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return CreateModuleBuilder(
                 emitOptions,
+                debugEntryPoint,
                 manifestResources,
                 testData,
                 diagnostics,
@@ -2139,6 +2151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overloads Function CreateModuleBuilder(
             emitOptions As EmitOptions,
+            debugEntryPoint As IMethodSymbol,
             manifestResources As IEnumerable(Of ResourceDescription),
             testData As CompilationTestData,
             diagnostics As DiagnosticBag,
@@ -2175,6 +2188,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         moduleSerializationProperties,
                         manifestResources,
                         additionalTypes)
+            End If
+
+            If debugEntryPoint IsNot Nothing Then
+                moduleBeingBuilt.SetDebugEntryPoint(DirectCast(debugEntryPoint, MethodSymbol), diagnostics)
             End If
 
             If testData IsNot Nothing Then

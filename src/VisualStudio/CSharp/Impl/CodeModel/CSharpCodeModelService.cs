@@ -505,7 +505,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return (EnvDTE.CodeElement)CreateInternalCodeParameter(state, fileCodeModel, (ParameterSyntax)node);
 
                 case SyntaxKind.UsingDirective:
-                    return (EnvDTE.CodeElement)CreateInternalCodeImport(state, fileCodeModel, (UsingDirectiveSyntax)node);
+                    return CreateInternalCodeImport(state, fileCodeModel, (UsingDirectiveSyntax)node);
             }
 
             if (IsAccessorNode(node))
@@ -3157,13 +3157,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         protected override TextSpan GetSpanToFormat(SyntaxNode root, TextSpan span)
         {
-            var startToken = (SyntaxToken)root.FindToken(span.Start).GetPreviousToken();
+            var startToken = root.FindToken(span.Start).GetPreviousToken();
             if (startToken.Kind() == SyntaxKind.OpenBraceToken)
             {
                 startToken = startToken.GetPreviousToken();
             }
 
-            var endToken = (SyntaxToken)root.FindToken(span.End).GetNextToken();
+            var endToken = root.FindToken(span.End).GetNextToken();
             if (endToken.Kind() == SyntaxKind.CloseBraceToken)
             {
                 endToken = endToken.GetPreviousToken();

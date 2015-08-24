@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return
                 End If
 
-                rightNode = rightNode.ChildNodesAndTokens().ElementAt(childIndex).AsNode()
+                rightNode = rightNode.ChildNodesAndTokens()(childIndex).AsNode()
                 leftNode = leftChild.AsNode()
             End While
         End Sub
@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 ' Can only happen when searching for zero-width node.
                 Debug.Assert(Not leftChild.IsToken)
 
-                rightNode = rightNode.ChildNodesAndTokens().ElementAt(childIndex).AsNode()
+                rightNode = rightNode.ChildNodesAndTokens()(childIndex).AsNode()
                 leftNode = leftChild.AsNode()
             End While
 

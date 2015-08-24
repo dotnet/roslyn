@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             End Function
 
             Public Overloads Shared Function Visit(node As SyntaxNode, replacementNode As SyntaxNode, matches As ISet(Of ExpressionSyntax)) As SyntaxNode
-                Return New Rewriter(DirectCast(replacementNode, SyntaxNode), matches).Visit(DirectCast(node, SyntaxNode))
+                Return New Rewriter(replacementNode, matches).Visit(node)
             End Function
 
         End Class

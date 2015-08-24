@@ -300,7 +300,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private void Move(List<ParameterViewModel> list, int index, int delta)
         {
-            var param = list.ElementAt(index);
+            var param = list[index];
             list.RemoveAt(index);
             list.Insert(index + delta, param);
 

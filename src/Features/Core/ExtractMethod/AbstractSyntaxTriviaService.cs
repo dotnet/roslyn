@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         {
             Contract.ThrowIfNull(root);
             Contract.ThrowIfTrue(textSpan.IsEmpty);
-            Contract.Requires(Enum.GetNames(typeof(TriviaLocation)).Count() == TriviaLocationsCount);
+            Contract.Requires(Enum.GetNames(typeof(TriviaLocation)).Length == TriviaLocationsCount);
 
             var tokens = GetTokensAtEdges(root, textSpan);
 

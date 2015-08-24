@@ -34,11 +34,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         public string OK { get { return ServicesVSResources.OK; } }
         public string Cancel { get { return ServicesVSResources.Cancel; } }
 
-        public Brush ParameterText { get; private set; }
-        public Brush RemovedParameterText { get; private set; }
-        public Brush DisabledParameterForeground { get; private set; }
-        public Brush DisabledParameterBackground { get; private set; }
-        public Brush StrikethroughBrush { get; private set; }
+        public Brush ParameterText { get; }
+        public Brush RemovedParameterText { get; }
+        public Brush DisabledParameterForeground { get; }
+        public Brush DisabledParameterBackground { get; }
+        public Brush StrikethroughBrush { get; }
 
         // Use C# Reorder Parameters helpTopic for C# and VB.
         internal ChangeSignatureDialog(ChangeSignatureDialogViewModel viewModel)

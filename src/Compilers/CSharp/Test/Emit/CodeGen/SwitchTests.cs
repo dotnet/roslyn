@@ -3217,102 +3217,6 @@ struct A
 
         [WorkItem(543673, "DevDiv")]
         [Fact()]
-        public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_5()
-        {
-            // Dev10 behavior: 2nd switch expression is an ambiguous user defined conversion
-
-            // Roslyn behavior: 2nd switch expression: No ambiguity, binds to "implicit operator int(A a)"
-
-            var text =
-@"using System;
- 
-struct A
-{
-    public static implicit operator int(A a)
-    {
-        Console.WriteLine(""0"");
-        return 0;
-    }
- 
-    public static implicit operator int(A? a)
-    {
-        Console.WriteLine(""1"");
-        return 0;
-    }
- 
-    class B
-    {
-        static void Main()
-        {
-            A? aNullable = new A();
-            switch(aNullable)
-            {
-                default: break;
-            }
-
-            A a = new A();
-            switch(a)
-            {
-                default: break;
-            }
-        }
-    }
-}
-";
-            CompileAndVerify(text, expectedOutput: @"1
-0");
-        }
-
-        [WorkItem(543673, "DevDiv")]
-        [Fact()]
-        public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_6()
-        {
-            // Dev10 behavior: 2nd switch expression is an ambiguous user defined conversion
-
-            // Roslyn behavior: 2nd switch expression: No ambiguity, binds to "implicit operator int?(A a)"
-
-            var text =
-@"using System;
- 
-struct A
-{
-    public static implicit operator int?(A a)
-    {
-        Console.WriteLine(""0"");
-        return 0;
-    }
- 
-    public static implicit operator int?(A? a)
-    {
-        Console.WriteLine(""1"");
-        return 0;
-    }
- 
-    class B
-    {
-        static void Main()
-        {
-            A? aNullable = new A();
-            switch(aNullable)
-            {
-                default: break;
-            }
-
-            A a = new A();
-            switch(a)
-            {
-                default: break;
-            }
-        }
-    }
-}
-";
-            CompileAndVerify(text, expectedOutput: @"1
-0");
-        }
-
-        [WorkItem(543673, "DevDiv")]
-        [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_3_1()
         {
             var text =
@@ -3358,8 +3262,6 @@ struct A
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_3_3()
         {
-            // Dev10 behavior: 2nd switch expression is an ambiguous user defined conversion
-
             var text =
 @"using System;
  

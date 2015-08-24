@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
 
                     classOrStructDecl = implementsStatement.Parent
                     Dim classOrStructBlock = TryCast(classOrStructDecl, TypeBlockSyntax)
-                    classOrStructType = TryCast(model.GetDeclaredSymbol(classOrStructBlock.BlockStatement, cancellationToken), INamedTypeSymbol)
+                    classOrStructType = model.GetDeclaredSymbol(classOrStructBlock.BlockStatement, cancellationToken)
 
                     Return classOrStructType IsNot Nothing
                 End If

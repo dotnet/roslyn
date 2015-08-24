@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             if (symbol.AssociatedSymbol != null)
             {
-                result = result.Concat(SpecializedCollections.SingletonEnumerable((ISymbol)symbol.AssociatedSymbol));
+                result = result.Concat(SpecializedCollections.SingletonEnumerable(symbol.AssociatedSymbol));
             }
 
             // cascade to constructors

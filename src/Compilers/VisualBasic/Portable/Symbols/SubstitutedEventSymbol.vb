@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 If Me._lazyType Is Nothing Then
                     Interlocked.CompareExchange(Me._lazyType,
-                                                _originalDefinition.Type.InternalSubstituteTypeParameters(TypeSubstitution),
+                                                _originalDefinition.Type.InternalSubstituteTypeParameters(TypeSubstitution).AsTypeSymbolOnly(),
                                                 Nothing)
                 End If
 
