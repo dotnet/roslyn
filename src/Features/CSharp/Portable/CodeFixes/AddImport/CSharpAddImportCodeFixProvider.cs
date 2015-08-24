@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -700,7 +701,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                 return false;
             }
 
-            return string.Compare(propertyOrField.ContainingType.Name, leftName.Identifier.Text, this.IgnoreCase) == 0;
+            var comparisonType = this.IgnoreCase
+                ? StringComparison.OrdinalIgnoreCase
+                : StringComparison.Ordinal;
+
+            return string.Compare(propertyOrField.ContainingType.Name, leftName.Identifier.Text, comparisonType) == 0;
         }
 
         internal override bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel)
