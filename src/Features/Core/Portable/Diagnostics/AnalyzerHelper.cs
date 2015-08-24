@@ -43,7 +43,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Get the unique ID for given diagnostic analyzer.
             // note that we also put version stamp so that we can detect changed analyzer.
             var type = analyzer.GetType();
-            return ValueTuple.Create(GetAssemblyQualifiedName(type), GetAnalyzerVersion(type.Assembly.Location));
+            var typeInfo = type.GetTypeInfo();
+            return ValueTuple.Create(GetAssemblyQualifiedName(type), GetAnalyzerVersion(CorLightup.Desktop.GetAssemblyLocation(typeInfo.Assembly)));
         }
 
         public static string GetAnalyzerAssemblyName(this DiagnosticAnalyzer analyzer)
