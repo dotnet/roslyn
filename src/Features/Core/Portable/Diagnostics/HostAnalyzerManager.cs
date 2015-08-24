@@ -8,8 +8,9 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using System.Runtime.CompilerServices;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -524,7 +525,44 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // We want to load the analyzer assembly assets in default context.
                 // Use Assembly.Load instead of Assembly.LoadFrom to ensure that if the assembly is ngen'ed, then the native image gets loaded.
-                return Assembly.Load(AssemblyName.GetAssemblyName(fullPath));
+                return Assembly.Load(GetAssemblyName(fullPath));
+            }
+
+            private AssemblyName GetAssemblyName(string fullPath)
+            {
+                using (var stream = PortableShim.File.OpenRead(fullPath))
+                {
+                    using (var peReader = new PEReader(stream))
+                    {
+                        var reader = peReader.GetMetadataReader();
+                        var assemblyDef = reader.GetAssemblyDefinition();
+
+                        var name = reader.GetString(assemblyDef.Name);
+
+                        var cultureName = assemblyDef.Culture.IsNil
+                            ? null
+                            : reader.GetString(assemblyDef.Culture);
+
+                        var publicKeyOrToken = reader.GetBlobContent(assemblyDef.PublicKey);
+                        var hasPublicKey = !publicKeyOrToken.IsEmpty;
+
+                        if (publicKeyOrToken.IsEmpty)
+                        {
+                            publicKeyOrToken = default(ImmutableArray<byte>);
+                        }
+
+                        var identity = new AssemblyIdentity(
+                            name: name,
+                            version: assemblyDef.Version,
+                            cultureName: cultureName,
+                            publicKeyOrToken: publicKeyOrToken,
+                            hasPublicKey: hasPublicKey,
+                            isRetargetable: (assemblyDef.Flags & AssemblyFlags.Retargetable) != 0,
+                            contentType: (AssemblyContentType)((int)(assemblyDef.Flags & AssemblyFlags.ContentTypeMask) >> 9));
+
+                        return new AssemblyName(identity.GetDisplayName());
+                    }
+                }
             }
         }
     }
