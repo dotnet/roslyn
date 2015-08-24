@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal sealed class DiagnosticData
     {
-        public static readonly CultureInfo USCultureInfo = CultureInfo.GetCultureInfo("en-US");
+        public static readonly CultureInfo USCultureInfo = new CultureInfo("en-US");
 
         public readonly string Id;
         public readonly string Category;

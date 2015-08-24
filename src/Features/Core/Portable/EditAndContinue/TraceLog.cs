@@ -9,8 +9,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// Fixed size rolling tracing log. 
     /// </summary>
     /// <remarks>
-    /// Recent entries are captured in a memory dump. 
-    /// All entries are printed out to <see cref="Trace"/> output or <see cref="Debug"/> output.
+    /// Recent entries are captured in a memory dump.
+    /// If DEBUG is defined, all entries written to <see cref="DebugWrite(string)"/> or
+    /// <see cref="DebugWrite(string, object[])"/> are print to <see cref="Debug"/> output.
     /// </remarks>
     internal sealed class TraceLog
     {
@@ -33,7 +34,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public void Write(string str)
         {
             Append(str);
-            Trace.WriteLine(str, _id);
         }
 
         [Conditional("DEBUG")]

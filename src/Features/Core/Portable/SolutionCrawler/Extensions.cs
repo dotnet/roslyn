@@ -1,15 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
@@ -25,7 +17,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public static string DecodeBase64(this string data)
         {
-            return Encoding.UTF8.GetString(Convert.FromBase64String(data));
+            var bytes = Convert.FromBase64String(data);
+            return Encoding.UTF8.GetString(bytes, 0, bytes.Length);
         }
     }
 }

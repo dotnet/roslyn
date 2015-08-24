@@ -6,12 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -82,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return xParam.IsParams ? 1 : -1;
                 }
 
-                diff = string.Compare(xTypeNames[i], yTypeNames[i], CultureInfo.CurrentUICulture, CompareOptions.StringSort);
+                diff = CultureInfo.CurrentUICulture.CompareInfo.Compare(xTypeNames[i], yTypeNames[i], CompareOptions.StringSort);
                 if (diff != 0)
                 {
                     return diff;

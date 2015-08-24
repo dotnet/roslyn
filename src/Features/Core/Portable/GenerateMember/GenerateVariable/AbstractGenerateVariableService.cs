@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 // prefer fields over properties (and vice versa) depending on the casing of the member.
                 // lowercase -> fields.  title case -> properties.
                 var name = state.IdentifierToken.ValueText;
-                if (char.IsUpper(name.FirstOrDefault()))
+                if (char.IsUpper(name.ToCharArray().FirstOrDefault()))
                 {
                     if (canGenerateMember)
                     {

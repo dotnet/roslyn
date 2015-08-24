@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading;
+using System.Reflection;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
 
@@ -50,8 +48,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static string GetAnalyzerAssemblyName(this DiagnosticAnalyzer analyzer)
         {
-            var type = analyzer.GetType();
-            return type.Assembly.GetName().Name;
+            var typeInfo = analyzer.GetType().GetTypeInfo();
+            return typeInfo.Assembly.GetName().Name;
         }
 
         private static string GetAssemblyQualifiedName(Type type)
@@ -117,12 +115,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static VersionStamp GetAnalyzerVersion(string path)
         {
-            if (path == null || !File.Exists(path))
+            if (path == null || !PortableShim.File.Exists(path))
             {
                 return VersionStamp.Default;
             }
 
-            return VersionStamp.Create(File.GetLastWriteTimeUtc(path));
+            return VersionStamp.Create(PortableShim.File.GetLastWriteTimeUtc(path));
         }
     }
 }

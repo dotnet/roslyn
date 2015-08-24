@@ -3,8 +3,8 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Organizing.Organizers;
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Organizing
                 {
                     return (from o in organizers
                             where !o.SyntaxNodeTypes.Any() ||
-                                  o.SyntaxNodeTypes.Any(t2 => t1 == t2 || t1.IsSubclassOf(t2))
+                                  o.SyntaxNodeTypes.Any(t2 => t1 == t2 || t1.GetTypeInfo().IsSubclassOf(t2))
                             select o).Distinct();
                 };
 

@@ -5,11 +5,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
+    using TypeInfo = System.Reflection.TypeInfo;
+
     internal partial class CodeFixService
     {
         private class ProjectCodeFixProvider
@@ -44,21 +45,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     return ImmutableArray<CodeFixProvider>.Empty;
                 }
 
-                Type[] types = null;
+                IEnumerable<TypeInfo> typeInfos = null;
                 ImmutableArray<CodeFixProvider>.Builder builder = null;
 
                 try
                 {
                     Assembly analyzerAssembly = analyzerFileReference.GetAssembly();
-                    types = analyzerAssembly.GetTypes();
+                    typeInfos = analyzerAssembly.DefinedTypes;
 
-                    foreach (var type in types)
+                    foreach (var typeInfo in typeInfos)
                     {
-                        if (type.GetTypeInfo().IsSubclassOf(typeof(CodeFixProvider)))
+                        if (typeInfo.IsSubclassOf(typeof(CodeFixProvider)))
                         {
                             try
                             {
-                                var attribute = type.GetCustomAttribute<ExportCodeFixProviderAttribute>();
+                                var attribute = typeInfo.GetCustomAttribute<ExportCodeFixProviderAttribute>();
                                 if (attribute != null)
                                 {
                                     if (attribute.Languages == null ||
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                                         attribute.Languages.Contains(language))
                                     {
                                         builder = builder ?? ImmutableArray.CreateBuilder<CodeFixProvider>();
-                                        builder.Add((CodeFixProvider)Activator.CreateInstance(type));
+                                        builder.Add((CodeFixProvider)Activator.CreateInstance(typeInfo.AsType()));
                                     }
                                 }
                             }

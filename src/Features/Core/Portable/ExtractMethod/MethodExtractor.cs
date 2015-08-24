@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
@@ -159,7 +158,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         internal static string MakeMethodName(string prefix, string originalName)
         {
-            var startingWithLetter = originalName.SkipWhile(c => !char.IsLetter(c)).ToArray();
+            var startingWithLetter = originalName.ToCharArray().SkipWhile(c => !char.IsLetter(c)).ToArray();
             var name = startingWithLetter.Length == 0 ? originalName : new string(startingWithLetter);
 
             return char.IsUpper(name[0]) ?

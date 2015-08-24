@@ -522,7 +522,7 @@
   <data name="UpdatingStateMachineMethodAroundActive" xml:space="preserve">
     <value>Updating async or iterator modifier around an active statement will prevent the debug session from continuing.</value>
     <comment>{Locked="async"}{Locked="iterator"} "async" and "iterator" are C#/VB keywords and should not be localized.</comment>
-  </data>    
+  </data>
   <data name="ModifyingAGenericMethodWillPrevent" xml:space="preserve">
     <value>Modifying a generic method will prevent the debug session from continuing.</value>
   </data>

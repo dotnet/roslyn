@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     internal partial class AbstractMetadataAsSourceService
     {
-        protected abstract class AbstractFormattingRule : Microsoft.CodeAnalysis.Formatting.Rules.AbstractFormattingRule
+        protected abstract class AbstractFormattingRule : Formatting.Rules.AbstractFormattingRule
         {
             protected abstract AdjustNewLinesOperation GetAdjustNewLinesOperationBetweenMembersAndUsings(SyntaxToken token1, SyntaxToken token2);
             protected abstract bool IsNewLine(char c);
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     }
 
                     inElasticTriviaRun = false;
-                    count += trivia.ToFullString().Replace("\r\n", "\r").Count(IsNewLine);
+                    count += trivia.ToFullString().Replace("\r\n", "\r").ToCharArray().Count(IsNewLine);
                 }
 
                 return count;

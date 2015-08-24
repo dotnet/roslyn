@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                             isIndexer: property.IsIndexer));
                         break;
                     default:
-                        Debug.Assert(false, FeaturesResources.UnexpectedInterfaceMemberKind, member.Kind.ToString());
+                        Debug.Assert(false, string.Format(FeaturesResources.UnexpectedInterfaceMemberKind, member.Kind.ToString()));
                         break;
                 }
             }
@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                     return property.Parameters.Any(t => DoesTypeReferenceTypeParameter(t.Type, typeParameter, checkedTypes)) ||
                         DoesTypeReferenceTypeParameter(property.Type, typeParameter, checkedTypes);
                 default:
-                    Debug.Assert(false, FeaturesResources.UnexpectedInterfaceMemberKind, member.Kind.ToString());
+                    Debug.Assert(false, string.Format(FeaturesResources.UnexpectedInterfaceMemberKind, member.Kind.ToString()));
                     return false;
             }
         }

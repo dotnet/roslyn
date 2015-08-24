@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,12 +29,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
         private static bool IsNotConfigurableDiagnostic(Diagnostic diagnostic)
         {
-            return diagnostic.Descriptor.CustomTags.Any(c => string.Equals(c, WellKnownDiagnosticTags.NotConfigurable, System.StringComparison.InvariantCulture));
+            return diagnostic.Descriptor.CustomTags.Any(c => CultureInfo.InvariantCulture.CompareInfo.Compare(c, WellKnownDiagnosticTags.NotConfigurable) == 0);
         }
 
         private static bool IsCompilerDiagnostic(Diagnostic diagnostic)
         {
-            return diagnostic.Descriptor.CustomTags.Any(c => string.Equals(c, WellKnownDiagnosticTags.Compiler, System.StringComparison.InvariantCulture));
+            return diagnostic.Descriptor.CustomTags.Any(c => CultureInfo.InvariantCulture.CompareInfo.Compare(c, WellKnownDiagnosticTags.Compiler) == 0);
         }
 
         public bool CanBeSuppressed(Diagnostic diagnostic)

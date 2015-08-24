@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -53,10 +55,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private static bool IsInternalCodeFixProvider(CodeFixProvider fixer)
         {
-            var exportAttributes = fixer.GetType().GetCustomAttributes(typeof(ExportCodeFixProviderAttribute), false);
-            if (exportAttributes != null && exportAttributes.Length > 0)
+            var exportAttributes = fixer.GetType().GetTypeInfo().GetCustomAttributes(typeof(ExportCodeFixProviderAttribute), false);
+            if (exportAttributes?.Any() == true)
             {
-                var exportAttribute = (ExportCodeFixProviderAttribute)exportAttributes[0];
+                var exportAttribute = (ExportCodeFixProviderAttribute)exportAttributes.First();
                 return s_predefinedCodeFixProviderNames.Contains(exportAttribute.Name);
             }
 
@@ -67,12 +69,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             var names = new HashSet<string>();
 
-            var fields = typeof(PredefinedCodeFixProviderNames).GetFields();
+            var fields = typeof(PredefinedCodeFixProviderNames).GetTypeInfo().DeclaredFields;
             foreach (var field in fields)
             {
                 if (field.IsStatic)
                 {
-                    names.Add((string)field.GetRawConstantValue());
+                    names.Add((string)field.GetValue(null));
                 }
             }
 
