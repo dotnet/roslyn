@@ -1,16 +1,17 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Composition
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Composition
-Imports System.ComponentModel.Composition
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
     Public Class NavigationBarControllerTests
         Friend ReadOnly ExportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(
             TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(GetType(NavigationBarWaiter)))
 
+        <[Shared]>
         <Export(GetType(IAsynchronousOperationListener))>
         <Export(GetType(IAsynchronousOperationWaiter))>
         <Export(GetType(NavigationBarWaiter))>
