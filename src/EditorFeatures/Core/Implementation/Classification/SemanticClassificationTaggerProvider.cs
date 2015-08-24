@@ -61,10 +61,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             this.AssertIsForeground();
             const TaggerDelay Delay = TaggerDelay.Short;
 
-            // Note: we don't listen for OnTextChanged.  Text changes to this this buffer will get
-            // reported by OnSemanticChanged.
+            // Note: we don't listen for OnTextChanged.  They'll get reported by the ViewSpan changing 
+            // and also the SemanticChange nodification. 
+            // 
+            // Note: when the user scrolls, we will try to reclassify as soon as possible.  That way
+            // we appear semantically unclassified for a very short amount of time.
             return TaggerEventSources.Compose(
-                TaggerEventSources.OnViewSpanChanged(textView, Delay),
+                TaggerEventSources.OnViewSpanChanged(textView, textChangeDelay: Delay, scrollChangeDelay: TaggerDelay.NearImmediate),
                 TaggerEventSources.OnSemanticChanged(subjectBuffer, Delay, _semanticChangeNotificationService),
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, Delay));
         }
