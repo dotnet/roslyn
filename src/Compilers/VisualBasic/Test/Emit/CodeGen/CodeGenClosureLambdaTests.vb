@@ -78,7 +78,7 @@ Public Class DB
 End Class
                         </file>
                     </compilation>,
-                    references:=DefaultReferences,
+                    references:=DefaultVbReferences,
                     options:=TestOptions.ReleaseDll)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,

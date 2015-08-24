@@ -297,7 +297,6 @@
     <Compile Include="Diagnostics\Analyzers\CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpSimplifyTypeNamesDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\CSharpAnalyzerDriverService.cs" />
-    <Compile Include="Diagnostics\CSharpSyntaxNodeAnalyzerService.cs" />
     <Compile Include="DocumentationCommentFormatting\CSharpDocumentationCommentFormattingService.cs" />
     <Compile Include="DocumentationCommentFormatting\DocumentationCommentUtilities.cs" />
     <Compile Include="EditAndContinue\BreakpointSpans.cs" />
@@ -387,7 +386,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <PublicAPI Include="PublicAPI.txt" />
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <Import Project="..\..\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />
   <ImportGroup Label="Targets">

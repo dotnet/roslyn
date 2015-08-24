@@ -228,6 +228,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 analyzerAssembly = GetAssembly();
+                if (analyzerAssembly == null)
+                {
+                    // This can be null if NoOpAnalyzerAssemblyLoader is used.
+                    return; 
+                }
             }
             catch (Exception e)
             {

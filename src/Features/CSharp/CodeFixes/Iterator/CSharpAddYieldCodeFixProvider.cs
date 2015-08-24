@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
 
             var typeArguments = methodReturnType.GetAllTypeArguments();
 
-            var shouldOfferYieldReturn = typeArguments.Count() != 1 ?
+            var shouldOfferYieldReturn = typeArguments.Length != 1 ?
                 IsCorrectTypeForYieldReturn(returnExpressionType, methodReturnType, model) :
                 IsCorrectTypeForYieldReturn(typeArguments.Single(), returnExpressionType, methodReturnType, model);
 

@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.MetadataAsSource
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.DocumentationCommentFormatting
@@ -38,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
                         assemblyInfo,
                         SyntaxTriviaList.Create(SyntaxFactory.CarriageReturnLineFeed)))
 
-            Dim oldRoot = DirectCast(Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False), SyntaxNode)
+            Dim oldRoot = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim newRoot = oldRoot.WithLeadingTrivia({
                 SyntaxFactory.Trivia(regionTrivia),
                 SyntaxFactory.CommentTrivia("' " & assemblyPath),
@@ -54,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
         Protected Overrides Async Function ConvertDocCommentsToRegularComments(document As Document, docCommentFormattingService As IDocumentationCommentFormattingService, cancellationToken As CancellationToken) As Task(Of Document)
             Dim syntaxRoot = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
-            Dim newSyntaxRoot = DocCommentConverter.ConvertToRegularComments(DirectCast(syntaxRoot, SyntaxNode), docCommentFormattingService, cancellationToken)
+            Dim newSyntaxRoot = DocCommentConverter.ConvertToRegularComments(syntaxRoot, docCommentFormattingService, cancellationToken)
 
             Return document.WithSyntaxRoot(newSyntaxRoot)
         End Function
@@ -105,6 +106,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
                 Dim triviaList = token1.TrailingTrivia.Concat(token2.LeadingTrivia)
                 Return FormattingOperations.CreateAdjustNewLinesOperation(GetNumberOfLines(triviaList) + 1, AdjustNewLinesOption.ForceLines)
             End Function
+
+            Public Overrides Sub AddAnchorIndentationOperations(list As List(Of AnchorIndentationOperation), node As SyntaxNode, optionSet As OptionSet, nextOperation As NextAction(Of AnchorIndentationOperation))
+                Return
+            End Sub
 
             Protected Overrides Function IsNewLine(c As Char) As Boolean
                 Return c = vbCr OrElse c = vbLf OrElse SyntaxFacts.IsNewLine(c)

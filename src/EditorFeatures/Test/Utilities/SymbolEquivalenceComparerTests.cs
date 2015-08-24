@@ -1457,7 +1457,7 @@ End Class
 }
 ";
             MetadataReference r1, r2;
-            using (var tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource))
+            using (var tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource))
             {
                 byte[] bytes = File.ReadAllBytes(tempAssembly.Path);
                 r1 = MetadataReference.CreateFromImage(bytes);

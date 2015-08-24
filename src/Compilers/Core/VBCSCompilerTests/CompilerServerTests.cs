@@ -273,7 +273,7 @@ End Module")
             string currentDirectory,
             IEnumerable<KeyValuePair<string, string>> additionalEnvironmentVars = null)
         {
-            return ProcessLauncher.Run(
+            return ProcessUtilities.Run(
                 compilerPath,
                 arguments,
                 currentDirectory,
@@ -307,7 +307,7 @@ End Module")
 
         private ProcessResult RunCompilerOutput(TempFile file)
         {
-            return ProcessLauncher.Run(file.Path, "", Path.GetDirectoryName(file.Path));
+            return ProcessUtilities.Run(file.Path, "", Path.GetDirectoryName(file.Path));
         }
 
         private static void VerifyResult(ProcessResult result)
@@ -361,7 +361,7 @@ End Module")
             // Delete VBCSCompiler.exe so csc2 is forced to fall back to csc.exe
             File.Delete(_compilerServerExecutable);
 
-            var result = ProcessLauncher.Run("cmd",
+            var result = ProcessUtilities.Run("cmd",
                 string.Format("/C {0} /utf8output /nologo /t:library {1} > {2}",
                 _csharpCompilerClientExecutable,
                 srcFile, tempOut.Path));
@@ -380,7 +380,7 @@ End Module")
             // Delete VBCSCompiler.exe so csc2 is forced to fall back to csc.exe
             File.Delete(_compilerServerExecutable);
 
-            var result = ProcessLauncher.Run(
+            var result = ProcessUtilities.Run(
                 _basicCompilerClientExecutable,
                 "/nologo test.vb",
                 _tempDirectory.Path);
@@ -402,7 +402,7 @@ End Module")
             // Delete VBCSCompiler.exe so csc2 is forced to fall back to csc.exe
             File.Delete(_compilerServerExecutable);
 
-            var result = ProcessLauncher.Run("cmd",
+            var result = ProcessUtilities.Run("cmd",
                 string.Format("/C {0} /utf8output /nologo /t:library {1} > {2}",
                 _basicCompilerClientExecutable,
                 srcFile, tempOut.Path));
@@ -933,13 +933,13 @@ End Module", i));
         // Run compiler in directory set up by SetupDirectory
         private Process RunCompilerCS(TempDirectory dir, int i)
         {
-            return ProcessLauncher.StartProcess(_csharpCompilerClientExecutable, string.Format("/nologo hello{0}.cs /out:hellocs{0}.exe", i), dir.Path);
+            return ProcessUtilities.StartProcess(_csharpCompilerClientExecutable, string.Format("/nologo hello{0}.cs /out:hellocs{0}.exe", i), dir.Path);
         }
 
         // Run compiler in directory set up by SetupDirectory
         private Process RunCompilerVB(TempDirectory dir, int i)
         {
-            return ProcessLauncher.StartProcess(_basicCompilerClientExecutable, string.Format("/nologo hello{0}.vb /r:Microsoft.VisualBasic.dll /out:hellovb{0}.exe", i), dir.Path);
+            return ProcessUtilities.StartProcess(_basicCompilerClientExecutable, string.Format("/nologo hello{0}.vb /r:Microsoft.VisualBasic.dll /out:hellovb{0}.exe", i), dir.Path);
         }
 
         // Run output in directory set up by SetupDirectory
@@ -1651,7 +1651,7 @@ End Module
             var srcFile = _tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
             var tempOut = _tempDirectory.CreateFile("output.txt");
 
-            var result = ProcessLauncher.Run("cmd",
+            var result = ProcessUtilities.Run("cmd",
                 string.Format("/C {0} /nologo /t:library {1} > {2}",
                 _csharpCompilerClientExecutable,
                 srcFile, tempOut.Path));
@@ -1670,7 +1670,7 @@ End Module
             var srcFile = _tempDirectory.CreateFile("test.vb").WriteAllText(@"♕").Path;
             var tempOut = _tempDirectory.CreateFile("output.txt");
 
-            var result = ProcessLauncher.Run("cmd", string.Format("/C {0} /nologo /t:library {1} > {2}",
+            var result = ProcessUtilities.Run("cmd", string.Format("/C {0} /nologo /t:library {1} > {2}",
                 _basicCompilerClientExecutable,
                 srcFile, tempOut.Path));
 
@@ -1692,7 +1692,7 @@ End Module
             var srcFile = _tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
             var tempOut = _tempDirectory.CreateFile("output.txt");
 
-            var result = ProcessLauncher.Run("cmd", string.Format("/C {0} /utf8output /nologo /t:library {1} > {2}",
+            var result = ProcessUtilities.Run("cmd", string.Format("/C {0} /utf8output /nologo /t:library {1} > {2}",
                 _csharpCompilerClientExecutable,
                 srcFile, tempOut.Path));
 
@@ -1710,7 +1710,7 @@ End Module
             var srcFile = _tempDirectory.CreateFile("test.vb").WriteAllText(@"♕").Path;
             var tempOut = _tempDirectory.CreateFile("output.txt");
 
-            var result = ProcessLauncher.Run("cmd", string.Format("/C {0} /utf8output /nologo /t:library {1} > {2}",
+            var result = ProcessUtilities.Run("cmd", string.Format("/C {0} /utf8output /nologo /t:library {1} > {2}",
                 _basicCompilerClientExecutable,
                 srcFile, tempOut.Path));
 
@@ -1787,7 +1787,7 @@ class Program
             var rspFile = _tempDirectory.CreateFile("temp.rsp").WriteAllText(
                 string.Format("/utf8output /nologo /t:library {0}", srcFile));
 
-            var result = ProcessLauncher.Run("cmd",
+            var result = ProcessUtilities.Run("cmd",
                 string.Format(
                     "/C {0} /noconfig @{1} > {2}",
                     _csharpCompilerClientExecutable,
@@ -1809,7 +1809,7 @@ class Program
             var rspFile = _tempDirectory.CreateFile("temp.rsp").WriteAllText(
                 string.Format("/utf8output /nologo /t:library {0}", srcFile));
 
-            var result = ProcessLauncher.Run("cmd",
+            var result = ProcessUtilities.Run("cmd",
                 string.Format(
                     "/C {0} /noconfig @{1} > {2}",
                     _basicCompilerClientExecutable,
@@ -1838,7 +1838,7 @@ class Program
             root.SelectSingleNode("appSettings/add/@value").Value = "1";
             doc.Save(exeConfigPath);
 
-            var proc = ProcessLauncher.StartProcess(_compilerServerExecutable, "");
+            var proc = ProcessUtilities.StartProcess(_compilerServerExecutable, "");
             await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false); // Give 2s leeway
 
             var exited = proc.HasExited;
@@ -1911,7 +1911,7 @@ class Program
             _tempDirectory.CreateDirectory("Temp");
             var tmp = Path.Combine(_tempDirectory.Path, "Temp");
 
-            var result = ProcessLauncher.Run("cmd",
+            var result = ProcessUtilities.Run("cmd",
                 string.Format("/C \"SET TMP={2} && {0} /nologo /t:library {1}\"",
                 _csharpCompilerClientExecutable,
                 srcFile, tmp));
@@ -1920,7 +1920,7 @@ class Program
 
             Directory.Delete(tmp);
 
-            result = ProcessLauncher.Run("cmd",
+            result = ProcessUtilities.Run("cmd",
                 string.Format("/C {0} /nologo /t:library {1}",
                 _csharpCompilerClientExecutable,
                 srcFile));
@@ -1937,7 +1937,7 @@ class Program
             _tempDirectory.CreateDirectory("Temp");
             var tmp = Path.Combine(_tempDirectory.Path, "Temp");
 
-            var result = ProcessLauncher.Run("cmd",
+            var result = ProcessUtilities.Run("cmd",
                 string.Format("/C \"SET TMP={2} && {0} /nologo /t:library {1}\"",
                 _basicCompilerClientExecutable,
                 srcFile, tmp));
@@ -1946,7 +1946,7 @@ class Program
 
             Directory.Delete(tmp);
 
-            result = ProcessLauncher.Run("cmd",
+            result = ProcessUtilities.Run("cmd",
                 string.Format("/C {0} /nologo /t:library {1}",
                 _basicCompilerClientExecutable,
                 srcFile));
@@ -1979,7 +1979,7 @@ class Program
 
             Assert.True(File.Exists(exeFile));
 
-            var result = ProcessLauncher.Run(exeFile, "");
+            var result = ProcessUtilities.Run(exeFile, "");
             Assert.Equal(0, result.ExitCode);
             Assert.Equal("Hello, world.", result.Output.Trim());
         }
@@ -2008,7 +2008,7 @@ class Program
 
             Assert.True(File.Exists(exeFile));
 
-            var result = ProcessLauncher.Run(exeFile, "");
+            var result = ProcessUtilities.Run(exeFile, "");
             Assert.Equal(0, result.ExitCode);
             Assert.Equal("Hello from VB", result.Output.Trim());
         }
@@ -2016,7 +2016,7 @@ class Program
         [Fact]
         public void ServerExitsWhenRunWithNoArgs()
         {
-            var result = ProcessLauncher.Run(_compilerServerExecutable, "");
+            var result = ProcessUtilities.Run(_compilerServerExecutable, "");
 
             Assert.Equal(1, result.ExitCode);
             Assert.Equal("", result.Output);
@@ -2025,10 +2025,10 @@ class Program
         [Fact]
         public void OnlyStartsOneServer()
         {
-            var result = ProcessLauncher.Run(_csharpCompilerClientExecutable, "");
+            var result = ProcessUtilities.Run(_csharpCompilerClientExecutable, "");
             Assert.Equal(1, GetProcessesByFullPath(_compilerServerExecutable).Count);
 
-            result = ProcessLauncher.Run(_csharpCompilerClientExecutable, "");
+            result = ProcessUtilities.Run(_csharpCompilerClientExecutable, "");
             Assert.Equal(1, GetProcessesByFullPath(_compilerServerExecutable).Count);
         }
 

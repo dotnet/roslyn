@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     internal partial class TriviaDataFactory
     {
-        private class ModifiedComplexTrivia : TriviaDataWithList<SyntaxTrivia>
+        private class ModifiedComplexTrivia : TriviaDataWithList
         {
             private readonly ComplexTrivia _original;
 

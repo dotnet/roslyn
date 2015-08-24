@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     compilation, availableTypeParameters);
 
                 var enclosingMethodSymbol = document.SemanticModel.GetEnclosingSymbol<IMethodSymbol>(this.SimpleNameOrMemberAccessExpressionOpt.SpanStart, cancellationToken);
-                if (enclosingMethodSymbol != null && enclosingMethodSymbol.TypeParameters != null && enclosingMethodSymbol.TypeParameters.Count() != 0)
+                if (enclosingMethodSymbol != null && enclosingMethodSymbol.TypeParameters != null && enclosingMethodSymbol.TypeParameters.Length != 0)
                 {
                     var combinedTypeParameters = new List<ITypeParameterSymbol>();
                     combinedTypeParameters.AddRange(availableTypeParameters);

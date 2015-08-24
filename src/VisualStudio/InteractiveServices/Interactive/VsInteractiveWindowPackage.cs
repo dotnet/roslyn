@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -38,6 +39,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             var menuCommandService = (OleMenuCommandService)GetService(typeof(IMenuCommandService));
             InitializeMenuCommands(menuCommandService);
             InitializeResetInteractiveFromProjectCommand(menuCommandService);
+
+            var telemetrySetupExtensions = _componentModel.GetExtensions<IRoslynTelemetrySetup>();
+            foreach (var telemetrySetup in telemetrySetupExtensions)
+            {
+                telemetrySetup.Initialize(this);
+            }
         }
 
         protected TVsInteractiveWindowProvider InteractiveWindowProvider

@@ -108,10 +108,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                                 foreach (var import in proposedImports)
                                 {
-                                    var action = new MyCodeAction(this.GetDescription(import, semanticModel, node), (c) =>
-                                        this.AddImportAsync(node, import, document, placeSystemNamespaceFirst, cancellationToken));
-
-                                    context.RegisterCodeFix(action, diagnostic);
+                                    var description = this.GetDescription(import, semanticModel, node);
+                                    if (description != null)
+                                    {
+                                        var action = new MyCodeAction(description, (c) =>
+                                            this.AddImportAsync(node, import, document, placeSystemNamespaceFirst, cancellationToken));
+                                        context.RegisterCodeFix(action, diagnostic);
+                                    }
                                 }
                             }
                         }

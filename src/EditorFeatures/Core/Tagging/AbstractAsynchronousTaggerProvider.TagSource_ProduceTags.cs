@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> ConvertToTagTrees(
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
-                IEnumerable<ITagSpan<TTag>> newTagSpans,
+                ILookup<ITextBuffer, ITagSpan<TTag>> newTagsByBuffer,
                 IEnumerable<DocumentSnapshotSpan> spansTagged)
             {
                 // NOTE: we assume that the following list is already realized and is _not_ lazily
@@ -348,11 +348,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // common case where we only tagged a single range of a document.
                 if (spansTagged.IsSingle())
                 {
-                    return ConvertToTagTree(oldTagTrees, newTagSpans, spansTagged.Single().SnapshotSpan);
+                    return ConvertToTagTree(oldTagTrees, newTagsByBuffer, spansTagged.Single().SnapshotSpan);
                 }
 
                 // heavy linq case 
-                var newTagsByBuffer = newTagSpans.ToLookup(t => t.Span.Snapshot.TextBuffer);
                 var spansToInvalidateByBuffer = spansTagged.Select(ss => ss.SnapshotSpan).ToLookup(ss => ss.Snapshot.TextBuffer);
 
                 var buffers = oldTagTrees.Keys.Concat(newTagsByBuffer.Select(g => g.Key))
@@ -432,10 +431,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> ConvertToTagTree(
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
-                IEnumerable<ITagSpan<TTag>> newTagSpans,
+                ILookup<ITextBuffer, ITagSpan<TTag>> newTagsByBuffer,
                 SnapshotSpan spanTagged)
             {
-                var newTagsByBuffer = newTagSpans.ToLookup(t => t.Span.Snapshot.TextBuffer);
                 var allBuffers = oldTagTrees.Keys.Concat(newTagsByBuffer.Select(g => g.Key))
                                                  .Concat(spanTagged.Snapshot.TextBuffer).Distinct();
 
@@ -577,7 +575,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
                 TaggerContext<TTag> context)
             {
-                var newTagTrees = ConvertToTagTrees(oldTagTrees, context.tagSpans, context._spansTagged);
+                var buffersToTag = spansToTag.Select(dss => dss.SnapshotSpan.Snapshot.TextBuffer).ToSet();
+
+                // Ignore any tag spans reported for any buffers we weren't interested in.
+                var newTagsByBuffer = context.tagSpans.Where(ts => buffersToTag.Contains(ts.Span.Snapshot.TextBuffer))
+                                                      .ToLookup(t => t.Span.Snapshot.TextBuffer);
+
+
+                var newTagTrees = ConvertToTagTrees(oldTagTrees, newTagsByBuffer, context._spansTagged);
                 ProcessNewTagTrees(spansToTag, oldTagTrees, newTagTrees, context.State, context.CancellationToken);
             }
 

@@ -479,28 +479,39 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
                 GenerateType(type)
 
                 If arrayBounds IsNot Nothing Then
+
                     If Not TryGenerateArrayBounds(arrayBounds, type) Then
                         Return False
                     End If
-                End If
 
-                If initializer IsNot Nothing Then
-                    If type.TypeKind = TypeKind.Array AndAlso arrayBounds Is Nothing Then
-                        Select Case initializer.Kind
-                            Case SyntaxKind.ArrayCreationExpression
-                                If Not TryGenerateArrayCreation(DirectCast(initializer, ArrayCreationExpressionSyntax)) Then
-                                    Return False
-                                End If
-                            Case SyntaxKind.CollectionInitializer
-                                If Not TryGenerateArrayInitializer(DirectCast(initializer, CollectionInitializerSyntax), type) Then
-                                    Return False
-                                End If
-                            Case Else
-                                Return False
-                        End Select
-                    ElseIf Not TryGenerateExpression(initializer) Then
-                        Return False
+                    If initializer IsNot Nothing AndAlso initializer.Kind = SyntaxKind.CollectionInitializer Then
+                        If Not TryGenerateCollectionInitializer(DirectCast(initializer, CollectionInitializerSyntax)) Then
+                            Return False
+                        End If
                     End If
+
+                Else
+                    ' No array bounds...
+
+                    If initializer IsNot Nothing Then
+                        If type.TypeKind = TypeKind.Array Then
+                            Select Case initializer.Kind
+                                Case SyntaxKind.ArrayCreationExpression
+                                    If Not TryGenerateArrayCreation(DirectCast(initializer, ArrayCreationExpressionSyntax)) Then
+                                        Return False
+                                    End If
+                                Case SyntaxKind.CollectionInitializer
+                                    If Not TryGenerateArrayInitializer(DirectCast(initializer, CollectionInitializerSyntax), type) Then
+                                        Return False
+                                    End If
+                                Case Else
+                                    Return False
+                            End Select
+                        ElseIf Not TryGenerateExpression(initializer) Then
+                            Return False
+                        End If
+                    End If
+
                 End If
 
                 Return True

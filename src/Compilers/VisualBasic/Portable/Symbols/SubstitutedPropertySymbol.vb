@@ -205,13 +205,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property Type As TypeSymbol
             Get
-                Return _originalDefinition.Type.InternalSubstituteTypeParameters(TypeSubstitution)
+                Return _originalDefinition.Type.InternalSubstituteTypeParameters(TypeSubstitution).Type
             End Get
         End Property
 
         Public Overrides ReadOnly Property TypeCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                Return _originalDefinition.TypeCustomModifiers
+                Return TypeSubstitution.SubstituteCustomModifiers(_originalDefinition.Type, _originalDefinition.TypeCustomModifiers)
             End Get
         End Property
 

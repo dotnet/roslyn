@@ -33,8 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 {
                     if (TagsChanged != null)
                     {
-                        var span = new SnapshotSpan(_textBuffer.CurrentSnapshot, new Span(0, _textBuffer.CurrentSnapshot.Length));
-                        TagsChanged(this, new SnapshotSpanEventArgs(new SnapshotSpan(_textBuffer.CurrentSnapshot, span)));
+                        var span = _textBuffer.CurrentSnapshot.GetFullSpan();
+                        TagsChanged(this, new SnapshotSpanEventArgs(span));
                     }
                 }
             }

@@ -122,8 +122,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private DiagnosticData CreateDiagnostic(ProjectId projectId, AnalyzerDependencyConflict conflict)
         {
-            string id = ServicesVSResources.WRN_AnalyzerDependencyConflictId;
-            string category = ServicesVSResources.ErrorCategory;
             string message = string.Format(
                 ServicesVSResources.WRN_AnalyzerDependencyConflictMessage,
                 conflict.AnalyzerFilePath1,
@@ -131,8 +129,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 conflict.Identity.ToString());
 
             DiagnosticData data = new DiagnosticData(
-                id,
-                category,
+                IDEDiagnosticIds.AnalyzerDependencyConflictId,
+                ServicesVSResources.ErrorCategory,
                 message,
                 ServicesVSResources.WRN_AnalyzerDependencyConflictMessage,
                 severity: DiagnosticSeverity.Warning,
@@ -142,23 +140,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 customTags: ImmutableArray<string>.Empty,
                 properties: ImmutableDictionary<string, string>.Empty,
                 workspace: _workspace,
-                projectId: projectId);
+                projectId: projectId,
+                title: ServicesVSResources.WRN_AnalyzerDependencyConflictTitle);
 
             return data;
         }
 
         private DiagnosticData CreateDiagnostic(ProjectId projectId, MissingAnalyzerDependency missingDependency)
         {
-            string id = ServicesVSResources.WRN_MissingAnalyzerReferenceId;
-            string category = ServicesVSResources.ErrorCategory;
             string message = string.Format(
                 ServicesVSResources.WRN_MissingAnalyzerReferenceMessage,
                 missingDependency.AnalyzerPath,
                 missingDependency.DependencyIdentity.ToString());
 
             DiagnosticData data = new DiagnosticData(
-                id,
-                category,
+                IDEDiagnosticIds.MissingAnalyzerReferenceId,
+                ServicesVSResources.ErrorCategory,
                 message,
                 ServicesVSResources.WRN_MissingAnalyzerReferenceMessage,
                 severity: DiagnosticSeverity.Warning,
@@ -168,7 +165,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 customTags: ImmutableArray<string>.Empty,
                 properties: ImmutableDictionary<string, string>.Empty,
                 workspace: _workspace,
-                projectId: projectId);
+                projectId: projectId,
+                title: ServicesVSResources.WRN_MissingAnalyzerReferenceTitle);
 
             return data;
         }

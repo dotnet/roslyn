@@ -3,15 +3,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.CSharp;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Scripting.CSharp.Test
 {
-    public class ScriptTests : CSharpTestBase
+    public class ScriptTests : TestBase
     {
         [Fact]
         public void TestCreateScript()
@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp.Test
         public void TestGetCompilation()
         {
             var script = CSharpScript.Create("1 + 2");
+            script.RunAsync(new ScriptTests());
             var compilation = script.GetCompilation();
             Assert.Equal(script.Code, compilation.SyntaxTrees.First().GetText().ToString());
         }

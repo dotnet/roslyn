@@ -36,20 +36,4 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// </summary>
         StandardInput,
     }
-
-    internal static class ReplSpanKindExtensions
-    {
-        internal static bool IsPrompt(this ReplSpanKind kind)
-        {
-            switch (kind)
-            {
-                case ReplSpanKind.Prompt:
-                case ReplSpanKind.SecondaryPrompt:
-                case ReplSpanKind.StandardInputPrompt:
-                    return true;
-                default:
-                    return false;
-            }
-        }
-    }
 }

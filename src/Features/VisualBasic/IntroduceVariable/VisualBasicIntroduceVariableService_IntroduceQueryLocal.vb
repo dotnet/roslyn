@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                                                          allOccurrences As Boolean,
                                                          cancellationToken As CancellationToken) As Task(Of Document)
 
-            Dim newLocalNameToken = CType(GenerateUniqueLocalName(document, expression, isConstant:=False, cancellationToken:=cancellationToken), SyntaxToken)
+            Dim newLocalNameToken = GenerateUniqueLocalName(document, expression, isConstant:=False, cancellationToken:=cancellationToken)
             Dim newLocalName = SyntaxFactory.IdentifierName(newLocalNameToken)
 
             Dim letClause = SyntaxFactory.LetClause(

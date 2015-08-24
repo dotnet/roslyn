@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetry;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Log
 {
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             }));
         }
 
-        public static void LogAnalyzerCrashCount(DiagnosticAnalyzer analyzer, Exception ex, LogAggregator logAggregator)
+        public static void LogAnalyzerCrashCount(DiagnosticAnalyzer analyzer, Exception ex, LogAggregator logAggregator, ProjectId projectId)
         {
             if (logAggregator == null || analyzer == null || ex == null || ex is OperationCanceledException)
             {
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             }
 
             // TODO: once we create description manager, pass that into here.
-            bool telemetry = DiagnosticAnalyzerLogger.AllowsTelemetry(null, analyzer);
+            bool telemetry = DiagnosticAnalyzerLogger.AllowsTelemetry(null, analyzer, projectId);
             var tuple = ValueTuple.Create(telemetry, analyzer.GetType(), ex.GetType());
             logAggregator.IncreaseCount(tuple);
         }
@@ -86,14 +87,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             }
         }
 
-        public static void UpdateAnalyzerTypeCount(DiagnosticAnalyzer analyzer, AnalyzerActions analyzerActions, DiagnosticLogAggregator logAggregator)
+        public static void UpdateAnalyzerTypeCount(DiagnosticAnalyzer analyzer, ActionCounts analyzerActions, Project projectOpt, DiagnosticLogAggregator logAggregator)
         {
             if (analyzerActions == null || analyzer == null || logAggregator == null)
             {
                 return;
             }
 
-            logAggregator.UpdateAnalyzerTypeCount(analyzer, analyzerActions);
+            logAggregator.UpdateAnalyzerTypeCount(analyzer, analyzerActions, projectOpt);
         }
 
         public static void LogAnalyzerTypeCountSummary(int correlationId, DiagnosticLogAggregator logAggregator)
@@ -131,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             }
         }
 
-        public static bool AllowsTelemetry(DiagnosticAnalyzerService service, DiagnosticAnalyzer analyzer)
+        public static bool AllowsTelemetry(DiagnosticAnalyzerService service, DiagnosticAnalyzer analyzer, ProjectId projectIdOpt)
         {
             StrongBox<bool> value;
             if (s_telemetryCache.TryGetValue(analyzer, out value))

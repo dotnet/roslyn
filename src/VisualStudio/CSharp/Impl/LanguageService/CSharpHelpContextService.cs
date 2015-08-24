@@ -321,7 +321,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
             if (symbol.GetTypeArguments().Any())
             {
-                return string.Format("{0}`{1}", displayString, symbol.GetTypeArguments().Count());
+                return string.Format("{0}`{1}", displayString, symbol.GetTypeArguments().Length);
             }
 
             return displayString;
@@ -349,7 +349,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
             if (symbol.GetTypeArguments().Any())
             {
-                return string.Format("{0}.{1}``{2}", containingType, name, symbol.GetTypeArguments().Count());
+                return string.Format("{0}.{1}``{2}", containingType, name, symbol.GetTypeArguments().Length);
             }
 
             return string.Format("{0}.{1}", containingType, name);

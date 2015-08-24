@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         private static SignatureChange CreateCompensatingSignatureChange(ISymbol declarationSymbol, SignatureChange updatedSignature)
         {
-            if (declarationSymbol.GetParameters().Count() > updatedSignature.OriginalConfiguration.ToListOfParameters().Count)
+            if (declarationSymbol.GetParameters().Length > updatedSignature.OriginalConfiguration.ToListOfParameters().Count)
             {
                 var origStuff = updatedSignature.OriginalConfiguration.ToListOfParameters();
                 var newStuff = updatedSignature.UpdatedConfiguration.ToListOfParameters();

@@ -20,7 +20,7 @@ End Class
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
-            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestReferences)
+            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestVbReferences)
 
             Dim typeSyntax = DirectCast(DirectCast(tree.GetCompilationUnitRoot().Members(0), ClassBlockSyntax).Members(0), FieldDeclarationSyntax).Declarators(0).AsClause.Type
 
@@ -39,7 +39,7 @@ System.Console.WriteLine(1+1)
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
-            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestReferences)
+            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestVbReferences)
 
             CompileAndVerify(c, expectedOutput:="2")
         End Sub
@@ -65,7 +65,7 @@ Return Foo
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
-            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestReferences)
+            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestVbReferences)
 
             c.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_ReturnFromNonFunction, "Return Foo").WithLocation(2, 1),
@@ -87,7 +87,7 @@ Me.Foo
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
-            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestReferences)
+            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestVbReferences)
 
             c.VerifyDiagnostics(Diagnostic(ERRID.ERR_KeywordNotAllowedInScript, "Me").WithArguments("Me"),
                                 Diagnostic(ERRID.ERR_KeywordNotAllowedInScript, "Me").WithArguments("Me"))
@@ -108,7 +108,7 @@ MyBase.Foo
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
-            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestReferences)
+            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestVbReferences)
 
             c.VerifyDiagnostics(Diagnostic(ERRID.ERR_KeywordNotAllowedInScript, "MyClass").WithArguments("MyClass"),
                                 Diagnostic(ERRID.ERR_KeywordNotAllowedInScript, "MyBase").WithArguments("MyBase"))
@@ -125,7 +125,7 @@ Foo
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
-            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestReferences)
+            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestVbReferences)
 
             CompileAndVerify(c, expectedOutput:="2")
         End Sub
@@ -155,7 +155,7 @@ System.Console.WriteLine(Foo)
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
-            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestReferences)
+            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestVbReferences)
 
             CompileAndVerify(c, expectedOutput:="3")
         End Sub
@@ -169,14 +169,14 @@ Next
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
-            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestReferences)
+            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestVbReferences)
 
             CompileAndVerify(c, expectedOutput:="012")
         End Sub
 
         <Fact>
         Public Sub ChainingAnonymousTypeTemplates()
-            Dim references = LatestReferences
+            Dim references = LatestVbReferences
 
             Dim s0 = VisualBasicCompilation.CreateSubmission("s0.dll",
                                                   syntaxTree:=VisualBasicSyntaxTree.ParseText(

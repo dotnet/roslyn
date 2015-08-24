@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                     var originalSwitchLabels = originalSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
                     var newSwitchLabels = newSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
-                    for (int i = 0; i < originalSwitchLabels.Count(); i++)
+                    for (int i = 0; i < originalSwitchLabels.Length; i++)
                     {
                         var originalSwitchLabel = originalSwitchLabels[i] as CaseSwitchLabelSyntax;
                         if (originalSwitchLabel != null)

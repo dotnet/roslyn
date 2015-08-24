@@ -31,10 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             public static bool ShouldFormatSingleLine(TriviaList list)
             {
-                foreach (var commonTrivia in list)
+                foreach (var trivia in list)
                 {
-                    var trivia = (SyntaxTrivia)commonTrivia;
-
                     Contract.ThrowIfTrue(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
                     Contract.ThrowIfTrue(trivia.Kind() == SyntaxKind.SkippedTokensTrivia);
                     Contract.ThrowIfTrue(trivia.Kind() == SyntaxKind.PreprocessingMessageTrivia);
@@ -75,10 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             public static bool ContainsSkippedTokensOrText(TriviaList list)
             {
-                foreach (var commonTrivia in list)
+                foreach (var trivia in list)
                 {
-                    var trivia = (SyntaxTrivia)commonTrivia;
-
                     if (trivia.Kind() == SyntaxKind.SkippedTokensTrivia ||
                         trivia.Kind() == SyntaxKind.PreprocessingMessageTrivia)
                     {
@@ -273,10 +269,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             private bool ShouldFormat()
             {
                 var index = -1;
-                foreach (var commonTrivia in _triviaList)
+                foreach (var trivia in _triviaList)
                 {
                     index++;
-                    var trivia = (SyntaxTrivia)commonTrivia;
 
                     // order in which these methods run has a side effect. don't change the order
                     // each method run

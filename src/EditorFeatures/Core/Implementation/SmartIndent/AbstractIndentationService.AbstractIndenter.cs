@@ -45,7 +45,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                          new ChainedFormattingRules(this.Rules, OptionSet),
                          this.TabSize,
                          this.OptionSet.GetOption(FormattingOptions.IndentationSize, this.Document.Root.Language),
-                         tokenStream: null);
+                         tokenStream: null,
+                         lastToken: default(SyntaxToken));
             }
 
             public abstract IndentationResult? GetDesiredIndentation();

@@ -1165,13 +1165,7 @@ struct Conv
 	}		
 }
 ";
-            // Note that the error message we produce here is not very good; the user would reasonably point out
-            // that the switch expression could be converted to a "corresponding nullable type" via the 
-            // lifted user-defined conversion.
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                    // (12,10): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                    // 		switch(C)
-                    Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "C"));
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1305,9 +1299,6 @@ struct A
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (22,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                //             switch(aNullable)
-                Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "aNullable").WithLocation(22, 20),
                 // (28,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //             switch(a)
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a").WithLocation(28, 20));
@@ -1369,7 +1360,7 @@ struct A
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_3()
         {
-            // Dev10 behavior: 2nd switch expression is an ambiguous user defined conversion
+            // 2nd switch expression is an ambiguous user defined conversion (both applicable in non-lifted form)
 
             var text =
 @"using System;
@@ -1417,7 +1408,7 @@ struct A
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_4()
         {
-            // Dev10 behavior: 2nd switch expression is an ambiguous user defined conversion
+            // 2nd switch expression is an ambiguous user defined conversion (both applicable in non-lifted form)
 
             var text =
 @"using System;
@@ -1465,9 +1456,7 @@ struct A
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_5()
         {
-            // Dev10 behavior: 2nd switch expression is an ambiguous user defined conversion
-
-            // Roslyn behavior: 2nd switch expression: No ambiguity, binds to "implicit operator int(A a)"
+            // 2nd switch expression is an ambiguous user defined conversion
 
             var text =
 @"using System;
@@ -1505,16 +1494,18 @@ struct A
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (28,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
+                //             switch(a)
+                Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a").WithLocation(28, 20)
+                );
         }
 
         [WorkItem(543673, "DevDiv")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_6()
         {
-            // Dev10 behavior: 2nd switch expression is an ambiguous user defined conversion
-
-            // Roslyn behavior: 2nd switch expression: No ambiguity, binds to "implicit operator int?(A a)"
+            // 2nd switch expression is an ambiguous user defined conversion
 
             var text =
 @"using System;
@@ -1552,14 +1543,18 @@ struct A
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (28,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
+                //             switch(a)
+                Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a").WithLocation(28, 20)
+                );
         }
 
         [WorkItem(543673, "DevDiv")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_3_1()
         {
-            // Dev10 behavior: 2nd switch expression is an ambiguous user defined conversion
+            // 2nd switch expression is an ambiguous user defined conversion
 
             var text =
 @"using System;
@@ -1613,8 +1608,8 @@ struct A
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_3_2()
         {
-            // Dev10 behavior: 1st switch expression is an ambiguous user defined conversion
-            // Dev10 behavior: 2nd switch expression is an ambiguous user defined conversion
+            // 1st switch expression is an ambiguous user defined conversion
+            // 2nd switch expression is an ambiguous user defined conversion
 
             var text =
 @"using System;
@@ -1671,7 +1666,7 @@ struct A
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_3_3()
         {
-            // Dev10 behavior: 2nd switch expression is an ambiguous user defined conversion
+            // 2nd switch expression is an ambiguous user defined conversion
 
             var text =
 @"using System;
@@ -1725,8 +1720,8 @@ struct A
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_3_4()
         {
-            // Dev10 behavior: 1st switch expression is an ambiguous user defined conversion
-            // Dev10 behavior: 2nd switch expression is an ambiguous user defined conversion
+            // 1st switch expression is an ambiguous user defined conversion
+            // 2nd switch expression is an ambiguous user defined conversion
 
             var text =
 @"using System;
@@ -1783,8 +1778,8 @@ struct A
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_4_1()
         {
-            // Dev10 behavior: 1st switch expression is an ambiguous user defined conversion
-            // Dev10 behavior: 2nd switch expression is an ambiguous user defined conversion
+            // 1st switch expression is an ambiguous user defined conversion
+            // 2nd switch expression is an ambiguous user defined conversion
 
             var text =
 @"using System;
@@ -1841,6 +1836,156 @@ struct A
                 // (40,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //             switch(a)
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a"));
+        }
+
+        [WorkItem(4344, "https://github.com/dotnet/roslyn/issues/4344")]
+        [Fact()]
+        public void ImplicitNullableUserDefinedConversionToSwitchGoverningTypeString01()
+        {
+            var text =
+@"using System;
+ 
+struct A
+{
+    public static implicit operator string(A a1)
+    {
+        Console.WriteLine(nameof(a1));
+        return nameof(a1);
+    }
+    class B
+    {
+        static void Main()
+        {
+            A? aNullable = new A();
+            switch(aNullable)
+            {
+                default: break;
+            }
+        }
+    }
+}
+";
+            CompileAndVerify(text, expectedOutput: "a1");
+        }
+
+        [WorkItem(4344, "https://github.com/dotnet/roslyn/issues/4344")]
+        [Fact()]
+        public void ImplicitNullableUserDefinedConversionToSwitchGoverningTypeString02()
+        {
+            var text =
+@"using System;
+ 
+struct A
+{
+    public static implicit operator string(A a1)
+    {
+        Console.WriteLine(nameof(a1));
+        return nameof(a1);
+    }
+    public static implicit operator string(A? a2)
+    {
+        Console.WriteLine(nameof(a2));
+        return nameof(a2);
+    }
+    class B
+    {
+        static void Main()
+        {
+            A? aNullable = new A();
+            switch(aNullable)
+            {
+                default: break;
+            }
+        }
+    }
+}
+";
+            CompileAndVerify(text, expectedOutput: "a2");
+        }
+
+        [WorkItem(4344, "https://github.com/dotnet/roslyn/issues/4344")]
+        [Fact()]
+        public void ImplicitNullableUserDefinedConversionToSwitchGoverningTypeInt()
+        {
+            var text =
+@"using System;
+class Program
+{
+  static void Main(string[] args)
+  {
+    M(default(X));
+    M(null);
+  }
+  static void M(X? x)
+  {
+    switch (x)
+    {
+      case null:
+        Console.WriteLine(""null"");
+        break;
+      case 1:
+        Console.WriteLine(1);
+        break;
+    }
+  }
+}
+struct X
+{
+    public static implicit operator int? (X x)
+    {
+        return 1;
+    }
+}";
+            CompileAndVerify(text, expectedOutput:
+@"1
+null");
+        }
+
+        [WorkItem(4344, "https://github.com/dotnet/roslyn/issues/4344")]
+        [Fact()]
+        public void ImplicitUserDefinedConversionToSwitchGoverningType_42()
+        {
+            var text =
+@"using System;
+
+struct A
+{
+    public static implicit operator int?(A a)
+    {
+        Console.WriteLine(""0"");
+    return 0;
+    }
+
+    public static implicit operator string (A? a)
+    {
+        Console.WriteLine(""1"");
+        return """";
+    }
+
+    class B
+    {
+        static void Main()
+        {
+            A? aNullable = new A();
+            switch (aNullable) // only A?->string is applicable in non-lifted form
+            {
+                case """":
+                default: break;
+            }
+
+            A a = new A();
+            switch (a) // both operators applicable in non-lifted form -> error
+            {
+                default: break;
+            }
+        }
+    }
+}";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (29,21): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
+                //             switch (a) // both operators applicable in non-lifted form -> error
+                Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a").WithLocation(29, 21)
+                );
         }
 
         #endregion

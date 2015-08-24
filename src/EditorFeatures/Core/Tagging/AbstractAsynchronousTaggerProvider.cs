@@ -1,7 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Linq;
+#if DEBUG
+using System.Diagnostics;
+#endif
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -68,12 +70,20 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         protected virtual IEnumerable<Option<bool>> Options => SpecializedCollections.EmptyEnumerable<Option<bool>>();
         protected virtual IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.EmptyEnumerable<PerLanguageOption<bool>>();
 
+#if DEBUG
+        public readonly string StackTrace;
+#endif
+
         protected AbstractAsynchronousTaggerProvider(
             IAsynchronousOperationListener asyncListener,
             IForegroundNotificationService notificationService)
         {
-            this._asyncListener = asyncListener;
-            this._notificationService = notificationService;
+            _asyncListener = asyncListener;
+            _notificationService = notificationService;
+
+#if DEBUG
+            StackTrace = new StackTrace().ToString();
+#endif
         }
 
         private TagSource CreateTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)

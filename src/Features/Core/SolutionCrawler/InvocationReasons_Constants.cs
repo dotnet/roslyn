@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public static readonly InvocationReasons ProjectConfigurationChanged =
             new InvocationReasons(
                 ImmutableHashSet.Create<string>(
+                                    PredefinedInvocationReasons.SyntaxChanged,
                                     PredefinedInvocationReasons.SemanticChanged));
 
         public static readonly InvocationReasons SolutionRemoved =

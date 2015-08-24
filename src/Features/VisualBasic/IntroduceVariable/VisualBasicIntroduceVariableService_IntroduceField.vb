@@ -18,10 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
             Dim oldTypeDeclaration = expression.GetAncestorOrThis(Of TypeBlockSyntax)()
             Dim oldType = If(oldTypeDeclaration IsNot Nothing,
-                DirectCast(document.SemanticModel, SemanticModel).GetDeclaredSymbol(oldTypeDeclaration.BlockStatement, cancellationToken),
+                document.SemanticModel.GetDeclaredSymbol(oldTypeDeclaration.BlockStatement, cancellationToken),
                 Nothing)
 
-            Dim newNameToken = CType(GenerateUniqueLocalName(document, expression, isConstant, cancellationToken), SyntaxToken)
+            Dim newNameToken = GenerateUniqueLocalName(document, expression, isConstant, cancellationToken)
 
             Dim newQualifiedName = SyntaxFactory.SimpleMemberAccessExpression(
                     expression:=SyntaxFactory.ParseName(oldType.ToNameDisplayString()),
@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 Dim newRoot = oldRoot.ReplaceNodes(
                     group.Select(Function(kvp) kvp.Key),
                     Function(n1, n2)
-                        Return oldToNewTypeBlockMap(DirectCast(n1, TypeBlockSyntax))
+                        Return oldToNewTypeBlockMap(n1)
                     End Function)
 
                 updatedDocument = updatedDocument.Project.Solution.GetDocument(currentDocument.Id).WithSyntaxRoot(newRoot)

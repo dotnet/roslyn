@@ -102,11 +102,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
             var inConditionalMemberAccess = conditionalMemberAccess != null;
             if (memberAccess != null)
             {
-                simpleNameOrMemberAccessExpression = (ExpressionSyntax)memberAccess;
+                simpleNameOrMemberAccessExpression = memberAccess;
             }
             else if (inConditionalMemberAccess)
             {
-                simpleNameOrMemberAccessExpression = (ExpressionSyntax)conditionalMemberAccess;
+                simpleNameOrMemberAccessExpression = conditionalMemberAccess;
             }
             else
             {

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
@@ -66,9 +67,9 @@ namespace Microsoft.CodeAnalysis
             return _factory.GetArrayTypeSymbol(this.moduleSymbol, rank, elementType);
         }
 
-        protected TypeSymbol GetByRefReturnTypeSymbol(TypeSymbol referencedType)
+        protected TypeSymbol GetByRefReturnTypeSymbol(TypeSymbol referencedType, ushort countOfCustomModifiersPrecedingByRef)
         {
-            return _factory.GetByRefReturnTypeSymbol(this.moduleSymbol, referencedType);
+            return _factory.GetByRefReturnTypeSymbol(this.moduleSymbol, referencedType, countOfCustomModifiersPrecedingByRef);
         }
 
         protected TypeSymbol MakePointerTypeSymbol(TypeSymbol type, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
@@ -106,7 +107,7 @@ namespace Microsoft.CodeAnalysis
             return _factory.MakeUnboundIfGeneric(this.moduleSymbol, type);
         }
 
-        protected TypeSymbol SubstituteTypeParameters(TypeSymbol genericType, ImmutableArray<TypeSymbol> arguments, ImmutableArray<bool> refersToNoPiaLocalType)
+        protected TypeSymbol SubstituteTypeParameters(TypeSymbol genericType, ImmutableArray<KeyValuePair<TypeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>>>> arguments, ImmutableArray<bool> refersToNoPiaLocalType)
         {
             return _factory.SubstituteTypeParameters(this.moduleSymbol, genericType, arguments, refersToNoPiaLocalType);
         }
@@ -215,16 +216,16 @@ namespace Microsoft.CodeAnalysis
             return container;
         }
 
-        private ImmutableArray<TypeSymbol> ResolveTypeArguments(MetadataHelpers.AssemblyQualifiedTypeName[] arguments, out ImmutableArray<bool> refersToNoPiaLocalType)
+        private ImmutableArray<KeyValuePair<TypeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>>>> ResolveTypeArguments(MetadataHelpers.AssemblyQualifiedTypeName[] arguments, out ImmutableArray<bool> refersToNoPiaLocalType)
         {
             int count = arguments.Length;
-            var typeArgumentsBuilder = ArrayBuilder<TypeSymbol>.GetInstance(count);
+            var typeArgumentsBuilder = ArrayBuilder<KeyValuePair<TypeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>>>>.GetInstance(count);
             var refersToNoPiaBuilder = ArrayBuilder<bool>.GetInstance(count);
 
             foreach (var argument in arguments)
             {
                 bool refersToNoPia;
-                typeArgumentsBuilder.Add(GetTypeSymbol(argument, out refersToNoPia));
+                typeArgumentsBuilder.Add(new KeyValuePair<TypeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>>>(GetTypeSymbol(argument, out refersToNoPia), ImmutableArray<ModifierInfo<TypeSymbol>>.Empty));
                 refersToNoPiaBuilder.Add(refersToNoPia);
             }
 

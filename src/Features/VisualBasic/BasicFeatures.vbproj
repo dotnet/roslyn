@@ -346,7 +346,6 @@
     <Compile Include="Diagnostics\Analyzers\VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer.vb" />
     <Compile Include="Diagnostics\Analyzers\VisualBasicSimplifyTypeNamesDiagnosticAnalyzer.vb" />
     <Compile Include="Diagnostics\VisualBasicAnalyzerDriverService.vb" />
-    <Compile Include="Diagnostics\VisualBasicSyntaxNodeAnalyzerService.vb" />
     <Compile Include="DocumentationCommentFormatting\DocumentationCommentUtilities.vb" />
     <Compile Include="DocumentationCommentFormatting\VisualBasicDocumentationCommentFormattingService.vb" />
     <Compile Include="EditAndContinue\BreakpointSpans.vb" />
@@ -431,7 +430,8 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <PublicAPI Include="PublicAPI.txt" />
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <Import Project="..\..\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems" Label="Shared" />
   <ImportGroup Label="Targets">

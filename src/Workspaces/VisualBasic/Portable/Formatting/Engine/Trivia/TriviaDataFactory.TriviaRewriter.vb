@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                                                                                     GetSyntaxTriviaList(GetTextSpan(pair.Key), pair.Value, _cancellationToken))
                 End If
 
-                Dim vbTriviaData = TryCast(pair.Value, TriviaDataWithList(Of SyntaxTrivia))
+                Dim vbTriviaData = TryCast(pair.Value, TriviaDataWithList)
                 If vbTriviaData IsNot Nothing Then
                     Dim triviaList = vbTriviaData.GetTriviaList(_cancellationToken)
                     Dim index = GetIndexForEndOfLeadingTrivia(triviaList)
@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End Function
 
             Private Function GetSyntaxTriviaList(textSpan As TextSpan, triviaData As TriviaData, cancellationToken As CancellationToken) As SyntaxTriviaList
-                Dim vbTriviaData = TryCast(triviaData, TriviaDataWithList(Of SyntaxTrivia))
+                Dim vbTriviaData = TryCast(triviaData, TriviaDataWithList)
                 If vbTriviaData IsNot Nothing Then
                     Return SyntaxFactory.TriviaList(vbTriviaData.GetTriviaList(cancellationToken))
                 End If

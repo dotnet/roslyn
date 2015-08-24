@@ -1080,5 +1080,261 @@ End Module
 
             Test(input, expected)
         End Sub
+
+        <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub VisualBasic_RemoveParenthesesAroundEmptyXmlElement()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Imports System.Xml.Linq
+
+Class C
+    Sub M()
+        Dim x = {|Simplify:(&lt;xml/&gt;)|}
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+Imports System.Xml.Linq
+
+Class C
+    Sub M()
+        Dim x = &lt;xml/&gt;
+    End Sub
+End Class
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub VisualBasic_RemoveParenthesesAroundEmptyXmlElementInInvocation()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Imports System.Xml.Linq
+
+Class C
+    Sub M(xml as XElement)
+        Dim x = M({|Simplify:(&lt;xml/&gt;)|})
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+Imports System.Xml.Linq
+
+Class C
+    Sub M(xml as XElement)
+        Dim x = M(&lt;xml/&gt;)
+    End Sub
+End Class
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub VisualBasic_RemoveParenthesesAroundXmlElement()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Imports System.Xml.Linq
+
+Class C
+    Sub M()
+        Dim x = {|Simplify:(&lt;xml&gt;&lt;/xml&gt;)|}
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+Imports System.Xml.Linq
+
+Class C
+    Sub M()
+        Dim x = &lt;xml&gt;&lt;/xml&gt;
+    End Sub
+End Class
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub VisualBasic_RemoveParenthesesAroundXmlElementInInvocation()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Imports System.Xml.Linq
+
+Class C
+    Sub M(xml as XElement)
+        Dim x = M({|Simplify:(&lt;xml&gt;&lt;/xml&gt;)|})
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+Imports System.Xml.Linq
+
+Class C
+    Sub M(xml as XElement)
+        Dim x = M(&lt;xml&gt;&lt;/xml&gt;)
+    End Sub
+End Class
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub VisualBasic_DontRemoveParenthesesAroundEmptyXmlElementWhenPreviousTokenIsLessThan()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Imports System.Xml.Linq
+
+Class C
+    Sub M()
+        Dim x = 1 &lt; {|Simplify:(&lt;xml/&gt;)|}
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+Imports System.Xml.Linq
+
+Class C
+    Sub M()
+        Dim x = 1 &lt; (&lt;xml/&gt;)
+    End Sub
+End Class
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub VisualBasic_DontRemoveParenthesesAroundEmptyXmlElementWhenPreviousTokenIsGreaterThan()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Imports System.Xml.Linq
+
+Class C
+    Sub M()
+        Dim x = 1 &gt; {|Simplify:(&lt;xml/&gt;)|}
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+Imports System.Xml.Linq
+
+Class C
+    Sub M()
+        Dim x = 1 &gt; (&lt;xml/&gt;)
+    End Sub
+End Class
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub VisualBasic_DontRemoveParenthesesAroundXmlElementWhenPreviousTokenIsLessThan()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Imports System.Xml.Linq
+
+Class C
+    Sub M()
+        Dim x = 1 &lt; {|Simplify:(&lt;xml&gt;&lt;/xml&gt;)|}
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+Imports System.Xml.Linq
+
+Class C
+    Sub M()
+        Dim x = 1 &lt; (&lt;xml&gt;&lt;/xml&gt;)
+    End Sub
+End Class
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub VisualBasic_DontRemoveParenthesesAroundXmlElementWhenPreviousTokenIsGreaterThan()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Imports System.Xml.Linq
+
+Class C
+    Sub M()
+        Dim x = 1 &gt; {|Simplify:(&lt;xml&gt;&lt;/xml&gt;)|}
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+Imports System.Xml.Linq
+
+Class C
+    Sub M()
+        Dim x = 1 &gt; (&lt;xml&gt;&lt;/xml&gt;)
+    End Sub
+End Class
+</code>
+
+            Test(input, expected)
+        End Sub
     End Class
 End Namespace

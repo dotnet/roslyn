@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return new EvalResultDataItem(Resources.NativeView, Resources.NativeViewNotNativeDebugging);
             }
 
-            var name = "(IUnknown*)0x" + string.Format(IntPtr.Size == 4 ? "{0:X8}" : "{0:X16}", comObject.NativeComPointer);
+            var name = "(IUnknown*)0x" + string.Format(IntPtr.Size == 4 ? "{0:x8}" : "{0:x16}", comObject.NativeComPointer);
             var fullName = "{C++}" + name;
 
             return new EvalResultDataItem(

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
     {
         private const string RoslynLanguageServices = "Roslyn Language Services";
 
-        private static readonly int s_stateTypeCount = Enum.GetNames(typeof(StateType)).Count();
+        private static readonly int s_stateTypeCount = Enum.GetNames(typeof(StateType)).Length;
 
         /// <summary>
         /// This is in charge of anything related to <see cref="DiagnosticState"/>
@@ -39,6 +39,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             /// This will be raised whenever <see cref="StateManager"/> finds <see cref="Project.AnalyzerReferences"/> change
             /// </summary>
             public event EventHandler<ProjectAnalyzerReferenceChangedEventArgs> ProjectAnalyzerReferenceChanged;
+
+            /// <summary>
+            /// Return <see cref="DiagnosticAnalyzer"/>s for the given <see cref="Project"/>.
+            /// </summary>
+            public IEnumerable<DiagnosticAnalyzer> GetAnalyzers(Project project)
+            {
+                return _hostStates.GetAnalyzers(project.Language).Concat(_projectStates.GetAnalyzers(project));
+            }
 
             /// <summary>
             /// Return <see cref="StateSet"/>s for the given <see cref="ProjectId"/>. 
@@ -170,7 +178,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     {
                         var state = stateSet.GetState((StateType)i);
 
-                        Contract.Requires(set.Add(ValueTuple.Create(state.Language, state.Name)));
+                        if (!(set.Add(ValueTuple.Create(state.Language, state.Name))))
+                        {
+                            Contract.Fail();
+                        }
                     }
                 }
             }

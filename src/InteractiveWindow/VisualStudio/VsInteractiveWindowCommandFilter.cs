@@ -151,6 +151,17 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
 
         private int PreEditorCommandFilterQueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
         {
+            if (pguidCmdGroup == Guids.InteractiveCommandSetId)
+            {
+                switch ((CommandIds)prgCmds[0].cmdID)
+                {
+                    case CommandIds.BreakLine:
+                        prgCmds[0].cmdf = _window.CurrentLanguageBuffer != null ? CommandEnabled : CommandDisabled;
+                        prgCmds[0].cmdf |= (uint)OLECMDF.OLECMDF_DEFHIDEONCTXTMENU;
+                        return VSConstants.S_OK;
+                }
+            }
+
             return _editorCommandFilter.QueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
         }
 
@@ -237,7 +248,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
             }
             else if (pguidCmdGroup == VSConstants.GUID_VSStandardCommandSet97)
             {
-                // undo/redo support:
                 switch ((VSConstants.VSStd97CmdID)nCmdID)
                 {
                     case VSConstants.VSStd97CmdID.Paste:
@@ -247,6 +257,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                     case VSConstants.VSStd97CmdID.Cut:
                         _window.Operations.Cut();
                         return VSConstants.S_OK;
+
+                    case VSConstants.VSStd97CmdID.Copy:
+                        var operations = _window.Operations as IInteractiveWindowOperations2;
+                        if (operations != null)
+                        {
+                            operations.Copy();
+                            return VSConstants.S_OK;
+                        }
+                        break;
 
                     case VSConstants.VSStd97CmdID.Delete:
                         if (_window.Operations.Delete())

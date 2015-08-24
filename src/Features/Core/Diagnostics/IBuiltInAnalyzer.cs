@@ -8,5 +8,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal interface IBuiltInAnalyzer
     {
+        DiagnosticAnalyzerCategory GetAnalyzerCategory();
     }
 }

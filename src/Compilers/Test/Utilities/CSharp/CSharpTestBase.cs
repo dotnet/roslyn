@@ -211,21 +211,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                                                     TestOptions.ReleaseExe);
         }
 
-        internal static DiagnosticDescription Diagnostic(ErrorCode code, string squiggledText = null, object[] arguments = null,
-            LinePosition? startLocation = null, Func<SyntaxNode, bool> syntaxNodePredicate = null, bool argumentOrderDoesNotMatter = false)
-        {
-            return new DiagnosticDescription((int)code, false, squiggledText, arguments, startLocation, syntaxNodePredicate, argumentOrderDoesNotMatter, typeof(ErrorCode));
-        }
-
-        internal static DiagnosticDescription Diagnostic(string code, string squiggledText = null, object[] arguments = null,
-            LinePosition? startLocation = null, Func<SyntaxNode, bool> syntaxNodePredicate = null, bool argumentOrderDoesNotMatter = false)
-        {
-            return new DiagnosticDescription(
-                code: code, isWarningAsError: false, squiggledText: squiggledText, arguments: arguments,
-                startLocation: startLocation, syntaxNodePredicate: syntaxNodePredicate,
-                argumentOrderDoesNotMatter: argumentOrderDoesNotMatter, errorCodeType: typeof(string));
-        }
-
         internal override IEnumerable<IModuleSymbol> ReferencesToModuleSymbols(IEnumerable<MetadataReference> references, MetadataImportOptions importOptions = MetadataImportOptions.Public)
         {
             var options = TestOptions.ReleaseDll.WithMetadataImportOptions(importOptions);
@@ -524,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
 
             MetadataReference reference = null;
-            using (var tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource))
+            using (var tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource))
             {
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path));
             }
@@ -789,7 +774,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
         }
 
-        #endregion Documentation Comments
+        #endregion
 
         #region IL Validation
 
