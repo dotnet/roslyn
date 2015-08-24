@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// <summary>
             /// Set of completed actions.
             /// </summary>
-            public HashSet<AnalyzerAction> ProcessedActions { get; private set; }
+            public HashSet<AnalyzerAction> ProcessedActions { get; }
 
             public AnalyzerStateData()
             {

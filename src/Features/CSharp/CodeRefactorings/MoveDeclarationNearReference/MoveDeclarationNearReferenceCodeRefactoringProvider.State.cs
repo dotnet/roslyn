@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
                     return false;
                 }
 
-                this.DeclarationStatement = (LocalDeclarationStatementSyntax)node;
+                this.DeclarationStatement = node;
                 if (!(this.DeclarationStatement.IsParentKind(SyntaxKind.Block) &&
                       this.DeclarationStatement.Declaration.Variables.Count == 1))
                 {
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
                 }
 
                 var previousNodeOrToken = firstStatementIndexAffectedInBlock == 0
-                    ? (SyntaxNodeOrToken)this.InnermostBlock.OpenBraceToken
+                    ? this.InnermostBlock.OpenBraceToken
                     : (SyntaxNodeOrToken)this.InnermostBlock.Statements[firstStatementIndexAffectedInBlock - 1];
                 var affectedSpan = TextSpan.FromBounds(previousNodeOrToken.SpanStart, FirstStatementAffectedInInnermostBlock.Span.End);
                 if (syntaxTree.OverlapsHiddenPosition(affectedSpan, cancellationToken))

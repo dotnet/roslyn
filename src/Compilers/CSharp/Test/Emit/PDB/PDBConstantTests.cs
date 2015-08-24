@@ -308,7 +308,7 @@ this is a string constant that is too long to fit into the PDB"";
       </sequencePoints>
     </method>
   </methods>
-</symbols>", DebugInformationFormat.Pdb);
+</symbols>", format: DebugInformationFormat.Pdb);
 
             c.VerifyPdb("C.M", @"
 <symbols>
@@ -323,7 +323,7 @@ this is a string constant that is too long to fit into the PDB"";
       </scope>
     </method>
   </methods>
-</symbols>", DebugInformationFormat.PortablePdb);
+</symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
         [Fact]

@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing
                 ' Now, try to update this new node itself.
                 Dim organizers = Me._nodeToOrganizersGetter(node)
                 For Each organizer In organizers
-                    node = DirectCast(organizer.OrganizeNode(_semanticModel, node, _cancellationToken), SyntaxNode)
+                    node = organizer.OrganizeNode(_semanticModel, node, _cancellationToken)
                 Next
 
                 Return node

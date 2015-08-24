@@ -434,8 +434,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 var snapshot = _window._projectionBuffer.CurrentSnapshot;
                 var spanCount = snapshot.SpanCount;
                 var inputSpan = snapshot.GetSourceSpan(spanCount - 1);
-                var kind = _window.GetSpanKind(inputSpan.Snapshot);
-                Debug.Assert(kind == ReplSpanKind.Language || kind == ReplSpanKind.StandardInput);
+                Debug.Assert(_window.GetSpanKind(inputSpan.Snapshot) == ReplSpanKind.Language ||
+                    _window.GetSpanKind(inputSpan.Snapshot) == ReplSpanKind.StandardInput);
 
                 var buffer = inputSpan.Snapshot.TextBuffer;
                 var span = inputSpan.Span;

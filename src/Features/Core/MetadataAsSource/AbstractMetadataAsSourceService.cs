@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             var canImplementImplicitly = document.GetLanguageService<ISemanticFactsService>().SupportsImplicitInterfaceImplementation;
             var docCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
 
-            INamespaceOrTypeSymbol wrappedType = new WrappedNamedTypeSymbol((INamedTypeSymbol)topLevelNamedType, canImplementImplicitly, docCommentFormattingService);
+            INamespaceOrTypeSymbol wrappedType = new WrappedNamedTypeSymbol(topLevelNamedType, canImplementImplicitly, docCommentFormattingService);
 
             return topLevelNamespaceSymbol.IsGlobalNamespace
                 ? wrappedType

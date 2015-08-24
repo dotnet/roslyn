@@ -691,7 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return symbol;
             }
 
-            TypeSymbol[] typeArgumentSymbols = new TypeSymbol[symbol.TypeArgumentsNoUseSiteDiagnostics.Length];
+            var typeArgumentSymbols = new TypeWithModifiers[symbol.TypeArgumentsNoUseSiteDiagnostics.Length];
             for (int i = 0; i < typeArgumentSymbols.Length; i++)
             {
                 var argSymbol = GetTypeByReflectionType(typeArguments[currentTypeArgument++], includeReferences);
@@ -699,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return null;
                 }
-                typeArgumentSymbols[i] = argSymbol;
+                typeArgumentSymbols[i] = new TypeWithModifiers(argSymbol);
             }
 
             return symbol.ConstructIfGeneric(typeArgumentSymbols.AsImmutableOrNull());

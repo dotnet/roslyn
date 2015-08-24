@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             foreach (var newParam in reorderedParameters)
             {
                 var pos = originalParameters.IndexOf(newParam);
-                var param = list.ElementAt(pos);
+                var param = list[pos];
                 newParameters.Add(param);
             }
 
@@ -403,10 +403,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
 
             var dictionary = new Dictionary<string, XmlElementSyntax>();
-            for (int i = 0; i < paramNodes.Count(); i++)
+            int i = 0;
+            foreach (var paramNode in paramNodes)
             {
-                var paramNode = paramNodes.ElementAt(i);
-
                 var nameAttribute = paramNode.StartTag.Attributes.FirstOrDefault(a => a.Name.ToString().Equals("name", StringComparison.OrdinalIgnoreCase));
                 if (nameAttribute == null)
                 {
@@ -419,7 +418,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                     return null;
                 }
 
-                dictionary.Add(originalParameters.ElementAt(i).Name.ToString(), paramNode);
+                dictionary.Add(originalParameters[i].Name.ToString(), paramNode);
+                i++;
             }
 
             // Everything lines up, so permute them.

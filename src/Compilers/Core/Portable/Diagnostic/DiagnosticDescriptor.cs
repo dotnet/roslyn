@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis
             this.IsEnabledByDefault = isEnabledByDefault;
             this.Description = description ?? string.Empty;
             this.HelpLinkUri = helpLinkUri ?? string.Empty;
-            this.CustomTags = customTags.AsImmutableOrEmpty();
+            this.CustomTags = customTags;
         }
 
         public bool Equals(DiagnosticDescriptor other)

@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._interfaceMethod = interfaceMethod
 
             Dim params(Me._interfaceMethod.ParameterCount - 1) As ParameterSymbol
-            For i = 0 To params.Count - 1
+            For i = 0 To params.Length - 1
                 Dim curParam = Me._interfaceMethod.Parameters(i)
                 Debug.Assert(Not curParam.IsOptional)
                 Debug.Assert(Not curParam.HasExplicitDefaultValue)

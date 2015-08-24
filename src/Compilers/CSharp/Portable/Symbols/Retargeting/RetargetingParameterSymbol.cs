@@ -231,9 +231,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             get { return _underlyingParameter.IsCallerMemberName; }
         }
 
-        internal sealed override bool HasByRefBeforeCustomModifiers
+        internal sealed override ushort CountOfCustomModifiersPrecedingByRef
         {
-            get { return _underlyingParameter.HasByRefBeforeCustomModifiers; }
+            get { return _underlyingParameter.CountOfCustomModifiersPrecedingByRef; }
         }
 
         #endregion

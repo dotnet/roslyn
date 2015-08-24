@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
     {
         public readonly static ChangeList Empty = new ChangeList(Array.Empty<AbstractChange>());
 
-        internal AbstractChange[] Changes { get; private set; }
+        internal AbstractChange[] Changes { get; }
 
         public ChangeList(AbstractChange[] changes)
         {

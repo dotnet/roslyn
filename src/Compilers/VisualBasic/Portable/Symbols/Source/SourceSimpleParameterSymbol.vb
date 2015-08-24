@@ -140,25 +140,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property HasByRefBeforeCustomModifiers As Boolean
+        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
             Get
-                Return False
+                Return 0
             End Get
         End Property
 
-        Friend Overrides Function WithTypeAndCustomModifiers(type As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), hasByRefBeforeCustomModifiers As Boolean) As ParameterSymbol
+        Friend Overrides Function WithTypeAndCustomModifiers(type As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), countOfCustomModifiersPrecedingByRef As UShort) As ParameterSymbol
             If customModifiers.IsDefaultOrEmpty Then
                 Return New SourceSimpleParameterSymbol(Me.ContainingSymbol, Me.Name, Me.Ordinal, type, Me.Location)
             End If
 
-            Return New SourceSimpleParameterSymbolWithCustomModifiers(Me.ContainingSymbol, Me.Name, Me.Ordinal, type, Me.Location, customModifiers, hasByRefBeforeCustomModifiers)
+            Return New SourceSimpleParameterSymbolWithCustomModifiers(Me.ContainingSymbol, Me.Name, Me.Ordinal, type, Me.Location, customModifiers, countOfCustomModifiersPrecedingByRef)
         End Function
 
         Friend NotInheritable Class SourceSimpleParameterSymbolWithCustomModifiers
             Inherits SourceSimpleParameterSymbol
 
             Private ReadOnly _customModifiers As ImmutableArray(Of CustomModifier)
-            Private ReadOnly _hasByRefBeforeCustomModifiers As Boolean
+            Private ReadOnly _countOfCustomModifiersPrecedingByRef As UShort
 
             Friend Sub New(
                 container As Symbol,
@@ -167,13 +167,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 type As TypeSymbol,
                 location As Location,
                 customModifiers As ImmutableArray(Of CustomModifier),
-                hasByRefBeforeCustomModifiers As Boolean
+                countOfCustomModifiersPrecedingByRef As UShort
             )
                 MyBase.New(container, name, ordinal, type, location)
 
                 Debug.Assert(Not customModifiers.IsDefaultOrEmpty)
                 _customModifiers = If(customModifiers.IsDefault, ImmutableArray(Of CustomModifier).Empty, customModifiers)
-                _hasByRefBeforeCustomModifiers = hasByRefBeforeCustomModifiers
+                _countOfCustomModifiersPrecedingByRef = countOfCustomModifiersPrecedingByRef
+
+                Debug.Assert(_countOfCustomModifiersPrecedingByRef = 0 OrElse IsByRef)
+                Debug.Assert(_countOfCustomModifiersPrecedingByRef <= _customModifiers.Length)
             End Sub
 
             Public Overrides ReadOnly Property CustomModifiers As ImmutableArray(Of CustomModifier)
@@ -182,13 +185,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend Overrides ReadOnly Property HasByRefBeforeCustomModifiers As Boolean
+            Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
                 Get
-                    Return _hasByRefBeforeCustomModifiers
+                    Return _countOfCustomModifiersPrecedingByRef
                 End Get
             End Property
 
-            Friend Overrides Function WithTypeAndCustomModifiers(type As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), hasByRefBeforeCustomModifiers As Boolean) As ParameterSymbol
+            Friend Overrides Function WithTypeAndCustomModifiers(type As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), countOfCustomModifiersPrecedingByRef As UShort) As ParameterSymbol
                 Throw ExceptionUtilities.Unreachable
             End Function
         End Class

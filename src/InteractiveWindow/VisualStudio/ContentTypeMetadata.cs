@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio
 {
     internal class ContentTypeMetadata
     {
-        public IEnumerable<string> ContentTypes { get; private set; }
+        public IEnumerable<string> ContentTypes { get; }
 
         public ContentTypeMetadata(IDictionary<string, object> data)
         {

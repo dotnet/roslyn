@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
                 var conditionalMemberAccess = identifierName.Parent.Parent as ConditionalAccessExpressionSyntax;
                 if (memberAccess?.Name == identifierName)
                 {
-                    simpleNameOrMemberAccessExpression = (ExpressionSyntax)memberAccess;
+                    simpleNameOrMemberAccessExpression = memberAccess;
                 }
                 else if ((conditionalMemberAccess?.WhenNotNull as MemberBindingExpressionSyntax)?.Name == identifierName)
                 {
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
 
         protected override bool TryConvertToLocalDeclaration(ITypeSymbol type, SyntaxToken identifierToken, OptionSet options, out SyntaxNode newRoot)
         {
-            var token = (SyntaxToken)identifierToken;
+            var token = identifierToken;
             var node = identifierToken.Parent as IdentifierNameSyntax;
             if (node.IsLeftSideOfAssignExpression() && node.Parent.IsParentKind(SyntaxKind.ExpressionStatement))
             {
