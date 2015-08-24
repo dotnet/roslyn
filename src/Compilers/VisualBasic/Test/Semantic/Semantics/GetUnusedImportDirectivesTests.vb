@@ -301,7 +301,7 @@ Imports System
             CreateCompilationWithMscorlib(source, parseOptions:=New VisualBasicParseOptions(documentationMode:=DocumentationMode.Diagnose)).AssertTheseDiagnostics(<errors></errors>, suppressInfos:=False)
         End Sub
 
-        <Fact()>
+        <ClrOnlyFact(ClrOnlyReason.Submission)>
         Public Sub UnusedImportInteractive()
             Dim tree = Parse("Imports System", options:=TestOptions.Interactive)
             Dim compilation = VisualBasicCompilation.CreateSubmission("sub1", tree, {MscorlibRef_v4_0_30316_17626})

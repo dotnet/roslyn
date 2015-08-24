@@ -359,7 +359,7 @@ using System;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithWarningAsError(false));
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Submission)]
         public void UnusedUsingInteractive()
         {
             var tree = Parse("using System;", options: TestOptions.Interactive);
