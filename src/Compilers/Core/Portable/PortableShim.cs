@@ -56,6 +56,7 @@ namespace Roslyn.Utilities
             Touch(Path.Type);
             Touch(RuntimeHelpers.Type);
             Touch(SearchOption.Type);
+            Touch(StackTrace.Type);
             Touch(Thread.Type);
             Touch(XPath.Extensions.Type);
             Touch(HashAlgorithm.Type);
@@ -74,6 +75,7 @@ namespace Roslyn.Utilities
         private static class CoreNames
         {
             internal const string System_Diagnostics_FileVersionInfo = "System.Diagnostics.FileVersionInfo, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
+            internal const string System_Diagnostics_StackTrace = "System.Diagnostics.StackTrace, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
             internal const string System_IO_FileSystem = "System.IO.FileSystem, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
             internal const string System_IO_FileSystem_Primitives = "System.IO.FileSystem.Primitives, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
             internal const string System_Reflection = "System.Reflection, Version=4.0.10.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
@@ -322,38 +324,24 @@ namespace Roslyn.Utilities
                 .GetTypeInfo()
                 .GetDeclaredConstructor(paramTypes: new[] { typeof(string), FileMode.Type, FileAccess.Type, FileShare.Type, typeof(int), FileOptions.Type });
 
-            private static Stream InvokeConstructor(ConstructorInfo constructorInfo, object[] args)
-            {
-                try
-                {
-                    return (Stream)constructorInfo.Invoke(args);
-                }
-                catch (TargetInvocationException e)
-                {
-                    ExceptionDispatchInfo.Capture(e.InnerException).Throw();
-                    Debug.Assert(false, "Unreachable");
-                    return null;
-                }
-            }
-
             internal static Stream Create(string path, object mode)
             {
-                return InvokeConstructor(s_Ctor_String_FileMode, new[] { path, mode });
+                return s_Ctor_String_FileMode.InvokeConstructor<Stream>(path, mode );
             }
 
             internal static Stream Create(string path, object mode, object access)
             {
-                return InvokeConstructor(s_Ctor_String_FileMode_FileAccess, new[] { path, mode, access });
+                return s_Ctor_String_FileMode_FileAccess.InvokeConstructor<Stream>(path, mode, access);
             }
 
             internal static Stream Create(string path, object mode, object access, object share)
             {
-                return InvokeConstructor(s_Ctor_String_FileMode_FileAccess_FileShare, new[] { path, mode, access, share });
+                return s_Ctor_String_FileMode_FileAccess_FileShare.InvokeConstructor<Stream>(path, mode, access, share);
             }
 
             internal static Stream Create(string path, object mode, object access, object share, int bufferSize, object options)
             {
-                return InvokeConstructor(s_Ctor_String_FileMode_FileAccess_FileShare_Int32_FileOptions, new[] { path, mode, access, share, bufferSize, options });
+                return s_Ctor_String_FileMode_FileAccess_FileShare_Int32_FileOptions.InvokeConstructor<Stream>(path, mode, access, share, bufferSize, options);
             }
 
             internal static Stream Create_String_FileMode_FileAccess_FileShare(string path, object mode, object access, object share)
@@ -411,6 +399,42 @@ namespace Roslyn.Utilities
                 .GetTypeInfo()
                 .GetDeclaredMethod(nameof(EnsureSufficientExecutionStack), paramTypes: new Type[] { })
                 .CreateDelegate<Action>();
+        }
+
+        internal static class StackTrace
+        {
+            internal const string TypeName = "System.Diagnostics.StackTrace";
+
+            internal static readonly Type Type = ReflectionUtilities.GetTypeFromEither(
+                contractName: $"{TypeName}, {CoreNames.System_Diagnostics_StackTrace}",
+                desktopName: TypeName);
+
+            private static readonly ConstructorInfo s_Ctor = Type != null
+                ? Type.GetTypeInfo().GetDeclaredConstructor(new Type[] { })
+                : null;
+
+
+            private static readonly MethodInfo s_ToString = Type != null
+                ? Type.GetTypeInfo().GetDeclaredMethod("ToString", new Type[] { })
+                : null;
+
+            internal static string GetString()
+            {
+                const string StackTraceUnavailable = "StackTrace unavailable.";
+
+                if (s_ToString == null)
+                {
+                    return StackTraceUnavailable;
+                }
+
+                var stackTrace = s_Ctor.InvokeConstructor();
+                if (stackTrace == null)
+                {
+                    return StackTraceUnavailable;
+                }
+
+                return s_ToString.Invoke<string>(stackTrace) ?? StackTraceUnavailable;
+            }
         }
 
         internal static class Encoding
