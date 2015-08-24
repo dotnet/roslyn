@@ -1711,13 +1711,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         private struct SpanRangeEdit
         {
             public readonly int Start;
-            public readonly int Count;
+            public readonly int End;
             public readonly ITrackingSpan[] Replacement;
 
             public SpanRangeEdit(int start, int count, ITrackingSpan[] replacement)
             {
                 Start = start;
-                Count = count;
+                End = start + count;
                 Replacement = replacement;
             }
         }
@@ -1880,12 +1880,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             Debug.Assert(spanEdits.Count > 0);
 
-            int start = spanEdits.First().Start;
-            int end = spanEdits.Last().Start + spanEdits.Last().Count;
+            int start = spanEdits[0].Start;
+            int end = spanEdits[spanEdits.Count - 1].End;
 
             var replacement = new List<object>();
             replacement.AddRange(spanEdits[0].Replacement);
-            int lastEnd = start + spanEdits[0].Count;
+            int lastEnd = spanEdits[0].End;
 
             for (int i = 1; i < spanEdits.Count; i++)
             {
@@ -1909,7 +1909,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     replacement.AddRange(edit.Replacement);
                 }
 
-                lastEnd = edit.Start + edit.Count;
+                lastEnd = edit.End;
             }
 
             _projectionBuffer.ReplaceSpans(start, end - start, replacement, EditOptions.None, s_suppressPromptInjectionTag);
@@ -1917,7 +1917,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private static ITrackingSpan CreateTrackingSpan(SnapshotSpan snapshotSpan)
         {
-            return new CustomTrackingSpan(snapshotSpan.Snapshot, snapshotSpan.Span, PointTrackingMode.Negative, PointTrackingMode.Positive);
+            return new CustomTrackingSpan(snapshotSpan.Snapshot, snapshotSpan.Span, PointTrackingMode.Negative, PointTrackingMode.Negative);
         }
 
         private ITrackingSpan CreateLanguageSpanForLine(ITextSnapshotLine languageLine)
