@@ -6641,7 +6641,11 @@ Module Module1
 End Module
 
 ]]></code>.Value
-            VerifyProviderCommit(String.Format(text, "$$"), "Delegate", String.Format(text, "[Delegate]"), Nothing, "")
+            VerifyProviderCommit(markupBeforeCommit:=String.Format(text, "$$"),
+                                 itemToCommit:="Delegate",
+                                 expectedCodeAfterCommit:=String.Format(text, "[Delegate]"),
+                                 commitChar:=Nothing,
+                                 textTypedSoFar:="")
         End Sub
     End Class
 End Namespace
