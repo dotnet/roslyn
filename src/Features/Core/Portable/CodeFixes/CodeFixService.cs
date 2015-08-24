@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     using DiagnosticId = String;
     using LanguageKind = String;
 
-    [Export(typeof(ICodeFixService))]
+    [Export(typeof(ICodeFixService)), Shared]
     internal partial class CodeFixService : ICodeFixService
     {
         private readonly IDiagnosticAnalyzerService _diagnosticService;
