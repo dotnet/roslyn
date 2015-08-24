@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
@@ -47,9 +48,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     var children = GetChildren(evalResult, inspectionContext);
                     if (enableNativeDebugging)
                     {
+                        string pointerString = $"(IUnknown*){PointerToString(new IntPtr(0xfe))}";
                         DkmLanguage language = new DkmLanguage(new DkmCompilerId(DkmVendorId.Microsoft, DkmLanguageId.Cpp));
                         Verify(children,
-                            EvalIntermediateResult("Native View", "{C++}(IUnknown*)0x000000FE", "(IUnknown*)0x000000FE", language));
+                            EvalIntermediateResult("Native View", "{C++}" + pointerString, pointerString, language));
                     }
                     else
                     {
