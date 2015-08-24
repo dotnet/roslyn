@@ -326,7 +326,7 @@ namespace Roslyn.Utilities
 
             internal static Stream Create(string path, object mode)
             {
-                return s_Ctor_String_FileMode.InvokeConstructor<Stream>(path, mode );
+                return s_Ctor_String_FileMode.InvokeConstructor<Stream>(path, mode);
             }
 
             internal static Stream Create(string path, object mode, object access)
@@ -409,31 +409,19 @@ namespace Roslyn.Utilities
                 contractName: $"{TypeName}, {CoreNames.System_Diagnostics_StackTrace}",
                 desktopName: TypeName);
 
-            private static readonly ConstructorInfo s_Ctor = Type != null
-                ? Type.GetTypeInfo().GetDeclaredConstructor(new Type[] { })
-                : null;
+            private static readonly ConstructorInfo s_Ctor = Type
+                .GetTypeInfo()
+                .GetDeclaredConstructor(new Type[] { });
 
-
-            private static readonly MethodInfo s_ToString = Type != null
-                ? Type.GetTypeInfo().GetDeclaredMethod("ToString", new Type[] { })
-                : null;
+            private static readonly MethodInfo s_ToString = Type
+                .GetTypeInfo()
+                .GetDeclaredMethod("ToString", new Type[] { });
 
             internal static string GetString()
             {
-                const string StackTraceUnavailable = "StackTrace unavailable.";
-
-                if (s_ToString == null)
-                {
-                    return StackTraceUnavailable;
-                }
-
                 var stackTrace = s_Ctor.InvokeConstructor();
-                if (stackTrace == null)
-                {
-                    return StackTraceUnavailable;
-                }
 
-                return s_ToString.Invoke<string>(stackTrace) ?? StackTraceUnavailable;
+                return s_ToString.Invoke<string>(stackTrace) ?? "StackTrace unavailable.";
             }
         }
 
