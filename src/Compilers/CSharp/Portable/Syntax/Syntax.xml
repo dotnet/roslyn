@@ -1576,6 +1576,34 @@
       </PropertyComment>
     </Field>
   </Node>
+  <Node Name="IsPatternExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="IsPatternExpression"/>
+    <Field Name="Expression" Type="ExpressionSyntax">
+    <PropertyComment>
+      <summary>ExpressionSyntax node representing the expression on the left of the "is" operator.</summary>
+    </PropertyComment>
+    </Field>
+    <Field Name="IsKeyword" Type="SyntaxToken">
+      <Kind Name="IsKeyword"/>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax">
+      <PropertyComment>
+        <summary>PatternSyntax node representing the pattern on the right of the "is" operator.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents a simple pattern-maching expresion using the "is" keyword.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an IsPatternExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <AbstractNode Name="PatternSyntax" Base="CSharpSyntaxNode" />
+  <Node Name="DeclarationPatternSyntax" Base="PatternSyntax">
+    <Kind Name="DeclarationPattern" />
+    <Field Name="Type" Type="TypeSyntax" />
+    <Field Name="Identifier" Type="SyntaxToken" />
+  </Node>
   <AbstractNode Name="InterpolatedStringContentSyntax" Base="CSharpSyntaxNode" />
   <Node Name="InterpolatedStringTextSyntax" Base="InterpolatedStringContentSyntax">
     <Kind Name="InterpolatedStringText"/>

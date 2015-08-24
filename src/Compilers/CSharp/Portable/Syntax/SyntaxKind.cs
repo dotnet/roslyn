@@ -327,6 +327,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         OmittedArraySizeExpression = 8654,
         InterpolatedStringExpression = 8655,
         ImplicitElementAccess = 8656,
+        IsPatternExpression = 8657,
+
+        // patterns (for pattern-matching)
+        DeclarationPattern = 8658,
 
         // binary expressions
         AddExpression = 8668,

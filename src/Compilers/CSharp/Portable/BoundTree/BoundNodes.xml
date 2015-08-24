@@ -1334,5 +1334,16 @@
     <Field Name="Alignment" Type="BoundExpression" Null="allow"/>
     <Field Name="Format" Type="BoundExpression" Null="allow"/>
   </Node>
-  
+
+  <AbstractNode Name="BoundPattern" Base="BoundNode"/>
+
+  <Node Name="BoundDeclarationPattern" Base="BoundPattern">
+    <Field Name="LocalSymbol" Type="LocalSymbol" Null="disallow"/>
+  </Node>
+
+  <Node Name="BoundIsPattern" Base="BoundExpresion">
+    <Field Name="Value" Type="BoundExpression" Null="disallow"/>
+    <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
+  </Node>
+
 </Tree>
