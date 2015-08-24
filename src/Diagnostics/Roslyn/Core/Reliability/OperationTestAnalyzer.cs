@@ -336,10 +336,10 @@ namespace Microsoft.CodeAnalysis.Performance
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        internal static readonly DiagnosticDescriptor OutOfAlphabeticalOrderNamedArgumentsDescriptor = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor OutOfNumericalOrderArgumentsDescriptor = new DiagnosticDescriptor(
             "OTA4",
-            "Out of order named arguments",
-            "Named arguments are not in alphabetical order",
+            "Out of order arguments",
+            "Argument values are not in increasing order",
             ReliabilityCategory,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Performance
         /// <summary>Gets the set of supported diagnostic descriptors from this analyzer.</summary>
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
-            get { return ImmutableArray.Create(BigParamarrayArgumentsDescriptor, OutOfAlphabeticalOrderNamedArgumentsDescriptor); }
+            get { return ImmutableArray.Create(BigParamarrayArgumentsDescriptor, OutOfNumericalOrderArgumentsDescriptor); }
         }
 
         public sealed override void Initialize(AnalysisContext context)
@@ -356,23 +356,20 @@ namespace Microsoft.CodeAnalysis.Performance
                  (operationContext) =>
                  {
                      IInvocation invocation = (IInvocation)operationContext.Operation;
-                     INamedArgument previousNamedArgument = null;
+                     long priorArgumentValue = long.MinValue;
                      int paramarrayElementsCount = 0;
                      foreach (IArgument argument in invocation.Arguments)
                      {
-                         if (argument.Kind == ArgumentKind.Named)
+                         object argumentValue = argument.Value.ConstantValue;
+                         if (argumentValue != null && argument.Value.ResultType.SpecialType == SpecialType.System_Int32)
                          {
-                             INamedArgument namedArgument = (INamedArgument)argument;
-
-                             if (previousNamedArgument != null)
+                             int integerArgument = (int)argumentValue;
+                             if (integerArgument < priorArgumentValue)
                              {
-                                 if (namedArgument.Name.CompareTo(previousNamedArgument.Name) < 0)
-                                 {
-                                     Report(operationContext, namedArgument.Value.Syntax, OutOfAlphabeticalOrderNamedArgumentsDescriptor);
-                                 }
+                                 Report(operationContext, argument.Value.Syntax, OutOfNumericalOrderArgumentsDescriptor);
                              }
 
-                             previousNamedArgument = namedArgument;
+                             priorArgumentValue = integerArgument;
                          }
 
                          else if (argument.Kind == ArgumentKind.ParamArray)

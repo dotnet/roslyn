@@ -1608,7 +1608,7 @@ Microsoft.CodeAnalysis.Semantics.IExpression.ConstantValue.get -> object
 Microsoft.CodeAnalysis.Semantics.IInvocation
 Microsoft.CodeAnalysis.Semantics.IInvocation.TargetMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.Semantics.IInvocation.Instance.get -> Microsoft.CodeAnalysis.Semantics.IExpression
-Microsoft.CodeAnalysis.Semantics.IInvocation.InvocationKind.get -> Microsoft.CodeAnalysis.Semantics.InvocationKind
+Microsoft.CodeAnalysis.Semantics.IInvocation.IsVirtual.get -> bool
 Microsoft.CodeAnalysis.Semantics.IInvocation.Arguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IArgument>
 Microsoft.CodeAnalysis.Semantics.IInvocation.ArgumentMatchingParameter(Microsoft.CodeAnalysis.IParameterSymbol parameter) -> Microsoft.CodeAnalysis.Semantics.IArgument
 Microsoft.CodeAnalysis.Semantics.IArgument
@@ -1645,10 +1645,7 @@ Microsoft.CodeAnalysis.Semantics.IFieldReference
 Microsoft.CodeAnalysis.Semantics.IFieldReference.Field.get -> Microsoft.CodeAnalysis.IFieldSymbol
 Microsoft.CodeAnalysis.Semantics.IMethodReference
 Microsoft.CodeAnalysis.Semantics.IMethodReference.Method.get -> Microsoft.CodeAnalysis.IMethodSymbol
-Microsoft.CodeAnalysis.Semantics.IPropertyGetReference
-Microsoft.CodeAnalysis.Semantics.IPropertyGetReference.Getter.get -> Microsoft.CodeAnalysis.IMethodSymbol
-Microsoft.CodeAnalysis.Semantics.IPropertySetReference
-Microsoft.CodeAnalysis.Semantics.IPropertySetReference.Setter.get -> Microsoft.CodeAnalysis.IMethodSymbol
+Microsoft.CodeAnalysis.Semantics.IMethodReference.IsVirtual.get -> bool
 Microsoft.CodeAnalysis.Semantics.IPropertyReference
 Microsoft.CodeAnalysis.Semantics.IPropertyReference.Property.get -> Microsoft.CodeAnalysis.IPropertySymbol
 Microsoft.CodeAnalysis.Semantics.ReferenceKind
@@ -1770,10 +1767,6 @@ Microsoft.CodeAnalysis.Semantics.ConversionKind.AsCast = 2 -> Microsoft.CodeAnal
 Microsoft.CodeAnalysis.Semantics.ConversionKind.Basic = 3 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
 Microsoft.CodeAnalysis.Semantics.ConversionKind.CSharp = 4 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
 Microsoft.CodeAnalysis.Semantics.ConversionKind.Operator = 5 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
-Microsoft.CodeAnalysis.Semantics.InvocationKind
-Microsoft.CodeAnalysis.Semantics.InvocationKind.Virtual = 0 -> Microsoft.CodeAnalysis.Semantics.InvocationKind
-Microsoft.CodeAnalysis.Semantics.InvocationKind.Static = 1 -> Microsoft.CodeAnalysis.Semantics.InvocationKind
-Microsoft.CodeAnalysis.Semantics.InvocationKind.NonVirtualInstance = 2 -> Microsoft.CodeAnalysis.Semantics.InvocationKind
 Microsoft.CodeAnalysis.Semantics.ArgumentKind
 Microsoft.CodeAnalysis.Semantics.ArgumentKind.Positional = 0 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
 Microsoft.CodeAnalysis.Semantics.ArgumentKind.Named = 1 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
@@ -1990,6 +1983,8 @@ Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.DynamicLess = 61 -> Mic
 Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.DynamicLessEqual = 62 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
 Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.DynamicGreaterEqual = 63 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
 Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.DynamicGreater = 64 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
+Microsoft.CodeAnalysis.Semantics.IExpressionExtensions
+static Microsoft.CodeAnalysis.Semantics.IExpressionExtensions.IsStatic(this Microsoft.CodeAnalysis.Semantics.IInvocation invocation) -> bool
 Microsoft.CodeAnalysis.Semantics.IStatement
 Microsoft.CodeAnalysis.Semantics.IBlock
 Microsoft.CodeAnalysis.Semantics.IBlock.Statements.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IStatement>
