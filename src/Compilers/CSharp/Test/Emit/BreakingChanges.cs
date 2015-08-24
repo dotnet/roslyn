@@ -1253,7 +1253,7 @@ static int Main()
             CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "3");
         }
 
-        [Fact, WorkItem(530696, "DevDiv")]
+        [Fact, WorkItem(530696, "DevDiv"), WorkItem(4458, "https://github.com/dotnet/roslyn/issues/4458")]
         public void CS0121Err_AmbiguousMethodCall()
         {
             string source = @"
@@ -1275,10 +1275,7 @@ static int Main()
     }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-    // (15,13): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(params double[])' and 'C.M(params G<int>[])'
-    //             M();
-    Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(params double[])", "C.M(params G<int>[])"));
+            CompileAndVerify(CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe), expectedOutput:"2");
         }
 
         [Fact, WorkItem(530653, "DevDiv")]
