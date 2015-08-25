@@ -111,8 +111,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 protected override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<DiagnosticData> items)
                 {
                     return CreateTrackingPoints(_workspace, _documentId, items, (d, s) => CreateTrackingPoint(s, 
-                        d.DataLocation == null ? 0: d.DataLocation.OriginalStartLine, 
-                        d.DataLocation == null ? 0 : d.DataLocation.OriginalStartColumn));
+                        d.DataLocation?.OriginalStartLine ?? 0, 
+                        d.DataLocation?.OriginalStartColumn ?? 0));
                 }
 
                 protected override AbstractTableEntriesSnapshot<DiagnosticData> CreateSnapshot(

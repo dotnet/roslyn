@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -37,16 +39,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public DiagnosticDataLocation(
             DocumentId documentId = null,
             TextSpan? sourceSpan = null,
-            string mappedFilePath = null,
-            int mappedStartLine = 0,
-            int mappedStartColumn = 0,
-            int mappedEndLine = 0,
-            int mappedEndColumn = 0,
             string originalFilePath = null,
             int originalStartLine = 0,
             int originalStartColumn = 0,
             int originalEndLine = 0,
-            int originalEndColumn = 0)
+            int originalEndColumn = 0,
+            string mappedFilePath = null,
+            int mappedStartLine = 0,
+            int mappedStartColumn = 0,
+            int mappedEndLine = 0,
+            int mappedEndColumn = 0)
         {
             DocumentId = documentId;
             SourceSpan = sourceSpan;
@@ -85,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public readonly Workspace Workspace;
         public readonly ProjectId ProjectId;
-        public readonly DocumentId DocumentId;
+        public DocumentId DocumentId => this.DataLocation?.DocumentId;
 
         public readonly DiagnosticDataLocation DataLocation;
         public readonly IReadOnlyCollection<DiagnosticDataLocation> AdditionalLocations;
@@ -179,8 +181,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     WarningLevel == other.WarningLevel &&
                     ProjectId == other.ProjectId &&
                     DocumentId == other.DocumentId &&
-                    DataLocation?.OriginalStartLine == other?.DataLocation.OriginalStartLine &&
-                    DataLocation?.OriginalStartColumn == other?.DataLocation.OriginalStartColumn;
+                    DataLocation?.OriginalStartLine == other?.DataLocation?.OriginalStartLine &&
+                    DataLocation?.OriginalStartColumn == other?.DataLocation?.OriginalStartColumn;
         }
 
         public override int GetHashCode()
@@ -210,31 +212,88 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 DataLocation?.OriginalStartColumn);
         }
 
-        public Diagnostic ToDiagnostic(SyntaxTree tree)
+        public static Task<IEnumerable<Diagnostic>> ToDiagnosticsAsync(Project project, IEnumerable<DiagnosticData> datas, CancellationToken cancellationToken)
         {
-            var location = Location.None;
-            if (tree != null)
+            return ToDiagnosticsAsync(project, datas, documentIdToTree: null, cancellationToken: cancellationToken);
+        }
+
+        public static async Task<IEnumerable<Diagnostic>> ToDiagnosticsAsync(
+            Project project, IEnumerable<DiagnosticData> datas, ImmutableDictionary<DocumentId, SyntaxTree> documentIdToTree, CancellationToken cancellationToken)
+        {
+            var result = new List<Diagnostic>();
+            foreach (var data in datas)
             {
-                var span = HasTextSpan ? TextSpan : GetTextSpan(tree.GetText());
-                location = tree.GetLocation(span);
+                result.Add(await data.ToDiagnosticAsync(project, documentIdToTree, cancellationToken).ConfigureAwait(false));
             }
-            else if (DataLocation?.OriginalFilePath != null && HasTextSpan)
+            return result;
+        }
+
+        public Task<Diagnostic> ToDiagnosticAsync(Project project, CancellationToken cancellationToken)
+        {
+            return ToDiagnosticAsync(project, documentIdToTree: null, cancellationToken: cancellationToken);
+        }
+
+        private async Task<Diagnostic> ToDiagnosticAsync(Project project, ImmutableDictionary<DocumentId, SyntaxTree> documentIdToTree, CancellationToken cancellationToken)
+        {
+            return Diagnostic.Create(this.Id, this.Category, this.Message, this.Severity, this.DefaultSeverity, this.IsEnabledByDefault, this.WarningLevel, this.Title, this.Description, this.HelpLink, 
+                await ConvertLocationAsync(project, this.DataLocation, documentIdToTree, cancellationToken).ConfigureAwait(false),
+                additionalLocations: await ConvertLocationsAsync(project, this.AdditionalLocations, documentIdToTree, cancellationToken).ConfigureAwait(false),
+                customTags: this.CustomTags, properties: this.Properties);
+        }
+
+        private static async Task<IList<Location>> ConvertLocationsAsync(
+            Project project, IReadOnlyCollection<DiagnosticDataLocation> additionalLocations, ImmutableDictionary<DocumentId, SyntaxTree> documentIdToTree, CancellationToken cancellationToken)
+        {
+            if (additionalLocations == null || additionalLocations.Count == 0)
             {
-                var span = TextSpan;
-                location = Location.Create(DataLocation?.OriginalFilePath, span, new LinePositionSpan(
-                    new LinePosition(DataLocation.OriginalStartLine, DataLocation.OriginalStartColumn),
-                    new LinePosition(DataLocation.OriginalEndLine, DataLocation.OriginalEndColumn)));
+                return SpecializedCollections.EmptyList<Location>();
             }
 
-            return Diagnostic.Create(this.Id, this.Category, this.Message, this.Severity, this.DefaultSeverity, this.IsEnabledByDefault, this.WarningLevel, this.Title, this.Description, this.HelpLink, location, customTags: this.CustomTags, properties: this.Properties);
+            var result = new List<Location>();
+            foreach (var data in additionalLocations)
+            {
+                var location = await ConvertLocationAsync(project, data, documentIdToTree, cancellationToken).ConfigureAwait(false);
+                result.Add(location);
+            }
+
+            return result;
+        }
+
+        private static async Task<Location> ConvertLocationAsync(
+            Project project, DiagnosticDataLocation dataLocation, ImmutableDictionary<DocumentId, SyntaxTree> documentIdToTree, CancellationToken cancellationToken)
+        {
+            if (dataLocation?.DocumentId != null)
+            {
+                var document = project.GetDocument(dataLocation?.DocumentId);
+                if (document != null)
+                {
+                    if (document.SupportsSyntaxTree)
+                    {
+                        var syntaxTree = documentIdToTree != null
+                            ? documentIdToTree[document.Id]
+                            : await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                        var span = dataLocation.SourceSpan ?? GetTextSpan(dataLocation, syntaxTree.GetText());
+                        return syntaxTree.GetLocation(span);
+                    }
+                    else if (dataLocation?.OriginalFilePath != null && dataLocation.SourceSpan != null)
+                    {
+                        var span = dataLocation.SourceSpan.Value;
+                        return Location.Create(dataLocation?.OriginalFilePath, span, new LinePositionSpan(
+                            new LinePosition(dataLocation.OriginalStartLine, dataLocation.OriginalStartColumn),
+                            new LinePosition(dataLocation.OriginalEndLine, dataLocation.OriginalEndColumn)));
+                    }
+                }
+            }
+
+            return Location.None;
         }
 
         public TextSpan GetExistingOrCalculatedTextSpan(SourceText text)
         {
-            return HasTextSpan ? TextSpan : GetTextSpan(text);
+            return HasTextSpan ? TextSpan : GetTextSpan(this.DataLocation, text);
         }
 
-        public TextSpan GetTextSpan(SourceText text)
+        public static TextSpan GetTextSpan(DiagnosticDataLocation dataLocation, SourceText text)
         {
             var lines = text.Lines;
             if (lines.Count == 0)
@@ -242,14 +301,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return default(TextSpan);
             }
 
-            var originalStartLine = this.DataLocation?.OriginalStartLine ?? 0;
+            var originalStartLine = dataLocation?.OriginalStartLine ?? 0;
             if (originalStartLine >= lines.Count)
             {
                 return new TextSpan(text.Length, 0);
             }
 
             int startLine, startColumn, endLine, endColumn;
-            AdjustBoundaries(lines, out startLine, out startColumn, out endLine, out endColumn);
+            AdjustBoundaries(dataLocation, lines, out startLine, out startColumn, out endLine, out endColumn);
 
             var startLinePosition = new LinePosition(startLine, startColumn);
             var endLinePosition = new LinePosition(endLine, endColumn);
@@ -259,11 +318,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return TextSpan.FromBounds(Math.Min(Math.Max(span.Start, 0), text.Length), Math.Min(Math.Max(span.End, 0), text.Length));
         }
 
-        private void AdjustBoundaries(
+        private static void AdjustBoundaries(DiagnosticDataLocation dataLocation,
             TextLineCollection lines, out int startLine, out int startColumn, out int endLine, out int endColumn)
         {
-            startLine = this.DataLocation?.OriginalStartLine ?? 0;
-            var originalStartColumn = this.DataLocation?.OriginalStartColumn ?? 0;
+            startLine = dataLocation?.OriginalStartLine ?? 0;
+            var originalStartColumn = dataLocation?.OriginalStartColumn ?? 0;
 
             startColumn = Math.Max(originalStartColumn, 0);
             if (startLine < 0)
@@ -272,8 +331,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 startColumn = 0;
             }
 
-            endLine = this.DataLocation?.OriginalEndLine ?? 0;
-            var originalEndColumn = this.DataLocation?.OriginalEndColumn ?? 0;
+            endLine = dataLocation?.OriginalEndLine ?? 0;
+            var originalEndColumn = dataLocation?.OriginalEndColumn ?? 0;
 
             endColumn = Math.Max(originalEndColumn, 0);
             if (endLine < 0)
@@ -359,9 +418,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var originalEndLine = originalLineInfo.EndLinePosition.Line;
             var originalEndColumn = originalLineInfo.EndLinePosition.Character;
 
-            return new DiagnosticDataLocation(document.Id, sourceSpan, 
-                mappedLineInfo.GetMappedFilePathIfExist(), mappedStartLine, mappedStartColumn, mappedEndLine, mappedEndColumn,
-                originalLineInfo.Path, originalStartLine, originalStartColumn, originalEndLine, originalEndColumn);
+            return new DiagnosticDataLocation(document.Id, sourceSpan,
+                originalLineInfo.Path, originalStartLine, originalStartColumn, originalEndLine, originalEndColumn,
+                mappedLineInfo.GetMappedFilePathIfExist(), mappedStartLine, mappedStartColumn, mappedEndLine, mappedEndColumn);
         }
 
         public static DiagnosticData Create(Document document, Diagnostic diagnostic)

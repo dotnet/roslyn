@@ -36,7 +36,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
                 get
                 {
-                    if (!_hasDiagnosticsWithAdditionalLocations.HasValue) {
+                    if (!_hasDiagnosticsWithAdditionalLocations.HasValue)
+                    {
                         _hasDiagnosticsWithAdditionalLocations = this.Items.Any(d => d.AdditionalLocations.Count > 0);
                     }
 

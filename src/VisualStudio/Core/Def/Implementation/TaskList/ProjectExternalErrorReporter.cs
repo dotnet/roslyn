@@ -237,18 +237,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 properties: Properties,
                 workspace: _workspace,
                 projectId: _projectId,
-                location: new DiagnosticDataLocation(id, 
+                location: new DiagnosticDataLocation(id,
                     sourceSpan: null,
-                    mappedFilePath: mappedFilePath,
-                    mappedStartLine: mappedStartLine,
-                    mappedStartColumn: mappedStartColumn,
-                    mappedEndLine: mappedEndLine,
-                    mappedEndColumn: mappedEndColumn,
                     originalFilePath: originalFilePath,
                     originalStartLine: originalStartLine,
                     originalStartColumn: originalStartColumn,
                     originalEndLine: originalEndLine,
-                    originalEndColumn: originalEndColumn));
+                    originalEndColumn: originalEndColumn,
+                    mappedFilePath: mappedFilePath,
+                    mappedStartLine: mappedStartLine,
+                    mappedStartColumn: mappedStartColumn,
+                    mappedEndLine: mappedEndLine,
+                    mappedEndColumn: mappedEndColumn));
         }
     }
 }

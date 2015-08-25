@@ -37,19 +37,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         DiagnosticSeverity.Info, DiagnosticSeverity.Info, false, 1,
                         ImmutableArray<string>.Empty, ImmutableDictionary<string, string>.Empty,
                         workspace, document.Project.Id, new DiagnosticDataLocation(document.Id,
-                            new TextSpan(10, 20), "mappedFile1", 10, 10, 20, 20, "originalFile1", 30, 30, 40, 40)),
+                            new TextSpan(10, 20), "originalFile1", 30, 30, 40, 40, "mappedFile1", 10, 10, 20, 20)),
                     new DiagnosticData(
                         "test2", "Test", "test2 message", "test2 message format",
                         DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, true, 0,
                         ImmutableArray.Create<string>("Test2"), ImmutableDictionary<string, string>.Empty.Add("propertyKey", "propertyValue"),
                         workspace, document.Project.Id, new DiagnosticDataLocation(document.Id,
-                            new TextSpan(30, 40), "mappedFile2", 50, 50, 60, 60, "originalFile2", 70, 70, 80, 80), title: "test2 title", description: "test2 description", helpLink: "http://test2link"),
+                            new TextSpan(30, 40), "originalFile2", 70, 70, 80, 80, "mappedFile2", 50, 50, 60, 60), title: "test2 title", description: "test2 description", helpLink: "http://test2link"),
                     new DiagnosticData(
                         "test3", "Test", "test3 message", "test3 message format",
                         DiagnosticSeverity.Error, DiagnosticSeverity.Warning, true, 2,
                         ImmutableArray.Create<string>("Test3", "Test3_2"), ImmutableDictionary<string, string>.Empty.Add("p1Key", "p1Value").Add("p2Key", "p2Value"),
                         workspace, document.Project.Id, new DiagnosticDataLocation(document.Id,
-                            new TextSpan(50, 60), "mappedFile3", 90, 90, 100, 100, "originalFile3", 110, 110, 120, 120), title: "test3 title", description: "test3 description", helpLink: "http://test3link"),
+                            new TextSpan(50, 60), "originalFile3", 110, 110, 120, 120, "mappedFile3", 90, 90, 100, 100), title: "test3 title", description: "test3 description", helpLink: "http://test3link"),
                 };
 
                 var original = new DiagnosticIncrementalAnalyzer.AnalysisData(version1, version2, diagnostics.ToImmutableArray());

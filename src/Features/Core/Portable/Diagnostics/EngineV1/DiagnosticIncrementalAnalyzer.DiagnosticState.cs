@@ -222,8 +222,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     : project.Documents.FirstOrDefault(d => d.FilePath == originalFile)?.Id;
 
                 return new DiagnosticDataLocation(documentId, sourceSpan,
-                    mappedFile, mappedStartLine, mappedStartColumn, mappedEndLine, mappedEndColumn,
-                    originalFile, originalStartLine, originalStartColumn, originalEndLine, originalEndColumn);
+                    originalFile, originalStartLine, originalStartColumn, originalEndLine, originalEndColumn,
+                    mappedFile, mappedStartLine, mappedStartColumn, mappedEndLine, mappedEndColumn);
             }
 
             private void WriteTo(ObjectWriter writer, DiagnosticDataLocation item, CancellationToken cancellationToken)
@@ -380,11 +380,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             private void WriteTo(ObjectWriter writer, IReadOnlyCollection<DiagnosticDataLocation> additionalLocations, CancellationToken cancellationToken)
             {
-                writer.WriteInt32(additionalLocations.Count);
-                foreach (var location in additionalLocations)
+                writer.WriteInt32(additionalLocations?.Count ?? 0);
+                if (additionalLocations != null)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    WriteTo(writer, location, cancellationToken);
+                    foreach (var location in additionalLocations)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        WriteTo(writer, location, cancellationToken);
+                    }
                 }
             }
         }
