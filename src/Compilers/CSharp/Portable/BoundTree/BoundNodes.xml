@@ -1341,7 +1341,7 @@
     <Field Name="LocalSymbol" Type="LocalSymbol" Null="disallow"/>
   </Node>
 
-  <Node Name="BoundIsPattern" Base="BoundExpresion">
+  <Node Name="BoundIsPattern" Base="BoundExpression">
     <Field Name="Value" Type="BoundExpression" Null="disallow"/>
     <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
   </Node>

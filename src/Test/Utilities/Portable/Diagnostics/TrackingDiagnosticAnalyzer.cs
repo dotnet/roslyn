@@ -85,10 +85,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return !s_omittedSyntaxKindRegex.IsMatch(syntaxKind.ToString());
         }
 
-        public void VerifyAnalyzeNodeCalledForAllSyntaxKinds()
+        public void VerifyAnalyzeNodeCalledForAllSyntaxKinds(HashSet<TLanguageKindEnum> syntaxKindsPatterns)
         {
             var expectedSyntaxKinds = AllSyntaxKinds.Where(IsAnalyzeNodeSupported);
-            var actualSyntaxKinds = _callLog.Where(a => FilterByAbstractName(a, "SyntaxNode")).Select(e => e.SyntaxKind).Distinct();
+            var actualSyntaxKinds = _callLog.Where(a => FilterByAbstractName(a, "SyntaxNode")).Select(e => e.SyntaxKind).Concat(syntaxKindsPatterns).Distinct();
             AssertIsSuperset(expectedSyntaxKinds, actualSyntaxKinds);
         }
 
