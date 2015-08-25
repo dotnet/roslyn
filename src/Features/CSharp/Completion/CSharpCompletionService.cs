@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion
@@ -36,6 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
                 new ExternAliasCompletionProvider(),
             }.ToImmutableArray();
 
+        private CSharpCompletionService()
+            : base(LanguageNames.CSharp)
+        {
+        }
+
         public override IEnumerable<CompletionListProvider> GetDefaultCompletionProviders()
         {
             return _defaultCompletionProviders;
@@ -47,19 +51,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
             return CompletionUtilities.GetTextChangeSpan(text, position);
         }
 
-        protected override bool TriggerOnBackspace(SourceText text, int position, CompletionTriggerInfo triggerInfo, OptionSet options)
+        protected override CompletionRules CreateCompletionRules(MostRecentlyUsedList mostRecentlyUsedList)
         {
-            return false;
-        }
-
-        public override CompletionRules GetCompletionRules()
-        {
-            return new CSharpCompletionRules(this);
-        }
-
-        protected override string GetLanguageName()
-        {
-            return LanguageNames.CSharp;
+            return new CSharpCompletionRules(mostRecentlyUsedList);
         }
     }
 }

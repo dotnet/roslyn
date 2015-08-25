@@ -2,12 +2,13 @@
 
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.Completion.Snippets;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Extensibility.Completion
 {
-    internal abstract class SnippetCompletionProvider : AbstractCompletionProvider, ISnippetCompletionProvider, ICustomCommitCompletionProvider
+    internal abstract class SnippetCompletionListProvider : AbstractCompletionProvider, ISnippetCompletionListProvider, ICustomCommitCompletionProvider
     {
         public abstract void Commit(CompletionItem completionItem, ITextView textView, ITextBuffer subjectBuffer, ITextSnapshot triggerSnapshot, char? commitChar);
     }

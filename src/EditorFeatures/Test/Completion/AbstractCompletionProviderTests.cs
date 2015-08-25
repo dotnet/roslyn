@@ -8,6 +8,7 @@ using System.Threading;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Triggers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
@@ -61,32 +62,29 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return GetCompletionService(document).GetCompletionRules();
         }
 
-        internal static CompletionList GetCompletionList(CompletionListProvider provider, Document document, int position, CompletionTriggerInfo triggerInfo)
+        internal static CompletionList GetCompletionList(CompletionListProvider provider, Document document, int position, CompletionTrigger trigger)
         {
-            var context = new CompletionListContext(document, position, triggerInfo, CancellationToken.None);
+            var context = new CompletionListContext(document, position, trigger, CancellationToken.None);
 
             provider.ProduceCompletionListAsync(context).Wait();
 
             return new CompletionList(context.GetItems(), context.Builder, context.IsExclusive);
         }
 
-        internal CompletionList GetCompletionList(Document document, int position, CompletionTriggerInfo triggerInfo)
+        internal CompletionList GetCompletionList(Document document, int position, CompletionTrigger trigger)
         {
-            return GetCompletionList(this.CompletionProvider, document, position, triggerInfo);
+            return GetCompletionList(this.CompletionProvider, document, position, trigger);
         }
 
         private void CheckResults(Document document, int position, string expectedItemOrNull, string expectedDescriptionOrNull, bool usePreviousCharAsTrigger, bool checkForAbsence, Glyph? glyph)
         {
             var code = document.GetTextAsync().Result.ToString();
 
-            CompletionTriggerInfo triggerInfo = new CompletionTriggerInfo();
+            var trigger = usePreviousCharAsTrigger
+                ? new TypeCharCompletionTrigger(typedCharacter: code.ElementAt(position - 1))
+                : (CompletionTrigger)new DisplayListCompletionTrigger();
 
-            if (usePreviousCharAsTrigger)
-            {
-                triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo(triggerCharacter: code.ElementAt(position - 1));
-            }
-
-            var completionList = GetCompletionList(document, position, triggerInfo);
+            var completionList = GetCompletionList(document, position, trigger);
             var items = completionList == null ? default(ImmutableArray<CompletionItem>) : completionList.Items;
 
             if (checkForAbsence)
@@ -289,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         {
             var textBuffer = WorkspaceFixture.Workspace.Documents.Single().TextBuffer;
 
-            var items = GetCompletionList(document, position, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo()).Items;
+            var items = GetCompletionList(document, position, new DisplayListCompletionTrigger()).Items;
             var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
 
             var customCommitCompletionProvider = CompletionProvider as ICustomCommitCompletionProvider;
@@ -359,7 +357,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var textBuffer = WorkspaceFixture.Workspace.Documents.Single().TextBuffer;
             var textSnapshot = textBuffer.CurrentSnapshot.AsText();
 
-            var items = GetCompletionList(document, position, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo()).Items;
+            var items = GetCompletionList(document, position, new DisplayListCompletionTrigger()).Items;
             var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
 
             var completionRules = GetCompletionRules(document);
@@ -494,9 +492,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
                 optionsService.SetOptions(optionsService.GetOptions().WithChangedOption(CompletionOptions.HideAdvancedMembers, document.Project.Language, hideAdvancedMembers));
 
-                var triggerInfo = new CompletionTriggerInfo();
+                var trigger = new DisplayListCompletionTrigger();
 
-                var completionList = GetCompletionList(document, position, triggerInfo);
+                var completionList = GetCompletionList(document, position, trigger);
 
                 if (expectedSymbols >= 1)
                 {
@@ -547,8 +545,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var documentId = testWorkspace.Documents.Single(d => d.Name == "SourceDocument").Id;
                 var document = solution.GetDocument(documentId);
 
-                var triggerInfo = new CompletionTriggerInfo();
-                var completionList = GetCompletionList(document, position, triggerInfo);
+                var trigger = new DisplayListCompletionTrigger();
+                var completionList = GetCompletionList(document, position, trigger);
                 var item = completionList.Items.FirstOrDefault(i => i.DisplayText == expectedItem);
                 Assert.Equal(expectedDescription, item.GetDescriptionAsync().Result.GetFullText());
             }
@@ -577,8 +575,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var currentContextDocumentId = testWorkspace.GetDocumentIdInCurrentContext(textContainer);
                 var document = solution.GetDocument(currentContextDocumentId);
 
-                var triggerInfo = new CompletionTriggerInfo();
-                var completionList = GetCompletionList(document, position, triggerInfo);
+                var trigger = new DisplayListCompletionTrigger();
+                var completionList = GetCompletionList(document, position, trigger);
 
                 var item = completionList.Items.Single(c => c.DisplayText == expectedItem);
                 Assert.NotNull(item);

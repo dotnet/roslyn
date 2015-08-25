@@ -8,8 +8,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
 {
     internal class CSharpCompletionRules : CompletionRules
     {
-        public CSharpCompletionRules(AbstractCompletionService completionService)
-            : base(completionService)
+        public CSharpCompletionRules(MostRecentlyUsedList mostRecentlyUsedList)
+            : base(mostRecentlyUsedList)
         {
         }
 

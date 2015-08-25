@@ -1,12 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.FileSystem;
 using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis.Options;
@@ -19,31 +17,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 {
     // TODO(cyrusn): Use a predefined name here.
     [ExportCompletionProvider("LoadCommandCompletionProvider", InteractiveLanguageNames.InteractiveCommand)]
-    internal partial class LoadCommandCompletionProvider : TextCompletionProvider
+    internal partial class LoadCommandCompletionProvider : CompletionListProvider
     {
         private const string NetworkPath = "\\\\";
         private static readonly Regex s_directiveRegex = new Regex(@"#load\s+(""[^""]*""?)", RegexOptions.Compiled);
-
-        public override CompletionList GetCompletionList(SourceText text, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            var items = this.GetItems(text, position, triggerInfo, cancellationToken);
-            if (items == null || !items.Any())
-            {
-                return null;
-            }
-
-            return new CompletionList(items);
-        }
 
         public override async Task ProduceCompletionListAsync(CompletionListContext context)
         {
             var document = context.Document;
             var position = context.Position;
-            var triggerInfo = context.TriggerInfo;
+            var trigger = context.Trigger;
             var cancellationToken = context.CancellationToken;
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var items = GetItems(text, position, triggerInfo, cancellationToken);
+            var items = GetItems(text, position, trigger, cancellationToken);
 
             context.AddItems(items);
         }
@@ -74,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             return text.Lines.GetLineFromPosition(position).Start + quotedPathGroup.Index;
         }
 
-        private ImmutableArray<CompletionItem> GetItems(SourceText text, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        private ImmutableArray<CompletionItem> GetItems(SourceText text, int position, CompletionTrigger trigger, CancellationToken cancellationToken)
         {
             var line = text.Lines.GetLineFromPosition(position);
             var lineText = text.ToString(TextSpan.FromBounds(line.Start, position));

@@ -19,7 +19,7 @@ Imports Microsoft.VisualStudio.Text.Editor
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
     <ExportCompletionProvider("SnippetCompletionProvider", LanguageNames.VisualBasic)>
     Partial Friend Class SnippetCompletionProvider
-        Inherits Extensibility.Completion.SnippetCompletionProvider
+        Inherits Extensibility.Completion.SnippetCompletionListProvider
 
         Private ReadOnly _editorAdaptersFactoryService As IVsEditorAdaptersFactoryService
 
@@ -28,7 +28,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             Me._editorAdaptersFactoryService = editorAdaptersFactoryService
         End Sub
 
-        Protected Overrides Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CompletionItem))
+        Protected Overrides Function GetItemsWorkerAsync(document As Document, position As Integer, trigger As CompletionTrigger, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CompletionItem))
             Dim snippetInfoService = document.GetLanguageService(Of ISnippetInfoService)()
 
             If snippetInfoService Is Nothing Then
@@ -61,7 +61,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                 options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.VisualBasic)
         End Function
 
-        Protected Overrides Function IsExclusiveAsync(document As Document, position As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of Boolean)
+        Protected Overrides Function IsExclusiveAsync(document As Document, position As Integer, trigger As CompletionTrigger, cancellationToken As CancellationToken) As Task(Of Boolean)
             Return SpecializedTasks.True
         End Function
 

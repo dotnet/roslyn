@@ -6,8 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.Extensibility.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -24,9 +22,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             public void ComputeModel(
                 ICompletionService completionService,
-                CompletionTriggerInfo triggerInfo,
-                IEnumerable<CompletionListProvider> completionProviders,
-                bool isDebugger)
+                CompletionTrigger trigger,
+                IEnumerable<CompletionListProvider> completionProviders)
             {
                 AssertIsForeground();
 
@@ -37,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     return;
                 }
 
-                new ModelComputer(this, completionService, triggerInfo, completionProviders, isDebugger).Do();
+                new ModelComputer(this, completionService, trigger, completionProviders).Do();
             }
 
             private class ModelComputer : ForegroundThreadAffinitizedObject
@@ -47,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 private readonly Session _session;
                 private readonly ICompletionService _completionService;
                 private readonly OptionSet _options;
-                private readonly CompletionTriggerInfo _triggerInfo;
+                private readonly CompletionTrigger _trigger;
                 private readonly SnapshotPoint _subjectBufferCaretPosition;
                 private readonly SourceText _text;
                 private readonly IEnumerable<CompletionListProvider> _completionProviders;
@@ -59,14 +56,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 public ModelComputer(
                     Session session,
                     ICompletionService completionService,
-                    CompletionTriggerInfo triggerInfo,
-                    IEnumerable<CompletionListProvider> completionProviders,
-                    bool isDebugger)
+                    CompletionTrigger trigger,
+                    IEnumerable<CompletionListProvider> completionProviders)
                 {
                     _session = session;
                     _completionService = completionService;
                     _options = session.Controller.SubjectBuffer.TryGetOptions();
-                    _triggerInfo = triggerInfo;
+                    _trigger = trigger;
                     _subjectBufferCaretPosition = session.Controller.TextView.GetCaretPoint(session.Controller.SubjectBuffer).Value;
                     _completionProviders = completionProviders;
 
@@ -101,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                         // TODO(cyrusn): We're calling into extensions, we need to make ourselves resilient
                         // to the extension crashing.
-                        var completionList = await GetCompletionListAsync(_completionService, _triggerInfo, cancellationToken).ConfigureAwait(false);
+                        var completionList = await GetCompletionListAsync(_completionService, _trigger, cancellationToken).ConfigureAwait(false);
                         if (completionList == null)
                         {
                             return null;
@@ -118,27 +114,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                             isUnique: false,
                             useSuggestionCompletionMode: _includeBuilder,
                             builder: completionList.Builder,
-                            triggerInfo: _triggerInfo,
+                            trigger: _trigger,
                             completionService: _completionService,
                             workspace: _documentOpt != null ? _documentOpt.Project.Solution.Workspace : null);
                     }
                 }
 
-                private async Task<CompletionList> GetCompletionListAsync(ICompletionService completionService, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
+                private async Task<CompletionList> GetCompletionListAsync(ICompletionService completionService, CompletionTrigger trigger, CancellationToken cancellationToken)
                 {
-                    if (_documentOpt == null && completionService is ITextCompletionService)
-                    {
-                        var textCompletionService = (ITextCompletionService)completionService;
-                        return await textCompletionService.GetCompletionListAsync(_text, _subjectBufferCaretPosition, triggerInfo, _completionProviders, _options, cancellationToken).ConfigureAwait(false);
-                    }
-                    else if (_documentOpt != null)
-                    {
-                        return await completionService.GetCompletionListAsync(_documentOpt, _subjectBufferCaretPosition, triggerInfo, _completionProviders, cancellationToken).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        return null;
-                    }
+                    return _documentOpt != null
+                        ? await completionService.GetCompletionListAsync(_documentOpt, _subjectBufferCaretPosition, trigger, _completionProviders, cancellationToken).ConfigureAwait(false)
+                        : null;
                 }
             }
         }

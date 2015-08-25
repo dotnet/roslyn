@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(
             Document document,
             int position,
-            CompletionTriggerInfo triggerInfo,
+            CompletionTrigger trigger,
             CancellationToken cancellationToken)
         {
             var span = new TextSpan(position, 0);

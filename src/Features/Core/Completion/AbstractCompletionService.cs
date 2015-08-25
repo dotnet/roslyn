@@ -8,94 +8,57 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.Completion.Snippets;
+using Microsoft.CodeAnalysis.Completion.Triggers;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
-    internal abstract partial class AbstractCompletionService : ICompletionService, ITextCompletionService
+    internal abstract partial class AbstractCompletionService : ICompletionService
     {
         private static readonly Func<string, List<CompletionItem>> s_createList = _ => new List<CompletionItem>();
 
-        private const int MruSize = 10;
-
-        private readonly List<string> _committedItems = new List<string>(MruSize);
-        private readonly object _mruGate = new object();
-
-        internal void CompletionItemCommitted(CompletionItem item)
-        {
-            lock (_mruGate)
-            {
-                // We need to remove the item if it's already in the list.
-                // If we're at capacity, we need to remove the LRU item.
-                var removed = _committedItems.Remove(item.DisplayText);
-                if (!removed && _committedItems.Count == MruSize)
-                {
-                    _committedItems.RemoveAt(0);
-                }
-
-                _committedItems.Add(item.DisplayText);
-            }
-        }
+        public string LanguageName { get; }
+        public MostRecentlyUsedList MostRecentlyUsedList { get; } = new MostRecentlyUsedList();
 
         internal int GetMRUIndex(CompletionItem item)
         {
-            lock (_mruGate)
-            {
-                // A lower value indicates more recently used.  Since items are added
-                // to the end of the list, our result just maps to the negation of the 
-                // index.
-                // -1 => 1  == Not Found
-                // 0  => 0  == least recently used 
-                // 9  => -9 == most recently used 
-                var index = _committedItems.IndexOf(item.DisplayText);
-                return -index;
-            }
+            return this.MostRecentlyUsedList.GetMRUIndex(item);
         }
 
         public void ClearMRUCache()
         {
-            lock (_mruGate)
-            {
-                _committedItems.Clear();
-            }
+            this.MostRecentlyUsedList.Clear();
         }
 
-        /// <summary>
-        /// Apply any culture-specific quirks to the given text for the purposes of pattern matching.
-        /// For example, in the Turkish locale, capital 'i's should be treated specially in Visual Basic.
-        /// </summary>
-        public virtual string GetCultureSpecificQuirks(string candidate)
+        protected AbstractCompletionService(string languageName)
         {
-            return candidate;
+            this.LanguageName = languageName;
         }
 
         public abstract IEnumerable<CompletionListProvider> GetDefaultCompletionProviders();
 
-        protected abstract string GetLanguageName();
+        protected virtual CompletionRules CreateCompletionRules(MostRecentlyUsedList mostRecentlyUsedList)
+        {
+            return new CompletionRules(mostRecentlyUsedList);
+        }
+
+        public CompletionRules GetCompletionRules()
+        {
+            return CreateCompletionRules(this.MostRecentlyUsedList);
+        }
 
         public async Task<CompletionList> GetCompletionListAsync(
             Document document,
             int position,
-            CompletionTriggerInfo triggerInfo,
+            CompletionTrigger trigger,
             IEnumerable<CompletionListProvider> completionProviders,
             CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return await GetCompletionListAsync(document, text, position, triggerInfo, completionProviders, document.Project.Solution.Workspace.Options, cancellationToken).ConfigureAwait(false);
-        }
-
-        public Task<CompletionList> GetCompletionListAsync(
-            SourceText text,
-            int position,
-            CompletionTriggerInfo triggerInfo,
-            IEnumerable<CompletionListProvider> completionProviders,
-            OptionSet options,
-            CancellationToken cancellationToken)
-        {
-            return GetCompletionListAsync(null, text, position, triggerInfo, completionProviders, options, cancellationToken);
+            return await GetCompletionListAsync(document, text, position, trigger, completionProviders, document.Project.Solution.Workspace.Options, cancellationToken).ConfigureAwait(false);
         }
 
         private class ProviderList
@@ -105,10 +68,10 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         private async Task<CompletionList> GetCompletionListAsync(
-            Document documentOpt,
+            Document document,
             SourceText text,
             int position,
-            CompletionTriggerInfo triggerInfo,
+            CompletionTrigger trigger,
             IEnumerable<CompletionListProvider> completionProviders,
             OptionSet options,
             CancellationToken cancellationToken)
@@ -118,26 +81,27 @@ namespace Microsoft.CodeAnalysis.Completion
             var completionRules = GetCompletionRules();
 
             IEnumerable<CompletionListProvider> triggeredProviders;
-            switch (triggerInfo.TriggerReason)
+
+            if (trigger is TypeCharCompletionTrigger)
             {
-                case CompletionTriggerReason.TypeCharCommand:
-                    triggeredProviders = completionProviders.Where(p => p.IsTriggerCharacter(text, position - 1, options)).ToList();
-                    break;
-                case CompletionTriggerReason.BackspaceOrDeleteCommand:
-                    triggeredProviders = this.TriggerOnBackspace(text, position, triggerInfo, options)
-                        ? completionProviders
-                        : SpecializedCollections.EmptyEnumerable<CompletionListProvider>();
-                    break;
-                default:
-                    triggeredProviders = completionProviders;
-                    break;
+                triggeredProviders = completionProviders.Where(p => p.IsTriggerCharacter(text, position - 1, options)).ToList();
+            }
+            else if (trigger is BackspaceOrDeleteCharCompletionTrigger)
+            {
+                triggeredProviders = this.TriggerOnBackspaceOrDelete(text, position, trigger, options)
+                    ? completionProviders
+                    : SpecializedCollections.EmptyEnumerable<CompletionListProvider>();
+            }
+            else
+            {
+                triggeredProviders = completionProviders;
             }
 
             // Now, ask all the triggered providers if they can provide a group.
             var providersAndLists = new List<ProviderList>();
             foreach (var provider in triggeredProviders)
             {
-                var completionList = await GetCompletionListAsync(provider, documentOpt, text, position, triggerInfo, cancellationToken).ConfigureAwait(false);
+                var completionList = await GetCompletionListAsync(provider, document, position, trigger, cancellationToken).ConfigureAwait(false);
                 if (completionList != null)
                 {
                     providersAndLists.Add(new ProviderList { Provider = provider, List = completionList });
@@ -171,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var nonUsedNonExclusiveProviders = new List<ProviderList>();
             foreach (var provider in nonUsedProviders)
             {
-                var completionList = await GetCompletionListAsync(provider, documentOpt, text, position, triggerInfo, cancellationToken).ConfigureAwait(false);
+                var completionList = await GetCompletionListAsync(provider, document, position, trigger, cancellationToken).ConfigureAwait(false);
                 if (completionList != null && !completionList.IsExclusive)
                 {
                     nonUsedNonExclusiveProviders.Add(new ProviderList { Provider = provider, List = completionList });
@@ -257,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // the snippet item doesn't have its preselect bit set.
             // We'll special case this by not preferring later items
             // if they are snippets and the other candidate is preselected.
-            if (existingItem.Preselect && item.CompletionProvider is ISnippetCompletionProvider)
+            if (existingItem.Preselect && item.CompletionProvider is ISnippetCompletionListProvider)
             {
                 return existingItem;
             }
@@ -289,34 +253,21 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private static async Task<CompletionList> GetCompletionListAsync(
             CompletionListProvider provider,
-            Document documentOpt,
-            SourceText text,
+            Document document,
             int position,
-            CompletionTriggerInfo triggerInfo,
+            CompletionTrigger trigger,
             CancellationToken cancellationToken)
         {
-            if (provider is TextCompletionProvider)
-            {
-                return ((TextCompletionProvider)provider).GetCompletionList(text, position, triggerInfo, cancellationToken);
-            }
+            var context = new CompletionListContext(document, position, trigger, cancellationToken);
 
-            if (documentOpt != null)
-            {
-                var context = new CompletionListContext(documentOpt, position, triggerInfo, cancellationToken);
+            await provider.ProduceCompletionListAsync(context).ConfigureAwait(false);
 
-                await provider.ProduceCompletionListAsync(context).ConfigureAwait(false);
-
-                return new CompletionList(context.GetItems(), context.Builder, context.IsExclusive);
-            }
-
-            Contract.Fail("Should never get here.");
-
-            return null;
+            return new CompletionList(context.GetItems(), context.Builder, context.IsExclusive);
         }
 
         public bool IsTriggerCharacter(SourceText text, int characterPosition, IEnumerable<CompletionListProvider> completionProviders, OptionSet options)
         {
-            if (!options.GetOption(CompletionOptions.TriggerOnTyping, GetLanguageName()))
+            if (!options.GetOption(CompletionOptions.TriggerOnTyping, LanguageName))
             {
                 return false;
             }
@@ -325,34 +276,14 @@ namespace Microsoft.CodeAnalysis.Completion
             return completionProviders.Any(p => p.IsTriggerCharacter(text, characterPosition, options));
         }
 
-        protected abstract bool TriggerOnBackspace(SourceText text, int position, CompletionTriggerInfo triggerInfo, OptionSet options);
+        protected virtual bool TriggerOnBackspaceOrDelete(SourceText text, int position, CompletionTrigger trigger, OptionSet options)
+        {
+            return false;
+        }
 
         public abstract Task<TextSpan> GetDefaultTrackingSpanAsync(Document document, int position, CancellationToken cancellationToken);
 
-        public virtual CompletionRules GetCompletionRules()
-        {
-            return new CompletionRules(this);
-        }
-
         public virtual bool DismissIfEmpty
-        {
-            get { return false; }
-        }
-
-        public Task<string> GetSnippetExpansionNoteForCompletionItemAsync(CompletionItem completionItem, Workspace workspace)
-        {
-            var insertionText = GetCompletionRules().GetTextChange(completionItem, '\t').NewText;
-
-            var snippetInfoService = workspace.Services.GetLanguageServices(GetLanguageName()).GetService<ISnippetInfoService>();
-            if (snippetInfoService != null && snippetInfoService.SnippetShortcutExists_NonBlocking(insertionText))
-            {
-                return Task.FromResult(string.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, insertionText));
-            }
-
-            return SpecializedTasks.Default<string>();
-        }
-
-        public virtual bool SupportSnippetCompletionListOnTab
         {
             get { return false; }
         }

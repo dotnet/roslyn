@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Triggers;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
@@ -569,9 +569,9 @@ class d
                 var hostDocument = workspace.Documents.Single();
                 var position = hostDocument.CursorPosition.Value;
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo('a');
+                var trigger = new TypeCharCompletionTrigger('a');
 
-                var completionList = GetCompletionList(document, position, triggerInfo);
+                var completionList = GetCompletionList(document, position, trigger);
                 var item = completionList.Items.First();
 
                 var completionService = document.Project.LanguageServices.GetService<ICompletionService>();
@@ -619,9 +619,9 @@ End Class";
                 var hostDocument = workspace.Documents.Single();
                 var position = hostDocument.CursorPosition.Value;
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo('a');
+                var trigger = new TypeCharCompletionTrigger('a');
 
-                var completionList = GetCompletionList(document, position, triggerInfo);
+                var completionList = GetCompletionList(document, position, trigger);
 
                 if (completionList != null)
                 {

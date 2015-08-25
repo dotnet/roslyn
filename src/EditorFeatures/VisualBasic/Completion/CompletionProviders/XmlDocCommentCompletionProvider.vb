@@ -3,6 +3,7 @@
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Completion.Triggers
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.CompletionProviders.XmlDocCommentCompletion
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
@@ -28,8 +29,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
             Return token.IsKind(SyntaxKind.XmlNameToken, SyntaxKind.XmlTextLiteralToken, SyntaxKind.IdentifierToken)
         End Function
 
-        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CompletionItem))
-            If triggerInfo.IsDebugger Then
+        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, trigger As CompletionTrigger, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CompletionItem))
+            If trigger.CustomTags.Contains(WellKnownCompletionTriggerTags.Debugger) Then
                 Return Nothing
             End If
 
@@ -43,8 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
             End If
 
             ' If the user is typing in xml text, don't trigger on backspace.
-            If token.IsKind(SyntaxKind.XmlTextLiteralToken) AndAlso
-                triggerInfo.TriggerReason = CompletionTriggerReason.BackspaceOrDeleteCommand Then
+            If token.IsKind(SyntaxKind.XmlTextLiteralToken) AndAlso TypeOf trigger Is BackspaceOrDeleteCharCompletionTrigger Then
                 Return Nothing
             End If
 

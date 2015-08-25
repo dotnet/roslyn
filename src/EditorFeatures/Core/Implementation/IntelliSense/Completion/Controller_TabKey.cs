@@ -1,10 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Snippets;
 using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Snippets;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
     internal partial class Controller
     {
-        CommandState ICommandHandler<TabKeyCommandArgs>.GetCommandState(TabKeyCommandArgs args, System.Func<CommandState> nextHandler)
+        CommandState ICommandHandler<TabKeyCommandArgs>.GetCommandState(TabKeyCommandArgs args, Func<CommandState> nextHandler)
         {
             AssertIsForeground();
             return nextHandler();
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // The user may be trying to invoke snippets
                 var completionService = GetCompletionService();
                 if (completionService != null &&
-                    completionService.SupportSnippetCompletionListOnTab &&
+                    (completionService as ISnippetCompletionService)?.SupportSnippetCompletionListOnTab == true &&
                     TryInvokeSnippetCompletion(args, completionService))
                 {
                     // We've taken care of the tab. Don't send it to the buffer.
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         {
                             var textChange = new TextChange(TextSpan.FromBounds(caretPoint - 1, caretPoint), string.Empty);
                             workspace.ApplyTextChanges(documentId, textChange, CancellationToken.None);
-                            this.StartNewModelComputation(completionService, CompletionTriggerInfo.CreateSnippetTriggerInfo(), filterItems: false);
+                            this.StartNewModelComputation(completionService, DisplaySnippetsCompletionTrigger.Instance, filterItems: false);
                             return true;
                         }
                     }

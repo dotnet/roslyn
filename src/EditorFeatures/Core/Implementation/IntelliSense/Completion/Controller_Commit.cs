@@ -135,8 +135,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
             }
 
-            // Let the completion rules know that this item was committed.
-            GetCompletionRules().CompletionItemCommitted(item);
+            // Ensure that the item is added to the completion service's most recently used list.
+            GetCompletionService().MostRecentlyUsedList.AddItem(item);
         }
 
         private SnapshotSpan GetFinalSpan(SnapshotSpan currentSpan, char commitChar, bool textChanged)

@@ -11,12 +11,12 @@ namespace Microsoft.CodeAnalysis.Completion.SuggestionMode
 {
     internal abstract class SuggestionModeCompletionProvider : CompletionListProvider
     {
-        protected abstract Task<CompletionItem> GetBuilderAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken);
+        protected abstract Task<CompletionItem> GetBuilderAsync(Document document, int position, CompletionTrigger trigger, CancellationToken cancellationToken);
         protected abstract TextSpan GetFilterSpan(SourceText text, int position);
 
         public override async Task ProduceCompletionListAsync(CompletionListContext context)
         {
-            var builder = await this.GetBuilderAsync(context.Document, context.Position, context.TriggerInfo, context.CancellationToken).ConfigureAwait(false);
+            var builder = await this.GetBuilderAsync(context.Document, context.Position, context.Trigger, context.CancellationToken).ConfigureAwait(false);
             if (builder != null)
             {
                 context.RegisterBuilder(builder);

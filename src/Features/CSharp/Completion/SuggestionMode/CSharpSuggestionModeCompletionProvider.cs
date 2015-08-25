@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.SuggestionMode;
+using Microsoft.CodeAnalysis.Completion.Triggers;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -24,13 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
             return CompletionUtilities.GetTextChangeSpan(text, position);
         }
 
-        protected override async Task<CompletionItem> GetBuilderAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken = default(CancellationToken))
+        protected override async Task<CompletionItem> GetBuilderAsync(Document document, int position, CompletionTrigger trigger, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (triggerInfo.TriggerReason == CompletionTriggerReason.TypeCharCommand)
+            if (trigger is TypeCharCompletionTrigger)
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                if (triggerInfo.IsDebugger)
+                if (trigger.CustomTags.Contains(WellKnownCompletionTriggerTags.Debugger))
                 {
                     // Aggressive Intellisense in the debugger: always show the builder 
                     return CreateEmptyBuilder(text, position);

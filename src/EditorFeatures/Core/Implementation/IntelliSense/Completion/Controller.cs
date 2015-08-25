@@ -4,8 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.Completion.Triggers;
 using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Snippets;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -46,8 +47,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEnumerable<Lazy<CompletionListProvider, OrderableLanguageMetadata>> _allCompletionProviders;
         private readonly ImmutableHashSet<char> _autoBraceCompletionChars;
-        private readonly bool _isDebugger;
-        private readonly bool _isImmediateWindow;
+        private readonly ImmutableArray<string> _completionTriggerTags;
+
+        private const string ImmediateWindowTriggerTag = "ImmediateWindow";
 
         public Controller(
             ITextView textView,
@@ -66,8 +68,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             _undoHistoryRegistry = undoHistoryRegistry;
             _allCompletionProviders = allCompletionProviders;
             _autoBraceCompletionChars = autoBraceCompletionChars;
-            _isDebugger = isDebugger;
-            _isImmediateWindow = isImmediateWindow;
+
+            var tagsBuilder = ImmutableArray.CreateBuilder<string>();
+
+            if (isDebugger)
+            {
+                tagsBuilder.Add(WellKnownCompletionTriggerTags.Debugger);
+            }
+
+            if (isImmediateWindow)
+            {
+                tagsBuilder.Add(ImmediateWindowTriggerTag);
+            }
+
+            _completionTriggerTags = tagsBuilder.AsImmutable();
         }
 
         internal static Controller GetInstance(
@@ -138,10 +152,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             return StartNewModelComputation(
                 completionService,
-                CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo().WithIsDebugger(_isDebugger).WithIsImmediateWindow(_isImmediateWindow), filterItems, dismissIfEmptyAllowed);
+                new DisplayListCompletionTrigger(_completionTriggerTags),
+                filterItems, dismissIfEmptyAllowed);
         }
 
-        private bool StartNewModelComputation(ICompletionService completionService, CompletionTriggerInfo triggerInfo, bool filterItems, bool dismissIfEmptyAllowed = true)
+        private bool StartNewModelComputation(ICompletionService completionService, CompletionTrigger trigger, bool filterItems, bool dismissIfEmptyAllowed = true)
         {
             AssertIsForeground();
             Contract.ThrowIfTrue(sessionOpt != null);
@@ -162,12 +177,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             this.sessionOpt = new Session(this, computation, GetCompletionRules(), Presenter.CreateSession(TextView, SubjectBuffer, null));
 
-            var completionProviders = triggerInfo.TriggerReason == CompletionTriggerReason.Snippets
+            var completionProviders = trigger is DisplaySnippetsCompletionTrigger
                 ? GetSnippetCompletionProviders()
                 : GetCompletionProviders();
 
-            sessionOpt.ComputeModel(completionService, triggerInfo, completionProviders, _isDebugger);
-            var filterReason = triggerInfo.TriggerReason == CompletionTriggerReason.BackspaceOrDeleteCommand ? CompletionFilterReason.BackspaceOrDelete : CompletionFilterReason.TypeChar;
+            sessionOpt.ComputeModel(completionService, trigger, completionProviders);
+
+            var filterReason = trigger is BackspaceOrDeleteCharCompletionTrigger
+                ? CompletionFilterReason.BackspaceOrDelete
+                : CompletionFilterReason.TypeChar;
+
             if (filterItems)
             {
                 sessionOpt.FilterModel(filterReason, dismissIfEmptyAllowed: dismissIfEmptyAllowed);

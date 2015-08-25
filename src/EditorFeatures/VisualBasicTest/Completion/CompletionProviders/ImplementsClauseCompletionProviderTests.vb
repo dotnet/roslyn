@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Completion.Triggers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
@@ -638,9 +639,9 @@ End Interface
             Using testWorkspace = TestWorkspaceFactory.CreateWorkspace(workspace)
                 Dim position = testWorkspace.Documents.Single().CursorPosition.Value
                 Dim document = testWorkspace.CurrentSolution.GetDocument(testWorkspace.Documents.Single().Id)
-                Dim triggerInfo = New CompletionTriggerInfo()
+                Dim trigger = New DisplayListCompletionTrigger()
 
-                Dim completionList = GetCompletionList(document, position, triggerInfo)
+                Dim completionList = GetCompletionList(document, position, trigger)
                 AssertEx.Any(completionList.Items, Function(c) c.DisplayText = "Workcover")
 
             End Using

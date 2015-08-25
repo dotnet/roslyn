@@ -79,7 +79,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
             Me.IntelliSenseCommandHandler = New IntelliSenseCommandHandler(CompletionCommandHandler, SignatureHelpCommandHandler, Nothing)
 
-            languageServices.GetService(Of ICompletionService).ClearMRUCache()
+            languageServices.GetService(Of ICompletionService).MostRecentlyUsedList.Clear()
 
             Dim spanDocument = Workspace.Documents.First(Function(x) x.SelectedSpans.Any())
             Dim statementSpan = spanDocument.SelectedSpans.First()

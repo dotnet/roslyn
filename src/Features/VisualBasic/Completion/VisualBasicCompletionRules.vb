@@ -1,9 +1,10 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Globalization
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.Completion.Triggers
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
@@ -13,9 +14,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
 
             Private ReadOnly s_commitChars As Char() = {" "c, ";"c, "("c, ")"c, "["c, "]"c, "{"c, "}"c, "."c, ","c, ":"c, "+"c, "-"c, "*"c, "/"c, "\"c, "^"c, "<"c, ">"c, "'"c, "="c, "?"c}
 
-            Public Sub New(service As AbstractCompletionService)
-                MyBase.New(service)
+            Public Sub New(mostRecentlyUsedList As MostRecentlyUsedList)
+                MyBase.New(mostRecentlyUsedList)
             End Sub
+
+            ''' <summary>
+            ''' In Turkish Locale, both capital 'i's should be considered same. This behavior matches the compiler behavior.
+            ''' If lowered, both 'i's are lowered to small 'i' with dot
+            ''' </summary>
+            Protected Overrides Function GetCultureSpecificQuirks(candidate As String) As String
+                If CultureInfo.CurrentCulture.Name = "tr-TR" Then
+                    Return candidate.Replace("I"c, "İ"c)
+                End If
+
+                Return candidate
+            End Function
 
             Protected Overrides Function CompareMatches(leftMatch As PatternMatch, rightMatch As PatternMatch, leftItem As CompletionItem, rightItem As CompletionItem) As Integer
                 Dim diff As Integer
@@ -52,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
                 Return 0
             End Function
 
-            Public Overrides Function IsBetterFilterMatch(item1 As CompletionItem, item2 As CompletionItem, filterText As String, triggerInfo As CompletionTriggerInfo, filterReason As CompletionFilterReason) As Boolean
+            Public Overrides Function IsBetterFilterMatch(item1 As CompletionItem, item2 As CompletionItem, filterText As String, trigger As CompletionTrigger, filterReason As CompletionFilterReason) As Boolean
                 If filterReason = CompletionFilterReason.BackspaceOrDelete Then
                     Dim prefixLength1 = GetPrefixLength(item1.FilterText, filterText)
                     Dim prefixLength2 = GetPrefixLength(item2.FilterText, filterText)
@@ -79,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
                     End If
                 End If
 
-                Return MyBase.IsBetterFilterMatch(item1, item2, filterText, triggerInfo, filterReason)
+                Return MyBase.IsBetterFilterMatch(item1, item2, filterText, trigger, filterReason)
             End Function
 
             Private Function GetPrefixLength(text As String, pattern As String) As Integer
@@ -91,17 +104,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
                 Return x
             End Function
 
-            Public Overrides Function MatchesFilterText(item As CompletionItem, filterText As String, triggerInfo As CompletionTriggerInfo, filterReason As CompletionFilterReason) As Boolean
+            Public Overrides Function MatchesFilterText(item As CompletionItem, filterText As String, trigger As CompletionTrigger, filterReason As CompletionFilterReason) As Boolean
                 ' If this is a session started on backspace, we use a much looser prefix match check
                 ' to see if an item matches
-                If filterReason = CompletionFilterReason.BackspaceOrDelete AndAlso triggerInfo.TriggerReason = CompletionTriggerReason.BackspaceOrDeleteCommand Then
+                If filterReason = CompletionFilterReason.BackspaceOrDelete AndAlso TypeOf trigger Is BackspaceOrDeleteCharCompletionTrigger Then
                     Return GetPrefixLength(item.FilterText, filterText) > 0
                 End If
 
-                Return MyBase.MatchesFilterText(item, filterText, triggerInfo, filterReason)
+                Return MyBase.MatchesFilterText(item, filterText, trigger, filterReason)
             End Function
 
-            Public Overrides Function ShouldSoftSelectItem(item As CompletionItem, filterText As String, triggerInfo As CompletionTriggerInfo) As Boolean
+            Public Overrides Function ShouldSoftSelectItem(item As CompletionItem, filterText As String, trigger As CompletionTrigger) As Boolean
                 ' VB has additional specialized logic for soft selecting an item in completion when the only filter text is "_"
                 If (filterText.Length = 0 OrElse filterText = "_") Then
                     ' Object Creation hard selects even with no selected item

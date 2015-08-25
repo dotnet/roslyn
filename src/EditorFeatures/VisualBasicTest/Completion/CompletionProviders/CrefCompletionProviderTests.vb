@@ -3,6 +3,7 @@
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Completion.Triggers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
@@ -427,7 +428,7 @@ End Class]]></a>.Value.NormalizeLineEndings()
                 Dim provider = New CrefCompletionProvider()
                 Dim hostDocument = workspace.DocumentWithCursor
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
-                Dim completionList = GetCompletionList(provider, document, hostDocument.CursorPosition.Value, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo())
+                Dim completionList = GetCompletionList(provider, document, hostDocument.CursorPosition.Value, New DisplayListCompletionTrigger())
             End Using
         End Sub
 

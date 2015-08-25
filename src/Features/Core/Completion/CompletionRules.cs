@@ -10,12 +10,12 @@ namespace Microsoft.CodeAnalysis.Completion
     internal class CompletionRules
     {
         private readonly object _gate = new object();
-        private readonly AbstractCompletionService _completionService;
+        private readonly MostRecentlyUsedList _mostRecentlyUsedList;
         private readonly Dictionary<string, PatternMatcher> _patternMatcherMap = new Dictionary<string, PatternMatcher>();
 
-        public CompletionRules(AbstractCompletionService completionService)
+        public CompletionRules(MostRecentlyUsedList mostRecentlyUsedList)
         {
-            _completionService = completionService;
+            _mostRecentlyUsedList = mostRecentlyUsedList;
         }
 
         protected PatternMatcher GetPatternMatcher(string value)
@@ -34,17 +34,26 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         /// <summary>
+        /// Apply any culture-specific quirks to the given text for the purposes of pattern matching.
+        /// For example, in the Turkish locale, capital 'i's should be treated specially in Visual Basic.
+        /// </summary>
+        protected virtual string GetCultureSpecificQuirks(string candidate)
+        {
+            return candidate;
+        }
+
+        /// <summary>
         /// Returns true if the completion item matches the filter text typed so far.  Returns 'true'
         /// iff the completion item matches and should be included in the filtered completion
         /// results, or false if it should not be.
         /// </summary>
-        public virtual bool MatchesFilterText(CompletionItem item, string filterText, CompletionTriggerInfo triggerInfo, CompletionFilterReason filterReason)
+        public virtual bool MatchesFilterText(CompletionItem item, string filterText, CompletionTrigger trigger, CompletionFilterReason filterReason)
         {
             // If the user hasn't typed anything, and this item was preselected, or was in the
             // MRU list, then we definitely want to include it.
             if (filterText.Length == 0)
             {
-                if (item.Preselect || _completionService.GetMRUIndex(item) < 0)
+                if (item.Preselect || _mostRecentlyUsedList.Contains(item))
                 {
                     return true;
                 }
@@ -57,8 +66,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 return false;
             }
 
-            var patternMatcher = this.GetPatternMatcher(_completionService.GetCultureSpecificQuirks(filterText));
-            var match = patternMatcher.GetFirstMatch(_completionService.GetCultureSpecificQuirks(item.FilterText));
+            var patternMatcher = this.GetPatternMatcher(GetCultureSpecificQuirks(filterText));
+            var match = patternMatcher.GetFirstMatch(GetCultureSpecificQuirks(item.FilterText));
             return match != null;
         }
 
@@ -79,11 +88,11 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Returns true if item1 is a better completion item than item2 given the provided filter
         /// text, or false if it is not better.
         /// </summary>
-        public virtual bool IsBetterFilterMatch(CompletionItem item1, CompletionItem item2, string filterText, CompletionTriggerInfo triggerInfo, CompletionFilterReason filterReason)
+        public virtual bool IsBetterFilterMatch(CompletionItem item1, CompletionItem item2, string filterText, CompletionTrigger trigger, CompletionFilterReason filterReason)
         {
-            var patternMatcher = GetPatternMatcher(_completionService.GetCultureSpecificQuirks(filterText));
-            var match1 = patternMatcher.GetFirstMatch(_completionService.GetCultureSpecificQuirks(item1.FilterText));
-            var match2 = patternMatcher.GetFirstMatch(_completionService.GetCultureSpecificQuirks(item2.FilterText));
+            var patternMatcher = GetPatternMatcher(GetCultureSpecificQuirks(filterText));
+            var match1 = patternMatcher.GetFirstMatch(GetCultureSpecificQuirks(item1.FilterText));
+            var match2 = patternMatcher.GetFirstMatch(GetCultureSpecificQuirks(item2.FilterText));
 
             if (match1 != null && match2 != null)
             {
@@ -118,8 +127,8 @@ namespace Microsoft.CodeAnalysis.Completion
             // They matched on everything, including preselection values.  Item1 is better if it
             // has a lower MRU index.
 
-            var item1MRUIndex = _completionService.GetMRUIndex(item1);
-            var item2MRUIndex = _completionService.GetMRUIndex(item2);
+            var item1MRUIndex = _mostRecentlyUsedList.GetMRUIndex(item1);
+            var item2MRUIndex = _mostRecentlyUsedList.GetMRUIndex(item2);
 
             // The one with the lower index is the better one.
             return item1MRUIndex < item2MRUIndex;
@@ -134,18 +143,9 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Returns true if the completion item should be "soft" selected, or false if it should be "hard"
         /// selected.
         /// </summary>
-        public virtual bool ShouldSoftSelectItem(CompletionItem item, string filterText, CompletionTriggerInfo triggerInfo)
+        public virtual bool ShouldSoftSelectItem(CompletionItem item, string filterText, CompletionTrigger trigger)
         {
             return filterText.Length == 0 && !item.Preselect;
-        }
-
-        /// <summary>
-        /// Called by completion engine when a completion item is committed.  Completion rules can
-        /// use this information to affect future calls to MatchesFilterText or IsBetterFilterMatch.
-        /// </summary>
-        public virtual void CompletionItemCommitted(CompletionItem item)
-        {
-            _completionService.CompletionItemCommitted(item);
         }
 
         /// <summary>

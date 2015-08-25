@@ -20,22 +20,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Completion
     [ExportLanguageService(typeof(ICompletionService), InteractiveLanguageNames.InteractiveCommand), Shared]
     internal class InteractiveCommandCompletionService : AbstractCompletionService
     {
-        private readonly ImmutableList<CompletionListProvider> _completionProviders;
+        private readonly ImmutableList<CompletionListProvider> _defaultCompletionProviders;
 
         [ImportingConstructor]
         public InteractiveCommandCompletionService(
             [ImportMany] IEnumerable<Lazy<CompletionListProvider, OrderableLanguageMetadata>> completionProviders)
+            : base(InteractiveLanguageNames.InteractiveCommand)
         {
-            _completionProviders =
-                ExtensionOrderer.Order(
-                    completionProviders.Where(l => l.Metadata.Language == InteractiveLanguageNames.InteractiveCommand))
+            _defaultCompletionProviders =
+                ExtensionOrderer.Order(completionProviders.Where(l => l.Metadata.Language == InteractiveLanguageNames.InteractiveCommand))
                                 .Select(l => l.Value)
                                 .ToImmutableList();
         }
 
         public override IEnumerable<CompletionListProvider> GetDefaultCompletionProviders()
         {
-            return _completionProviders;
+            return _defaultCompletionProviders;
         }
 
         public override Task<TextSpan> GetDefaultTrackingSpanAsync(Document document, int position, CancellationToken cancellationToken)
@@ -43,14 +43,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Completion
             return SpecializedTasks.Default<TextSpan>();
         }
 
-        protected override bool TriggerOnBackspace(SourceText text, int position, CompletionTriggerInfo triggerInfo, OptionSet options)
+        protected override bool TriggerOnBackspaceOrDelete(SourceText text, int position, CompletionTrigger trigger, OptionSet options)
         {
             return false;
-        }
-
-        protected override string GetLanguageName()
-        {
-            return InteractiveLanguageNames.InteractiveCommand;
         }
     }
 }
