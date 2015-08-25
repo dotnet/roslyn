@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
     /// Represents a reset command which can be run from a REPL window.
     /// </summary>
     [Export(typeof(IInteractiveWindowCommand))]
-    [ContentType(PredefinedSpecializedCSharpVBInteractiveCommandsContentTypes.SpecializedCSharpVBInteractiveCommandContentTypeName)]
+    [ContentType(CSharpVBInteractiveCommandsContentTypes.CSharpVBInteractiveCommandContentTypeName)]
     internal sealed class ResetCommand : IInteractiveWindowCommand
     {
         private const string CommandName = "reset";

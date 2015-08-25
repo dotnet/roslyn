@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             _contentTypeRegistry = contentTypeRegistry;
             _vsWorkspace = workspace;
             _commands = GetApplicableCommands(commands, coreContentType: PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName,
-                specializedContentType: PredefinedSpecializedCSharpVBInteractiveCommandsContentTypes.SpecializedCSharpVBInteractiveCommandContentTypeName);
+                specializedContentType: CSharpVBInteractiveCommandsContentTypes.CSharpVBInteractiveCommandContentTypeName);
             _vsInteractiveWindowFactory = interactiveWindowFactory;
             _commandsFactory = commandsFactory;
         }
