@@ -357,6 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return PreserveTrivia(declaration, d =>
             {
                 d = AsImplementation(d, Accessibility.Public);
+                d = WithoutConstraints(d);
 
                 if (interfaceMemberName != null)
                 {
@@ -367,11 +368,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             });
         }
 
+        public interface Foo
+        {
+            void Moo<T>() where T : IEnumerable<T>;
+        }
+
+        public class Bar : Foo
+        {
+            public void Moo<T>() where T : IEnumerable<T>
+            {
+            }
+        }
+
         public override SyntaxNode AsPrivateInterfaceImplementation(SyntaxNode declaration, SyntaxNode interfaceTypeName, string interfaceMemberName)
         {
             return PreserveTrivia(declaration, d =>
             {
                 d = AsImplementation(d, Accessibility.NotApplicable);
+                d = WithoutConstraints(d);
 
                 if (interfaceMemberName != null)
                 {
@@ -380,6 +394,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                 return WithInterfaceSpecifier(d, SyntaxFactory.ExplicitInterfaceSpecifier((NameSyntax)interfaceTypeName));
             });
+        }
+
+        private SyntaxNode WithoutConstraints(SyntaxNode declaration)
+        {
+            if (declaration.IsKind(SyntaxKind.MethodDeclaration))
+            { 
+                var method = (MethodDeclarationSyntax)declaration;
+                if (method.ConstraintClauses.Count > 0)
+                {
+                    return this.RemoveNodes(method, method.ConstraintClauses);
+                }
+            }
+
+            return declaration;
         }
 
         private ExplicitInterfaceSpecifierSyntax GetInterfaceSpecifier(SyntaxNode declaration)

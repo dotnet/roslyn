@@ -926,6 +926,27 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 "t i2.m2()\r\n{\r\n}");
         }
 
+        [WorkItem(3928, "https://github.com/dotnet/roslyn/issues/3928")]
+        [Fact]
+        public void TestAsPrivateInterfaceImplementationRemovesConstraints()
+        {
+            var code = @"
+public interface IFace
+{
+    void Method<T>() where T : class;
+}";
+
+            var cu = SyntaxFactory.ParseCompilationUnit(code);
+            var iface = cu.Members[0];
+            var method = _g.GetMembers(iface)[0];
+
+            var privateMethod = _g.AsPrivateInterfaceImplementation(method, _g.IdentifierName("IFace"));
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                privateMethod,
+                "void IFace.Method<T>()\r\n{\r\n}");
+        }
+
         [Fact]
         public void TestClassDeclarations()
         {
