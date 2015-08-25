@@ -662,12 +662,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             point.Value.Snapshot.TextBuffer.Delete(new Span(point.Value.Position - characterSize, characterSize));
 
-            UIThread(uiOnly =>
-            {
-                // scroll to the line being edited:
-                SnapshotPoint caretPosition = _textView.Caret.Position.BufferPosition;
-                _textView.ViewScroller.EnsureSpanVisible(new SnapshotSpan(caretPosition.Snapshot, caretPosition, 0));
-            });
+            UIThread(uiOnly => uiOnly.ScrollToCaret());
         }
 
         private void CutOrDeleteCurrentLine(bool isCut)
@@ -1049,6 +1044,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 // insert new line (triggers secondary prompt injection in buffer changed event):
                 _currentLanguageBuffer.Insert(caretPosition, _lineBreakString);
                 IndentCurrentLine(_textView.Caret.Position.BufferPosition);
+                UIThread(uiOnly => uiOnly.ScrollToCaret());
 
                 return true;
             }

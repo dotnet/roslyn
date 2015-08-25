@@ -961,6 +961,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 // projection buffer update must be the last operation as it might trigger event that accesses prompt line mapping:
                 _window.AppendProjectionSpans(promptSpan, languageSpan);
             }
+
+            public void ScrollToCaret()
+            {
+                var textView = _window._textView;
+                var caretPosition = textView.Caret.Position.BufferPosition;
+                var caretSpan = new SnapshotSpan(caretPosition.Snapshot, caretPosition, 0);
+                textView.ViewScroller.EnsureSpanVisible(caretSpan);
+            }
         }
 
         internal enum State
