@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             public async Task<AnalysisData> GetDocumentBodyAnalysisDataAsync(
                 StateSet stateSet, VersionArgument versions, DiagnosticAnalyzerDriver analyzerDriver,
-                SyntaxNode root, SyntaxNode member, int memberId, bool supportsSemanticInSpan, MemberRangeMap.MemberRanges ranges)
+                SyntaxNode root, SyntaxNode member, int memberId, MemberRangeMap.MemberRanges ranges)
             {
                 try
                 {
@@ -88,20 +88,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     var state = stateSet.GetState(StateType.Document);
                     var existingData = await state.TryGetExistingDataAsync(document, cancellationToken).ConfigureAwait(false);
 
-                    ImmutableArray<DiagnosticData> diagnosticData;
-                    if (supportsSemanticInSpan && CanUseRange(memberId, ranges.Ranges) && CanUseDocumentState(existingData, ranges.TextVersion, versions.DataVersion))
-                    {
-                        var memberDxData = await GetSemanticDiagnosticsAsync(analyzerDriver, stateSet.Analyzer).ConfigureAwait(false);
-
-                        diagnosticData = _owner.UpdateDocumentDiagnostics(existingData, ranges.Ranges, memberDxData.AsImmutableOrEmpty(), root.SyntaxTree, member, memberId);
-                        ValidateMemberDiagnostics(stateSet.Analyzer, document, root, diagnosticData);
-                    }
-                    else
-                    {
-                        // if we can't re-use existing document state, only option we have is updating whole document state here.
-                        var dx = await GetSemanticDiagnosticsAsync(analyzerDriver, stateSet.Analyzer).ConfigureAwait(false);
-                        diagnosticData = dx.AsImmutableOrEmpty();
-                    }
+                    // if we can't re-use existing document state, only option we have is updating whole document state here.
+                    var dx = await GetSemanticDiagnosticsAsync(analyzerDriver, stateSet.Analyzer).ConfigureAwait(false);
+                    var diagnosticData = dx.AsImmutableOrEmpty();
 
                     return new AnalysisData(versions.TextVersion, versions.DataVersion, GetExistingItems(existingData), diagnosticData);
                 }

@@ -376,9 +376,9 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                                        mappedColumn As Integer, originalColumn As Integer, mappedFile As String, originalFile As String) As DiagnosticData
             Return New DiagnosticData(id, "test", message, message, severity, severity, True, 0,
                                       ImmutableArray(Of String).Empty, ImmutableDictionary(Of String, String).Empty,
-                                      workspace, projId, docId, Nothing,
-                                      mappedFile, mappedLine, mappedColumn, mappedLine, mappedColumn,
-                                      originalFile, originalLine, originalColumn, originalLine, originalColumn,
+                                      workspace, projId, New DiagnosticDataLocation(docId, Nothing,
+                                        mappedFile, mappedLine, mappedColumn, mappedLine, mappedColumn,
+                                        originalFile, originalLine, originalColumn, originalLine, originalColumn),
                                       Nothing, Nothing, Nothing)
         End Function
 
@@ -391,8 +391,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                        x.Severity = y.Severity AndAlso
                        x.ProjectId = y.ProjectId AndAlso
                        x.DocumentId = y.DocumentId AndAlso
-                       x.OriginalStartLine = y.OriginalStartLine AndAlso
-                       x.OriginalStartColumn = y.OriginalStartColumn
+                       Equals(x.DataLocation?.OriginalStartLine, y.DataLocation?.OriginalStartLine) AndAlso
+                       Equals(x.DataLocation?.OriginalStartColumn, y.DataLocation?.OriginalStartColumn)
             End Function
 
             Public Overloads Function GetHashCode(obj As DiagnosticData) As Integer Implements IEqualityComparer(Of DiagnosticData).GetHashCode
@@ -400,8 +400,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                        Hash.Combine(obj.Message,
                        Hash.Combine(obj.ProjectId,
                        Hash.Combine(obj.DocumentId,
-                       Hash.Combine(obj.OriginalStartLine,
-                       Hash.Combine(obj.OriginalStartColumn, obj.Severity))))))
+                       Hash.Combine(If(obj.DataLocation?.OriginalStartLine, 0),
+                       Hash.Combine(If(obj.DataLocation?.OriginalStartColumn, 0), obj.Severity))))))
             End Function
         End Class
     End Class

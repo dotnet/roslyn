@@ -232,12 +232,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                     if (ShouldRunAnalyzerForStateType(stateSet.Analyzer, StateType.Document))
                     {
-                        var supportsSemanticInSpan = stateSet.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis();
-                        var userDiagnosticDriver = supportsSemanticInSpan ? spanBasedDriver : documentBasedDriver;
-
                         var ranges = _memberRangeMap.GetSavedMemberRange(stateSet.Analyzer, document);
                         var data = await _executor.GetDocumentBodyAnalysisDataAsync(
-                            stateSet, versions, userDiagnosticDriver, root, member, memberId, supportsSemanticInSpan, ranges).ConfigureAwait(false);
+                            stateSet, versions, documentBasedDriver, root, member, memberId, ranges).ConfigureAwait(false);
 
                         _memberRangeMap.UpdateMemberRange(stateSet.Analyzer, document, versions.TextVersion, memberId, member.FullSpan, ranges);
 
@@ -670,6 +667,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 new DiagnosticsUpdatedArgs(id, Workspace, solution.Solution, solution.ProjectId, solution.DocumentId, diagnostics));
         }
 
+#if false
         private ImmutableArray<DiagnosticData> UpdateDocumentDiagnostics(
             AnalysisData existingData, ImmutableArray<TextSpan> range, ImmutableArray<DiagnosticData> memberDiagnostics,
             SyntaxTree tree, SyntaxNode member, int memberId)
@@ -767,6 +765,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 description: diagnostic.Description,
                 helpLink: diagnostic.HelpLink);
         }
+#endif
 
         private static IEnumerable<DiagnosticData> GetDiagnosticData(Document document, SyntaxTree tree, TextSpan? span, IEnumerable<Diagnostic> diagnostics)
         {
@@ -999,11 +998,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             return string.Format("project remove: {0}", id.ToString());
         }
 
-        #region unused 
+#region unused 
         public override Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyTask;
         }
-        #endregion
+#endregion
     }
 }

@@ -105,8 +105,8 @@ namespace B
                 var data = new DiagnosticData(
                     "test1", "Test", "test1 message", "test1 message format",
                     DiagnosticSeverity.Info, false, 1,
-                    workspace, document.Project.Id, document.Id,
-                    null, "originalFile1", startLine, startColumn, endLine, endColumn);
+                    workspace, document.Project.Id, new DiagnosticDataLocation(document.Id,
+                        null, "originalFile1", startLine, startColumn, endLine, endColumn));
 
                 var text = document.GetTextAsync().Result;
                 var actual = data.GetExistingOrCalculatedTextSpan(text);

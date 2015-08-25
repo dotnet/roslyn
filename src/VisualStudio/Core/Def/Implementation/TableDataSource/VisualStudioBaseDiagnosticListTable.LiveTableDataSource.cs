@@ -110,7 +110,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 protected override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<DiagnosticData> items)
                 {
-                    return CreateTrackingPoints(_workspace, _documentId, items, (d, s) => CreateTrackingPoint(s, d.OriginalStartLine, d.OriginalStartColumn));
+                    return CreateTrackingPoints(_workspace, _documentId, items, (d, s) => CreateTrackingPoint(s, 
+                        d.DataLocation == null ? 0: d.DataLocation.OriginalStartLine, 
+                        d.DataLocation == null ? 0 : d.DataLocation.OriginalStartColumn));
                 }
 
                 protected override AbstractTableEntriesSnapshot<DiagnosticData> CreateSnapshot(
@@ -180,13 +182,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = item.Message;
                                 return true;
                             case StandardTableKeyNames.DocumentName:
-                                content = GetFileName(item.OriginalFilePath, item.MappedFilePath);
+                                content = GetFileName(item.DataLocation?.OriginalFilePath, item.DataLocation?.MappedFilePath);
                                 return true;
                             case StandardTableKeyNames.Line:
-                                content = item.MappedStartLine;
+                                content = item.DataLocation?.MappedStartLine ?? 0;
                                 return true;
                             case StandardTableKeyNames.Column:
-                                content = item.MappedStartColumn;
+                                content = item.DataLocation?.MappedStartColumn ?? 0;
                                 return true;
                             case StandardTableKeyNames.ProjectName:
                                 content = GetProjectName(_factory._workspace, _factory._projectId);
@@ -272,7 +274,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             return TryNavigateTo(_factory._workspace, _factory._documentId, trackingLinePosition.Line, trackingLinePosition.Character, previewTab);
                         }
 
-                        return TryNavigateTo(_factory._workspace, _factory._documentId, item.OriginalStartLine, item.OriginalStartColumn, previewTab);
+                        return TryNavigateTo(_factory._workspace, _factory._documentId, 
+                            item.DataLocation?.OriginalStartLine ?? 0, item.DataLocation?.OriginalStartColumn ?? 0, previewTab);
                     }
 
                     protected override bool IsEquivalent(DiagnosticData item1, DiagnosticData item2)
