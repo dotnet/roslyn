@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return AddMembersTo(destination, members);
         }
 
-        private static OperatorDeclarationSyntax GenerateOperatorDeclaration(
+        internal static OperatorDeclarationSyntax GenerateOperatorDeclaration(
             IMethodSymbol method,
             CodeGenerationDestination destination,
             CodeGenerationOptions options)

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -115,6 +116,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
                 // trivia and adding one to it.
                 var triviaList = token1.TrailingTrivia.Concat(token2.LeadingTrivia);
                 return FormattingOperations.CreateAdjustNewLinesOperation(GetNumberOfLines(triviaList) + 1, AdjustNewLinesOption.ForceLines);
+            }
+
+            public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<AnchorIndentationOperation> nextOperation)
+            {
+                return;
             }
 
             protected override bool IsNewLine(char c)

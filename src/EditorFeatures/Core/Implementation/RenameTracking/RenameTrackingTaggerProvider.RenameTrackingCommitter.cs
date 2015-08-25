@@ -137,7 +137,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                 // When this action is undone (the user has undone twice), restore the state
                 // machine to so that they can continue their original rename tracking session.
-                UpdateWorkspaceForResetOfTypedIdentifier(workspace, renameTrackingSolutionSet.OriginalSolution);
+
+                var trackingSessionId = _stateMachine.StoreCurrentTrackingSessionAndGenerateId();
+                UpdateWorkspaceForResetOfTypedIdentifier(workspace, renameTrackingSolutionSet.OriginalSolution, trackingSessionId);
 
                 // Now that the solution is back in its original state, notify third parties about
                 // the coming rename operation.
@@ -164,7 +166,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 }
 
                 // Undo/redo on this action must always clear the state machine
-                UpdateWorkspaceForGlobalIdentifierRename(workspace, finalSolution, workspace.CurrentSolution, _displayText, changedDocuments, renameTrackingSolutionSet.Symbol, newName);
+                UpdateWorkspaceForGlobalIdentifierRename(
+                    workspace, 
+                    finalSolution, 
+                    workspace.CurrentSolution, 
+                    _displayText, 
+                    changedDocuments, 
+                    renameTrackingSolutionSet.Symbol, 
+                    newName,
+                    trackingSessionId);
 
                 RenameTrackingDismisser.DismissRenameTracking(workspace, changedDocuments);
                 return true;
@@ -209,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 return tokenRenameInfo.HasSymbols ? tokenRenameInfo.Symbols.First() : null;
             }
 
-            private void UpdateWorkspaceForResetOfTypedIdentifier(Workspace workspace, Solution newSolution)
+            private void UpdateWorkspaceForResetOfTypedIdentifier(Workspace workspace, Solution newSolution, int trackingSessionId)
             {
                 AssertIsForeground();
 
@@ -219,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 var undoHistory = _undoHistoryRegistry.RegisterHistory(_stateMachine.Buffer);
                 using (var localUndoTransaction = undoHistory.CreateTransaction(EditorFeaturesResources.TextBufferChange))
                 {
-                    var undoPrimitiveBefore = new UndoPrimitive(_stateMachine, shouldRestoreStateOnUndo: true);
+                    var undoPrimitiveBefore = new UndoPrimitive(_stateMachine.Buffer, trackingSessionId, shouldRestoreStateOnUndo: true);
                     localUndoTransaction.AddUndo(undoPrimitiveBefore);
 
                     if (!workspace.TryApplyChanges(newSolution))
@@ -228,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     }
 
                     // Never resume tracking session on redo
-                    var undoPrimitiveAfter = new UndoPrimitive(_stateMachine, shouldRestoreStateOnUndo: false);
+                    var undoPrimitiveAfter = new UndoPrimitive(_stateMachine.Buffer, trackingSessionId, shouldRestoreStateOnUndo: false);
                     localUndoTransaction.AddUndo(undoPrimitiveAfter);
 
                     localUndoTransaction.Complete();
@@ -242,7 +252,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 string undoName,
                 IEnumerable<DocumentId> changedDocuments,
                 ISymbol symbol,
-                string newName)
+                string newName,
+                int trackingSessionId)
             {
                 AssertIsForeground();
 
@@ -254,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 using (var workspaceUndoTransaction = workspace.OpenGlobalUndoTransaction(undoName))
                 using (var localUndoTransaction = undoHistory.CreateTransaction(undoName))
                 {
-                    var undoPrimitiveBefore = new UndoPrimitive(_stateMachine, shouldRestoreStateOnUndo: false);
+                    var undoPrimitiveBefore = new UndoPrimitive(_stateMachine.Buffer, trackingSessionId, shouldRestoreStateOnUndo: false);
                     localUndoTransaction.AddUndo(undoPrimitiveBefore);
 
                     if (!workspace.TryApplyChanges(newSolution))
@@ -272,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     }
 
                     // Never resume tracking session on redo
-                    var undoPrimitiveAfter = new UndoPrimitive(_stateMachine, shouldRestoreStateOnUndo: false);
+                    var undoPrimitiveAfter = new UndoPrimitive(_stateMachine.Buffer, trackingSessionId, shouldRestoreStateOnUndo: false);
                     localUndoTransaction.AddUndo(undoPrimitiveAfter);
 
                     localUndoTransaction.Complete();

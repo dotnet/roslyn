@@ -1,0 +1,168 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="Libraries">
+    <Reference Include="$(NuGetPackagesPath)\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll">
+      <Private>True</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup Label="Contracts">
+    <Reference Include="$(NuGetPackagesPath)\System.Console.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Console.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\System.Diagnostics.Tools.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Diagnostics.Tools.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\System.IO.FileSystem.Primitives.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.IO.FileSystem.Primitives.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\System.IO.FileSystem.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.IO.FileSystem.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\System.Linq.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Linq.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\System.Reflection.Primitives.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Reflection.Primitives.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\System.Reflection.Extensions.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Reflection.Extensions.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\System.Resources.ResourceManager.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Resources.ResourceManager.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\System.Runtime.Loader.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Runtime.Loader.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\System.Collections.Concurrent.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Collections.Concurrent.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\System.IO.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.IO.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\System.Runtime.Extensions.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Runtime.Extensions.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\System.Reflection.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Reflection.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\System.Collections.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Collections.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\System.Diagnostics.Debug.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Diagnostics.Debug.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\System.Globalization.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Globalization.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\System.Text.Encoding.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Text.Encoding.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\System.Text.RegularExpressions.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Text.RegularExpressions.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\System.Threading.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Threading.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\System.Threading.Tasks.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Threading.Tasks.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\System.Threading.Thread.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Threading.Thread.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\System.Xml.XDocument.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Xml.XDocument.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\System.Xml.XmlDocument.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Xml.XmlDocument.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\System.Runtime.4.0.20-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Runtime.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\System.Runtime.InteropServices.4.0.20-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Runtime.InteropServices.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(NuGetPackagesPath)\System.Xml.ReaderWriter.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Xml.ReaderWriter.dll">
+      <Private>False</Private>
+    </Reference>    
+  </ItemGroup>
+  <ItemGroup Label="Facades">
+    <Content Include="$(NuGetPackagesPath)\System.IO.FileSystem.4.0.0-beta-22816\lib\net45\System.IO.FileSystem.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(NuGetPackagesPath)\System.IO.FileSystem.Primitives.4.0.0-beta-22816\lib\net45\System.IO.FileSystem.Primitives.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(NuGetPackagesPath)\System.Console.4.0.0-beta-22816\lib\net45\System.Console.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(NuGetPackagesPath)\System.Runtime.Extensions.4.0.10-beta-22816\lib\net45\System.Runtime.Extensions.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(NuGetPackagesPath)\System.Collections.Concurrent.4.0.10-beta-22816\lib\net45\System.Collections.Concurrent.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(NuGetPackagesPath)\System.IO.4.0.10-beta-22816\lib\net45\System.IO.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(NuGetPackagesPath)\System.Runtime.Extensions.4.0.10-beta-22816\lib\net45\System.Runtime.Extensions.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(NuGetPackagesPath)\System.Reflection.4.0.10-beta-22816\lib\net45\System.Reflection.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(NuGetPackagesPath)\System.Collections.4.0.10-beta-22816\lib\net45\System.Collections.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(NuGetPackagesPath)\System.Diagnostics.Debug.4.0.10-beta-22816\lib\net45\System.Diagnostics.Debug.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(NuGetPackagesPath)\System.Globalization.4.0.10-beta-22816\lib\net45\System.Globalization.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(NuGetPackagesPath)\System.Text.Encoding.4.0.10-beta-22816\lib\net45\System.Text.Encoding.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(NuGetPackagesPath)\System.Text.RegularExpressions.4.0.10-beta-22816\lib\net45\System.Text.RegularExpressions.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(NuGetPackagesPath)\System.Threading.4.0.10-beta-22816\lib\net45\System.Threading.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(NuGetPackagesPath)\System.Threading.Tasks.4.0.10-beta-22816\lib\net45\System.Threading.Tasks.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(NuGetPackagesPath)\System.Threading.Thread.4.0.0-beta-22816\lib\net45\System.Threading.Thread.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(NuGetPackagesPath)\System.Xml.XmlDocument.4.0.0-beta-22816\lib\net45\System.Xml.XmlDocument.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(NuGetPackagesPath)\System.Runtime.4.0.20-beta-22816\lib\net45\System.Runtime.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(NuGetPackagesPath)\System.Runtime.InteropServices.4.0.20-beta-22816\lib\net45\System.Runtime.InteropServices.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+  </ItemGroup>
+</Project>

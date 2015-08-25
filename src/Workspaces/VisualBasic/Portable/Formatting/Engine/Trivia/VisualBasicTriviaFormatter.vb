@@ -122,6 +122,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return LineColumnRule.PreserveLinesWithAbsoluteIndentation(lines, indentation:=0)
             End If
 
+            ' comment before a Case Statement case
+            If trivia2.Kind = SyntaxKind.CommentTrivia AndAlso
+               Token2.Kind = SyntaxKind.CaseKeyword AndAlso Token2.Parent.IsKind(SyntaxKind.CaseStatement) Then
+                Return LineColumnRule.Preserve()
+            End If
+
             ' comment case
             If trivia2.Kind = SyntaxKind.CommentTrivia OrElse
                trivia2.Kind = SyntaxKind.DocumentationCommentTrivia Then

@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // appears to be a part of a subsequent assignment.
                 if (token.Kind() == SyntaxKind.NewKeyword &&
                     token.Parent.IsKind(SyntaxKind.ObjectCreationExpression) &&
-                    token.Parent.Parent.IsKind(SyntaxKind.SimpleAssignmentExpression))
+                    token.Parent.Parent is AssignmentExpressionSyntax)
                 {
                     var parentAssignment = token.Parent.Parent as AssignmentExpressionSyntax;
                     if (token.Parent == parentAssignment.Left)

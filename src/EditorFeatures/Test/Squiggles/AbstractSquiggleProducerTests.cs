@@ -47,19 +47,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             var foregroundService = workspace.GetService<IForegroundNotificationService>();
             var taggerProvider = new DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, listeners);
             var tagger = taggerProvider.CreateTagger<IErrorTag>(buffer);
+            using (var disposable = tagger as IDisposable)
+            {
+                var service = workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
+                service.WaitUntilCompletion_ForTestingPurposesOnly(workspace, ImmutableArray.Create(analyzerService.CreateIncrementalAnalyzer(workspace)));
 
-            var service = workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
-            service.WaitUntilCompletion_ForTestingPurposesOnly(workspace, ImmutableArray.Create(analyzerService.CreateIncrementalAnalyzer(workspace)));
+                listener.CreateWaitTask().PumpingWait();
 
-            listener.CreateWaitTask().PumpingWait();
+                var snapshot = buffer.CurrentSnapshot;
+                var spans = tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToList();
 
-            var snapshot = buffer.CurrentSnapshot;
-            var spans = tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToList();
+                registrationService.Unregister(workspace);
 
-            ((IDisposable)tagger).Dispose();
-            registrationService.Unregister(workspace);
-
-            return spans;
+                return spans;
+            }
         }
     }
 
@@ -89,17 +90,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             var buffer = document.GetTextBuffer();
             var provider = new DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, listeners);
             var tagger = provider.CreateTagger<IErrorTag>(buffer);
+            using (var disposable = tagger as IDisposable)
+            {
+                source.RaiseDiagnosticsUpdated(updateArgs);
 
-            source.RaiseDiagnosticsUpdated(updateArgs);
+                listener.CreateWaitTask().PumpingWait();
 
-            listener.CreateWaitTask().PumpingWait();
+                var snapshot = buffer.CurrentSnapshot;
+                var spans = tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToImmutableArray();
 
-            var snapshot = buffer.CurrentSnapshot;
-            var spans = tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToImmutableArray();
-
-            ((IDisposable)tagger).Dispose();
-
-            return spans;
+                return spans;
+            }
         }
 
         internal static DiagnosticData CreateDiagnosticData(TestWorkspace workspace, TestHostDocument document, TextSpan span)
