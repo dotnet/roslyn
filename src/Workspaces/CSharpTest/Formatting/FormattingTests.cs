@@ -988,6 +988,28 @@ class D
 }", false, changingOptions);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void RemoveSpaceAroundBinaryOperatorSyntaxShouldNotRemoveSpaceAroundIsAsKeyword()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.SpacingAroundBinaryOperator, BinaryOperatorSpacingOptions.Remove);
+            AssertFormat(@"class Class2
+    {
+        public void nothing() {
+            object o = null;
+            string s = o as string;
+            bool b = o is string;
+        }    }", @"class Class2
+{
+    public void nothing()
+    {
+        object o = null;
+        string s = o as string;
+        bool b = o is string;
+    }
+}", false, changingOptions);
+        }
+
         [WorkItem(772298, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void IndentUserSettingNonDefaultTest_OpenBracesOfLambdaWithNoNewLine()
