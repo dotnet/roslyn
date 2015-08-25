@@ -28,18 +28,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal static void VerifyPdb(
             this Compilation compilation,
             string expectedPdb,
+            IMethodSymbol debugEntryPoint = null,
             DebugInformationFormat format = 0,
             PdbToXmlOptions options = 0,
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
-            VerifyPdb(compilation, "", expectedPdb, format, options, expectedValueSourceLine, expectedValueSourcePath);
+            VerifyPdb(compilation, "", expectedPdb, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
         }
 
         internal static void VerifyPdb(
             this Compilation compilation,
             string qualifiedMethodName,
             string expectedPdb,
+            IMethodSymbol debugEntryPoint = null,
             DebugInformationFormat format = 0,
             PdbToXmlOptions options = 0,
             [CallerLineNumber]int expectedValueSourceLine = 0,
@@ -49,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             VerifyPdbImpl(
                 compilation,
+                debugEntryPoint,
                 qualifiedMethodName,
                 expectedPdbXml,
                 format,
@@ -61,18 +64,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal static void VerifyPdb(
             this Compilation compilation,
             XElement expectedPdb,
+            IMethodSymbol debugEntryPoint = null,
             DebugInformationFormat format = 0,
             PdbToXmlOptions options = 0,
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
-            VerifyPdb(compilation, "", expectedPdb, format, options, expectedValueSourceLine, expectedValueSourcePath);
+            VerifyPdb(compilation, "", expectedPdb, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
         }
 
         internal static void VerifyPdb(
             this Compilation compilation,
             string qualifiedMethodName,
             XElement expectedPdb,
+            IMethodSymbol debugEntryPoint = null,
             DebugInformationFormat format = 0,
             PdbToXmlOptions options = 0,
             [CallerLineNumber]int expectedValueSourceLine = 0,
@@ -80,6 +85,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             VerifyPdbImpl(
                 compilation,
+                debugEntryPoint,
                 qualifiedMethodName,
                 expectedPdb,
                 format,
@@ -91,6 +97,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static void VerifyPdbImpl(
             this Compilation compilation,
+            IMethodSymbol debugEntryPoint,
             string qualifiedMethodName,
             XElement expectedPdb,
             DebugInformationFormat format,
@@ -100,16 +107,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             bool expectedIsXmlLiteral)
         {
             Assert.NotEqual(DebugInformationFormat.Embedded, format);
-
+            
             if (format == 0 || format == DebugInformationFormat.Pdb)
             {
-                XElement actualNativePdb = XElement.Parse(GetPdbXml(compilation, options, qualifiedMethodName, portable: false));
+                XElement actualNativePdb = XElement.Parse(GetPdbXml(compilation, debugEntryPoint, options, qualifiedMethodName, portable: false));
                 AssertXml.Equal(expectedPdb, actualNativePdb, expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
             }
 
             if (format == 0 || format == DebugInformationFormat.PortablePdb)
             {
-                XElement actualPortablePdb = XElement.Parse(GetPdbXml(compilation, options, qualifiedMethodName, portable: true));
+                XElement actualPortablePdb = XElement.Parse(GetPdbXml(compilation, debugEntryPoint, options, qualifiedMethodName, portable: true));
 
                 // SymWriter doesn't create empty scopes. When the C# compiler uses forwarding CDI instead of a NamespaceScope
                 // the scope is actually not empty - it logically contains the imports. Portable PDB does not used forwarding and thus
@@ -194,6 +201,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal static string GetPdbXml(
             Compilation compilation,
+            IMethodSymbol debugEntryPoint = null,
             PdbToXmlOptions options = 0,
             string qualifiedMethodName = "",
             bool portable = false)
@@ -203,10 +211,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 using (var pdbbits = new MemoryStream())
                 {
-                    compilation.Emit(
+                    var result = compilation.Emit(
                         exebits,
                         pdbbits,
+                        debugEntryPoint: debugEntryPoint,
                         options: EmitOptions.Default.WithDebugInformationFormat(portable ? DebugInformationFormat.PortablePdb : DebugInformationFormat.Pdb));
+
+                    result.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
 
                     pdbbits.Position = 0;
                     exebits.Position = 0;

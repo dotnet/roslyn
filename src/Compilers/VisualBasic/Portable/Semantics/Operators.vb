@@ -3392,9 +3392,9 @@ Next_i:
                 End Get
             End Property
 
-            Friend Overrides ReadOnly Property HasByRefBeforeCustomModifiers As Boolean
+            Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
                 Get
-                    Return _parameterToLift.HasByRefBeforeCustomModifiers
+                    Return _parameterToLift.CountOfCustomModifiersPrecedingByRef
                 End Get
             End Property
 

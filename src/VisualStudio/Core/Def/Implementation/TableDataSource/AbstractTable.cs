@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             this.TableManager.AddSource(source, Columns);
         }
 
-        internal ITableManager TableManager { get; private set; }
+        internal ITableManager TableManager { get; }
 
         internal abstract IReadOnlyCollection<string> Columns { get; }
     }

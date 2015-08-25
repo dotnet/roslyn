@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                         return ((IPropertySymbol)semanticModel.GetDeclaredSymbol(access.Parent.Parent)).Type;
                     },
-                    (MethodDeclarationSyntax method) => ((IMethodSymbol)semanticModel.GetDeclaredSymbol(method)).ReturnType,
+                    (MethodDeclarationSyntax method) => semanticModel.GetDeclaredSymbol(method).ReturnType,
                     (ParenthesizedLambdaExpressionSyntax lambda) => semanticModel.GetLambdaOrAnonymousMethodReturnType(lambda),
                     (SimpleLambdaExpressionSyntax lambda) => semanticModel.GetLambdaOrAnonymousMethodReturnType(lambda),
                     (AnonymousMethodExpressionSyntax anonymous) => semanticModel.GetLambdaOrAnonymousMethodReturnType(anonymous));

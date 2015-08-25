@@ -582,9 +582,6 @@ class CLS
                     // (1,7): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
                     // using Unknown;
                     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(1, 7),
-                    // (1,1): hidden CS8019: Unnecessary using directive.
-                    // using Unknown;
-                    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Unknown;").WithLocation(1, 1),
             };
 
             // Emit produces the same diagnostics as GetDiagnostics (below).

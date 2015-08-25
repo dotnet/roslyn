@@ -984,6 +984,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         interface1.OriginalDefinition == interface2.OriginalDefinition &&
                         interface1.CanUnifyWith(interface2))
                     {
+                        if (GetImplementsLocation(interface1).SourceSpan.Start > GetImplementsLocation(interface2).SourceSpan.Start)
+                        {
+                            // Mention interfaces in order of their appearence in the base list, for consistency.
+                            var temp = interface1;
+                            interface1 = interface2;
+                            interface2 = temp;
+                        }
+            
                         diagnostics.Add(ErrorCode.ERR_UnifyingInterfaceInstantiations, this.Locations[0], this, interface1, interface2);
                     }
                 }

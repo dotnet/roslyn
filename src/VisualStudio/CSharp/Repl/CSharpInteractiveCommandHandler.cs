@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
 {
-    [ExportCommandHandler("Interactive Command Handler", ContentTypeNames.CSharpContentType)]
+    [ExportCommandHandler("Interactive Command Handler")]
     internal sealed class CSharpInteractiveCommandHandler : InteractiveCommandHandler
     {
         private readonly CSharpVsInteractiveWindowProvider _interactiveWindowProvider;

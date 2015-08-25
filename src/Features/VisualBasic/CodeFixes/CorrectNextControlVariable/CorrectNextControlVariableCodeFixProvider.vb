@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.CorrectNextControlVariabl
                 Return
             End If
 
-            Dim nodeToReplace = nextStatement.ControlVariables.ElementAt(indexOfControlVariable)
+            Dim nodeToReplace = nextStatement.ControlVariables(indexOfControlVariable)
             Dim controlVariable = FindControlVariable(nextStatement, indexOfControlVariable)
             If controlVariable Is Nothing Then
                 Return

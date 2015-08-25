@@ -57,6 +57,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     count += typeArg.CustomModifierCount();
                                 }
 
+                                if (namedType.HasTypeArgumentsCustomModifiers)
+                                {
+                                    foreach (var modifiers in namedType.TypeArgumentsCustomModifiers)
+                                    {
+                                        count += modifiers.Length;
+                                    }
+                                }
+
                                 namedType = namedType.ContainingType;
                             }
 
@@ -107,6 +115,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var namedType = (NamedTypeSymbol)type;
                             while ((object)namedType != null)
                             {
+                                if (namedType.HasTypeArgumentsCustomModifiers)
+                                {
+                                    return true;
+                                }
+
                                 ImmutableArray<TypeSymbol> typeArgs = namedType.TypeArgumentsNoUseSiteDiagnostics;
 
                                 foreach (TypeSymbol typeArg in typeArgs)

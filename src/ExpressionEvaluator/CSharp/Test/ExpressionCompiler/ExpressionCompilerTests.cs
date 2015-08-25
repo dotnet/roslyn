@@ -3813,6 +3813,7 @@ class C
                         win32Resources: null,
                         manifestResources: null,
                         options: EmitOptions.Default,
+                        debugEntryPoint: null,
                         testData: testData0,
                         getHostDiagnostics: null,
                         cancellationToken: default(CancellationToken));

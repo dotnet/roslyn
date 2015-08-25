@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -1376,6 +1377,7 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract CommonPEModuleBuilder CreateModuleBuilder(
             EmitOptions emitOptions,
+            IMethodSymbol debugEntryPoint,
             IEnumerable<ResourceDescription> manifestResources,
             CompilationTestData testData,
             DiagnosticBag diagnostics,
@@ -1427,6 +1429,7 @@ namespace Microsoft.CodeAnalysis
 
                     var moduleBeingBuilt = this.CreateModuleBuilder(
                         emitOptions: EmitOptions.Default,
+                        debugEntryPoint: null,
                         manifestResources: null,
                         testData: null,
                         diagnostics: discardedDiagnostics,
@@ -1466,6 +1469,53 @@ namespace Microsoft.CodeAnalysis
         /// <param name="manifestResources">List of the compilation's managed resources.  Null to indicate that there are none.</param>
         /// <param name="options">Emit options.</param>
         /// <param name="cancellationToken">To cancel the emit process.</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public EmitResult Emit(
+            Stream peStream,
+            Stream pdbStream,
+            Stream xmlDocumentationStream,
+            Stream win32Resources,
+            IEnumerable<ResourceDescription> manifestResources,
+            EmitOptions options,
+            CancellationToken cancellationToken)
+        {
+            return Emit(
+                peStream, 
+                pdbStream,
+                xmlDocumentationStream,
+                win32Resources,
+                manifestResources,
+                options,
+                null,
+                cancellationToken);
+        }
+
+        /// <summary>
+        /// Emit the IL for the compiled source code into the specified stream.
+        /// </summary>
+        /// <param name="peStream">Stream to which the compilation will be written.</param>
+        /// <param name="pdbStream">Stream to which the compilation's debug info will be written.  Null to forego PDB generation.</param>
+        /// <param name="xmlDocumentationStream">Stream to which the compilation's XML documentation will be written.  Null to forego XML generation.</param>
+        /// <param name="win32Resources">Stream from which the compilation's Win32 resources will be read (in RES format).  
+        /// Null to indicate that there are none. The RES format begins with a null resource entry.</param>
+        /// <param name="manifestResources">List of the compilation's managed resources.  Null to indicate that there are none.</param>
+        /// <param name="options">Emit options.</param>
+        /// <param name="debugEntryPoint">
+        /// Debug entry-point of the assembly. The method token is stored in the generated PDB stream.
+        /// 
+        /// When a program launches with a debugger attached the debugger places the first breakpoint to the start of the debug entry-point method.
+        /// The CLR starts executing the static Main method of <see cref="CompilationOptions.MainTypeName"/> type. When the first breakpoint is hit
+        /// the debugger steps thru the code statement by statement until user code is reached, skipping methods marked by <see cref="DebuggerHiddenAttribute"/>, 
+        /// and taking other debugging attributes into consideration.
+        /// 
+        /// By default both entry points in an executable program (<see cref="OutputKind.ConsoleApplication"/>, <see cref="OutputKind.WindowsApplication"/>, <see cref="OutputKind.WindowsRuntimeApplication"/>)
+        /// are the same method (Main). A non-executable program has no entry point. Runtimes that implement a custom loader may specify debug entry-point
+        /// to force the debugger to skip over complex custom loader logic executing at the beginning of the .exe and thus improve debugging experience.
+        /// 
+        /// Unlike ordinary entry-point whcih is limited to a non-generic static method of specific signature, there are no restrictions on the <paramref name="debugEntryPoint"/> 
+        /// method other than having a method body (extern, interface, or abstract methods are not allowed).
+        /// </param>
+        /// <param name="cancellationToken">To cancel the emit process.</param>
         public EmitResult Emit(
             Stream peStream,
             Stream pdbStream = null,
@@ -1473,6 +1523,7 @@ namespace Microsoft.CodeAnalysis
             Stream win32Resources = null,
             IEnumerable<ResourceDescription> manifestResources = null,
             EmitOptions options = null,
+            IMethodSymbol debugEntryPoint = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (peStream == null)
@@ -1497,23 +1548,12 @@ namespace Microsoft.CodeAnalysis
                 win32Resources,
                 manifestResources,
                 options,
+                debugEntryPoint,
                 testData: null,
                 getHostDiagnostics: null,
                 cancellationToken: cancellationToken);
         }
 
-        /// <summary>
-        /// Emit the IL for the compiled source code into the specified stream.
-        /// </summary>
-        /// <param name="peStreamProvider">Provides the PE stream the compiler will write to.</param>
-        /// <param name="pdbStreamProvider">Provides the PDB stream the compiler will write to.</param>
-        /// <param name="xmlDocumentationStreamProvider">Stream to which the compilation's XML documentation will be written.  Null to forego XML generation.</param>
-        /// <param name="win32ResourcesProvider">Stream from which the compilation's Win32 resources will be read (in RES format).  
-        /// Null to indicate that there are none. The RES format begins with a null resource entry.</param>
-        /// <param name="manifestResources">List of the compilation's managed resources.  Null to indicate that there are none.</param>
-        /// <param name="options">Emit options.</param>
-        /// <param name="getHostDiagnostics">Returns any extra diagnostics produced by the host of the compiler.</param>
-        /// <param name="cancellationToken">To cancel the emit process.</param>
         internal EmitResult Emit(
             EmitStreamProvider peStreamProvider,
             EmitStreamProvider pdbStreamProvider,
@@ -1521,6 +1561,7 @@ namespace Microsoft.CodeAnalysis
             EmitStreamProvider win32ResourcesProvider,
             IEnumerable<ResourceDescription> manifestResources,
             EmitOptions options,
+            IMethodSymbol debugEntryPoint,
             Func<ImmutableArray<Diagnostic>> getHostDiagnostics,
             CancellationToken cancellationToken)
         {
@@ -1531,6 +1572,7 @@ namespace Microsoft.CodeAnalysis
                 win32ResourcesProvider,
                 manifestResources,
                 options,
+                debugEntryPoint,
                 testData: null,
                 getHostDiagnostics: getHostDiagnostics,
                 cancellationToken: cancellationToken);
@@ -1548,6 +1590,7 @@ namespace Microsoft.CodeAnalysis
             Stream win32Resources,
             IEnumerable<ResourceDescription> manifestResources,
             EmitOptions options,
+            IMethodSymbol debugEntryPoint,
             CompilationTestData testData,
             Func<ImmutableArray<Diagnostic>> getHostDiagnostics,
             CancellationToken cancellationToken)
@@ -1559,6 +1602,7 @@ namespace Microsoft.CodeAnalysis
                 (win32Resources != null) ? new SimpleEmitStreamProvider(win32Resources) : null,
                 manifestResources,
                 options,
+                debugEntryPoint,
                 testData,
                 getHostDiagnostics,
                 cancellationToken);
@@ -1659,6 +1703,7 @@ namespace Microsoft.CodeAnalysis
             EmitStreamProvider win32ResourcesStreamProvider,
             IEnumerable<ResourceDescription> manifestResources,
             EmitOptions options,
+            IMethodSymbol debugEntryPoint,
             CompilationTestData testData,
             Func<ImmutableArray<Diagnostic>> getHostDiagnostics,
             CancellationToken cancellationToken)
@@ -1673,6 +1718,11 @@ namespace Microsoft.CodeAnalysis
             else
             {
                 options = EmitOptions.Default;
+            }
+
+            if (debugEntryPoint != null)
+            {
+                ValidateDebugEntryPoint(debugEntryPoint, diagnostics);
             }
 
             if (Options.OutputKind == OutputKind.NetModule && manifestResources != null)
@@ -1703,6 +1753,7 @@ namespace Microsoft.CodeAnalysis
 
             var moduleBeingBuilt = this.CreateModuleBuilder(
                 options,
+                debugEntryPoint,
                 manifestResources,
                 testData,
                 diagnostics,
@@ -1746,6 +1797,8 @@ namespace Microsoft.CodeAnalysis
 
             return ToEmitResultAndFree(diagnostics, success);
         }
+
+        internal abstract void ValidateDebugEntryPoint(IMethodSymbol debugEntryPoint, DiagnosticBag diagnostics);
 
         private static EmitResult ToEmitResultAndFree(DiagnosticBag diagnostics, bool success)
         {
@@ -2045,7 +2098,8 @@ namespace Microsoft.CodeAnalysis
 
         internal void MarkImportDirectiveAsUsed(SyntaxTree syntaxTree, int position)
         {
-            if (syntaxTree != null)
+            // Optimization: Don't initialize TreeToUsedImportDirectivesMap in submissions.
+            if (!IsSubmission && syntaxTree != null)
             {
                 var set = TreeToUsedImportDirectivesMap.GetOrAdd(syntaxTree, s_createSetCallback);
                 set.Add(position);
@@ -2054,8 +2108,13 @@ namespace Microsoft.CodeAnalysis
 
         internal bool IsImportDirectiveUsed(SyntaxTree syntaxTree, int position)
         {
-            SmallConcurrentSetOfInts usedImports;
+            if (IsSubmission)
+            {
+                // Since usings apply to subsequent submissions, we have to assume they are used.
+                return true;
+            }
 
+            SmallConcurrentSetOfInts usedImports;
             return syntaxTree != null &&
                 TreeToUsedImportDirectivesMap.TryGetValue(syntaxTree, out usedImports) &&
                 usedImports.Contains(position);

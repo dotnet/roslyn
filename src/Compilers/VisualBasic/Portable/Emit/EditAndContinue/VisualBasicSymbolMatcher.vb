@@ -333,7 +333,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Public Overrides Function VisitNamedType(type As NamedTypeSymbol) As Symbol
                 Dim originalDef As NamedTypeSymbol = type.OriginalDefinition
                 If originalDef IsNot type Then
-                    Dim typeArguments = type.GetAllTypeArguments
                     Dim otherDef As NamedTypeSymbol = DirectCast(Me.Visit(originalDef), NamedTypeSymbol)
 
                     ' For anonymous delegates the rewriter generates a _ClosureCache$_N field
@@ -344,9 +343,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     End If
 
                     Dim otherTypeParameters As ImmutableArray(Of TypeParameterSymbol) = otherDef.GetAllTypeParameters()
-                    Dim otherTypeArguments As ImmutableArray(Of TypeSymbol) = typeArguments.SelectAsArray(Function(t, v) DirectCast(v.Visit(t), TypeSymbol), Me)
-                    If otherTypeArguments.Any(Function(t) t Is Nothing) Then
-                        ' For a newly added type, there is no match in the previous generation, so it could be Nothing.
+                    Dim translationFailed As Boolean = False
+                    Dim otherTypeArguments = type.GetAllTypeArgumentsWithModifiers().SelectAsArray(Function(t, v)
+                                                                                                       Dim newType = DirectCast(v.Visit(t.Type), TypeSymbol)
+                                                                                                       If newType Is Nothing Then
+                                                                                                           ' For a newly added type, there is no match in the previous generation, so it could be Nothing.
+                                                                                                           translationFailed = True
+                                                                                                           newType = t.Type
+                                                                                                       End If
+
+                                                                                                       Return New TypeWithModifiers(newType, v.VisitCustomModifiers(t.CustomModifiers))
+                                                                                                   End Function, Me)
+                    If translationFailed Then
+                        ' There is no match in the previous generation.
                         Return Nothing
                     End If
 
@@ -512,6 +521,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Private Function AreNamedTypesEqual(type As NamedTypeSymbol, other As NamedTypeSymbol) As Boolean
                 Debug.Assert(s_nameComparer.Equals(type.Name, other.Name))
+                Debug.Assert(Not type.HasTypeArgumentsCustomModifiers)
+                Debug.Assert(Not other.HasTypeArgumentsCustomModifiers)
                 Return type.TypeArgumentsNoUseSiteDiagnostics.SequenceEqual(other.TypeArgumentsNoUseSiteDiagnostics, AddressOf Me.AreTypesEqual)
             End Function
 
@@ -626,7 +637,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Public Overrides Function VisitNamedType(type As NamedTypeSymbol) As Symbol
                 Dim originalDef As NamedTypeSymbol = type.OriginalDefinition
                 If originalDef IsNot type Then
-                    Dim translatedTypeArguments = type.GetAllTypeArguments.SelectAsArray(Function(t, v) DirectCast(v.Visit(t), TypeSymbol), Me)
+                    Dim translatedTypeArguments = type.GetAllTypeArgumentsWithModifiers().SelectAsArray(Function(t, v) New TypeWithModifiers(DirectCast(v.Visit(t.Type), TypeSymbol),
+                                                                                                                                             v.VisitCustomModifiers(t.CustomModifiers)), Me)
 
                     Dim translatedOriginalDef = DirectCast(Me.Visit(originalDef), NamedTypeSymbol)
                     Dim typeMap = TypeSubstitution.Create(translatedOriginalDef, translatedOriginalDef.GetAllTypeParameters(), translatedTypeArguments, False)

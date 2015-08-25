@@ -13,11 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class MutableTypeMap : AbstractTypeParameterMap
     {
         internal MutableTypeMap()
-            : base(new SmallDictionary<TypeParameterSymbol, TypeSymbol>())
+            : base(new SmallDictionary<TypeParameterSymbol, TypeWithModifiers>())
         {
         }
 
-        internal void Add(TypeParameterSymbol key, TypeSymbol value)
+        internal void Add(TypeParameterSymbol key, TypeWithModifiers value)
         {
             this.Mapping.Add(key, value);
         }

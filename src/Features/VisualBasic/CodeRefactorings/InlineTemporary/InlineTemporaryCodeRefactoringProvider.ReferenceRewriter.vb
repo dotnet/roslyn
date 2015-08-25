@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             )
 
                 _definition = modifiedIdentifier
-                _semanticModel = DirectCast(semanticModel, SemanticModel)
+                _semanticModel = semanticModel
                 _expressionToInline = expressionToInline
                 _cancellationToken = cancellationToken
                 _localSymbol = DirectCast(_semanticModel.GetDeclaredSymbol(_definition), ILocalSymbol)

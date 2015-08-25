@@ -80,8 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
         {
             protected override AdjustNewLinesOperation GetAdjustNewLinesOperationBetweenMembersAndUsings(SyntaxToken token1, SyntaxToken token2)
             {
-                var previousToken = (SyntaxToken)token1;
-                var currentToken = (SyntaxToken)token2;
+                var previousToken = token1;
+                var currentToken = token2;
 
                 // We are not between members or usings if the last token wasn't the end of a statement or if the current token
                 // is the end of a scope.

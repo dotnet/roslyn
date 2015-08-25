@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
             qualifiedName = qualifiedName.WithAdditionalAnnotations(Formatter.Annotation);
 
             var syntaxTree = simpleName.SyntaxTree;
-            return syntaxTree.GetRoot(cancellationToken).ReplaceNode((NameSyntax)simpleName, qualifiedName);
+            return syntaxTree.GetRoot(cancellationToken).ReplaceNode(simpleName, qualifiedName);
         }
     }
 }

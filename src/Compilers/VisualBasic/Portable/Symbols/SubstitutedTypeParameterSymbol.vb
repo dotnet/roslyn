@@ -174,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' !!! Only code implementing construction of generic types is allowed to call this method !!!
         ''' !!! All other code should use Construct methods.                                        !!! 
         ''' </summary>
-        Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeSymbol
+        Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
             If substitution IsNot Nothing Then
                 If substitution.TargetGenericDefinition Is _containingSymbol Then
                     Return substitution.GetSubstitutionFor(Me)
@@ -183,7 +183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Throw ExceptionUtilities.Unreachable
             End If
 
-            Return Me
+            Return New TypeWithModifiers(Me)
         End Function
 
         Friend Overrides Sub EnsureAllConstraintsAreResolved()

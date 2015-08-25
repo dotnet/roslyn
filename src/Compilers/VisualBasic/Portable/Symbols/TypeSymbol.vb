@@ -293,7 +293,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' !!! Only code implementing construction of generic types is allowed to call this method !!!
         ''' !!! All other code should use Construct methods.                                        !!! 
         ''' </summary>
-        Friend MustOverride Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeSymbol
+        Friend MustOverride Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
+
+        <Obsolete("Use TypeWithModifiers.Is method.", True)>
+        Friend Overloads Function Equals(other As TypeWithModifiers) As Boolean
+            Return other.Is(Me)
+        End Function
 
         ''' <summary>
         ''' Lookup an immediately nested type referenced from metadata, names should be
