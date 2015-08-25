@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var location = CreateLocation(document, diagnostic.Location);
 
             var additionalLocations = diagnostic.AdditionalLocations.Count == 0
-                ? (IReadOnlyCollection<DiagnosticDataLocation>)Array.Empty<DiagnosticDataLocation>()
+                ? (IReadOnlyCollection<DiagnosticDataLocation>)SpecializedCollections.EmptyArray<DiagnosticDataLocation>()
                 : diagnostic.AdditionalLocations.Where(loc => loc.IsInSource).Select(loc => CreateLocation(document.Project.GetDocument(loc.SourceTree), loc)).ToReadOnlyCollection();
 
             return new DiagnosticData(

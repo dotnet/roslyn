@@ -232,9 +232,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                     if (ShouldRunAnalyzerForStateType(stateSet.Analyzer, StateType.Document))
                     {
+                        var supportsSemanticInSpan = stateSet.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis();
+                        if (supportsSemanticInSpan)
+                        {
+                            // We can't perform a 'semantics in span' analysis if there are diagnostics 
+                            // in the project with 'AdditionalLocations'.  Our primary problem is that we 
+                            // don't know if those diagnostics would need to be udpated by our change.
+                            supportsSemanticInSpan = !await AnyDiagnosticHasAdditionalLocationsAsync(document, stateSet, cancellationToken).ConfigureAwait(false);
+                        }
+
+                        var userDiagnosticDriver = supportsSemanticInSpan ? spanBasedDriver : documentBasedDriver;
+
                         var ranges = _memberRangeMap.GetSavedMemberRange(stateSet.Analyzer, document);
                         var data = await _executor.GetDocumentBodyAnalysisDataAsync(
-                            stateSet, versions, documentBasedDriver, root, member, memberId, ranges).ConfigureAwait(false);
+                            stateSet, versions, userDiagnosticDriver, root, member, memberId, supportsSemanticInSpan, ranges).ConfigureAwait(false);
 
                         _memberRangeMap.UpdateMemberRange(stateSet.Analyzer, document, versions.TextVersion, memberId, member.FullSpan, ranges);
 
@@ -255,6 +266,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
                 throw ExceptionUtilities.Unreachable;
             }
+        }
+
+        private static async Task<bool> AnyDiagnosticHasAdditionalLocationsAsync(Document document, StateSet stateSet, CancellationToken cancellationToken)
+        {
+            foreach (var sibling in document.Project.Documents)
+            {
+                var data = await stateSet.GetState(StateType.Document).TryGetExistingDataAsync(sibling, cancellationToken).ConfigureAwait(false);
+                if (data?.HasDiagnosticsWithAdditionalLocations ?? false)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private async Task AnalyzeDocumentAsync(Document document, VersionArgument versions, ImmutableHashSet<string> diagnosticIds, bool skipClosedFileChecks, CancellationToken cancellationToken)
@@ -667,7 +692,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 new DiagnosticsUpdatedArgs(id, Workspace, solution.Solution, solution.ProjectId, solution.DocumentId, diagnostics));
         }
 
-#if false
         private ImmutableArray<DiagnosticData> UpdateDocumentDiagnostics(
             AnalysisData existingData, ImmutableArray<TextSpan> range, ImmutableArray<DiagnosticData> memberDiagnostics,
             SyntaxTree tree, SyntaxNode member, int memberId)
@@ -750,22 +774,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 diagnostic.Properties,
                 diagnostic.Workspace,
                 diagnostic.ProjectId,
-                diagnostic.DocumentId,
-                newSpan,
-                mappedFilePath: mappedLineInfo.GetMappedFilePathIfExist(),
-                mappedStartLine: mappedLineInfo.StartLinePosition.Line,
-                mappedStartColumn: mappedLineInfo.StartLinePosition.Character,
-                mappedEndLine: mappedLineInfo.EndLinePosition.Line,
-                mappedEndColumn: mappedLineInfo.EndLinePosition.Character,
-                originalFilePath: originalLineInfo.Path,
-                originalStartLine: originalLineInfo.StartLinePosition.Line,
-                originalStartColumn: originalLineInfo.StartLinePosition.Character,
-                originalEndLine: originalLineInfo.EndLinePosition.Line,
-                originalEndColumn: originalLineInfo.EndLinePosition.Character,
+                new DiagnosticDataLocation(diagnostic.DocumentId, newSpan,
+                    mappedFilePath: mappedLineInfo.GetMappedFilePathIfExist(),
+                    mappedStartLine: mappedLineInfo.StartLinePosition.Line,
+                    mappedStartColumn: mappedLineInfo.StartLinePosition.Character,
+                    mappedEndLine: mappedLineInfo.EndLinePosition.Line,
+                    mappedEndColumn: mappedLineInfo.EndLinePosition.Character,
+                    originalFilePath: originalLineInfo.Path,
+                    originalStartLine: originalLineInfo.StartLinePosition.Line,
+                    originalStartColumn: originalLineInfo.StartLinePosition.Character,
+                    originalEndLine: originalLineInfo.EndLinePosition.Line,
+                    originalEndColumn: originalLineInfo.EndLinePosition.Character),
                 description: diagnostic.Description,
                 helpLink: diagnostic.HelpLink);
         }
-#endif
 
         private static IEnumerable<DiagnosticData> GetDiagnosticData(Document document, SyntaxTree tree, TextSpan? span, IEnumerable<Diagnostic> diagnostics)
         {
