@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Differencing;
@@ -258,12 +259,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
                         // check left buffer
                         var leftSnapshot = leftBuffer.CurrentSnapshot;
-                        var leftSpans = leftTagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(leftSnapshot, 0, leftSnapshot.Length))).ToList();
+                        var leftSpans = leftTagger.GetTags(leftSnapshot.GetSnapshotSpanCollection()).ToList();
                         Assert.Equal(1, leftSpans.Count);
 
                         // check right buffer
                         var rightSnapshot = rightBuffer.CurrentSnapshot;
-                        var rightSpans = rightTagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(rightSnapshot, 0, rightSnapshot.Length))).ToList();
+                        var rightSpans = rightTagger.GetTags(rightSnapshot.GetSnapshotSpanCollection()).ToList();
                         Assert.Equal(0, rightSpans.Count);
                     }
                 }

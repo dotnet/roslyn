@@ -62,9 +62,9 @@ namespace Microsoft.CodeAnalysis
             return _factory.GetSZArrayTypeSymbol(this.moduleSymbol, elementType, customModifiers);
         }
 
-        protected TypeSymbol GetArrayTypeSymbol(int rank, TypeSymbol elementType)
+        protected TypeSymbol GetArrayTypeSymbol(int rank, TypeSymbol elementType, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
         {
-            return _factory.GetArrayTypeSymbol(this.moduleSymbol, rank, elementType);
+            return _factory.GetArrayTypeSymbol(this.moduleSymbol, rank, elementType, customModifiers);
         }
 
         protected TypeSymbol GetByRefReturnTypeSymbol(TypeSymbol referencedType, ushort countOfCustomModifiersPrecedingByRef)
@@ -209,7 +209,9 @@ namespace Microsoft.CodeAnalysis
                 foreach (int rank in fullName.ArrayRanks)
                 {
                     Debug.Assert(rank > 0);
-                    container = rank == 1 ? GetSZArrayTypeSymbol(container, default(ImmutableArray<ModifierInfo<TypeSymbol>>)) : GetArrayTypeSymbol(rank, container);
+                    container = rank == 1 ? 
+                                GetSZArrayTypeSymbol(container, default(ImmutableArray<ModifierInfo<TypeSymbol>>)) : 
+                                GetArrayTypeSymbol(rank, container, default(ImmutableArray<ModifierInfo<TypeSymbol>>));
                 }
             }
 
