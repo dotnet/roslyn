@@ -244,7 +244,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim entryPoint = GetEntryPoint(compilation, moduleBeingBuiltOpt, diagnostics, cancellationToken)
             If moduleBeingBuiltOpt IsNot Nothing Then
-                moduleBeingBuiltOpt.SetEntryPoint(entryPoint)
+                If entryPoint IsNot Nothing AndAlso compilation.Options.OutputKind.IsApplication Then
+                    moduleBeingBuiltOpt.SetPEEntryPoint(entryPoint, diagnostics)
+                End If
 
                 If (compiler.GlobalHasErrors OrElse moduleBeingBuiltOpt.SourceModule.HasBadAttributes) AndAlso Not hasDeclarationErrors AndAlso Not diagnostics.HasAnyErrors Then
                     ' If there were errors but no diagnostics, explicitly add

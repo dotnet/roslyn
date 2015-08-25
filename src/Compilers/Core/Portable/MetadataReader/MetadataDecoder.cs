@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
         where TypeSymbol : class
     {
         internal bool IsByRef;
-        internal bool HasByRefBeforeCustomModifiers;
+        internal ushort CountOfCustomModifiersPrecedingByRef;
         internal TypeSymbol Type;
         internal ParameterHandle Handle; // may be nil
         internal ImmutableArray<ModifierInfo<TypeSymbol>> CustomModifiers;
@@ -196,7 +196,8 @@ namespace Microsoft.CodeAnalysis
                     int countOfBounds;
                     int countOfLowerBounds;
 
-                    typeSymbol = DecodeTypeOrThrow(ref ppSig, out refersToNoPiaLocalType);
+                    modifiers = DecodeModifiersOrThrow(ref ppSig, out typeCode);
+                    typeSymbol = DecodeTypeOrThrow(ref ppSig, typeCode, out refersToNoPiaLocalType);
                     if (!ppSig.TryReadCompressedInteger(out countOfDimensions) ||
                         !ppSig.TryReadCompressedInteger(out countOfBounds))
                     {
@@ -222,7 +223,7 @@ namespace Microsoft.CodeAnalysis
                         ppSig.TryReadCompressedInteger(out _);
                     }
 
-                    typeSymbol = GetArrayTypeSymbol(countOfDimensions, typeSymbol);
+                    typeSymbol = GetArrayTypeSymbol(countOfDimensions, typeSymbol, modifiers);
                     break;
 
                 case SignatureTypeCode.SZArray:
@@ -272,13 +273,14 @@ namespace Microsoft.CodeAnalysis
                     TypeSymbol generic = GetTypeOfToken(tokenGeneric, out refersToNoPiaLocalType);
                     Debug.Assert(!refersToNoPiaLocalType || generic.TypeKind == TypeKind.Error);
 
-                    var argumentsBuilder = ArrayBuilder<TypeSymbol>.GetInstance(argumentCount);
+                    var argumentsBuilder = ArrayBuilder<KeyValuePair<TypeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>>>>.GetInstance(argumentCount);
                     var argumentRefersToNoPiaLocalTypeBuilder = ArrayBuilder<bool>.GetInstance(argumentCount);
 
                     for (int argumentIndex = 0; argumentIndex < argumentCount; argumentIndex++)
                     {
                         bool argumentRefersToNoPia;
-                        argumentsBuilder.Add(DecodeTypeOrThrow(ref ppSig, out argumentRefersToNoPia));
+                        modifiers = DecodeModifiersOrThrow(ref ppSig, out typeCode);
+                        argumentsBuilder.Add(KeyValuePair.Create(DecodeTypeOrThrow(ref ppSig, typeCode, out argumentRefersToNoPia), modifiers));
                         argumentRefersToNoPiaLocalTypeBuilder.Add(argumentRefersToNoPia);
                     }
 
@@ -813,23 +815,28 @@ namespace Microsoft.CodeAnalysis
                 // The spec says that custom modifiers must precede SignatureTypeCode.ByReference, but the managed C++
                 // compiler emits them in the reverse order.  In order to avoid breaking interop scenarios, we need to
                 // support decoding (and later emitting) such signatures.
-                // NOTE: We still don't support having SignatureTypeCode.ByReference in the middle of a list of custom modifiers.
-                if (info.CustomModifiers.IsDefault)
-                {
-                    info.CustomModifiers = DecodeModifiersOrThrow(ref signatureReader, out typeCode);
-                    info.HasByRefBeforeCustomModifiers = !info.CustomModifiers.IsDefault;
+                var additionalModifiers = DecodeModifiersOrThrow(ref signatureReader, out typeCode);
 
-                    info.Type = DecodeTypeOrThrow(ref signatureReader, typeCode, out refersToNoPiaLocalType);
+                if (!info.CustomModifiers.IsDefault)
+                {
+                    info.CountOfCustomModifiersPrecedingByRef = (ushort)info.CustomModifiers.Length;
+                    if (info.CountOfCustomModifiersPrecedingByRef != info.CustomModifiers.Length)
+                    {
+                        throw new UnsupportedSignatureContent();
+                    }
+
+                    if (!additionalModifiers.IsDefaultOrEmpty)
+                    {
+                        info.CustomModifiers = info.CustomModifiers.Concat(additionalModifiers);
+                    }
                 }
                 else
                 {
-                    info.Type = DecodeTypeOrThrow(ref signatureReader, out refersToNoPiaLocalType);
+                    info.CustomModifiers = additionalModifiers;
                 }
             }
-            else
-            {
-                info.Type = DecodeTypeOrThrow(ref signatureReader, typeCode, out refersToNoPiaLocalType);
-            }
+
+            info.Type = DecodeTypeOrThrow(ref signatureReader, typeCode, out refersToNoPiaLocalType);
         }
 
         // MetaImport::DecodeMethodSignature
@@ -1500,12 +1507,6 @@ namespace Microsoft.CodeAnalysis
             {
                 // get the return type
                 DecodeParameterOrThrow(ref signatureReader, ref paramInfo[0]);
-                if (paramInfo[0].HasByRefBeforeCustomModifiers)
-                {
-                    // We don't have a good place to record this information and it's not worthwhile to add one
-                    // (it's illegal and we're not aware of any real-world code that needs it).
-                    throw new UnsupportedSignatureContent();
-                }
 
                 // Get all of the parameters.
                 for (paramIndex = 1; paramIndex <= paramCount; paramIndex++)
@@ -1530,7 +1531,8 @@ namespace Microsoft.CodeAnalysis
             if (paramInfo[0].IsByRef)
             {
                 paramInfo[0].IsByRef = false; // Info reflected in the error type.
-                paramInfo[0].Type = GetByRefReturnTypeSymbol(paramInfo[0].Type);
+                paramInfo[0].Type = GetByRefReturnTypeSymbol(paramInfo[0].Type, paramInfo[0].CountOfCustomModifiersPrecedingByRef);
+                paramInfo[0].CountOfCustomModifiersPrecedingByRef = 0;
             }
 
             return paramInfo;

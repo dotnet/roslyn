@@ -2211,6 +2211,12 @@ ProduceBoundNode:
                             ReportDiagnostic(diagnostics, diagnosticLocation, If(queryMode, ERRID.ERR_TypeInferenceFailureNoExplicitNoBest2, ERRID.ERR_TypeInferenceFailureNoBest2), If(representCandidateInDiagnosticsOpt, candidateSymbol))
                         End If
                     Else
+                        If candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt IsNot Nothing AndAlso
+                           candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt.HasAnyResolvedErrors Then
+                            ' Already reported some errors, let's not report a general inference error
+                            Return
+                        End If
+
                         If Not includeMethodNameInErrorMessages Then
                             ReportDiagnostic(diagnostics, diagnosticLocation, If(queryMode, ERRID.ERR_TypeInferenceFailureNoExplicit1, ERRID.ERR_TypeInferenceFailure1))
                         ElseIf candidateIsExtension Then

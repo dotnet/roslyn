@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         {
             var options = document.Project.Solution.Workspace.Options;
 
-            var newLocalNameToken = (SyntaxToken)GenerateUniqueLocalName(document, expression, isConstant, cancellationToken);
+            var newLocalNameToken = GenerateUniqueLocalName(document, expression, isConstant, cancellationToken);
             var newLocalName = SyntaxFactory.IdentifierName(newLocalNameToken);
 
             var modifiers = isConstant

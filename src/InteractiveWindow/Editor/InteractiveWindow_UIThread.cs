@@ -88,11 +88,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             _textView.Caret.PositionChanged += CaretPositionChanged;
 
-            _textView.Options.SetOptionValue(DefaultTextViewHostOptions.HorizontalScrollBarId, false);
+            _textView.Options.SetOptionValue(DefaultTextViewHostOptions.HorizontalScrollBarId, true);
             _textView.Options.SetOptionValue(DefaultTextViewHostOptions.LineNumberMarginId, false);
             _textView.Options.SetOptionValue(DefaultTextViewHostOptions.OutliningMarginId, false);
             _textView.Options.SetOptionValue(DefaultTextViewHostOptions.GlyphMarginId, false);
-            _textView.Options.SetOptionValue(DefaultTextViewOptions.WordWrapStyleId, WordWrapStyles.WordWrap);
+            _textView.Options.SetOptionValue(DefaultTextViewOptions.WordWrapStyleId, WordWrapStyles.None);
 
             _lineBreakString = _textView.Options.GetNewLineCharacter();
             _dangerous_uiOnly.EditorOperations = editorOperationsFactory.GetEditorOperations(_textView); // Constructor runs on UI thread.
@@ -434,8 +434,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 var snapshot = _window._projectionBuffer.CurrentSnapshot;
                 var spanCount = snapshot.SpanCount;
                 var inputSpan = snapshot.GetSourceSpan(spanCount - 1);
-                var kind = _window.GetSpanKind(inputSpan.Snapshot);
-                Debug.Assert(kind == ReplSpanKind.Language || kind == ReplSpanKind.StandardInput);
+                Debug.Assert(_window.GetSpanKind(inputSpan.Snapshot) == ReplSpanKind.Language ||
+                    _window.GetSpanKind(inputSpan.Snapshot) == ReplSpanKind.StandardInput);
 
                 var buffer = inputSpan.Snapshot.TextBuffer;
                 var span = inputSpan.Span;
@@ -960,6 +960,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                 // projection buffer update must be the last operation as it might trigger event that accesses prompt line mapping:
                 _window.AppendProjectionSpans(promptSpan, languageSpan);
+            }
+
+            public void ScrollToCaret()
+            {
+                var textView = _window._textView;
+                var caretPosition = textView.Caret.Position.BufferPosition;
+                var caretSpan = new SnapshotSpan(caretPosition.Snapshot, caretPosition, 0);
+                textView.ViewScroller.EnsureSpanVisible(caretSpan);
             }
         }
 

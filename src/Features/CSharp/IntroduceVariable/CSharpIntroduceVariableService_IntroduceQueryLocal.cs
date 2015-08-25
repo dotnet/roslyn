@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         protected override Task<Document> IntroduceQueryLocalAsync(
             SemanticDocument document, ExpressionSyntax expression, bool allOccurrences, CancellationToken cancellationToken)
         {
-            var newLocalNameToken = (SyntaxToken)GenerateUniqueLocalName(document, expression, isConstant: false, cancellationToken: cancellationToken);
+            var newLocalNameToken = GenerateUniqueLocalName(document, expression, isConstant: false, cancellationToken: cancellationToken);
             var newLocalName = SyntaxFactory.IdentifierName(newLocalNameToken);
 
             var letClause = SyntaxFactory.LetClause(

@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                 Protected Overrides Function CreateMethodName() As SyntaxToken
                     ' change this to more smarter one.
-                    Dim semanticModel = CType(Me.SemanticDocument.SemanticModel, SemanticModel)
+                    Dim semanticModel = SemanticDocument.SemanticModel
                     Dim nameGenerator = New UniqueNameGenerator(semanticModel)
                     Dim containingScope = Me.VBSelectionResult.GetContainingScope()
                     Return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(containingScope, "NewMethod"))

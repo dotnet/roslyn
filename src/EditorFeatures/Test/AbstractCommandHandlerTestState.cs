@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         public IEnumerable<Lazy<TExport, TMetadata>> GetExports<TExport, TMetadata>()
         {
-            return (IEnumerable<Lazy<TExport, TMetadata>>)Workspace.ExportProvider.GetExports<TExport, TMetadata>();
+            return Workspace.ExportProvider.GetExports<TExport, TMetadata>();
         }
 
         public T GetExportedValue<T>()

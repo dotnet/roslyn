@@ -116,8 +116,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                         Where expr1 IsNot Nothing
                         Let expr2 = If(TypeOf expr1 Is ParenthesizedExpressionSyntax, DirectCast(expr1, ParenthesizedExpressionSyntax).Expression, expr1)
                         Let children = expr2.ChildNodesAndTokens()
-                        Where children.Count = 1 AndAlso children.ElementAt(0).IsToken
-                        Let token = children.ElementAt(0).AsToken()
+                        Where children.Count = 1 AndAlso children(0).IsToken
+                        Let token = children(0).AsToken()
                         Where token.Kind = SyntaxKind.IdentifierToken OrElse
                               token.Kind = SyntaxKind.MyBaseKeyword OrElse
                               token.Kind = SyntaxKind.MyClassKeyword OrElse

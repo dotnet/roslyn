@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         {
             var tagger = buffer.Properties.GetOrCreateSingletonProperty(
                 _uniqueKey, () => new AggregatingTagger(this, buffer));
+            tagger.OnTaggerCreated();
             return tagger as IAccurateTagger<T>;
         }
 

@@ -228,7 +228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
             Else
-                Dim paramType As TypeSymbol = parameter.Type.InternalSubstituteTypeParameters(typeMap)
+                Dim paramType As TypeSymbol = parameter.Type.InternalSubstituteTypeParameters(typeMap).Type
 
                 Debug.Assert(Not parameter.IsByRef)
                 proxy = CreateParameterCapture(
@@ -278,7 +278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Variable needs to be hoisted.
-            Dim fieldType = local.Type.InternalSubstituteTypeParameters(typeMap)
+            Dim fieldType = local.Type.InternalSubstituteTypeParameters(typeMap).Type
 
             Dim id As LocalDebugId = LocalDebugId.None
             Dim slotIndex As Integer = -1

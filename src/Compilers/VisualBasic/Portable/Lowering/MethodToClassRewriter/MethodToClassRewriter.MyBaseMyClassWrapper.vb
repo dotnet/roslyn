@@ -195,13 +195,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim params(Me._wrappedMethod.ParameterCount - 1) As ParameterSymbol
-                For i = 0 To params.Count - 1
+                For i = 0 To params.Length - 1
                     Dim curParam = Me._wrappedMethod.Parameters(i)
-                    params(i) = SynthesizedMethod.WithNewContainerAndType(Me, curParam.Type.InternalSubstituteTypeParameters(Me._typeMap), curParam)
+                    params(i) = SynthesizedMethod.WithNewContainerAndType(Me, curParam.Type.InternalSubstituteTypeParameters(Me._typeMap).Type, curParam)
                 Next
                 Me._parameters = params.AsImmutableOrNull()
 
-                Me._returnType = Me._wrappedMethod.ReturnType.InternalSubstituteTypeParameters(Me._typeMap)
+                Me._returnType = Me._wrappedMethod.ReturnType.InternalSubstituteTypeParameters(Me._typeMap).Type
             End Sub
 
             Friend Overrides ReadOnly Property TypeMap As TypeSubstitution

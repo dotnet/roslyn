@@ -6399,5 +6399,25 @@ class Program
 }";
             AssertFormat(expected, code, changedOptionSet: changingOptions);
         }
+        
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void FormattingCodeWithMissingTokensShouldRespectFormatTabsOption1()
+        {
+            var optionSet = new Dictionary<OptionKey, object> { { new OptionKey(FormattingOptions.UseTabs, LanguageNames.CSharp), true } };
+
+            AssertFormat(@"class Program
+{
+	static void Main()
+	{
+		return // Note the missing semicolon
+	} // The tab here should stay a tab
+}", @"class Program
+{
+	static void Main()
+	{
+		return // Note the missing semicolon
+	} // The tab here should stay a tab
+}", changedOptionSet: optionSet);
+        }
     }
 }

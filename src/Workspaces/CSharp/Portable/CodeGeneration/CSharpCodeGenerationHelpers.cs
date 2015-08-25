@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var contextLocation = location as Location;
 
             var contextTree = contextLocation != null && contextLocation.IsInSource
-                ? (SyntaxTree)contextLocation.SourceTree
+                ? contextLocation.SourceTree
                 : null;
 
             return contextTree == null

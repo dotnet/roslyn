@@ -245,18 +245,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // This could be combined into a single return statement with a more complicated expression, but that would
             // be harder to debug.
 
-            if ((candidateParam.RefKind != RefKind.None) != targetParam.IsByRef)
+            if ((candidateParam.RefKind != RefKind.None) != targetParam.IsByRef || candidateParam.CountOfCustomModifiersPrecedingByRef != targetParam.CountOfCustomModifiersPrecedingByRef)
             {
                 return false;
             }
 
             // CONSIDER: Do we want to add special handling for error types?  Right now, we expect they'll just fail to match.
-            if (candidateMethodTypeMap.SubstituteType(candidateParam.Type) != targetParam.Type)
+            var substituted = new TypeWithModifiers(candidateParam.Type, candidateParam.CustomModifiers).SubstituteType(candidateMethodTypeMap);
+            if (substituted.Type != targetParam.Type)
             {
                 return false;
             }
 
-            if (!CustomModifiersMatch(candidateParam.CustomModifiers, targetParam.CustomModifiers))
+            if (!CustomModifiersMatch(substituted.CustomModifiers, targetParam.CustomModifiers))
             {
                 return false;
             }
@@ -270,12 +271,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             TypeSymbol targetReturnType = targetReturnParam.Type;
 
             // CONSIDER: Do we want to add special handling for error types?  Right now, we expect they'll just fail to match.
-            if (candidateMethodTypeMap.SubstituteType(candidateReturnType) != targetReturnType)
+            var substituted = new TypeWithModifiers(candidateReturnType, candidateMethod.ReturnTypeCustomModifiers).SubstituteType(candidateMethodTypeMap);
+            if (substituted.Type != targetReturnType)
             {
                 return false;
             }
 
-            if (!CustomModifiersMatch(candidateMethod.ReturnTypeCustomModifiers, targetReturnParam.CustomModifiers))
+            if (!CustomModifiersMatch(substituted.CustomModifiers, targetReturnParam.CustomModifiers))
             {
                 return false;
             }

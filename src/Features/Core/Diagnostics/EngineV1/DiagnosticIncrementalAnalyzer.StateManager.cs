@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
     {
         private const string RoslynLanguageServices = "Roslyn Language Services";
 
-        private static readonly int s_stateTypeCount = Enum.GetNames(typeof(StateType)).Count();
+        private static readonly int s_stateTypeCount = Enum.GetNames(typeof(StateType)).Length;
 
         /// <summary>
         /// This is in charge of anything related to <see cref="DiagnosticState"/>

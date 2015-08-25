@@ -3498,7 +3498,8 @@ Bailout:
                     Continue For
                 End If
 
-                If info.Candidate.UnderlyingSymbol.ContainingModule Is sourceModule Then
+                If info.Candidate.UnderlyingSymbol.ContainingModule Is sourceModule OrElse
+                   info.Candidate.IsExtensionMethod Then
                     CollectOverloadedCandidate(results, info, typeArguments, arguments, argumentNames,
                                                delegateReturnType, delegateReturnTypeReferenceBoundNode,
                                                includeEliminatedCandidates, binder, asyncLambdaSubToFunctionMismatch,
@@ -3520,7 +3521,8 @@ Bailout:
                 Dim applicableCount As Integer = If(info.State = CandidateAnalysisResultState.Applicable, 1, 0)
 
                 For j As Integer = i + 1 To group.Count - 1
-                    If group(j) Is Nothing Then
+                    If group(j) Is Nothing OrElse
+                       group(j).IsExtensionMethod Then ' VS2013 ignores illegal overloading for extension methods
                         Continue For
                     End If
 

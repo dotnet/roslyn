@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     var refKind = syntaxFacts.GetRefKindOfArgument(argumentList[i]);
 
                     var parameterName = parameterNames[i];
-                    var parameterType = (ITypeSymbol)parameterTypes[i];
+                    var parameterType = parameterTypes[i];
                     parameterType = parameterType.RemoveUnavailableTypeParameters(
                         _document.SemanticModel.Compilation, availableTypeParameters);
 

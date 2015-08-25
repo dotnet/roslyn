@@ -141,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         Public Function GetRenameTrackingTags(tagger As ITagger(Of RenameTrackingTag), workspace As TestWorkspace, document As TestHostDocument) As IEnumerable(Of ITagSpan(Of RenameTrackingTag))
             WaitForRename(workspace)
             Dim view = document.GetTextView()
-            Return tagger.GetTags(New NormalizedSnapshotSpanCollection(New SnapshotSpan(view.TextBuffer.CurrentSnapshot, New Span(0, view.TextBuffer.CurrentSnapshot.Length))))
+            Return tagger.GetTags(view.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection())
         End Function
     End Module
 End Namespace

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 #if DEBUG
             // Must have exactly 1 named argument.
             var namedArgs = _sourceAttribute.GetNamedArguments(context);
-            Debug.Assert(namedArgs.Count() == 1);
+            Debug.Assert(namedArgs.Length == 1);
 
             // Named argument must be 'File' property of string type
             var fileArg = namedArgs.First();

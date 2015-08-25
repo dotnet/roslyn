@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End If
 
             Dim text = Me.SemanticDocument.Text
-            Dim root = DirectCast(Me.SemanticDocument.Root, SyntaxNode)
+            Dim root = SemanticDocument.Root
             Dim model = Me.SemanticDocument.SemanticModel
 
             Dim selectionInfo = GetInitialSelectionInfo(root, cancellationToken)
@@ -247,7 +247,7 @@ result.ReadOutside().Any(Function(s) s Is local) Then
             Dim [end] = If(lastToken.Span.End <= selectionInfo.OriginalSpan.End, selectionInfo.OriginalSpan.End, lastToken.Span.End)
 
             With clone
-                .FinalSpan = GetAdjustedSpan(DirectCast(root, SyntaxNode), TextSpan.FromBounds(start, [end]))
+                .FinalSpan = GetAdjustedSpan(root, TextSpan.FromBounds(start, [end]))
                 .FirstTokenInFinalSpan = firstToken
                 .LastTokenInFinalSpan = lastToken
             End With

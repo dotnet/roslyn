@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return false;
             }
 
-            var lastToken = (SyntaxToken)root.FindToken(textSpan.End);
+            var lastToken = root.FindToken(textSpan.End);
             if (lastToken.Kind() == SyntaxKind.None)
             {
                 return false;

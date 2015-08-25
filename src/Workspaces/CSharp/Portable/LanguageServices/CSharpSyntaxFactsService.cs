@@ -993,7 +993,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var names = ArrayBuilder<string>.GetInstance();
             // containing type(s)
-            var parent = (SyntaxNode)node.GetAncestor<TypeDeclarationSyntax>() ?? node.Parent;
+            var parent = node.GetAncestor<TypeDeclarationSyntax>() ?? node.Parent;
             while (parent is TypeDeclarationSyntax)
             {
                 names.Push(GetName(parent, options));

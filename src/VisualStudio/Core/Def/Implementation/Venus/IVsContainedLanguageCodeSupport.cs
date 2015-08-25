@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
     /// definitions of GetMembers and GetCompatibleEventMembers, because they take optional out
     /// params, and the marshalling was wrong in the PIA.
     /// </summary>
-    [ComImport, ComConversionLoss, InterfaceType((short)1), Guid("F386BE91-0E80-43AF-8EB6-8B829FA06282")]
+    [ComImport, ComConversionLoss, InterfaceType(1), Guid("F386BE91-0E80-43AF-8EB6-8B829FA06282")]
     internal interface IVsContainedLanguageCodeSupport
     {
         [PreserveSig, MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]

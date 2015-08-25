@@ -11,6 +11,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     /// and these are initially zero length.  When we insert at the beginning of these we'll end up keeping the
     /// span zero length if we're just EdgePositive tracking.
     /// </summary>
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal sealed class CustomTrackingSpan : ITrackingSpan
     {
         private readonly ITrackingPoint _start;
@@ -66,7 +67,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         #endregion
 
-        public override string ToString()
+        private string GetDebuggerDisplay()
         {
             return "CustomSpan: " + GetSpan(_start.TextBuffer.CurrentSnapshot).ToString();
         }

@@ -189,12 +189,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
                 content.TypeSwitch(
                         (QuickInfoDisplayDeferredContent qiContent) =>
                         {
-                            var actualContent = ((QuickInfoDisplayDeferredContent)qiContent).MainDescription.ClassifiableContent;
+                            var actualContent = qiContent.MainDescription.ClassifiableContent;
                             ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
                         },
                         (ClassifiableDeferredContent classifiable) =>
                         {
-                            var actualContent = ((ClassifiableDeferredContent)classifiable).ClassifiableContent;
+                            var actualContent = classifiable.ClassifiableContent;
                             ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
                         });
             };
