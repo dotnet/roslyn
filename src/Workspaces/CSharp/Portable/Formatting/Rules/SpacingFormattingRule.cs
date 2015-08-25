@@ -243,8 +243,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // For spacing around the binary operators
-            if (currentToken.Parent is BinaryExpressionSyntax ||
-                previousToken.Parent is BinaryExpressionSyntax ||
+            if (currentToken.IsBinaryOperatorSyntax() ||
+                previousToken.IsBinaryOperatorSyntax() ||
                 currentToken.Parent is AssignmentExpressionSyntax ||
                 previousToken.Parent is AssignmentExpressionSyntax)
             {
