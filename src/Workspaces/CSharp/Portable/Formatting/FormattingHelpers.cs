@@ -560,6 +560,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return token.Parent is PrefixUnaryExpressionSyntax;
         }
 
+        public static bool IsBinaryOperatorSyntax(this SyntaxToken token)
+        {
+            if (token.IsKind(SyntaxKind.AsKeyword) || token.IsKind(SyntaxKind.IsKeyword))
+            {
+                return false;
+            }
+
+            return token.Parent is BinaryExpressionSyntax;
+        }
+
         public static bool IsInterpolation(this SyntaxToken currentToken)
         {
             return currentToken.Parent.IsKind(SyntaxKind.Interpolation);
