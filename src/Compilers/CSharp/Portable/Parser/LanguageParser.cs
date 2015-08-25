@@ -8389,8 +8389,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 if (opKind == SyntaxKind.IsExpression || opKind == SyntaxKind.AsExpression)
                 {
-                    leftOperand = _syntaxFactory.BinaryExpression(opKind, leftOperand, opToken,
-                        this.ParseTypeCore(parentIsParameter: false, isOrAs: true, expectSizes: false, isArrayCreation: false));
+                    var type = this.ParseTypeCore(parentIsParameter: false, isOrAs: true, expectSizes: false, isArrayCreation: false);
+                    if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+                    {
+                        var identifier = this.EatToken();
+                        var pattern = _syntaxFactory.DeclarationPattern(type, identifier);
+                        leftOperand = _syntaxFactory.IsPatternExpression(leftOperand, opToken, pattern);
+                        leftOperand = CheckFeatureAvailability(leftOperand, MessageID.IDS_FeaturePatternMatching);
+                    }
+                    else
+                    {
+                        leftOperand = _syntaxFactory.BinaryExpression(opKind, leftOperand, opToken, type);
+                    }
                 }
                 else
                 {

@@ -9108,6 +9108,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to pattern matching.
+        /// </summary>
+        internal static string IDS_FeaturePatternMatching {
+            get {
+                return ResourceManager.GetString("IDS_FeaturePatternMatching", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to #pragma.
         /// </summary>
         internal static string IDS_FeaturePragma {

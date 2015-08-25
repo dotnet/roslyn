@@ -1152,8 +1152,8 @@ public class Program
         System.Console.WriteLine(N1 + N2);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source);
-            var comp = CompileAndVerify(source, expectedOutput: @"N1N2");
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var comp = CompileAndVerify(compilation, expectedOutput: @"N1N2");
         }
 
         [Fact, WorkItem(42, "github.com/dotnet/roslyn")]

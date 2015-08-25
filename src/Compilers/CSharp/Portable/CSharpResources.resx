@@ -207,6 +207,9 @@
   <data name="IDS_FeatureNullable" xml:space="preserve">
     <value>nullable types</value>
   </data>
+  <data name="IDS_FeaturePatternMatching" xml:space="preserve">
+    <value>pattern matching</value>
+  </data>
   <data name="IDS_FeatureImplicitArray" xml:space="preserve">
     <value>implicitly typed array</value>
   </data>

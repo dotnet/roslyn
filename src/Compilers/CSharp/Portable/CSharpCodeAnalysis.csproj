@@ -97,6 +97,7 @@
     <Compile Include="Binder\Binder_Lookup.cs" />
     <Compile Include="Binder\Binder_NameConflicts.cs" />
     <Compile Include="Binder\Binder_Operators.cs" />
+    <Compile Include="Binder\Binder_Patterns.cs" />
     <Compile Include="Binder\Binder_Query.cs" />
     <Compile Include="Binder\Binder_QueryErrors.cs" />
     <Compile Include="Binder\Binder_Statements.cs" />
