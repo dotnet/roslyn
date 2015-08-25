@@ -574,8 +574,23 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
                 new TextChange(5, 1, "    "),
                 new TextChange(7, 1, "\r\n"));
 
+            // Text from language buffer.
             var actualText = snapshot.GetText();
             Assert.Equal("{\r\n    {\r\n    }\r\n}", actualText);
+
+            // Text including prompts.
+            buffer = Window.TextView.TextBuffer;
+            snapshot = buffer.CurrentSnapshot;
+            actualText = snapshot.GetText();
+            Assert.Equal("> {\r\n>     {\r\n>     }\r\n> }", actualText);
+
+            // Prompts should be read-only.
+            var regions = buffer.GetReadOnlyExtents(new Span(0, snapshot.Length));
+            AssertEx.SetEqual(regions,
+                new Span(0, 2),
+                new Span(5, 2),
+                new Span(14, 2),
+                new Span(23, 2));
         }
 
         [Fact]
@@ -720,6 +735,25 @@ System.Console.WriteLine();",
                 Window.Operations.Copy();
                 VerifyClipboardData(expectedText, expectedRtf);
             }
+        }
+
+        [Fact]
+        public void CancelMultiLineInput()
+        {
+            ApplyChanges(
+                Window.CurrentLanguageBuffer,
+                new TextChange(0, 0, "{\r\n    {\r\n    }\r\n}"));
+
+            // Text including prompts.
+            var buffer = Window.TextView.TextBuffer;
+            var snapshot = buffer.CurrentSnapshot;
+            Assert.Equal("> {\r\n>     {\r\n>     }\r\n> }", snapshot.GetText());
+
+            Task.Run(() => Window.Operations.Cancel()).PumpingWait();
+
+            // Text after cancel.
+            snapshot = buffer.CurrentSnapshot;
+            Assert.Equal("> ", snapshot.GetText());
         }
 
         private void Submit(string submission, string output)
