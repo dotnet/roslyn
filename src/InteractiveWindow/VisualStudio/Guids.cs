@@ -4,7 +4,7 @@ using System;
 
 namespace Microsoft.VisualStudio.InteractiveWindow.Shell
 {
-    internal static class Guids
+    public static class Guids
     {
         // vsct guids:
         // This GUID identifies the VsInteractiveWindow type. We need to pass it to VS in a string form.
