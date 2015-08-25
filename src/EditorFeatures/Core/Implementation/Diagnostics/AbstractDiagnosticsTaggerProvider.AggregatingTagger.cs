@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             private readonly AbstractDiagnosticsTaggerProvider<TTag> _owner;
             private readonly ITextBuffer _subjectBuffer;
 
+            private int refCount;
             private bool _disposed;
 
             private readonly Dictionary<object, ValueTuple<TaggerProvider, IAccurateTagger<TTag>>> _idToProviderAndTagger = new Dictionary<object, ValueTuple<TaggerProvider, IAccurateTagger<TTag>>>();
@@ -39,31 +40,47 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 _owner._diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
             }
 
+            public void OnTaggerCreated()
+            {
+                this.AssertIsForeground();
+                Debug.Assert(refCount >= 0);
+                Debug.Assert(!_disposed);
+
+                refCount++;
+            }
+
             public void Dispose()
             {
                 this.AssertIsForeground();
+                Debug.Assert(refCount > 0);
+                Debug.Assert(!_disposed);
 
-                _disposed = true;
-                
-                // Stop listening to diagnostic changes from the diagnostic service.
-                _owner._diagnosticService.DiagnosticsUpdated -= OnDiagnosticsUpdated;
+                refCount--;
 
-                // Disconnect us from our underlying taggers and make sure they're
-                // released as well.
-                foreach (var kvp in _idToProviderAndTagger)
+                if (refCount == 0)
                 {
-                    var tagger = kvp.Value.Item2;
+                    _disposed = true;
 
-                    tagger.TagsChanged -= OnUnderlyingTaggerTagsChanged;
-                    var disposable = tagger as IDisposable;
-                    if (disposable != null)
+                    // Stop listening to diagnostic changes from the diagnostic service.
+                    _owner._diagnosticService.DiagnosticsUpdated -= OnDiagnosticsUpdated;
+
+                    // Disconnect us from our underlying taggers and make sure they're
+                    // released as well.
+                    foreach (var kvp in _idToProviderAndTagger)
                     {
-                        disposable.Dispose();
-                    }
-                }
+                        var tagger = kvp.Value.Item2;
 
-                _idToProviderAndTagger.Clear();
-                _owner.RemoveTagger(this, _subjectBuffer);
+                        tagger.TagsChanged -= OnUnderlyingTaggerTagsChanged;
+                        var disposable = tagger as IDisposable;
+                        if (disposable != null)
+                        {
+                            disposable.Dispose();
+                        }
+                    }
+
+                    _idToProviderAndTagger.Clear();
+                    _owner.RemoveTagger(this, _subjectBuffer);
+                }
             }
 
             private void RegisterNotification(Action action)

@@ -196,7 +196,8 @@ namespace Microsoft.CodeAnalysis
                     int countOfBounds;
                     int countOfLowerBounds;
 
-                    typeSymbol = DecodeTypeOrThrow(ref ppSig, out refersToNoPiaLocalType);
+                    modifiers = DecodeModifiersOrThrow(ref ppSig, out typeCode);
+                    typeSymbol = DecodeTypeOrThrow(ref ppSig, typeCode, out refersToNoPiaLocalType);
                     if (!ppSig.TryReadCompressedInteger(out countOfDimensions) ||
                         !ppSig.TryReadCompressedInteger(out countOfBounds))
                     {
@@ -222,7 +223,7 @@ namespace Microsoft.CodeAnalysis
                         ppSig.TryReadCompressedInteger(out _);
                     }
 
-                    typeSymbol = GetArrayTypeSymbol(countOfDimensions, typeSymbol);
+                    typeSymbol = GetArrayTypeSymbol(countOfDimensions, typeSymbol, modifiers);
                     break;
 
                 case SignatureTypeCode.SZArray:

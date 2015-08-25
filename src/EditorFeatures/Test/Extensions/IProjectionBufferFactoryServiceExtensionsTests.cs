@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             var elisionBuffer = IProjectionBufferFactoryServiceExtensions.CreateElisionBufferWithoutIndentation(
                 exportProvider.GetExportedValue<IProjectionBufferFactoryService>(),
                 exportProvider.GetExportedValue<IEditorOptionsFactoryService>().GlobalOptions,
-                new SnapshotSpan(textBuffer.CurrentSnapshot, new Span(0, textBuffer.CurrentSnapshot.Length)));
+                textBuffer.CurrentSnapshot.GetFullSpan());
 
             var elisionSnapshot = elisionBuffer.CurrentSnapshot;
             Assert.Equal(elisionSnapshot.LineCount, 3);
