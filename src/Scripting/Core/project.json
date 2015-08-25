@@ -56,11 +56,7 @@
     "System.Threading.Tasks.Parallel": "4.0.0",
     "System.Threading.Timer": "4.0.0",
     "System.Xml.ReaderWriter": "4.0.10",
-    "System.Xml.XDocument": "4.0.10",
-    // XUnit
-    "xunit.abstractions": "2.0.0.0",
-    "xunit.assert": "2.1.0-beta4-build3109",
-    "xunit.core": "2.1.0-beta4-build3109"
+    "System.Xml.XDocument": "4.0.10"
   },
   "frameworks": {
     "dotnet": {
