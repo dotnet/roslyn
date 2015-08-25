@@ -152,7 +152,7 @@
     <Compile Include="Extensibility\Interactive\InteractiveCommandHandler.cs" />
     <Compile Include="Extensibility\Interactive\InteractiveEvaluator.cs" />
     <Compile Include="Extensibility\Interactive\InteractiveMetadataReferenceResolver.cs" />
-    <Compile Include="Extensibility\Interactive\PredefinedRoslynInteractiveCommandContentTypes.cs" />
+    <Compile Include="Extensibility\Interactive\PredefinedSpecializedCSharpVBInteractiveCommandContentTypes.cs" />
     <Compile Include="Implementation\Completion\InteractiveCommandCompletionService.cs" />
     <Compile Include="Implementation\Completion\Presentation\CompletionPresenter.cs" />
     <Compile Include="Implementation\Interactive\Commands\CommandArgumentsParser.cs" />

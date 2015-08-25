@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             _contentTypeRegistry = contentTypeRegistry;
             _vsWorkspace = workspace;
             _commands = GetApplicableCommands(commands, coreContentType: PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName,
-                specializedContentType: PredefinedRoslynInteractiveCommandsContentTypes.RoslynInteractiveCommandContentTypeName);
+                specializedContentType: PredefinedSpecializedCSharpVBInteractiveCommandsContentTypes.SpecializedCSharpVBInteractiveCommandContentTypeName);
             _vsInteractiveWindowFactory = interactiveWindowFactory;
             _commandsFactory = commandsFactory;
         }
@@ -130,42 +130,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                     a => ((ContentTypeAttribute)a).ContentTypes == specializedContentType)).ToArray();
 
             // We should choose specialized C#/VB commands over generic core interactive window commands
-            // so we replace the generic commands with specialized commands if both exist.
-            // Command can have multiple names. We need to compare every name to find match.
-            // Build a map of names and associated command first
-
+            // Build a map of names and associated core command first
             Dictionary<string, int> interactiveCommandMap = new Dictionary<string, int>();
-            Dictionary<string, int> specializedInteractiveCommandMap = new Dictionary<string, int>();
-
             for (int i = 0; i < interactiveCommands.Length; i++)
             {
                 foreach (var name in interactiveCommands[i].Names)
                         interactiveCommandMap.Add(name, i);
             }
 
-            for (int i = 0; i < specializedInteractiveCommands.Length; i++)
+            // swap core commands with specialized command if both exist
+            // Command can have multiple names. We need to compare every name to find match.
+            foreach (var command in specializedInteractiveCommands)
             {
-                foreach (var name in specializedInteractiveCommands[i].Names)
-                    specializedInteractiveCommandMap.Add(name, i);
-            }
-
-            //swap out generic commands with the specialized version
-            bool matchFound = false;
-            foreach ( var entry1 in interactiveCommandMap)
-            {
-                foreach( var entry2 in specializedInteractiveCommandMap)
+                foreach (var name in command.Names)
                 {
-                    if (string.Equals(entry1.Key, entry2.Key, StringComparison.Ordinal))
+                    if ( interactiveCommandMap.ContainsKey(name))
                     {
-                        Debug.Assert(matchFound == false, "Found more than one specialized commands with same name");
-                        interactiveCommands[entry1.Value] = specializedInteractiveCommands[entry2.Value];
-                        matchFound = true;
+                        int value;
+                        interactiveCommandMap.TryGetValue(name, out value);
+                        interactiveCommands[value] = command;
+                        break;
                     }
                 }
-                matchFound = false;
             }
             return interactiveCommands.ToImmutableArray();
             }
-
     }
 }

@@ -17,12 +17,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 {
 
     /// <summary>
-    /// Represents a command which can be run from a REPL window.
-    /// 
-    /// This interface is a MEF contract and can be implemented and exported to add commands to the REPL window.
+    /// Represents a reset command which can be run from a REPL window.
     /// </summary>
     [Export(typeof(IInteractiveWindowCommand))]
-    [ContentType(PredefinedRoslynInteractiveCommandsContentTypes.RoslynInteractiveCommandContentTypeName)]
+    [ContentType(PredefinedSpecializedCSharpVBInteractiveCommandsContentTypes.SpecializedCSharpVBInteractiveCommandContentTypeName)]
     internal sealed class ResetCommand : IInteractiveWindowCommand
     {
         private const string CommandName = "reset";
