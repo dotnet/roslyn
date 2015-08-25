@@ -187,6 +187,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
                 InteractiveWindow.State.Initializing,
                 InteractiveWindow.State.WaitingForInput,
                 InteractiveWindow.State.Resetting,
+                InteractiveWindow.State.WaitingForInput,
             });
         }
 

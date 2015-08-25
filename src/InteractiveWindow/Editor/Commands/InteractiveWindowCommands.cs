@@ -202,6 +202,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             return new ClassificationSpan(new SnapshotSpan(snapshot, span), classificationType);
         }
 
+        /// <returns>
+        /// Null if parsing fails, the result of execution otherwise.
+        /// </returns>
         public Task<ExecutionResult> TryExecuteCommand()
         {
             var span = _window.CurrentLanguageBuffer.CurrentSnapshot.GetExtent();
@@ -213,14 +216,19 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
                 return null;
             }
 
+            return ExecuteCommandAsync(command, argumentsSpan.GetText());
+        }
+
+        private async Task<ExecutionResult> ExecuteCommandAsync(IInteractiveWindowCommand command, string arguments)
+        {
             try
             {
-                return command.Execute(_window, argumentsSpan.GetText()) ?? ExecutionResult.Failed;
+                return await command.Execute(_window, arguments).ConfigureAwait(false);
             }
             catch (Exception e)
             {
-                _window.ErrorOutputWriter.WriteLine(string.Format("Command '{0}' failed: {1}", command.Names.First(), e.Message));
-                return ExecutionResult.Failed;
+                _window.ErrorOutputWriter.WriteLine($"Command '{command.Names.First()}' failed: {e.Message}");
+                return ExecutionResult.Failure;
             }
         }
 
