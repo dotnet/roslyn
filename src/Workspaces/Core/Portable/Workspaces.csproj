@@ -65,6 +65,9 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\PooledStringBuilder.cs">
       <Link>Collections\PooledStringBuilder.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\CorLightup.cs">
+      <Link>InternalUtilities\CorLightup.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\MetadataReference\MetadataFileReferenceProvider.cs">
       <Link>MetadataReference\MetadataFileReferenceProvider.cs</Link>
     </Compile>

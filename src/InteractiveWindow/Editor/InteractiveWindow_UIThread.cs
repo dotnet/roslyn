@@ -10,6 +10,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -18,6 +19,7 @@ using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.InteractiveWindow
 {
@@ -110,26 +112,34 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         async Task<ExecutionResult> IInteractiveWindow.InitializeAsync()
         {
-            RequiresUIThread();
-
-            if (_dangerous_uiOnly.State != State.Starting)
+            try
             {
-                throw new InvalidOperationException(InteractiveWindowResources.AlreadyInitialized);
+                RequiresUIThread();
+                var uiOnly = _dangerous_uiOnly; // Verified above.
+
+                if (uiOnly.State != State.Starting)
+                {
+                    throw new InvalidOperationException(InteractiveWindowResources.AlreadyInitialized);
+                }
+
+                uiOnly.State = State.Initializing;
+
+                // Anything that reads options should wait until after this call so the evaluator can set the options first
+                ExecutionResult result = await _evaluator.InitializeAsync().ConfigureAwait(continueOnCapturedContext: true);
+
+                Debug.Assert(OnUIThread()); // ConfigureAwait should bring us back to the UI thread.
+
+                if (result.IsSuccessful)
+                {
+                    uiOnly.PrepareForInput();
+                }
+
+                return result;
             }
-
-            _dangerous_uiOnly.State = State.Initializing;
-
-            // Anything that reads options should wait until after this call so the evaluator can set the options first
-            ExecutionResult result = await _evaluator.InitializeAsync().ConfigureAwait(continueOnCapturedContext: true);
-
-            Debug.Assert(OnUIThread()); // ConfigureAwait should bring us back to the UI thread.
-
-            if (result.IsSuccessful)
+            catch (Exception e) when (ReportAndPropagateException(e))
             {
-                _dangerous_uiOnly.PrepareForInput();
+                throw ExceptionUtilities.Unreachable;
             }
-
-            return result;
         }
 
         #endregion
@@ -140,8 +150,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             private readonly IInteractiveWindowEditorFactoryService _host;
 
-            private readonly TaskScheduler _uiScheduler;
-
             private readonly IReadOnlyRegion[] _outputProtection;
 
             // Pending submissions to be processed whenever the REPL is ready to accept submissions.
@@ -149,7 +157,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             private DispatcherTimer _executionTimer;
             private Cursor _oldCursor;
-            private Task<ExecutionResult> _currentTask;
             private int _currentOutputProjectionSpan;
             private int _outputTrackingCaretPosition;
 
@@ -192,40 +199,48 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 _window = window;
                 _host = host;
-                _uiScheduler = TaskScheduler.FromCurrentSynchronizationContext();
                 StandardInputProtection = new IReadOnlyRegion[2];
                 _outputProtection = new IReadOnlyRegion[2];
                 _pendingSubmissions = new Queue<PendingSubmission>();
                 _outputTrackingCaretPosition = -1;
             }
 
-            public Task<ExecutionResult> ResetAsync(bool initialize)
+            public async Task<ExecutionResult> ResetAsync(bool initialize)
             {
-                Debug.Assert(State != State.Resetting, "The button should have been disabled.");
-
-                if (_window._stdInputStart != null)
+                try
                 {
-                    CancelStandardInput();
+                    Debug.Assert(State != State.Resetting, "The button should have been disabled.");
+
+                    if (_window._stdInputStart != null)
+                    {
+                        CancelStandardInput();
+                    }
+
+                    _window._buffer.Flush();
+
+                    if (State == State.WaitingForInput)
+                    {
+                        var snapshot = _window._projectionBuffer.CurrentSnapshot;
+                        var spanCount = snapshot.SpanCount;
+                        Debug.Assert(_window.GetSpanKind(snapshot.GetSourceSpan(spanCount - 1)) == ReplSpanKind.Language);
+                        StoreUncommittedInput();
+                        RemoveProjectionSpans(spanCount - 2, 2);
+                        _window._currentLanguageBuffer = null;
+                    }
+
+                    State = State.Resetting;
+                    var executionResult = await _window._evaluator.ResetAsync(initialize).ConfigureAwait(true);
+                    Debug.Assert(_window.OnUIThread()); // ConfigureAwait should bring us back to the UI thread.
+
+                    Debug.Assert(State == State.Resetting, $"Unexpected state {State}");
+                    FinishExecute(executionResult.IsSuccessful);
+
+                    return executionResult;
                 }
-
-                _window._buffer.Flush();
-
-                if (State == State.WaitingForInput)
+                catch (Exception e) when (_window.ReportAndPropagateException(e))
                 {
-                    var snapshot = _window._projectionBuffer.CurrentSnapshot;
-                    var spanCount = snapshot.SpanCount;
-                    Debug.Assert(_window.GetSpanKind(snapshot.GetSourceSpan(spanCount - 1)) == ReplSpanKind.Language);
-                    StoreUncommittedInput();
-                    RemoveProjectionSpans(spanCount - 2, 2);
-                    _window._currentLanguageBuffer = null;
+                    throw ExceptionUtilities.Unreachable;
                 }
-
-                // replace the task being interrupted by a "reset" task:
-                State = State.Resetting;
-                _currentTask = _window._evaluator.ResetAsync(initialize);
-                _currentTask.ContinueWith(FinishExecute, _uiScheduler);
-
-                return _currentTask;
             }
 
             public void ClearView()
@@ -486,58 +501,71 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
 
                 var submission = _pendingSubmissions.Dequeue();
-
-                // queue new work item:
-                _window.Dispatcher.Invoke(new Action(() =>
+                _window.SetActiveCode(submission.Input);
+                Debug.Assert(submission.Task == null, "Someone set PendingSubmission.Task before it was dequeued.");
+                submission.Task = SubmitAsync();
+                if (submission.Completion != null)
                 {
-                    _window.SetActiveCode(submission.Input);
-                    var taskDone = SubmitAsync();
-                    if (submission.Completion != null)
-                    {
-                        taskDone.ContinueWith(x => submission.Completion.SetResult(null), TaskScheduler.Current);
-                    }
-                }));
+                    // ContinueWith is safe since TaskCompletionSource.SetResult should not throw.
+                    // Therefore, we don't need to await the task (which we would normally do to
+                    // propagate any exceptions it might throw).  We also don't need an NFW
+                    // exception filter around the continuation.
+                    submission.Task.ContinueWith(_ => submission.Completion.SetResult(null), TaskScheduler.Current);
+                }
             }
 
-            public Task SubmitAsync()
+            public async Task SubmitAsync()
             {
-                RequiresLanguageBuffer();
-
-                // TODO: queue submission
-                // Ensure that the REPL doesn't try to execute if it is already
-                // executing.  If this invariant can no longer be maintained more of
-                // the code in this method will need to be bullet-proofed
-                if (State == State.ExecutingInput)
+                try
                 {
-                    return Task.FromResult<object>(null);
+                    RequiresLanguageBuffer();
+
+                    // TODO: queue submission
+                    // Ensure that the REPL doesn't try to execute if it is already
+                    // executing.  If this invariant can no longer be maintained more of
+                    // the code in this method will need to be bullet-proofed
+                    if (State == State.ExecutingInput)
+                    {
+                        return;
+                    }
+
+                    // get command to save to history before calling FinishCurrentSubmissionInput
+                    // as it adds newline at the end
+                    var historySpan = _window._currentLanguageBuffer.CurrentSnapshot.GetExtent();
+                    FinishCurrentSubmissionInput();
+
+                    _window._history.UncommittedInput = null;
+
+                    var snapshotSpan = _window._currentLanguageBuffer.CurrentSnapshot.GetExtent();
+                    var trimmedSpan = snapshotSpan.TrimEnd();
+
+                    if (trimmedSpan.Length == 0)
+                    {
+                        // TODO: reuse the current language buffer
+                        PrepareForInput();
+                        return;
+                    }
+                    else
+                    {
+                        _window._history.Add(historySpan);
+                        State = State.ExecutingInput;
+
+                        StartCursorTimer();
+
+                        var executionResult = await _window._evaluator.ExecuteCodeAsync(snapshotSpan.GetText()).ConfigureAwait(true);
+                        Debug.Assert(_window.OnUIThread()); // ConfigureAwait should bring us back to the UI thread.
+
+                        Debug.Assert(State == State.ExecutingInput || State == State.Resetting, $"Unexpected state {State}");
+
+                        if (State == State.ExecutingInput)
+                        {
+                            FinishExecute(executionResult.IsSuccessful);
+                        }
+                    }
                 }
-
-                // get command to save to history before calling FinishCurrentSubmissionInput
-                // as it adds newline at the end
-                var historySpan = _window._currentLanguageBuffer.CurrentSnapshot.GetExtent();
-                FinishCurrentSubmissionInput();
-
-                _window._history.UncommittedInput = null;
-
-                var snapshotSpan = _window._currentLanguageBuffer.CurrentSnapshot.GetExtent();
-                var trimmedSpan = snapshotSpan.TrimEnd();
-
-                if (trimmedSpan.Length == 0)
+                catch (Exception e) when (_window.ReportAndPropagateException(e))
                 {
-                    // TODO: reuse the current language buffer
-                    PrepareForInput();
-                    return Task.FromResult<object>(null);
-                }
-                else
-                {
-                    _window._history.Add(historySpan);
-                    State = State.ExecutingInput;
-
-                    StartCursorTimer();
-
-                    Debug.Assert(_currentTask == null, "Shouldn't be either executing or resetting");
-                    _currentTask = _window._evaluator.ExecuteCodeAsync(snapshotSpan.GetText());
-                    return _currentTask.ContinueWith(FinishExecute, _uiScheduler);
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
 
@@ -666,7 +694,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// WARNING: this has to be the only method that writes to the output buffer so that 
             /// the output buffering counters are kept in sync.
             /// </summary>
-            internal void AppendOutput(IEnumerable<string> output, int outputLength)
+            internal void AppendOutput(IEnumerable<string> output)
             {
                 Debug.Assert(output.Any());
 
@@ -730,56 +758,52 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 ApplyProtection(_window._outputBuffer, _outputProtection);
             }
 
-            private void FinishExecute(Task<ExecutionResult> result)
+            private void FinishExecute(bool succeeded)
             {
-                // The finished task has been replaced by another task (e.g. reset).
-                // Do not perform any task finalization, it will be done by the replacement task.
-                if (_currentTask != result)
-                {
-                    return;
-                }
-
-                _currentTask = null;
                 ResetCursor();
 
-                if (result.Exception != null || !result.Result.IsSuccessful)
+                if (!succeeded && _window._history.Last != null)
                 {
-                    if (_window._history.Last != null)
-                    {
-                        _window._history.Last.Failed = true;
-                    }
+                    _window._history.Last.Failed = true;
                 }
 
                 PrepareForInput();
             }
 
-            public void ExecuteInput()
+            public async Task ExecuteInputAsync()
             {
-                ITextBuffer languageBuffer = GetLanguageBuffer(_window.Caret.Position.BufferPosition);
-                if (languageBuffer == null)
+                try
                 {
-                    return;
-                }
-
-                if (languageBuffer == _window._currentLanguageBuffer)
-                {
-                    // TODO (tomat): this should rather send an abstract "finish" command that various features
-                    // can implement as needed (IntelliSense, inline rename would commit, etc.).
-                    // For now, commit IntelliSense:
-                    var completionSession = _window.SessionStack.TopSession as ICompletionSession;
-                    if (completionSession != null)
+                    ITextBuffer languageBuffer = GetLanguageBuffer(_window.Caret.Position.BufferPosition);
+                    if (languageBuffer == null)
                     {
-                        completionSession.Commit();
+                        return;
                     }
 
-                    SubmitAsync();
+                    if (languageBuffer == _window._currentLanguageBuffer)
+                    {
+                        // TODO (tomat): this should rather send an abstract "finish" command that various features
+                        // can implement as needed (IntelliSense, inline rename would commit, etc.).
+                        // For now, commit IntelliSense:
+                        var completionSession = _window.SessionStack.TopSession as ICompletionSession;
+                        if (completionSession != null)
+                        {
+                            completionSession.Commit();
+                        }
+
+                        await SubmitAsync().ConfigureAwait(true);
+                    }
+                    else
+                    {
+                        // append text of the target buffer to the current language buffer:
+                        string text = TrimTrailingEmptyLines(languageBuffer.CurrentSnapshot);
+                        _window._currentLanguageBuffer.Replace(new Span(_window._currentLanguageBuffer.CurrentSnapshot.Length, 0), text);
+                        EditorOperations.MoveToEndOfDocument(false);
+                    }
                 }
-                else
+                catch (Exception e) when (_window.ReportAndPropagateException(e))
                 {
-                    // append text of the target buffer to the current language buffer:
-                    string text = TrimTrailingEmptyLines(languageBuffer.CurrentSnapshot);
-                    _window._currentLanguageBuffer.Replace(new Span(_window._currentLanguageBuffer.CurrentSnapshot.Length, 0), text);
-                    EditorOperations.MoveToEndOfDocument(false);
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
 

@@ -14,14 +14,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Formatting;
-using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.InteractiveWindow
 {
@@ -173,7 +174,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         IInteractiveEvaluator IInteractiveWindow.Evaluator => _evaluator;
 
-        Task IInteractiveWindow.SubmitAsync(IEnumerable<string> inputs)
+        /// <remarks>
+        /// Normally, an async method would have an NFW exception filter.  This
+        /// one doesn't because it just calls other async methods that already
+        /// have filters.
+        /// </remarks>
+        async Task IInteractiveWindow.SubmitAsync(IEnumerable<string> inputs)
         {
             var completion = new TaskCompletionSource<object>();
             var submissions = inputs.ToArray();
@@ -192,14 +198,25 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             UIThread(uiOnly => uiOnly.Submit(pendingSubmissions));
-            return completion.Task;
+
+            // This indicates that the last submission has completed.
+            await completion.Task.ConfigureAwait(false);
+
+            // These should all have finished already, but we'll await them so that their
+            // statuses are folded into the task we return.
+            await Task.WhenAll(pendingSubmissions.Select(p => p.Task)).ConfigureAwait(false);
         }
 
         private class PendingSubmission
         {
             public readonly string Input;
-            public readonly TaskCompletionSource<object> Completion; // only set on the last submission to 
-                                                                     // inform caller about completion of batch
+
+            /// <remarks>
+            /// Set only on the last submission in each batch (to notify the caller).
+            /// </remarks>
+            public readonly TaskCompletionSource<object> Completion;
+
+            public Task Task;
 
             public PendingSubmission(string input, TaskCompletionSource<object> completion)
             {
@@ -253,7 +270,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         void IInteractiveWindowOperations.ExecuteInput()
         {
-            UIThread(uiOnly => uiOnly.ExecuteInput());
+            UIThread(uiOnly => uiOnly.ExecuteInputAsync());
         }
 
         /// <summary>
@@ -261,10 +278,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// WARNING: this has to be the only method that writes to the output buffer so that 
         /// the output buffering counters are kept in sync.
         /// </summary>
-        internal void AppendOutput(IEnumerable<string> output, int outputLength)
+        internal void AppendOutput(IEnumerable<string> output)
         {
             RequiresUIThread();
-            _dangerous_uiOnly.AppendOutput(output, outputLength);
+            _dangerous_uiOnly.AppendOutput(output);
         }
 
         /// <summary>
@@ -469,6 +486,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             UIThread(uiOnly => _textView.Selection.Select(span.Value, isReversed: false));
+        }
+
+        private bool ReportAndPropagateException(Exception e)
+        {
+            FatalError.ReportWithoutCrashUnlessCanceled(e); // Drop return value.
+
+            ((IInteractiveWindow)this).WriteErrorLine(InteractiveWindowResources.InternalError);
+
+            return false; // Never consider the exception handled.
         }
 
         /// <summary>
@@ -1507,6 +1533,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 return false;
             }
 
+            // If this throws, VS shows a dialog.
             return _evaluator.CanExecuteCode(input);
         }
 
