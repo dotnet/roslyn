@@ -2,7 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -912,11 +912,13 @@ End Class";
             return provider.GetExports<IAsynchronousOperationListener, FeatureMetadata>();
         }
 
+        [Shared]
         [Export(typeof(IAsynchronousOperationListener))]
         [Export(typeof(IAsynchronousOperationWaiter))]
         [Feature(FeatureAttribute.SolutionCrawler)]
         private class SolutionCrawlerWaiter : AsynchronousOperationListener { }
 
+        [Shared]
         [Export(typeof(IAsynchronousOperationListener))]
         [Export(typeof(IAsynchronousOperationWaiter))]
         [Feature(FeatureAttribute.Workspace)]

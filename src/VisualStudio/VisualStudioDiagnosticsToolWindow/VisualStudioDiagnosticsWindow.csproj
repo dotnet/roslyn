@@ -37,7 +37,7 @@
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\..\Features\Core\Features.csproj">
+    <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj">
       <Project>{edc68a0e-c68d-4a74-91b7-bf38ec909888}</Project>
       <Name>Features</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
