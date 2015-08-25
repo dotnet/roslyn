@@ -226,13 +226,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     actual = PdbToXmlConverter.ToXml(pdbbits, exebits, options, methodName: qualifiedMethodName);
                 }
 
-                ValidateDebugDirectory(exebits, compilation.AssemblyName + ".pdb", portable);
+                ValidateDebugDirectory(exebits, compilation.AssemblyName + ".pdb", portable, compilation.IsEmitDeterministic);
             }
 
             return actual;
         }
 
-        public static void ValidateDebugDirectory(Stream peStream, string pdbPath, bool isPortable)
+        public static void ValidateDebugDirectory(Stream peStream, string pdbPath, bool isPortable, bool isDeterministic)
         {
             peStream.Seek(0, SeekOrigin.Begin);
             PEReader peReader = new PEReader(peStream);
@@ -281,11 +281,28 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Assert.Equal(1u, reader.ReadUInt32());
 
-            byte[] pathBlob = new byte[sizeOfData - 24 - 1];
+            byte[] pathBlob = new byte[sizeOfData - 24];
             reader.Read(pathBlob, 0, pathBlob.Length);
-            var actualPath = Encoding.UTF8.GetString(pathBlob);
+
+            int terminator = Array.IndexOf(pathBlob, (byte)0);
+            Assert.True(terminator >= 0, "Path should be NUL terminated");
+
+            for (int i = terminator + 1; i < pathBlob.Length; i++)
+            {
+                Assert.Equal(0, pathBlob[i]);
+            }
+
+            if (isDeterministic)
+            {
+                Assert.Equal(pathBlob.Length - 1, terminator);
+            }
+            else
+            {
+                Assert.True(pathBlob.Length >= 260, "Path should be at least MAX_PATH long");
+            }
+
+            var actualPath = Encoding.UTF8.GetString(pathBlob, 0, terminator);
             Assert.Equal(pdbPath, actualPath);
-            Assert.Equal(0, reader.ReadByte());
         }
 
         public static void VerifyMetadataEqualModuloMvid(Stream peStream1, Stream peStream2)
