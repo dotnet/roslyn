@@ -1400,6 +1400,36 @@ public class Class1
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
         [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TestOpenLineAbove3()
+        {
+            const string code =
+@"class C
+{
+	/// $$<summary>
+    /// stuff
+    /// </summary>
+	void M()
+	{
+	}
+}";
+
+            const string expected =
+@"class C
+{
+    $$
+	/// <summary>
+    /// stuff
+    /// </summary>
+	void M()
+	{
+	}
+}";
+
+            VerifyOpenLineAbove(code, expected);
+        }
+
+        [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TestOpenLineBelow1()
         {
             const string code =
@@ -1454,6 +1484,26 @@ public class Class1
 	{
 	}
 }";
+
+            VerifyOpenLineBelow(code, expected);
+        }
+
+        [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TestOpenLineBelow3()
+        {
+            const string code =
+@"/// <summary>
+/// stuff
+/// $$</summary>
+";
+
+            const string expected =
+@"/// <summary>
+/// stuff
+/// </summary>
+/// $$
+";
 
             VerifyOpenLineBelow(code, expected);
         }

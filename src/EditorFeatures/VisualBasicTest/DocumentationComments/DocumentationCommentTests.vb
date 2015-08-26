@@ -786,6 +786,31 @@ End Class
 
         <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
         <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        Public Sub TestOpenLineAbove3()
+            Const code = "
+Class C
+	''' $$<summary>
+    ''' stuff
+    ''' </summary>
+	Sub M()
+    End Sub
+End Class
+"
+            Const expected = "
+Class C
+    $$
+	''' <summary>
+    ''' stuff
+    ''' </summary>
+	Sub M()
+    End Sub
+End Class
+"
+            VerifyOpenLineAbove(code, expected)
+        End Sub
+
+        <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
+        <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub TestOpenLineBelow1()
             Const code = "
 Class C
@@ -831,6 +856,21 @@ Class C
     End Sub
 End Class
 "
+            VerifyOpenLineBelow(code, expected)
+        End Sub
+
+        <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
+        <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        Public Sub TestOpenLineBelow3()
+            Const code = "
+''' <summary>
+''' stuff
+''' $$</summary>"
+            Const expected = "
+''' <summary>
+''' stuff
+''' </summary>
+''' $$"
             VerifyOpenLineBelow(code, expected)
         End Sub
 
