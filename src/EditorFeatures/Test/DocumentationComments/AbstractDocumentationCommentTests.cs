@@ -64,6 +64,32 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
             });
         }
 
+        protected void VerifyOpenLineAbove(string initialMarkup, string expectedMarkup)
+        {
+            Verify(initialMarkup, expectedMarkup, (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
+            {
+                var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService, completionService) as ICommandHandler<OpenLineAboveCommandArgs>;
+
+                var commandArgs = new OpenLineAboveCommandArgs(view, view.TextBuffer);
+                Action nextHandler = delegate { };
+
+                commandHandler.ExecuteCommand(commandArgs, nextHandler);
+            });
+        }
+
+        protected void VerifyOpenLineBelow(string initialMarkup, string expectedMarkup)
+        {
+            Verify(initialMarkup, expectedMarkup, (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
+            {
+                var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService, completionService) as ICommandHandler<OpenLineBelowCommandArgs>;
+
+                var commandArgs = new OpenLineBelowCommandArgs(view, view.TextBuffer);
+                Action nextHandler = delegate { };
+
+                commandHandler.ExecuteCommand(commandArgs, nextHandler);
+            });
+        }
+
         private Action CreateInsertTextHandler(ITextView textView, string text)
         {
             return () =>

@@ -1338,6 +1338,126 @@ public class Class1
             VerifyTypingCharacter(code, expected, useTab: true);
         }
 
+        [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TestOpenLineAbove1()
+        {
+            const string code =
+@"class C
+{
+	/// <summary>
+    /// stuff$$
+    /// </summary>
+	void M()
+	{
+	}
+}";
+
+            var expected =
+@"class C
+{
+	/// <summary>
+    /// $$
+    /// stuff
+    /// </summary>
+	void M()
+	{
+	}
+}";
+
+            VerifyOpenLineAbove(code, expected);
+        }
+
+        [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TestOpenLineAbove2()
+        {
+            const string code =
+@"class C
+{
+	/// <summary>
+    /// $$stuff
+    /// </summary>
+	void M()
+	{
+	}
+}";
+
+            const string expected =
+@"class C
+{
+	/// <summary>
+    /// $$
+    /// stuff
+    /// </summary>
+	void M()
+	{
+	}
+}";
+
+            VerifyOpenLineAbove(code, expected);
+        }
+
+        [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TestOpenLineBelow1()
+        {
+            const string code =
+@"class C
+{
+	/// <summary>
+    /// stuff$$
+    /// </summary>
+	void M()
+	{
+	}
+}";
+
+            const string expected =
+@"class C
+{
+	/// <summary>
+    /// stuff
+    /// $$
+    /// </summary>
+	void M()
+	{
+	}
+}";
+
+            VerifyOpenLineBelow(code, expected);
+        }
+
+        [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TestOpenLineBelow2()
+        {
+            const string code =
+@"class C
+{
+	/// <summary>
+    /// $$stuff
+    /// </summary>
+	void M()
+	{
+	}
+}";
+
+            const string expected =
+@"class C
+{
+	/// <summary>
+    /// stuff
+    /// $$
+    /// </summary>
+	void M()
+	{
+	}
+}";
+
+            VerifyOpenLineBelow(code, expected);
+        }
+
         protected override char DocumentationCommentCharacter
         {
             get { return '/'; }
