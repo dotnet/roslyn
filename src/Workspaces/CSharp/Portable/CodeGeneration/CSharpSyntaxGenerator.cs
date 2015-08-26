@@ -372,6 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return PreserveTrivia(declaration, d =>
             {
                 d = AsImplementation(d, Accessibility.NotApplicable);
+                d = WithoutConstraints(d);
 
                 if (interfaceMemberName != null)
                 {
@@ -380,6 +381,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                 return WithInterfaceSpecifier(d, SyntaxFactory.ExplicitInterfaceSpecifier((NameSyntax)interfaceTypeName));
             });
+        }
+
+        private SyntaxNode WithoutConstraints(SyntaxNode declaration)
+        {
+            if (declaration.IsKind(SyntaxKind.MethodDeclaration))
+            { 
+                var method = (MethodDeclarationSyntax)declaration;
+                if (method.ConstraintClauses.Count > 0)
+                {
+                    return this.RemoveNodes(method, method.ConstraintClauses);
+                }
+            }
+
+            return declaration;
         }
 
         private ExplicitInterfaceSpecifierSyntax GetInterfaceSpecifier(SyntaxNode declaration)
