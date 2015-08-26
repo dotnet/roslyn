@@ -5,6 +5,7 @@
 *.suo
 *.user
 *.sln.docstates
+.vs/
 
 # Build results
 [Bb]inaries/
@@ -25,6 +26,7 @@ UnitTestResults.html
 # NuGet V3 artifacts
 *lock.json
 *-packages.config
+*.nuget.props
 
 *_i.c
 *_p.c

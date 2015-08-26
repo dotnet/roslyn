@@ -1084,6 +1084,36 @@ static void Main(string[] args)
             VerifyPressingEnter(code, expected);
         }
 
+        [WorkItem(2091, "https://github.com/dotnet/roslyn/issues/2091")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void PressingEnter_InTextBeforeSpace()
+        {
+            const string code =
+@"class C
+{
+    /// <summary>
+    /// hello$$ world
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            const string expected =
+@"class C
+{
+    /// <summary>
+    /// hello
+    /// $$world
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            VerifyPressingEnter(code, expected);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void Command_Class()
         {

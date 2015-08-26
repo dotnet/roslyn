@@ -586,6 +586,31 @@ $$''' <summary>
             VerifyPressingEnter(code, expected)
         End Sub
 
+        <WorkItem(2091, "https://github.com/dotnet/roslyn/issues/2091")>
+        <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        Public Sub PressingEnter_InTextBeforeSpace()
+            Const code = "
+Class C
+    ''' <summary>
+    ''' hello$$ world
+    ''' </summary>
+    Sub M()
+    End Sub
+End Class
+"
+            Const expected = "
+Class C
+    ''' <summary>
+    ''' hello
+    ''' $$world
+    ''' </summary>
+    Sub M()
+    End Sub
+End Class
+"
+            VerifyPressingEnter(code, expected)
+        End Sub
+
         <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub Command_Class()
             Const code = "
