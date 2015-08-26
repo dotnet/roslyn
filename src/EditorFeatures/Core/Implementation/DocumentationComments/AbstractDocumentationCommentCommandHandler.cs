@@ -21,7 +21,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
     internal abstract class AbstractDocumentationCommentCommandHandler<TDocumentationComment, TMemberNode> :
         ICommandHandler<TypeCharCommandArgs>,
         ICommandHandler<ReturnKeyCommandArgs>,
-        ICommandHandler<InsertCommentCommandArgs>
+        ICommandHandler<InsertCommentCommandArgs>,
+        ICommandHandler<OpenLineAboveCommandArgs>,
+        ICommandHandler<OpenLineBelowCommandArgs>
         where TDocumentationComment : SyntaxNode, IStructuredTriviaSyntax
         where TMemberNode : SyntaxNode
     {
@@ -586,6 +588,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                         nextHandler();
                     }
                 });
+        }
+
+        public CommandState GetCommandState(OpenLineAboveCommandArgs args, Func<CommandState> nextHandler)
+        {
+            return nextHandler();
+        }
+
+        public void ExecuteCommand(OpenLineAboveCommandArgs args, Action nextHandler)
+        {
+            nextHandler();
+        }
+
+        public CommandState GetCommandState(OpenLineBelowCommandArgs args, Func<CommandState> nextHandler)
+        {
+            return nextHandler();
+        }
+
+        public void ExecuteCommand(OpenLineBelowCommandArgs args, Action nextHandler)
+        {
+            nextHandler();
         }
     }
 }
