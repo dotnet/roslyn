@@ -739,20 +739,20 @@ End Module
         Public Sub TestOpenLineAbove1()
             Const code = "
 Class C
-	''' <summary>
+    ''' <summary>
     ''' stuff$$
     ''' </summary>
-	Sub M()
+    Sub M()
     End Sub
 End Class
 "
             Const expected = "
 Class C
-	''' <summary>
+    ''' <summary>
     ''' $$
     ''' stuff
     ''' </summary>
-	Sub M()
+    Sub M()
     End Sub
 End Class
 "
@@ -764,20 +764,20 @@ End Class
         Public Sub TestOpenLineAbove2()
             Const code = "
 Class C
-	''' <summary>
+    ''' <summary>
     ''' $$stuff
     ''' </summary>
-	Sub M()
+    Sub M()
     End Sub
 End Class
 "
             Const expected = "
 Class C
-	''' <summary>
+    ''' <summary>
     ''' $$
     ''' stuff
     ''' </summary>
-	Sub M()
+    Sub M()
     End Sub
 End Class
 "
@@ -789,10 +789,10 @@ End Class
         Public Sub TestOpenLineAbove3()
             Const code = "
 Class C
-	''' $$<summary>
+    ''' $$<summary>
     ''' stuff
     ''' </summary>
-	Sub M()
+    Sub M()
     End Sub
 End Class
 "
@@ -801,10 +801,10 @@ End Class
             Const expected = "
 Class C
 $$
-	''' <summary>
+    ''' <summary>
     ''' stuff
     ''' </summary>
-	Sub M()
+    Sub M()
     End Sub
 End Class
 "
@@ -816,20 +816,20 @@ End Class
         Public Sub TestOpenLineBelow1()
             Const code = "
 Class C
-	''' <summary>
+    ''' <summary>
     ''' stuff$$
     ''' </summary>
-	Sub M()
+    Sub M()
     End Sub
 End Class
 "
             Const expected = "
 Class C
-	''' <summary>
+    ''' <summary>
     ''' stuff
     ''' $$
     ''' </summary>
-	Sub M()
+    Sub M()
     End Sub
 End Class
 "
@@ -841,20 +841,20 @@ End Class
         Public Sub TestOpenLineBelow2()
             Const code = "
 Class C
-	''' <summary>
+    ''' <summary>
     ''' $$stuff
     ''' </summary>
-	Sub M()
+    Sub M()
     End Sub
 End Class
 "
             Const expected = "
 Class C
-	''' <summary>
+    ''' <summary>
     ''' stuff
     ''' $$
     ''' </summary>
-	Sub M()
+    Sub M()
     End Sub
 End Class
 "

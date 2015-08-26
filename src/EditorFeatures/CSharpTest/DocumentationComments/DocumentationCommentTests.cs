@@ -1345,24 +1345,24 @@ public class Class1
             const string code =
 @"class C
 {
-	/// <summary>
+    /// <summary>
     /// stuff$$
     /// </summary>
-	void M()
-	{
-	}
+    void M()
+    {
+    }
 }";
 
             var expected =
 @"class C
 {
-	/// <summary>
+    /// <summary>
     /// $$
     /// stuff
     /// </summary>
-	void M()
-	{
-	}
+    void M()
+    {
+    }
 }";
 
             VerifyOpenLineAbove(code, expected);
@@ -1375,24 +1375,24 @@ public class Class1
             const string code =
 @"class C
 {
-	/// <summary>
+    /// <summary>
     /// $$stuff
     /// </summary>
-	void M()
-	{
-	}
+    void M()
+    {
+    }
 }";
 
             const string expected =
 @"class C
 {
-	/// <summary>
+    /// <summary>
     /// $$
     /// stuff
     /// </summary>
-	void M()
-	{
-	}
+    void M()
+    {
+    }
 }";
 
             VerifyOpenLineAbove(code, expected);
@@ -1405,12 +1405,12 @@ public class Class1
             const string code =
 @"class C
 {
-	/// $$<summary>
+    /// $$<summary>
     /// stuff
     /// </summary>
-	void M()
-	{
-	}
+    void M()
+    {
+    }
 }";
 
             // Note that the caret position specified below does not look correct because
@@ -1419,12 +1419,12 @@ public class Class1
 @"class C
 {
 $$
-	/// <summary>
+    /// <summary>
     /// stuff
     /// </summary>
-	void M()
-	{
-	}
+    void M()
+    {
+    }
 }";
 
             VerifyOpenLineAbove(code, expected);
@@ -1437,24 +1437,24 @@ $$
             const string code =
 @"class C
 {
-	/// <summary>
+    /// <summary>
     /// stuff$$
     /// </summary>
-	void M()
-	{
-	}
+    void M()
+    {
+    }
 }";
 
             const string expected =
 @"class C
 {
-	/// <summary>
+    /// <summary>
     /// stuff
     /// $$
     /// </summary>
-	void M()
-	{
-	}
+    void M()
+    {
+    }
 }";
 
             VerifyOpenLineBelow(code, expected);
@@ -1467,24 +1467,24 @@ $$
             const string code =
 @"class C
 {
-	/// <summary>
+    /// <summary>
     /// $$stuff
     /// </summary>
-	void M()
-	{
-	}
+    void M()
+    {
+    }
 }";
 
             const string expected =
 @"class C
 {
-	/// <summary>
+    /// <summary>
     /// stuff
     /// $$
     /// </summary>
-	void M()
-	{
-	}
+    void M()
+    {
+    }
 }";
 
             VerifyOpenLineBelow(code, expected);
