@@ -1413,10 +1413,12 @@ public class Class1
 	}
 }";
 
+            // Note that the caret position specified below does not look correct because
+            // it is in virtual space in this case.
             const string expected =
 @"class C
 {
-    $$
+$$
 	/// <summary>
     /// stuff
     /// </summary>

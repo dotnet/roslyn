@@ -796,9 +796,11 @@ Class C
     End Sub
 End Class
 "
+            ' Note that the caret position specified below does Not look correct because
+            ' it Is in virtual space in this case.
             Const expected = "
 Class C
-    $$
+$$
 	''' <summary>
     ''' stuff
     ''' </summary>
