@@ -1036,6 +1036,7 @@ class C1
         private HostServices hostServicesWithoutCSharp = MefHostServices.Create(MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp")));
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]
         public void TestOpenSolution_WithMissingLanguageLibraries_WithSkipFalse_Throws()
         {
             // proves that if the language libaries are missing then the appropriate error occurs
@@ -1054,6 +1055,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]
         public void TestOpenSolution_WithMissingLanguageLibraries_WithSkipTrue_SucceedsWithDiagnostic()
         {
             // proves that if the language libaries are missing then the appropriate error occurs
@@ -1075,6 +1077,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]
         public void TestOpenProject_WithMissingLanguageLibraries_Throws()
         {
             // proves that if the language libaries are missing then the appropriate error occurs
