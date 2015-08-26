@@ -611,6 +611,131 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
+        <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
+        <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        Public Sub PressingEnter_Indentation1()
+            Const code = "
+Class C
+    ''' <summary>
+    '''     hello world$$
+    ''' </summary>
+    Sub M()
+    End Sub
+End Class
+"
+            Const expected = "
+Class C
+    ''' <summary>
+    '''     hello world
+    '''     $$
+    ''' </summary>
+    Sub M()
+    End Sub
+End Class
+"
+            VerifyPressingEnter(code, expected)
+        End Sub
+
+        <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
+        <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        Public Sub PressingEnter_Indentation2()
+            Const code = "
+Class C
+    ''' <summary>
+    '''     hello $$world
+    ''' </summary>
+    Sub M()
+    End Sub
+End Class
+"
+            Const expected = "
+Class C
+    ''' <summary>
+    '''     hello 
+    '''     $$world
+    ''' </summary>
+    Sub M()
+    End Sub
+End Class
+"
+            VerifyPressingEnter(code, expected)
+        End Sub
+
+        <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
+        <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        Public Sub PressingEnter_Indentation3()
+            Const code = "
+Class C
+    ''' <summary>
+    '''     hello$$ world
+    ''' </summary>
+    Sub M()
+    End Sub
+End Class
+"
+            Const expected = "
+Class C
+    ''' <summary>
+    '''     hello
+    '''     $$world
+    ''' </summary>
+    Sub M()
+    End Sub
+End Class
+"
+            VerifyPressingEnter(code, expected)
+        End Sub
+
+        <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
+        <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        Public Sub PressingEnter_Indentation4()
+            Const code = "
+Class C
+    ''' <summary>
+    '''     $$hello world
+    ''' </summary>
+    Sub M()
+    End Sub
+End Class
+"
+            Const expected = "
+Class C
+    ''' <summary>
+    '''     
+    ''' $$hello world
+    ''' </summary>
+    Sub M()
+    End Sub
+End Class
+"
+            VerifyPressingEnter(code, expected)
+        End Sub
+
+        <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
+        <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        Public Sub PressingEnter_Indentation5_UseTabs()
+            Const code = "
+Class C
+    ''' <summary>
+	'''     hello world$$
+    ''' </summary>
+    Sub M()
+    End Sub
+End Class
+"
+            Const expected = "
+Class C
+    ''' <summary>
+	'''     hello world
+	'''     $$
+    ''' </summary>
+    Sub M()
+    End Sub
+End Class
+"
+            VerifyPressingEnter(code, expected, useTabs:=True)
+        End Sub
+
         <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub Command_Class()
             Const code = "
