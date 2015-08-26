@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     .GetType("System.Security.Principal.WindowsIdentity")
                     .GetTypeInfo()
                     .GetDeclaredProperty("Owner")
-                    .GetGetMethod()
+                    .GetMethod
                     .Invoke(currentIdentity, null);
 
                 var remotePipeSecurity = typeof(PipeStream)
