@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -657,20 +658,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
         private void InsertExteriorTrivia(ITextView view, ITextBuffer subjectBuffer, TextLine currentLine, TextLine previousLine)
         {
-            var useTabs = subjectBuffer.GetOption(FormattingOptions.UseTabs);
-            var tabSize = subjectBuffer.GetOption(FormattingOptions.TabSize);
-
-            var firstNonWhitespaceColumn = previousLine.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(tabSize);
-            var indentText = firstNonWhitespaceColumn.CreateIndentationString(useTabs, tabSize) + ExteriorTriviaText + " ";
+            var insertionText = CreateInsertionTextFromPreviousLine(previousLine, subjectBuffer);
 
             var firstNonWhitespaceOffset = currentLine.GetFirstNonWhitespaceOffset();
             var replaceSpan = firstNonWhitespaceOffset != null
                 ? TextSpan.FromBounds(currentLine.Start, currentLine.Start + firstNonWhitespaceOffset.Value)
                 : currentLine.Span;
 
-            subjectBuffer.Replace(replaceSpan.ToSpan(), indentText);
+            subjectBuffer.Replace(replaceSpan.ToSpan(), insertionText);
 
-            view.TryMoveCaretToAndEnsureVisible(subjectBuffer.CurrentSnapshot.GetPoint(replaceSpan.Start + indentText.Length));
+            view.TryMoveCaretToAndEnsureVisible(subjectBuffer.CurrentSnapshot.GetPoint(replaceSpan.Start + insertionText.Length));
+        }
+
+        private string CreateInsertionTextFromPreviousLine(TextLine previousLine, ITextBuffer subjectBuffer)
+        {
+            var useTabs = subjectBuffer.GetOption(FormattingOptions.UseTabs);
+            var tabSize = subjectBuffer.GetOption(FormattingOptions.TabSize);
+
+            var previousLineText = previousLine.ToString();
+            var firstNonWhitespaceColumn = previousLineText.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(tabSize);
+
+            var trimmedPreviousLine = previousLineText.Trim();
+            Debug.Assert(trimmedPreviousLine.StartsWith(ExteriorTriviaText), "Unexpected: previous line does not begin with doc comment exterior trivia.");
+
+            // skip exterior trivia.
+            trimmedPreviousLine = trimmedPreviousLine.Substring(3);
+
+            var firstNonWhitespaceOffsetInPreviousXmlText = trimmedPreviousLine.GetFirstNonWhitespaceOffset();
+
+            var extraIndent = firstNonWhitespaceOffsetInPreviousXmlText != null
+                ? trimmedPreviousLine.Substring(0, firstNonWhitespaceOffsetInPreviousXmlText.Value)
+                : " ";
+
+            return firstNonWhitespaceColumn.CreateIndentationString(useTabs, tabSize) + ExteriorTriviaText + extraIndent;
         }
 
         private bool CurrentLineStartsWithExteriorTrivia(ITextBuffer subjectBuffer, int position)

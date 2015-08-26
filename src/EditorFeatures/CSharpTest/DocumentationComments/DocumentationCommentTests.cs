@@ -1114,6 +1114,156 @@ static void Main(string[] args)
             VerifyPressingEnter(code, expected);
         }
 
+        [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void PressingEnter_Indentation1()
+        {
+            const string code =
+@"class C
+{
+    /// <summary>
+    ///     hello world$$
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            const string expected =
+@"class C
+{
+    /// <summary>
+    ///     hello world
+    ///     $$
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            VerifyPressingEnter(code, expected);
+        }
+
+        [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void PressingEnter_Indentation2()
+        {
+            const string code =
+@"class C
+{
+    /// <summary>
+    ///     hello $$world
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            const string expected =
+@"class C
+{
+    /// <summary>
+    ///     hello 
+    ///     $$world
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            VerifyPressingEnter(code, expected);
+        }
+
+        [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void PressingEnter_Indentation3()
+        {
+            const string code =
+@"class C
+{
+    /// <summary>
+    ///     hello$$ world
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            const string expected =
+@"class C
+{
+    /// <summary>
+    ///     hello
+    ///     $$world
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            VerifyPressingEnter(code, expected);
+        }
+
+        [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void PressingEnter_Indentation4()
+        {
+            const string code =
+@"class C
+{
+    /// <summary>
+    ///     $$hello world
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            const string expected =
+@"class C
+{
+    /// <summary>
+    ///     
+    /// $$hello world
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            VerifyPressingEnter(code, expected);
+        }
+
+        [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void PressingEnter_Indentation5_UseTabs()
+        {
+            const string code =
+@"class C
+{
+    /// <summary>
+	///     hello world$$
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            const string expected =
+@"class C
+{
+    /// <summary>
+	///     hello world
+	///     $$
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            VerifyPressingEnter(code, expected, useTabs: true);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void Command_Class()
         {
