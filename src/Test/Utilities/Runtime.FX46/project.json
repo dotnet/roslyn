@@ -1,7 +1,8 @@
-{
+﻿{
   "dependencies": {
     "Microsoft.NETCore.Platforms": "1.0.0",
     "System.Collections": "4.0.10",
+    "System.Collections.Immutable": "1.1.36",
     "System.Console": "4.0.0-beta-23123",
     "System.Diagnostics.Debug": "4.0.10",
     "System.Globalization": "4.0.10",
@@ -17,13 +18,12 @@
     "System.Threading.Thread": "4.0.0-beta-23123",
     "System.Xml.XDocument": "4.0.10",
     "System.Xml.XmlDocument": "4.0.0",
-    "System.IO.Pipes": "4.0.0-beta-23123",
-    "System.Diagnostics.Process": "4.0.0-beta-23123",
-    "System.AppContext": "4.0.0",
-    "System.Security.Cryptography.Hashing.Algorithms": "4.0.0-beta-23123",
-    "System.Linq": "4.0.0"
+    "xunit": "2.1.0-beta4-build3109"
   },
   "frameworks": {
-      "dnxcore50": {}
+    "net46": { }
+  },
+  "runtimes": {
+    "win-": { }
   }
 }

@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Roslyn.Test.Utilities
@@ -248,9 +249,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (string.IsNullOrEmpty(message))
                 {
-                    message = GetAssertMessage(
-                        ToString(expected, itemSeparator),
-                        ToString(actual, itemSeparator));
+                    message = GetAssertMessage(expected, actual);
                 }
 
                 Assert.True(result, message);
@@ -380,29 +379,6 @@ namespace Roslyn.Test.Utilities
             throw new Exception("No exception was thrown.");
         }
 
-        public static void AssertEqualToleratingWhitespaceDifferences(
-            string expected,
-            string actual,
-            bool escapeQuotes = true,
-            [CallerFilePath]string expectedValueSourcePath = null,
-            [CallerLineNumber]int expectedValueSourceLine = 0)
-        {
-            var normalizedExpected = NormalizeWhitespace(expected);
-            var normalizedActual = NormalizeWhitespace(actual);
-
-            if (normalizedExpected != normalizedActual)
-            {
-                Assert.True(false, GetAssertMessage(expected, actual, escapeQuotes, expectedValueSourcePath, expectedValueSourceLine));
-            }
-        }
-
-        public static void AssertContainsToleratingWhitespaceDifferences(string expectedSubString, string actualString)
-        {
-            expectedSubString = NormalizeWhitespace(expectedSubString);
-            actualString = NormalizeWhitespace(actualString);
-            Assert.Contains(expectedSubString, actualString, StringComparison.Ordinal);
-        }
-
         internal static string NormalizeWhitespace(string input)
         {
             var output = new StringBuilder();
@@ -429,8 +405,6 @@ namespace Roslyn.Test.Utilities
             Func<T, string> itemInspector = escapeQuotes ? new Func<T, string>(t => t.ToString().Replace("\"", "\"\"")) : null;
             return GetAssertMessage(expected, actual, itemInspector: itemInspector, itemSeparator: "\r\n", expectedValueSourcePath: expectedValueSourcePath, expectedValueSourceLine: expectedValueSourceLine);
         }
-
-        private static readonly string s_diffToolPath = Environment.GetEnvironmentVariable("ROSLYN_DIFFTOOL");
 
         public static string GetAssertMessage<T>(
             IEnumerable<T> expected,
@@ -472,37 +446,7 @@ namespace Roslyn.Test.Utilities
             message.AppendLine("Actual:");
             message.AppendLine(actualString);
 
-            string link;
-            if (TryGenerateExpectedSourceFielAndGetDiffLink(actualString, expected.Count(), expectedValueSourcePath, expectedValueSourceLine, out link))
-            {
-                message.AppendLine(link);
-            }
-
             return message.ToString();
-        }
-
-        internal static bool TryGenerateExpectedSourceFielAndGetDiffLink(string actualString, int expectedLineCount, string expectedValueSourcePath, int expectedValueSourceLine, out string link)
-        {
-            // add a link to a .cmd file that opens a diff tool:
-            if (!string.IsNullOrEmpty(s_diffToolPath) && expectedValueSourcePath != null && expectedValueSourceLine != 0)
-            {
-                var actualFile = Path.GetTempFileName();
-                var testFileLines = File.ReadLines(expectedValueSourcePath);
-
-                File.WriteAllLines(actualFile, testFileLines.Take(expectedValueSourceLine));
-                File.AppendAllText(actualFile, actualString);
-                File.AppendAllLines(actualFile, testFileLines.Skip(expectedValueSourceLine + expectedLineCount));
-
-                var compareCmd = Path.GetTempFileName() + ".cmd";
-                File.WriteAllText(compareCmd, string.Format("\"{0}\" \"{1}\" \"{2}\"", s_diffToolPath, actualFile, expectedValueSourcePath));
-
-                link = "file://" + compareCmd;
-
-                return true;
-            }
-
-            link = null;
-            return false;
         }
     }
 }
