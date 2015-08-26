@@ -235,10 +235,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private async Task<Diagnostic> ToDiagnosticAsync(Project project, ImmutableDictionary<DocumentId, SyntaxTree> documentIdToTree, CancellationToken cancellationToken)
         {
-            return Diagnostic.Create(this.Id, this.Category, this.Message, this.Severity, this.DefaultSeverity, this.IsEnabledByDefault, this.WarningLevel, this.Title, this.Description, this.HelpLink, 
-                await ConvertLocationAsync(project, this.DataLocation, documentIdToTree, cancellationToken).ConfigureAwait(false),
-                additionalLocations: await ConvertLocationsAsync(project, this.AdditionalLocations, documentIdToTree, cancellationToken).ConfigureAwait(false),
-                customTags: this.CustomTags, properties: this.Properties);
+            var location = await ConvertLocationAsync(project, this.DataLocation, documentIdToTree, cancellationToken).ConfigureAwait(false);
+            var additionalLocations = await ConvertLocationsAsync(project, this.AdditionalLocations, documentIdToTree, cancellationToken).ConfigureAwait(false);
+
+            return Diagnostic.Create(
+                this.Id, this.Category, this.Message, this.Severity, this.DefaultSeverity, 
+                this.IsEnabledByDefault, this.WarningLevel, this.Title, this.Description, this.HelpLink, 
+                location, additionalLocations, customTags: this.CustomTags, properties: this.Properties);
         }
 
         private static async Task<IList<Location>> ConvertLocationsAsync(
