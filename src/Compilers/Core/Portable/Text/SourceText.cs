@@ -266,6 +266,13 @@ namespace Microsoft.CodeAnalysis.Text
         public SourceHashAlgorithm ChecksumAlgorithm => _checksumAlgorithm;
 
         /// <summary>
+        /// Creates a new <see cref="SourceText"/> instance with the specified checksum hash algorithm.
+        /// </summary>
+        /// <param name="algorithm"></param>
+        /// <returns></returns>
+        public abstract SourceText WithChecksumAlgorithm(SourceHashAlgorithm algorithm);
+
+        /// <summary>
         /// Encoding of the file that the text was read from or is going to be saved to.
         /// <c>null</c> if the encoding is unspecified.
         /// </summary>
@@ -274,6 +281,11 @@ namespace Microsoft.CodeAnalysis.Text
         /// If an encoding-less <see cref="SourceText"/> is written to a file a <see cref="Encoding.UTF8"/> shall be used as a default.
         /// </remarks>
         public abstract Encoding Encoding { get; }
+
+        /// <summary>
+        /// Creates a new <see cref="SourceText"/> instance with the specified encoding.
+        /// </summary>
+        public abstract SourceText WithEncoding(Encoding encoding);
 
         /// <summary>
         /// The length of the text in characters.

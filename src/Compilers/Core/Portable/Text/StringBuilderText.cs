@@ -32,6 +32,16 @@ namespace Microsoft.CodeAnalysis.Text
             get { return _encodingOpt; }
         }
 
+        public override SourceText WithEncoding(Encoding encoding)
+        {
+            return new StringBuilderText(_builder, encoding, this.ChecksumAlgorithm);
+        }
+
+        public override SourceText WithChecksumAlgorithm(SourceHashAlgorithm algorithm)
+        {
+            return new StringBuilderText(_builder, _encodingOpt, algorithm);
+        }
+
         /// <summary>
         /// Underlying string which is the source of this SourceText instance
         /// </summary>

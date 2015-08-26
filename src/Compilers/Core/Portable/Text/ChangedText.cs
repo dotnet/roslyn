@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Text
         private readonly SourceText _oldText;
         private readonly SourceText _newText;
         private readonly ImmutableArray<TextChangeRange> _changes;
+        private readonly Encoding _encoding;
 
         public ChangedText(SourceText oldText, ImmutableArray<TextChangeRange> changeRanges, ImmutableArray<SourceText> segments)
             : base(checksumAlgorithm: oldText.ChecksumAlgorithm)
@@ -24,11 +25,31 @@ namespace Microsoft.CodeAnalysis.Text
             _oldText = oldText;
             _newText = segments.IsEmpty ? new StringText("", oldText.Encoding, checksumAlgorithm: oldText.ChecksumAlgorithm) : (SourceText)new CompositeText(segments);
             _changes = changeRanges;
+            _encoding = oldText.Encoding;
+        }
+
+        private ChangedText(SourceText oldText, SourceText newText, ImmutableArray<TextChangeRange> changes, Encoding encoding, SourceHashAlgorithm checksumAlgorithm)
+            : base(checksumAlgorithm: checksumAlgorithm)
+        {
+            _oldText = oldText;
+            _newText = newText;
+            _changes = changes;
+            _encoding = encoding;
         }
 
         public override Encoding Encoding
         {
-            get { return _oldText.Encoding; }
+            get { return _encoding; }
+        }
+
+        public override SourceText WithEncoding(Encoding encoding)
+        {
+            return new ChangedText(_oldText, _newText, _changes, encoding, this.ChecksumAlgorithm);
+        }
+
+        public override SourceText WithChecksumAlgorithm(SourceHashAlgorithm algorithm)
+        {
+            return new ChangedText(_oldText, _newText, _changes, _encoding, algorithm);
         }
 
         public SourceText OldText

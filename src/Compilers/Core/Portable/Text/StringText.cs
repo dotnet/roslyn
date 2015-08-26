@@ -28,6 +28,16 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override Encoding Encoding => _encodingOpt;
 
+        public override SourceText WithEncoding(Encoding encoding)
+        {
+            return new StringText(_source, encoding, checksumAlgorithm: this.ChecksumAlgorithm);
+        }
+
+        public override SourceText WithChecksumAlgorithm(SourceHashAlgorithm algorithm)
+        {
+            return new StringText(_source, _encodingOpt, checksumAlgorithm: algorithm);
+        }
+
         /// <summary>
         /// Underlying string which is the source of this <see cref="StringText"/>instance
         /// </summary>

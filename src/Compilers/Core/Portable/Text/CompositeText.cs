@@ -15,12 +15,15 @@ namespace Microsoft.CodeAnalysis.Text
     {
         private readonly ImmutableArray<SourceText> _texts;
         private readonly int _length;
+        private readonly Encoding _encoding;
 
         public CompositeText(ImmutableArray<SourceText> texts)
             : base(checksumAlgorithm: texts[0].ChecksumAlgorithm)
         {
             Debug.Assert(!texts.IsDefaultOrEmpty);
             Debug.Assert(texts.All(t => texts.First().Encoding == t.Encoding && texts.First().ChecksumAlgorithm == t.ChecksumAlgorithm));
+
+            _encoding = texts[0].Encoding;
 
             _texts = texts;
             int len = 0;
@@ -32,9 +35,27 @@ namespace Microsoft.CodeAnalysis.Text
             _length = len;
         }
 
+        private CompositeText(ImmutableArray<SourceText> texts, int length, Encoding encoding, SourceHashAlgorithm checksumAlgorithm)
+            : base(checksumAlgorithm: checksumAlgorithm)
+        {
+            _texts = texts;
+            _length = length;
+            _encoding = encoding;
+        }
+
         public override Encoding Encoding
         {
-            get { return _texts[0].Encoding; }
+            get { return _encoding; }
+        }
+
+        public override SourceText WithEncoding(Encoding encoding)
+        {
+            return new CompositeText(_texts, _length, encoding, this.ChecksumAlgorithm);
+        }
+
+        public override SourceText WithChecksumAlgorithm(SourceHashAlgorithm algorithm)
+        {
+            return new CompositeText(_texts, _length, _encoding, algorithm);
         }
 
         public override int Length
