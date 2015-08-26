@@ -14,96 +14,44 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class CSharpTypeInferenceService
     {
-        private class TypeInferrer
+        private class TypeInferrer : AbstractTypeInferrer
         {
-            private readonly SemanticModel _semanticModel;
-            private readonly CancellationToken _cancellationToken;
-            private readonly HashSet<ExpressionSyntax> _seenExpressionInferType = new HashSet<ExpressionSyntax>();
-            private readonly HashSet<ExpressionSyntax> _seenExpressionGetType = new HashSet<ExpressionSyntax>();
-
             internal TypeInferrer(
                 SemanticModel semanticModel,
-                CancellationToken cancellationToken)
+                CancellationToken cancellationToken) : base(semanticModel, cancellationToken)
             {
-                _semanticModel = semanticModel;
-                _cancellationToken = cancellationToken;
             }
-
-            private Compilation Compilation
+            
+            protected override bool IsUnusableType(ITypeSymbol otherSideType)
             {
-                get
-                {
-                    return _semanticModel.Compilation;
-                }
-            }
-
-            public IEnumerable<ITypeSymbol> InferTypes(ExpressionSyntax expression)
-            {
-                if (expression != null)
-                {
-                    if (_seenExpressionInferType.Add(expression))
-                    {
-                        var types = InferTypesWorker(expression);
-                        if (types.Any())
-                        {
-                            return types.Where(t => !IsUnusableType(t)).Distinct();
-                        }
-                    }
-                }
-
-                return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
-            }
-
-            public IEnumerable<ITypeSymbol> InferTypes(int position)
-            {
-                var types = InferTypesWorker(position);
-                if (types.Any())
-                {
-                    return types.Where(t => !IsUnusableType(t)).Distinct();
-                }
-
-                return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
-            }
-
-            private static bool IsUnusableType(ITypeSymbol otherSideType)
-            {
-                if (otherSideType == null)
-                {
-                    return true;
-                }
-
                 return otherSideType.IsErrorType() &&
                     (otherSideType.Name == string.Empty || otherSideType.Name == "var");
             }
 
-            // TODO: Add support for Expression<T>
-            private IEnumerable<ITypeSymbol> GetTypes(ExpressionSyntax expression)
+            protected override IEnumerable<ITypeSymbol> GetTypes_DoNotCallDirectly(ExpressionSyntax expression, bool objectAsDefault)
             {
-                if (_seenExpressionGetType.Add(expression))
-                {
-                    IEnumerable<ITypeSymbol> types;
+                IEnumerable<ITypeSymbol> types;
 
-                    // BUG: (vladres) Are following expressions parenthesized correctly?
-                    // BUG:
-                    // BUG: (davip) It is parenthesized incorrectly. This problem was introduced in Changeset 822325 when 
-                    // BUG: this method was changed from returning a single ITypeSymbol to returning an IEnumerable<ITypeSymbol> 
-                    // BUG: to better deal with overloads. The old version was:
-                    // BUG: 
-                    // BUG:     if (!IsUnusableType(type = GetTypeSimple(expression)) ||
-                    // BUG:         !IsUnusableType(type = GetTypeComplex(expression)))
-                    // BUG:           { return type; }
-                    // BUG: 
-                    // BUG: The intent is to only use *usable* types, whether simple or complex. I have confirmed this intent with Ravi, who made the change. 
-                    // BUG: 
-                    // BUG: Note that the current implementation of GetTypesComplex and GetTypesSimple already ensure the returned value 
-                    // BUG: is a usable type, so there should not (currently) be any observable effect of this logic error.
-                    // BUG:
-                    // BUG: (vladres) Please remove this comment once the bug is fixed.
-                    if ((types = GetTypesSimple(expression).Where(t => !IsUnusableType(t))).Any() ||
-                        (types = GetTypesComplex(expression)).Where(t => !IsUnusableType(t)).Any())
-                    {
-                        return types;
-                    }
+                // BUG: (vladres) Are following expressions parenthesized correctly?
+                // BUG:
+                // BUG: (davip) It is parenthesized incorrectly. This problem was introduced in Changeset 822325 when 
+                // BUG: this method was changed from returning a single ITypeSymbol to returning an IEnumerable<ITypeSymbol> 
+                // BUG: to better deal with overloads. The old version was:
+                // BUG: 
+                // BUG:     if (!IsUnusableType(type = GetTypeSimple(expression)) ||
+                // BUG:         !IsUnusableType(type = GetTypeComplex(expression)))
+                // BUG:           { return type; }
+                // BUG: 
+                // BUG: The intent is to only use *usable* types, whether simple or complex. I have confirmed this intent with Ravi, who made the change. 
+                // BUG: 
+                // BUG: Note that the current implementation of GetTypesComplex and GetTypesSimple already ensure the returned value 
+                // BUG: is a usable type, so there should not (currently) be any observable effect of this logic error.
+                // BUG:
+                // BUG: (vladres) Please remove this comment once the bug is fixed.
+                if ((types = GetTypesSimple(expression).Where(t => !IsUnusableType(t))).Any() ||
+                    (types = GetTypesComplex(expression)).Where(t => !IsUnusableType(t)).Any())
+                {
+                    return types;
                 }
 
                 return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
@@ -157,8 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (expression != null)
                 {
-                    var typeInfo = _semanticModel.GetTypeInfo(expression, _cancellationToken);
-                    var symbolInfo = _semanticModel.GetSymbolInfo(expression, _cancellationToken);
+                    var typeInfo = SemanticModel.GetTypeInfo(expression, CancellationToken);
+                    var symbolInfo = SemanticModel.GetSymbolInfo(expression, CancellationToken);
 
                     if (symbolInfo.CandidateReason != CandidateReason.WrongArity)
                     {
@@ -183,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
             }
 
-            private IEnumerable<ITypeSymbol> InferTypesWorker(ExpressionSyntax expression)
+            protected override IEnumerable<ITypeSymbol> InferTypesWorker_DoNotCallDirectly(ExpressionSyntax expression)
             {
                 expression = expression.WalkUpParentheses();
                 var parent = expression.Parent;
@@ -258,10 +206,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
             }
 
-            private IEnumerable<ITypeSymbol> InferTypesWorker(int position)
+            protected override IEnumerable<ITypeSymbol> InferTypesWorker_DoNotCallDirectly(int position)
             {
-                var syntaxTree = _semanticModel.SyntaxTree;
-                var token = syntaxTree.FindTokenOnLeftOfPosition(position, _cancellationToken);
+                var syntaxTree = SemanticModel.SyntaxTree;
+                var token = syntaxTree.FindTokenOnLeftOfPosition(position, CancellationToken);
                 token = token.GetPreviousTokenIfTouchingWord(position);
                 var parent = token.Parent;
 
@@ -345,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (LockStatementSyntax lockStatement) => InferTypeInLockStatement(lockStatement, token),
                     (NameColonSyntax nameColon) => InferTypeInNameColon(nameColon, token),
                     (NameEqualsSyntax nameEquals) => InferTypeInNameEquals(nameEquals, token),
-                    (ObjectCreationExpressionSyntax objectCreation) => InferTypesWorker(objectCreation),
+                    (ObjectCreationExpressionSyntax objectCreation) => InferTypes(objectCreation),
                     (ParenthesizedLambdaExpressionSyntax parenthesizedLambdaExpression) => InferTypeInParenthesizedLambdaExpression(parenthesizedLambdaExpression, token),
                     (PostfixUnaryExpressionSyntax postfixUnary) => InferTypeInPostfixUnaryExpression(postfixUnary, token),
                     (PrefixUnaryExpressionSyntax prefixUnary) => InferTypeInPrefixUnaryExpression(prefixUnary, token),
@@ -461,14 +409,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<ITypeSymbol> InferTypeInConstructorInitializer(ConstructorInitializerSyntax initializer, int index, ArgumentSyntax argument = null)
             {
-                var info = _semanticModel.GetSymbolInfo(initializer, _cancellationToken);
+                var info = SemanticModel.GetSymbolInfo(initializer, CancellationToken);
                 var methods = info.GetBestOrAllSymbols().OfType<IMethodSymbol>();
                 return InferTypeInArgument(index, methods, argument);
             }
 
             private IEnumerable<ITypeSymbol> InferTypeInObjectCreationExpression(ObjectCreationExpressionSyntax creation, int index, ArgumentSyntax argumentOpt = null)
             {
-                var info = _semanticModel.GetSymbolInfo(creation.Type, _cancellationToken);
+                var info = SemanticModel.GetSymbolInfo(creation.Type, CancellationToken);
                 var type = info.Symbol as INamedTypeSymbol;
 
                 if (type == null)
@@ -496,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // being called with argument at this position.  Note: if they're calling an
                 // extension method then it will need one more argument in order for us to
                 // call it.
-                var info = _semanticModel.GetSymbolInfo(invocation, _cancellationToken);
+                var info = SemanticModel.GetSymbolInfo(invocation, CancellationToken);
                 IEnumerable<IMethodSymbol> methods = null;
 
                 // Overload resolution (see DevDiv 611477) in certain extension method cases
@@ -504,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // method group info, which is what signature help already does.
                 if (info.CandidateReason == CandidateReason.None)
                 {
-                    methods = _semanticModel.GetMemberGroup(invocation.Expression, _cancellationToken)
+                    methods = SemanticModel.GetMemberGroup(invocation.Expression, CancellationToken)
                                                             .OfType<IMethodSymbol>();
                 }
                 else
@@ -567,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<ITypeSymbol> InferTypeInAttribute(AttributeSyntax attribute, int index, AttributeArgumentSyntax argumentOpt = null)
             {
-                var info = _semanticModel.GetSymbolInfo(attribute, _cancellationToken);
+                var info = SemanticModel.GetSymbolInfo(attribute, CancellationToken);
                 var methods = info.GetBestOrAllSymbols().OfType<IMethodSymbol>();
                 return InferTypeInAttributeArgument(index, methods, argumentOpt);
             }
@@ -575,7 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private IEnumerable<ITypeSymbol> InferTypeInElementAccessExpression(
                 ElementAccessExpressionSyntax elementAccess, int index, ArgumentSyntax argumentOpt = null)
             {
-                var info = _semanticModel.GetTypeInfo(elementAccess.Expression, _cancellationToken);
+                var info = SemanticModel.GetTypeInfo(elementAccess.Expression, CancellationToken);
                 var type = info.Type as INamedTypeSymbol;
                 if (type != null)
                 {
@@ -1041,7 +989,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (equalsValue.IsParentKind(SyntaxKind.Parameter))
                 {
-                    var parameter = _semanticModel.GetDeclaredSymbol(equalsValue.Parent, _cancellationToken) as IParameterSymbol;
+                    var parameter = SemanticModel.GetDeclaredSymbol(equalsValue.Parent, CancellationToken) as IParameterSymbol;
                     if (parameter != null)
                     {
                         return SpecializedCollections.SingletonEnumerable(parameter.Type);
@@ -1055,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Contract.Assert(propertyDeclaration?.Type != null, "Property type should never be null");
 
-                var typeInfo = _semanticModel.GetTypeInfo(propertyDeclaration.Type);
+                var typeInfo = SemanticModel.GetTypeInfo(propertyDeclaration.Type);
                 return typeInfo.Type != null
                     ? SpecializedCollections.SingletonEnumerable(typeInfo.Type)
                     : SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
@@ -1063,7 +1011,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<ITypeSymbol> InferTypeInBaseMethodDeclaration(BaseMethodDeclarationSyntax declaration)
             {
-                var methodSymbol = _semanticModel.GetDeclaredSymbol(declaration);
+                var methodSymbol = SemanticModel.GetDeclaredSymbol(declaration);
                 return methodSymbol?.ReturnType != null
                     ? SpecializedCollections.SingletonEnumerable(methodSymbol.ReturnType)
                     : SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
@@ -1147,7 +1095,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ? initializerExpression.Expressions.GetSeparators().ToList().IndexOf(previousToken.Value) + 1
                             : initializerExpression.Expressions.IndexOf(expressionOpt);
 
-                    var addMethodSymbols = _semanticModel.GetCollectionInitializerSymbolInfo(initializerExpression).GetAllSymbols();
+                    var addMethodSymbols = SemanticModel.GetCollectionInitializerSymbolInfo(initializerExpression).GetAllSymbols();
                     var addMethodParameterTypes = addMethodSymbols
                         .Cast<IMethodSymbol>()
                         .Where(a => a.Parameters.Length == initializerExpression.Expressions.Count)
@@ -1165,7 +1113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // new List<T> { x, ... }
                         // new C { Prop = { x, ... } }
-                        var addMethodSymbols = _semanticModel.GetCollectionInitializerSymbolInfo(expressionOpt).GetAllSymbols();
+                        var addMethodSymbols = SemanticModel.GetCollectionInitializerSymbolInfo(expressionOpt).GetAllSymbols();
                         var addMethodParameterTypes = addMethodSymbols
                             .Cast<IMethodSymbol>()
                             .Where(a => a.Parameters.Length == 1)
@@ -1260,7 +1208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (expressionOpt != null)
                     {
-                        var addMethodSymbols = _semanticModel.GetCollectionInitializerSymbolInfo(expressionOpt).GetAllSymbols();
+                        var addMethodSymbols = SemanticModel.GetCollectionInitializerSymbolInfo(expressionOpt).GetAllSymbols();
                         var addMethodParameterTypes = addMethodSymbols.Select(a => ((IMethodSymbol)a).Parameters[0].Type).WhereNotNull();
                         if (addMethodParameterTypes.Any())
                         {
@@ -1467,7 +1415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
                 }
 
-                var memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(_semanticModel, yieldStatement.GetAncestorOrThis<MemberDeclarationSyntax>());
+                var memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(SemanticModel, yieldStatement.GetAncestorOrThis<MemberDeclarationSyntax>());
 
                 var memberType = memberSymbol.TypeSwitch(
                         (IMethodSymbol method) => method.ReturnType,
@@ -1507,7 +1455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var delegateExpression = ancestorExpressions.FirstOrDefault(e => e.IsKind(SyntaxKind.AnonymousMethodExpression));
                 if (delegateExpression != null)
                 {
-                    var delegateType = InferTypesWorker(delegateExpression).FirstOrDefault();
+                    var delegateType = InferTypes(delegateExpression).FirstOrDefault();
                     if (delegateType != null && delegateType.IsDelegateType())
                     {
                         var delegateInvokeMethod = delegateType.GetDelegateType(this.Compilation).DelegateInvokeMethod;
@@ -1518,7 +1466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                var memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(_semanticModel, returnStatement.GetAncestorOrThis<MemberDeclarationSyntax>());
+                var memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(SemanticModel, returnStatement.GetAncestorOrThis<MemberDeclarationSyntax>());
 
                 if (memberSymbol.IsKind(SymbolKind.Method))
                 {
@@ -1556,7 +1504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (currentSemanticModel.IsSpeculativeSemanticModel)
                 {
-                    var tokenInOriginalTree = originalSemanticModel.SyntaxTree.GetRoot(_cancellationToken).FindToken(currentSemanticModel.OriginalPositionForSpeculation);
+                    var tokenInOriginalTree = originalSemanticModel.SyntaxTree.GetRoot(CancellationToken).FindToken(currentSemanticModel.OriginalPositionForSpeculation);
                     declaration = tokenInOriginalTree.GetAncestor<MemberDeclarationSyntax>();
                 }
                 else
@@ -1564,7 +1512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     declaration = declarationInCurrentTree;
                 }
 
-                return originalSemanticModel.GetDeclaredSymbol(declaration, _cancellationToken);
+                return originalSemanticModel.GetDeclaredSymbol(declaration, CancellationToken);
             }
 
             private IEnumerable<ITypeSymbol> InferTypeInSwitchLabel(

@@ -10,47 +10,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend Class VisualBasicTypeInferenceService
         Private Class TypeInferrer
-            Private ReadOnly _semanticModel As SemanticModel
-            Private ReadOnly _cancellationToken As CancellationToken
+            Inherits AbstractTypeInferrer
 
-            Public Sub New(
-                semanticModel As SemanticModel,
-                cancellationToken As CancellationToken)
-
-                _semanticModel = semanticModel
-                _cancellationToken = cancellationToken
+            Public Sub New(semanticModel As SemanticModel, cancellationToken As CancellationToken)
+                MyBase.New(semanticModel, cancellationToken)
             End Sub
 
-            Private ReadOnly Property Compilation As Compilation
-                Get
-                    Return Me._semanticModel.Compilation
-                End Get
-            End Property
-
-            Public Function InferTypes(expression As ExpressionSyntax) As IEnumerable(Of ITypeSymbol)
-                If expression Is Nothing Then
-                    Return Nothing
-                End If
-
-                Return InferTypesWorker(expression)
-            End Function
-
-            Public Function InferTypes(position As Integer) As IEnumerable(Of ITypeSymbol)
-                Return InferTypesWorker(position)
-            End Function
-
-            Private Shared Function IsUnusableType(otherSideType As ITypeSymbol) As Boolean
-                If otherSideType Is Nothing Then
-                    Return True
-                End If
-
+            Protected Overrides Function IsUnusableType(otherSideType As ITypeSymbol) As Boolean
                 Return otherSideType.IsErrorType() AndAlso
                     otherSideType.Name = String.Empty
             End Function
 
-            Private Overloads Function GetTypes(expression As ExpressionSyntax, Optional objectAsDefault As Boolean = False) As IEnumerable(Of ITypeSymbol)
+            Protected Overrides Function GetTypes_DoNotCallDirectly(expression As ExpressionSyntax, objectAsDefault As Boolean) As IEnumerable(Of ITypeSymbol)
                 If expression IsNot Nothing Then
-                    Dim info = _semanticModel.GetTypeInfo(expression)
+                    Dim info = SemanticModel.GetTypeInfo(expression)
                     If info.Type IsNot Nothing AndAlso info.Type.TypeKind <> TypeKind.Error Then
                         Return SpecializedCollections.SingletonEnumerable(info.Type)
                     End If
@@ -61,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If expression.Kind = SyntaxKind.AddressOfExpression Then
                         Dim unaryExpression = DirectCast(expression, UnaryExpressionSyntax)
-                        Dim symbol = _semanticModel.GetSymbolInfo(unaryExpression.Operand, _cancellationToken).GetAnySymbol()
+                        Dim symbol = SemanticModel.GetSymbolInfo(unaryExpression.Operand, CancellationToken).GetAnySymbol()
                         Dim type = symbol.ConvertToType(Me.Compilation)
                         If type IsNot Nothing Then
                             Return SpecializedCollections.SingletonEnumerable(type)
@@ -72,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return If(objectAsDefault, SpecializedCollections.SingletonEnumerable(Me.Compilation.ObjectType), SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)())
             End Function
 
-            Private Function InferTypesWorker(expression As ExpressionSyntax) As IEnumerable(Of ITypeSymbol)
+            Protected Overrides Function InferTypesWorker_DoNotCallDirectly(expression As ExpressionSyntax) As IEnumerable(Of ITypeSymbol)
                 expression = expression.WalkUpParentheses()
                 Dim parent = expression.Parent
                 If TypeOf parent Is ConditionalAccessExpressionSyntax Then
@@ -133,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
                 End If
 
-                Dim typeSymbol = _semanticModel.GetTypeInfo(expressionType).Type
+                Dim typeSymbol = SemanticModel.GetTypeInfo(expressionType).Type
                 If TypeOf typeSymbol IsNot INamedTypeSymbol Then
                     Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
                 End If
@@ -150,9 +123,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
             End Function
 
-            Private Function InferTypesWorker(position As Integer) As IEnumerable(Of ITypeSymbol)
-                Dim tree = TryCast(Me._semanticModel.SyntaxTree, SyntaxTree)
-                Dim token = tree.FindTokenOnLeftOfPosition(position, _cancellationToken)
+            Protected Overrides Function InferTypesWorker_DoNotCallDirectly(position As Integer) As IEnumerable(Of ITypeSymbol)
+                Dim tree = TryCast(Me.SemanticModel.SyntaxTree, SyntaxTree)
+                Dim token = tree.FindTokenOnLeftOfPosition(position, CancellationToken)
                 token = token.GetPreviousTokenIfTouchingWord(position)
 
                 Dim parent = token.Parent
@@ -182,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(forStatement As ForStatementSyntax) InferTypeInForStatement(forStatement, previousToken:=token),
                     Function(ifStatement As IfStatementSyntax) InferTypeInIfOrElseIfStatement(token),
                     Function(namedFieldInitializer As NamedFieldInitializerSyntax) InferTypeInNamedFieldInitializer(namedFieldInitializer, token),
-                    Function(objectCreation As ObjectCreationExpressionSyntax) InferTypesWorker(objectCreation),
+                    Function(objectCreation As ObjectCreationExpressionSyntax) InferTypes(objectCreation),
                     Function(singleLineLambdaExpression As SingleLineLambdaExpressionSyntax) InferTypeInLambda(singleLineLambdaExpression, token),
                     Function(parenthesizedLambda As MultiLineLambdaExpressionSyntax) InferTypeInLambda(parenthesizedLambda, token),
                     Function(prefixUnary As UnaryExpressionSyntax) InferTypeInUnaryExpression(prefixUnary, token),
@@ -221,7 +194,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
                         End If
 
-                        Dim info = _semanticModel.GetSymbolInfo(invocation)
+                        Dim info = SemanticModel.GetSymbolInfo(invocation)
                         ' Check all the methods that have at least enough arguments to support being
                         ' called with argument at this position.  Note: if they're calling an extension
                         ' method then it will need one more argument in order for us to call it.
@@ -238,7 +211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
 
                             If targetExpression IsNot Nothing Then
-                                Dim expressionType = _semanticModel.GetTypeInfo(targetExpression)
+                                Dim expressionType = SemanticModel.GetTypeInfo(targetExpression)
                                 If TypeOf expressionType.Type Is IArrayTypeSymbol Then
                                     Return SpecializedCollections.SingletonEnumerable(Compilation.GetSpecialType(SpecialType.System_Int32))
                                 End If
@@ -251,7 +224,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         '
                         ' etc.
                         Dim creation = TryCast(argumentList.Parent, ObjectCreationExpressionSyntax)
-                        Dim info = _semanticModel.GetSymbolInfo(creation.Type)
+                        Dim info = SemanticModel.GetSymbolInfo(creation.Type)
                         Dim namedType = TryCast(info.Symbol, INamedTypeSymbol)
                         If namedType IsNot Nothing Then
                             If namedType.TypeKind = TypeKind.Delegate Then
@@ -292,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
                         End If
 
-                        Dim info = _semanticModel.GetSymbolInfo(attribute)
+                        Dim info = SemanticModel.GetSymbolInfo(attribute)
                         Dim symbols = info.GetBestOrAllSymbols()
                         If symbols.Any() Then
                             Dim methods = symbols.OfType(Of IMethodSymbol)()
@@ -560,7 +533,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If variableDeclarator.Names.Count >= 1 Then
                         Dim name = variableDeclarator.Names(0)
-                        Dim symbol = _semanticModel.GetDeclaredSymbol(name, _cancellationToken)
+                        Dim symbol = SemanticModel.GetDeclaredSymbol(name, CancellationToken)
 
                         If symbol IsNot Nothing Then
                             Select Case symbol.Kind
@@ -578,7 +551,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 ElseIf equalsValue.IsParentKind(SyntaxKind.PropertyStatement) Then
                     Dim propertySyntax = CType(equalsValue.Parent, PropertyStatementSyntax)
-                    Dim propertySymbol = _semanticModel.GetDeclaredSymbol(propertySyntax)
+                    Dim propertySymbol = SemanticModel.GetDeclaredSymbol(propertySyntax)
                     If propertySymbol Is Nothing Then
                         Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
                     End If
@@ -684,7 +657,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)
                 End If
 
-                Dim memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(_semanticModel, returnStatement.GetAncestor(Of MethodBlockBaseSyntax).BlockStatement)
+                Dim memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(SemanticModel, returnStatement.GetAncestor(Of MethodBlockBaseSyntax).BlockStatement)
 
                 Dim memberMethod = TryCast(memberSymbol, IMethodSymbol)
                 If memberMethod IsNot Nothing Then
@@ -715,7 +688,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)
                 End If
 
-                Dim memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(_semanticModel, yieldStatement.GetAncestor(Of MethodBlockBaseSyntax).BlockStatement)
+                Dim memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(SemanticModel, yieldStatement.GetAncestor(Of MethodBlockBaseSyntax).BlockStatement)
 
                 Dim memberType = memberSymbol.TypeSwitch(
                     Function(method As IMethodSymbol) method.ReturnType,
@@ -737,13 +710,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim declaration As DeclarationStatementSyntax
 
                 If currentSemanticModel.IsSpeculativeSemanticModel Then
-                    Dim tokenInOriginalTree = originalSemanticModel.SyntaxTree.GetRoot(_cancellationToken).FindToken(currentSemanticModel.OriginalPositionForSpeculation)
+                    Dim tokenInOriginalTree = originalSemanticModel.SyntaxTree.GetRoot(CancellationToken).FindToken(currentSemanticModel.OriginalPositionForSpeculation)
                     declaration = tokenInOriginalTree.GetAncestor(Of DeclarationStatementSyntax)
                 Else
                     declaration = declarationInCurrentTree
                 End If
 
-                Return originalSemanticModel.GetDeclaredSymbol(declaration, _cancellationToken)
+                Return originalSemanticModel.GetDeclaredSymbol(declaration, CancellationToken)
             End Function
 
             Private Function InferTypeInSelectStatement(switchStatementSyntax As SelectStatementSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)
@@ -828,12 +801,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Function InferTypeInNamedFieldInitializer(initializer As NamedFieldInitializerSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)
-                Dim right = _semanticModel.GetTypeInfo(initializer.Name).Type
+                Dim right = SemanticModel.GetTypeInfo(initializer.Name).Type
                 If right IsNot Nothing AndAlso TypeOf right IsNot IErrorTypeSymbol Then
                     Return SpecializedCollections.SingletonEnumerable(right)
                 End If
 
-                Return SpecializedCollections.SingletonEnumerable(_semanticModel.GetTypeInfo(initializer.Expression).Type)
+                Return SpecializedCollections.SingletonEnumerable(SemanticModel.GetTypeInfo(initializer.Expression).Type)
             End Function
 
             Public Function InferTypeInCaseStatement(caseStatement As CaseStatementSyntax) As IEnumerable(Of ITypeSymbol)
@@ -861,7 +834,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' New List(Of T) From { x }
                 If expression IsNot Nothing Then
-                    Dim expressionAddMethodSymbols = _semanticModel.GetCollectionInitializerSymbolInfo(expression).GetAllSymbols()
+                    Dim expressionAddMethodSymbols = SemanticModel.GetCollectionInitializerSymbolInfo(expression).GetAllSymbols()
                     Dim expressionAddMethodParameterTypes = expressionAddMethodSymbols _
                         .Where(Function(a) DirectCast(a, IMethodSymbol).Parameters.Count() = 1) _
                         .Select(Function(a) DirectCast(a, IMethodSymbol).Parameters(0).Type).WhereNotNull()
@@ -876,7 +849,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         collectionInitializer.Initializers.GetSeparators().ToList().IndexOf(previousToken.Value) + 1,
                         collectionInitializer.Initializers.IndexOf(expression))
 
-                Dim initializerAddMethodSymbols = _semanticModel.GetCollectionInitializerSymbolInfo(collectionInitializer).GetAllSymbols()
+                Dim initializerAddMethodSymbols = SemanticModel.GetCollectionInitializerSymbolInfo(collectionInitializer).GetAllSymbols()
                 Dim initializerAddMethodParameterTypes = initializerAddMethodSymbols _
                     .Where(Function(a) DirectCast(a, IMethodSymbol).Parameters.Count() = collectionInitializer.Initializers.Count) _
                     .Select(Function(a) DirectCast(a, IMethodSymbol).Parameters.ElementAtOrDefault(parameterIndex)?.Type).WhereNotNull()
