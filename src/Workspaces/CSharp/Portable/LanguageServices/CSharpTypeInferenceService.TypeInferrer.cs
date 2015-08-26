@@ -616,8 +616,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // the methods so that the type can be inferred better.
                         var invocationTypes = this.InferTypes(invocation).WhereNotNull().ToList();
                         var instantiatedMethods = methods.Select(m => Instantiate(m, invocationTypes)).ToList();
+
+                        // Now that we've instantiated the methods, filter down to the ones that 
+                        // will actually return a viable type given where this invocation expression
+                        // is.
                         var filteredMethods = instantiatedMethods.Where(m =>
                             invocationTypes.Any(t => Compilation.ClassifyConversion(m.ReturnType, t).IsImplicit)).ToList();
+
+                        // If we filtered down to nothing, then just fall back to the instantiated list.
+                        // this is a best effort after all.
                         methods = filteredMethods.Any() ? filteredMethods : instantiatedMethods;
                     }
                 }
