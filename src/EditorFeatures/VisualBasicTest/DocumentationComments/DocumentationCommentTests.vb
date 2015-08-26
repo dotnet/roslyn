@@ -734,20 +734,104 @@ End Module
             VerifyInsertCommentCommand(code, expected)
         End Sub
 
-        <WorkItem(538482)>
+        <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
         <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Sub Command_NotOnSecondPropertyOnLine()
+        Public Sub TestOpenLineAbove1()
             Const code = "
-Module M
-    Property i As Integer : Property $$j As Integer
-End Module
+Class C
+	''' <summary>
+    ''' stuff$$
+    ''' </summary>
+	Sub M()
+    End Sub
+End Class
 "
             Const expected = "
-Module M
-    Property i As Integer : Property $$j As Integer
-End Module
+Class C
+	''' <summary>
+    ''' $$
+    ''' stuff
+    ''' </summary>
+	Sub M()
+    End Sub
+End Class
 "
-            VerifyInsertCommentCommand(code, expected)
+            VerifyOpenLineAbove(code, expected)
+        End Sub
+
+        <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
+        <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        Public Sub TestOpenLineAbove2()
+            Const code = "
+Class C
+	''' <summary>
+    ''' $$stuff
+    ''' </summary>
+	Sub M()
+    End Sub
+End Class
+"
+            Const expected = "
+Class C
+	''' <summary>
+    ''' $$
+    ''' stuff
+    ''' </summary>
+	Sub M()
+    End Sub
+End Class
+"
+            VerifyOpenLineAbove(code, expected)
+        End Sub
+
+        <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
+        <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        Public Sub TestOpenLineBelow1()
+            Const code = "
+Class C
+	''' <summary>
+    ''' stuff$$
+    ''' </summary>
+	Sub M()
+    End Sub
+End Class
+"
+            Const expected = "
+Class C
+	''' <summary>
+    ''' stuff
+    ''' $$
+    ''' </summary>
+	Sub M()
+    End Sub
+End Class
+"
+            VerifyOpenLineBelow(code, expected)
+        End Sub
+
+        <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
+        <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        Public Sub TestOpenLineBelow2()
+            Const code = "
+Class C
+	''' <summary>
+    ''' $$stuff
+    ''' </summary>
+	Sub M()
+    End Sub
+End Class
+"
+            Const expected = "
+Class C
+	''' <summary>
+    ''' stuff
+    ''' $$
+    ''' </summary>
+	Sub M()
+    End Sub
+End Class
+"
+            VerifyOpenLineBelow(code, expected)
         End Sub
 
         Friend Overrides Function CreateCommandHandler(
