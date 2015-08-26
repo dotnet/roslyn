@@ -373,17 +373,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 return false;
             }
 
-            var tabSize = subjectBuffer.GetOption(FormattingOptions.TabSize);
-            var previousLineOffset = previousLine.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(tabSize);
-            var currentLineOffset = currentLine.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(tabSize);
-            var indentText = currentLineOffset < previousLineOffset
-                ? (previousLineOffset - currentLineOffset).CreateIndentationString(subjectBuffer.GetOption(FormattingOptions.UseTabs), tabSize)
-                : string.Empty;
-
-            var newText = indentText + ExteriorTriviaText + " ";
-            subjectBuffer.Insert(position, newText);
-
-            textView.TryMoveCaretToAndEnsureVisible(subjectBuffer.CurrentSnapshot.GetPoint(position + newText.Length));
+            InsertExteriorTrivia(textView, subjectBuffer, currentLine, previousLine);
 
             return true;
         }
@@ -662,6 +652,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 return;
             }
 
+            InsertExteriorTrivia(view, subjectBuffer, currentLine, previousLine);
+        }
+
+        private void InsertExteriorTrivia(ITextView view, ITextBuffer subjectBuffer, TextLine currentLine, TextLine previousLine)
+        {
             var useTabs = subjectBuffer.GetOption(FormattingOptions.UseTabs);
             var tabSize = subjectBuffer.GetOption(FormattingOptions.TabSize);
 
@@ -670,7 +665,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
             var firstNonWhitespaceOffset = currentLine.GetFirstNonWhitespaceOffset();
             var replaceSpan = firstNonWhitespaceOffset != null
-                ? TextSpan.FromBounds(currentLine.Start, firstNonWhitespaceOffset.Value)
+                ? TextSpan.FromBounds(currentLine.Start, currentLine.Start + firstNonWhitespaceOffset.Value)
                 : currentLine.Span;
 
             subjectBuffer.Replace(replaceSpan.ToSpan(), indentText);
