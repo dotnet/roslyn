@@ -641,6 +641,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Can't infer the type parameters if this method doesn't have a return type.
+                // Note: this is because this code path is specifically flowing type information
+                // backward through the return type.  Type information is already flowed forward
+                // through arguments by the compiler when we get the initial set of methods.
                 if (method.ReturnsVoid)
                 {
                     return method;
