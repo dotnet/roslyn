@@ -357,7 +357,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return PreserveTrivia(declaration, d =>
             {
                 d = AsImplementation(d, Accessibility.Public);
-                d = WithoutConstraints(d);
 
                 if (interfaceMemberName != null)
                 {
@@ -366,18 +365,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                 return WithInterfaceSpecifier(d, null);
             });
-        }
-
-        public interface Foo
-        {
-            void Moo<T>() where T : IEnumerable<T>;
-        }
-
-        public class Bar : Foo
-        {
-            public void Moo<T>() where T : IEnumerable<T>
-            {
-            }
         }
 
         public override SyntaxNode AsPrivateInterfaceImplementation(SyntaxNode declaration, SyntaxNode interfaceTypeName, string interfaceMemberName)
