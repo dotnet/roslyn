@@ -606,8 +606,131 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<ITypeSymbol> InferTypeInArgument(int index, IEnumerable<IMethodSymbol> methods, ArgumentSyntax argumentOpt)
             {
+                if (argumentOpt != null)
+                {
+                    var invocation = argumentOpt?.Parent?.Parent as InvocationExpressionSyntax;
+                    if (invocation != null)
+                    {
+                        // We're trying to figure out the signature of a method we're an argument to. 
+                        // That method may be generic, and we might end up using one of its generic
+                        // type parameters in the type we infer.  First, let's see if we can instantiate
+                        // the methods so that the type can be inferred better.
+                        var invocationTypes = this.InferTypes(invocation).WhereNotNull().ToList();
+                        var instantiatedMethods = methods.Select(m => Instantiate(m, invocationTypes)).ToList();
+
+                        // Now that we've instantiated the methods, filter down to the ones that 
+                        // will actually return a viable type given where this invocation expression
+                        // is.
+                        var filteredMethods = instantiatedMethods.Where(m =>
+                            invocationTypes.Any(t => Compilation.ClassifyConversion(m.ReturnType, t).IsImplicit)).ToList();
+
+                        // If we filtered down to nothing, then just fall back to the instantiated list.
+                        // this is a best effort after all.
+                        methods = filteredMethods.Any() ? filteredMethods : instantiatedMethods;
+                    }
+                }
+
                 return InferTypeInArgument(index, methods.Select(m => m.Parameters), argumentOpt);
             }
+
+            private IMethodSymbol Instantiate(IMethodSymbol method, IList<ITypeSymbol> invocationTypes)
+            {
+                // No need to instantiate if this isn't a generic method.
+                if (method.TypeArguments.Length == 0)
+                {
+                    return method;
+                }
+
+                // Can't infer the type parameters if this method doesn't have a return type.
+                // Note: this is because this code path is specifically flowing type information
+                // backward through the return type.  Type information is already flowed forward
+                // through arguments by the compiler when we get the initial set of methods.
+                if (method.ReturnsVoid)
+                {
+                    return method;
+                }
+
+                // If the method has already been constructed poorly (i.e. with error types for type 
+                // arguments), then unconstruct it.
+                if (method.TypeArguments.All(t => t.Kind == SymbolKind.ErrorType))
+                {
+                    method = method.ConstructedFrom;
+                }
+
+                IDictionary<ITypeParameterSymbol, ITypeSymbol> bestMap = null;
+                foreach (var type in invocationTypes)
+                {
+                    // Ok.  We inferred a type for this location, and we have the return type of this 
+                    // method.  See if we can then assign any values for type parameters.
+                    var map = DetermineTypeParameterMapping(type, method.ReturnType);
+                    if (map.Count > 0 && (bestMap == null || map.Count > bestMap.Count))
+                    {
+                        bestMap = map;
+                    }
+                }
+
+                if (bestMap == null)
+                {
+                    return method;
+                }
+
+                var typeArguments = method.ConstructedFrom.TypeParameters.Select(tp => bestMap.GetValueOrDefault(tp) ?? tp).ToArray();
+                return method.Construct(typeArguments);
+            }
+
+            private Dictionary<ITypeParameterSymbol, ITypeSymbol> DetermineTypeParameterMapping(ITypeSymbol inferredType, ITypeSymbol returnType)
+            {
+                var result = new Dictionary<ITypeParameterSymbol, ITypeSymbol>();
+                DetermineTypeParameterMapping(inferredType, returnType, result);
+                return result;
+            }
+
+            private void DetermineTypeParameterMapping(ITypeSymbol inferredType, ITypeSymbol returnType, Dictionary<ITypeParameterSymbol, ITypeSymbol> result)
+            {
+                if (inferredType == null || returnType == null)
+                {
+                    return;
+                }
+
+                if (returnType.Kind == SymbolKind.TypeParameter)
+                {
+                    if (inferredType.Kind != SymbolKind.TypeParameter)
+                    {
+                        var returnTypeParameter = (ITypeParameterSymbol)returnType;
+                        if (!result.ContainsKey(returnTypeParameter))
+                        {
+                            result[returnTypeParameter] = inferredType;
+                        }
+                        return;
+                    }
+                }
+
+                if (inferredType.Kind != returnType.Kind)
+                {
+                    return;
+                }
+
+                switch (inferredType.Kind)
+                {
+                    case SymbolKind.ArrayType:
+                        DetermineTypeParameterMapping(((IArrayTypeSymbol)inferredType).ElementType, ((IArrayTypeSymbol)returnType).ElementType, result);
+                        return;
+                    case SymbolKind.PointerType:
+                        DetermineTypeParameterMapping(((IPointerTypeSymbol)inferredType).PointedAtType, ((IPointerTypeSymbol)returnType).PointedAtType, result);
+                        return;
+                    case SymbolKind.NamedType:
+                        var inferredNamedType = (INamedTypeSymbol)inferredType;
+                        var returnNamedType = (INamedTypeSymbol)returnType;
+                        if (inferredNamedType.TypeArguments.Length == returnNamedType.TypeArguments.Length)
+                        {
+                            for (int i = 0, n = inferredNamedType.TypeArguments.Length; i < n; i++)
+                            {
+                                DetermineTypeParameterMapping(inferredNamedType.TypeArguments[i], returnNamedType.TypeArguments[i], result);
+                            }
+                        }
+                        return;
+                }
+        }
 
             private IEnumerable<ITypeSymbol> InferTypeInAttributeArgument(
                 int index,
