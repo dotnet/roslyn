@@ -990,6 +990,323 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 var caretSpan = new SnapshotSpan(caretPosition.Snapshot, caretPosition, 0);
                 textView.ViewScroller.EnsureSpanVisible(caretSpan);
             }
+
+            public void Cancel()
+            {
+                _window.ClearInput();
+                EditorOperations.MoveToEndOfDocument(false);
+                UncommittedInput = null;
+                _window._historySearch = null;
+            }
+
+            public void HistoryPrevious(string search)
+            {
+                if (_window._currentLanguageBuffer == null)
+                {
+                    return;
+                }
+
+                var previous = _window._history.GetPrevious(search);
+                if (previous != null)
+                {
+                    if (string.IsNullOrWhiteSpace(search))
+                    {
+                        // don't store search as an uncommitted history item
+                        StoreUncommittedInputForHistory();
+                    }
+
+                    _window.SetActiveCodeToHistory(previous);
+                    EditorOperations.MoveToEndOfDocument(false);
+                }
+            }
+
+            public void HistoryNext(string search)
+            {
+                if (_window._currentLanguageBuffer == null)
+                {
+                    return;
+                }
+
+                var next = _window._history.GetNext(search);
+                if (next != null)
+                {
+                    if (string.IsNullOrWhiteSpace(search))
+                    {
+                        // don't store search as an uncommitted history item
+                        StoreUncommittedInputForHistory();
+                    }
+
+                    _window.SetActiveCodeToHistory(next);
+                    EditorOperations.MoveToEndOfDocument(false);
+                }
+                else
+                {
+                    string code = _window._history.UncommittedInput;
+                    _window._history.UncommittedInput = null;
+                    if (!string.IsNullOrEmpty(code))
+                    {
+                        _window.SetActiveCode(code);
+                        EditorOperations.MoveToEndOfDocument(false);
+                    }
+                }
+            }
+
+            public void HistorySearchNext()
+            {
+                EnsureHistorySearch();
+                HistoryNext(_window._historySearch);
+            }
+
+            public void HistorySearchPrevious()
+            {
+                EnsureHistorySearch();
+                HistoryPrevious(_window._historySearch);
+            }
+
+            private void EnsureHistorySearch()
+            {
+                if (_window._historySearch == null)
+                {
+                    _window._historySearch = _window._currentLanguageBuffer.CurrentSnapshot.GetText();
+                }
+            }
+
+            private void StoreUncommittedInputForHistory()
+            {
+                if (_window._history.UncommittedInput == null)
+                {
+                    string activeCode = _window.GetActiveCode();
+                    if (activeCode.Length > 0)
+                    {
+                        _window._history.UncommittedInput = activeCode;
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Moves to the beginning of the line.
+            /// </summary>
+            public void Home(bool extendSelection)
+            {
+                var caret = _window.Caret;
+
+                // map the end of subject buffer line:
+                var subjectLineEnd = _window._textView.BufferGraph.MapDownToFirstMatch(
+                    caret.Position.BufferPosition.GetContainingLine().End,
+                    PointTrackingMode.Positive,
+                    snapshot => snapshot.TextBuffer != _window._projectionBuffer,
+                    PositionAffinity.Successor).Value;
+
+                ITextSnapshotLine subjectLine = subjectLineEnd.GetContainingLine();
+
+                var projectedSubjectLineStart = _window._textView.BufferGraph.MapUpToBuffer(
+                    subjectLine.Start,
+                    PointTrackingMode.Positive,
+                    PositionAffinity.Successor,
+                    _window._projectionBuffer).Value;
+
+                // If the caret is already at the first non-whitespace character or the line is
+                // entirely whitespace, move to the start of the view line. See
+                // (EditorOperations.MoveToHome).
+                //
+                // If the caret is in the prompt move the caret to the beginning of the language
+                // line.
+
+                int firstNonWhiteSpace = IndexOfNonWhiteSpaceCharacter(subjectLine);
+                SnapshotPoint moveTo;
+                if (firstNonWhiteSpace == -1 ||
+                    projectedSubjectLineStart.Position + firstNonWhiteSpace == caret.Position.BufferPosition ||
+                    caret.Position.BufferPosition < projectedSubjectLineStart.Position)
+                {
+                    moveTo = projectedSubjectLineStart;
+                }
+                else
+                {
+                    moveTo = projectedSubjectLineStart + firstNonWhiteSpace;
+                }
+
+                if (extendSelection)
+                {
+                    VirtualSnapshotPoint anchor = _window._textView.Selection.AnchorPoint;
+                    caret.MoveTo(moveTo);
+                    _window._textView.Selection.Select(anchor.TranslateTo(_window._textView.TextSnapshot), _window._textView.Caret.Position.VirtualBufferPosition);
+                }
+                else
+                {
+                    _window._textView.Selection.Clear();
+                    caret.MoveTo(moveTo);
+                }
+            }
+
+            /// <summary>
+            /// Moves to the end of the line.
+            /// </summary>
+            public void End(bool extendSelection)
+            {
+                var caret = _window.Caret;
+
+                // map the end of the subject buffer line:
+                var subjectLineEnd = _window._textView.BufferGraph.MapDownToFirstMatch(
+                    caret.Position.BufferPosition.GetContainingLine().End,
+                    PointTrackingMode.Positive,
+                    snapshot => snapshot.TextBuffer != _window._projectionBuffer,
+                    PositionAffinity.Successor).Value;
+
+                ITextSnapshotLine subjectLine = subjectLineEnd.GetContainingLine();
+
+                var moveTo = _window._textView.BufferGraph.MapUpToBuffer(
+                    subjectLine.End,
+                    PointTrackingMode.Positive,
+                    PositionAffinity.Successor,
+                    _window._projectionBuffer).Value;
+
+                if (extendSelection)
+                {
+                    VirtualSnapshotPoint anchor = _window._textView.Selection.AnchorPoint;
+                    caret.MoveTo(moveTo);
+                    _window._textView.Selection.Select(anchor.TranslateTo(_window._textView.TextSnapshot), _window._textView.Caret.Position.VirtualBufferPosition);
+                }
+                else
+                {
+                    _window._textView.Selection.Clear();
+                    caret.MoveTo(moveTo);
+                }
+            }
+
+            public void SelectAll()
+            {
+                SnapshotSpan? span = _window.GetContainingRegion(_window._textView.Caret.Position.BufferPosition);
+
+                var selection = _window._textView.Selection;
+
+                // if the span is already selected select all text in the projection buffer:
+                if (span == null || selection.SelectedSpans.Count == 1 && selection.SelectedSpans[0] == span.Value)
+                {
+                    var currentSnapshot = _window.TextBuffer.CurrentSnapshot;
+                    span = new SnapshotSpan(currentSnapshot, new Span(0, currentSnapshot.Length));
+                }
+
+                _window._textView.Selection.Select(span.Value, isReversed: false);
+            }
+
+            public bool Delete()
+            {
+                _window._historySearch = null;
+                bool handled = false;
+                if (!_window._textView.Selection.IsEmpty)
+                {
+                    if (_window._textView.Selection.Mode == TextSelectionMode.Stream || _window.ReduceBoxSelectionToEditableBox())
+                    {
+                        _window.CutOrDeleteSelection(isCut: false);
+                        _window.MoveCaretToClosestEditableBuffer();
+                        handled = true;
+                    }
+                }
+
+                return handled;
+            }
+
+            public void Cut()
+            {
+                if (_window._textView.Selection.IsEmpty)
+                {
+                    _window.CutOrDeleteCurrentLine(isCut: true);
+                }
+                else
+                {
+                    _window.CutOrDeleteSelection(isCut: true);
+                }
+
+                _window.MoveCaretToClosestEditableBuffer();
+            }
+
+            public void Copy()
+            {
+                _window.CopySelection();
+            }
+
+            public bool Backspace()
+            {
+                bool handled = false;
+                if (!_window._textView.Selection.IsEmpty)
+                {
+                    if (_window._textView.Selection.Mode == TextSelectionMode.Stream || _window.ReduceBoxSelectionToEditableBox())
+                    {
+                        _window.CutOrDeleteSelection(isCut: false);
+                        _window.MoveCaretToClosestEditableBuffer();
+                        handled = true;
+                    }
+                }
+                else if (_window._textView.Caret.Position.VirtualSpaces == 0)
+                {
+                    _window.DeletePreviousCharacter();
+                    handled = true;
+                }
+
+                return handled;
+            }
+
+            public bool TrySubmitStandardInput()
+            {
+                _window._historySearch = null;
+                if (_window._stdInputStart != null)
+                {
+                    if (_window.InStandardInputRegion(_window._textView.Caret.Position.BufferPosition))
+                    {
+                        _window.SubmitStandardInput();
+                    }
+
+                    return true;
+                }
+
+                return false;
+            }
+
+            public bool BreakLine()
+            {
+                return HandlePostServicesReturn(false);
+            }
+
+            public bool Return()
+            {
+                _window._historySearch = null;
+                return HandlePostServicesReturn(true);
+            }
+
+            private bool HandlePostServicesReturn(bool trySubmit)
+            {
+                if (_window._currentLanguageBuffer == null)
+                {
+                    return false;
+                }
+
+                // handle "RETURN" command that is not handled by either editor or service
+                var langCaret = _window.GetPositionInLanguageBuffer(_window.Caret.Position.BufferPosition);
+                if (langCaret != null)
+                {
+                    int caretPosition = langCaret.Value.Position;
+
+                    // note that caret might be located in virtual space behind the current buffer end:
+                    if (trySubmit && caretPosition >= _window._currentLanguageBuffer.CurrentSnapshot.Length && _window.CanExecuteActiveCode())
+                    {
+                        SubmitAsync().GetAwaiter().GetResult();
+                        return true;
+                    }
+
+                    // insert new line (triggers secondary prompt injection in buffer changed event):
+                    _window._currentLanguageBuffer.Insert(caretPosition, _window._lineBreakString);
+                    _window.IndentCurrentLine(_window._textView.Caret.Position.BufferPosition);
+                    ScrollToCaret();
+
+                    return true;
+                }
+                else
+                {
+                    _window.MoveCaretToClosestEditableBuffer();
+                }
+
+                return false;
+            }
         }
 
         internal enum State
