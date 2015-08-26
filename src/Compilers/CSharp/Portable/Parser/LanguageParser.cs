@@ -8390,7 +8390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (opKind == SyntaxKind.IsExpression || opKind == SyntaxKind.AsExpression)
                 {
                     var type = this.ParseTypeCore(parentIsParameter: false, isOrAs: true, expectSizes: false, isArrayCreation: false);
-                    if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+                    if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && (!this.IsInQuery || this.CurrentToken.ContextualKind == SyntaxKind.IdentifierToken))
                     {
                         var identifier = this.EatToken();
                         var pattern = _syntaxFactory.DeclarationPattern(type, identifier);

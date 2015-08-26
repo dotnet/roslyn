@@ -27,16 +27,36 @@ public class X
     public static void Main()
     {
         var s = nameof(Main);
-        Console.WriteLine(s is string t);
-        Console.WriteLine(t);
+        if (s is string t) Console.WriteLine(t);
+        //Console.WriteLine(s is string t ? t : ""None"");
     }
 }";
             var expectedOutput =
-@"True
-Main";
+@"Main";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void PatternScopeErrors()
+        {
+            var source =
+@"using System;
+public class X
+{
+    public static void Main()
+    {
+        var s = nameof(Main);
+        if (s is string t) { } else Console.WriteLine(t);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (7,55): error CS0103: The name 't' does not exist in the current context
+                //         if (s is string t) { } else Console.WriteLine(t);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "t").WithArguments("t").WithLocation(7, 55)
+                );
         }
     }
 }

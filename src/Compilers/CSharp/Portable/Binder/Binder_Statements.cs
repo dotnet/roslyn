@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -2441,17 +2442,66 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(expression.HasAnyErrors && expression.Kind != BoundKind.UnboundLambda, "Missing a case in implicit conversion error reporting");
         }
 
-        private BoundIfStatement BindIfStatement(IfStatementSyntax node, DiagnosticBag diagnostics)
+        private BoundStatement BindIfStatement(IfStatementSyntax node, DiagnosticBag diagnostics)
         {
-            var condition = BindBooleanExpression(node.Condition, diagnostics);
-            var consequence = BindPossibleEmbeddedStatement(node.Statement, diagnostics);
-            if (node.Else == null)
+            var binder = this;
+            PatternVariableBinder patternBinder = null;
+            var patternVariables = PatternVariableFinder.FindPatternVariables(node.Condition);
+            if (!patternVariables.IsDefaultOrEmpty)
             {
-                return new BoundIfStatement(node, condition, consequence, null);
+                binder = patternBinder = new PatternVariableBinder(patternVariables, binder);
+            }
+            var condition = binder.BindBooleanExpression(node.Condition, diagnostics);
+            var consequence = binder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
+
+            // Note that the else clause does not use the pattern variable binder;
+            // pattern variables from the condition are not in scope in the else statement.
+            BoundStatement alternative = (node.Else == null) ? null : BindPossibleEmbeddedStatement(node.Else.Statement, diagnostics);
+            BoundStatement result = new BoundIfStatement(node, condition, consequence, alternative);
+            if (patternBinder != null)
+            {
+                result = new BoundBlock(node, patternBinder.Locals, ImmutableArray.Create(result), result.HasErrors);
             }
 
-            var alternative = BindPossibleEmbeddedStatement(node.Else.Statement, diagnostics);
-            return new BoundIfStatement(node, condition, consequence, alternative);
+            return result;
+        }
+
+        class PatternVariableBinder : LocalScopeBinder
+        {
+            private readonly ImmutableArray<DeclarationPatternSyntax> patterns;
+            internal PatternVariableBinder(ImmutableArray<DeclarationPatternSyntax> patterns, Binder next) : base(next)
+            {
+                this.patterns = patterns;
+            }
+            protected override ImmutableArray<LocalSymbol> BuildLocals()
+            {
+                var builder = ArrayBuilder<LocalSymbol>.GetInstance();
+                foreach (var pattern in patterns)
+                {
+                    builder.Add(SourceLocalSymbol.MakeLocal(Next.ContainingMember(), this, pattern.Type, pattern.Identifier, LocalDeclarationKind.PatternVariable));
+                }
+                return builder.ToImmutableAndFree();
+            }
+        }
+
+        class PatternVariableFinder : CSharpSyntaxWalker
+        {
+            ArrayBuilder<DeclarationPatternSyntax> declarationPatterns = ArrayBuilder<DeclarationPatternSyntax>.GetInstance();
+            internal static ImmutableArray<DeclarationPatternSyntax> FindPatternVariables(ExpressionSyntax expression)
+            {
+                var finder = new PatternVariableFinder();
+                finder.Visit(expression);
+                return finder.declarationPatterns.ToImmutableAndFree();
+            }
+            public override void VisitDeclarationPattern(DeclarationPatternSyntax node)
+            {
+                declarationPatterns.Add(node);
+                base.VisitDeclarationPattern(node);
+            }
+            public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node) { }
+            public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node) { }
+            public override void VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node) { }
+            public override void VisitQueryExpression(QueryExpressionSyntax node) { }
         }
 
         protected BoundExpression BindBooleanExpression(ExpressionSyntax node, DiagnosticBag diagnostics)

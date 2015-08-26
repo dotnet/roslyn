@@ -39,6 +39,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (declType.IsStatic)
             {
                 Error(diagnostics, ErrorCode.ERR_VarDeclIsStaticClass, typeSyntax, declType);
+                hasErrors = true;
+            }
+            else if (!declType.IsReferenceType && !declType.IsNullableType())
+            {
+                // target type for an as expression cannot be a non-nullable value type.
+                // generate appropriate error
+                if (declType.TypeKind == TypeKind.TypeParameter)
+                {
+                    Error(diagnostics, ErrorCode.ERR_AsWithTypeVar, node, declType); // TODO: use more appropos error code
+                }
+                else if (declType.TypeKind == TypeKind.Pointer)
+                {
+                    Error(diagnostics, ErrorCode.ERR_PointerInAsOrIs, node);
+                }
+                else
+                {
+                    Error(diagnostics, ErrorCode.ERR_AsMustHaveReferenceType, node, declType); // TODO: use more appropos error code
+                }
+
+                hasErrors = true;
             }
             SourceLocalSymbol localSymbol = this.LookupLocal(identifier);
 
@@ -59,7 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (this.ContainingMemberOrLambda.Kind == SymbolKind.Method
                 && ((MethodSymbol)this.ContainingMemberOrLambda).IsAsync
-                && declType.IsRestrictedType())
+                && declType.IsRestrictedType()
+                && !hasErrors)
             {
                 Error(diagnostics, ErrorCode.ERR_BadSpecialByRefLocal, typeSyntax, declType);
                 hasErrors = true;
@@ -67,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             DeclareLocalVariable(localSymbol, identifier, declType);
             var boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: false, type: declType);
-            return new BoundDeclarationPattern(node, localSymbol, boundDeclType);
+            return new BoundDeclarationPattern(node, localSymbol, boundDeclType, hasErrors);
         }
     }
 }

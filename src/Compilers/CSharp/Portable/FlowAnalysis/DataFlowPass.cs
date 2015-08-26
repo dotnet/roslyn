@@ -993,6 +993,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (node.Kind)
             {
+                case BoundKind.DeclarationPattern:
+                    {
+                        var local = (BoundDeclarationPattern)node;
+                        LocalSymbol symbol = local.LocalSymbol;
+                        int slot = GetOrCreateSlot(symbol);
+                        SetSlotState(slot, assigned: written || !this.State.Reachable);
+                        if (written) NoteWrite(symbol, value, read);
+                        break;
+                    }
+
                 case BoundKind.LocalDeclaration:
                     {
                         var local = (BoundLocalDeclaration)node;
@@ -1266,6 +1276,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Visitors
 
+        public override BoundNode VisitIsPattern(BoundIsPattern node)
+        {
+            VisitRvalue(node.Expression);
+            var stateWhenFalse = this.State.Clone();
+            foreach (BoundDeclarationPattern pattern in PatternFinder.DeclarationPatternsIn(node.Pattern))
+            {
+                var patternVariable = pattern.LocalSymbol;
+                Assign(pattern, null, RefKind.None, false);
+            }
+            SetConditionalState(this.State, stateWhenFalse);
+            return null;
+        }
+
+        class PatternFinder // : BoundTreeVisitor
+        {
+            // eventually, when patterns are recursive, this will have to be recursive too.
+            internal static IEnumerable<BoundDeclarationPattern> DeclarationPatternsIn(BoundPattern pattern)
+            {
+                var p = pattern as BoundDeclarationPattern;
+                if (p != null) yield return p;
+                yield break;
+            }
+        }
+
         public override BoundNode VisitBlock(BoundBlock node)
         {
             DeclareVariables(node.Locals);
@@ -1438,7 +1472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!_usedVariables.Contains(symbol))
             {
-                if (!string.IsNullOrEmpty(symbol.Name)) // avoid diagnostics for parser-inserted names
+                if (symbol.DeclarationKind != LocalDeclarationKind.PatternVariable && !string.IsNullOrEmpty(symbol.Name)) // avoid diagnostics for parser-inserted names
                 {
                     Diagnostics.Add(assigned && _writtenVariables.Contains(symbol) ? ErrorCode.WRN_UnreferencedVarAssg : ErrorCode.WRN_UnreferencedVar, symbol.Locations[0], symbol.Name);
                 }

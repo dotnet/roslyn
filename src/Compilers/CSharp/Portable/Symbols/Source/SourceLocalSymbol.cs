@@ -277,6 +277,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Debug.Assert(node is CatchDeclarationSyntax);
                         break;
 
+                    case LocalDeclarationKind.PatternVariable:
+                        Debug.Assert(node is DeclarationPatternSyntax);
+                        break;
+
                     default:
                         throw ExceptionUtilities.UnexpectedValue(_declarationKind);
                 }
