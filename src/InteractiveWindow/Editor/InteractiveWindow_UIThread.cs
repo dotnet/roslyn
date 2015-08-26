@@ -555,7 +555,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         var executionResult = await _window._evaluator.ExecuteCodeAsync(snapshotSpan.GetText()).ConfigureAwait(true);
                         Debug.Assert(_window.OnUIThread()); // ConfigureAwait should bring us back to the UI thread.
 
-                        Debug.Assert(State == State.ExecutingInput || State == State.Resetting, $"Unexpected state {State}");
+                        // For reset command typed at prompt, the state should be WaitingForInput 
+                        // and for all other submissions it should be Executing input
+                        Debug.Assert(State == State.ExecutingInput || State == State.WaitingForInput, $"Unexpected state {State}");
 
                         if (State == State.ExecutingInput)
                         {
