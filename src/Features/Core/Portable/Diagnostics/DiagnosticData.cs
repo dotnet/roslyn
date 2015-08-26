@@ -4,12 +4,67 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
+    internal sealed class DiagnosticDataLocation
+    {
+        public readonly DocumentId DocumentId;
+
+        // text can be either given or calculated from original line/column
+        public readonly TextSpan? SourceSpan;
+
+        /// <summary>
+        /// Null if path is not mapped and <see cref="OriginalFilePath"/> contains the actual path.
+        /// Note that the value might be a relative path. In that case <see cref="OriginalFilePath"/> should be used
+        /// as a base path for path resolution.
+        /// </summary>
+        public readonly string MappedFilePath;
+        public readonly int MappedStartLine;
+        public readonly int MappedStartColumn;
+        public readonly int MappedEndLine;
+        public readonly int MappedEndColumn;
+        public readonly string OriginalFilePath;
+        public readonly int OriginalStartLine;
+        public readonly int OriginalStartColumn;
+        public readonly int OriginalEndLine;
+        public readonly int OriginalEndColumn;
+
+        public DiagnosticDataLocation(
+            DocumentId documentId = null,
+            TextSpan? sourceSpan = null,
+            string originalFilePath = null,
+            int originalStartLine = 0,
+            int originalStartColumn = 0,
+            int originalEndLine = 0,
+            int originalEndColumn = 0,
+            string mappedFilePath = null,
+            int mappedStartLine = 0,
+            int mappedStartColumn = 0,
+            int mappedEndLine = 0,
+            int mappedEndColumn = 0)
+        {
+            DocumentId = documentId;
+            SourceSpan = sourceSpan;
+            MappedFilePath = mappedFilePath;
+            MappedStartLine = mappedStartLine;
+            MappedStartColumn = mappedStartColumn;
+            MappedEndLine = mappedEndLine;
+            MappedEndColumn = mappedEndColumn;
+            OriginalFilePath = originalFilePath;
+            OriginalStartLine = originalStartLine;
+            OriginalStartColumn = originalStartColumn;
+            OriginalEndLine = originalEndLine;
+            OriginalEndColumn = originalEndColumn;
+        }
+    }
+
     internal sealed class DiagnosticData
     {
         public static readonly CultureInfo USCultureInfo = new CultureInfo("en-US");
@@ -32,28 +87,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public readonly Workspace Workspace;
         public readonly ProjectId ProjectId;
-        public readonly DocumentId DocumentId;
+        public DocumentId DocumentId => this.DataLocation?.DocumentId;
 
-        /// <summary>
-        /// Null if path is not mapped and <see cref="OriginalFilePath"/> contains the actual path.
-        /// Note that the value might be a relative path. In that case <see cref="OriginalFilePath"/> should be used
-        /// as a base path for path resolution.
-        /// </summary>
-        public readonly string MappedFilePath;
-        public readonly string OriginalFilePath;
-
-        public readonly int MappedStartLine;
-        public readonly int MappedStartColumn;
-        public readonly int MappedEndLine;
-        public readonly int MappedEndColumn;
-
-        public readonly int OriginalStartLine;
-        public readonly int OriginalStartColumn;
-        public readonly int OriginalEndLine;
-        public readonly int OriginalEndColumn;
-
-        // text can be either given or calculated from original line/column
-        private readonly TextSpan? _textSpan;
+        public readonly DiagnosticDataLocation DataLocation;
+        public readonly IReadOnlyCollection<DiagnosticDataLocation> AdditionalLocations;
 
         public DiagnosticData(
             string id,
@@ -65,13 +102,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             int warningLevel,
             Workspace workspace,
             ProjectId projectId,
-            DocumentId documentId = null,
-            TextSpan? span = null,
-            string originalFilePath = null,
-            int originalStartLine = 0,
-            int originalStartColumn = 0,
-            int originalEndLine = 0,
-            int originalEndColumn = 0,
+            DiagnosticDataLocation location = null,
+            IReadOnlyCollection<DiagnosticDataLocation> additionalLocations = null,
             string title = null,
             string description = null,
             string helpLink = null) :
@@ -79,10 +111,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     id, category, message, enuMessageForBingSearch,
                     severity, severity, isEnabledByDefault, warningLevel,
                     ImmutableArray<string>.Empty, ImmutableDictionary<string, string>.Empty,
-                    workspace, projectId, documentId, span,
-                    null, originalStartLine, originalStartColumn, originalEndLine, originalEndColumn,
-                    originalFilePath, originalStartLine, originalStartColumn, originalEndLine, originalEndColumn,
-                    title, description, helpLink)
+                    workspace, projectId, location, additionalLocations, title, description, helpLink)
         {
         }
 
@@ -99,18 +128,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableDictionary<string, string> properties,
             Workspace workspace,
             ProjectId projectId,
-            DocumentId documentId = null,
-            TextSpan? span = null,
-            string mappedFilePath = null,
-            int mappedStartLine = 0,
-            int mappedStartColumn = 0,
-            int mappedEndLine = 0,
-            int mappedEndColumn = 0,
-            string originalFilePath = null,
-            int originalStartLine = 0,
-            int originalStartColumn = 0,
-            int originalEndLine = 0,
-            int originalEndColumn = 0,
+            DiagnosticDataLocation location = null,
+            IReadOnlyCollection<DiagnosticDataLocation> additionalLocations = null,
             string title = null,
             string description = null,
             string helpLink = null)
@@ -129,28 +148,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             this.Workspace = workspace;
             this.ProjectId = projectId;
-            this.DocumentId = documentId;
-
-            this.MappedStartLine = mappedStartLine;
-            this.MappedStartColumn = mappedStartColumn;
-            this.MappedEndLine = mappedEndLine;
-            this.MappedEndColumn = mappedEndColumn;
-            this.MappedFilePath = mappedFilePath;
-
-            this.OriginalStartLine = originalStartLine;
-            this.OriginalStartColumn = originalStartColumn;
-            this.OriginalEndLine = originalEndLine;
-            this.OriginalEndColumn = originalEndColumn;
-            this.OriginalFilePath = originalFilePath;
-
-            _textSpan = span;
+            this.DataLocation = location;
+            this.AdditionalLocations = additionalLocations;
 
             this.Title = title;
             this.Description = description;
             this.HelpLink = helpLink;
         }
 
-        public bool HasTextSpan { get { return _textSpan.HasValue; } }
+        public bool HasTextSpan { get { return (DataLocation?.SourceSpan).HasValue; } }
 
         /// <summary>
         /// return TextSpan if it exists, otherwise it will throw
@@ -158,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// some diagnostic data such as created from build will have original line/column but not text span
         /// in those cases, use GetTextSpan method instead to calculate one from original line/column
         /// </summary>
-        public TextSpan TextSpan { get { return _textSpan.Value; } }
+        public TextSpan TextSpan { get { return (DataLocation?.SourceSpan).Value; } }
 
         public override bool Equals(object obj)
         {
@@ -175,8 +181,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     WarningLevel == other.WarningLevel &&
                     ProjectId == other.ProjectId &&
                     DocumentId == other.DocumentId &&
-                    OriginalStartLine == other.OriginalStartLine &&
-                    OriginalStartColumn == other.OriginalStartColumn;
+                    DataLocation?.OriginalStartLine == other?.DataLocation?.OriginalStartLine &&
+                    DataLocation?.OriginalStartColumn == other?.DataLocation?.OriginalStartColumn;
         }
 
         public override int GetHashCode()
@@ -187,8 +193,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                    Hash.Combine(this.WarningLevel,
                    Hash.Combine(this.ProjectId,
                    Hash.Combine(this.DocumentId,
-                   Hash.Combine(this.OriginalStartLine,
-                   Hash.Combine(this.OriginalStartColumn, (int)this.Severity))))))));
+                   Hash.Combine(this.DataLocation?.OriginalStartLine ?? 0,
+                   Hash.Combine(this.DataLocation?.OriginalStartColumn ?? 0, (int)this.Severity))))))));
         }
 
         public override string ToString()
@@ -198,39 +204,99 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Severity,
                 Message,
                 ProjectId,
-                MappedFilePath ?? "",
-                MappedStartLine,
-                MappedStartColumn,
-                OriginalFilePath ?? "",
-                OriginalStartLine,
-                OriginalStartColumn);
+                DataLocation?.MappedFilePath ?? "",
+                DataLocation?.MappedStartLine,
+                DataLocation?.MappedStartColumn,
+                DataLocation?.OriginalFilePath ?? "",
+                DataLocation?.OriginalStartLine,
+                DataLocation?.OriginalStartColumn);
         }
 
-        public Diagnostic ToDiagnostic(SyntaxTree tree)
+        public static Task<IEnumerable<Diagnostic>> ToDiagnosticsAsync(Project project, IEnumerable<DiagnosticData> datas, CancellationToken cancellationToken)
         {
-            var location = Location.None;
-            if (tree != null)
+            return ToDiagnosticsAsync(project, datas, documentIdToTree: null, cancellationToken: cancellationToken);
+        }
+
+        public static async Task<IEnumerable<Diagnostic>> ToDiagnosticsAsync(
+            Project project, IEnumerable<DiagnosticData> datas, ImmutableDictionary<DocumentId, SyntaxTree> documentIdToTree, CancellationToken cancellationToken)
+        {
+            var result = new List<Diagnostic>();
+            foreach (var data in datas)
             {
-                var span = _textSpan.HasValue ? _textSpan.Value : GetTextSpan(tree.GetText());
-                location = tree.GetLocation(span);
+                result.Add(await data.ToDiagnosticAsync(project, documentIdToTree, cancellationToken).ConfigureAwait(false));
             }
-            else if (OriginalFilePath != null && _textSpan != null)
+            return result;
+        }
+
+        public Task<Diagnostic> ToDiagnosticAsync(Project project, CancellationToken cancellationToken)
+        {
+            return ToDiagnosticAsync(project, documentIdToTree: null, cancellationToken: cancellationToken);
+        }
+
+        private async Task<Diagnostic> ToDiagnosticAsync(Project project, ImmutableDictionary<DocumentId, SyntaxTree> documentIdToTree, CancellationToken cancellationToken)
+        {
+            var location = await ConvertLocationAsync(project, this.DataLocation, documentIdToTree, cancellationToken).ConfigureAwait(false);
+            var additionalLocations = await ConvertLocationsAsync(project, this.AdditionalLocations, documentIdToTree, cancellationToken).ConfigureAwait(false);
+
+            return Diagnostic.Create(
+                this.Id, this.Category, this.Message, this.Severity, this.DefaultSeverity, 
+                this.IsEnabledByDefault, this.WarningLevel, this.Title, this.Description, this.HelpLink, 
+                location, additionalLocations, customTags: this.CustomTags, properties: this.Properties);
+        }
+
+        private static async Task<IList<Location>> ConvertLocationsAsync(
+            Project project, IReadOnlyCollection<DiagnosticDataLocation> additionalLocations, ImmutableDictionary<DocumentId, SyntaxTree> documentIdToTree, CancellationToken cancellationToken)
+        {
+            if (additionalLocations == null || additionalLocations.Count == 0)
             {
-                var span = _textSpan.Value;
-                location = Location.Create(OriginalFilePath, span, new LinePositionSpan(
-                    new LinePosition(OriginalStartLine, OriginalStartColumn),
-                    new LinePosition(OriginalEndLine, OriginalEndColumn)));
+                return SpecializedCollections.EmptyList<Location>();
             }
 
-            return Diagnostic.Create(this.Id, this.Category, this.Message, this.Severity, this.DefaultSeverity, this.IsEnabledByDefault, this.WarningLevel, this.Title, this.Description, this.HelpLink, location, customTags: this.CustomTags, properties: this.Properties);
+            var result = new List<Location>();
+            foreach (var data in additionalLocations)
+            {
+                var location = await ConvertLocationAsync(project, data, documentIdToTree, cancellationToken).ConfigureAwait(false);
+                result.Add(location);
+            }
+
+            return result;
+        }
+
+        private static async Task<Location> ConvertLocationAsync(
+            Project project, DiagnosticDataLocation dataLocation, ImmutableDictionary<DocumentId, SyntaxTree> documentIdToTree, CancellationToken cancellationToken)
+        {
+            if (dataLocation?.DocumentId != null)
+            {
+                var document = project.GetDocument(dataLocation?.DocumentId);
+                if (document != null)
+                {
+                    if (document.SupportsSyntaxTree)
+                    {
+                        var syntaxTree = documentIdToTree != null
+                            ? documentIdToTree[document.Id]
+                            : await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                        var span = dataLocation.SourceSpan ?? GetTextSpan(dataLocation, syntaxTree.GetText());
+                        return syntaxTree.GetLocation(span);
+                    }
+                    else if (dataLocation?.OriginalFilePath != null && dataLocation.SourceSpan != null)
+                    {
+                        var span = dataLocation.SourceSpan.Value;
+                        return Location.Create(dataLocation?.OriginalFilePath, span, new LinePositionSpan(
+                            new LinePosition(dataLocation.OriginalStartLine, dataLocation.OriginalStartColumn),
+                            new LinePosition(dataLocation.OriginalEndLine, dataLocation.OriginalEndColumn)));
+                    }
+                }
+            }
+
+            return Location.None;
         }
 
         public TextSpan GetExistingOrCalculatedTextSpan(SourceText text)
         {
-            return _textSpan.HasValue ? _textSpan.Value : GetTextSpan(text);
+            return HasTextSpan ? TextSpan : GetTextSpan(this.DataLocation, text);
         }
 
-        public TextSpan GetTextSpan(SourceText text)
+        public static TextSpan GetTextSpan(DiagnosticDataLocation dataLocation, SourceText text)
         {
             var lines = text.Lines;
             if (lines.Count == 0)
@@ -238,13 +304,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return default(TextSpan);
             }
 
-            if (this.OriginalStartLine >= lines.Count)
+            var originalStartLine = dataLocation?.OriginalStartLine ?? 0;
+            if (originalStartLine >= lines.Count)
             {
                 return new TextSpan(text.Length, 0);
             }
 
             int startLine, startColumn, endLine, endColumn;
-            AdjustBoundaries(lines, out startLine, out startColumn, out endLine, out endColumn);
+            AdjustBoundaries(dataLocation, lines, out startLine, out startColumn, out endLine, out endColumn);
 
             var startLinePosition = new LinePosition(startLine, startColumn);
             var endLinePosition = new LinePosition(endLine, endColumn);
@@ -254,19 +321,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return TextSpan.FromBounds(Math.Min(Math.Max(span.Start, 0), text.Length), Math.Min(Math.Max(span.End, 0), text.Length));
         }
 
-        private void AdjustBoundaries(
+        private static void AdjustBoundaries(DiagnosticDataLocation dataLocation,
             TextLineCollection lines, out int startLine, out int startColumn, out int endLine, out int endColumn)
         {
-            startLine = this.OriginalStartLine;
-            startColumn = Math.Max(this.OriginalStartColumn, 0);
+            startLine = dataLocation?.OriginalStartLine ?? 0;
+            var originalStartColumn = dataLocation?.OriginalStartColumn ?? 0;
+
+            startColumn = Math.Max(originalStartColumn, 0);
             if (startLine < 0)
             {
                 startLine = 0;
                 startColumn = 0;
             }
 
-            endLine = this.OriginalEndLine;
-            endColumn = Math.Max(this.OriginalEndColumn, 0);
+            endLine = dataLocation?.OriginalEndLine ?? 0;
+            var originalEndColumn = dataLocation?.OriginalEndColumn ?? 0;
+
+            endColumn = Math.Max(originalEndColumn, 0);
             if (endLine < 0)
             {
                 endLine = startLine;
@@ -333,10 +404,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 helpLink: diagnostic.Descriptor.HelpLinkUri);
         }
 
-        public static DiagnosticData Create(Document document, Diagnostic diagnostic)
+        private static DiagnosticDataLocation CreateLocation(Document document, Location location)
         {
-            var location = diagnostic.Location;
-
             TextSpan sourceSpan;
             FileLinePositionSpan mappedLineInfo;
             FileLinePositionSpan originalLineInfo;
@@ -352,6 +421,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var originalEndLine = originalLineInfo.EndLinePosition.Line;
             var originalEndColumn = originalLineInfo.EndLinePosition.Character;
 
+            return new DiagnosticDataLocation(document.Id, sourceSpan,
+                originalLineInfo.Path, originalStartLine, originalStartColumn, originalEndLine, originalEndColumn,
+                mappedLineInfo.GetMappedFilePathIfExist(), mappedStartLine, mappedStartColumn, mappedEndLine, mappedEndColumn);
+        }
+
+        public static DiagnosticData Create(Document document, Diagnostic diagnostic)
+        {
+            var location = CreateLocation(document, diagnostic.Location);
+
+            var additionalLocations = diagnostic.AdditionalLocations.Count == 0
+                ? (IReadOnlyCollection<DiagnosticDataLocation>)SpecializedCollections.EmptyArray<DiagnosticDataLocation>()
+                : diagnostic.AdditionalLocations.Where(loc => loc.IsInSource).Select(loc => CreateLocation(document.Project.GetDocument(loc.SourceTree), loc)).ToReadOnlyCollection();
+
             return new DiagnosticData(
                 diagnostic.Id,
                 diagnostic.Descriptor.Category,
@@ -365,18 +447,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 diagnostic.Properties,
                 document.Project.Solution.Workspace,
                 document.Project.Id,
-                document.Id,
-                sourceSpan,
-                mappedLineInfo.GetMappedFilePathIfExist(),
-                mappedStartLine,
-                mappedStartColumn,
-                mappedEndLine,
-                mappedEndColumn,
-                originalLineInfo.Path,
-                originalStartLine,
-                originalStartColumn,
-                originalEndLine,
-                originalEndColumn,
+                location,
+                additionalLocations,
                 title: diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture),
                 description: diagnostic.Descriptor.Description.ToString(CultureInfo.CurrentUICulture),
                 helpLink: diagnostic.Descriptor.HelpLinkUri);
