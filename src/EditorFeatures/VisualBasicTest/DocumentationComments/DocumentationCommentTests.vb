@@ -813,6 +813,31 @@ End Class
 
         <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
         <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        Public Sub TestOpenLineAbove4_Tabs()
+            Const code = "
+Class C
+		  ''' <summary>
+    ''' $$stuff
+    ''' </summary>
+    Sub M()
+    End Sub
+End Class
+"
+            Const expected = "
+Class C
+		  ''' <summary>
+		  ''' $$
+    ''' stuff
+    ''' </summary>
+    Sub M()
+    End Sub
+End Class
+"
+            VerifyOpenLineAbove(code, expected, useTabs:=True)
+        End Sub
+
+        <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
+        <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub TestOpenLineBelow1()
             Const code = "
 Class C
@@ -874,6 +899,31 @@ End Class
 ''' </summary>
 ''' $$"
             VerifyOpenLineBelow(code, expected)
+        End Sub
+
+        <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
+        <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        Public Sub TestOpenLineBelow4_Tabs()
+            Const code = "
+Class C
+    ''' <summary>
+		  ''' $$stuff
+    ''' </summary>
+    Sub M()
+    End Sub
+End Class
+"
+            Const expected = "
+Class C
+    ''' <summary>
+		  ''' stuff
+		  ''' $$
+    ''' </summary>
+    Sub M()
+    End Sub
+End Class
+"
+            VerifyOpenLineBelow(code, expected, useTabs:=True)
         End Sub
 
         Friend Overrides Function CreateCommandHandler(

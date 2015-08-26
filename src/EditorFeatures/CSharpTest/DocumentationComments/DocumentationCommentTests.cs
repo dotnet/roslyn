@@ -1335,7 +1335,7 @@ public class Class1
 	}
 }";
 
-            VerifyTypingCharacter(code, expected, useTab: true);
+            VerifyTypingCharacter(code, expected, useTabs: true);
         }
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
@@ -1432,6 +1432,36 @@ $$
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
         [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TestOpenLineAbove4_Tabs()
+        {
+            const string code =
+@"class C
+{
+		  /// <summary>
+    /// $$stuff
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            const string expected =
+@"class C
+{
+		  /// <summary>
+		  /// $$
+    /// stuff
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            VerifyOpenLineAbove(code, expected, useTabs: true);
+        }
+
+        [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TestOpenLineBelow1()
         {
             const string code =
@@ -1508,6 +1538,36 @@ $$
 ";
 
             VerifyOpenLineBelow(code, expected);
+        }
+
+        [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TestOpenLineBelow4_Tabs()
+        {
+            const string code =
+@"class C
+{
+    /// <summary>
+		  /// $$stuff
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            const string expected =
+@"class C
+{
+    /// <summary>
+		  /// stuff
+		  /// $$
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            VerifyOpenLineBelow(code, expected, useTabs: true);
         }
 
         protected override char DocumentationCommentCharacter
