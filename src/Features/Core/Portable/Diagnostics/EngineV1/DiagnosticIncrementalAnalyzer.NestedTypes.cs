@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             public readonly VersionStamp DataVersion;
             public readonly ImmutableArray<DiagnosticData> OldItems;
             public readonly ImmutableArray<DiagnosticData> Items;
-            private bool? _hasDiagnosticsWithAdditionalLocations;
 
             public AnalysisData(VersionStamp textVersion, VersionStamp dataVersion, ImmutableArray<DiagnosticData> items)
             {
@@ -30,19 +29,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 this(textVersion, dataVersion, newItems)
             {
                 this.OldItems = oldItems;
-            }
-
-            public bool HasDiagnosticsWithAdditionalLocations
-            {
-                get
-                {
-                    if (!_hasDiagnosticsWithAdditionalLocations.HasValue)
-                    {
-                        _hasDiagnosticsWithAdditionalLocations = this.Items.Any(d => d.AdditionalLocations.Count > 0);
-                    }
-
-                    return _hasDiagnosticsWithAdditionalLocations.Value;
-                }
             }
 
             public AnalysisData ToPersistData()
