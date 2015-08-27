@@ -7,11 +7,9 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.CodeAnalysis.Scripting;
-using Roslyn.Utilities;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace CSharpInteractive
 {
@@ -41,7 +39,10 @@ namespace CSharpInteractive
         internal override MetadataFileReferenceResolver GetExternalMetadataResolver(TouchedFileLogger touchedFiles)
         {
             // We don't log touched files atm.
-            return new GacFileResolver(Arguments.ReferencePaths, Arguments.BaseDirectory, GacFileResolver.Default.Architectures, CultureInfo.CurrentCulture);
+            return new DesktopMetadataReferenceResolver(
+                new RelativePathReferenceResolver(Arguments.ReferencePaths, Arguments.BaseDirectory),
+                null,
+                new GacFileResolver(GacFileResolver.Default.Architectures, CultureInfo.CurrentCulture));
         }
 
         public override void PrintLogo(TextWriter consoleOutput)

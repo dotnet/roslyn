@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Threading;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit.NoPia;
 using Roslyn.Utilities;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract EmitOptions EmitOptions { get; }
         internal abstract Cci.IAssemblyReference Translate(IAssemblySymbol symbol, DiagnosticBag diagnostics);
         internal abstract Cci.ITypeReference Translate(ITypeSymbol symbol, SyntaxNode syntaxOpt, DiagnosticBag diagnostics);
-        internal abstract Cci.IMethodReference EntryPoint { get; }
+        internal abstract Cci.IMethodReference Translate(IMethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration);
         internal abstract bool SupportsPrivateImplClass { get; }
         internal abstract ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes();
         internal abstract Compilation CommonCompilation { get; }
@@ -58,7 +59,8 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly ConcurrentDictionary<TMethodSymbol, Cci.IMethodBody> _methodBodyMap =
             new ConcurrentDictionary<TMethodSymbol, Cci.IMethodBody>(ReferenceEqualityComparer.Instance);
 
-        private TMethodSymbol _entryPoint;
+        private Cci.IMethodReference _peEntryPoint;
+        private Cci.IMethodReference _debugEntryPoint;
         private PrivateImplementationDetails _privateImplementationDetails;
         private ArrayMethods _lazyArrayMethods;
         private HashSet<string> _namesOfTopLevelTypes;
@@ -120,11 +122,7 @@ namespace Microsoft.CodeAnalysis.Emit
             this.CompilationState.Freeze();
         }
 
-        internal override EmitOptions EmitOptions
-        {
-            get { return _emitOptions; }
-        }
-
+        internal override EmitOptions EmitOptions => _emitOptions;
         internal abstract string ModuleName { get; }
         internal abstract string Name { get; }
         internal abstract TAssemblySymbol CorLibrary { get; }
@@ -227,6 +225,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal abstract Cci.IAssemblyReference Translate(TAssemblySymbol symbol, DiagnosticBag diagnostics);
         internal abstract Cci.ITypeReference Translate(TTypeSymbol symbol, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
+        internal abstract Cci.IMethodReference Translate(TMethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration);
 
         internal sealed override Cci.IAssemblyReference Translate(IAssemblySymbol symbol, DiagnosticBag diagnostics)
         {
@@ -238,6 +237,11 @@ namespace Microsoft.CodeAnalysis.Emit
             return Translate((TTypeSymbol)symbol, (TSyntaxNode)syntaxNodeOpt, diagnostics);
         }
 
+        internal sealed override IMethodReference Translate(IMethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration)
+        {
+            return Translate((TMethodSymbol)symbol, diagnostics, needDeclaration);
+        }
+
         internal OutputKind OutputKind => _outputKind;
         internal TSourceModuleSymbol SourceModule => _sourceModule;
         internal TCompilation Compilation => _compilation;
@@ -246,14 +250,27 @@ namespace Microsoft.CodeAnalysis.Emit
         internal sealed override CommonModuleCompilationState CommonModuleCompilationState => CompilationState;
         internal sealed override CommonEmbeddedTypesManager CommonEmbeddedTypesManagerOpt => EmbeddedTypesManagerOpt;
 
-        // General entry point method. May be a PE entry point or a submission entry point.
-        internal sealed override Cci.IMethodReference EntryPoint => _entryPoint;
+        Cci.IMethodReference Cci.IModule.PEEntryPoint => _peEntryPoint;
+        Cci.IMethodReference Cci.IModule.DebugEntryPoint => _debugEntryPoint;
 
-        internal void SetEntryPoint(TMethodSymbol value)
+        internal void SetPEEntryPoint(TMethodSymbol method, DiagnosticBag diagnostics)
         {
-            Debug.Assert(value == null ||
-                ((object)((IMethodSymbol)value).ContainingModule == (object)_sourceModule && ReferenceEquals(value, ((IMethodSymbol)value).OriginalDefinition)));
-            _entryPoint = value;
+            Debug.Assert(method == null || IsSourceDefinition((IMethodSymbol)method));
+            Debug.Assert(_outputKind.IsApplication());
+
+            _peEntryPoint = Translate(method, diagnostics, needDeclaration: true);
+        }
+
+        internal void SetDebugEntryPoint(TMethodSymbol method, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(method == null || IsSourceDefinition((IMethodSymbol)method));
+
+            _debugEntryPoint = Translate(method, diagnostics, needDeclaration: true);
+        }
+
+        private bool IsSourceDefinition(IMethodSymbol method)
+        {
+            return (object)method.ContainingModule == _sourceModule && method.IsDefinition;
         }
 
         internal MetadataConstant CreateConstant(
@@ -307,6 +324,45 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         #region Synthesized Members
+
+#if DEBUG
+        /// <summary>
+        /// The queue of synthesized members of a type should be deterministic, as the members are
+        /// emitted in the order in which they are added to the queue. Therefore for debug purposes
+        /// we have a custom version of ConcurrentQueue that detects attempted concurrent adds.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        private class ConcurrentQueue<T> : System.Collections.Concurrent.ConcurrentQueue<T>
+        {
+            // A count of the number of concurrent queue operations in progress. Should always be zero or one,
+            // as synthetic members should be added by the compiler to a given type in a well-defined sequential
+            // order.
+            int queueing;
+
+            // A short delay to increase the chance that concurrent Enqueue operation will be diagnosed.
+            static readonly TimeSpan shortDelay = new TimeSpan(2);
+
+            /// <summary>
+            ///     Adds an object to the end of the ConcurrentQueue.
+            /// </summary>
+            /// <param name="item">
+            ///     The object to add to the end of the ConcurrentQueue.
+            ///     The value can be a null reference for reference types.
+            /// </param>
+            public new void Enqueue(T item)
+            {
+                if (Interlocked.Increment(ref queueing) != 1)
+                {
+                    throw new System.InvalidOperationException("Concurrent use of " + nameof(SynthesizedDefinitions));
+                }
+                base.Enqueue(item);
+                // To increase the chance of catching concurrency issues, we add a delay to each queued item
+                // so that another thread has a chance to add at the same time.
+                System.Threading.Tasks.Task.Delay(shortDelay).Wait();
+                Interlocked.Decrement(ref queueing);
+            }
+        }
+#endif
 
         /// <summary>
         /// Captures the set of synthesized definitions that should be added to a type
@@ -720,15 +776,6 @@ namespace Microsoft.CodeAnalysis.Emit
 
         string Cci.IModule.DefaultNamespace => DefaultNamespace;
         protected abstract string DefaultNamespace { get; }
-
-        // PE entry point, only available for console and windows apps:
-        Cci.IMethodReference Cci.IModule.EntryPoint
-        {
-            get
-            {
-                return _outputKind.IsApplication() ? _entryPoint : null;
-            }
-        }
 
         protected abstract Cci.IAssemblyReference GetCorLibraryReferenceToEmit(EmitContext context);
 

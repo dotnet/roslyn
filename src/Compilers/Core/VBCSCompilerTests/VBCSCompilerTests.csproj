@@ -38,17 +38,17 @@
       <Project>{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}</Project>
       <Name>PdbUtilities</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Utilities\TestUtilities.csproj">
+    <ProjectReference Include="..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
-      <Name>TestUtilities</Name>
+      <Name>TestUtilities.Desktop</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Test\Resources\Core\CompilerTestResources.csproj">
       <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
       <Name>CompilerTestResources</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Test\Utilities\Core2\CompilerTestUtilities2.csproj">
+    <ProjectReference Include="..\..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
       <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
-      <Name>CompilerTestUtilities2</Name>
+      <Name>TestUtilities.FX45</Name>
     </ProjectReference>
     <ProjectReference Include="..\MSBuildTask\MSBuildTask.csproj">
       <Project>{d874349c-8bb3-4bdc-8535-2d52ccca1198}</Project>

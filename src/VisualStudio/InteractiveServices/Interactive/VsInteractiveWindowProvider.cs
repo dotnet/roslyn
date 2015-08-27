@@ -1,15 +1,17 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Interactive;
+using Microsoft.VisualStudio.Editor.Interactive;
+using Microsoft.VisualStudio.InteractiveWindow.Commands;
+using Microsoft.VisualStudio.InteractiveWindow.Shell;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.VisualStudio.InteractiveWindow.Commands;
-using Microsoft.VisualStudio.InteractiveWindow.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
@@ -40,7 +42,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             _classifierAggregator = classifierAggregator;
             _contentTypeRegistry = contentTypeRegistry;
             _vsWorkspace = workspace;
-            _commands = FilterCommands(commands, contentType: PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName);
+            _commands = GetApplicableCommands(commands, coreContentType: PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName,
+                specializedContentType: CSharpVBInteractiveCommandsContentTypes.CSharpVBInteractiveCommandContentTypeName);
             _vsInteractiveWindowFactory = interactiveWindowFactory;
             _commandsFactory = commandsFactory;
         }
@@ -54,6 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         protected abstract Guid LanguageServiceGuid { get; }
         protected abstract Guid Id { get; }
         protected abstract string Title { get; }
+        protected abstract void LogSession(string key, string value);
 
         protected IInteractiveWindowCommandsFactory CommandsFactory
         {
@@ -79,13 +83,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             vsWindow.SetLanguage(LanguageServiceGuid, evaluator.ContentType);
 
             // the tool window now owns the engine:
-            vsWindow.InteractiveWindow.TextView.Closed += new EventHandler((_, __) => evaluator.Dispose());
+            vsWindow.InteractiveWindow.TextView.Closed += new EventHandler((_, __) => 
+            {
+                LogSession(LogMessage.Window, LogMessage.Close);
+                evaluator.Dispose();
+            });
             // vsWindow.AutoSaveOptions = true;
 
             var window = vsWindow.InteractiveWindow;
 
             // fire and forget:
             window.InitializeAsync();
+
+            LogSession(LogMessage.Window, LogMessage.Create);
 
             return vsWindow;
         }
@@ -102,14 +112,49 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
             _vsInteractiveWindow.Show(focus);
 
+            LogSession(LogMessage.Window, LogMessage.Open);
+
             return _vsInteractiveWindow;
         }
 
-        private static ImmutableArray<IInteractiveWindowCommand> FilterCommands(IInteractiveWindowCommand[] commands, string contentType)
+        private static ImmutableArray<IInteractiveWindowCommand> GetApplicableCommands(IInteractiveWindowCommand[] commands, string coreContentType, string specializedContentType)
         {
-            return commands.Where(
+            // get all commands of coreContentType - generic interactive window commands
+            var interactiveCommands = commands.Where(
                 c => c.GetType().GetCustomAttributes(typeof(ContentTypeAttribute), inherit: true).Any(
-                    a => ((ContentTypeAttribute)a).ContentTypes == contentType)).ToImmutableArray();
-        }
+                    a => ((ContentTypeAttribute)a).ContentTypes == coreContentType)).ToArray();
+
+            // get all commands of specializedContentType - smart C#/VB command implementations
+            var specializedInteractiveCommands = commands.Where(
+                c => c.GetType().GetCustomAttributes(typeof(ContentTypeAttribute), inherit: true).Any(
+                    a => ((ContentTypeAttribute)a).ContentTypes == specializedContentType)).ToArray();
+
+            // We should choose specialized C#/VB commands over generic core interactive window commands
+            // Build a map of names and associated core command first
+            Dictionary<string, int> interactiveCommandMap = new Dictionary<string, int>();
+            for (int i = 0; i < interactiveCommands.Length; i++)
+            {
+                foreach (var name in interactiveCommands[i].Names)
+                {
+                    interactiveCommandMap.Add(name, i);
+                }
+            }
+
+            // swap core commands with specialized command if both exist
+            // Command can have multiple names. We need to compare every name to find match.
+            int value;
+            foreach (var command in specializedInteractiveCommands)
+            {
+                foreach (var name in command.Names)
+                {
+                    if (interactiveCommandMap.TryGetValue(name, out value))
+                    {
+                        interactiveCommands[value] = command;
+                        break;
+                    }
+                }
+            }
+            return interactiveCommands.ToImmutableArray();
+            }
     }
 }

@@ -120,6 +120,12 @@ namespace Microsoft.Cci
         }
 
         /// <summary>
+        /// NetModules and EnC deltas don't have AssemblyDef record.
+        /// We don't emit it for EnC deltas since assembly identity has to be preserved across generations (CLR/debugger get confused otherwise).
+        /// </summary>
+        private bool EmitAssemblyDefinition => module.AsAssembly != null && !IsMinimalDelta;
+
+        /// <summary>
         /// Returns metadata generation ordinal. Zero for
         /// full metadata and non-zero for delta.
         /// </summary>
@@ -459,7 +465,7 @@ namespace Microsoft.Cci
         {
             var rowCounts = new int[MetadataTokens.TableCount];
 
-            rowCounts[(int)TableIndex.Assembly] = (this.module.AsAssembly != null) ? 1 : 0;
+            rowCounts[(int)TableIndex.Assembly] = EmitAssemblyDefinition ? 1 : 0;
             rowCounts[(int)TableIndex.AssemblyRef] = _assemblyRefTable.Count;
             rowCounts[(int)TableIndex.ClassLayout] = _classLayoutTable.Count;
             rowCounts[(int)TableIndex.Constant] = _constantTable.Count;
@@ -2113,19 +2119,36 @@ namespace Microsoft.Cci
 
             PopulateTables(methodBodyRvas, mappedFieldDataWriter, managedResourceDataWriter);
 
-            IMethodReference entryPoint = this.module.EntryPoint;
-            if (IsFullMetadata && entryPoint?.GetResolvedMethod(Context) != null)
+            int debugEntryPointToken;
+            if (IsFullMetadata)
             {
-                entryPointToken = GetMethodToken(entryPoint);
+                // PE entry point is set for executable programs
+                IMethodReference entryPoint = module.PEEntryPoint;
+                entryPointToken = entryPoint != null ? GetMethodToken((IMethodDefinition)entryPoint.AsDefinition(Context)) : 0;
+
+                // debug entry point may be different from PE entry point, it may also be set for libraries
+                IMethodReference debugEntryPoint = module.DebugEntryPoint;
+                if (debugEntryPoint != null && debugEntryPoint != entryPoint)
+                {
+                    debugEntryPointToken = GetMethodToken((IMethodDefinition)debugEntryPoint.AsDefinition(Context));
+                }
+                else
+                {
+                    debugEntryPointToken = entryPointToken;
+                }
 
                 // entry point can only be a MethodDef:
-                Debug.Assert((entryPointToken & 0xff000000) == 0x06000000);
+                Debug.Assert(entryPointToken == 0 || (entryPointToken & 0xff000000) == 0x06000000);
+                Debug.Assert(debugEntryPointToken == 0 || (debugEntryPointToken & 0xff000000) == 0x06000000);
 
-                nativePdbWriterOpt?.SetEntryPoint((uint)entryPointToken);
+                if (debugEntryPointToken != 0)
+                {
+                    nativePdbWriterOpt?.SetEntryPoint((uint)debugEntryPointToken);
+                }
             }
             else
             {
-                entryPointToken = 0;
+                entryPointToken = debugEntryPointToken = 0;
             }
 
             heaps.Complete();
@@ -2146,7 +2169,7 @@ namespace Microsoft.Cci
             int mappedFieldDataStreamRva = calculateMappedFieldDataStreamRva(metadataSizes);
 
             int guidHeapStartOffset;
-            SerializeMetadata(metadataWriter, metadataSizes, methodBodyStreamRva, mappedFieldDataStreamRva, entryPointToken, out guidHeapStartOffset);
+            SerializeMetadata(metadataWriter, metadataSizes, methodBodyStreamRva, mappedFieldDataStreamRva, debugEntryPointToken, out guidHeapStartOffset);
             moduleVersionIdOffsetInMetadataStream = GetModuleVersionGuidOffsetInMetadataStream(guidHeapStartOffset);
 
             if (!EmitStandaloneDebugMetadata)
@@ -2170,7 +2193,7 @@ namespace Microsoft.Cci
                 emitStandaloneDebugMetadata: true,
                 isStandaloneDebugMetadata: true);
 
-            SerializeMetadata(debugMetadataWriterOpt, debugMetadataSizes, 0, 0, entryPointToken, out guidHeapStartOffset);
+            SerializeMetadata(debugMetadataWriterOpt, debugMetadataSizes, 0, 0, debugEntryPointToken, out guidHeapStartOffset);
         }
 
         private static int CalculateStrongNameSignatureSize(IModule module)
@@ -2202,7 +2225,7 @@ namespace Microsoft.Cci
             MetadataSizes metadataSizes,
             int methodBodyStreamRva,
             int mappedFieldDataStreamRva,
-            int entryPointToken,
+            int debugEntryPointToken,
             out int guidHeapStartOffset)
         {
             // header:
@@ -2217,7 +2240,7 @@ namespace Microsoft.Cci
             // #Pdb stream
             if (metadataSizes.IsStandaloneDebugMetadata)
             {
-                SerializeStandalonePdbStream(metadataWriter, metadataSizes, entryPointToken);
+                SerializeStandalonePdbStream(metadataWriter, metadataSizes, debugEntryPointToken);
             }
         }
 
@@ -2584,12 +2607,12 @@ namespace Microsoft.Cci
 
         private void PopulateAssemblyTableRows()
         {
-            IAssembly assembly = this.module.AsAssembly;
-            if (assembly == null)
+            if (!EmitAssemblyDefinition)
             {
                 return;
             }
 
+            IAssembly assembly = this.module.AsAssembly;
             _assemblyKey = heaps.GetBlobIndex(assembly.PublicKey);
             _assemblyName = this.GetStringIndexForPathAndCheckLength(assembly.Name, assembly);
             _assemblyCulture = heaps.GetStringIndex(assembly.Culture);
@@ -4070,12 +4093,12 @@ namespace Microsoft.Cci
 
         private void SerializeAssemblyTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
-            IAssembly assembly = this.module.AsAssembly;
-            if (assembly == null)
+            if (!EmitAssemblyDefinition)
             {
                 return;
             }
 
+            IAssembly assembly = this.module.AsAssembly;
             writer.WriteUInt32((uint)assembly.HashAlgorithm);
             writer.WriteUInt16((ushort)assembly.Version.Major);
             writer.WriteUInt16((ushort)assembly.Version.Minor);
@@ -4604,23 +4627,24 @@ namespace Microsoft.Cci
 
         private void SerializeParameterInformation(IParameterTypeInformation parameterTypeInformation, BlobBuilder writer)
         {
-            bool hasByRefBeforeCustomModifiers = parameterTypeInformation.HasByRefBeforeCustomModifiers;
+            ushort countOfCustomModifiersPrecedingByRef = parameterTypeInformation.CountOfCustomModifiersPrecedingByRef;
+            var modifiers = parameterTypeInformation.CustomModifiers;
 
-            Debug.Assert(!hasByRefBeforeCustomModifiers || parameterTypeInformation.IsByReference);
+            Debug.Assert(countOfCustomModifiersPrecedingByRef == 0 || parameterTypeInformation.IsByReference);
 
-            if (hasByRefBeforeCustomModifiers && parameterTypeInformation.IsByReference)
+            if (parameterTypeInformation.IsByReference)
             {
+                for (int i = 0; i < countOfCustomModifiersPrecedingByRef; i++)
+                {
+                    this.SerializeCustomModifier(modifiers[i], writer);
+                }
+
                 writer.WriteByte(0x10);
             }
 
-            foreach (ICustomModifier customModifier in parameterTypeInformation.CustomModifiers)
+            for (int i = countOfCustomModifiersPrecedingByRef; i < modifiers.Length; i++)
             {
-                this.SerializeCustomModifier(customModifier, writer);
-            }
-
-            if (!hasByRefBeforeCustomModifiers && parameterTypeInformation.IsByReference)
-            {
-                writer.WriteByte(0x10);
+                this.SerializeCustomModifier(modifiers[i], writer);
             }
 
             this.SerializeTypeReference(parameterTypeInformation.GetType(Context), writer, false, true);

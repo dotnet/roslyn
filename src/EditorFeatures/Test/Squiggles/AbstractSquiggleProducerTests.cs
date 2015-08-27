@@ -7,11 +7,13 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
@@ -23,43 +25,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
     {
         internal static List<ITagSpan<IErrorTag>> GetErrorSpans(
             TestWorkspace workspace,
-            ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzerMap = null)
+            Dictionary<string, DiagnosticAnalyzer[]> analyzerMap = null)
         {
-            var registrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
-            registrationService.Register(workspace);
+            using (var wrapper = new DiagnosticTaggerWrapper(workspace, analyzerMap))
+            {
+                var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
+                using (var disposable = tagger as IDisposable)
+                {
+                    wrapper.WaitForTags();
 
-            var listener = new AsynchronousOperationListener();
-            var listeners = AsynchronousOperationListener.CreateListeners(
-                ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
-                ValueTuple.Create(FeatureAttribute.ErrorSquiggles, listener));
+                    var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+                    var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
 
-            var optionsService = workspace.Services.GetService<IOptionService>();
-
-            var analyzerService = analyzerMap == null || analyzerMap.Count == 0
-                ? new TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
-                : new TestDiagnosticAnalyzerService(analyzerMap);
-
-            var diagnosticService = new DiagnosticService(SpecializedCollections.SingletonEnumerable<IDiagnosticUpdateSource>(analyzerService), listeners);
-
-            var document = workspace.Documents.First();
-            var buffer = document.GetTextBuffer();
-
-            var foregroundService = workspace.GetService<IForegroundNotificationService>();
-            var taggerProvider = new DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, listeners);
-            var tagger = taggerProvider.CreateTagger<IErrorTag>(buffer);
-
-            var service = workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
-            service.WaitUntilCompletion_ForTestingPurposesOnly(workspace, ImmutableArray.Create(analyzerService.CreateIncrementalAnalyzer(workspace)));
-
-            listener.CreateWaitTask().PumpingWait();
-
-            var snapshot = buffer.CurrentSnapshot;
-            var spans = tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToList();
-
-            ((IDisposable)tagger).Dispose();
-            registrationService.Unregister(workspace);
-
-            return spans;
+                    return spans;
+                }
+            }
         }
     }
 
@@ -67,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
     {
         protected static IEnumerable<ITagSpan<IErrorTag>> GetErrorSpans(
             TestWorkspace workspace,
-            ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzerMap = null)
+            Dictionary<string, DiagnosticAnalyzer[]> analyzerMap = null)
         {
             return SquiggleUtilities.GetErrorSpans(workspace, analyzerMap);
         }
@@ -75,36 +55,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
         internal static IList<ITagSpan<IErrorTag>> GetErrorsFromUpdateSource(TestWorkspace workspace, TestHostDocument document, DiagnosticsUpdatedArgs updateArgs)
         {
             var source = new TestDiagnosticUpdateSource();
+            using (var wrapper = new DiagnosticTaggerWrapper(workspace, source))
+            {
+                var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
+                using (var disposable = tagger as IDisposable)
+                {
+                    source.RaiseDiagnosticsUpdated(updateArgs);
 
-            var listener = new AsynchronousOperationListener();
-            var listeners = AsynchronousOperationListener.CreateListeners(
-                ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
-                ValueTuple.Create(FeatureAttribute.ErrorSquiggles, listener));
+                    wrapper.WaitForTags();
 
-            var optionsService = workspace.Services.GetService<IOptionService>();
-            var diagnosticService = new DiagnosticService(SpecializedCollections.SingletonEnumerable<IDiagnosticUpdateSource>(source), listeners);
+                    var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+                    var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray();
 
-            var foregroundService = workspace.GetService<IForegroundNotificationService>();  //new TestForegroundNotificationService();
-
-            var buffer = document.GetTextBuffer();
-            var provider = new DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, listeners);
-            var tagger = provider.CreateTagger<IErrorTag>(buffer);
-
-            source.RaiseDiagnosticsUpdated(updateArgs);
-
-            listener.CreateWaitTask().PumpingWait();
-
-            var snapshot = buffer.CurrentSnapshot;
-            var spans = tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToImmutableArray();
-
-            ((IDisposable)tagger).Dispose();
-
-            return spans;
+                    return spans;
+                }
+            }
         }
 
         internal static DiagnosticData CreateDiagnosticData(TestWorkspace workspace, TestHostDocument document, TextSpan span)
         {
-            return new DiagnosticData("test", "test", "test", "test", DiagnosticSeverity.Error, true, 0, workspace, document.Project.Id, document.Id, span);
+            return new DiagnosticData("test", "test", "test", "test", DiagnosticSeverity.Error, true, 0, workspace, document.Project.Id, 
+                new DiagnosticDataLocation(document.Id, span));
         }
 
         private class TestDiagnosticUpdateSource : IDiagnosticUpdateSource

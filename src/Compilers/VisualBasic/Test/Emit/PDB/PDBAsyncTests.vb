@@ -25,7 +25,7 @@ End Class
     </file>
 </compilation>
 
-            Dim v = CompileAndVerify(source, LatestReferences, options:=TestOptions.DebugDll)
+            Dim v = CompileAndVerify(source, LatestVbReferences, options:=TestOptions.DebugDll)
 
             v.VerifyIL("C.VB$StateMachine_1_M.MoveNext", "
 {
@@ -199,7 +199,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
 
             compilation.VerifyPdb("Module1.F",
 <symbols>
@@ -657,7 +657,7 @@ End Class
     </file>
 </compilation>
 
-            Dim c = CreateCompilationWithReferences(source, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim c = CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
             c.AssertNoErrors()
 
             ' NOTE: No <local> for the return variable "M".
@@ -715,7 +715,7 @@ End Module
     </file>
 </compilation>
 
-            Dim v = CompileAndVerify(source, LatestReferences, options:=TestOptions.DebugDll)
+            Dim v = CompileAndVerify(source, LatestVbReferences, options:=TestOptions.DebugDll)
 
             v.VerifyIL("M.VB$StateMachine_0_F.MoveNext", "
 {

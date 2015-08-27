@@ -19,12 +19,14 @@ namespace Microsoft.CodeAnalysis.Formatting
         private readonly ChainedFormattingRules _formattingRules;
         private readonly int _tabSize;
         private readonly int _indentationSize;
+        private readonly SyntaxToken _lastToken;
 
         public BottomUpBaseIndentationFinder(
             ChainedFormattingRules formattingRules,
             int tabSize,
             int indentationSize,
-            TokenStream tokenStream)
+            TokenStream tokenStream,
+            SyntaxToken lastToken)
         {
             Contract.ThrowIfNull(formattingRules);
 
@@ -32,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             _tabSize = tabSize;
             _indentationSize = indentationSize;
             _tokenStream = tokenStream;
+            _lastToken = lastToken;
         }
 
         public int? FromIndentBlockOperations(
@@ -209,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // gather all indent operations 
             var list = new List<IndentBlockOperation>();
-            allNodes.Do(n => _formattingRules.AddIndentBlockOperations(list, n));
+            allNodes.Do(n => _formattingRules.AddIndentBlockOperations(list, n, _lastToken));
 
             // sort them in right order
             list.RemoveAll(CommonFormattingHelpers.IsNull);
@@ -247,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             while (currentNode != null)
             {
                 list.Clear();
-                _formattingRules.AddAlignTokensOperations(list, currentNode);
+                _formattingRules.AddAlignTokensOperations(list, currentNode, _lastToken);
 
                 if (list.Count == 0)
                 {
@@ -278,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var currentNode = startNode;
             while (currentNode != null)
             {
-                _formattingRules.AddIndentBlockOperations(list, currentNode);
+                _formattingRules.AddIndentBlockOperations(list, currentNode, _lastToken);
 
                 if (list.Any(o => o != null && o.TextSpan.Contains(position)))
                 {

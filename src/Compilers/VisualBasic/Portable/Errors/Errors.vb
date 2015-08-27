@@ -1678,6 +1678,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_InterpolationFormatWhitespace = 37249
         ERR_InterpolationAlignmentOutOfRange = 37250
         ERR_InterpolatedStringFactoryError = 37251
+        ERR_DebugEntryPointNotSourceMethodDefinition = 37252
 
         ERR_LastPlusOne
 

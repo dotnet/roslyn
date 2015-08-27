@@ -174,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 sourceParameter.IsByRef,
                 name,
                 sourceParameter.CustomModifiers,
-                sourceParameter.HasByRefBeforeCustomModifiers)
+                sourceParameter.CountOfCustomModifiersPrecedingByRef)
         End Function
 
         Public Overrides ReadOnly Property MethodKind As MethodKind

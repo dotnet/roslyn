@@ -27,6 +27,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal static void VerifyArguments(Diagnostic diagnostic, Func<Diagnostic, bool> isSupportedDiagnostic)
         {
+            if (diagnostic is DiagnosticWithInfo)
+            {
+                // Compiler diagnostic, skip validations.
+                return;
+            }
+
             if (diagnostic == null)
             {
                 throw new ArgumentNullException(nameof(diagnostic));
@@ -34,8 +40,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (!isSupportedDiagnostic(diagnostic))
             {
-                throw new ArgumentException(string.Format(AnalyzerDriverResources.UnsupportedDiagnosticReported, diagnostic.Id), nameof(diagnostic));
+                throw new ArgumentException(string.Format(CodeAnalysisResources.UnsupportedDiagnosticReported, diagnostic.Id), nameof(diagnostic));
             }
+
+            if (!UnicodeCharacterUtilities.IsValidIdentifier(diagnostic.Id))
+            {
+                // Disallow invalid diagnostic IDs.
+                // Note that the parsing logic in Csc/Vbc MSBuild tasks to decode command line compiler output relies on diagnostics having a valid ID.
+                // See https://github.com/dotnet/roslyn/issues/4376 for details.
+                throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticIdReported, diagnostic.Id), nameof(diagnostic));
+            } 
         }
 
         private static void VerifyAction<TContext>(Action<TContext> action)
@@ -55,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (symbolKinds.IsEmpty)
             {
-                throw new ArgumentException(AnalyzerDriverResources.ArgumentCannotBeEmpty, nameof(symbolKinds));
+                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(symbolKinds));
             }
         }
 
@@ -69,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (syntaxKinds.IsEmpty)
             {
-                throw new ArgumentException(AnalyzerDriverResources.ArgumentCannotBeEmpty, nameof(syntaxKinds));
+                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(syntaxKinds));
             }
         }
     }

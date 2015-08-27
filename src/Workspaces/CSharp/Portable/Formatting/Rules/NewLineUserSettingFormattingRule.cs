@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     parent.Kind() == SyntaxKind.ForStatement || parent.Kind() == SyntaxKind.TryStatement ||
                     parent.Kind() == SyntaxKind.CatchClause || parent.Kind() == SyntaxKind.FinallyClause ||
                     parent.Kind() == SyntaxKind.LockStatement || parent.Kind() == SyntaxKind.CheckedStatement ||
-                    parent.Kind() == SyntaxKind.UncheckedStatement));
+                    parent.Kind() == SyntaxKind.UncheckedStatement || parent.Kind() == SyntaxKind.SwitchSection));
         }
 
         public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustSpacesOperation> nextOperation)

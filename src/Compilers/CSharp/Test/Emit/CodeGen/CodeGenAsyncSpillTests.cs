@@ -833,10 +833,145 @@ public class C
                     "<>s__5",
                     "<>s__6",
                     "<>s__7",
+                    "<>s__8",
                     "<>u__1",
-                    "<>s__8"
+                    "<>s__9"
                  }, module.GetFieldNames("C.<F>d__3"));
              });
+        }
+
+        [WorkItem(4628, "https://github.com/dotnet/roslyn/issues/4628")]
+        [Fact]
+        public void AsyncWithShortCircuiting001()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+namespace AsyncConditionalBug {
+  class Program {
+    private readonly bool b=true;
+
+    private async Task AsyncMethod() {
+      Console.WriteLine(b && await Task.FromResult(false));
+      Console.WriteLine(b); 
+    }
+
+    static void Main(string[] args) {
+      new Program().AsyncMethod().Wait();
+    }
+  }
+}";
+            var expected = @"
+False
+True
+";
+            CompileAndVerify(source, expectedOutput: expected);
+        }
+
+        [WorkItem(4628, "https://github.com/dotnet/roslyn/issues/4628")]
+        [Fact]
+        public void AsyncWithShortCircuiting002()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+namespace AsyncConditionalBug {
+  class Program {
+    private static readonly bool b=true;
+
+    private async Task AsyncMethod() {
+      Console.WriteLine(b && await Task.FromResult(false));
+      Console.WriteLine(b); 
+    }
+
+    static void Main(string[] args) {
+      new Program().AsyncMethod().Wait();
+    }
+  }
+}";
+            var expected = @"
+False
+True
+";
+            CompileAndVerify(source, expectedOutput: expected);
+        }
+
+        [WorkItem(4628, "https://github.com/dotnet/roslyn/issues/4628")]
+        [Fact]
+        public void AsyncWithShortCircuiting003()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+namespace AsyncConditionalBug
+{
+    class Program
+    {
+        private readonly string NULL = null;
+
+        private async Task AsyncMethod()
+        {
+            Console.WriteLine(NULL ?? await Task.FromResult(""hello""));
+            Console.WriteLine(NULL);
+        }
+
+        static void Main(string[] args)
+        {
+            new Program().AsyncMethod().Wait();
+        }
+    }
+}";
+            var expected = @"
+hello
+";
+            CompileAndVerify(source, expectedOutput: expected);
+        }
+
+        [WorkItem(4638, "https://github.com/dotnet/roslyn/issues/4638")]
+        [Fact]
+        public void AsyncWithShortCircuiting004()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+namespace AsyncConditionalBug
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            try
+            {
+                DoSomething(Tuple.Create(1.ToString(), Guid.NewGuid())).GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                System.Console.Write(ex.Message);
+            }
+        }
+
+        public static async Task DoSomething(Tuple<string, Guid> item)
+        {
+            if (item.Item2 != null || await IsValid(item.Item2))
+            {
+                throw new Exception(""Not Valid!"");
+            };
+        }
+
+        private static async Task<bool> IsValid(Guid id)
+        {
+            return false;
+        }
+    }
+}";
+            var expected = @"
+Not Valid!
+";
+            CompileAndVerify(source, expectedOutput: expected);
         }
 
         [Fact]

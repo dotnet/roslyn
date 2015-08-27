@@ -1459,6 +1459,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        internal override bool HasTypeArgumentsCustomModifiers
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
+        {
+            get
+            {
+                return ImmutableArray<ImmutableArray<CustomModifier>>.Empty;
+            }
+        }
+
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
             get
@@ -2235,6 +2251,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     // This is always the instance type, so the type arguments are the same as the type parameters.
                     return this.TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>();
+                }
+            }
+
+            internal override bool HasTypeArgumentsCustomModifiers
+            {
+                get
+                {
+                    return false;
+                }
+            }
+
+            internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
+            {
+                get
+                {
+                    return CreateEmptyTypeArgumentsCustomModifiers();
                 }
             }
 

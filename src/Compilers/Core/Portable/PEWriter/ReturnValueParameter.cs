@@ -64,9 +64,9 @@ namespace Microsoft.Cci
             get { return _containingMethod.ReturnValueIsByRef; }
         }
 
-        public bool HasByRefBeforeCustomModifiers
+        public ushort CountOfCustomModifiersPrecedingByRef
         {
-            get { return false; }
+            get { return 0; }
         }
 
         public bool IsMarshalledExplicitly

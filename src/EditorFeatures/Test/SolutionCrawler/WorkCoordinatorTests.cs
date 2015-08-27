@@ -2,7 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
                 var project = workspace.CurrentSolution.Projects.First(p => p.Name == "P1").WithAssemblyName("newName");
                 var worker = ExecuteOperation(workspace, w => w.ChangeProject(project.Id, project.Solution));
 
-                Assert.Equal(0, worker.SyntaxDocumentIds.Count);
+                Assert.Equal(5, worker.SyntaxDocumentIds.Count);
                 Assert.Equal(5, worker.DocumentIds.Count);
             }
         }
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
                 var project = workspace.CurrentSolution.Projects.First(p => p.Name == "P1").AddAdditionalDocument("a1", SourceText.From("")).Project;
                 var worker = ExecuteOperation(workspace, w => w.ChangeProject(project.Id, project.Solution));
 
-                Assert.Equal(0, worker.SyntaxDocumentIds.Count);
+                Assert.Equal(5, worker.SyntaxDocumentIds.Count);
                 Assert.Equal(5, worker.DocumentIds.Count);
             }
         }
@@ -912,11 +912,13 @@ End Class";
             return provider.GetExports<IAsynchronousOperationListener, FeatureMetadata>();
         }
 
+        [Shared]
         [Export(typeof(IAsynchronousOperationListener))]
         [Export(typeof(IAsynchronousOperationWaiter))]
         [Feature(FeatureAttribute.SolutionCrawler)]
         private class SolutionCrawlerWaiter : AsynchronousOperationListener { }
 
+        [Shared]
         [Export(typeof(IAsynchronousOperationListener))]
         [Export(typeof(IAsynchronousOperationWaiter))]
         [Feature(FeatureAttribute.Workspace)]

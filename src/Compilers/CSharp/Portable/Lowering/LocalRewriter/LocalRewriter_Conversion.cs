@@ -1071,45 +1071,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol source = rewrittenOperand.Type;
             TypeSymbol target = rewrittenType;
 
-            TypeSymbol t0 = target.StrippedType();
-            TypeSymbol s0 = source.StrippedType();
-
-            if (t0 != target && s0 != source)
-            {
-                // UNDONE: RewriteLiftedIntPtrConversion
-
-                return oldNode != null ?
-                    oldNode.Update(
-                        rewrittenOperand,
-                        conversionKind,
-                        oldNode.ResultKind,
-                        isBaseConversion: oldNode.IsBaseConversion,
-                        symbolOpt: symbolOpt,
-                        @checked: @checked,
-                        explicitCastInCode: explicitCastInCode,
-                        isExtensionMethod: isExtensionMethod,
-                        isArrayIndex: isArrayIndex,
-                        constantValueOpt: constantValueOpt,
-                        type: rewrittenType) :
-                    new BoundConversion(
-                        syntax,
-                        rewrittenOperand,
-                        conversionKind,
-                        LookupResultKind.Viable,
-                        isBaseConversion: false,
-                        symbolOpt: symbolOpt,
-                        @checked: @checked,
-                        explicitCastInCode: explicitCastInCode,
-                        isExtensionMethod: isExtensionMethod,
-                        isArrayIndex: isArrayIndex,
-                        constantValueOpt: constantValueOpt,
-                        type: rewrittenType);
-            }
-
             SpecialMember member = GetIntPtrConversionMethod(source: rewrittenOperand.Type, target: rewrittenType);
             MethodSymbol method = GetSpecialTypeMethod(syntax, member);
             Debug.Assert(!method.ReturnsVoid);
             Debug.Assert(method.ParameterCount == 1);
+
+            if (source.IsNullableType() && target.IsNullableType())
+            {
+                Debug.Assert(target.IsNullableType());
+                return RewriteLiftedUserDefinedConversion(syntax, rewrittenOperand, method, rewrittenType, ConversionKind.IntPtr);
+            }
+            else if (source.IsNullableType())
+            {
+                rewrittenOperand = MakeConversion(rewrittenOperand, source.StrippedType(), @checked);
+            }
 
             rewrittenOperand = MakeConversion(rewrittenOperand, method.ParameterTypes[0], @checked);
 
@@ -1121,10 +1096,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BoundConversion.Synthesized(syntax, rewrittenOperand, new Conversion(conversionKind, method, false), @checked, explicitCastInCode, constantValueOpt, rewrittenType);
             }
 
-            var rewrittenCall =
-                _inExpressionLambda && oldNode != null
-                ? new BoundConversion(syntax, rewrittenOperand, new Conversion(conversionKind, method, false), @checked, explicitCastInCode, constantValueOpt, returnType)
-                : MakeCall(
+            var rewrittenCall = MakeCall(
                     syntax: syntax,
                     rewrittenReceiver: null,
                     method: method,

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// Returns SuppressWrappingIfOnSingleLineOperations under a node either by itself or by
         /// filtering/replacing operations returned by NextOperation
         /// </summary>
-        void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<SuppressOperation> nextOperation);
+        void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet, NextAction<SuppressOperation> nextOperation);
 
         /// <summary>
         /// returns AnchorIndentationOperations under a node either by itself or by filtering/replacing operations returned by NextOperation

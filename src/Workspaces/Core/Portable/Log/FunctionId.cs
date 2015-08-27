@@ -304,6 +304,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         VirtualMemory_MemoryLow,
         Extension_Exception,
 
-        WorkCoordinator_WaitForHigherPriorityOperationsAsync
+        WorkCoordinator_WaitForHigherPriorityOperationsAsync,
+
+        CSharp_Interactive_Window,
+        VisualBasic_Interactive_Window
     }
 }

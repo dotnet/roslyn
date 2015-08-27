@@ -13,8 +13,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     {
         private class HostProject : IVisualStudioHostProject
         {
-            public ProjectId Id { get; private set; }
-            public string Language { get; private set; }
+            public ProjectId Id { get; }
+            public string Language { get; }
 
             internal IVisualStudioHostDocument Document { get; set; }
 

@@ -959,88 +959,81 @@ public class D
   // Code size      222 (0xde)
   .maxstack  2
   .locals init (D.Boo V_0, //v3
-  D.Boo V_1, //v3a
-  D.Boo V_2, //v4
-  D.Boo V_3) //v4
+                D.Boo V_1, //v3a
+                D.Boo V_2, //v4
+                D.Boo V_3) //v4
   .try
-{
-  .try
-{
-  IL_0000:  ldc.i4.s   42
-  IL_0002:  newobj     ""D.Boo..ctor(int)""
-  IL_0007:  stsfld     ""D.Boo D.v1""
-  IL_000c:  ldsfld     ""D.Boo D.v1""
-  IL_0011:  call       ""void D.DummyUse(D.Boo)""
-  IL_0016:  ldc.i4.s   43
-  IL_0018:  newobj     ""D.Boo..ctor(int)""
-  IL_001d:  call       ""void D.DummyUse(D.Boo)""
-  IL_0022:  ldc.i4.s   44
-  IL_0024:  newobj     ""D.Boo..ctor(int)""
-  IL_0029:  stloc.0
-  IL_002a:  ldloca.s   V_0
-  IL_002c:  constrained. ""D.Boo""
-  IL_0032:  callvirt   ""string object.ToString()""
-  IL_0037:  pop
-  IL_0038:  ldloca.s   V_2
-  IL_003a:  ldc.i4.s   45
-  IL_003c:  call       ""D.Boo..ctor(int)""
-  IL_0041:  ldloca.s   V_2
-  IL_0043:  constrained. ""D.Boo""
-  IL_0049:  callvirt   ""string object.ToString()""
-  IL_004e:  pop
-  IL_004f:  ldarg.0
-  IL_0050:  ldc.i4.s   46
-  IL_0052:  newobj     ""D.Boo..ctor(int)""
-  IL_0057:  stobj      ""D.Boo""
-  IL_005c:  ldarg.0
-  IL_005d:  ldobj      ""D.Boo""
-  IL_0062:  call       ""void D.DummyUse(D.Boo)""
-  IL_0067:  ldc.i4.s   47
-  IL_0069:  newobj     ""D.Boo..ctor(int)""
-  IL_006e:  starg.s    V_1
-  IL_0070:  ldarg.0
-  IL_0071:  ldobj      ""D.Boo""
-  IL_0076:  call       ""void D.DummyUse(D.Boo)""
-  IL_007b:  leave.s    IL_00dd
-}
+  {
+    IL_0000:  ldc.i4.s   42
+    IL_0002:  newobj     ""D.Boo..ctor(int)""
+    IL_0007:  stsfld     ""D.Boo D.v1""
+    IL_000c:  ldsfld     ""D.Boo D.v1""
+    IL_0011:  call       ""void D.DummyUse(D.Boo)""
+    IL_0016:  ldc.i4.s   43
+    IL_0018:  newobj     ""D.Boo..ctor(int)""
+    IL_001d:  call       ""void D.DummyUse(D.Boo)""
+    IL_0022:  ldc.i4.s   44
+    IL_0024:  newobj     ""D.Boo..ctor(int)""
+    IL_0029:  stloc.0
+    IL_002a:  ldloca.s   V_0
+    IL_002c:  constrained. ""D.Boo""
+    IL_0032:  callvirt   ""string object.ToString()""
+    IL_0037:  pop
+    IL_0038:  ldloca.s   V_2
+    IL_003a:  ldc.i4.s   45
+    IL_003c:  call       ""D.Boo..ctor(int)""
+    IL_0041:  ldloca.s   V_2
+    IL_0043:  constrained. ""D.Boo""
+    IL_0049:  callvirt   ""string object.ToString()""
+    IL_004e:  pop
+    IL_004f:  ldarg.0
+    IL_0050:  ldc.i4.s   46
+    IL_0052:  newobj     ""D.Boo..ctor(int)""
+    IL_0057:  stobj      ""D.Boo""
+    IL_005c:  ldarg.0
+    IL_005d:  ldobj      ""D.Boo""
+    IL_0062:  call       ""void D.DummyUse(D.Boo)""
+    IL_0067:  ldc.i4.s   47
+    IL_0069:  newobj     ""D.Boo..ctor(int)""
+    IL_006e:  starg.s    V_1
+    IL_0070:  ldarg.0
+    IL_0071:  ldobj      ""D.Boo""
+    IL_0076:  call       ""void D.DummyUse(D.Boo)""
+    IL_007b:  leave.s    IL_00dd
+  }
   catch System.Exception
-{
-  IL_007d:  pop
-  IL_007e:  ldc.i4.s   44
-  IL_0080:  newobj     ""D.Boo..ctor(int)""
-  IL_0085:  stloc.0
-  IL_0086:  ldloca.s   V_0
-  IL_0088:  constrained. ""D.Boo""
-  IL_008e:  callvirt   ""string object.ToString()""
-  IL_0093:  pop
-  IL_0094:  ldloca.s   V_1
-  IL_0096:  ldc.i4.s   44
-  IL_0098:  call       ""D.Boo..ctor(int)""
-  IL_009d:  ldloca.s   V_1
-  IL_009f:  constrained. ""D.Boo""
-  IL_00a5:  callvirt   ""string object.ToString()""
-  IL_00aa:  pop
-  IL_00ab:  ldloca.s   V_3
-  IL_00ad:  ldc.i4.s   45
-  IL_00af:  call       ""D.Boo..ctor(int)""
-  IL_00b4:  ldloca.s   V_3
-  IL_00b6:  constrained. ""D.Boo""
-  IL_00bc:  callvirt   ""string object.ToString()""
-  IL_00c1:  pop
-  IL_00c2:  ldarg.0
-  IL_00c3:  ldc.i4.s   48
-  IL_00c5:  newobj     ""D.Boo..ctor(int)""
-  IL_00ca:  stobj      ""D.Boo""
-  IL_00cf:  ldarg.0
-  IL_00d0:  ldobj      ""D.Boo""
-  IL_00d5:  call       ""void D.DummyUse(D.Boo)""
-  IL_00da:  leave.s    IL_00dd
-}
-}
-  finally
-{
-  IL_00dc:  endfinally
-}
+  {
+    IL_007d:  pop
+    IL_007e:  ldloca.s   V_0
+    IL_0080:  ldc.i4.s   44
+    IL_0082:  call       ""D.Boo..ctor(int)""
+    IL_0087:  ldloca.s   V_0
+    IL_0089:  constrained. ""D.Boo""
+    IL_008f:  callvirt   ""string object.ToString()""
+    IL_0094:  pop
+    IL_0095:  ldloca.s   V_1
+    IL_0097:  ldc.i4.s   44
+    IL_0099:  call       ""D.Boo..ctor(int)""
+    IL_009e:  ldloca.s   V_1
+    IL_00a0:  constrained. ""D.Boo""
+    IL_00a6:  callvirt   ""string object.ToString()""
+    IL_00ab:  pop
+    IL_00ac:  ldloca.s   V_3
+    IL_00ae:  ldc.i4.s   45
+    IL_00b0:  call       ""D.Boo..ctor(int)""
+    IL_00b5:  ldloca.s   V_3
+    IL_00b7:  constrained. ""D.Boo""
+    IL_00bd:  callvirt   ""string object.ToString()""
+    IL_00c2:  pop
+    IL_00c3:  ldarg.0
+    IL_00c4:  ldc.i4.s   48
+    IL_00c6:  newobj     ""D.Boo..ctor(int)""
+    IL_00cb:  stobj      ""D.Boo""
+    IL_00d0:  ldarg.0
+    IL_00d1:  ldobj      ""D.Boo""
+    IL_00d6:  call       ""void D.DummyUse(D.Boo)""
+    IL_00db:  leave.s    IL_00dd
+  }
   IL_00dd:  ret
 }
 ");

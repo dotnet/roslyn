@@ -250,6 +250,18 @@ public class foo<T>
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void IndexerParamTypeParam()
+        {
+            VerifyItemsExist(@"
+public class foo<T>
+{
+
+    /// $$
+    public int this[T green] { get { } set { } }
+}", "param name=\"green\"");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ClassTypeParam()
         {
             VerifyItemsExist(@"

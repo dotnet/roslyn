@@ -27,6 +27,17 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
             _peReader.Dispose();
         }
 
+        public unsafe int GetSigFromToken(int tkSignature, out byte* ppvSig, out int pcbSig)
+        {
+            var signatureHandle = (StandaloneSignatureHandle)MetadataTokens.Handle(tkSignature);
+            var bytes = MetadataReader.GetBlobBytes(MetadataReader.GetStandaloneSignature(signatureHandle).Signature);
+
+            var pinned = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+            ppvSig = (byte*)pinned.AddrOfPinnedObject();
+            pcbSig = bytes.Length;
+            return HResult.S_OK;
+        }
+
         public void GetTypeDefProps(
             int typeDefinition, 
             [MarshalAs(UnmanagedType.LPWStr), Out]StringBuilder qualifiedName, 
@@ -93,17 +104,6 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
             }
 
             resolutionScope = MetadataTokens.GetToken(typeRef.ResolutionScope);
-        }
-
-        public unsafe int GetSigFromToken(int tkSignature, out byte* ppvSig, out int pcbSig)
-        {
-            var signatureHandle = (StandaloneSignatureHandle)MetadataTokens.Handle(tkSignature);
-            var bytes = MetadataReader.GetBlobBytes(MetadataReader.GetStandaloneSignature(signatureHandle).Signature);
-
-            var pinned = GCHandle.Alloc(bytes, GCHandleType.Pinned);
-            ppvSig = (byte*)pinned.AddrOfPinnedObject();
-            pcbSig = bytes.Length;
-            return HResult.S_OK;
         }
 
         #region Not Implemented

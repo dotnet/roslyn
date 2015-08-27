@@ -1,12 +1,12 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Imports Roslyn.Test.Utilities
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests
 
     Public Class ScriptTests
-        Inherits BasicTestBase
+        Inherits TestBase
 
         ' It shouldn't be necessary to include VB runtime assembly
         ' explicitly in VisualBasicScript.Create.

@@ -14,12 +14,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
+using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.InteractiveWindow
 {
@@ -30,8 +33,36 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     /// <summary>
     /// Provides implementation of a Repl Window built on top of the VS editor using projection buffers.
     /// </summary>
-    internal partial class InteractiveWindow : IInteractiveWindow, IInteractiveWindowOperations
+    internal partial class InteractiveWindow : IInteractiveWindow, IInteractiveWindowOperations2
     {
+        private enum ReplSpanKind
+        {
+            /// <summary>
+            /// Primary, secondary, or standard input prompt.
+            /// </summary>
+            Prompt,
+
+            /// <summary>
+            /// Line break inserted at end of output.
+            /// </summary>
+            LineBreak,
+
+            /// <summary>
+            /// The span represents output from the program (standard output).
+            /// </summary>
+            Output,
+
+            /// <summary>
+            /// The span represents code inputted after a prompt or secondary prompt.
+            /// </summary>
+            Language,
+
+            /// <summary>
+            /// The span represents the input for a standard input (non code input).
+            /// </summary>
+            StandardInput,
+        }
+
         private bool _adornmentToMinimize;
 
         private readonly IWpfTextView _textView;
@@ -59,13 +90,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         private readonly ITextBuffer _outputBuffer;
         private readonly IProjectionBuffer _projectionBuffer;
         private readonly ITextBuffer _standardInputBuffer;
+        private readonly IContentType _inertType;
 
         private ITextBuffer _currentLanguageBuffer;
         private string _historySearch;
-
-        // List of projection buffer spans - the projection buffer doesn't allow us to enumerate spans so we need to track them manually:
-        private readonly List<ReplSpan> _projectionSpans = new List<ReplSpan>();
-        private readonly PromptLineMapping _promptLineMapping = new PromptLineMapping();
 
         ////
         //// Standard input.
@@ -84,7 +112,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         private readonly TextWriter _outputWriter;
         private readonly InteractiveWindowWriter _errorOutputWriter;
 
-        private readonly ReplSpan _lineBreakOutputSpan;
+        private readonly string _lineBreakString;
+        private readonly IRtfBuilderService _rtfBuilderService;
 
         private const string BoxSelectionCutCopyTag = "MSDEVColumnSelect";
 
@@ -96,8 +125,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         }
 
         #region Misc Helpers
-
-        private string LineBreak => _lineBreakOutputSpan.InertValue;
 
         private IIntellisenseSessionStack SessionStack
         {
@@ -147,7 +174,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         IInteractiveEvaluator IInteractiveWindow.Evaluator => _evaluator;
 
-        Task IInteractiveWindow.SubmitAsync(IEnumerable<string> inputs)
+        /// <remarks>
+        /// Normally, an async method would have an NFW exception filter.  This
+        /// one doesn't because it just calls other async methods that already
+        /// have filters.
+        /// </remarks>
+        async Task IInteractiveWindow.SubmitAsync(IEnumerable<string> inputs)
         {
             var completion = new TaskCompletionSource<object>();
             var submissions = inputs.ToArray();
@@ -166,14 +198,25 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             UIThread(uiOnly => uiOnly.Submit(pendingSubmissions));
-            return completion.Task;
+
+            // This indicates that the last submission has completed.
+            await completion.Task.ConfigureAwait(false);
+
+            // These should all have finished already, but we'll await them so that their
+            // statuses are folded into the task we return.
+            await Task.WhenAll(pendingSubmissions.Select(p => p.Task)).ConfigureAwait(false);
         }
 
         private class PendingSubmission
         {
             public readonly string Input;
-            public readonly TaskCompletionSource<object> Completion; // only set on the last submission to 
-                                                                     // inform caller about completion of batch
+
+            /// <remarks>
+            /// Set only on the last submission in each batch (to notify the caller).
+            /// </remarks>
+            public readonly TaskCompletionSource<object> Completion;
+
+            public Task Task;
 
             public PendingSubmission(string input, TaskCompletionSource<object> completion)
             {
@@ -227,7 +270,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         void IInteractiveWindowOperations.ExecuteInput()
         {
-            UIThread(uiOnly => uiOnly.ExecuteInput());
+            UIThread(uiOnly => uiOnly.ExecuteInputAsync());
         }
 
         /// <summary>
@@ -235,10 +278,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// WARNING: this has to be the only method that writes to the output buffer so that 
         /// the output buffering counters are kept in sync.
         /// </summary>
-        internal void AppendOutput(IEnumerable<string> output, int outputLength)
+        internal void AppendOutput(IEnumerable<string> output)
         {
             RequiresUIThread();
-            _dangerous_uiOnly.AppendOutput(output, outputLength);
+            _dangerous_uiOnly.AppendOutput(output);
         }
 
         /// <summary>
@@ -433,13 +476,25 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             SnapshotSpan? span = GetContainingRegion(_textView.Caret.Position.BufferPosition);
 
+            var selection = _textView.Selection;
+
             // if the span is already selected select all text in the projection buffer:
-            if (span == null || (_textView.Selection.SelectedSpans.Count == 1 && _textView.Selection.SelectedSpans[0] == span.Value))
+            if (span == null || selection.SelectedSpans.Count == 1 && selection.SelectedSpans[0] == span.Value)
             {
-                span = new SnapshotSpan(TextBuffer.CurrentSnapshot, new Span(0, TextBuffer.CurrentSnapshot.Length));
+                var currentSnapshot = TextBuffer.CurrentSnapshot;
+                span = new SnapshotSpan(currentSnapshot, new Span(0, currentSnapshot.Length));
             }
 
             UIThread(uiOnly => _textView.Selection.Select(span.Value, isReversed: false));
+        }
+
+        private bool ReportAndPropagateException(Exception e)
+        {
+            FatalError.ReportWithoutCrashUnlessCanceled(e); // Drop return value.
+
+            ((IInteractiveWindow)this).WriteErrorLine(InteractiveWindowResources.InternalError);
+
+            return false; // Never consider the exception handled.
         }
 
         /// <summary>
@@ -449,67 +504,85 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// </summary>
         private SnapshotSpan? GetContainingRegion(SnapshotPoint point)
         {
-            int closestPrecedingPrimaryPromptIndex;
-            ReplSpan projectionSpan = GetClosestPrecedingInputSpan(point, out closestPrecedingPrimaryPromptIndex);
-            if (projectionSpan == null)
+            var sourceSpans = GetSourceSpans(point.Snapshot);
+            int promptIndex = GetPromptIndexForPoint(sourceSpans, point);
+            if (promptIndex < 0)
             {
                 return null;
             }
 
-            var inputSnapshot = projectionSpan.TrackingSpan.TextBuffer.CurrentSnapshot;
+            // Grab the span following the prompt (either language or standard input).
+            var projectionSpan = sourceSpans[promptIndex + 1];
+            var inputSnapshot = projectionSpan.Snapshot;
+            var kind = GetSpanKind(projectionSpan);
+
+            Debug.Assert(kind == ReplSpanKind.Language || kind == ReplSpanKind.StandardInput);
 
             // Language input block is a projection of the entire snapshot;
             // std input block is a projection of a single span:
-            SnapshotPoint inputBufferEnd = (projectionSpan.Kind == ReplSpanKind.Language) ?
+            SnapshotPoint inputBufferEnd = (kind == ReplSpanKind.Language) ?
                 new SnapshotPoint(inputSnapshot, inputSnapshot.Length) :
-                projectionSpan.TrackingSpan.GetEndPoint(inputSnapshot);
+                projectionSpan.End;
 
-            SnapshotPoint projectedInputBufferEnd = _textView.BufferGraph.MapUpToBuffer(
+            var bufferGraph = _textView.BufferGraph;
+            var textBuffer = TextBuffer;
+
+            SnapshotPoint projectedInputBufferEnd = bufferGraph.MapUpToBuffer(
                 inputBufferEnd,
                 PointTrackingMode.Positive,
                 PositionAffinity.Predecessor,
-                TextBuffer).Value;
+                textBuffer).Value;
 
             // point is between the primary prompt (including) and the last character of the corresponding language/stdin buffer:
             if (point <= projectedInputBufferEnd)
             {
-                var projectedLanguageBufferStart = _textView.BufferGraph.MapUpToBuffer(
+                var projectedLanguageBufferStart = bufferGraph.MapUpToBuffer(
                     new SnapshotPoint(inputSnapshot, 0),
                     PointTrackingMode.Positive,
                     PositionAffinity.Successor,
-                    TextBuffer).Value;
+                    textBuffer).Value;
 
-                var promptProjectionSpan = _projectionSpans[_promptLineMapping[closestPrecedingPrimaryPromptIndex].Value];
+                var promptProjectionSpan = sourceSpans[promptIndex];
                 if (point < projectedLanguageBufferStart - promptProjectionSpan.Length)
                 {
                     // cursor is before the first language buffer:
-                    return new SnapshotSpan(new SnapshotPoint(TextBuffer.CurrentSnapshot, 0), projectedLanguageBufferStart - promptProjectionSpan.Length);
+                    return new SnapshotSpan(new SnapshotPoint(textBuffer.CurrentSnapshot, 0), projectedLanguageBufferStart - promptProjectionSpan.Length);
                 }
 
                 // cursor is within the language buffer:
                 return new SnapshotSpan(projectedLanguageBufferStart, projectedInputBufferEnd);
             }
 
-            // this was the last primary/stdin prompt - select the part of the projection buffer behind the end of the language/stdin buffer:
-            if (closestPrecedingPrimaryPromptIndex + 1 == _promptLineMapping.Count)
+            int nextPromptIndex = -1;
+            for (int i = promptIndex + 1; i < sourceSpans.Count; i++)
             {
-                return new SnapshotSpan(
-                    projectedInputBufferEnd,
-                    new SnapshotPoint(TextBuffer.CurrentSnapshot, TextBuffer.CurrentSnapshot.Length));
+                if (IsPrompt(sourceSpans[i]))
+                {
+                    nextPromptIndex = i;
+                    break;
+                }
             }
 
-            ReplSpan lastSpanBeforeNextPrompt = _projectionSpans[_promptLineMapping[closestPrecedingPrimaryPromptIndex + 1].Value - 1];
-            Debug.Assert(lastSpanBeforeNextPrompt.Kind == ReplSpanKind.Output);
+            // this was the last primary/stdin prompt - select the part of the projection buffer behind the end of the language/stdin buffer:
+            if (nextPromptIndex < 0)
+            {
+                var currentSnapshot = textBuffer.CurrentSnapshot;
+                return new SnapshotSpan(
+                    projectedInputBufferEnd,
+                    new SnapshotPoint(currentSnapshot, currentSnapshot.Length));
+            }
+
+            var lastSpanBeforeNextPrompt = sourceSpans[nextPromptIndex - 1];
+            Debug.Assert(GetSpanKind(lastSpanBeforeNextPrompt) == ReplSpanKind.Output);
 
             // select all text in between the language buffer and the next prompt:
-            var trackingSpan = lastSpanBeforeNextPrompt.TrackingSpan;
             return new SnapshotSpan(
                 projectedInputBufferEnd,
-                _textView.BufferGraph.MapUpToBuffer(
-                    trackingSpan.GetEndPoint(trackingSpan.TextBuffer.CurrentSnapshot),
+                bufferGraph.MapUpToBuffer(
+                    lastSpanBeforeNextPrompt.End,
                     PointTrackingMode.Positive,
                     PositionAffinity.Predecessor,
-                    TextBuffer).Value);
+                    textBuffer).Value);
         }
 
         /// <summary>
@@ -527,10 +600,17 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             var caretLine = caretPosition.GetContainingLine();
             var indentation = _smartIndenterService.GetDesiredIndentation(_textView, caretLine);
 
-            if (indentation.HasValue)
+            // When the user submits via ctrl-enter, the indenter service sometimes
+            // gets confused and maps the subject position after the last newline in
+            // a language buffer to the location *before* the next prompt in the
+            // surface buffer.  When this happens, indentation will be 0.  Fortunately,
+            // no indentation is required in such cases, so we can just do nothing.
+            if (indentation != null && indentation != 0)
             {
-                var promptSpan = _projectionSpans[_promptLineMapping[_promptLineMapping.GetMappingIndexByLineNumber(caretLine.LineNumber)].Value];
-                Debug.Assert(promptSpan.Kind == ReplSpanKind.Prompt || promptSpan.Kind == ReplSpanKind.SecondaryPrompt || promptSpan.Kind == ReplSpanKind.StandardInputPrompt);
+                var sourceSpans = GetSourceSpans(caretPosition.Snapshot);
+                var promptIndex = GetPromptIndexForPoint(sourceSpans, caretPosition);
+                var promptSpan = sourceSpans[promptIndex];
+                Debug.Assert(IsPrompt(promptSpan));
                 int promptLength = promptSpan.Length;
                 Debug.Assert(promptLength == 2 || promptLength == 0); // Not required, just expected.
                 var adjustedIndentationValue = indentation.GetValueOrDefault() - promptLength;
@@ -634,12 +714,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             point.Value.Snapshot.TextBuffer.Delete(new Span(point.Value.Position - characterSize, characterSize));
 
-            UIThread(uiOnly =>
-            {
-                // scroll to the line being edited:
-                SnapshotPoint caretPosition = _textView.Caret.Position.BufferPosition;
-                _textView.ViewScroller.EnsureSpanVisible(new SnapshotSpan(caretPosition.Snapshot, caretPosition, 0));
-            });
+            UIThread(uiOnly => uiOnly.ScrollToCaret());
         }
 
         private void CutOrDeleteCurrentLine(bool isCut)
@@ -708,6 +783,87 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 data.SetText(deletedText.ToString());
                 Clipboard.SetDataObject(data, true);
             }
+        }
+
+        /// <summary>
+        /// Copy the entire selection to the clipboard for RTF format and
+        /// copy the selection minus any prompt text for other formats.
+        /// That allows paste into code editors of just the code and
+        /// paste of the entire content for editors that support RTF.
+        /// </summary>
+        private void CopySelection()
+        {
+            var spans = GetSelectionSpans(_textView);
+            var data = Copy(spans);
+            Clipboard.SetDataObject(data, true);
+        }
+
+        private static NormalizedSnapshotSpanCollection GetSelectionSpans(ITextView textView)
+        {
+            var selection = textView.Selection;
+            if (selection.IsEmpty)
+            {
+                // Use the current line as the selection.
+                var snapshotLine = textView.Caret.Position.VirtualBufferPosition.Position.GetContainingLine();
+                var span = new SnapshotSpan(snapshotLine.Start, snapshotLine.LengthIncludingLineBreak);
+                return new NormalizedSnapshotSpanCollection(span);
+            }
+            return selection.SelectedSpans;
+        }
+
+        private DataObject Copy(NormalizedSnapshotSpanCollection spans)
+        {
+            var text = spans.Aggregate(new StringBuilder(), GetTextWithoutPrompts, b => b.ToString());
+            var rtf = _rtfBuilderService.GenerateRtf(spans, _textView);
+            var data = new DataObject();
+            data.SetData(DataFormats.StringFormat, text);
+            data.SetData(DataFormats.Text, text);
+            data.SetData(DataFormats.UnicodeText, text);
+            data.SetData(DataFormats.Rtf, rtf);
+            return data;
+        }
+
+        private StringBuilder GetTextWithoutPrompts(StringBuilder builder, SnapshotSpan span)
+        {
+            // Find the range of source spans that cover the span.
+            var sourceSpans = GetSourceSpans(span.Snapshot);
+            int n = sourceSpans.Count;
+            int index = GetSourceSpanIndex(sourceSpans, span.Start);
+            if (index == n)
+            {
+                index--;
+            }
+
+            // Add the text for all non-prompt spans within the range.
+            for (; index < n; index++)
+            {
+                var sourceSpan = sourceSpans[index];
+                if (sourceSpan.IsEmpty)
+                {
+                    continue;
+                }
+                if (!IsPrompt(sourceSpan))
+                {
+                    var sourceSnapshot = sourceSpan.Snapshot;
+                    var mappedSpans = _textView.BufferGraph.MapDownToBuffer(span, SpanTrackingMode.EdgeExclusive, sourceSnapshot.TextBuffer);
+                    bool added = false;
+                    foreach (var mappedSpan in mappedSpans)
+                    {
+                        var intersection = sourceSpan.Span.Intersection(mappedSpan);
+                        if (intersection.HasValue)
+                        {
+                            builder.Append(sourceSnapshot.GetText(intersection.Value));
+                            added = true;
+                        }
+                    }
+                    if (!added)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            return builder;
         }
 
         private bool ReduceBoxSelectionToEditableBox(bool isDelete = true)
@@ -868,6 +1024,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             MoveCaretToClosestEditableBuffer();
         }
 
+        void IInteractiveWindowOperations2.Copy()
+        {
+            CopySelection();
+        }
+
         bool IInteractiveWindowOperations.Backspace()
         {
             bool handled = false;
@@ -937,8 +1098,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
 
                 // insert new line (triggers secondary prompt injection in buffer changed event):
-                _currentLanguageBuffer.Insert(caretPosition, LineBreak);
+                _currentLanguageBuffer.Insert(caretPosition, _lineBreakString);
                 IndentCurrentLine(_textView.Caret.Position.BufferPosition);
+                UIThread(uiOnly => uiOnly.ScrollToCaret());
 
                 return true;
             }
@@ -1182,33 +1344,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private void ClearInput()
         {
-            Debug.Assert(_projectionSpans.Count > 0);
-
-            // Finds the last primary prompt (standard input or code input).
-            // Removes all spans following the primary prompt from the projection buffer.
-            int i = _projectionSpans.Count - 1;
-            while (i >= 0)
+            if (_stdInputStart != null)
             {
-                if (_projectionSpans[i].Kind == ReplSpanKind.Prompt || _projectionSpans[i].Kind == ReplSpanKind.StandardInputPrompt)
-                {
-                    Debug.Assert(i != _projectionSpans.Count - 1);
-                    break;
-                }
-
-                i--;
+                _standardInputBuffer.Delete(Span.FromBounds(_stdInputStart.Value, _standardInputBuffer.CurrentSnapshot.Length));
             }
-
-            if (i >= 0)
+            else
             {
-                if (_projectionSpans[i].Kind != ReplSpanKind.StandardInputPrompt)
-                {
-                    _currentLanguageBuffer.Delete(new Span(0, _currentLanguageBuffer.CurrentSnapshot.Length));
-                }
-                else
-                {
-                    Debug.Assert(_stdInputStart != null);
-                    _standardInputBuffer.Delete(Span.FromBounds(_stdInputStart.Value, _standardInputBuffer.CurrentSnapshot.Length));
-                }
+                _currentLanguageBuffer.Delete(new Span(0, _currentLanguageBuffer.CurrentSnapshot.Length));
             }
         }
 
@@ -1227,10 +1369,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                 _buffer.Flush();
 
-                if (previousState == State.WaitingForInput && _projectionSpans.Count > 0 && _projectionSpans[_projectionSpans.Count - 1].Kind == ReplSpanKind.Language)
+                if (previousState == State.WaitingForInput)
                 {
-                    // we need to remove our input prompt.
-                    uiOnly.RemoveLastInputPrompt();
+                    var snapshot = _projectionBuffer.CurrentSnapshot;
+                    var spanCount = snapshot.SpanCount;
+                    if (spanCount > 0 && GetSpanKind(snapshot.GetSourceSpan(spanCount - 1)) == ReplSpanKind.Language)
+                    {
+                        // we need to remove our input prompt.
+                        uiOnly.RemoveLastInputPrompt();
+                    }
                 }
 
                 AddStandardInputSpan();
@@ -1247,17 +1394,17 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             UIThread(uiOnly =>
             {
+                var sourceSpans = _projectionBuffer.CurrentSnapshot.GetSourceSpans();
                 // if the user cleared the screen we cancelled the input, so we won't have our span here.
                 // We can also have an interleaving output span, so we'll search back for the last input span.
-                int i = uiOnly.IndexOfLastStandardInputSpan();
+                int i = uiOnly.IndexOfLastStandardInputSpan(sourceSpans);
                 if (i != -1)
                 {
                     uiOnly.RemoveProtection(_standardInputBuffer, uiOnly.StandardInputProtection);
 
                     // replace previous span w/ a span that won't grow...
-                    var newSpan = new ReplSpan(
-                        _projectionSpans[i].TrackingSpan.WithEndTrackingMode(PointTrackingMode.Negative),
-                        ReplSpanKind.StandardInput);
+                    var oldSpan = sourceSpans[i];
+                    var newSpan = new CustomTrackingSpan(oldSpan.Snapshot, oldSpan.Span, PointTrackingMode.Negative, PointTrackingMode.Negative);
 
                     uiOnly.ReplaceProjectionSpan(i, newSpan);
                     uiOnly.ApplyProtection(_standardInputBuffer, uiOnly.StandardInputProtection, allowAppend: true);
@@ -1306,9 +1453,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             _inputEvent.Set();
         }
 
-        #endregion
+#endregion
 
-        #region Output
+#region Output
 
         Span IInteractiveWindow.Write(string text)
         {
@@ -1319,8 +1466,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         public Span WriteLine(string text)
         {
             int result = _buffer.Write(text);
-            _buffer.Write(LineBreak);
-            return new Span(result, (text != null ? text.Length : 0) + LineBreak.Length);
+            _buffer.Write(_lineBreakString);
+            return new Span(result, (text != null ? text.Length : 0) + _lineBreakString.Length);
         }
 
         Span IInteractiveWindow.WriteError(string text)
@@ -1334,8 +1481,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         Span IInteractiveWindow.WriteErrorLine(string text)
         {
             int result = _buffer.Write(text);
-            _buffer.Write(LineBreak);
-            var res = new Span(result, (text != null ? text.Length : 0) + LineBreak.Length);
+            _buffer.Write(_lineBreakString);
+            var res = new Span(result, (text != null ? text.Length : 0) + _lineBreakString.Length);
             _errorOutputWriter.Spans.Add(res);
             return res;
         }
@@ -1361,9 +1508,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             Caret.EnsureVisible();
         }
 
-        #endregion
+#endregion
 
-        #region Execution
+#region Execution
 
         private bool CanExecuteActiveCode()
         {
@@ -1386,36 +1533,27 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 return false;
             }
 
+            // If this throws, VS shows a dialog.
             return _evaluator.CanExecuteCode(input);
         }
 
-        #endregion
+#endregion
 
-        #region Buffers, Spans and Prompts
-        private ReplSpan CreateStandardInputPrompt()
+#region Buffers, Spans and Prompts
+        private object CreateStandardInputPrompt()
         {
-            return CreatePrompt(string.Empty, ReplSpanKind.StandardInputPrompt);
+            return string.Empty;
         }
 
-        private ReplSpan CreatePrimaryPrompt()
+        private object CreatePrimaryPrompt()
         {
-            return CreatePrompt(_evaluator.GetPrompt(), ReplSpanKind.Prompt);
+            return _evaluator.GetPrompt();
         }
 
-        private ReplSpan CreatePrompt(string prompt, ReplSpanKind promptKind)
-        {
-            Debug.Assert(promptKind == ReplSpanKind.Prompt || promptKind == ReplSpanKind.StandardInputPrompt || promptKind == ReplSpanKind.SecondaryPrompt);
-
-            var lastLine = GetLastLine();
-            _promptLineMapping.Add(lastLine.LineNumber, _projectionSpans.Count);
-
-            return new ReplSpan(prompt, promptKind);
-        }
-
-        private ReplSpan CreateSecondaryPrompt()
+        private object CreateSecondaryPrompt()
         {
             // TODO (crwilcox) format prompt used to get a blank here but now gets "> " from get prompt.
-            return CreatePrompt(_evaluator.GetPrompt(), ReplSpanKind.SecondaryPrompt);
+            return _evaluator.GetPrompt();
         }
 
         /// <summary>
@@ -1425,59 +1563,136 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             Debug.Assert(endLine > startLine);
 
-            var promptSpanIndex = GetProjectionSpanIndexFromEditableBufferPosition(_projectionBuffer.CurrentSnapshot, _projectionSpans.Count, startLine) - 1;
-            Debug.Assert(_projectionSpans[promptSpanIndex].Kind.IsPrompt());
+            var projectionSnapshot = _projectionBuffer.CurrentSnapshot;
+            var sourceSpans = projectionSnapshot.GetSourceSpans();
+            var promptSpanIndex = GetProjectionSpanIndexFromEditableBufferPosition(projectionSnapshot, sourceSpans.Count, startLine) - 1;
+            var promptSpan = sourceSpans[promptSpanIndex];
+            Debug.Assert(IsPrompt(promptSpan));
 
-            var promptSpan = _projectionSpans[promptSpanIndex];
             minPromptLength = maxPromptLength = promptSpan.Length;
         }
 
-        /// <summary>
-        /// Returns <see cref="ReplSpan"/> representing the closest language or stdin span preceding given point.
-        /// </summary>
-        /// <param name="point">Snapshot point.</param>
-        /// <param name="primaryPromptIndex">
-        /// The index to <see cref="_promptLineMapping"/> of the primary prompt corresponding to the returned input span.
-        /// </param>
-        private ReplSpan GetClosestPrecedingInputSpan(SnapshotPoint point, out int primaryPromptIndex)
+        private ReplSpanKind GetSpanKind(SnapshotSpan span)
         {
-            if (_projectionSpans.Count == 0 || _promptLineMapping.Count == 0 || _promptLineMapping.IsInconsistentWithProjections)
+            var textBuffer = span.Snapshot.TextBuffer;
+            if (textBuffer == _outputBuffer)
             {
-                primaryPromptIndex = -1;
-                return null;
+                return ReplSpanKind.Output;
+            }
+            if (textBuffer == _standardInputBuffer)
+            {
+                return ReplSpanKind.StandardInput;
+            }
+            if (textBuffer.ContentType == _inertType)
+            {
+                return (span.Length == _lineBreakString.Length) && string.Equals(span.GetText(), _lineBreakString) ?
+                    ReplSpanKind.LineBreak :
+                    ReplSpanKind.Prompt;
+            }
+            return ReplSpanKind.Language;
+        }
+
+        private bool IsPrompt(SnapshotSpan span)
+        {
+            return GetSpanKind(span) == ReplSpanKind.Prompt;
+        }
+
+        private static ReadOnlyCollection<SnapshotSpan> GetSourceSpans(ITextSnapshot snapshot)
+        {
+            return ((IProjectionSnapshot)snapshot).GetSourceSpans();
+        }
+
+        private int GetPromptIndexForPoint(ReadOnlyCollection<SnapshotSpan> sourceSpans, SnapshotPoint point)
+        {
+            int index = GetSourceSpanIndex(sourceSpans, point);
+            if (index == sourceSpans.Count)
+            {
+                index--;
+            }
+            // Find the nearest preceding prompt.
+            while (!IsPrompt(sourceSpans[index]))
+            {
+                index--;
+            }
+            return index;
+        }
+
+        /// <summary>
+        /// Return the index of the span containing the point. Returns the
+        /// length of the collection if the point is at the end of the last span.
+        /// </summary>
+        private int GetSourceSpanIndex(ReadOnlyCollection<SnapshotSpan> sourceSpans, SnapshotPoint point)
+        {
+            int low = 0;
+            int high = sourceSpans.Count;
+            while (low < high)
+            {
+                int mid = low + (high - low) / 2;
+                int value = CompareToSpan(_textView, sourceSpans, mid, point);
+                if (value == 0)
+                {
+                    return mid;
+                }
+                else if (value < 0)
+                {
+                    high = mid - 1;
+                }
+                else
+                {
+                    low = mid + 1;
+                }
+            }
+            Debug.Assert(low >= 0);
+            Debug.Assert(low <= sourceSpans.Count);
+            return low;
+        }
+
+        /// <summary>
+        /// Returns negative value if the point is less than the span start,
+        /// positive if greater than or equal to the span end, and 0 otherwise.
+        /// </summary>
+        private static int CompareToSpan(ITextView textView, ReadOnlyCollection<SnapshotSpan> sourceSpans, int index, SnapshotPoint point)
+        {
+            // If this span is zero-width and there are multiple projections of the
+            // containing snapshot in the projection buffer, MapUpToBuffer will return
+            // multiple (ambiguous) projection spans. To avoid that, we compare the
+            // point to the end point of the nearest non-zero width span instead.
+            int indexToCompare = index;
+            while (sourceSpans[indexToCompare].IsEmpty)
+            {
+                if (indexToCompare == 0)
+                {
+                    // Empty span at start of buffer. Point
+                    // must be to the right of span.
+                    return 1;
+                }
+                indexToCompare--;
             }
 
-            primaryPromptIndex = _promptLineMapping.GetMappingIndexByLineNumber(point.GetContainingLine().LineNumber);
-            ReplSpan result = _projectionSpans[_promptLineMapping[primaryPromptIndex].Value + 1];
-            Debug.Assert(result.Kind == ReplSpanKind.Language || result.Kind == ReplSpanKind.StandardInput);
-            return result;
-        }
+            var sourceSpan = sourceSpans[indexToCompare];
+            Debug.Assert(sourceSpan.Length > 0);
 
-        /// <summary>
-        /// Creates the language span for the last line of the active input.  This span
-        /// is effectively edge inclusive so it will grow as the user types at the end.
-        /// </summary>
-        private CustomTrackingSpan CreateLanguageTrackingSpan(Span span)
-        {
-            return new CustomTrackingSpan(
-                _currentLanguageBuffer.CurrentSnapshot,
-                span,
-                PointTrackingMode.Negative,
-                PointTrackingMode.Positive);
-        }
+            var mappedSpans = textView.BufferGraph.MapUpToBuffer(sourceSpan, SpanTrackingMode.EdgeInclusive, textView.TextBuffer);
+            Debug.Assert(mappedSpans.Count == 1);
 
-        /// <summary>
-        /// Creates the tracking span for a line previous in the input.  This span
-        /// is negative tracking on the end so when the user types at the beginning of
-        /// the next line we don't grow with the change.
-        /// </summary>
-        private CustomTrackingSpan CreateNonGrowingLanguageTrackingSpan(Span span)
-        {
-            return new CustomTrackingSpan(
-                _currentLanguageBuffer.CurrentSnapshot,
-                span,
-                PointTrackingMode.Negative,
-                PointTrackingMode.Negative);
+            var mappedSpan = mappedSpans[0];
+            Debug.Assert(mappedSpan.Length == sourceSpan.Length);
+
+            if (indexToCompare < index)
+            {
+                var result = point.CompareTo(mappedSpan.End);
+                return (result == 0) ? 1 : result;
+            }
+            else
+            {
+                var result = point.CompareTo(mappedSpan.Start);
+                if (result <= 0)
+                {
+                    return result;
+                }
+                result = point.CompareTo(mappedSpan.End);
+                return (result < 0) ? 0 : 1;
+            }
         }
 
         /// <summary>
@@ -1485,16 +1700,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// </summary>
         private void AddStandardInputSpan()
         {
-            ReplSpan promptSpan = CreateStandardInputPrompt();
-
-            var stdInputSpan = new CustomTrackingSpan(
-                _standardInputBuffer.CurrentSnapshot,
-                new Span(_standardInputBuffer.CurrentSnapshot.Length, 0),
+            var promptSpan = CreateStandardInputPrompt();
+            var currentSnapshot = _standardInputBuffer.CurrentSnapshot;
+            var inputSpan = new CustomTrackingSpan(
+                currentSnapshot,
+                new Span(currentSnapshot.Length, 0),
                 PointTrackingMode.Negative,
                 PointTrackingMode.Positive);
-
-            ReplSpan inputSpan = new ReplSpan(stdInputSpan, ReplSpanKind.StandardInput);
-
             AppendProjectionSpans(promptSpan, inputSpan);
         }
 
@@ -1505,13 +1717,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         private struct SpanRangeEdit
         {
             public readonly int Start;
-            public readonly int Count;
-            public readonly ReplSpan[] Replacement;
+            public readonly int End;
+            public readonly object[] Replacement;
 
-            public SpanRangeEdit(int start, int count, ReplSpan[] replacement)
+            public SpanRangeEdit(int start, int count, object[] replacement)
             {
                 Start = start;
-                Count = count;
+                End = start + count;
                 Replacement = replacement;
             }
         }
@@ -1525,7 +1737,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             // the last source snapshot is always a projection of a language buffer:
-            var snapshot = projectionSnapshot.GetSourceSpans(projectionSnapshot.SpanCount - 1, 1)[0].Snapshot;
+            var snapshot = projectionSnapshot.GetSourceSpan(projectionSnapshot.SpanCount - 1).Snapshot;
             if (snapshot.TextBuffer != _currentLanguageBuffer)
             {
                 result = default(Span);
@@ -1570,7 +1782,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             List<SpanRangeEdit> spanEdits = null;
-            int oldProjectionSpanCount = _projectionSpans.Count;
+            var oldProjectionSpans = oldSnapshot.GetSourceSpans();
+            int oldProjectionSpanCount = oldProjectionSpans.Count;
 
             // changes are sorted by position
             foreach (var change in e.Changes)
@@ -1586,8 +1799,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     continue;
                 }
 
-                var oldSurfaceStartLineNumber = e.Before.GetLineNumberFromPosition(oldSurfaceIntersection.Start);
-                var oldSurfaceEndLineNumber = e.Before.GetLineNumberFromPosition(oldSurfaceIntersection.End);
+                var oldSurfaceStartLineNumber = oldSnapshot.GetLineNumberFromPosition(oldSurfaceIntersection.Start);
+                var oldSurfaceEndLineNumber = oldSnapshot.GetLineNumberFromPosition(oldSurfaceIntersection.End);
 
                 // The change doesn't include line breaks and is entirely within the current
                 // language buffer. Note that we might need to proceed with span replacement even if
@@ -1602,8 +1815,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
 
                 // calculate which prompts and language projection spans to remove and replace with new spans:
-                int oldStartSpanIndex = GetProjectionSpanIndexFromEditableBufferPosition(e.Before, oldProjectionSpanCount, oldSurfaceStartLineNumber);
-                int oldEndSpanIndex = GetProjectionSpanIndexFromEditableBufferPosition(e.Before, oldProjectionSpanCount, oldSurfaceEndLineNumber);
+                int oldStartSpanIndex = GetProjectionSpanIndexFromEditableBufferPosition(oldSnapshot, oldProjectionSpanCount, oldSurfaceStartLineNumber);
+                int oldEndSpanIndex = GetProjectionSpanIndexFromEditableBufferPosition(oldSnapshot, oldProjectionSpanCount, oldSurfaceEndLineNumber);
 
                 int spansToReplace = oldEndSpanIndex - oldStartSpanIndex + 1;
                 Debug.Assert(spansToReplace >= 1);
@@ -1611,9 +1824,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 var newSubjectStartLine = newSnapshot.MapToSourceSnapshot(newSurfaceIntersection.Start).GetContainingLine();
                 var newSubjectEndLine = newSnapshot.MapToSourceSnapshot(newSurfaceIntersection.End).GetContainingLine();
 
+                var newSubjectEndLineNumber = newSubjectEndLine.LineNumber;
+
                 int i = 0;
-                int lineBreakCount = newSubjectEndLine.LineNumber - newSubjectStartLine.LineNumber;
-                var newSpans = new ReplSpan[lineBreakCount * SpansPerLineOfInput + 1];
+                int lineBreakCount = newSubjectEndLineNumber - newSubjectStartLine.LineNumber;
+                var newSpans = new object[lineBreakCount * SpansPerLineOfInput + 1];
 
                 var subjectLine = newSubjectStartLine;
                 while (true)
@@ -1625,7 +1840,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     }
 
                     newSpans[i++] = CreateLanguageSpanForLine(subjectLine);
-                    if (subjectLine.LineNumber == newSubjectEndLine.LineNumber)
+
+                    if (subjectLine.LineNumber == newSubjectEndLineNumber)
                     {
                         break;
                     }
@@ -1634,6 +1850,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
 
                 Debug.Assert(i == newSpans.Length);
+
                 if (spanEdits == null)
                 {
                     spanEdits = new List<SpanRangeEdit>();
@@ -1644,30 +1861,37 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             if (spanEdits != null)
             {
-                ReplaceProjectionSpans(spanEdits);
+                ReplaceProjectionSpans(oldProjectionSpans, spanEdits);
             }
+
+            CheckProjectionSpans();
         }
 
-        private int GetProjectionSpanIndexFromEditableBufferPosition(ITextSnapshot surfaceSnapshot, int projectionSpansCount, int surfaceLineNumber)
+        /// <remarks>
+        /// This should only be called from within the current language buffer.  If there are
+        /// any output or standard input buffers between the specified line and the end of the
+        /// surface buffer, then the result will be incorrect.
+        /// </remarks>
+        private int GetProjectionSpanIndexFromEditableBufferPosition(IProjectionSnapshot surfaceSnapshot, int projectionSpansCount, int surfaceLineNumber)
         {
             // The current language buffer is projected to a set of projections interleaved regularly by prompt projections 
             // and ending at the end of the projection buffer, each language buffer projection is on a separate line:
             //   [prompt)[language)...[prompt)[language)<end of projection buffer>
             int result = projectionSpansCount - (surfaceSnapshot.LineCount - surfaceLineNumber) * SpansPerLineOfInput + 1;
-            Debug.Assert(_projectionSpans[result].Kind == ReplSpanKind.Language);
+            Debug.Assert(GetSpanKind(surfaceSnapshot.GetSourceSpan(result)) == ReplSpanKind.Language);
             return result;
         }
 
-        private void ReplaceProjectionSpans(List<SpanRangeEdit> spanEdits)
+        private void ReplaceProjectionSpans(ReadOnlyCollection<SnapshotSpan> oldProjectionSpans, List<SpanRangeEdit> spanEdits)
         {
             Debug.Assert(spanEdits.Count > 0);
 
-            int start = spanEdits.First().Start;
-            int end = spanEdits.Last().Start + spanEdits.Last().Count;
+            int start = spanEdits[0].Start;
+            int end = spanEdits[spanEdits.Count - 1].End;
 
-            var replacement = new List<ReplSpan>();
+            var replacement = new List<object>();
             replacement.AddRange(spanEdits[0].Replacement);
-            int lastEnd = start + spanEdits[0].Count;
+            int lastEnd = spanEdits[0].End;
 
             for (int i = 1; i < spanEdits.Count; i++)
             {
@@ -1687,80 +1911,102 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
                 else
                 {
-                    replacement.AddRange(_projectionSpans.Skip(lastEnd).Take(gap));
+                    replacement.AddRange(oldProjectionSpans.Skip(lastEnd).Take(gap).Select(CreateTrackingSpan));
                     replacement.AddRange(edit.Replacement);
                 }
 
-                lastEnd = edit.Start + edit.Count;
+                lastEnd = edit.End;
             }
 
-            ReplaceProjectionSpans(start, end - start, replacement);
+            _projectionBuffer.ReplaceSpans(start, end - start, replacement, EditOptions.None, s_suppressPromptInjectionTag);
         }
 
-        private ReplSpan CreateLanguageSpanForLine(ITextSnapshotLine languageLine)
+        private object CreateTrackingSpan(SnapshotSpan snapshotSpan)
         {
-            CustomTrackingSpan languageSpan;
-            if (languageLine.LineNumber == languageLine.Snapshot.LineCount - 1)
+            var snapshot = snapshotSpan.Snapshot;
+            if (snapshot.ContentType == _inertType)
             {
-                languageSpan = CreateLanguageTrackingSpan(languageLine.ExtentIncludingLineBreak);
+                return snapshotSpan.GetText();
             }
-            else
-            {
-                languageSpan = CreateNonGrowingLanguageTrackingSpan(languageLine.ExtentIncludingLineBreak);
-            }
+            return new CustomTrackingSpan(snapshot, snapshotSpan.Span, PointTrackingMode.Negative, PointTrackingMode.Negative);
+        }
 
-            return new ReplSpan(languageSpan, ReplSpanKind.Language);
+        private ITrackingSpan CreateLanguageSpanForLine(ITextSnapshotLine languageLine)
+        {
+            var span = languageLine.ExtentIncludingLineBreak;
+            bool lastLine = (languageLine.LineNumber == languageLine.Snapshot.LineCount - 1);
+            return new CustomTrackingSpan(
+                _currentLanguageBuffer.CurrentSnapshot,
+                span,
+                PointTrackingMode.Negative,
+                lastLine ? PointTrackingMode.Positive : PointTrackingMode.Negative);
         }
 
         private void AppendLineNoPromptInjection(ITextBuffer buffer)
         {
             using (var edit = buffer.CreateEdit(EditOptions.None, null, s_suppressPromptInjectionTag))
             {
-                edit.Insert(buffer.CurrentSnapshot.Length, LineBreak);
+                edit.Insert(buffer.CurrentSnapshot.Length, _lineBreakString);
                 edit.Apply();
             }
         }
 
-        // WARNING: When updating projection spans we need to update _projectionSpans list first and 
-        // then projection buffer, since the projection buffer update might trigger events that might 
-        // access the projection spans.
-
-        private int AppendProjectionSpans(ReplSpan span1, ReplSpan span2)
+        private void AppendProjectionSpans(object span1, object span2)
         {
-            int index = _projectionSpans.Count;
-            InsertProjectionSpans(index, span1, span2);
-            return index;
+            int index = _projectionBuffer.CurrentSnapshot.SpanCount;
+            _projectionBuffer.ReplaceSpans(index, 0, new[] { span1, span2 }, EditOptions.None, editTag: s_suppressPromptInjectionTag);
         }
 
-        private void InsertProjectionSpans(int index, ReplSpan span1, ReplSpan span2)
+        // Verify spans and GetSourceSpanIndex.
+        [Conditional("DEBUG")]
+        private void CheckProjectionSpans()
         {
-            _projectionSpans.Insert(index, span1);
-            _projectionSpans.Insert(index + 1, span2);
-            _projectionBuffer.ReplaceSpans(index, 0, new[] { span1.Span, span2.Span }, EditOptions.None, editTag: s_suppressPromptInjectionTag);
-        }
+            var snapshot = _projectionBuffer.CurrentSnapshot;
+            var sourceSpans = snapshot.GetSourceSpans();
+            int n = sourceSpans.Count;
 
-        private void ReplaceProjectionSpans(int position, int count, IList<ReplSpan> newSpans)
-        {
-            _projectionSpans.RemoveRange(position, count);
-            _projectionSpans.InsertRange(position, newSpans);
-
-            object[] trackingSpans = new object[newSpans.Count];
-            for (int i = 0; i < trackingSpans.Length; i++)
+            // Spans should be contiguous and span the entire buffer.
+            int offset = 0;
+            for (int i = 0; i < n; i++)
             {
-                trackingSpans[i] = newSpans[i].Span;
+                // Determine the index of the first non-zero width
+                // span starting at the same point as current span.
+                int expectedIndex = i;
+                while (sourceSpans[expectedIndex].IsEmpty)
+                {
+                    expectedIndex++;
+                    if (expectedIndex == n)
+                    {
+                        break;
+                    }
+                }
+                // Verify GetSourceSpanIndex returns the expected
+                // index for the start of the span.
+                int index = GetSourceSpanIndex(sourceSpans, new SnapshotPoint(snapshot, offset));
+                Debug.Assert(index == expectedIndex);
+                // If this is a non-empty span, verify GetSourceSpanIndex
+                // returns the index for the midpoint of the span.
+                int length = sourceSpans[i].Length;
+                if (length > 0)
+                {
+                    index = GetSourceSpanIndex(sourceSpans, new SnapshotPoint(snapshot, offset + length / 2));
+                    Debug.Assert(index == i);
+                }
+                offset += length;
             }
 
-            _projectionBuffer.ReplaceSpans(position, count, trackingSpans, EditOptions.None, s_suppressPromptInjectionTag);
+            Debug.Assert(offset == snapshot.Length);
+
+            if (n > 0)
+            {
+                int index = GetSourceSpanIndex(sourceSpans, new SnapshotPoint(snapshot, snapshot.Length));
+                Debug.Assert(index == n);
+            }
         }
 
-        #endregion
+#endregion
 
-        #region Editor Helpers
-
-        private ITextSnapshotLine GetLastLine()
-        {
-            return GetLastLine(TextBuffer.CurrentSnapshot);
-        }
+#region Editor Helpers
 
         private static ITextSnapshotLine GetLastLine(ITextSnapshot snapshot)
         {
@@ -1827,12 +2073,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
             }
 
-            private int IndexOfEditableBuffer(ReadOnlyCollection<SnapshotPoint> sourceInsertionPoints)
+            private int IndexOfEditableBuffer(ReadOnlyCollection<SnapshotPoint> points)
             {
-                for (int i = sourceInsertionPoints.Count - 1; i >= 0; i--)
+                for (int i = points.Count - 1; i >= 0; i--)
                 {
-                    var insertionBuffer = sourceInsertionPoints[i].Snapshot.TextBuffer;
-                    if (insertionBuffer == _window._currentLanguageBuffer || insertionBuffer == _window._standardInputBuffer)
+                    if (IsEditableBuffer(points[i].Snapshot.TextBuffer))
                     {
                         return i;
                     }
@@ -1841,24 +2086,28 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 return -1;
             }
 
-            private int IndexOfEditableBuffer(ReadOnlyCollection<SnapshotSpan> sourceInsertionPoints)
+            private int IndexOfEditableBuffer(ReadOnlyCollection<SnapshotSpan> spans)
             {
-                for (int i = sourceInsertionPoints.Count - 1; i >= 0; i--)
+                for (int i = spans.Count - 1; i >= 0; i--)
                 {
-                    var insertionBuffer = sourceInsertionPoints[i].Snapshot.TextBuffer;
-                    if (insertionBuffer == _window._currentLanguageBuffer || insertionBuffer == _window._standardInputBuffer)
+                    if (IsEditableBuffer(spans[i].Snapshot.TextBuffer))
                     {
                         return i;
                     }
                 }
 
                 return -1;
+            }
+
+            private bool IsEditableBuffer(ITextBuffer buffer)
+            {
+                return buffer == _window._currentLanguageBuffer || buffer == _window._standardInputBuffer;
             }
         }
 
-        #endregion
+#endregion
 
-        #region UI Dispatcher Helpers
+#region UI Dispatcher Helpers
 
         private Dispatcher Dispatcher => ((FrameworkElement)_textView).Dispatcher;
 
@@ -1915,14 +2164,20 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             Dispatcher.PushFrame(frame);
         }
 
-        #endregion
+#endregion
 
-        #region Testing
-
-        internal List<ReplSpan> ProjectionSpans => _projectionSpans;
+#region Testing
 
         internal event Action<State> StateChanged;
 
-        #endregion
+#endregion
+    }
+
+    internal static class ProjectionBufferExtensions
+    {
+        internal static SnapshotSpan GetSourceSpan(this IProjectionSnapshot snapshot, int index)
+        {
+            return snapshot.GetSourceSpans(index, 1)[0];
+        }
     }
 }

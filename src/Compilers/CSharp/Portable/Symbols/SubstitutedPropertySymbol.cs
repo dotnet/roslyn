@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if ((object)_lazyType == null)
                 {
-                    Interlocked.CompareExchange(ref _lazyType, _containingType.TypeSubstitution.SubstituteType(_originalDefinition.Type), null);
+                    Interlocked.CompareExchange(ref _lazyType, _containingType.TypeSubstitution.SubstituteType(_originalDefinition.Type).Type, null);
                 }
 
                 return _lazyType;
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<CustomModifier> TypeCustomModifiers
         {
-            get { return _originalDefinition.TypeCustomModifiers; }
+            get { return _containingType.TypeSubstitution.SubstituteCustomModifiers(_originalDefinition.Type, _originalDefinition.TypeCustomModifiers); }
         }
 
         public override ImmutableArray<ParameterSymbol> Parameters

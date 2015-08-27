@@ -4255,6 +4255,210 @@ public struct Subject<T>
 
             Test(input, expected)
         End Sub
+
+        <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub CSharp_DoNotRemove_NecessaryCastFromShortToUShort()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    int M(short x)
+    {
+        return {|Simplify:(ushort)x|};
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+class C
+{
+    int M(short x)
+    {
+        return (ushort)x;
+    }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub CSharp_DoNotRemove_NecessaryCastFromSByteToByte()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    int M(sbyte x)
+    {
+        return {|Simplify:(byte)x|};
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+class C
+{
+    int M(sbyte x)
+    {
+        return (byte)x;
+    }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub CSharp_DoNotRemove_NecessaryCastFromIntToUInt()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    long M(int x)
+    {
+        return {|Simplify:(uint)x|};
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+class C
+{
+    long M(int x)
+    {
+        return (uint)x;
+    }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub CSharp_Remove_UnnecessaryCastFromSByteToShort()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    int M(sbyte x)
+    {
+        return {|Simplify:(short)x|};
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+class C
+{
+    int M(sbyte x)
+    {
+        return x;
+    }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub CSharp_Remove_UnnecessaryCastFromByteToUShort()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    int M(byte x)
+    {
+        return {|Simplify:(ushort)x|};
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+class C
+{
+    int M(byte x)
+    {
+        return x;
+    }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub CSharp_Remove_UnnecessaryCastFromUShortToUInt()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    long M(ushort x)
+    {
+        return {|Simplify:(uint)x|};
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+class C
+{
+    long M(ushort x)
+    {
+        return x;
+    }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
 #End Region
 
 #Region "Visual Basic tests"

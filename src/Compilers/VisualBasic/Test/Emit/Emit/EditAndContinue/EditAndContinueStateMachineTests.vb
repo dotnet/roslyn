@@ -40,8 +40,8 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=TestOptions.DebugDll)
-            Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(source1, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(source1, references:=LatestVbReferences, options:=TestOptions.DebugDll)
 
             Dim bytes0 = compilation0.EmitToArray()
             Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
@@ -391,8 +391,8 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=TestOptions.DebugDll)
-            Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(source1, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(source1, references:=LatestVbReferences, options:=TestOptions.DebugDll)
 
             Dim bytes0 = compilation0.EmitToArray()
             Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
@@ -713,8 +713,8 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=TestOptions.DebugDll)
-            Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(source1, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(source1, references:=LatestVbReferences, options:=TestOptions.DebugDll)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
 
@@ -817,8 +817,8 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=TestOptions.DebugDll)
-            Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(source1, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(source1, references:=LatestVbReferences, options:=TestOptions.DebugDll)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
 
@@ -892,8 +892,8 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=TestOptions.DebugDll)
-            Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(source1, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(source1, references:=LatestVbReferences, options:=TestOptions.DebugDll)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
 
@@ -939,8 +939,8 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=TestOptions.DebugDll)
-            Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(source1, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(source1, references:=LatestVbReferences, options:=TestOptions.DebugDll)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
 
@@ -977,8 +977,6 @@ Class C
     Async Function F(a As Long) As Task(Of Integer)
         Return Await Task.FromResult(1)
     End Function
-    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
     </file>
 </compilation>
@@ -996,13 +994,11 @@ Class C
     Async Function F(a As Short) As Task(Of Integer)
         Return Await Task.FromResult(4)
     End Function
-    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestVbReferences, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
@@ -1037,9 +1033,9 @@ End Class
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(19, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(20, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(21, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
@@ -1078,8 +1074,8 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=TestOptions.DebugDll)
-            Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(source1, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(source1, references:=LatestVbReferences, options:=TestOptions.DebugDll)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
 
@@ -1228,8 +1224,8 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=TestOptions.DebugDll)
-            Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(source1, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(source1, references:=LatestVbReferences, options:=TestOptions.DebugDll)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
 
@@ -1459,8 +1455,6 @@ Class C
         dim x = p
         Yield 1
     End Function
-    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
     </file>
 </compilation>
@@ -1473,13 +1467,11 @@ Class C
         dim x = p
         Yield 2
     End Function
-    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=ComSafeDebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestVbReferences, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
@@ -1495,7 +1487,7 @@ End Class
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000002UI, &H06000006UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                AssertEx.Equal(Of Integer)({&H06000002UI, &H06000005UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()
@@ -1504,8 +1496,8 @@ End Class
                         Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                         Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
@@ -1574,8 +1566,6 @@ Class C
         dim x = p
         Yield 1
     End Function
-    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
     </file>
 </compilation>
@@ -1589,13 +1579,11 @@ Class C
         dim y = 1234
         Yield y
     End Function
-    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=ComSafeDebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestVbReferences, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
@@ -1611,7 +1599,7 @@ End Class
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000002UI, &H06000006UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                AssertEx.Equal(Of Integer)({&H06000002UI, &H06000005UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()
@@ -1622,8 +1610,8 @@ End Class
                         Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                         Row(8, TableIndex.Field, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
@@ -1696,8 +1684,6 @@ Class C
         dim x = p
         Yield 1
     End Function
-    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
     </file>
 </compilation>
@@ -1710,13 +1696,11 @@ Class C
         dim y = 1234
         Yield p
     End Function
-    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=ComSafeDebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestVbReferences, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
@@ -1732,7 +1716,7 @@ End Class
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000002UI, &H06000006UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                AssertEx.Equal(Of Integer)({&H06000002UI, &H06000005UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()
@@ -1743,8 +1727,8 @@ End Class
                         Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                         Row(8, TableIndex.Field, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
@@ -1813,8 +1797,6 @@ Class C
         dim x = 10.0
         Yield 1
     End Function
-    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
     </file>
 </compilation>
@@ -1827,13 +1809,11 @@ Class C
         dim x = 1234
         Yield 0
     End Function
-    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=ComSafeDebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestVbReferences, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
@@ -1849,7 +1829,7 @@ End Class
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000002UI, &H06000006UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                AssertEx.Equal(Of Integer)({&H06000002UI, &H06000005UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()
@@ -1860,8 +1840,8 @@ End Class
                         Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                         Row(6, TableIndex.Field, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
@@ -1930,8 +1910,6 @@ Class C
             Yield 1
         Next
     End Function
-    Public Sub Y() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
     </file>
 </compilation>
@@ -1945,15 +1923,13 @@ Class C
             Yield 1
         Next
     End Function
-    Public Sub Y() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
     </file>
 </compilation>
 
             ' Rude edit but the compiler should handle it
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestVbReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0, symbolValidator:=Sub([module] As ModuleSymbol)
@@ -1994,7 +1970,7 @@ End Class
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapByKind(method0, SyntaxKind.ForEachStatement), preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000002UI, &H06000006UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                AssertEx.Equal(Of Integer)({&H06000002UI, &H06000005UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()
@@ -2007,8 +1983,8 @@ End Class
                         Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                         Row(9, TableIndex.Field, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
@@ -2114,8 +2090,6 @@ Class C
         Dim x = p
         Return Await Task.FromResult(10)
     End Function
-    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
     </file>
 </compilation>
@@ -2128,13 +2102,11 @@ Class C
         Dim x = p
         Return Await Task.FromResult(20)
     End Function
-    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=ComSafeDebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestVbReferences, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
@@ -2150,7 +2122,7 @@ End Class
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000005UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                AssertEx.Equal(Of Integer)({&H06000004UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()
@@ -2158,7 +2130,7 @@ End Class
                         Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                         Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
@@ -2277,8 +2249,6 @@ Class C
         Dim x = p
         Return Await Task.FromResult(10)
     End Function
-    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
     </file>
 </compilation>
@@ -2292,13 +2262,11 @@ Class C
         Dim y = 10
         Return Await Task.FromResult(y)
     End Function
-    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=ComSafeDebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestVbReferences, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
@@ -2314,7 +2282,7 @@ End Class
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000005UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                AssertEx.Equal(Of Integer)({&H06000004UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()
@@ -2324,7 +2292,7 @@ End Class
                         Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                         Row(7, TableIndex.Field, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
@@ -2447,8 +2415,6 @@ Class C
         Dim x = p
         Return Await Task.FromResult(10)
     End Function
-    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
     </file>
 </compilation>
@@ -2461,13 +2427,11 @@ Class C
         Dim y = 1234
         Return Await Task.FromResult(p)
     End Function
-    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=ComSafeDebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestVbReferences, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
@@ -2483,7 +2447,7 @@ End Class
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000005UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                AssertEx.Equal(Of Integer)({&H06000004UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()
@@ -2493,7 +2457,7 @@ End Class
                         Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                         Row(7, TableIndex.Field, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
@@ -2612,8 +2576,6 @@ Class C
         Dim x = 10
         Return Await Task.FromResult(10)
     End Function
-    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
     </file>
 </compilation>
@@ -2626,13 +2588,11 @@ Class C
         Dim x = 10.0
         Return Await Task.FromResult(20)
     End Function
-    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=ComSafeDebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestVbReferences, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
@@ -2648,7 +2608,7 @@ End Class
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000005UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                AssertEx.Equal(Of Integer)({&H06000004UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()
@@ -2658,7 +2618,7 @@ End Class
                         Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                         Row(6, TableIndex.Field, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
@@ -2792,9 +2752,6 @@ Class C
         Await Task.Delay(0)
         Return 1
     End Function
-
-    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
-    End Sub 
 End Class
     </file>
 </compilation>
@@ -2823,9 +2780,6 @@ Class C
         Await Task.Delay(0)
         Return 1
     End Function
-
-    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
     </file>
 </compilation>
@@ -2854,9 +2808,6 @@ Class C
         Await Task.Delay(0)
         Return 1
     End Function
-
-    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
     </file>
 </compilation>
@@ -2885,15 +2836,12 @@ Class C
         Await Task.Delay(0)
         Return 1
     End Function
-
-    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
     </file>
 </compilation>
 
             ' Rude edit but the compiler should handle it
-            Dim compilation0 = CreateCompilationWithReferences(source0, references:=LatestReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation0 = CreateCompilationWithReferences(source0, references:=LatestVbReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim compilation1 = compilation0.WithSource(source1)
             Dim compilation2 = compilation1.WithSource(source2)
             Dim compilation3 = compilation2.WithSource(source3)
@@ -2977,8 +2925,8 @@ End Class
                     Row(19, TableIndex.Field, EditAndContinueOperation.Default),
                     Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                    Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                    Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(19, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(20, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(21, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
@@ -3096,7 +3044,7 @@ End Class
                     Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                     Row(21, TableIndex.Field, EditAndContinueOperation.Default),
                     Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                    Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(25, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(26, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(27, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
@@ -3214,8 +3162,8 @@ End Class
                     Row(23, TableIndex.Field, EditAndContinueOperation.Default),
                     Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                    Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                    Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(28, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(29, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(30, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
@@ -3256,7 +3204,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CreateCompilationWithReferences(source0, references:=LatestReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation0 = CreateCompilationWithReferences(source0, references:=LatestVbReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation:=compilation0, symbolValidator:=Sub([module] As ModuleSymbol)
                                                                              Assert.Equal(
@@ -3407,7 +3355,7 @@ End Class
 </compilation>
 
             ' Rude edit but the compiler should handle it
-            Dim compilation0 = CreateCompilationWithReferences(source0, references:=LatestReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation0 = CreateCompilationWithReferences(source0, references:=LatestVbReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim compilation1 = compilation0.WithSource(source1)
             Dim compilation2 = compilation1.WithSource(source2)
             Dim compilation3 = compilation2.WithSource(source3)
@@ -3891,7 +3839,7 @@ End Class
 </compilation>
 
             ' Rude edit but the compiler should handle it.
-            Dim compilation0 = CreateCompilationWithReferences(source0, references:=LatestReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation0 = CreateCompilationWithReferences(source0, references:=LatestVbReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim compilation1 = compilation0.WithSource(source1)
             Dim compilation2 = compilation1.WithSource(source2)
             Dim compilation3 = compilation2.WithSource(source3)
@@ -4087,9 +4035,6 @@ Class C
         Yield 1
         Console.WriteLine(x.A + 1)
     End Function
-
-    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
 ")
             Dim source1 = MarkedSource("
@@ -4102,9 +4047,6 @@ Class C
         Yield 1
         Console.WriteLine(x.A + 2)
     End Function
-
-    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
 ")
             Dim source2 = MarkedSource("
@@ -4117,9 +4059,6 @@ Class C
         Yield 1
         Console.WriteLine(x.A + 3)
     End Function
-
-    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
 ")
             Dim compilation0 = CreateCompilationWithMscorlib45({source0.Tree}, options:=ComSafeDebugDll)
@@ -4228,9 +4167,6 @@ Class C
         Yield 1
         Console.WriteLine(x(0).A.B + 1)
     End Function
-
-    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
 ")
             Dim source1 = MarkedSource("
@@ -4243,9 +4179,6 @@ Class C
         Yield 1
         Console.WriteLine(x(0).A.B + 2)
     End Function
-
-    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
 ")
             Dim source2 = MarkedSource("
@@ -4258,9 +4191,6 @@ Class C
         Yield 1
         Console.WriteLine(x(0).A.B + 3)
     End Function
-
-    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
 ")
             Dim compilation0 = CreateCompilationWithMscorlib45({source0.Tree}, options:=ComSafeDebugDll)
@@ -4377,9 +4307,6 @@ Class C
         Dim <N:1>x</N:1> = From b In { 1, 2, 3 } <N:0>Select <N:3>A = b</N:3></N:0>
         Return <N:2>Await Task.FromResult(1)</N:2>
     End Function
-    
-    Sub X()  ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
 ")
             Dim source1 = MarkedSource("
@@ -4392,9 +4319,6 @@ Class C
         Dim y = x.First()
         Return <N:2>Await Task.FromResult(1)</N:2>
     End Function
-    
-    Sub X()  ' needs to be present to work around SymWriter bug #1068894
-    End Sub
 End Class
 ")
             Dim source2 = source0

@@ -75,12 +75,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' if we're capturing a generic frame pointer, construct it with the new frame's type parameters
                     type = LambdaRewriter.ConstructFrameType(localTypeAsFrame, frame.TypeArgumentsNoUseSiteDiagnostics)
                 Else
-                    type = local.Type.InternalSubstituteTypeParameters(frame.TypeMap)
+                    type = local.Type.InternalSubstituteTypeParameters(frame.TypeMap).Type
                 End If
             Else
                 ' it must be a parameter
                 Dim parameter = DirectCast(captured, ParameterSymbol)
-                type = parameter.Type.InternalSubstituteTypeParameters(frame.TypeMap)
+                type = parameter.Type.InternalSubstituteTypeParameters(frame.TypeMap).Type
             End If
 
             Return type

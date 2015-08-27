@@ -50,29 +50,34 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
 
                     Dim trivia = Tree.GetRoot(CancellationToken).FindTrivia(lastNonWhitespacePosition.Value)
 
+                    ' preserve the indentation of the comment trivia before a case statement
+                    If trivia.Kind = SyntaxKind.CommentTrivia AndAlso trivia.Token.IsKind(SyntaxKind.CaseKeyword) AndAlso trivia.Token.Parent.IsKind(SyntaxKind.CaseStatement) Then
+                        Return GetIndentationOfLine(previousLine)
+                    End If
+
                     If trivia.Kind = SyntaxKind.LineContinuationTrivia OrElse trivia.Kind = SyntaxKind.CommentTrivia Then
-                        Return GetIndentationBasedOnToken(GetTokenOnLeft(trivia), trivia)
-                    End If
+                            Return GetIndentationBasedOnToken(GetTokenOnLeft(trivia), trivia)
+                        End If
 
-                    ' if we are at invalid token (skipped token) at the end of statement, treat it like we are after line continuation
-                    If trivia.Kind = SyntaxKind.SkippedTokensTrivia AndAlso trivia.Token.IsLastTokenOfStatement() Then
-                        Return GetIndentationBasedOnToken(GetTokenOnLeft(trivia), trivia)
-                    End If
+                        ' if we are at invalid token (skipped token) at the end of statement, treat it like we are after line continuation
+                        If trivia.Kind = SyntaxKind.SkippedTokensTrivia AndAlso trivia.Token.IsLastTokenOfStatement() Then
+                            Return GetIndentationBasedOnToken(GetTokenOnLeft(trivia), trivia)
+                        End If
 
-                    ' okay, now check whether the trivia is at the beginning of the line
-                    Dim firstNonWhitespacePosition = previousLine.GetFirstNonWhitespacePosition()
-                    If Not firstNonWhitespacePosition.HasValue Then
-                        Return IndentFromStartOfLine(0)
-                    End If
+                        ' okay, now check whether the trivia is at the beginning of the line
+                        Dim firstNonWhitespacePosition = previousLine.GetFirstNonWhitespacePosition()
+                        If Not firstNonWhitespacePosition.HasValue Then
+                            Return IndentFromStartOfLine(0)
+                        End If
 
-                    Dim firstTokenOnLine = Tree.GetRoot(CancellationToken).FindToken(firstNonWhitespacePosition.Value, findInsideTrivia:=True)
-                    If firstTokenOnLine.Kind <> SyntaxKind.None AndAlso firstTokenOnLine.Span.Contains(firstNonWhitespacePosition.Value) Then
-                        'okay, beginning of the line is not trivia, use this token as the base token
-                        Return GetIndentationBasedOnToken(firstTokenOnLine)
-                    End If
+                        Dim firstTokenOnLine = Tree.GetRoot(CancellationToken).FindToken(firstNonWhitespacePosition.Value, findInsideTrivia:=True)
+                        If firstTokenOnLine.Kind <> SyntaxKind.None AndAlso firstTokenOnLine.Span.Contains(firstNonWhitespacePosition.Value) Then
+                            'okay, beginning of the line is not trivia, use this token as the base token
+                            Return GetIndentationBasedOnToken(firstTokenOnLine)
+                        End If
 
-                    Return GetIndentationOfLine(previousLine)
-                End If
+                        Return GetIndentationOfLine(previousLine)
+                    End If
             End Function
 
             Private Function GetTokenOnLeft(trivia As SyntaxTrivia) As SyntaxToken

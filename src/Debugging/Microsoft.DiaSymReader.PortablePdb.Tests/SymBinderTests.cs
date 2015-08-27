@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -14,10 +15,10 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         [Fact]
         public void GetReaderForFile()
         {
-            var importer = new SymMetadataImport(new MemoryStream(TestResources.Documents.Dll));
+            var importer = new SymMetadataImport(new MemoryStream(TestResources.Documents.PortableDll));
 
-            string filePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-            File.WriteAllBytes(filePath, TestResources.Documents.Pdb);
+            string filePath = PortableShim.Path.GetTempFileName();
+            PortableShim.File.WriteAllBytes(filePath, TestResources.Documents.PortablePdb);
 
             string searchPath = null;
 
@@ -26,21 +27,21 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
 
             int actualCount;
             Assert.Equal(HResult.S_OK, symReader.GetDocuments(0, out actualCount, null));
-            Assert.Equal(11, actualCount);
+            Assert.Equal(13, actualCount);
 
             Assert.Equal(HResult.S_FALSE, ((ISymUnmanagedDispose)symReader).Destroy());
             Assert.Equal(HResult.S_OK, ((ISymUnmanagedDispose)symReader).Destroy());
 
             Assert.Throws<ObjectDisposedException>(() => symReader.GetDocuments(0, out actualCount, null));
 
-            File.Delete(filePath);
+            PortableShim.File.Delete(filePath);
         }
 
         [Fact]
         public void GetReaderFromStream()
         {
-            var importer = new SymMetadataImport(new MemoryStream(TestResources.Documents.Dll));
-            var stream = new MemoryStream(TestResources.Documents.Pdb);
+            var importer = new SymMetadataImport(new MemoryStream(TestResources.Documents.PortableDll));
+            var stream = new MemoryStream(TestResources.Documents.PortablePdb);
             var wrapper = new ComStreamWrapper(stream);
 
             ISymUnmanagedReader symReader;
@@ -48,7 +49,7 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
 
             int actualCount;
             Assert.Equal(HResult.S_OK, symReader.GetDocuments(0, out actualCount, null));
-            Assert.Equal(11, actualCount);
+            Assert.Equal(13, actualCount);
 
             Assert.Equal(HResult.S_FALSE, ((ISymUnmanagedDispose)symReader).Destroy());
             Assert.Equal(HResult.S_OK, ((ISymUnmanagedDispose)symReader).Destroy());

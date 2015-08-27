@@ -1,0 +1,2 @@
+Microsoft.CodeAnalysis.Project.IsSubmission.get -> bool
+Microsoft.CodeAnalysis.Workspace.UpdateReferencesAfterAdd() -> void

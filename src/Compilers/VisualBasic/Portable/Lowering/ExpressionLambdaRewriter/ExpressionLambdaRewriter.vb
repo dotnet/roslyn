@@ -290,7 +290,7 @@ lSelect:
                 parameters.Add(parameterReference)
                 _parameterMap(p) = parameterReference
 
-                Dim parameter As BoundExpression = ConvertRuntimeHelperToExpressionTree("Parameter", _factory.[Typeof](p.Type.InternalSubstituteTypeParameters(_typeMap)), _factory.Literal(p.Name))
+                Dim parameter As BoundExpression = ConvertRuntimeHelperToExpressionTree("Parameter", _factory.[Typeof](p.Type.InternalSubstituteTypeParameters(_typeMap).Type), _factory.Literal(p.Name))
                 If Not parameter.HasErrors Then
                     initializers.Add(_factory.AssignmentExpression(parameterReferenceLValue, parameter))
                 End If

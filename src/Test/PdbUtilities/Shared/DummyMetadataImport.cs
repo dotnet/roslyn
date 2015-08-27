@@ -42,6 +42,106 @@ namespace Roslyn.Test.PdbUtilities
             Dispose(false);
         }
 
+        [PreserveSig]
+        public unsafe int GetSigFromToken(
+            int tkSignature,    // Signature token.
+            out byte* ppvSig,   // return pointer to signature blob
+            out int pcbSig)     // return size of signature
+        {
+            if (_metadataReaderOpt == null)
+            {
+                throw new NotSupportedException("Metadata not available");
+            }
+
+            var sig = _metadataReaderOpt.GetStandaloneSignature((StandaloneSignatureHandle)MetadataTokens.Handle(tkSignature));
+            var signature = _metadataReaderOpt.GetBlobBytes(sig.Signature);
+
+            GCHandle pinnedBuffer = GCHandle.Alloc(signature, GCHandleType.Pinned);
+            ppvSig = (byte*)pinnedBuffer.AddrOfPinnedObject();
+            pcbSig = signature.Length;
+
+            _pinnedBuffers.Add(pinnedBuffer);
+            return 0;
+        }
+
+        public void GetTypeDefProps(
+            int typeDefinition,
+            [MarshalAs(UnmanagedType.LPWStr), Out]StringBuilder qualifiedName,
+            int qualifiedNameBufferLength,
+            out int qualifiedNameLength,
+            [MarshalAs(UnmanagedType.U4)]out TypeAttributes attributes,
+            out int baseType)
+        {
+            if (_metadataReaderOpt == null)
+            {
+                throw new NotSupportedException("Metadata not available");
+            }
+
+            var handle = (TypeDefinitionHandle)MetadataTokens.Handle(typeDefinition);
+            var typeDef = _metadataReaderOpt.GetTypeDefinition(handle);
+
+            if (qualifiedName != null)
+            {
+                qualifiedName.Clear();
+
+                if (!typeDef.Namespace.IsNil)
+                {
+                    qualifiedName.Append(_metadataReaderOpt.GetString(typeDef.Namespace));
+                    qualifiedName.Append('.');
+                }
+
+                qualifiedName.Append(_metadataReaderOpt.GetString(typeDef.Name));
+                qualifiedNameLength = qualifiedName.Length;
+            }
+            else
+            {
+                qualifiedNameLength =
+                    (typeDef.Namespace.IsNil ? 0 : _metadataReaderOpt.GetString(typeDef.Namespace).Length + 1) +
+                    _metadataReaderOpt.GetString(typeDef.Name).Length;
+            }
+
+            baseType = MetadataTokens.GetToken(typeDef.BaseType);
+            attributes = typeDef.Attributes;
+        }
+
+        public void GetTypeRefProps(
+            int typeReference,
+            out int resolutionScope,
+            [MarshalAs(UnmanagedType.LPWStr), Out]StringBuilder qualifiedName,
+            int qualifiedNameBufferLength,
+            out int qualifiedNameLength)
+        {
+            if (_metadataReaderOpt == null)
+            {
+                throw new NotSupportedException("Metadata not available");
+            }
+
+            var handle = (TypeReferenceHandle)MetadataTokens.Handle(typeReference);
+            var typeRef = _metadataReaderOpt.GetTypeReference(handle);
+
+            if (qualifiedName != null)
+            {
+                qualifiedName.Clear();
+
+                if (!typeRef.Namespace.IsNil)
+                {
+                    qualifiedName.Append(_metadataReaderOpt.GetString(typeRef.Namespace));
+                    qualifiedName.Append('.');
+                }
+
+                qualifiedName.Append(_metadataReaderOpt.GetString(typeRef.Name));
+                qualifiedNameLength = qualifiedName.Length;
+            }
+            else
+            {
+                qualifiedNameLength =
+                    (typeRef.Namespace.IsNil ? 0 : _metadataReaderOpt.GetString(typeRef.Namespace).Length + 1) +
+                    _metadataReaderOpt.GetString(typeRef.Name).Length;
+            }
+
+            resolutionScope = MetadataTokens.GetToken(typeRef.ResolutionScope);
+        }
+
         #region Not Implemented
 
         public void CloseEnum(uint handleEnum)
@@ -308,110 +408,6 @@ namespace Roslyn.Test.PdbUtilities
         {
             throw new NotImplementedException();
         }
-
-        #endregion
-
-        [PreserveSig]
-        public unsafe int GetSigFromToken(
-            int tkSignature,    // Signature token.
-            out byte* ppvSig,   // return pointer to signature blob
-            out int pcbSig)     // return size of signature
-        {
-            if (_metadataReaderOpt == null)
-            {
-                throw new NotSupportedException("Metadata not available");
-            }
-
-            var sig = _metadataReaderOpt.GetStandaloneSignature((StandaloneSignatureHandle)MetadataTokens.Handle(tkSignature));
-            var signature = _metadataReaderOpt.GetBlobBytes(sig.Signature);
-
-            GCHandle pinnedBuffer = GCHandle.Alloc(signature, GCHandleType.Pinned);
-            ppvSig = (byte*)pinnedBuffer.AddrOfPinnedObject();
-            pcbSig = signature.Length;
-
-            _pinnedBuffers.Add(pinnedBuffer);
-            return 0;
-        }
-
-        public void GetTypeDefProps(
-            int typeDefinition,
-            [MarshalAs(UnmanagedType.LPWStr), Out]StringBuilder qualifiedName,
-            int qualifiedNameBufferLength,
-            out int qualifiedNameLength,
-            [MarshalAs(UnmanagedType.U4)]out TypeAttributes attributes,
-            out int baseType)
-        {
-            if (_metadataReaderOpt == null)
-            {
-                throw new NotSupportedException("Metadata not available");
-            }
-
-            var handle = (TypeDefinitionHandle)MetadataTokens.Handle(typeDefinition);
-            var typeDef = _metadataReaderOpt.GetTypeDefinition(handle);
-
-            if (qualifiedName != null)
-            {
-                qualifiedName.Clear();
-
-                if (!typeDef.Namespace.IsNil)
-                {
-                    qualifiedName.Append(_metadataReaderOpt.GetString(typeDef.Namespace));
-                    qualifiedName.Append('.');
-                }
-
-                qualifiedName.Append(_metadataReaderOpt.GetString(typeDef.Name));
-                qualifiedNameLength = qualifiedName.Length;
-            }
-            else
-            {
-                qualifiedNameLength =
-                    (typeDef.Namespace.IsNil ? 0 : _metadataReaderOpt.GetString(typeDef.Namespace).Length + 1) +
-                    _metadataReaderOpt.GetString(typeDef.Name).Length;
-            }
-
-            baseType = MetadataTokens.GetToken(typeDef.BaseType);
-            attributes = typeDef.Attributes;
-        }
-
-        public void GetTypeRefProps(
-            int typeReference,
-            out int resolutionScope,
-            [MarshalAs(UnmanagedType.LPWStr), Out]StringBuilder qualifiedName,
-            int qualifiedNameBufferLength,
-            out int qualifiedNameLength)
-        {
-            if (_metadataReaderOpt == null)
-            {
-                throw new NotSupportedException("Metadata not available");
-            }
-
-            var handle = (TypeReferenceHandle)MetadataTokens.Handle(typeReference);
-            var typeRef = _metadataReaderOpt.GetTypeReference(handle);
-
-            if (qualifiedName != null)
-            {
-                qualifiedName.Clear();
-
-                if (!typeRef.Namespace.IsNil)
-                {
-                    qualifiedName.Append(_metadataReaderOpt.GetString(typeRef.Namespace));
-                    qualifiedName.Append('.');
-                }
-
-                qualifiedName.Append(_metadataReaderOpt.GetString(typeRef.Name));
-                qualifiedNameLength = qualifiedName.Length;
-            }
-            else
-            {
-                qualifiedNameLength =
-                    (typeRef.Namespace.IsNil ? 0 : _metadataReaderOpt.GetString(typeRef.Namespace).Length + 1) +
-                    _metadataReaderOpt.GetString(typeRef.Name).Length;
-            }
-
-            resolutionScope = MetadataTokens.GetToken(typeRef.ResolutionScope);
-        }
-
-        #region Not implemented
 
         public unsafe uint GetTypeSpecFromToken(uint typespec, out byte* ppvSig)
         {

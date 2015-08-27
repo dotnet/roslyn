@@ -257,12 +257,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             await WhenInitializedTask.ConfigureAwait(false);
 
-            if (!WhenInitializedTask.IsCanceled)
+            if (WhenInitializedTask.IsFaulted)
+            {
+                OnDriverException(WhenInitializedTask, this.analyzerExecutor, analysisScope.Analyzers);
+            }
+            else if (!WhenInitializedTask.IsCanceled)
             {
                 this.analyzerExecutor = this.analyzerExecutor.WithCancellationToken(cancellationToken);
 
                 await ProcessCompilationEventsAsync(analysisScope, analysisStateOpt, usingPrePopulatedEventQueue, cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        private static void OnDriverException(Task faultedTask, AnalyzerExecutor analyzerExecutor, ImmutableArray<DiagnosticAnalyzer> analyzers)
+        {
+            Debug.Assert(faultedTask.IsFaulted);
+
+            var innerException = faultedTask.Exception?.InnerException;
+            if (innerException == null || innerException is OperationCanceledException)
+            {
+                return;
+            }
+
+            var diagnostic = AnalyzerExecutor.CreateDriverExceptionDiagnostic(innerException);
+
+            // Just pick the first analyzer from the scope for the onAnalyzerException callback.
+            // The exception diagnostic's message and description will not include the analyzer, but explicitly state its a driver exception.
+            var analyzer = analyzers[0];
+
+            analyzerExecutor.OnAnalyzerException(innerException, analyzer, diagnostic);
         }
 
         private void ExecuteSyntaxTreeActions(AnalysisScope analysisScope, AnalysisState analysisStateOpt)
@@ -357,6 +380,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (CompilationEventQueue.IsCompleted)
             {
                 await this.WhenCompletedTask.ConfigureAwait(false);
+
+                if (this.WhenCompletedTask.IsFaulted)
+                {
+                    OnDriverException(this.WhenCompletedTask, this.analyzerExecutor, this.analyzers);
+                }
             }
 
             Diagnostic d;
@@ -458,98 +486,112 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private async Task ProcessCompilationEventsAsync(AnalysisScope analysisScope, AnalysisState analysisStateOpt, bool prePopulatedEventQueue, CancellationToken cancellationToken)
         {
-            CompilationCompletedEvent completedEvent = null;
-
-            if (analysisScope.ConcurrentAnalysis)
+            try
             {
-                // Kick off worker tasks to process all compilation events (except the compilation end event) in parallel.
-                // Compilation end event must be processed after all other events.
+                CompilationCompletedEvent completedEvent = null;
 
-                var workerCount = prePopulatedEventQueue ? Math.Min(CompilationEventQueue.Count, _workerCount) : _workerCount;
-
-                var workerTasks = new Task<CompilationCompletedEvent>[workerCount];
-                for (int i = 0; i < workerCount; i++)
+                if (analysisScope.ConcurrentAnalysis)
                 {
-                    workerTasks[i] = ProcessCompilationEventsCoreAsync(analysisScope, analysisStateOpt, prePopulatedEventQueue, cancellationToken);
-                }
+                    // Kick off worker tasks to process all compilation events (except the compilation end event) in parallel.
+                    // Compilation end event must be processed after all other events.
 
-                cancellationToken.ThrowIfCancellationRequested();
+                    var workerCount = prePopulatedEventQueue ? Math.Min(CompilationEventQueue.Count, _workerCount) : _workerCount;
 
-                // Kick off tasks to execute syntax tree actions.
-                var syntaxTreeActionsTask = Task.Run(() => ExecuteSyntaxTreeActions(analysisScope, analysisStateOpt));
-
-                // Wait for all worker threads to complete processing events.
-                await Task.WhenAll(workerTasks.Concat(syntaxTreeActionsTask)).ConfigureAwait(false);
-
-                for (int i = 0; i < workerCount; i++)
-                {
-                    if (workerTasks[i].Status == TaskStatus.RanToCompletion && workerTasks[i].Result != null)
+                    var workerTasks = new Task<CompilationCompletedEvent>[workerCount];
+                    for (int i = 0; i < workerCount; i++)
                     {
-                        completedEvent = workerTasks[i].Result;
-                        break;
+                        workerTasks[i] = ProcessCompilationEventsCoreAsync(analysisScope, analysisStateOpt, prePopulatedEventQueue, cancellationToken);
+                    }
+
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    // Kick off tasks to execute syntax tree actions.
+                    var syntaxTreeActionsTask = Task.Run(() => ExecuteSyntaxTreeActions(analysisScope, analysisStateOpt));
+
+                    // Wait for all worker threads to complete processing events.
+                    await Task.WhenAll(workerTasks.Concat(syntaxTreeActionsTask)).ConfigureAwait(false);
+
+                    for (int i = 0; i < workerCount; i++)
+                    {
+                        if (workerTasks[i].Status == TaskStatus.RanToCompletion && workerTasks[i].Result != null)
+                        {
+                            completedEvent = workerTasks[i].Result;
+                            break;
+                        }
                     }
                 }
-            }
-            else
-            {
-                completedEvent = await ProcessCompilationEventsCoreAsync(analysisScope, analysisStateOpt, prePopulatedEventQueue, cancellationToken).ConfigureAwait(false);
+                else
+                {
+                    completedEvent = await ProcessCompilationEventsCoreAsync(analysisScope, analysisStateOpt, prePopulatedEventQueue, cancellationToken).ConfigureAwait(false);
 
-                ExecuteSyntaxTreeActions(analysisScope, analysisStateOpt);
-            }
+                    ExecuteSyntaxTreeActions(analysisScope, analysisStateOpt);
+                }
 
-            // Finally process the compilation completed event, if any.
-            if (completedEvent != null)
+                // Finally process the compilation completed event, if any.
+                if (completedEvent != null)
+                {
+                    ProcessEvent(completedEvent, analysisScope, analysisStateOpt, cancellationToken);
+                }
+            }
+            catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
             {
-                ProcessEvent(completedEvent, analysisScope, analysisStateOpt, cancellationToken);
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
         private async Task<CompilationCompletedEvent> ProcessCompilationEventsCoreAsync(AnalysisScope analysisScope, AnalysisState analysisStateOpt, bool prePopulatedEventQueue, CancellationToken cancellationToken)
         {
-            CompilationCompletedEvent completedEvent = null;
-
-            while (true)
+            try
             {
-                if (CompilationEventQueue.Count == 0 &&
-                    (prePopulatedEventQueue || CompilationEventQueue.IsCompleted))
-                {
-                    break;
-                }
+                CompilationCompletedEvent completedEvent = null;
 
-                CompilationEvent e;
-                try
+                while (true)
                 {
-                    if (!prePopulatedEventQueue)
+                    if (CompilationEventQueue.Count == 0 &&
+                        (prePopulatedEventQueue || CompilationEventQueue.IsCompleted))
                     {
-                        e = await CompilationEventQueue.DequeueAsync(cancellationToken).ConfigureAwait(false);
+                        break;
                     }
-                    else if (!CompilationEventQueue.TryDequeue(out e))
+
+                    CompilationEvent e;
+                    try
                     {
-                        return completedEvent;
+                        if (!prePopulatedEventQueue)
+                        {
+                            e = await CompilationEventQueue.DequeueAsync(cancellationToken).ConfigureAwait(false);
+                        }
+                        else if (!CompilationEventQueue.TryDequeue(out e))
+                        {
+                            return completedEvent;
+                        }
                     }
-                }
-                catch (TaskCanceledException) when (!prePopulatedEventQueue)
-                {
-                    // When the queue is completed with a pending DequeueAsync return then a 
-                    // TaskCanceledException will be thrown.  This just signals the queue is 
-                    // complete and we should finish processing it.
-                    Debug.Assert(CompilationEventQueue.IsCompleted, "DequeueAsync should never throw unless the AsyncQueue<T> is completed.");
-                    break;
+                    catch (TaskCanceledException) when (!prePopulatedEventQueue)
+                    {
+                        // When the queue is completed with a pending DequeueAsync return then a 
+                        // TaskCanceledException will be thrown.  This just signals the queue is 
+                        // complete and we should finish processing it.
+                        Debug.Assert(CompilationEventQueue.IsCompleted, "DequeueAsync should never throw unless the AsyncQueue<T> is completed.");
+                        break;
+                    }
+
+                    // Don't process the compilation completed event as other worker threads might still be processing other compilation events.
+                    // The caller will wait for all workers to complete and finally process this event.
+                    var compilationCompletedEvent = e as CompilationCompletedEvent;
+                    if (compilationCompletedEvent != null)
+                    {
+                        completedEvent = compilationCompletedEvent;
+                        continue;
+                    }
+
+                    ProcessEvent(e, analysisScope, analysisStateOpt, cancellationToken);
                 }
 
-                // Don't process the compilation completed event as other worker threads might still be processing other compilation events.
-                // The caller will wait for all workers to complete and finally process this event.
-                var compilationCompletedEvent = e as CompilationCompletedEvent;
-                if (compilationCompletedEvent != null)
-                {
-                    completedEvent = compilationCompletedEvent;
-                    continue;
-                }
-
-                ProcessEvent(e, analysisScope, analysisStateOpt, cancellationToken);
+                return completedEvent;
             }
-
-            return completedEvent;
+            catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         private void ProcessEvent(CompilationEvent e, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
@@ -805,7 +847,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var executor = analyzerExecutor.WithCancellationToken(cancellationToken);
             var analyzerActions = await analyzerManager.GetAnalyzerActionsAsync(analyzer, executor).ConfigureAwait(false);
-            return new ActionCounts(analyzerActions);
+            return ActionCounts.Create(analyzerActions);
         }
 
         /// <summary>
@@ -1297,15 +1339,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
         }
-    }
-
-    internal static class AnalyzerDriverResources
-    {
-        internal static string AnalyzerFailure => CodeAnalysisResources.CompilerAnalyzerFailure;
-        internal static string AnalyzerThrows => CodeAnalysisResources.CompilerAnalyzerThrows;
-        internal static string AnalyzerThrowsDescription => CodeAnalysisResources.CompilerAnalyzerThrowsDescription;
-        internal static string ArgumentElementCannotBeNull => CodeAnalysisResources.ArgumentElementCannotBeNull;
-        internal static string ArgumentCannotBeEmpty => CodeAnalysisResources.ArgumentCannotBeEmpty;
-        internal static string UnsupportedDiagnosticReported => CodeAnalysisResources.UnsupportedDiagnosticReported;
     }
 }

@@ -27,6 +27,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>(); }
         }
 
+        internal override bool HasTypeArgumentsCustomModifiers
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
+        {
+            get
+            {
+                return CreateEmptyTypeArgumentsCustomModifiers();
+            }
+        }
+
         public override NamedTypeSymbol ConstructedFrom
         {
             get { return this; }
@@ -39,15 +55,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class ConstructedNamedTypeSymbol : SubstitutedNamedTypeSymbol
     {
         private readonly ImmutableArray<TypeSymbol> _typeArguments;
+        private readonly bool _hasTypeArgumentsCustomModifiers;
         private readonly NamedTypeSymbol _constructedFrom;
 
-        internal ConstructedNamedTypeSymbol(NamedTypeSymbol constructedFrom, ImmutableArray<TypeSymbol> typeArguments, bool unbound = false)
+        internal ConstructedNamedTypeSymbol(NamedTypeSymbol constructedFrom, ImmutableArray<TypeWithModifiers> typeArguments, bool unbound = false)
             : base(newContainer: constructedFrom.ContainingSymbol,
                    map: new TypeMap(constructedFrom.ContainingType, constructedFrom.OriginalDefinition.TypeParameters, typeArguments),
                    originalDefinition: constructedFrom.OriginalDefinition,
                    constructedFrom: constructedFrom, unbound: unbound)
         {
-            _typeArguments = typeArguments;
+            bool hasTypeArgumentsCustomModifiers = false;
+            _typeArguments = typeArguments.SelectAsArray(a => 
+                                                            {
+                                                                if (!a.CustomModifiers.IsDefaultOrEmpty)
+                                                                {
+                                                                    hasTypeArgumentsCustomModifiers = true;
+                                                                }
+
+                                                                return a.Type;
+                                                            });
+            _hasTypeArgumentsCustomModifiers = hasTypeArgumentsCustomModifiers;
             _constructedFrom = constructedFrom;
 
             Debug.Assert(constructedFrom.Arity == typeArguments.Length);
@@ -70,7 +97,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static bool TypeParametersMatchTypeArguments(ImmutableArray<TypeParameterSymbol> typeParameters, ImmutableArray<TypeSymbol> typeArguments)
+        internal override bool HasTypeArgumentsCustomModifiers
+        {
+            get
+            {
+                return _hasTypeArgumentsCustomModifiers;
+            }
+        }
+
+        internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
+        {
+            get
+            {
+                if (_hasTypeArgumentsCustomModifiers)
+                {
+                    return TypeSubstitution.GetTypeArgumentsCustomModifiersFor(_constructedFrom.OriginalDefinition);
+                }
+
+                return CreateEmptyTypeArgumentsCustomModifiers();
+            }
+        }
+
+        internal static bool TypeParametersMatchTypeArguments(ImmutableArray<TypeParameterSymbol> typeParameters, ImmutableArray<TypeWithModifiers> typeArguments)
         {
             int n = typeParameters.Length;
             Debug.Assert(typeArguments.Length == n);
@@ -78,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int i = 0; i < n; i++)
             {
-                if (!ReferenceEquals(typeArguments[i], typeParameters[i]))
+                if (!typeArguments[i].Is(typeParameters[i]))
                 {
                     return false;
                 }
@@ -89,8 +137,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {
-            return ConstructedFrom.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes) ||
-                   GetUnificationUseSiteDiagnosticRecursive(ref result, _typeArguments, owner, ref checkedTypes);
+            if (ConstructedFrom.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes) ||
+                GetUnificationUseSiteDiagnosticRecursive(ref result, _typeArguments, owner, ref checkedTypes))
+            {
+                return true;
+            }
+
+            if (_hasTypeArgumentsCustomModifiers)
+            {
+                foreach (var modifiers in this.TypeArgumentsCustomModifiers)
+                {
+                    if (GetUnificationUseSiteDiagnosticRecursive(ref result, modifiers, owner, ref checkedTypes))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }
