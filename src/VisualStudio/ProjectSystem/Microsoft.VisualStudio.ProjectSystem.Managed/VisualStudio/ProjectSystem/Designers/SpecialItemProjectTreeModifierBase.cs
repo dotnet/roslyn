@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.VisualStudio.Imaging.Interop;
-using Microsoft.VisualStudio.ProjectSystem.Designers;
-using Microsoft.VisualStudio.ProjectSystem.Utilities;
 using System.Collections.Immutable;
+using Microsoft.VisualStudio.Imaging.Interop;
+using Microsoft.VisualStudio.ProjectSystem.Utilities;
 using Microsoft.VisualStudio.ProjectSystem.Utilities.Designers;
 
-namespace Microsoft.VisualStudio.ProjectSystem.ProjectTree
+namespace Microsoft.VisualStudio.ProjectSystem.Designers
 {
     /// <summary>
     ///     Provides the base class for <see cref="IProjectTreeModifier"/> objects that handle special folders, such as the Properties "AppDesigner" folder.

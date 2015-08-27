@@ -1,13 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.VisualStudio.ProjectSystem.Designers;
-using Microsoft.VisualStudio.ProjectSystem.Utilities.Designers;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
-using System.Collections.Immutable;
+using Microsoft.VisualStudio.ProjectSystem.Utilities.Designers;
 
-namespace Microsoft.VisualStudio.ProjectSystem.ProjectTree
+namespace Microsoft.VisualStudio.ProjectSystem.Designers
 {
     /// <summary>
     ///     Provides the base class for tree modifiers that handle the AppDesigner folder, called "Properties" in C# and "My Project" in Visual Basic.

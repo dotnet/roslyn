@@ -3,7 +3,6 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.ProjectSystem.Designers;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
-using Microsoft.VisualStudio.ProjectSystem.ProjectTree;
 
 namespace Microsoft.VisualStudio.ProjectSystem.CSharp.ProjectTree
 {

@@ -3,7 +3,6 @@
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.ProjectSystem.Designers;
-using Microsoft.VisualStudio.ProjectSystem.ProjectTree;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 using System.ComponentModel.Composition;
 

@@ -21,8 +21,8 @@
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="ProjectTree\" />
     <Folder Include="Properties\" />
-    <Folder Include="VisualStudio\ProjectSystem\Designers\" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -134,11 +134,11 @@
     <Compile Include="Presentation\Input\ProjectCommandBase.cs" />
     <Compile Include="Presentation\Input\ProjectCommandAttribute.cs" />
     <Compile Include="ProjectCapability.cs" />
-    <Compile Include="ProjectTree\AppDesignerFolderProjectTreeModifierBase.cs" />
-    <Compile Include="ProjectTree\ProjectRootProjectTreeModifierBase.cs" />
-    <Compile Include="ProjectTree\ProjectTreeExtensions.cs" />
-    <Compile Include="ProjectTree\ProjectTreeModifierBase.cs" />
-    <Compile Include="ProjectTree\SpecialItemProjectTreeModifierBase.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\Designers\AppDesignerFolderProjectTreeModifierBase.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\Designers\ProjectRootProjectTreeModifierBase.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\Designers\ProjectTreeExtensions.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\Designers\ProjectTreeModifierBase.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\Designers\SpecialItemProjectTreeModifierBase.cs" />
     <Compile Include="Rules\ProjectProperties.cs" />
     <Compile Include="StringComparers.cs" />
     <Compile Include="Threading\Tasks\TaskResult.cs" />
