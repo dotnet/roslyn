@@ -243,7 +243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ArgumentMatchingParameter(Me.Arguments, parameter, Me.Method.ParameterCount, Me.Method.Parameters(Me.Method.ParameterCount - 1).IsParamArray)
         End Function
 
-        Private ReadOnly Property IArguments As ImmutableArray(Of IArgument) Implements IInvocation.Arguments
+        Private ReadOnly Property IArgumentsInParameterOrder As ImmutableArray(Of IArgument) Implements IInvocation.ArgumentsInParameterOrder
             Get
                 Return DeriveArguments(Me.Arguments, Me.Method.ParameterCount, Me.Method.Parameters(Me.Method.ParameterCount - 1).IsParamArray)
             End Get

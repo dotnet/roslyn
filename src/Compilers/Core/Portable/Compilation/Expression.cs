@@ -1,5 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+
 namespace Microsoft.CodeAnalysis.Semantics
 {
     internal class Expression
@@ -276,6 +280,30 @@ namespace Microsoft.CodeAnalysis.Semantics
         public SyntaxNode Syntax { get; }
     }
 
+    internal class Literal : ILiteral
+    {
+        ConstantValue _value;
+
+        public Literal(ConstantValue value, ITypeSymbol resultType, SyntaxNode syntax)
+        {
+            _value = value;
+            this.ResultType = resultType;
+            this.Syntax = syntax;
+        }
+
+        public LiteralKind LiteralClass => Semantics.Expression.DeriveLiteralKind(this.ResultType);
+
+        public string Spelling => _value.Value.ToString();
+
+        public ITypeSymbol ResultType { get; }
+
+        public OperationKind Kind => OperationKind.Literal;
+
+        public object ConstantValue => _value.Value;
+
+        public SyntaxNode Syntax { get; }
+    }
+
     public class Binary : IBinary
     {
         public Binary(BinaryOperationKind binaryKind, IExpression left, IExpression right, ITypeSymbol resultType, SyntaxNode syntax)
@@ -305,4 +333,31 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public SyntaxNode Syntax { get; }
     }
+
+    public class ArrayCreation: IArrayCreation
+    {
+        private readonly IArrayTypeSymbol _arrayType;
+
+        public ArrayCreation(IArrayTypeSymbol arrayType, IEnumerable<IExpression> elementValues, SyntaxNode syntax)
+        {
+            _arrayType = arrayType;
+            this.DimensionSizes = ImmutableArray.Create<IExpression>(new IntegerLiteral(elementValues.Count(), null, null));
+            this.Syntax = syntax;
+        }
+
+        public ITypeSymbol ResultType => _arrayType;
+
+        public ImmutableArray<IExpression> DimensionSizes { get; }
+
+        public ITypeSymbol ElementType => _arrayType.ElementType;
+
+        public IArrayInitializer ElementValues { get; }
+
+        public SyntaxNode Syntax { get; }
+
+        public OperationKind Kind => OperationKind.ArrayCreation;
+
+        public object ConstantValue => null;
+    }
+    
 }

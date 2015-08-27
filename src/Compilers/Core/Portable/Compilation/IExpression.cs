@@ -38,9 +38,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         bool IsVirtual { get; }
         /// <summary>
         /// Arguments of the invocation, excluding the instance argument. Arguments are in parameter order,
-        /// and params/ParamArray arguments have been collected into arrays.
+        /// and params/ParamArray arguments have been collected into arrays. Default values are supplied for
+        /// optional arguments missing in source.
         /// </summary>
-        ImmutableArray<IArgument> Arguments { get; }
+        ImmutableArray<IArgument> ArgumentsInParameterOrder { get; }
+        /// <summary>
+        /// Arguments of the invocation, excluding the instance argument. Arguments are in the order specified in source,
+        /// and params/ParamArray arguments have not been collected into arrays. Arguments are not present
+        /// unless supplied in source.
+        /// </summary>
+        ImmutableArray<IArgument> ArgumentsInSourceOrder { get; }
         /// <summary>
         /// Find the argument supplied for a given parameter of the target method.
         /// </summary>
@@ -92,7 +99,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Argument becomes an element of an array that matches a trailing C# params or VB ParamArray parameter.
         /// </summary>
-        ParamArray
+        ParamArray,
+        /// <summary>
+        /// Argument was omitted in source but has a default value supplied automatically.
+        /// </summary>
+        DefaultValue
     }
 
     /// <summary>
