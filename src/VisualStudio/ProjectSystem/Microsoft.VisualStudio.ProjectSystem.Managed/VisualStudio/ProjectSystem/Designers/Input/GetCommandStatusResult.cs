@@ -3,7 +3,7 @@
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.ProjectSystem.Designers;
 
-namespace Microsoft.VisualStudio.ProjectSystem.Presentation.Input
+namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input
 {
     internal static class GetCommandStatusResult
     {

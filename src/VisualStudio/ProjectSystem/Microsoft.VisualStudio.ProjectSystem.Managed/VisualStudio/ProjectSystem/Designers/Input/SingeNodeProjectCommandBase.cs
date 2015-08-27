@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 using Microsoft.Threading;
 using Microsoft.VisualStudio.ProjectSystem.Designers;
 
-namespace Microsoft.VisualStudio.ProjectSystem.Presentation.Input
+namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input
 {
     /// <summary>
-    ///     Provides the base <see langword="abstract"/> class for all commands that handle a single project tree node.
+    ///     Provides the base <see langword="abstract"/> class for all commands that handle a single <see cref="IProjectTree"/> node.
     /// </summary>
     internal abstract class SingleNodeProjectCommandBase : ProjectCommandBase
     {

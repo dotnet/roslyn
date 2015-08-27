@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 using Microsoft.Threading;
 using Microsoft.VisualStudio.ProjectSystem.Designers;
 
-namespace Microsoft.VisualStudio.ProjectSystem.Presentation.Input
+namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input
 {
     /// <summary>
-    ///     Provides the base <see langword="abstract"/> class for all commands that operate on project tree nodes.
+    ///     Provides the base <see langword="abstract"/> class for all commands that operate on <see cref="IProjectTree"/> nodes.
     /// </summary>
     internal abstract class ProjectCommandBase : IAsyncCommandGroupHandler
     {

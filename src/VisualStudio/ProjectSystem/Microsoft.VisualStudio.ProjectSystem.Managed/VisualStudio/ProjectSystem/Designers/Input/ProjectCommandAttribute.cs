@@ -2,9 +2,8 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.ProjectSystem.Designers;
 
-namespace Microsoft.VisualStudio.ProjectSystem.Presentation.Input
+namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input
 {
     /// <summary>
     ///     Specifies the command group and ID of a given <see cref="ProjectCommandBase"/>.

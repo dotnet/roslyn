@@ -21,7 +21,6 @@
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="ProjectTree\" />
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
@@ -126,13 +125,13 @@
     <Compile Include="VisualStudio\ProjectSystem\IItemTypeGuidProvider.cs" />
     <Compile Include="VisualStudio\ProjectSystem\VS\IUnconfiguredProjectVsServices.cs" />
     <Compile Include="LanguageServices\LanguageServiceBase.cs" />
-    <Compile Include="Presentation\Input\CommandGroup.cs" />
-    <Compile Include="Presentation\Input\CommandId.cs" />
-    <Compile Include="Presentation\Input\GetCommandStatusResult.cs" />
-    <Compile Include="Presentation\Input\Commands\OpenAppDesignerCommand.cs" />
-    <Compile Include="Presentation\Input\SingeNodeProjectCommandBase.cs" />
-    <Compile Include="Presentation\Input\ProjectCommandBase.cs" />
-    <Compile Include="Presentation\Input\ProjectCommandAttribute.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\Designers\Input\CommandGroup.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\Designers\Input\CommandId.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\Designers\Input\GetCommandStatusResult.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\VS\Designers\Input\Commands\OpenAppDesignerCommand.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\Designers\Input\SingeNodeProjectCommandBase.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\Designers\Input\ProjectCommandBase.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\Designers\Input\ProjectCommandAttribute.cs" />
     <Compile Include="VisualStudio\ProjectSystem\ProjectCapability.cs" />
     <Compile Include="VisualStudio\ProjectSystem\Designers\AppDesignerFolderProjectTreeModifierBase.cs" />
     <Compile Include="VisualStudio\ProjectSystem\Designers\ProjectRootProjectTreeModifierBase.cs" />
