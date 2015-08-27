@@ -1609,7 +1609,8 @@ Microsoft.CodeAnalysis.Semantics.IInvocation
 Microsoft.CodeAnalysis.Semantics.IInvocation.TargetMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.Semantics.IInvocation.Instance.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IInvocation.IsVirtual.get -> bool
-Microsoft.CodeAnalysis.Semantics.IInvocation.Arguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IArgument>
+Microsoft.CodeAnalysis.Semantics.IInvocation.ArgumentsInParameterOrder.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IArgument>
+Microsoft.CodeAnalysis.Semantics.IInvocation.ArgumentsInSourceOrder.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IArgument>
 Microsoft.CodeAnalysis.Semantics.IInvocation.ArgumentMatchingParameter(Microsoft.CodeAnalysis.IParameterSymbol parameter) -> Microsoft.CodeAnalysis.Semantics.IArgument
 Microsoft.CodeAnalysis.Semantics.IArgument
 Microsoft.CodeAnalysis.Semantics.IArgument.Kind.get -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
@@ -1771,6 +1772,7 @@ Microsoft.CodeAnalysis.Semantics.ArgumentKind
 Microsoft.CodeAnalysis.Semantics.ArgumentKind.Positional = 0 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
 Microsoft.CodeAnalysis.Semantics.ArgumentKind.Named = 1 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
 Microsoft.CodeAnalysis.Semantics.ArgumentKind.ParamArray = 2 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
+Microsoft.CodeAnalysis.Semantics.ArgumentKind.DefaultValue = 3 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
 Microsoft.CodeAnalysis.Semantics.ArgumentMode
 Microsoft.CodeAnalysis.Semantics.ArgumentMode.In = 0 -> Microsoft.CodeAnalysis.Semantics.ArgumentMode
 Microsoft.CodeAnalysis.Semantics.ArgumentMode.Out = 1 -> Microsoft.CodeAnalysis.Semantics.ArgumentMode

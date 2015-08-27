@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Performance
                      IInvocation invocation = (IInvocation)operationContext.Operation;
                      long priorArgumentValue = long.MinValue;
                      int paramarrayElementsCount = 0;
-                     foreach (IArgument argument in invocation.Arguments)
+                     foreach (IArgument argument in invocation.ArgumentsInParameterOrder)
                      {
                          object argumentValue = argument.Value.ConstantValue;
                          if (argumentValue != null && argument.Value.ResultType.SpecialType == SpecialType.System_Int32)

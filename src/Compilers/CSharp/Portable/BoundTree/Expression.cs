@@ -63,28 +63,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         bool IInvocation.IsVirtual => (this.Method.IsVirtual || this.Method.IsAbstract || this.Method.IsOverride) && !this.ReceiverOpt.SuppressVirtualCalls;
 
-        ImmutableArray<IArgument> IInvocation.Arguments
+        ImmutableArray<IArgument> IInvocation.ArgumentsInParameterOrder
         {
             // ToDO: This should use a ConditionalWeakTable to avoid creating a new array at each access.
             get
             {
-                return DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Method.ParameterCount, this.Method.Parameters[this.Method.ParameterCount - 1].IsParams);
+                return DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Method.Parameters, this.Method.Parameters[this.Method.ParameterCount - 1].IsParams);
             }
         }
 
         IArgument IInvocation.ArgumentMatchingParameter(IParameterSymbol parameter)
         {
-            return ArgumentMatchingParameter(this.Arguments, this.ArgsToParamsOpt, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, parameter.ContainingSymbol as IMethodSymbol, parameter);
+            return ArgumentMatchingParameter(this.Arguments, this.ArgsToParamsOpt, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, parameter.ContainingSymbol as Symbols.MethodSymbol, parameter);
         }
 
         protected override OperationKind ExpressionKind => OperationKind.Invocation;
         
-        internal static ImmutableArray<IArgument> DeriveArguments(ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNames, ImmutableArray<int> argumentsToParameters, ImmutableArray<RefKind> argumentRefKinds, int parameterCount, bool hasParamsParameter)
+        internal static ImmutableArray<IArgument> DeriveArguments(ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNames, ImmutableArray<int> argumentsToParameters, ImmutableArray<RefKind> argumentRefKinds, ImmutableArray<Symbols.ParameterSymbol> parameters, bool hasParamsParameter)
         {
             ArrayBuilder<IArgument> arguments = ArrayBuilder<IArgument>.GetInstance(boundArguments.Length);
-            for (int index = 0; index < boundArguments.Length; index++)
+            for (int index = 0; index < parameters.Length; index++)
             {
-                int argumentIndex = 0;
+                int argumentIndex = -1;
                 if (argumentsToParameters.IsDefault)
                 {
                     argumentIndex = index;
@@ -101,7 +101,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                arguments.Add(DeriveArgument(argumentIndex, boundArguments, argumentNames, argumentRefKinds, parameterCount, hasParamsParameter));
+                if (argumentIndex == -1)
+                {
+                    // No argument has been supplied for the parameter.
+                    Symbols.ParameterSymbol parameter = parameters[index];
+                    if (parameter.HasExplicitDefaultValue)
+                    {
+                        arguments.Add(new Argument(ArgumentKind.DefaultValue, ArgumentMode.In, new Literal(parameter.ExplicitDefaultConstantValue, parameter.Type, null)));
+                    }
+                    else
+                    {
+                        arguments.Add(null);
+                    }
+                }
+                else
+                {
+                    arguments.Add(DeriveArgument(argumentIndex, boundArguments, argumentNames, argumentRefKinds, parameters, hasParamsParameter));
+                }
             }
 
             return arguments.ToImmutableAndFree();
@@ -109,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static System.Runtime.CompilerServices.ConditionalWeakTable<BoundExpression, IArgument> ArgumentMappings = new System.Runtime.CompilerServices.ConditionalWeakTable<BoundExpression, IArgument>();
 
-        private static IArgument DeriveArgument(int index, ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, int parameterCount, bool hasParamsParameter)
+        private static IArgument DeriveArgument(int index, ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, ImmutableArray<Symbols.ParameterSymbol> parameters, bool hasParamsParameter)
         {
             return ArgumentMappings.GetValue(
                 boundArguments[index],
@@ -123,20 +139,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return
                             mode == ArgumentMode.In
-                            ? ((index >= parameterCount - 1 && hasParamsParameter) ? (IArgument)new Argument(ArgumentKind.ParamArray, mode, argument) : new SimpleArgument(argument))
+                            ? ((index >= parameters.Length - 1 && hasParamsParameter) ? (IArgument)new Argument(ArgumentKind.ParamArray, mode, argument) : new SimpleArgument(CreateParamArray(parameters[parameters.Length - 1], boundArguments, index)))
                             : (IArgument)new Argument(ArgumentKind.Positional, mode, argument);
                     }
 
                     return new NamedArgument(mode, argument, name);
                 });
         }
-
-        internal static IArgument ArgumentMatchingParameter(ImmutableArray<BoundExpression> arguments, ImmutableArray<int> argumentsToParameters, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, IMethodSymbol targetMethod, IParameterSymbol parameter)
+        
+        private static IExpression CreateParamArray(IParameterSymbol parameter, ImmutableArray<BoundExpression> boundArguments, int firstArgumentElementIndex)
         {
-            int index = ArgumentIndexMatchingParameter(arguments, argumentsToParameters, parameter.ContainingSymbol as IMethodSymbol, parameter);
+            if (parameter.Type.TypeKind == TypeKind.Array)
+            {
+                IArrayTypeSymbol arrayType = (IArrayTypeSymbol)parameter.Type;
+                List<IExpression> paramArrayArguments = new List<IExpression>();
+                for (int index = firstArgumentElementIndex; index < boundArguments.Length; index++)
+                {
+                    paramArrayArguments.Add(boundArguments[index]);
+                }
+
+                return new ArrayCreation(arrayType, paramArrayArguments, null);
+            }
+
+            return null;
+        }
+
+        internal static IArgument ArgumentMatchingParameter(ImmutableArray<BoundExpression> arguments, ImmutableArray<int> argumentsToParameters, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, Symbols.MethodSymbol targetMethod, IParameterSymbol parameter)
+        {
+            int index = ArgumentIndexMatchingParameter(arguments, argumentsToParameters, targetMethod, parameter);
             if (index >= 0)
             {
-                return DeriveArgument(index, arguments, argumentNames, argumentRefKinds, targetMethod.Parameters.Length, targetMethod.Parameters[targetMethod.Parameters.Length - 1].IsParams);
+                return DeriveArgument(index, arguments, argumentNames, argumentRefKinds, targetMethod.Parameters, targetMethod.Parameters[targetMethod.Parameters.Length - 1].IsParams);
             }
 
             return null;
