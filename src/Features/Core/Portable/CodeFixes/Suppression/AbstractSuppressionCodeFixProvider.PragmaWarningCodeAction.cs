@@ -153,23 +153,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
             }
 
-            public override string Title
-            {
-                get
-                {
-                    return _title;
-                }
-            }
+            public override string Title => _title;
+            public override string EquivalenceKey => _title + _diagnostic.Id;
 
-            public SyntaxToken StartToken_TestOnly
-            {
-                get { return _startToken; }
-            }
-
-            public SyntaxToken EndToken_TestOnly
-            {
-                get { return _endToken; }
-            }
+            public SyntaxToken StartToken_TestOnly => _startToken;
+            public SyntaxToken EndToken_TestOnly => _endToken;
         }
     }
 }
