@@ -1141,7 +1141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 try
                 {
                     bool shouldHaveName = false;
-                tryAgain:
+                    tryAgain:
                     if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken)
                     {
                         if (this.IsPossibleAttributeArgument() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
@@ -2472,7 +2472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return _syntaxFactory.IncompleteMember(attributes, modifiers.ToTokenList(), type);
                 }
 
-            parse_member_name:;
+                parse_member_name:;
                 // Check here for operators
                 // Allow old-style implicit/explicit casting operator syntax, just so we can give a better error
                 if (IsOperatorKeyword())
@@ -3416,18 +3416,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private bool IsPossibleAccessor()
         {
-            if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken
+            return this.CurrentToken.Kind == SyntaxKind.IdentifierToken
                 || IsPossibleAttributeDeclaration()
                 || SyntaxFacts.GetAccessorDeclarationKind(this.CurrentToken.ContextualKind) != SyntaxKind.None
                 || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken  // for accessor blocks w/ missing keyword
                 || this.CurrentToken.Kind == SyntaxKind.SemicolonToken // for empty body accessors w/ missing keyword
-                )
-            {
-                return true;
-            }
-
-
-            return IsPossibleAccessorModifier();
+                || IsPossibleAccessorModifier();
         }
 
         private bool IsPossibleAccessorModifier()

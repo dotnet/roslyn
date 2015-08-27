@@ -8365,7 +8365,7 @@ class Class2
     public string Property { get { return this.Source.$$
     public Class1 Source { get; set; }
 }";
-            VerifyAnyItemExists(markup);
+            VerifyItemExists(markup, "Property1");
         }
     }
 }
