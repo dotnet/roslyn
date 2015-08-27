@@ -488,6 +488,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return true;
             }
 
+            // PERF: Don't query descriptors for compiler analyzer, always execute it.
+            if (analyzer.IsCompilerAnalyzer())
+            {
+                return true;
+            }
+
             return Owner.GetDiagnosticDescriptors(analyzer).Any(d => GetEffectiveSeverity(d, options) != ReportDiagnostic.Hidden);
         }
 
@@ -523,6 +529,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         private static bool ShouldRunAnalyzerForStateType(DiagnosticAnalyzer analyzer, StateType stateTypeId,
             ImmutableHashSet<string> diagnosticIds = null, Func<DiagnosticAnalyzer, ImmutableArray<DiagnosticDescriptor>> getDescriptors = null)
         {
+            // PERF: Don't query descriptors for compiler analyzer, always execute it for all state types.
+            if (analyzer.IsCompilerAnalyzer())
+            {
+                return true;
+            }
+
             if (diagnosticIds != null && getDescriptors(analyzer).All(d => !diagnosticIds.Contains(d.Id)))
             {
                 return false;
