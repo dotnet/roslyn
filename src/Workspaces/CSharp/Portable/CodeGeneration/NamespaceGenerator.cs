@@ -21,9 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             NamespaceDeclarationSyntax destination,
             INamespaceSymbol @namespace,
             CodeGenerationOptions options,
-            IList<bool> availableIndices)
+            IList<bool> availableIndices,
+            CancellationToken cancellationToken)
         {
-            var declaration = GenerateNamespaceDeclaration(service, @namespace, options);
+            var declaration = GenerateNamespaceDeclaration(service, @namespace, options, cancellationToken);
             if (!(declaration is NamespaceDeclarationSyntax))
             {
                 throw new ArgumentException(CSharpWorkspaceResources.NamespaceCanNotBeAddedIn);
@@ -38,9 +39,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CompilationUnitSyntax destination,
             INamespaceSymbol @namespace,
             CodeGenerationOptions options,
-            IList<bool> availableIndices)
+            IList<bool> availableIndices, 
+            CancellationToken cancellationToken)
         {
-            var declaration = GenerateNamespaceDeclaration(service, @namespace, options);
+            var declaration = GenerateNamespaceDeclaration(service, @namespace, options, cancellationToken);
             if (!(declaration is NamespaceDeclarationSyntax))
             {
                 throw new ArgumentException(CSharpWorkspaceResources.NamespaceCanNotBeAddedIn);
@@ -53,7 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static SyntaxNode GenerateNamespaceDeclaration(
             ICodeGenerationService service,
             INamespaceSymbol @namespace,
-            CodeGenerationOptions options)
+            CodeGenerationOptions options,
+            CancellationToken cancellationToken)
         {
             options = options ?? CodeGenerationOptions.Default;
 
@@ -64,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var declaration = GetDeclarationSyntaxWithoutMembers(@namespace, innermostNamespace, name, options);
 
             declaration = options.GenerateMembers
-                    ? service.AddMembers(declaration, innermostNamespace.GetMembers(), options)
+                    ? service.AddMembers(declaration, innermostNamespace.GetMembers(), options, cancellationToken)
                     : declaration;
 
             return AddCleanupAnnotationsTo(declaration);

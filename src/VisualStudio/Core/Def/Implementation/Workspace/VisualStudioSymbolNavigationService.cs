@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _metadataAsSourceFileService = componentModel.GetService<IMetadataAsSourceFileService>();
         }
 
-        public bool TryNavigateToSymbol(ISymbol symbol, Project project, bool usePreviewTab = false)
+        public bool TryNavigateToSymbol(ISymbol symbol, Project project, bool usePreviewTab = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (project == null || symbol == null)
             {
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             // Generate new source or retrieve existing source for the symbol in question
-            var result = _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol).WaitAndGetResult(CancellationToken.None);
+            var result = _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, cancellationToken).WaitAndGetResult(cancellationToken);
 
             var vsRunningDocumentTable4 = GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4>();
             var fileAlreadyOpen = vsRunningDocumentTable4.IsMonikerValid(result.FilePath);
