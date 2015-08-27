@@ -3434,9 +3434,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             //          public int Prop { get { this.
             //          private DateTime x;
             //
-            // We don't want to think of the "private" in "private int prop" as starting an accessor
+            // We don't want to think of the "private" in "private DateTime x" as starting an accessor
             // here.  If we do, we'll get totally thrown off in parsing the remainder and that will
             // throw off the rest of the features that depend on a good syntax tree.
+            // 
+            // Note: we allow all modifiers here.  That's because we want to parse things like
+            // "abstract get" as an accessor.  This way we can provide a good error message
+            // to the user that this is not allowed.
             if (IsPossibleModifier())
             {
                 var peekIndex = 1;
