@@ -1383,7 +1383,7 @@ class A
                 Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("A.Main()").WithLocation(4, 17));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Unknown)]
+        [ClrOnlyFact(ClrOnlyReason.Submission)]
         public void GetEntryPoint_Submission()
         {
             var source = @"1 + 1";
@@ -1402,7 +1402,7 @@ class A
             entryPoint.Diagnostics.Verify();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Unknown)]
+        [ClrOnlyFact(ClrOnlyReason.Submission)]
         public void GetEntryPoint_Submission_MainIgnored()
         {
             var source = @"

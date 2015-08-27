@@ -1228,5 +1228,62 @@ End Namespace";
                 context.VerifyResult(metadataAsSourceFile, expected);
             }
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public void TestIndexersAndOperators()
+        {
+            var metadataSource = @"public class Program
+{
+    public int this[int x]
+    {
+        get
+        {
+            return 0;
+        }
+        set
+        {
+
+        }
+    }
+
+    public static  Program operator + (Program p1, Program p2)
+    {
+        return new Program();
+    }
+}";
+            var symbolName = "Program";
+
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+using System.Reflection;
+
+[DefaultMember(""Item"")]
+public class [|Program|]
+        {{
+            public Program();
+
+            public int this[int x] {{ get; set; }}
+
+            public static Program operator +(Program p1, Program p2);
+        }}");
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
+#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Imports System.Reflection
+
+<DefaultMember(""Item"")>
+Public Class [|Program|]
+    Public Sub New()
+
+    Default Public Property Item(x As Integer) As Integer
+
+    Public Shared Operator +(p1 As Program, p2 As Program) As Program
+End Class");
+        }
     }
 }

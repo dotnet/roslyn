@@ -183,7 +183,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void InsideInterface()
         {
-            VerifyKeyword(
+            VerifyAbsence(
 @"interface I {
    $$");
         }

@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var tagsChanged = TagsChanged;
             if (tagsChanged != null)
             {
-                tagsChanged(this, new SnapshotSpanEventArgs(new SnapshotSpan(_buffer.CurrentSnapshot, 0, _buffer.CurrentSnapshot.Length)));
+                tagsChanged(this, new SnapshotSpanEventArgs(_buffer.CurrentSnapshot.GetFullSpan()));
             }
         }
 

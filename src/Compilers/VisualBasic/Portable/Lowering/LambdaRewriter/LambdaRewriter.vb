@@ -1162,7 +1162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim cachedFieldType As TypeSymbol = If(containerAsFrame Is Nothing,
                                                        type,
-                                                       type.InternalSubstituteTypeParameters(containerAsFrame.TypeMap))
+                                                       type.InternalSubstituteTypeParameters(containerAsFrame.TypeMap).Type)
 
                 ' If we are generating the field into a display class created exclusively for the lambda the lambdaOrdinal itself Is unique already, 
                 ' no need to include the top-level method ordinal in the field name.

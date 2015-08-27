@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                             var types = method.Parameters
                                 .Skip(skip)
                                 .Select(p =>
-                                    (object)p.Type == null ?
+                                    p.Type == null ?
                                     compilation.GetSpecialType(SpecialType.System_Object) :
                                     p.Type)
                                 .ToArray();
@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                             .Select(p => p.Type)
                             .Concat(method.ReturnType)
                             .Select(t =>
-                                (object)t == null ?
+                                t == null ?
                                 compilation.GetSpecialType(SpecialType.System_Object) :
                                 t)
                             .ToArray();

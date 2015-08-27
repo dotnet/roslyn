@@ -56,6 +56,13 @@ do
     esac
 done
 
+restore_nuget()
+{
+    curl -O https://dotnetci.blob.core.windows.net/roslyn/nuget.3.zip
+    unzip nuget.3.zip
+    rm nuget.3.zip
+}
+
 run_msbuild()
 {
     local is_good=false
@@ -230,19 +237,9 @@ test_roslyn()
 echo Clean out the enlistment
 git clean -dxf . 
 
+restore_nuget
 set_mono_path
 which mono
-
-# NuGet on mono crashes about every 5th time we run it.  This is causing
-# Linux runs to fail frequently enough that we need to employ a 
-# temporary work around.  
-echo Restoring NuGet packages
-
-run_nuget restore CrossPlatform.sln -PackagesDirectory packages
-run_nuget restore .nuget/packages.config -PackagesDirectory packages
-
-run_nuget install xunit.runners -PreRelease -Version $XUNIT_VERSION -OutputDirectory packages
-
 compile_toolset
 save_toolset
 clean_roslyn

@@ -118,7 +118,7 @@
       <IncludeOutputGroupsInVSIXLocalOnly>
       </IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
-    <ProjectReference Include="..\..\Features\Core\Features.csproj">
+    <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj">
       <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
       <Name>Features</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
@@ -189,11 +189,11 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\..\packages\System.IO.FileSystem.4.0.0-beta-22816\lib\net45\System.IO.FileSystem.dll">
+    <Content Include="$(NuGetPackageRoot)\System.IO.FileSystem\4.0.0\lib\net46\System.IO.FileSystem.dll">
       <IncludeInVsix>true</IncludeInVsix>
       <VSIXSubPath>.</VSIXSubPath>
     </Content>
-    <Content Include="..\..\..\packages\System.IO.FileSystem.Primitives.4.0.0-beta-22816\lib\net45\System.IO.FileSystem.Primitives.dll">
+    <Content Include="$(NuGetPackageRoot)\System.IO.FileSystem.Primitives\4.0.0\lib\net46\System.IO.FileSystem.Primitives.dll">
       <IncludeInVsix>true</IncludeInVsix>
       <VSIXSubPath>.</VSIXSubPath>
     </Content>

@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public bool HasRenameOverloads { get { return _renameInfo.HasOverloads; } }
         public bool ForceRenameOverloads { get { return _renameInfo.ForceRenameOverloads; } }
 
-        public IInlineRenameUndoManager UndoManager { get; private set; }
+        public IInlineRenameUndoManager UndoManager { get; }
 
         public event EventHandler<IList<InlineRenameLocation>> ReferenceLocationsChanged;
         public event EventHandler<IInlineRenameReplacementInfo> ReplacementsComputed;

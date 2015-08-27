@@ -126,9 +126,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal sealed override bool HasByRefBeforeCustomModifiers
+        internal sealed override ushort CountOfCustomModifiersPrecedingByRef
         {
-            get { return false; }
+            get { return 0; }
         }
 
         public override Symbol ContainingSymbol

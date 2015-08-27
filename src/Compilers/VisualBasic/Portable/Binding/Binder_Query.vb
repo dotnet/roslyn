@@ -2850,7 +2850,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim fields = New AnonymousTypeField(selectVariables.Count - 1) {}
 
-                    For i As Integer = 0 To rangeVariables.Count - 1
+                    For i As Integer = 0 To rangeVariables.Length - 1
                         Dim rangeVar As RangeVariableSymbol = rangeVariables(i)
                         fields(i) = New AnonymousTypeField(
                             rangeVar.Name, rangeVar.Type, rangeVar.Syntax.GetLocation(), isKeyOrByRef:=True)

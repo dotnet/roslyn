@@ -259,11 +259,18 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                     }
                 }
 
+                // Metadata as source generates complete declarations and doesn't modify
+                // existing ones. We can take the members to generate, sort them once,
+                // and then add them in that order to the end of the destination.
+                newMembers.Sort(GetMemberComparer());
+
                 currentDestination = this.AddMembers(currentDestination, newMembers);
             }
 
             return currentDestination;
         }
+
+        protected abstract IComparer<SyntaxNode> GetMemberComparer();
 
         protected static CodeGenerationOptions CreateOptionsForMultipleMembers(CodeGenerationOptions options)
         {
@@ -458,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                         continue;
                     }
 
-                    newModifier = newModifierTokens.ElementAt(0)
+                    newModifier = newModifierTokens[0]
                         .WithLeadingTrivia(modifier.LeadingTrivia)
                         .WithTrailingTrivia(modifier.TrailingTrivia);
                     newModifierTokens.RemoveAt(0);

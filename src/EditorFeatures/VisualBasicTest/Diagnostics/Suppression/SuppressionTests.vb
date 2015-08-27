@@ -715,6 +715,7 @@ End Class]]>
                 <WorkItem(730770)>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestDiagnosticWithBadIdSuppressed()
+                    ' Diagnostics with bad/invalid ID are not reported.
                     Dim source = <![CDATA[
 Imports System
 
@@ -722,39 +723,8 @@ Imports System
     Sub Method()
     End Sub
 End Class]]>
-                    Dim expected = <![CDATA[
-Imports System
 
-#Disable Warning #$DiagnosticWithBadId ' DiagnosticWithBadId
-Class C
-#Enable Warning #$DiagnosticWithBadId ' DiagnosticWithBadId
-    Sub Method()
-    End Sub
-End Class]]>
-                    Test(source.Value, expected.Value)
-
-                    Dim source2 = <![CDATA[
-Imports System
-
-#Disable Warning #$DiagnosticWithBadId ' DiagnosticWithBadId
-[|Class C|]
-#Enable Warning #$DiagnosticWithBadId ' DiagnosticWithBadId
-    Sub Method()
-    End Sub
-End Class]]>
-                    Dim expected2 = <![CDATA[
-Imports System
-
-#Disable Warning #$DiagnosticWithBadId ' DiagnosticWithBadId
-#Disable Warning #$DiagnosticWithBadId ' DiagnosticWithBadId
-Class C
-#Enable Warning #$DiagnosticWithBadId ' DiagnosticWithBadId
-#Enable Warning #$DiagnosticWithBadId ' DiagnosticWithBadId
-    Sub Method()
-    End Sub
-End Class]]>
-                    ' Verify that the original suppression doesn't really work and that the diagnostic can be suppressed again.
-                    Test(source2.Value, expected2.Value)
+                    TestMissing(source.Value)
                 End Sub
             End Class
 

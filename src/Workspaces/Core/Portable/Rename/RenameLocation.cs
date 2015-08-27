@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
         public bool IsRenameInStringOrComment { get { return ContainingLocationForStringOrComment != default(TextSpan); } }
 
-        public bool IsMethodGroupReference { get; private set; }
+        public bool IsMethodGroupReference { get; }
 
         public RenameLocation(
             Location location,

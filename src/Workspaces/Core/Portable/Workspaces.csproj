@@ -65,6 +65,9 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\PooledStringBuilder.cs">
       <Link>Collections\PooledStringBuilder.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\CorLightup.cs">
+      <Link>InternalUtilities\CorLightup.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\MetadataReference\MetadataFileReferenceProvider.cs">
       <Link>MetadataReference\MetadataFileReferenceProvider.cs</Link>
     </Compile>
@@ -964,7 +967,8 @@
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
-    <PublicAPI Include="PublicAPI.txt" />
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <Import Project="..\..\..\Compilers\Core\SharedCollections\SharedCollections.projitems" Label="Shared" />
   <ImportGroup Label="Targets">

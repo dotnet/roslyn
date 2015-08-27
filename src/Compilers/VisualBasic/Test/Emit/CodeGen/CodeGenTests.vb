@@ -12692,6 +12692,7 @@ End Namespace
 Class C
     Shared Sub M()
         Try
+            Dim o = Nothing
         Catch e As Exception
         End Try
     End Sub

@@ -1166,7 +1166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' this lambda symbol.
             Dim lambdaSymbol = New SynthesizedLambdaSymbol(SynthesizedLambdaKind.DelegateRelaxationStub,
                                                            syntaxNode,
-                                                           lambdaSymbolParameters.AsImmutableOrNull,
+                                                           lambdaSymbolParameters.AsImmutable(),
                                                            delegateInvokeReturnType,
                                                            Me)
 
@@ -1182,7 +1182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim lambdaBoundParameters(targetParameterCount - 1) As BoundExpression
 
             If Not droppedArguments Then
-                For parameterIndex = 0 To lambdaSymbolParameters.Count - 1
+                For parameterIndex = 0 To lambdaSymbolParameters.Length - 1
                     Dim lambdaSymbolParameter = lambdaSymbolParameters(parameterIndex)
                     Dim boundParameter = New BoundParameter(syntaxNode,
                                                             lambdaSymbolParameter,
@@ -1204,7 +1204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                         syntaxNode,
                                                                                         TypeCharacter.None,
                                                                                         methodGroup,
-                                                                                        lambdaBoundParameters.AsImmutableOrNull,
+                                                                                        lambdaBoundParameters.AsImmutable(),
                                                                                         Nothing,
                                                                                         diagnostics,
                                                                                         suppressAbstractCallDiagnostics:=True,

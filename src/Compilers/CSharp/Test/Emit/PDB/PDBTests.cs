@@ -3,9 +3,13 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -135,6 +139,7 @@ public class C
                     win32Resources: null,
                     manifestResources: null,
                     options: null,
+                    debugEntryPoint: null,
                     getHostDiagnostics: null,
                     testData: new CompilationTestData() { SymWriterFactory = () => new MockSymUnmanagedWriter() });
 
@@ -362,6 +367,93 @@ public class C
   </methods>
 </symbols>
 ");
+        }
+
+        [Fact]
+        public void CustomDebugEntryPoint_DLL()
+        {
+            var source = @"class C { static void F() { } }";
+
+            var c = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var f = c.GetMember<MethodSymbol>("C.F");
+
+            c.VerifyPdb(@"
+<symbols>
+  <entryPoint declaringType=""C"" methodName=""F"" />
+  <methods/>
+</symbols>", debugEntryPoint: f, options: PdbToXmlOptions.ExcludeScopes | PdbToXmlOptions.ExcludeSequencePoints | PdbToXmlOptions.ExcludeCustomDebugInformation);
+
+            var peReader = new PEReader(c.EmitToArray(debugEntryPoint: f));
+            int peEntryPointToken = peReader.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress;
+
+            Assert.Equal(0, peEntryPointToken);
+        }
+
+        [Fact]
+        public void CustomDebugEntryPoint_EXE()
+        {
+            var source = @"class M { static void Main() { } } class C { static void F<S>() { } }";
+
+            var c = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var f = c.GetMember<MethodSymbol>("C.F");
+
+            c.VerifyPdb(@"
+<symbols>
+  <entryPoint declaringType=""C"" methodName=""F"" />
+  <methods/>
+</symbols>", debugEntryPoint: f, options: PdbToXmlOptions.ExcludeScopes | PdbToXmlOptions.ExcludeSequencePoints | PdbToXmlOptions.ExcludeCustomDebugInformation);
+
+            var peReader = new PEReader(c.EmitToArray(debugEntryPoint: f));
+            int peEntryPointToken = peReader.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress;
+
+            var mdReader = peReader.GetMetadataReader();
+            var methodDef = mdReader.GetMethodDefinition((MethodDefinitionHandle)MetadataTokens.Handle(peEntryPointToken));
+            Assert.Equal("Main", mdReader.GetString(methodDef.Name));
+        }
+
+        [Fact]
+        public void CustomDebugEntryPoint_Errors()
+        {
+            var source1 = @"class C { static void F() { } } class D<T> { static void G<S>() {} }";
+            var source2 = @"class C { static void F() { } }";
+
+            var c1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+            var c2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
+
+            var f1 = c1.GetMember<MethodSymbol>("C.F");
+            var f2 = c2.GetMember<MethodSymbol>("C.F");
+            var g = c1.GetMember<MethodSymbol>("D.G");
+            var d = c1.GetMember<NamedTypeSymbol>("D");
+            Assert.NotNull(f1);
+            Assert.NotNull(f2);
+            Assert.NotNull(g);
+            Assert.NotNull(d);
+
+            var stInt = c1.GetSpecialType(SpecialType.System_Int32);
+            var d_t_g_int = g.Construct(stInt);
+            var d_int = d.Construct(stInt);
+            var d_int_g = d_int.GetMember<MethodSymbol>("G");
+            var d_int_g_int = d_int_g.Construct(stInt);
+
+            var result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: f2);
+            result.Diagnostics.Verify(
+                // error CS8096: Debug entry point must be a definition of a source method in the current compilation.
+                Diagnostic(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition));
+
+            result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: d_t_g_int);
+            result.Diagnostics.Verify(
+                // error CS8096: Debug entry point must be a definition of a source method in the current compilation.
+                Diagnostic(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition));
+
+            result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: d_int_g);
+            result.Diagnostics.Verify(
+                // error CS8096: Debug entry point must be a definition of a source method in the current compilation.
+                Diagnostic(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition));
+
+            result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: d_int_g_int);
+            result.Diagnostics.Verify(
+                // error CS8096: Debug entry point must be a definition of a source method in the current compilation.
+                Diagnostic(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition));
         }
 
         #endregion
@@ -3055,7 +3147,7 @@ class Test
             var v = CompileAndVerify(CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll));
             v.VerifyIL("Test.Main", @"
 {
-  // Code size       45 (0x2d)
+  // Code size       33 (0x21)
   .maxstack  2
   .locals init (bool V_0)
  -IL_0000:  nop
@@ -3067,34 +3159,27 @@ class Test
   }
   filter
   {
-   ~IL_0008:  isinst     ""object""
-    IL_000d:  dup
-    IL_000e:  brtrue.s   IL_0014
-    IL_0010:  pop
-    IL_0011:  ldc.i4.0
-    IL_0012:  br.s       IL_001f
-    IL_0014:  pop
-   -IL_0015:  call       ""bool Test.F()""
-    IL_001a:  stloc.0
-   ~IL_001b:  ldloc.0
-    IL_001c:  ldc.i4.0
-    IL_001d:  cgt.un
-    IL_001f:  endfilter
+   ~IL_0008:  pop
+   -IL_0009:  call       ""bool Test.F()""
+    IL_000e:  stloc.0
+   ~IL_000f:  ldloc.0
+    IL_0010:  ldc.i4.0
+    IL_0011:  cgt.un
+    IL_0013:  endfilter
   }  // end filter
   {  // handler
-   ~IL_0021:  pop
-   -IL_0022:  nop
-   -IL_0023:  call       ""void System.Console.WriteLine()""
-    IL_0028:  nop
-   -IL_0029:  nop
-    IL_002a:  leave.s    IL_002c
+   ~IL_0015:  pop
+   -IL_0016:  nop
+   -IL_0017:  call       ""void System.Console.WriteLine()""
+    IL_001c:  nop
+   -IL_001d:  nop
+    IL_001e:  leave.s    IL_0020
   }
- -IL_002c:  ret
+ -IL_0020:  ret
 }
 ", sequencePoints: "Test.Main");
 
-            v.VerifyPdb("Test.Main", @"
-<symbols>
+            v.VerifyPdb("Test.Main", @"<symbols>
   <methods>
     <method containingType=""Test"" name=""Main"">
       <customDebugInfo>
@@ -3110,13 +3195,13 @@ class Test
         <entry offset=""0x1"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""10"" />
         <entry offset=""0x2"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""42"" />
         <entry offset=""0x8"" hidden=""true"" />
-        <entry offset=""0x15"" startLine=""10"" startColumn=""15"" endLine=""10"" endColumn=""25"" />
-        <entry offset=""0x1b"" hidden=""true"" />
-        <entry offset=""0x21"" hidden=""true"" />
-        <entry offset=""0x22"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
-        <entry offset=""0x23"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""40"" />
-        <entry offset=""0x29"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
-        <entry offset=""0x2c"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" />
+        <entry offset=""0x9"" startLine=""10"" startColumn=""15"" endLine=""10"" endColumn=""25"" />
+        <entry offset=""0xf"" hidden=""true"" />
+        <entry offset=""0x15"" hidden=""true"" />
+        <entry offset=""0x16"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
+        <entry offset=""0x17"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""40"" />
+        <entry offset=""0x1d"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
+        <entry offset=""0x20"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" />
       </sequencePoints>
     </method>
   </methods>
@@ -3147,7 +3232,7 @@ class Test
             var v = CompileAndVerify(CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll));
             v.VerifyIL("Test.Main", @"
 {
-  // Code size       45 (0x2d)
+  // Code size       33 (0x21)
   .maxstack  2
   .locals init (bool V_0)
  -IL_0000:  nop
@@ -3159,34 +3244,27 @@ class Test
   }
   filter
   {
-   ~IL_0008:  isinst     ""object""
-    IL_000d:  dup
-    IL_000e:  brtrue.s   IL_0014
-    IL_0010:  pop
-    IL_0011:  ldc.i4.0
-    IL_0012:  br.s       IL_001f
-    IL_0014:  pop
-   -IL_0015:  ldsfld     ""bool Test.a""
-    IL_001a:  stloc.0
-   ~IL_001b:  ldloc.0
-    IL_001c:  ldc.i4.0
-    IL_001d:  cgt.un
-    IL_001f:  endfilter
+   ~IL_0008:  pop
+   -IL_0009:  ldsfld     ""bool Test.a""
+    IL_000e:  stloc.0
+   ~IL_000f:  ldloc.0
+    IL_0010:  ldc.i4.0
+    IL_0011:  cgt.un
+    IL_0013:  endfilter
   }  // end filter
   {  // handler
-   ~IL_0021:  pop
-   -IL_0022:  nop
-   -IL_0023:  call       ""void System.Console.WriteLine()""
-    IL_0028:  nop
-   -IL_0029:  nop
-    IL_002a:  leave.s    IL_002c
+   ~IL_0015:  pop
+   -IL_0016:  nop
+   -IL_0017:  call       ""void System.Console.WriteLine()""
+    IL_001c:  nop
+   -IL_001d:  nop
+    IL_001e:  leave.s    IL_0020
   }
- -IL_002c:  ret
+ -IL_0020:  ret
 }
 ", sequencePoints: "Test.Main");
 
-            v.VerifyPdb("Test.Main", @"
-<symbols>
+            v.VerifyPdb("Test.Main", @"<symbols>
   <methods>
     <method containingType=""Test"" name=""Main"">
       <customDebugInfo>
@@ -3202,13 +3280,13 @@ class Test
         <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
         <entry offset=""0x2"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""42"" />
         <entry offset=""0x8"" hidden=""true"" />
-        <entry offset=""0x15"" startLine=""12"" startColumn=""15"" endLine=""12"" endColumn=""23"" />
-        <entry offset=""0x1b"" hidden=""true"" />
-        <entry offset=""0x21"" hidden=""true"" />
-        <entry offset=""0x22"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
-        <entry offset=""0x23"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""40"" />
-        <entry offset=""0x29"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" />
-        <entry offset=""0x2c"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" />
+        <entry offset=""0x9"" startLine=""12"" startColumn=""15"" endLine=""12"" endColumn=""23"" />
+        <entry offset=""0xf"" hidden=""true"" />
+        <entry offset=""0x15"" hidden=""true"" />
+        <entry offset=""0x16"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
+        <entry offset=""0x17"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""40"" />
+        <entry offset=""0x1d"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" />
+        <entry offset=""0x20"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" />
       </sequencePoints>
     </method>
   </methods>
@@ -3239,7 +3317,7 @@ class Test
             var v = CompileAndVerify(CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll));
             v.VerifyIL("Test.Main", @"
 {
-  // Code size       38 (0x26)
+  // Code size       26 (0x1a)
   .maxstack  2
   .try
   {
@@ -3248,29 +3326,22 @@ class Test
   }
   filter
   {
-   ~IL_0006:  isinst     ""object""
-    IL_000b:  dup
-    IL_000c:  brtrue.s   IL_0012
-    IL_000e:  pop
-    IL_000f:  ldc.i4.0
-    IL_0010:  br.s       IL_001b
-    IL_0012:  pop
-   -IL_0013:  ldsfld     ""bool Test.a""
-    IL_0018:  ldc.i4.0
-    IL_0019:  cgt.un
-    IL_001b:  endfilter
+   ~IL_0006:  pop
+   -IL_0007:  ldsfld     ""bool Test.a""
+    IL_000c:  ldc.i4.0
+    IL_000d:  cgt.un
+    IL_000f:  endfilter
   }  // end filter
   {  // handler
-   ~IL_001d:  pop
-   -IL_001e:  call       ""void System.Console.WriteLine()""
-   -IL_0023:  leave.s    IL_0025
+   ~IL_0011:  pop
+   -IL_0012:  call       ""void System.Console.WriteLine()""
+   -IL_0017:  leave.s    IL_0019
   }
- -IL_0025:  ret
+ -IL_0019:  ret
 }
 ", sequencePoints: "Test.Main");
 
-            v.VerifyPdb("Test.Main", @"
-<symbols>
+            v.VerifyPdb("Test.Main", @"<symbols>
   <methods>
     <method containingType=""Test"" name=""Main"">
       <customDebugInfo>
@@ -3281,11 +3352,11 @@ class Test
       <sequencePoints>
         <entry offset=""0x0"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""42"" />
         <entry offset=""0x6"" hidden=""true"" />
-        <entry offset=""0x13"" startLine=""12"" startColumn=""15"" endLine=""12"" endColumn=""23"" />
-        <entry offset=""0x1d"" hidden=""true"" />
-        <entry offset=""0x1e"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""40"" />
-        <entry offset=""0x23"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" />
-        <entry offset=""0x25"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" />
+        <entry offset=""0x7"" startLine=""12"" startColumn=""15"" endLine=""12"" endColumn=""23"" />
+        <entry offset=""0x11"" hidden=""true"" />
+        <entry offset=""0x12"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""40"" />
+        <entry offset=""0x17"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" />
+        <entry offset=""0x19"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" />
       </sequencePoints>
     </method>
   </methods>
@@ -4242,7 +4313,7 @@ public class T
       </scope>
     </method>
   </methods>
-</symbols>", DebugInformationFormat.Pdb);
+</symbols>", format: DebugInformationFormat.Pdb);
 
             c.VerifyPdb(@"
 <symbols>
@@ -4259,7 +4330,7 @@ public class T
       </scope>
     </method>
   </methods>
-</symbols>", DebugInformationFormat.PortablePdb);
+</symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
         [Fact, WorkItem(546862, "DevDiv")]
@@ -4299,7 +4370,7 @@ public class T
       </scope>
     </method>
   </methods>
-</symbols>", DebugInformationFormat.Pdb);
+</symbols>", format: DebugInformationFormat.Pdb);
 
             c.VerifyPdb(@"
 <symbols>
@@ -4314,7 +4385,7 @@ public class T
       </scope>
     </method>
   </methods>
-</symbols>", DebugInformationFormat.PortablePdb);
+</symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
         [Fact]

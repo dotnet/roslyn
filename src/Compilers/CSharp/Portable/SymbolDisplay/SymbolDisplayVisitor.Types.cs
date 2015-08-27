@@ -134,6 +134,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (typeArg.TypeKind != TypeKind.Pointer)
                     {
                         symbol.TypeArguments[0].Accept(this.NotFirstVisitor);
+
+                        if (this.format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers))
+                        {
+                            var namedType = symbol as NamedTypeSymbol;
+                            if ((object)namedType != null && namedType.HasTypeArgumentsCustomModifiers)
+                            {
+                                AddCustomModifiersIfRequired(namedType.TypeArgumentsCustomModifiers[0], leadingSpace: true, trailingSpace: false);
+                            }
+                        }
+
                         AddPunctuation(SyntaxKind.QuestionToken);
 
                         //visiting the underlying type did all of the work for us
@@ -283,7 +293,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    AddTypeArguments(symbol.TypeArguments);
+                    var modifiers = default(ImmutableArray<ImmutableArray<CustomModifier>>);
+
+                    if (this.format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers))
+                    {
+                        var namedType = symbol as NamedTypeSymbol;
+                        if ((object)namedType != null && namedType.HasTypeArgumentsCustomModifiers)
+                        {
+                            modifiers = namedType.TypeArgumentsCustomModifiers;
+                        }
+                    }
+
+                    AddTypeArguments(symbol.TypeArguments, modifiers);
 
                     AddDelegateParameters(symbol);
 
@@ -490,15 +511,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         //returns true if there are constraints
-        private void AddTypeArguments(ImmutableArray<ITypeSymbol> typeArguments)
+        private void AddTypeArguments(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<ImmutableArray<CustomModifier>> modifiers)
         {
             if (typeArguments.Length > 0 && format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeParameters))
             {
                 AddPunctuation(SyntaxKind.LessThanToken);
 
                 var first = true;
-                foreach (var typeArg in typeArguments)
+                for (int i =0; i < typeArguments.Length; i++)
                 {
+                    var typeArg = typeArguments[i];
+
                     if (!first)
                     {
                         AddPunctuation(SyntaxKind.CommaToken);
@@ -517,6 +540,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         typeArg.Accept(this.NotFirstVisitor);
+                    }
+
+                    if (!modifiers.IsDefault)
+                    {
+                        AddCustomModifiersIfRequired(modifiers[i], leadingSpace: true, trailingSpace:false);
                     }
                 }
 

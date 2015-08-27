@@ -177,9 +177,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             MethodSymbol entryPoint = GetEntryPoint(compilation, moduleBeingBuiltOpt, hasDeclarationErrors, diagnostics, cancellationToken);
-            if (moduleBeingBuiltOpt != null)
+            if (moduleBeingBuiltOpt != null && entryPoint != null && compilation.Options.OutputKind.IsApplication())
             {
-                moduleBeingBuiltOpt.SetEntryPoint(entryPoint);
+                moduleBeingBuiltOpt.SetPEEntryPoint(entryPoint, diagnostics);
             }
         }
 
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         CompileNamedType(symbol);
                     }
-                    catch (Exception e) when (FatalError.Report(e))
+                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }

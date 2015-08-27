@@ -478,6 +478,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Inconsistent language versions.
+        /// </summary>
+        internal static string InconsistentLanguageVersions {
+            get {
+                return ResourceManager.GetString("InconsistentLanguageVersions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;in-memory assembly&gt;.
         /// </summary>
         internal static string InMemoryAssembly {
@@ -573,6 +582,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string InvalidDataAtOffset {
             get {
                 return ResourceManager.GetString("InvalidDataAtOffset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reported diagnostic has an ID &apos;{0}&apos;, which is not a valid identifier..
+        /// </summary>
+        internal static string InvalidDiagnosticIdReported {
+            get {
+                return ResourceManager.GetString("InvalidDiagnosticIdReported", resourceCulture);
             }
         }
         

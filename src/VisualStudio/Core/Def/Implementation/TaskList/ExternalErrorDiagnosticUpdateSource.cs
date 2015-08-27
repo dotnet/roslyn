@@ -584,16 +584,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 var workspace = data.Workspace as VisualStudioWorkspaceImpl;
                 if (workspace == null)
                 {
-                    return ValueTuple.Create(data.MappedStartLine, data.MappedStartColumn);
+                    return ValueTuple.Create(data.DataLocation?.MappedStartLine ?? 0, data.DataLocation?.MappedStartColumn ?? 0);
                 }
 
                 var containedDocument = workspace.GetHostDocument(data.DocumentId) as ContainedDocument;
                 if (containedDocument == null)
                 {
-                    return ValueTuple.Create(data.MappedStartLine, data.MappedStartColumn);
+                    return ValueTuple.Create(data.DataLocation?.MappedStartLine ?? 0, data.DataLocation?.MappedStartColumn ?? 0);
                 }
 
-                return ValueTuple.Create(data.OriginalStartLine, data.OriginalStartColumn);
+                return ValueTuple.Create(data.DataLocation?.OriginalStartLine ?? 0, data.DataLocation?.OriginalStartColumn ?? 0);
             }
 
             private bool IsNull<T>(T item) where T : class

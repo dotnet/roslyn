@@ -857,6 +857,7 @@
     <Compile Include="Symbols\TypeSubstitution.vb" />
     <Compile Include="Symbols\TypeSymbol.vb" />
     <Compile Include="Symbols\TypeSymbolExtensions.vb" />
+    <Compile Include="Symbols\TypeWithModifiers.vb" />
     <Compile Include="Symbols\UnboundGenericType.vb" />
     <Compile Include="Symbols\UnsupportedMetadataTypeSymbol.vb" />
     <Compile Include="Symbols\WellKnownMembers.vb" />
@@ -976,7 +977,8 @@
     <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Enumerator.vb" />
     <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.vb" />
     <Compile Include="Compilation\ModuleCompilationState.vb" />
-    <PublicAPI Include="PublicAPI.txt" />
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
     <Content Include="Symbols\SymbolsAndNoPia.docx" />
     <ErrorCode Include="Errors\Errors.vb" />
     <SyntaxDefinition Include="Syntax\Syntax.xml">
