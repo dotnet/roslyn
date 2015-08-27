@@ -2,7 +2,7 @@
 
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.VisualStudio.ProjectSystem
+namespace Microsoft.VisualStudio.ProjectSystem.VS
 {
     /// <summary>
     ///     Provides access to common Visual Studio project services provided by the <see cref="UnconfiguredProject"/>.
