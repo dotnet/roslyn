@@ -4,12 +4,12 @@ Set up a box with [Visual Studio 2015](https://www.visualstudio.com/en-us/downlo
 ## Step 2:
 Be sure to select "Custom" when installing 
 
-![](http://i.imgur.com/YINeLkG.png)
+![image](http://i.imgur.com/YINeLkG.png)
 
 ## Step 3:
 Install "Visual Studio Extensibility tools", "Universal Windows App Development Tools -> Tools and Windows SDK" and "Windows 8.1 and Windows Phone 8.0/8.1 tools -> Tools and Windows SDKs"
 
-http://i.imgur.com/uc9SVWf.png
+![image](http://i.imgur.com/uc9SVWf.png)
 ![image](https://cloud.githubusercontent.com/assets/1103906/8912307/da193aa2-3446-11e5-934a-e89e21696fb1.png)
 
 ## Step 4:
