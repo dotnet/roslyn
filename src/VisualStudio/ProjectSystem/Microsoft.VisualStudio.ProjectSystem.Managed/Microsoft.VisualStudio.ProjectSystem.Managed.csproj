@@ -138,7 +138,7 @@
     <Compile Include="VisualStudio\ProjectSystem\Designers\ProjectTreeExtensions.cs" />
     <Compile Include="VisualStudio\ProjectSystem\Designers\ProjectTreeModifierBase.cs" />
     <Compile Include="VisualStudio\ProjectSystem\Designers\SpecialItemProjectTreeModifierBase.cs" />
-    <Compile Include="Rules\ProjectProperties.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\Rules\ProjectProperties.cs" />
     <Compile Include="StringComparers.cs" />
     <Compile Include="Threading\Tasks\TaskResult.cs" />
     <Compile Include="VisualStudio\ProjectSystem\VS\UnconfiguredProjectVsServices.cs" />
@@ -147,27 +147,27 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <XamlPropertyRule Include="Rules\CSharp.xaml">
+    <XamlPropertyRule Include="VisualStudio\ProjectSystem\Rules\CSharp.xaml">
       <Generator>MSBuild:GenerateRuleSourceFromXaml</Generator>
       <SubType>Designer</SubType>
     </XamlPropertyRule>
-    <XamlPropertyRule Include="Rules\General.xaml">
+    <XamlPropertyRule Include="VisualStudio\ProjectSystem\Rules\General.xaml">
       <Generator>MSBuild:GenerateRuleSourceFromXaml</Generator>
       <SubType>Designer</SubType>
     </XamlPropertyRule>
-    <XamlPropertyRule Include="Rules\ProjectReference.xaml">
+    <XamlPropertyRule Include="VisualStudio\ProjectSystem\Rules\ProjectReference.xaml">
       <Generator>MSBuild:GenerateRuleSourceFromXaml</Generator>
       <SubType>Designer</SubType>
     </XamlPropertyRule>
-    <XamlPropertyRule Include="Rules\ResolvedAssemblyReference.xaml">
+    <XamlPropertyRule Include="VisualStudio\ProjectSystem\Rules\ResolvedAssemblyReference.xaml">
       <Generator>MSBuild:GenerateRuleSourceFromXaml</Generator>
       <SubType>Designer</SubType>
     </XamlPropertyRule>
-    <XamlPropertyRule Include="Rules\ResolvedCOMReference.xaml">
+    <XamlPropertyRule Include="VisualStudio\ProjectSystem\Rules\ResolvedCOMReference.xaml">
       <Generator>MSBuild:GenerateRuleSourceFromXaml</Generator>
       <SubType>Designer</SubType>
     </XamlPropertyRule>
-    <XamlPropertyRule Include="Rules\ResolvedProjectReference.xaml">
+    <XamlPropertyRule Include="VisualStudio\ProjectSystem\Rules\ResolvedProjectReference.xaml">
       <Generator>MSBuild:GenerateRuleSourceFromXaml</Generator>
       <SubType>Designer</SubType>
     </XamlPropertyRule>
