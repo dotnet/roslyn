@@ -1897,7 +1897,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     // note that caret might be located in virtual space behind the current buffer end:
                     if (trySubmit && caretPosition >= _window._currentLanguageBuffer.CurrentSnapshot.Length && CanExecuteActiveCode())
                     {
-                        SubmitAsync().GetAwaiter().GetResult();
+                        var dummy = SubmitAsync();
                         return true;
                     }
 
