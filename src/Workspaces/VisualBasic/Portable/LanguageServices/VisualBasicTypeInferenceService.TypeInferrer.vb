@@ -122,7 +122,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim parent = token.Parent
 
                 Return parent.TypeSwitch(
-                    Function(nameColonEquals As NameColonEqualsSyntax) InferTypeInArgumentList(TryCast(nameColonEquals.Parent.Parent, ArgumentListSyntax), DirectCast(nameColonEquals.Parent, ArgumentSyntax)),
                     Function(argument As ArgumentSyntax) InferTypeInArgumentList(TryCast(argument.Parent, ArgumentListSyntax), previousToken:=token),
                     Function(argumentList As ArgumentListSyntax) InferTypeInArgumentList(argumentList, previousToken:=token),
                     Function(arrayCreationExpression As ArrayCreationExpressionSyntax) InferTypeInArrayCreationExpression(arrayCreationExpression),
@@ -133,6 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(attribute As AttributeSyntax) InferTypeInAttribute(attribute),
                     Function(awaitExpression As AwaitExpressionSyntax) InferTypeInAwaitExpression(awaitExpression),
                     Function(binaryExpression As BinaryExpressionSyntax) InferTypeInBinaryExpression(binaryExpression, previousToken:=token),
+                    Function(callStatement As CallStatementSyntax) InferTypeInCallStatement(),
                     Function(caseStatement As CaseStatementSyntax) InferTypeInCaseStatement(caseStatement),
                     Function(castExpression As CastExpressionSyntax) InferTypeInCastExpression(castExpression),
                     Function(catchFilterClause As CatchFilterClauseSyntax) InferTypeInCatchFilterClause(catchFilterClause, previousToken:=token),
@@ -140,25 +140,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(conditionalExpression As TernaryConditionalExpressionSyntax) InferTypeInTernaryConditionalExpression(conditionalExpression, previousToken:=token),
                     Function(doStatement As DoStatementSyntax) InferTypeInDoStatement(token),
                     Function(equalsValue As EqualsValueSyntax) InferTypeInEqualsValue(equalsValue, token),
-                    Function(callStatement As CallStatementSyntax) InferTypeInCallStatement(),
+                    Function(expressionStatement As ExpressionStatementSyntax) InferTypeInExpressionStatement(expressionStatement),
                     Function(forEachStatement As ForEachStatementSyntax) InferTypeInForEachStatement(forEachStatement, previousToken:=token),
-                    Function(forStepClause As ForStepClauseSyntax) InferTypeInForStepClause(forStepClause, token),
                     Function(forStatement As ForStatementSyntax) InferTypeInForStatement(forStatement, previousToken:=token),
+                    Function(forStepClause As ForStepClauseSyntax) InferTypeInForStepClause(forStepClause, token),
                     Function(ifStatement As IfStatementSyntax) InferTypeInIfOrElseIfStatement(token),
+                    Function(nameColonEquals As NameColonEqualsSyntax) InferTypeInArgumentList(TryCast(nameColonEquals.Parent.Parent, ArgumentListSyntax), DirectCast(nameColonEquals.Parent, ArgumentSyntax)),
                     Function(namedFieldInitializer As NamedFieldInitializerSyntax) InferTypeInNamedFieldInitializer(namedFieldInitializer, token),
                     Function(objectCreation As ObjectCreationExpressionSyntax) InferTypes(objectCreation),
-                    Function(singleLineLambdaExpression As SingleLineLambdaExpressionSyntax) InferTypeInLambda(singleLineLambdaExpression, token),
+                    Function(parameterListSyntax As ParameterListSyntax) InferTypeInParameterList(parameterListSyntax),
                     Function(parenthesizedLambda As MultiLineLambdaExpressionSyntax) InferTypeInLambda(parenthesizedLambda, token),
                     Function(prefixUnary As UnaryExpressionSyntax) InferTypeInUnaryExpression(prefixUnary, token),
                     Function(returnStatement As ReturnStatementSyntax) InferTypeForReturnStatement(returnStatement, token),
+                    Function(singleLineLambdaExpression As SingleLineLambdaExpressionSyntax) InferTypeInLambda(singleLineLambdaExpression, token),
                     Function(switchStatement As SelectStatementSyntax) InferTypeInSelectStatement(switchStatement, token),
                     Function(throwStatement As ThrowStatementSyntax) InferTypeInThrowStatement(),
                     Function(usingStatement As UsingStatementSyntax) InferTypeInUsingStatement(usingStatement),
-                    Function(whileStatement As WhileStatementSyntax) InferTypeInWhileStatement(),
                     Function(whileStatement As WhileOrUntilClauseSyntax) InferTypeInWhileOrUntilClause(),
+                    Function(whileStatement As WhileStatementSyntax) InferTypeInWhileStatement(),
                     Function(yieldStatement As YieldStatementSyntax) InferTypeInYieldStatement(yieldStatement, token),
-                    Function(expressionStatement As ExpressionStatementSyntax) InferTypeInExpressionStatement(expressionStatement),
-                    Function(parameterListSyntax As ParameterListSyntax) InferTypeInParameterList(parameterListSyntax),
                     Function(x) SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)())
             End Function
 
