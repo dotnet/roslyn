@@ -28,9 +28,9 @@ namespace Microsoft.VisualStudio.ProjectSystem.VS
             get { return (IVsHierarchy)_unconfiguredProject.Services.HostObject; }
         }
 
-        public IVsProject3 Project
+        public IVsProject4 Project
         {
-            get { return (IVsProject3)_unconfiguredProject.Services.HostObject; }
+            get { return (IVsProject4)_unconfiguredProject.Services.HostObject; }
         }
     }
 }

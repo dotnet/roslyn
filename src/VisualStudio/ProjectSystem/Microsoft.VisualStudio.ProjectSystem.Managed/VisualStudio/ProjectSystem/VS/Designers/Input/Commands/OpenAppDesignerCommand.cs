@@ -7,12 +7,12 @@ using Microsoft.VisualStudio.ProjectSystem.Designers;
 using Microsoft.VisualStudio.ProjectSystem.Designers.Input;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 using Microsoft.VisualStudio.ProjectSystem.Utilities.Designers;
-using Microsoft.VisualStudio.ProjectSystem.VS;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.ProjectSystem.VS.Designers.Input.Commands
 {
-    // Opens the AppDesigner on double-click or ENTER on the AppDesigner folder
+    // Opens the AppDesigner ("Property Pages") on double-click or ENTER on the AppDesigner folder
     [ProjectCommand(CommandGroup.UIHierarchyWindow, CommandId.UIHierarchyWindowDoubleClick, CommandId.UIHierarchyWindowEnterKey)]
     [AppliesTo(ProjectCapability.CSharpOrVisualBasic)]  // TODO: We need an AppDesigner capability
     internal class OpenAppDesignerCommand : SingleNodeProjectCommandBase
@@ -46,13 +46,10 @@ namespace Microsoft.VisualStudio.ProjectSystem.VS.Designers.Input.Commands
             {
                 await _threadHandling.SwitchToUIThread();
 
-                Guid projectDesignerGuid;
-                HResult hr = _projectServices.Hierarchy.GetGuidProperty(HierarchyId.Root, (int)__VSHPROPID2.VSHPROPID_ProjectDesignerEditor, out projectDesignerGuid);
-                if (hr.Failed)
-                    throw hr.Exception;
+                Guid projectDesignerGuid = _projectServices.Hierarchy.GetGuidProperty(VsHierarchyPropID.ProjectDesignerEditor);
 
                 IVsWindowFrame windowFrame;
-                hr = _projectServices.Project.OpenItemWithSpecific(VSConstants.VSITEMID_ROOT, 0, ref projectDesignerGuid, "", VSConstants.LOGVIEWID_Primary, (IntPtr)(-1), out windowFrame);
+                HResult hr = _projectServices.Project.OpenItemWithSpecific(VSConstants.VSITEMID_ROOT, 0, ref projectDesignerGuid, "", VSConstants.LOGVIEWID_Primary, (IntPtr)(-1), out windowFrame);
                 if (hr.Failed)
                     throw hr.Exception;
 

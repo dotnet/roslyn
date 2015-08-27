@@ -18,9 +18,9 @@ namespace Microsoft.VisualStudio.ProjectSystem.VS
         }
 
         /// <summary>
-        ///     Gets <see cref="IVsProject3"/> provided by the <see cref="UnconfiguredProject"/>.
+        ///     Gets <see cref="IVsProject4"/> provided by the <see cref="UnconfiguredProject"/>.
         /// </summary>
-        IVsProject3 Project
+        IVsProject4 Project
         {
             get;
         }

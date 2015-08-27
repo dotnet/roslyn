@@ -120,7 +120,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="VisualStudio\ProjectSystem\VS\HierarchyId.cs" />
+    <Compile Include="VisualStudio\Shell\HierarchyId.cs" />
     <Compile Include="VisualStudio\ProjectSystem\IAddItemTemplatesGuidProvider.cs" />
     <Compile Include="VisualStudio\ProjectSystem\IItemTypeGuidProvider.cs" />
     <Compile Include="VisualStudio\ProjectSystem\VS\IUnconfiguredProjectVsServices.cs" />
@@ -142,6 +142,7 @@
     <Compile Include="StringComparers.cs" />
     <Compile Include="Threading\Tasks\TaskResult.cs" />
     <Compile Include="VisualStudio\ProjectSystem\VS\UnconfiguredProjectVsServices.cs" />
+    <Compile Include="VisualStudio\Shell\Interop\VsHierarchyExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
