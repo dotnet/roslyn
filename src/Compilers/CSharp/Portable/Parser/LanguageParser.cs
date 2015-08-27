@@ -1340,7 +1340,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private bool IsPossibleModifier()
         {
-            return GetModifier(this.CurrentToken) != SyntaxModifier.None;
+            return IsPossibleModifier(this.CurrentToken);
+        }
+
+        private bool IsPossibleModifier(SyntaxToken token)
+        {
+            return GetModifier(token) != SyntaxModifier.None;
         }
 
         private void ParseModifiers(SyntaxListBuilder tokens)
@@ -3411,12 +3416,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private bool IsPossibleAccessor()
         {
-            return this.CurrentToken.Kind == SyntaxKind.IdentifierToken
+            if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken
                 || IsPossibleAttributeDeclaration()
-                || IsPossibleModifier()
                 || SyntaxFacts.GetAccessorDeclarationKind(this.CurrentToken.ContextualKind) != SyntaxKind.None
                 || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken  // for accessor blocks w/ missing keyword
-                || this.CurrentToken.Kind == SyntaxKind.SemicolonToken; // for empty body accessors w/ missing keyword
+                || this.CurrentToken.Kind == SyntaxKind.SemicolonToken // for empty body accessors w/ missing keyword
+                )
+            {
+                return true;
+            }
+
+
+            return IsPossibleAccessorModifier();
+        }
+
+        private bool IsPossibleAccessorModifier()
+        {
+            // We only want to accept a modifier as the start of an accessor if the modifiers are
+            // actually followed by "get/set/add/remove".  Otherwise, we might thing think we're 
+            // starting an accessor when we're actually starting a normal class member.  For example:
+            //
+            //      class C {
+            //          public int Prop { get { this.
+            //          private DateTime x;
+            //
+            // We don't want to think of the "private" in "private int prop" as starting an accessor
+            // here.  If we do, we'll get totally thrown off in parsing the remainder and that will
+            // throw off the rest of the features that depend on a good syntax tree.
+            if (IsPossibleModifier())
+            {
+                var peekIndex = 1;
+                while (IsPossibleModifier(this.PeekToken(peekIndex)))
+                {
+                    peekIndex++;
+                }
+
+                var token = this.PeekToken(peekIndex);
+                switch (token.ContextualKind)
+                {
+                    case SyntaxKind.GetKeyword:
+                    case SyntaxKind.SetKeyword:
+                    case SyntaxKind.AddKeyword:
+                    case SyntaxKind.RemoveKeyword:
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         private enum PostSkipAction

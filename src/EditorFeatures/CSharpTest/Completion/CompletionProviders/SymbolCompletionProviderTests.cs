@@ -8350,5 +8350,22 @@ class C
 ";
             VerifyNoItemsExist(markup);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void CompletionInIncompletePropertyDeclaration()
+        {
+            var markup = @"
+class Class1
+{
+    public string Property1 { get; set; }
+}
+
+class Class2
+{
+    public string Property { get { return this.Source.$$
+    public Class1 Source { get; set; }
+}";
+            VerifyAnyItemExists(markup);
+        }
     }
 }
