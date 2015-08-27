@@ -3446,7 +3446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 var token = this.PeekToken(peekIndex);
-                if (token.Kind == SyntaxKind.CloseBraceToken)
+                if (token.Kind == SyntaxKind.CloseBraceToken || token.Kind == SyntaxKind.EndOfFileToken)
                 {
                     // If we see "{ get { } public }
                     // then we will think that "public" likely starts an accessor.
