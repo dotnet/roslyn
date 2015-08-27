@@ -9,7 +9,7 @@
     <ProjectGuid>{F81A2B36-6763-42B8-8F4D-5199325D40C1}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Microsoft.VisualStudio.ProjectSystem.CSharp.UnitTests</RootNamespace>
+    <RootNamespace>Microsoft</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.ProjectSystem.CSharp.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <SignAssembly>false</SignAssembly>

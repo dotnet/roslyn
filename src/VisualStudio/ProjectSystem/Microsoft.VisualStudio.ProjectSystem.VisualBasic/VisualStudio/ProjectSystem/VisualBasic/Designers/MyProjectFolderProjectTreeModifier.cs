@@ -4,7 +4,7 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.ProjectSystem.Designers;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 
-namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic.ProjectTree
+namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic.Designers
 {
     /// <summary>
     ///     A tree modifier that turns "My Project" folder into a special folder.

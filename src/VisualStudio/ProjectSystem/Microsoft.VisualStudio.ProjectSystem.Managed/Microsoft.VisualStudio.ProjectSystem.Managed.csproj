@@ -7,7 +7,7 @@
     <ProjectGuid>{6C6A41CE-72C5-4D77-8208-D01693F9BC88}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Microsoft.VisualStudio.ProjectSystem</RootNamespace>
+    <RootNamespace>Microsoft</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.ProjectSystem.Managed</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <SignAssembly>false</SignAssembly>
