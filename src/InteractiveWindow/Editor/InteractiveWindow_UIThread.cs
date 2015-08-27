@@ -4,8 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -155,27 +157,34 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             private readonly InteractiveWindow _window;
 
-            private readonly IInteractiveWindowEditorFactoryService _host;
+            private readonly IInteractiveWindowEditorFactoryService _host; // TODO (acasey): _factory
 
-            private readonly IReadOnlyRegion[] _outputProtection;
-
-            public readonly History History;
+            private readonly History History = new History(); // TODO (acasey): _history
             private string _historySearch;
 
             // Pending submissions to be processed whenever the REPL is ready to accept submissions.
-            private readonly Queue<PendingSubmission> _pendingSubmissions;
+            private readonly Queue<PendingSubmission> _pendingSubmissions = new Queue<PendingSubmission>();
 
             private DispatcherTimer _executionTimer;
             private Cursor _oldCursor;
             private int _currentOutputProjectionSpan;
-            private int _outputTrackingCaretPosition;
+            private int _outputTrackingCaretPosition = -1;
 
             private readonly IRtfBuilderService _rtfBuilderService;
 
             // Read-only regions protecting initial span of the corresponding buffers:
-            public readonly IReadOnlyRegion[] StandardInputProtection;
+            private readonly IReadOnlyRegion[] _standardInputProtection = new IReadOnlyRegion[2];
+            private readonly IReadOnlyRegion[] _outputProtection = new IReadOnlyRegion[2];
 
-            public string UncommittedInput;
+            private string UncommittedInput; // TODO (acasey): _uncommittedInput
+
+            /// <remarks>Always access through <see cref="GetStandardInputValue"/> and <see cref="SetStandardInputValue"/>.</remarks>
+            private SnapshotSpan? _standardInputValue;
+            /// <remarks>Don't reference directly.</remarks>
+            private readonly SemaphoreSlim _standardInputValueGuard = new SemaphoreSlim(initialCount: 0, maxCount: 1);
+
+            // State captured when we started reading standard input.
+            private int _standardInputStart = -1;
 
             private IEditorOperations _editorOperations;
             public IEditorOperations EditorOperations
@@ -207,31 +216,32 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
             }
 
-            public UIThreadOnly(InteractiveWindow window, IInteractiveWindowEditorFactoryService host, IRtfBuilderService rtfBuilderService)
+            public UIThreadOnly(InteractiveWindow window, IInteractiveWindowEditorFactoryService factory, IRtfBuilderService rtfBuilderService)
             {
                 _window = window;
-                _host = host;
+                _host = factory;
                 _rtfBuilderService = rtfBuilderService;
-                History = new History();
-                StandardInputProtection = new IReadOnlyRegion[2];
-                _outputProtection = new IReadOnlyRegion[2];
-                _pendingSubmissions = new Queue<PendingSubmission>();
-                _outputTrackingCaretPosition = -1;
             }
+
+            private bool ReadingStandardInput => 
+                State == State.ExecutingInputAndReadingStandardInput || 
+                State == State.WaitingForInputAndReadingStandardInput || 
+                State == State.ResettingAndReadingStandardInput;
 
             public async Task<ExecutionResult> ResetAsync(bool initialize)
             {
                 try
                 {
-                    Debug.Assert(State != State.Resetting, "The button should have been disabled.");
-
-                    if (_window._stdInputStart != null)
+                    if (ReadingStandardInput)
                     {
+                        MakeStandardInputReadonly();
                         CancelStandardInput();
                     }
 
                     _window._buffer.Flush();
 
+                    // Nothing to clear in WaitingForInputAndReadingStandardInput, since we cleared
+                    // the language prompt when we entered that state.
                     if (State == State.WaitingForInput)
                     {
                         var snapshot = _window._projectionBuffer.CurrentSnapshot;
@@ -257,11 +267,18 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
             }
 
+            public void ClearHistory()
+            {
+                History.Clear();
+            }
+
             public void ClearView()
             {
-                if (_window._stdInputStart != null)
+                if (ReadingStandardInput)
                 {
                     CancelStandardInput();
+                    State = GetStateBeforeReadingStandardInput(State);
+                    Debug.Assert(State == State.ExecutingInput || State == State.WaitingForInput);
                 }
 
                 _window._adornmentToMinimize = false;
@@ -272,7 +289,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                 // Clear the projection and buffers last as this might trigger events that might access other state of the REPL window:
                 RemoveProtection(_window._outputBuffer, _outputProtection);
-                RemoveProtection(_window._standardInputBuffer, StandardInputProtection);
+                RemoveProtection(_window._standardInputBuffer, _standardInputProtection);
 
                 using (var edit = _window._outputBuffer.CreateEdit(EditOptions.None, null, s_suppressPromptInjectionTag))
                 {
@@ -309,11 +326,134 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
             }
 
+            private static State GetStateBeforeReadingStandardInput(State state)
+            {
+                switch (state)
+                {
+                    case State.WaitingForInputAndReadingStandardInput:
+                        return State.WaitingForInput;
+                    case State.ExecutingInputAndReadingStandardInput:
+                        return State.ExecutingInput;
+                    case State.ResettingAndReadingStandardInput:
+                        return State.Resetting;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(state);
+                }
+            }
+
+            public async Task<TextReader> ReadStandardInputAsync()
+            {
+                try
+                {
+                    switch (State)
+                    {
+                        case State.Starting:
+                        case State.Initializing:
+                            throw new InvalidOperationException(InteractiveWindowResources.NotInitialized);
+
+                        case State.WaitingForInputAndReadingStandardInput:
+                        case State.ExecutingInputAndReadingStandardInput:
+                        case State.ResettingAndReadingStandardInput:
+                            // Guarded by semaphore.
+                            throw ExceptionUtilities.UnexpectedValue(State);
+
+                        case State.WaitingForInput:
+                            State = State.WaitingForInputAndReadingStandardInput;
+                            break;
+                        case State.ExecutingInput:
+                            State = State.ExecutingInputAndReadingStandardInput;
+                            break;
+                        case State.Resetting:
+                            State = State.ResettingAndReadingStandardInput;
+                            break;
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(State);
+                    }
+
+                    Debug.Assert(ReadingStandardInput);
+
+                    _window._buffer.Flush();
+
+                    if (State == State.WaitingForInputAndReadingStandardInput)
+                    {
+                        var snapshot = _window._projectionBuffer.CurrentSnapshot;
+                        var spanCount = snapshot.SpanCount;
+                        if (spanCount > 0 && _window.GetSpanKind(snapshot.GetSourceSpan(spanCount - 1)) == ReplSpanKind.Language)
+                        {
+                            // we need to remove our input prompt.
+                            RemoveLastInputPrompt();
+                        }
+                    }
+
+                    AddStandardInputSpan();
+
+                    _window.Caret.EnsureVisible();
+                    ResetCursor();
+
+                    UncommittedInput = null;
+                    _standardInputStart = _window._standardInputBuffer.CurrentSnapshot.Length;
+
+                    var value = await GetStandardInputValue().ConfigureAwait(true);
+                    Debug.Assert(_window.OnUIThread()); // ConfigureAwait should bring us back to the UI thread.
+                    return value.HasValue
+                        ? new StringReader(value.GetValueOrDefault().GetText())
+                        : null;
+                }
+                catch (Exception e) when (_window.ReportAndPropagateException(e))
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
+            }
+
             private void CancelStandardInput()
             {
+                SetStandardInputValue(null);
+            }
+
+            private void SetStandardInputValue(SnapshotSpan? value)
+            {
+                _standardInputValue = value;
+                _standardInputValueGuard.Release();
+            }
+
+            private async Task<SnapshotSpan?> GetStandardInputValue()
+            {
+                try
+                {
+                    await _standardInputValueGuard.WaitAsync().ConfigureAwait(true);
+                    Debug.Assert(_window.OnUIThread()); // ConfigureAwait should bring us back to the UI thread.
+                    return _standardInputValue;
+                }
+                catch (Exception e) when (_window.ReportAndPropagateException(e))
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
+            }
+
+            private Span GetStandardInputSpan()
+            {
+                return Span.FromBounds(_standardInputStart, _window._standardInputBuffer.CurrentSnapshot.Length);
+            }
+
+            private void MakeStandardInputReadonly()
+            {
                 AppendLineNoPromptInjection(_window._standardInputBuffer);
-                _window._inputValue = null;
-                _window._inputEvent.Set();
+
+                // We can also have an interleaving output span, so we'll search back for the last input span.
+                var sourceSpans = _window._projectionBuffer.CurrentSnapshot.GetSourceSpans();
+
+                int index = IndexOfLastStandardInputSpan(sourceSpans);
+                Debug.Assert(index >= 0);
+
+                RemoveProtection(_window._standardInputBuffer, _standardInputProtection);
+
+                // replace previous span w/ a span that won't grow...
+                var oldSpan = sourceSpans[index];
+                var newSpan = new CustomTrackingSpan(oldSpan.Snapshot, oldSpan.Span, PointTrackingMode.Negative, PointTrackingMode.Negative);
+
+                ReplaceProjectionSpan(index, newSpan);
+                ApplyProtection(_window._standardInputBuffer, _standardInputProtection, allowAppend: true);
             }
 
             private void AppendLineNoPromptInjection(ITextBuffer buffer)
@@ -327,7 +467,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             public void InsertCode(string text)
             {
-                if (_window._stdInputStart != null)
+                if (ReadingStandardInput)
                 {
                     return;
                 }
@@ -349,7 +489,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             public void Submit(PendingSubmission[] pendingSubmissions)
             {
-                if (_window._stdInputStart == null)
+                if (!ReadingStandardInput)
                 {
                     if (State == State.WaitingForInput && _window._currentLanguageBuffer != null)
                     {
@@ -484,7 +624,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// </summary>
             private SnapshotPoint GetClosestEditablePoint(SnapshotPoint projectionPoint)
             {
-                ITextBuffer editableBuffer = (_window._stdInputStart != null) ? _window._standardInputBuffer : _window._currentLanguageBuffer;
+                ITextBuffer editableBuffer = (ReadingStandardInput) ? _window._standardInputBuffer : _window._currentLanguageBuffer;
 
                 if (editableBuffer == null)
                 {
@@ -903,6 +1043,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         }
 
                         await SubmitAsync().ConfigureAwait(true);
+                        Debug.Assert(_window.OnUIThread()); // ConfigureAwait should bring us back to the UI thread.
                     }
                     else
                     {
@@ -1116,9 +1257,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             private void ClearInput()
             {
-                if (_window._stdInputStart != null)
+                if (ReadingStandardInput)
                 {
-                    _window._standardInputBuffer.Delete(Span.FromBounds(_window._stdInputStart.Value, _window._standardInputBuffer.CurrentSnapshot.Length));
+                    _window._standardInputBuffer.Delete(GetStandardInputSpan());
                 }
                 else
                 {
@@ -1620,7 +1761,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 StringBuilder deletedText = null;
 
                 // split into multiple deletes that only affect the language/input buffer:
-                ITextBuffer affectedBuffer = (_window._stdInputStart != null) ? _window._standardInputBuffer : _window._currentLanguageBuffer;
+                ITextBuffer affectedBuffer = (ReadingStandardInput) ? _window._standardInputBuffer : _window._currentLanguageBuffer;
                 using (var edit = affectedBuffer.CreateEdit())
                 {
                     foreach (var projectionSpan in projectionSpans)
@@ -1746,7 +1887,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             public bool Backspace()
-            {
+           {
                 bool handled = false;
                 if (!_window._textView.Selection.IsEmpty)
                 {
@@ -1815,7 +1956,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                 if (_window._standardInputBuffer != null)
                 {
-                    result = _window.GetPositionInStdInputBuffer(projectionPoint);
+                    result = _window.GetPositionInStandardInputBuffer(projectionPoint);
                 }
 
                 return result;
@@ -1824,7 +1965,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             public bool TrySubmitStandardInput()
             {
                 _historySearch = null;
-                if (_window._stdInputStart != null)
+                if (ReadingStandardInput)
                 {
                     if (InStandardInputRegion(_window._textView.Caret.Position.BufferPosition))
                     {
@@ -1840,19 +1981,38 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             private void SubmitStandardInput()
             {
                 AppendLineNoPromptInjection(_window._standardInputBuffer);
-                _window._inputValue = new SnapshotSpan(_window._standardInputBuffer.CurrentSnapshot, Span.FromBounds(_window._stdInputStart.Value, _window._standardInputBuffer.CurrentSnapshot.Length));
-                _window._inputEvent.Set();
+                var inputSpan = new SnapshotSpan(_window._standardInputBuffer.CurrentSnapshot, GetStandardInputSpan());
+                History.Add(inputSpan);
+                SetStandardInputValue(inputSpan);
+
+                MakeStandardInputReadonly();
+
+                // Subsequent input should appear after the input span we just finished.
+                NewOutputBuffer();
+
+                if (State == State.WaitingForInputAndReadingStandardInput)
+                {
+                    PrepareForInput(); // Will update State.
+                }
+                else
+                {
+                    State = GetStateBeforeReadingStandardInput(State);
+                }
             }
 
             private bool InStandardInputRegion(SnapshotPoint point)
             {
-                if (_window._stdInputStart == null)
+                if (!ReadingStandardInput)
                 {
                     return false;
                 }
 
-                var stdInputPoint = _window.GetPositionInStdInputBuffer(point);
-                return stdInputPoint != null && stdInputPoint.Value.Position >= _window._stdInputStart.Value;
+                var standardInputPoint = _window.GetPositionInStandardInputBuffer(point);
+                if (!standardInputPoint.HasValue) return false;
+
+                var standardInputPosition = standardInputPoint.GetValueOrDefault().Position;
+                var standardInputSpan = GetStandardInputSpan();
+                return standardInputSpan.Contains(standardInputPosition) || standardInputSpan.End == standardInputPosition;
             }
 
             /// <summary>
@@ -1982,32 +2142,42 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// <summary>
             /// In the process of calling <see cref="IInteractiveWindowOperations.ResetAsync"/>.
             /// Transition to <see cref="WaitingForInput"/> when finished (in <see cref="UIThreadOnly.ProcessPendingSubmissions"/>).
-            /// Note: Should not see <see cref="IInteractiveWindowOperations.ResetAsync"/> calls while in this state.
+            /// Transition to <see cref="ResettingAndReadingStandardInput"/> when <see cref="IInteractiveWindow.ReadStandardInput"/> is called
             /// </summary>
             Resetting,
             /// <summary>
             /// Prompt has been displayed - waiting for the user to make the next submission.
             /// Transition to <see cref="ExecutingInput"/> when <see cref="IInteractiveWindowOperations.ExecuteInput"/> is called.
             /// Transition to <see cref="Resetting"/> when <see cref="IInteractiveWindowOperations.ResetAsync"/> is called.
+            /// Transition to <see cref="WaitingForInputAndReadingStandardInput"/> when <see cref="IInteractiveWindow.ReadStandardInput"/> is called
             /// </summary>
             WaitingForInput,
             /// <summary>
             /// Executing the user's submission.
             /// Transition to <see cref="WaitingForInput"/> when finished (in <see cref="UIThreadOnly.ProcessPendingSubmissions"/>).
             /// Transition to <see cref="Resetting"/> when <see cref="IInteractiveWindowOperations.ResetAsync"/> is called.
+            /// Transition to <see cref="ExecutingInputAndReadingStandardInput"/> when <see cref="IInteractiveWindow.ReadStandardInput"/> is called
             /// </summary>
             ExecutingInput,
             /// <summary>
-            /// In the process of calling <see cref="IInteractiveWindow.ReadStandardInput"/>.
-            /// Return to preceding state when finished.
+            /// In the process of calling <see cref="IInteractiveWindow.ReadStandardInput"/> (within <see cref="IInteractiveWindowOperations.ResetAsync"/>).
+            /// Transition to <see cref="Resetting"/> when <see cref="IInteractiveWindowOperations.ClearView"/>,
+            /// <see cref="IInteractiveWindowOperations.TrySubmitStandardInput"/>, or
+            /// <see cref="IInteractiveWindowOperations.ResetAsync"/> is called.
+            /// </summary>
+            ResettingAndReadingStandardInput,
+            /// <summary>
+            /// In the process of calling <see cref="IInteractiveWindow.ReadStandardInput"/> (while prompt has been displayed).
+            /// Transition to <see cref="WaitingForInput"/> when <see cref="IInteractiveWindowOperations.ClearView"/> or <see cref="IInteractiveWindowOperations.TrySubmitStandardInput"/> is called.
             /// Transition to <see cref="Resetting"/> when <see cref="IInteractiveWindowOperations.ResetAsync"/> is called.
             /// </summary>
-            /// <remarks>
-            /// TODO: When we clean up <see cref="IInteractiveWindow.ReadStandardInput"/> (https://github.com/dotnet/roslyn/issues/3984)
-            /// we should try to eliminate the "preceding state", since it substantially
-            /// increases the complexity of the state machine.
-            /// </remarks>
-            ReadingStandardInput,
+            WaitingForInputAndReadingStandardInput,
+            /// <summary>
+            /// In the process of calling <see cref="IInteractiveWindow.ReadStandardInput"/> (while executing the user's submission).
+            /// Transition to <see cref="ExecutingInput"/> when <see cref="IInteractiveWindowOperations.ClearView"/> or <see cref="IInteractiveWindowOperations.TrySubmitStandardInput"/> is called.
+            /// Transition to <see cref="Resetting"/> when <see cref="IInteractiveWindowOperations.ResetAsync"/> is called.
+            /// </summary>
+            ExecutingInputAndReadingStandardInput,
         }
     }
 }

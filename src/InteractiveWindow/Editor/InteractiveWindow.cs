@@ -19,6 +19,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.InteractiveWindow
 {
@@ -93,10 +94,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         //// Standard input.
         ////
 
-        // non-null if reading from stdin - position in the _inputBuffer where we map stdin
-        private int? _stdInputStart; // TODO (https://github.com/dotnet/roslyn/issues/4044): this variable is not used in thread-safe manner
-        private SnapshotSpan? _inputValue;
-        private readonly AutoResetEvent _inputEvent = new AutoResetEvent(false);
+        private readonly SemaphoreSlim _inputReaderSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
 
         //// 
         //// Output.
@@ -245,7 +243,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         void IInteractiveWindowOperations.ClearHistory()
         {
-            UIThread(uiOnly => uiOnly.History.Clear());
+            UIThread(uiOnly => uiOnly.ClearHistory());
         }
 
         void IInteractiveWindowOperations.ClearView()
@@ -383,7 +381,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             return GetPositionInBuffer(point, _currentLanguageBuffer);
         }
 
-        private SnapshotPoint? GetPositionInStdInputBuffer(SnapshotPoint point)
+        private SnapshotPoint? GetPositionInStandardInputBuffer(SnapshotPoint point)
         {
             Debug.Assert(_standardInputBuffer != null);
             return GetPositionInBuffer(point, _standardInputBuffer);
@@ -436,7 +434,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         bool IInteractiveWindow.IsRunning => _dangerous_uiOnly.State != State.WaitingForInput;
 
         /// <remarks>Only consistent on the UI thread.</remarks>
-        bool IInteractiveWindow.IsResetting => _dangerous_uiOnly.State == State.Resetting;
+        bool IInteractiveWindow.IsResetting => _dangerous_uiOnly.State == State.Resetting || _dangerous_uiOnly.State == State.ResettingAndReadingStandardInput;
 
         /// <remarks>Only consistent on the UI thread.</remarks>
         bool IInteractiveWindow.IsInitializing => _dangerous_uiOnly.State == State.Starting || _dangerous_uiOnly.State == State.Initializing;
@@ -571,85 +569,32 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         #region Active Code and Standard Input
 
-        // TODO: What happens if multiple non-UI threads call this method? (https://github.com/dotnet/roslyn/issues/3984)
         TextReader IInteractiveWindow.ReadStandardInput()
         {
             // shouldn't be called on the UI thread because we'll hang
             RequiresNonUIThread();
+            return ReadStandardInputAsync().GetAwaiter().GetResult();
+        }
 
-            State previousState = default(State); // Compiler doesn't know these lambdas run sequentially.
-            UIThread(uiOnly =>
+        private async Task<TextReader> ReadStandardInputAsync()
+        {
+            try
             {
-                previousState = uiOnly.State;
-
-                uiOnly.State = State.ReadingStandardInput;
-
-                _buffer.Flush();
-
-                if (previousState == State.WaitingForInput)
+                // True because this is a public API and we want to use the same
+                // thread as the caller (esp for blocking).
+                await _inputReaderSemaphore.WaitAsync().ConfigureAwait(true); // Only one thread can read from standard input at a time.
+                try
                 {
-                    var snapshot = _projectionBuffer.CurrentSnapshot;
-                    var spanCount = snapshot.SpanCount;
-                    if (spanCount > 0 && GetSpanKind(snapshot.GetSourceSpan(spanCount - 1)) == ReplSpanKind.Language)
-                    {
-                        // we need to remove our input prompt.
-                        uiOnly.RemoveLastInputPrompt();
-                    }
+                    return await UIThread(uiOnly => uiOnly.ReadStandardInputAsync()).ConfigureAwait(true);
                 }
-
-                uiOnly.AddStandardInputSpan();
-
-                Caret.EnsureVisible();
-                uiOnly.ResetCursor();
-
-                uiOnly.UncommittedInput = null;
-                _stdInputStart = _standardInputBuffer.CurrentSnapshot.Length;
-            });
-
-            _inputEvent.WaitOne();
-            _stdInputStart = null;
-
-            UIThread(uiOnly =>
-            {
-                var sourceSpans = _projectionBuffer.CurrentSnapshot.GetSourceSpans();
-                // if the user cleared the screen we cancelled the input, so we won't have our span here.
-                // We can also have an interleaving output span, so we'll search back for the last input span.
-                int i = uiOnly.IndexOfLastStandardInputSpan(sourceSpans);
-                if (i != -1)
+                finally
                 {
-                    uiOnly.RemoveProtection(_standardInputBuffer, uiOnly.StandardInputProtection);
-
-                    // replace previous span w/ a span that won't grow...
-                    var oldSpan = sourceSpans[i];
-                    var newSpan = new CustomTrackingSpan(oldSpan.Snapshot, oldSpan.Span, PointTrackingMode.Negative, PointTrackingMode.Negative);
-
-                    uiOnly.ReplaceProjectionSpan(i, newSpan);
-                    uiOnly.ApplyProtection(_standardInputBuffer, uiOnly.StandardInputProtection, allowAppend: true);
-
-                    uiOnly.NewOutputBuffer();
-
-                    // TODO: Do we need to restore the state if reading is cancelled? (https://github.com/dotnet/roslyn/issues/3984)
-                    if (previousState == State.WaitingForInput)
-                    {
-                        uiOnly.PrepareForInput(); // Will update _uiOnly.State.
-                    }
-                    else
-                    {
-                        uiOnly.State = previousState;
-                    }
+                    _inputReaderSemaphore.Release();
                 }
-            });
-
-            // input has been cancelled:
-            if (_inputValue.HasValue)
-            {
-                var value = _inputValue.GetValueOrDefault();
-                UIThread(uiOnly => uiOnly.History.Add(value));
-                return new StringReader(value.GetText());
             }
-            else
+            catch (Exception e) when (ReportAndPropagateException(e))
             {
-                return null;
+                throw ExceptionUtilities.Unreachable;
             }
         }
 

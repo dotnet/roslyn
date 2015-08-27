@@ -247,7 +247,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         [Fact]
         public void CallInsertCodeOnNonUIThread()
         {
-            // TODO (https://github.com/dotnet/roslyn/issues/3984): InsertCode is a no-op unless standard input is being collected.
             Task.Run(() => Window.InsertCode("1")).PumpingWait();
         }
 
