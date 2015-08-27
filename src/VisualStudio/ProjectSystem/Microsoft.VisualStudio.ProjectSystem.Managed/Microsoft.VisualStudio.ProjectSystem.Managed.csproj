@@ -125,8 +125,8 @@
     <Compile Include="VisualStudio\ProjectSystem\IItemTypeGuidProvider.cs" />
     <Compile Include="VisualStudio\ProjectSystem\VS\IUnconfiguredProjectVsServices.cs" />
     <Compile Include="VisualStudio\ProjectSystem\LanguageServices\LanguageServiceBase.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\Designers\Input\CommandGroup.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\Designers\Input\CommandId.cs" />
+    <Compile Include="VisualStudio\Input\CommandGroup.cs" />
+    <Compile Include="VisualStudio\Input\CommandId.cs" />
     <Compile Include="VisualStudio\ProjectSystem\Designers\Input\GetCommandStatusResult.cs" />
     <Compile Include="VisualStudio\ProjectSystem\VS\Designers\Input\Commands\OpenAppDesignerCommand.cs" />
     <Compile Include="VisualStudio\ProjectSystem\Designers\Input\SingeNodeProjectCommandBase.cs" />

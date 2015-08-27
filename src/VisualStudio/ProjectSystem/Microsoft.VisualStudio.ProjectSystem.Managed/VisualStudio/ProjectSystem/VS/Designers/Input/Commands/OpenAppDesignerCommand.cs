@@ -3,6 +3,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Input;
 using Microsoft.VisualStudio.ProjectSystem.Designers;
 using Microsoft.VisualStudio.ProjectSystem.Designers.Input;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
