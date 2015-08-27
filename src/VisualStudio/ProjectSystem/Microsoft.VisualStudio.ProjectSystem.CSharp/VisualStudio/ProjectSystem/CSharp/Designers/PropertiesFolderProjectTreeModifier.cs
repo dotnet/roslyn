@@ -4,7 +4,7 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.ProjectSystem.Designers;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 
-namespace Microsoft.VisualStudio.ProjectSystem.CSharp.ProjectTree
+namespace Microsoft.VisualStudio.ProjectSystem.CSharp.Designers
 {
     /// <summary>
     ///     A tree modifier that turns "Properties" folder into a special folder.

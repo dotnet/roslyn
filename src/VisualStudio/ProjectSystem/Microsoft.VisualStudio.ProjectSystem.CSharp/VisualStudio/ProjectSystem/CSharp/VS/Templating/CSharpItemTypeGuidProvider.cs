@@ -4,7 +4,7 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 
-namespace Microsoft.VisualStudio.ProjectSystem.CSharp.Templating
+namespace Microsoft.VisualStudio.ProjectSystem.CSharp.VS.Templating
 {
     /// <summary>
     /// Implementation of the item type provider for CSharp project system.

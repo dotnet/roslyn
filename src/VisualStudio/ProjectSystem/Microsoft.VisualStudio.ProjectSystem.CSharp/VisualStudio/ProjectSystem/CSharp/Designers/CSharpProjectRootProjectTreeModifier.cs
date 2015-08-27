@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.ProjectSystem.Designers;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 
-namespace Microsoft.VisualStudio.ProjectSystem.CSharp.ProjectTree
+namespace Microsoft.VisualStudio.ProjectSystem.CSharp.Designers
 {
     /// <summary>
     ///     A tree modifier that sets the icon for the project root.

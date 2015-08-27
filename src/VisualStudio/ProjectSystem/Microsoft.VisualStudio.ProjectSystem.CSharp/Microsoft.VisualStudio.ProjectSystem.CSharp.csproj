@@ -127,14 +127,14 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LanguageServices\CSharpCodeDomProvider.cs" />
-    <Compile Include="ProjectTree\CSharpProjectRootProjectTreeModifier.cs" />
-    <Compile Include="ProjectTree\PropertiesFolderProjectTreeModifier.cs" />
-    <Compile Include="Templating\CSharpItemTemplatesGuidProvider.cs" />
-    <Compile Include="Templating\CSharpItemTypeGuidProvider.cs" />
-    <Compile Include="LanguageServices\CSharpLanguageFeaturesProvider.cs" />
-    <Compile Include="LanguageServices\CSharpLanguageService.cs" />
-    <Compile Include="Capabilities\CSharpProjectXmlProjectCapabilityProvider.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\CSharp\LanguageServices\CSharpCodeDomProvider.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\CSharp\Designers\CSharpProjectRootProjectTreeModifier.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\CSharp\Designers\PropertiesFolderProjectTreeModifier.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\CSharp\VS\Templating\CSharpItemTemplatesGuidProvider.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\CSharp\VS\Templating\CSharpItemTypeGuidProvider.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\CSharp\LanguageServices\CSharpLanguageFeaturesProvider.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\CSharp\LanguageServices\CSharpLanguageService.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\CSharp\Capabilities\CSharpProjectXmlProjectCapabilityProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
