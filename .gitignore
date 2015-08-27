@@ -27,6 +27,7 @@ UnitTestResults.html
 *lock.json
 *-packages.config
 *.nuget.props
+*.nuget.targets
 
 *_i.c
 *_p.c
