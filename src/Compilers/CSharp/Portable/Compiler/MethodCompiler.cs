@@ -1482,7 +1482,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var inMethodBinder = factory.GetBinder(blockSyntax);
 
                     Binder binder = new ExecutableCodeBinder(blockSyntax, sourceMethod, inMethodBinder);
-                    body = binder.BindBlock(blockSyntax, diagnostics);
+                    body = (BoundBlock)binder.BindEmbeddedBlock(blockSyntax, diagnostics);
                     importChain = binder.ImportChain;
 
                     if (inMethodBinder.IsDirectlyInIterator)

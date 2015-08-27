@@ -46,6 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (_statements.Count == 1 && _statements.First() == node)
             {
+                // This code compensates for the fact that we fake an enclosing block
+                // when there is an (illegal) local declaration as a controlled statement.
                 return this.Locals;
             }
 

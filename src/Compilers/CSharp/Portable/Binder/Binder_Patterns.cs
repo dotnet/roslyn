@@ -11,55 +11,37 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindIsPatternExpression(IsPatternExpressionSyntax node, DiagnosticBag diagnostics)
         {
             var expression = BindExpression(node.Expression, diagnostics);
-            var pattern = BindPattern(node.Pattern, diagnostics);
-            return new BoundIsPattern(node, expression, pattern, GetSpecialType(SpecialType.System_Boolean, diagnostics, node));
+            var hasErrors = IsOperandErrors(node, expression, diagnostics);
+            var pattern = BindPattern(node.Pattern, expression.Type, hasErrors, diagnostics);
+            return new BoundIsPattern(node, expression, pattern, GetSpecialType(SpecialType.System_Boolean, diagnostics, node), hasErrors);
         }
 
-        private BoundPattern BindPattern(PatternSyntax node, DiagnosticBag diagnostics)
+        private BoundPattern BindPattern(PatternSyntax node, TypeSymbol operandType, bool hasErrors, DiagnosticBag diagnostics)
         {
             switch (node.Kind())
             {
                 case SyntaxKind.DeclarationPattern:
-                    return BindDeclarationPattern((DeclarationPatternSyntax)node, diagnostics);
+                    return BindDeclarationPattern((DeclarationPatternSyntax)node, operandType, hasErrors, diagnostics);
 
                 default:
                     throw new NotImplementedException();
             }
         }
 
-        private BoundPattern BindDeclarationPattern(DeclarationPatternSyntax node, DiagnosticBag diagnostics)
+        private BoundPattern BindDeclarationPattern(DeclarationPatternSyntax node, TypeSymbol operandType, bool hasErrors, DiagnosticBag diagnostics)
         {
-            bool hasErrors = node.HasErrors;
             var typeSyntax = node.Type;
             var identifier = node.Identifier;
 
             bool isVar;
             AliasSymbol aliasOpt;
             TypeSymbol declType = BindType(typeSyntax, diagnostics, out isVar, out aliasOpt);
-            if (declType.IsStatic)
+            var boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: false, type: declType);
+            if (IsOperatorErrors(node, operandType, boundDeclType, diagnostics))
             {
-                Error(diagnostics, ErrorCode.ERR_VarDeclIsStaticClass, typeSyntax, declType);
                 hasErrors = true;
             }
-            else if (!declType.IsReferenceType && !declType.IsNullableType())
-            {
-                // target type for an as expression cannot be a non-nullable value type.
-                // generate appropriate error
-                if (declType.TypeKind == TypeKind.TypeParameter)
-                {
-                    Error(diagnostics, ErrorCode.ERR_AsWithTypeVar, node, declType); // TODO: use more appropos error code
-                }
-                else if (declType.TypeKind == TypeKind.Pointer)
-                {
-                    Error(diagnostics, ErrorCode.ERR_PointerInAsOrIs, node);
-                }
-                else
-                {
-                    Error(diagnostics, ErrorCode.ERR_AsMustHaveReferenceType, node, declType); // TODO: use more appropos error code
-                }
 
-                hasErrors = true;
-            }
             SourceLocalSymbol localSymbol = this.LookupLocal(identifier);
 
             // In error scenarios with misplaced code, it is possible we can't bind the local declaration.
@@ -87,7 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             DeclareLocalVariable(localSymbol, identifier, declType);
-            var boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: false, type: declType);
             return new BoundDeclarationPattern(node, localSymbol, boundDeclType, hasErrors);
         }
     }

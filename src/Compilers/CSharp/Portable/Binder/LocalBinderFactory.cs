@@ -122,7 +122,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitArrowExpressionClause(ArrowExpressionClauseSyntax node)
         {
-            // Do nothing, expressions do not need special binders.
+            // TODO: Pattern variables in the => expression are local
+            //var arrowBinder = new PatternVariableBinder(node, node.Expression, _enclosing);
+            //AddToMap(node, arrowBinder);
         }
 
         public override void VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
@@ -154,7 +156,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitUsingStatement(UsingStatementSyntax node)
         {
             Debug.Assert((object)_method == _enclosing.ContainingMemberOrLambda);
-            var usingBinder = new UsingStatementBinder(_enclosing, node);
+            var patternBinder = new PatternVariableBinder(node, node.Expression, _enclosing);
+            var usingBinder = new UsingStatementBinder(patternBinder, node);
             AddToMap(node, usingBinder);
 
             VisitPossibleEmbeddedStatement(node.Statement, usingBinder);
@@ -163,7 +166,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitWhileStatement(WhileStatementSyntax node)
         {
             Debug.Assert((object)_method == _enclosing.ContainingMemberOrLambda);
-            var whileBinder = new WhileBinder(_enclosing, node);
+            var patternBinder = new PatternVariableBinder(node, node.Condition, _enclosing);
+            var whileBinder = new WhileBinder(patternBinder, node);
             AddToMap(node, whileBinder);
 
             VisitPossibleEmbeddedStatement(node.Statement, whileBinder);
@@ -172,7 +176,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitDoStatement(DoStatementSyntax node)
         {
             Debug.Assert((object)_method == _enclosing.ContainingMemberOrLambda);
-            var whileBinder = new WhileBinder(_enclosing, node);
+            var patternBinder = new PatternVariableBinder(node, node.Condition, _enclosing);
+            var whileBinder = new WhileBinder(patternBinder, node);
             AddToMap(node, whileBinder);
 
             VisitPossibleEmbeddedStatement(node.Statement, whileBinder);
@@ -181,7 +186,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitForStatement(ForStatementSyntax node)
         {
             Debug.Assert((object)_method == _enclosing.ContainingMemberOrLambda);
-            var binder = new ForLoopBinder(_enclosing, node);
+            var patternBinder = new PatternVariableBinder(node, _enclosing);
+            var binder = new ForLoopBinder(patternBinder, node);
             AddToMap(node, binder);
 
             VisitPossibleEmbeddedStatement(node.Statement, binder);
@@ -190,7 +196,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitForEachStatement(ForEachStatementSyntax node)
         {
             Debug.Assert((object)_method == _enclosing.ContainingMemberOrLambda);
-            var binder = new ForEachLoopBinder(_enclosing, node);
+            var patternBinder = new PatternVariableBinder(node, node.Expression, _enclosing);
+            var binder = new ForEachLoopBinder(patternBinder, node);
             AddToMap(node, binder);
 
             VisitPossibleEmbeddedStatement(node.Statement, binder);
@@ -215,6 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitFixedStatement(FixedStatementSyntax node)
         {
             Debug.Assert((object)_method == _enclosing.ContainingMemberOrLambda);
+            var patternBinder = new PatternVariableBinder(node, node.Declaration.Variables, _enclosing);
             var binder = new FixedStatementBinder(_enclosing, node);
             AddToMap(node, binder);
 
@@ -223,7 +231,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitLockStatement(LockStatementSyntax node)
         {
-            var lockBinder = new LockBinder(_enclosing, node);
+            var patternBinder = new PatternVariableBinder(node, node.Expression, _enclosing);
+            var lockBinder = new LockBinder(patternBinder, node);
             AddToMap(node, lockBinder);
 
             StatementSyntax statement = node.Statement;
@@ -239,7 +248,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitSwitchStatement(SwitchStatementSyntax node)
         {
             Debug.Assert((object)_method == _enclosing.ContainingMemberOrLambda);
-            var switchBinder = new SwitchBinder(_enclosing, node);
+            var patternBinder = new PatternVariableBinder(node, node.Expression, _enclosing);
+            var switchBinder = new SwitchBinder(patternBinder, node);
             AddToMap(node, switchBinder);
 
             foreach (SwitchSectionSyntax section in node.Sections)
@@ -258,7 +268,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitIfStatement(IfStatementSyntax node)
         {
-            VisitPossibleEmbeddedStatement(node.Statement, _enclosing);
+            var ifBinder = new PatternVariableBinder(node, node.Condition, _enclosing);
+            VisitPossibleEmbeddedStatement(node.Statement, ifBinder);
+            AddToMap(node, ifBinder);
+
+            // pattern variables from the condition are not in scope within the else clause
+            if (node.Else != null) AddToMap(node.Else.Statement, _enclosing);
             Visit(node.Else, _enclosing);
         }
 
@@ -315,8 +330,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitCatchFilterClause(CatchFilterClauseSyntax node)
         {
-            // No variables can be defined in a filter atm. 
-            // Note - this needs to be updated when declaration expressions are implemented.
+            // pattern variables in the filter are not available elsewhere
+
+            var patternBinder = new PatternVariableBinder(node, node.FilterExpression, _enclosing);
+            Debug.Assert(patternBinder.Locals.IsDefaultOrEmpty);
+            // TODO: implement scoping for pattern variables in a filter expression
+            //AddToMap(node, patternBinder);
         }
 
         public override void VisitFinallyClause(FinallyClauseSyntax node)
@@ -345,13 +364,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitYieldStatement(YieldStatementSyntax node)
         {
+            if (node.Expression != null)
+            {
+                var patternBinder = new PatternVariableBinder(node, node.Expression, _enclosing);
+                AddToMap(node, patternBinder);
+            }
+
             _sawYield = true;
-            base.VisitYieldStatement(node);
+        }
+
+        public override void VisitExpressionStatement(ExpressionStatementSyntax node)
+        {
+            var patternBinder = new PatternVariableBinder(node, node.Expression, _enclosing);
+            AddToMap(node, patternBinder);
+        }
+
+        public override void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
+        {
+            var patternBinder = new PatternVariableBinder(node, node.Declaration.Variables, _enclosing);
+            AddToMap(node, patternBinder);
         }
 
         public override void DefaultVisit(SyntaxNode node)
         {
             // We should only get here for statements that don't introduce new scopes.
+            // Given pattern variables, they must have no subexpressions either.
             Debug.Assert(node is StatementSyntax || _method.IsSynthesizedLambda());
             base.DefaultVisit(node);
         }
@@ -370,7 +407,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // in the usual way, if there is such a binder.  That's why we're using update,
             // rather than add, semantics.
             Binder existing;
-            Debug.Assert(!_map.TryGetValue(node, out existing) || existing == binder.Next);
+            // Note that a lock statement has two outer binders (a second one for pattern variable scope)
+            Debug.Assert(!_map.TryGetValue(node, out existing) || existing == binder.Next || existing == binder.Next?.Next);
 
             _map[node] = binder;
         }
@@ -393,25 +431,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Visit(statement, blockBinder);
                         return;
 
-                    case SyntaxKind.Block:
-                    case SyntaxKind.UsingStatement:
-                    case SyntaxKind.WhileStatement:
-                    case SyntaxKind.DoStatement:
-                    case SyntaxKind.ForStatement:
-                    case SyntaxKind.ForEachStatement:
-                    case SyntaxKind.FixedStatement:
-                    case SyntaxKind.LockStatement:
-                    case SyntaxKind.SwitchStatement:
-                    case SyntaxKind.IfStatement:
-                        // These statements always have dedicated binders.
-                        break;
-
                     default:
                         break;
                 }
-            }
 
-            Visit(statement, enclosing);
+                Visit(statement, enclosing);
+            }
         }
     }
 }

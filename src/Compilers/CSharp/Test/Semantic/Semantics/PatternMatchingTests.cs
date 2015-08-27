@@ -28,11 +28,12 @@ public class X
     {
         var s = nameof(Main);
         if (s is string t) Console.WriteLine(t);
-        //Console.WriteLine(s is string t ? t : ""None"");
+        Console.WriteLine(null is string t ? t : nameof(X));
     }
 }";
             var expectedOutput =
-@"Main";
+@"Main
+X";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -49,13 +50,17 @@ public class X
     {
         var s = nameof(Main);
         if (s is string t) { } else Console.WriteLine(t);
+        if (null is dynamic t) { } else Console.WriteLine(t);
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
             compilation.VerifyDiagnostics(
                 // (7,55): error CS0103: The name 't' does not exist in the current context
                 //         if (s is string t) { } else Console.WriteLine(t);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "t").WithArguments("t").WithLocation(7, 55)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "t").WithArguments("t").WithLocation(7, 55),
+                // (8,59): error CS0103: The name 't' does not exist in the current context
+                //         if (null is dynamic t) { } else Console.WriteLine(t);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "t").WithArguments("t").WithLocation(8, 59)
                 );
         }
     }

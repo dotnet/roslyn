@@ -474,12 +474,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckSyntaxNode(declarationSyntax);
 
-            var binder = this.GetEnclosingBinder(GetAdjustedNodePosition(declarationSyntax));
-            foreach (var local in binder.Locals)
+            for (var binder = this.GetEnclosingBinder(GetAdjustedNodePosition(declarationSyntax)); binder != null; binder = binder.Next)
             {
-                if (local.IdentifierToken == declarationSyntax.Identifier)
+                foreach (var local in binder.Locals)
                 {
-                    return local;
+                    if (local.IdentifierToken == declarationSyntax.Identifier)
+                    {
+                        return local;
+                    }
                 }
             }
 

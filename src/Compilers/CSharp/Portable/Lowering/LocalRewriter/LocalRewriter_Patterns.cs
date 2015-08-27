@@ -42,13 +42,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var result = _factory.ObjectNotEqual(_factory.Local(declPattern.LocalSymbol), _factory.Null(type));
                             return _factory.Sequence(assignment, result);
                         }
+                        if (type.IsNullableType())
+                        {
+                            // TODO: only assign t when returning true (avoid returning a new default value)
+                            // bool Is<T>(object e, out T? t) where T : struct
+                            // {
+                            //     if (e == null)
+                            //     {
+                            //         t = null;
+                            //         return true;
+                            //     }
+                            //     T? tmp = e as T?;
+                            //     t = tmp.GetValueOrDefault();
+                            //     return tmp.HasValue;
+                            // }
+                            throw new NotImplementedException();
+                        }
                         else if (type.IsValueType)
                         {
+                            // TODO: only assign t when returning true (avoid returning a new default value)
                             // bool Is<T>(object e, out T t) where T : struct // non-Nullable value type
                             // {
                             //     T? tmp = e as T?;
                             //     t = tmp.GetValueOrDefault();
-                            //     return tmp != null;
+                            //     return tmp.HasValue;
                             // }
                             var tmpType = _factory.SpecialType(SpecialType.System_Nullable_T).Construct(type);
                             var tmp = _factory.SynthesizedLocal(tmpType, syntax);
@@ -59,8 +76,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            // if Type is a generic type parameter that is not constrained to any of these cases,
-                            // then it was an error in semantic analysis. In that case we should not be here.
+                            // bool Is<T>(this object i, out T o)
+                            // {
+                            //     // inefficient because it performs the type test twice.
+                            //     bool s = i is T;
+                            //     if (s) o = (T)i;
+                            //     return s;
+                            // }
                             throw new NotImplementedException();
                         }
                     }
