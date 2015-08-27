@@ -4,8 +4,8 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Threading;
 using Microsoft.VisualStudio.ProjectSystem.Designers;
-using Microsoft.VisualStudio.ProjectSystem.Threading.Tasks;
 
 namespace Microsoft.VisualStudio.ProjectSystem.Presentation.Input
 {

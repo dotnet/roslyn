@@ -2,11 +2,21 @@
 
 using System.Threading.Tasks;
 
-namespace Microsoft.VisualStudio.ProjectSystem.Threading.Tasks
+namespace Microsoft.Threading
 {
+    /// <summary>
+    ///     Provides sentinel Tasks that represent commonly returned values.
+    /// </summary>
     internal class TaskResult
     {
+        /// <summary>
+        ///     Represents a Task that's completed successfully with the result of <see langword="false"/>.
+        /// </summary>
         public static readonly Task<bool> False = Task.FromResult(false);
+
+        /// <summary>
+        ///     Represents a Task that's completed successfully with the result of <see langword="true"/>.
+        /// </summary>
         public static readonly Task<bool> True = Task.FromResult(true);
     }
 }
