@@ -332,13 +332,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 For Each group In map
                     RaiseEvent TodoListUpdated(Me, New TodoListEventArgs(
-                        Tuple.Create(Me, group.Key), workspace, group.Key.ProjectId, group.Key, group.ToImmutableArrayOrEmpty()))
+                        Tuple.Create(Me, group.Key), workspace, workspace.CurrentSolution, group.Key.ProjectId, group.Key, group.ToImmutableArrayOrEmpty()))
                 Next
             End Sub
 
             Public Sub RaiseClearTodoListUpdated(workspace As Workspace, documentId As DocumentId)
                 RaiseEvent TodoListUpdated(Me, New TodoListEventArgs(
-                    Tuple.Create(Me, documentId), workspace, documentId.ProjectId, documentId, ImmutableArray(Of TodoItem).Empty))
+                    Tuple.Create(Me, documentId), workspace, workspace.CurrentSolution, documentId.ProjectId, documentId, ImmutableArray(Of TodoItem).Empty))
             End Sub
         End Class
     End Class

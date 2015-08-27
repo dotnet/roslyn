@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return;
                 }
 
-                OnDataAddedOrChanged(e.Id, e, count);
+                OnDataAddedOrChanged(e.Id, e.Solution, e.ProjectId, e.DocumentId, e, count);
             }
 
             private static bool ShouldInclude(DiagnosticData diagnostic)
@@ -77,6 +77,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             protected override AbstractTableEntriesFactory<DiagnosticData> CreateTableEntryFactory(object key, DiagnosticsUpdatedArgs data)
             {
                 return new TableEntriesFactory(this, data.Workspace, data.ProjectId, data.DocumentId, data.Id);
+            }
+
+            private ImmutableArray<DocumentId> GetRelatedDocumentIds(DiagnosticsUpdatedArgs data)
+            {
+                var document = data.Solution.GetDocument(data.DocumentId);
+                return document.GetLinkedDocumentIds().Add(data.DocumentId);
             }
 
             private class TableEntriesFactory : AbstractTableEntriesFactory<DiagnosticData>

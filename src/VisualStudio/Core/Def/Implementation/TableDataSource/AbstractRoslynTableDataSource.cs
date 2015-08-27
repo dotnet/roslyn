@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     {
         protected abstract AbstractTableEntriesFactory<TData> CreateTableEntryFactory(object key, TArgs data);
 
-        protected void OnDataAddedOrChanged(object key, TArgs data, int itemCount)
+        protected void OnDataAddedOrChanged(object key, Solution solution, ProjectId projectId, DocumentId documentId, TArgs data, int itemCount)
         {
             // reuse factory. it is okay to re-use factory since we make sure we remove the factory before
             // adding it back

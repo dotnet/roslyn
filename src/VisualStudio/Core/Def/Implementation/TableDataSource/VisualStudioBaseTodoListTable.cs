@@ -101,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return;
                 }
 
-                OnDataAddedOrChanged(e.DocumentId, e, e.TodoItems.Length);
+                OnDataAddedOrChanged(e.DocumentId, e.Solution, e.ProjectId, e.DocumentId, e, e.TodoItems.Length);
             }
 
             protected override AbstractTableEntriesFactory<TodoItem> CreateTableEntryFactory(object key, TodoListEventArgs data)
