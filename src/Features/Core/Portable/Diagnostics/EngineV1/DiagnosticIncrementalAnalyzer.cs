@@ -752,18 +752,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 diagnostic.Properties,
                 diagnostic.Workspace,
                 diagnostic.ProjectId,
-                diagnostic.DocumentId,
-                newSpan,
-                mappedFilePath: mappedLineInfo.GetMappedFilePathIfExist(),
-                mappedStartLine: mappedLineInfo.StartLinePosition.Line,
-                mappedStartColumn: mappedLineInfo.StartLinePosition.Character,
-                mappedEndLine: mappedLineInfo.EndLinePosition.Line,
-                mappedEndColumn: mappedLineInfo.EndLinePosition.Character,
-                originalFilePath: originalLineInfo.Path,
-                originalStartLine: originalLineInfo.StartLinePosition.Line,
-                originalStartColumn: originalLineInfo.StartLinePosition.Character,
-                originalEndLine: originalLineInfo.EndLinePosition.Line,
-                originalEndColumn: originalLineInfo.EndLinePosition.Character,
+                new DiagnosticDataLocation(diagnostic.DocumentId, newSpan,
+                    originalFilePath: originalLineInfo.Path,
+                    originalStartLine: originalLineInfo.StartLinePosition.Line,
+                    originalStartColumn: originalLineInfo.StartLinePosition.Character,
+                    originalEndLine: originalLineInfo.EndLinePosition.Line,
+                    originalEndColumn: originalLineInfo.EndLinePosition.Character,
+                    mappedFilePath: mappedLineInfo.GetMappedFilePathIfExist(),
+                    mappedStartLine: mappedLineInfo.StartLinePosition.Line,
+                    mappedStartColumn: mappedLineInfo.StartLinePosition.Character,
+                    mappedEndLine: mappedLineInfo.EndLinePosition.Line,
+                    mappedEndColumn: mappedLineInfo.EndLinePosition.Character),
                 description: diagnostic.Description,
                 helpLink: diagnostic.HelpLink);
         }
@@ -999,11 +998,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             return string.Format("project remove: {0}", id.ToString());
         }
 
-        #region unused 
+#region unused 
         public override Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyTask;
         }
-        #endregion
+#endregion
     }
 }

@@ -404,5 +404,31 @@ class C
 
             VerifyProviderCommit(markup, "object", expected, '{', "");
         }
+
+        [WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void InExpressionBodiedProperty()
+        {
+            var markup =
+@"class C
+{
+    object Object => new $$
+}
+";
+            VerifyItemExists(markup, "object");
+        }
+
+        [WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void InExpressionBodiedMethod()
+        {
+            var markup =
+@"class C
+{
+    object GetObject() => new $$
+}
+";
+            VerifyItemExists(markup, "object");
+        }
     }
 }

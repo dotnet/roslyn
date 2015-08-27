@@ -102,7 +102,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         var dx = await GetSemanticDiagnosticsAsync(analyzerDriver, stateSet.Analyzer).ConfigureAwait(false);
                         diagnosticData = dx.AsImmutableOrEmpty();
                     }
-
                     return new AnalysisData(versions.TextVersion, versions.DataVersion, GetExistingItems(existingData), diagnosticData);
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))

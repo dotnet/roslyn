@@ -193,10 +193,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 diagnostic.Properties,
                 diagnostic.Workspace,
                 diagnostic.ProjectId,
-                diagnostic.DocumentId,
-                diagnostic.HasTextSpan ? diagnostic.TextSpan : (TextSpan?)null,
-                diagnostic.MappedFilePath, diagnostic.MappedStartLine, diagnostic.MappedStartColumn, diagnostic.MappedEndLine, diagnostic.MappedEndColumn,
-                diagnostic.OriginalFilePath, diagnostic.OriginalStartLine, diagnostic.OriginalStartColumn, diagnostic.OriginalEndLine, diagnostic.OriginalEndColumn,
+                diagnostic.DataLocation,
+                diagnostic.AdditionalLocations,
                 descriptor.Title.ToString(CultureInfo.CurrentUICulture),
                 descriptor.Description.ToString(CultureInfo.CurrentUICulture),
                 descriptor.HelpLinkUri);

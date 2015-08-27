@@ -135,19 +135,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             for (int i = 0; i < interactiveCommands.Length; i++)
             {
                 foreach (var name in interactiveCommands[i].Names)
-                        interactiveCommandMap.Add(name, i);
+                {
+                    interactiveCommandMap.Add(name, i);
+                }
             }
 
             // swap core commands with specialized command if both exist
             // Command can have multiple names. We need to compare every name to find match.
+            int value;
             foreach (var command in specializedInteractiveCommands)
             {
                 foreach (var name in command.Names)
                 {
-                    if ( interactiveCommandMap.ContainsKey(name))
+                    if (interactiveCommandMap.TryGetValue(name, out value))
                     {
-                        int value;
-                        interactiveCommandMap.TryGetValue(name, out value);
                         interactiveCommands[value] = command;
                         break;
                     }

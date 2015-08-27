@@ -716,7 +716,7 @@ class AnonymousFunctions
                 Assert.NotNull(withDocumentLocationDiagnostic.DocumentId)
                 Dim diagnosticDocument = project.GetDocument(withDocumentLocationDiagnostic.DocumentId)
                 Dim tree = diagnosticDocument.GetSyntaxTreeAsync().Result
-                Dim actualLocation = withDocumentLocationDiagnostic.ToDiagnostic(tree).Location
+                Dim actualLocation = withDocumentLocationDiagnostic.ToDiagnosticAsync(project, CancellationToken.None).Result.Location
                 Dim expectedLocation = document.GetSyntaxRootAsync().Result.GetLocation
                 Assert.Equal(expectedLocation, actualLocation)
             End Using

@@ -25,43 +25,82 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
         internal abstract ICommandHandler CreateCommandHandler(IWaitIndicator waitIndicator, ITextUndoHistoryRegistry undoHistoryRegistry, IEditorOperationsFactoryService editorOperationsFactoryService, IAsyncCompletionService completionService);
         protected abstract TestWorkspace CreateTestWorkspace(string code);
 
-        protected void VerifyTypingCharacter(string initialMarkup, string expectedMarkup, bool useTab = false)
+        protected void VerifyTypingCharacter(string initialMarkup, string expectedMarkup, bool useTabs = false)
         {
-            Verify(initialMarkup, expectedMarkup, (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
-            {
-                var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService, completionService) as ICommandHandler<TypeCharCommandArgs>;
+            Verify(initialMarkup, expectedMarkup, useTabs,
+                execute: (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
+                {
+                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService, completionService) as ICommandHandler<TypeCharCommandArgs>;
 
-                var commandArgs = new TypeCharCommandArgs(view, view.TextBuffer, DocumentationCommentCharacter);
-                var nextHandler = CreateInsertTextHandler(view, DocumentationCommentCharacter.ToString());
+                    var commandArgs = new TypeCharCommandArgs(view, view.TextBuffer, DocumentationCommentCharacter);
+                    var nextHandler = CreateInsertTextHandler(view, DocumentationCommentCharacter.ToString());
 
-                commandHandler.ExecuteCommand(commandArgs, nextHandler);
-            }, useTab);
+                    commandHandler.ExecuteCommand(commandArgs, nextHandler);
+                });
         }
 
-        protected void VerifyPressingEnter(string initialMarkup, string expectedMarkup)
+        protected void VerifyPressingEnter(string initialMarkup, string expectedMarkup, bool useTabs = false)
         {
-            Verify(initialMarkup, expectedMarkup, (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
-            {
-                var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService, completionService) as ICommandHandler<ReturnKeyCommandArgs>;
+            Verify(initialMarkup, expectedMarkup, useTabs,
+                execute: (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
+                {
+                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService, completionService) as ICommandHandler<ReturnKeyCommandArgs>;
 
-                var commandArgs = new ReturnKeyCommandArgs(view, view.TextBuffer);
-                var nextHandler = CreateInsertTextHandler(view, "\r\n");
+                    var commandArgs = new ReturnKeyCommandArgs(view, view.TextBuffer);
+                    var nextHandler = CreateInsertTextHandler(view, "\r\n");
 
-                commandHandler.ExecuteCommand(commandArgs, nextHandler);
-            });
+                    commandHandler.ExecuteCommand(commandArgs, nextHandler);
+                });
         }
 
-        protected void VerifyInsertCommentCommand(string initialMarkup, string expectedMarkup)
+        protected void VerifyInsertCommentCommand(string initialMarkup, string expectedMarkup, bool useTabs = false)
         {
-            Verify(initialMarkup, expectedMarkup, (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
-            {
-                var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService, completionService) as ICommandHandler<InsertCommentCommandArgs>;
+            Verify(initialMarkup, expectedMarkup, useTabs,
+                execute: (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
+                {
+                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService, completionService) as ICommandHandler<InsertCommentCommandArgs>;
 
-                var commandArgs = new InsertCommentCommandArgs(view, view.TextBuffer);
-                Action nextHandler = delegate { };
+                    var commandArgs = new InsertCommentCommandArgs(view, view.TextBuffer);
+                    Action nextHandler = delegate { };
 
-                commandHandler.ExecuteCommand(commandArgs, nextHandler);
-            });
+                    commandHandler.ExecuteCommand(commandArgs, nextHandler);
+                });
+        }
+
+        protected void VerifyOpenLineAbove(string initialMarkup, string expectedMarkup, bool useTabs = false)
+        {
+            Verify(initialMarkup, expectedMarkup, useTabs,
+                execute: (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
+                {
+                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService, completionService) as ICommandHandler<OpenLineAboveCommandArgs>;
+
+                    var commandArgs = new OpenLineAboveCommandArgs(view, view.TextBuffer);
+                    Action nextHandler = () =>
+                    {
+                        var editorOperations = editorOperationsFactoryService.GetEditorOperations(view);
+                        editorOperations.OpenLineAbove();
+                    };
+
+                    commandHandler.ExecuteCommand(commandArgs, nextHandler);
+                });
+        }
+
+        protected void VerifyOpenLineBelow(string initialMarkup, string expectedMarkup, bool useTabs = false)
+        {
+            Verify(initialMarkup, expectedMarkup, useTabs,
+                execute: (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
+                {
+                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService, completionService) as ICommandHandler<OpenLineBelowCommandArgs>;
+
+                    var commandArgs = new OpenLineBelowCommandArgs(view, view.TextBuffer);
+                    Action nextHandler = () =>
+                    {
+                        var editorOperations = editorOperationsFactoryService.GetEditorOperations(view);
+                        editorOperations.OpenLineBelow();
+                    };
+
+                    commandHandler.ExecuteCommand(commandArgs, nextHandler);
+                });
         }
 
         private Action CreateInsertTextHandler(ITextView textView, string text)
@@ -74,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
             };
         }
 
-        private void Verify(string initialMarkup, string expectedMarkup, Action<IWpfTextView, ITextUndoHistoryRegistry, IEditorOperationsFactoryService, IAsyncCompletionService> execute, bool useTab = false)
+        private void Verify(string initialMarkup, string expectedMarkup, bool useTabs, Action<IWpfTextView, ITextUndoHistoryRegistry, IEditorOperationsFactoryService, IAsyncCompletionService> execute)
         {
             using (var workspace = CreateTestWorkspace(initialMarkup))
             {
@@ -82,10 +121,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
                 var view = testDocument.GetTextView();
                 view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, testDocument.CursorPosition.Value));
 
-                if (useTab)
+                if (useTabs)
                 {
                     var optionService = workspace.Services.GetService<IOptionService>();
-                    optionService.SetOptions(optionService.GetOptions().WithChangedOption(FormattingOptions.UseTabs, testDocument.Project.Language, useTab));
+                    optionService.SetOptions(optionService.GetOptions().WithChangedOption(FormattingOptions.UseTabs, testDocument.Project.Language, useTabs));
                 }
 
                 execute(

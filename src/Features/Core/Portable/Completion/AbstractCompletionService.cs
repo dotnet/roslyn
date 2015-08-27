@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
-    internal abstract partial class AbstractCompletionService : ICompletionService, ITextCompletionService
+    internal abstract partial class AbstractCompletionService : ICompletionService
     {
         private static readonly Func<string, List<CompletionItem>> s_createList = _ => new List<CompletionItem>();
 
@@ -76,6 +76,12 @@ namespace Microsoft.CodeAnalysis.Completion
 
         protected abstract string GetLanguageName();
 
+        private class ProviderList
+        {
+            public CompletionListProvider Provider;
+            public CompletionList List;
+        }
+
         public async Task<CompletionList> GetCompletionListAsync(
             Document document,
             int position,
@@ -83,39 +89,12 @@ namespace Microsoft.CodeAnalysis.Completion
             IEnumerable<CompletionListProvider> completionProviders,
             CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return await GetCompletionListAsync(document, text, position, triggerInfo, completionProviders, document.Project.Solution.Workspace.Options, cancellationToken).ConfigureAwait(false);
-        }
-
-        public Task<CompletionList> GetCompletionListAsync(
-            SourceText text,
-            int position,
-            CompletionTriggerInfo triggerInfo,
-            IEnumerable<CompletionListProvider> completionProviders,
-            OptionSet options,
-            CancellationToken cancellationToken)
-        {
-            return GetCompletionListAsync(null, text, position, triggerInfo, completionProviders, options, cancellationToken);
-        }
-
-        private class ProviderList
-        {
-            public CompletionListProvider Provider;
-            public CompletionList List;
-        }
-
-        private async Task<CompletionList> GetCompletionListAsync(
-            Document documentOpt,
-            SourceText text,
-            int position,
-            CompletionTriggerInfo triggerInfo,
-            IEnumerable<CompletionListProvider> completionProviders,
-            OptionSet options,
-            CancellationToken cancellationToken)
-        {
             completionProviders = completionProviders ?? this.GetDefaultCompletionProviders();
             var completionProviderToIndex = GetCompletionProviderToIndex(completionProviders);
             var completionRules = GetCompletionRules();
+
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var options = document.Project.Solution.Workspace.Options;
 
             IEnumerable<CompletionListProvider> triggeredProviders;
             switch (triggerInfo.TriggerReason)
@@ -137,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var providersAndLists = new List<ProviderList>();
             foreach (var provider in triggeredProviders)
             {
-                var completionList = await GetCompletionListAsync(provider, documentOpt, text, position, triggerInfo, cancellationToken).ConfigureAwait(false);
+                var completionList = await GetCompletionListAsync(provider, document, position, triggerInfo, cancellationToken).ConfigureAwait(false);
                 if (completionList != null)
                 {
                     providersAndLists.Add(new ProviderList { Provider = provider, List = completionList });
@@ -171,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var nonUsedNonExclusiveProviders = new List<ProviderList>();
             foreach (var provider in nonUsedProviders)
             {
-                var completionList = await GetCompletionListAsync(provider, documentOpt, text, position, triggerInfo, cancellationToken).ConfigureAwait(false);
+                var completionList = await GetCompletionListAsync(provider, document, position, triggerInfo, cancellationToken).ConfigureAwait(false);
                 if (completionList != null && !completionList.IsExclusive)
                 {
                     nonUsedNonExclusiveProviders.Add(new ProviderList { Provider = provider, List = completionList });
@@ -289,29 +268,16 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private static async Task<CompletionList> GetCompletionListAsync(
             CompletionListProvider provider,
-            Document documentOpt,
-            SourceText text,
+            Document document,
             int position,
             CompletionTriggerInfo triggerInfo,
             CancellationToken cancellationToken)
         {
-            if (provider is TextCompletionProvider)
-            {
-                return ((TextCompletionProvider)provider).GetCompletionList(text, position, triggerInfo, cancellationToken);
-            }
+            var context = new CompletionListContext(document, position, triggerInfo, cancellationToken);
 
-            if (documentOpt != null)
-            {
-                var context = new CompletionListContext(documentOpt, position, triggerInfo, cancellationToken);
+            await provider.ProduceCompletionListAsync(context).ConfigureAwait(false);
 
-                await provider.ProduceCompletionListAsync(context).ConfigureAwait(false);
-
-                return new CompletionList(context.GetItems(), context.Builder, context.IsExclusive);
-            }
-
-            Contract.Fail("Should never get here.");
-
-            return null;
+            return new CompletionList(context.GetItems(), context.Builder, context.IsExclusive);
         }
 
         public bool IsTriggerCharacter(SourceText text, int characterPosition, IEnumerable<CompletionListProvider> completionProviders, OptionSet options)
