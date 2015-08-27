@@ -2,7 +2,6 @@
 
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.ProjectSystem.Designers;
-using Microsoft.VisualStudio.ProjectSystem.Threading.Tasks;
 
 namespace Microsoft.VisualStudio.ProjectSystem.Presentation.Input
 {
