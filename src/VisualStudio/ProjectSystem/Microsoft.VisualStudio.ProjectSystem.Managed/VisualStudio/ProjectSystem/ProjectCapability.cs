@@ -4,6 +4,9 @@ using Microsoft.VisualStudio.ProjectSystem.Utilities;
 
 namespace Microsoft.VisualStudio.ProjectSystem
 {
+    /// <summary>
+    ///     Provides common well-known project capabilities.
+    /// </summary>
     internal static class ProjectCapability
     {
         public const string CSharp = ProjectCapabilities.CSharp;

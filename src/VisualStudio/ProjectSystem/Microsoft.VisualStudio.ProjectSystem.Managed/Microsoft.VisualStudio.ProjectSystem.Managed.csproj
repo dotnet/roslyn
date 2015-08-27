@@ -133,7 +133,7 @@
     <Compile Include="Presentation\Input\SingeNodeProjectCommandBase.cs" />
     <Compile Include="Presentation\Input\ProjectCommandBase.cs" />
     <Compile Include="Presentation\Input\ProjectCommandAttribute.cs" />
-    <Compile Include="ProjectCapability.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\ProjectCapability.cs" />
     <Compile Include="VisualStudio\ProjectSystem\Designers\AppDesignerFolderProjectTreeModifierBase.cs" />
     <Compile Include="VisualStudio\ProjectSystem\Designers\ProjectRootProjectTreeModifierBase.cs" />
     <Compile Include="VisualStudio\ProjectSystem\Designers\ProjectTreeExtensions.cs" />
