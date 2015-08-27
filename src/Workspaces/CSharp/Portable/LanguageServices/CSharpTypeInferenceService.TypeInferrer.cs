@@ -199,31 +199,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var token = syntaxTree.FindTokenOnLeftOfPosition(position, CancellationToken);
                 token = token.GetPreviousTokenIfTouchingWord(position);
 
-                // A couple of broken code scenarios where the new keyword in objectcreationexpression
-                // appears to be a part of a subsequent assignment.  For example:
-                //
-                //       new Form
-                //       {
-                //           Location = new $$
-                //           StartPosition = FormStartPosition.CenterParent
-                //       };
-                //  The 'new' token is part of an assignment of the assignment to StartPosition,
-                //  but the user is really trying to assign to Location.
-                //
-                // Similarly:
-                //      bool b;
-                //      Task task = new $$
-                //      b = false;
-                // The 'new' token is part of an assignment of the assignment to b, but the user 
-                // is really trying to assign to task.
-                //
-                // In both these cases, we simply back up before the 'new' if it follows an equals.
-                if (token.Kind() == SyntaxKind.NewKeyword &&
-                    token.GetPreviousToken().Kind() == SyntaxKind.EqualsToken)
-                {
-                    token = token.GetPreviousToken();
-                }
-
                 var parent = token.Parent;
 
                 return parent.TypeSwitch(
@@ -257,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (LockStatementSyntax lockStatement) => InferTypeInLockStatement(lockStatement, token),
                     (NameColonSyntax nameColon) => InferTypeInNameColon(nameColon, token),
                     (NameEqualsSyntax nameEquals) => InferTypeInNameEquals(nameEquals, token),
-                    (ObjectCreationExpressionSyntax objectCreation) => InferTypes(objectCreation),
+                    (ObjectCreationExpressionSyntax objectCreation) => InferTypeInObjectCreationExpression(objectCreation, token),
                     (ParenthesizedLambdaExpressionSyntax parenthesizedLambdaExpression) => InferTypeInParenthesizedLambdaExpression(parenthesizedLambdaExpression, token),
                     (PostfixUnaryExpressionSyntax postfixUnary) => InferTypeInPostfixUnaryExpression(postfixUnary, token),
                     (PrefixUnaryExpressionSyntax prefixUnary) => InferTypeInPrefixUnaryExpression(prefixUnary, token),
@@ -375,6 +350,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var info = SemanticModel.GetSymbolInfo(initializer, CancellationToken);
                 var methods = info.GetBestOrAllSymbols().OfType<IMethodSymbol>();
                 return InferTypeInArgument(index, methods, argument);
+            }
+
+            private IEnumerable<ITypeSymbol> InferTypeInObjectCreationExpression(ObjectCreationExpressionSyntax expression, SyntaxToken previousToken)
+            {
+                // A couple of broken code scenarios where the new keyword in objectcreationexpression
+                // appears to be a part of a subsequent assignment.  For example:
+                //
+                //       new Form
+                //       {
+                //           Location = new $$
+                //           StartPosition = FormStartPosition.CenterParent
+                //       };
+                //  The 'new' token is part of an assignment of the assignment to StartPosition,
+                //  but the user is really trying to assign to Location.
+                //
+                // Similarly:
+                //      bool b;
+                //      Task task = new $$
+                //      b = false;
+                // The 'new' token is part of an assignment of the assignment to b, but the user 
+                // is really trying to assign to task.
+                //
+                // In both these cases, we simply back up before the 'new' if it follows an equals
+                // and start the inference again.
+                if (previousToken.Kind() == SyntaxKind.NewKeyword &&
+                    previousToken.GetPreviousToken().Kind() == SyntaxKind.EqualsToken)
+                {
+                    return InferTypes(previousToken.SpanStart);
+                }
+
+                return InferTypes(expression);
             }
 
             private IEnumerable<ITypeSymbol> InferTypeInObjectCreationExpression(ObjectCreationExpressionSyntax creation, int index, ArgumentSyntax argumentOpt = null)
