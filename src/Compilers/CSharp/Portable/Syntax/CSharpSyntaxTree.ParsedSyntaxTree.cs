@@ -100,11 +100,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new SimpleSyntaxReference(node);
             }
 
-            public override string ToString()
-            {
-                return this.GetText(CancellationToken.None).ToString();
-            }
-
             public override SyntaxTree WithRootAndOptions(SyntaxNode root, ParseOptions options)
             {
                 if (ReferenceEquals(_root, root) && ReferenceEquals(_options, options))
