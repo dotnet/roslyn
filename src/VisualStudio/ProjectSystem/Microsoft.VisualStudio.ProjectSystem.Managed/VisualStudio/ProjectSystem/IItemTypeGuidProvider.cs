@@ -9,7 +9,6 @@ namespace Microsoft.VisualStudio.ProjectSystem
     /// <summary>
     /// Provides support to supply an appropriate value for <code>__VSHPROPID.VSHPROPID_TypeGuid</code>
     /// </summary>
-    /// <see cref="https://msdn.microsoft.com/en-us/library/microsoft.visualstudio.shell.interop.__vshpropid.aspx"/>
     [ProjectSystemContract(ProjectSystemContractScope.UnconfiguredProject, ProjectSystemContractProvider.Extension)]
     public interface IItemTypeGuidProvider
     {
