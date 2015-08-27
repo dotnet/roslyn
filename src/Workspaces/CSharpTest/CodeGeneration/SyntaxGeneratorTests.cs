@@ -44,6 +44,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
             Assert.Equal(expectedText, normalized);
         }
 
+        private void VerifySyntaxRaw<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
+        {
+            Assert.IsAssignableFrom(typeof(TSyntax), node);
+            var normalized = node.ToFullString();
+            Assert.Equal(expectedText, normalized);
+        }
+
         #region Expressions and Statements
         [Fact]
         public void TestLiteralExpressions()
@@ -926,6 +933,27 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 "t i2.m2()\r\n{\r\n}");
         }
 
+        [WorkItem(3928, "https://github.com/dotnet/roslyn/issues/3928")]
+        [Fact]
+        public void TestAsPrivateInterfaceImplementationRemovesConstraints()
+        {
+            var code = @"
+public interface IFace
+{
+    void Method<T>() where T : class;
+}";
+
+            var cu = SyntaxFactory.ParseCompilationUnit(code);
+            var iface = cu.Members[0];
+            var method = _g.GetMembers(iface)[0];
+
+            var privateMethod = _g.AsPrivateInterfaceImplementation(method, _g.IdentifierName("IFace"));
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                privateMethod,
+                "void IFace.Method<T>()\r\n{\r\n}");
+        }
+
         [Fact]
         public void TestClassDeclarations()
         {
@@ -1549,6 +1577,101 @@ public class C { } // end").Members[0];
         {
             var newDecl = _g.RemoveNode(declaration, _g.GetNamespaceImports(declaration).First(m => _g.GetName(m) == name));
             AssertNamesEqual(remainingNames, _g.GetNamespaceImports(newDecl));
+        }
+
+        [Fact]
+        public void TestRemoveNodeInTrivia()
+        {
+            var code = @"
+///<summary> ... </summary>
+public class C
+{
+}";
+
+            var cu = SyntaxFactory.ParseCompilationUnit(code);
+            var cls = cu.Members[0];
+            var summary = cls.DescendantNodes(descendIntoTrivia: true).OfType<XmlElementSyntax>().First();
+
+            var newCu = _g.RemoveNode(cu, summary);
+
+            VerifySyntaxRaw<CompilationUnitSyntax>(
+                newCu,
+                @"
+
+public class C
+{
+}");
+        }
+
+        [Fact]
+        public void TestReplaceNodeInTrivia()
+        {
+            var code = @"
+///<summary> ... </summary>
+public class C
+{
+}";
+
+            var cu = SyntaxFactory.ParseCompilationUnit(code);
+            var cls = cu.Members[0];
+            var summary = cls.DescendantNodes(descendIntoTrivia: true).OfType<XmlElementSyntax>().First();
+
+            var summary2 = summary.WithContent(default(SyntaxList<XmlNodeSyntax>));
+
+            var newCu = _g.ReplaceNode(cu, summary, summary2);
+
+            VerifySyntaxRaw<CompilationUnitSyntax>(
+                newCu, @"
+///<summary></summary>
+public class C
+{
+}");
+        }
+
+        [Fact]
+        public void TestInsertAfterNodeInTrivia()
+        {
+            var code = @"
+///<summary> ... </summary>
+public class C
+{
+}";
+
+            var cu = SyntaxFactory.ParseCompilationUnit(code);
+            var cls = cu.Members[0];
+            var text = cls.DescendantNodes(descendIntoTrivia: true).OfType<XmlTextSyntax>().First();
+
+            var newCu = _g.InsertNodesAfter(cu, text, new SyntaxNode[] { text });
+
+            VerifySyntaxRaw<CompilationUnitSyntax>(
+                newCu, @"
+///<summary> ...  ... </summary>
+public class C
+{
+}");
+        }
+
+        [Fact]
+        public void TestInsertBeforeNodeInTrivia()
+        {
+            var code = @"
+///<summary> ... </summary>
+public class C
+{
+}";
+
+            var cu = SyntaxFactory.ParseCompilationUnit(code);
+            var cls = cu.Members[0];
+            var text = cls.DescendantNodes(descendIntoTrivia: true).OfType<XmlTextSyntax>().First();
+
+            var newCu = _g.InsertNodesBefore(cu, text, new SyntaxNode[] { text });
+
+            VerifySyntaxRaw<CompilationUnitSyntax>(
+                newCu, @"
+///<summary> ...  ... </summary>
+public class C
+{
+}");
         }
 
         [Fact]

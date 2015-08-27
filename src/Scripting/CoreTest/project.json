@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "System.Dynamic.Runtime": "4.0.10",
+    "Microsoft.CSharp": "4.0.0"
+  },
+  "frameworks": {
+    "dotnet": {
+      "imports": "portable-net452"
+    }
+  }
+}
