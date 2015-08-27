@@ -1009,9 +1009,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var rightTypes = GetTypes(coalesceExpression.Right);
                 if (!rightTypes.Any())
                 {
-                    return SpecializedCollections.SingletonEnumerable(
-                        this.Compilation.GetSpecialType(SpecialType.System_Nullable_T)
-                            .Construct(Compilation.GetSpecialType(SpecialType.System_Object)));
+                    return SpecializedCollections.SingletonEnumerable(Compilation.GetSpecialType(SpecialType.System_Object));
                 }
 
                 return rightTypes

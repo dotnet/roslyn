@@ -1638,5 +1638,50 @@ public class C
 }";
             Test(text, "System.Boolean");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WorkItem(4483, "https://github.com/dotnet/roslyn/issues/4483")]
+        public void TestNullCoalescingOperator1()
+        {
+            var text =
+    @"class C
+{
+    void M()
+    {
+        object z = [|a|]?? null;
+    }
+}";
+            Test(text, "System.Object");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WorkItem(4483, "https://github.com/dotnet/roslyn/issues/4483")]
+        public void TestNullCoalescingOperator2()
+        {
+            var text =
+    @"class C
+{
+    void M()
+    {
+        object z = [|a|] ?? b ?? c;
+    }
+}";
+            Test(text, "System.Object");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WorkItem(4483, "https://github.com/dotnet/roslyn/issues/4483")]
+        public void TestNullCoalescingOperator3()
+        {
+            var text =
+    @"class C
+{
+    void M()
+    {
+        object z = a ?? [|b|] ?? c;
+    }
+}";
+            Test(text, "System.Object");
+        }
     }
 }
