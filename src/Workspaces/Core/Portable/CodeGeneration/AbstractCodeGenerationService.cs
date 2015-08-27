@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return GetEditAsync(
                 solution,
                 destination,
-                (t, opts, ai, _) => AddEvent(t, @event, opts, ai),
+                (t, opts, ai, ct) => AddEvent(t, @event, opts, ai),
                 options,
                 new[] { @event },
                 cancellationToken);
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return GetEditAsync(
                 solution,
                 destination,
-                (t, opts, ai, _) => AddField(t, field, opts, ai),
+                (t, opts, ai, ct) => AddField(t, field, opts, ai),
                 options,
                 new[] { field },
                 cancellationToken);
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             return GetEditAsync(
                 solution, destination,
-                (t, opts, ai, _) => AddProperty(t, property, opts, ai),
+                (t, opts, ai, ct) => AddProperty(t, property, opts, ai),
                 options, new[] { property },
                 cancellationToken);
         }
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             return GetEditAsync(
                 solution, destination,
-                (t, opts, ai, _) => AddNamedType(t, namedType, opts, ai, _),
+                (t, opts, ai, ct) => AddNamedType(t, namedType, opts, ai, ct),
                 options, new[] { namedType },
                 cancellationToken);
         }
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             return GetEditAsync(
                 solution, destination,
-                (t, opts, ai, _) => AddMethod(t, method, opts, ai),
+                (t, opts, ai, ct) => AddMethod(t, method, opts, ai),
                 options, new[] { method }, cancellationToken);
         }
 

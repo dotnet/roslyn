@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _metadataAsSourceFileService = componentModel.GetService<IMetadataAsSourceFileService>();
         }
 
-        public bool TryNavigateToSymbol(ISymbol symbol, Project project, bool usePreviewTab = false, CancellationToken cancellationToken = default(CancellationToken))
+        public bool TryNavigateToSymbol(ISymbol symbol, Project project, CancellationToken cancellationToken = default(CancellationToken), bool usePreviewTab = false)
         {
             if (project == null || symbol == null)
             {

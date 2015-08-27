@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                     [namespace] As INamespaceSymbol,
                                     options As CodeGenerationOptions,
                                     availableIndices As IList(Of Boolean),
-                                       cancellationToken As CancellationToken) As CompilationUnitSyntax
+                                    cancellationToken As CancellationToken) As CompilationUnitSyntax
             Dim declaration = GenerateNamespaceDeclaration(service, [namespace], options, cancellationToken)
             If Not TypeOf declaration Is NamespaceBlockSyntax Then
                 Throw New ArgumentException(VBWorkspaceResources.NamespaceCannotBeAdded)

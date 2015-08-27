@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// <param name="symbol">The symbol to navigate to</param>
         /// <param name="usePreviewTab">Indicates whether a preview tab should be used if the
         /// containing document is opened in a new tab. Defaults to false.</param>
-        bool TryNavigateToSymbol(ISymbol symbol, Project project, bool usePreviewTab = false, CancellationToken cancellationToken = default(CancellationToken));
+        bool TryNavigateToSymbol(ISymbol symbol, Project project, CancellationToken cancellationToken, bool usePreviewTab = false);
 
         /// <returns>True if the navigation was handled, indicating that the caller should not 
         /// perform the navigation.</returns>
