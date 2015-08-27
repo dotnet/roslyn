@@ -15,11 +15,11 @@ namespace Microsoft.VisualStudio.ProjectSystem.Presentation.Input.Commands
     [AppliesTo(ProjectCapability.CSharpOrVisualBasic)]  // TODO: We need an AppDesigner capability
     internal class OpenAppDesignerCommand : SingleNodeProjectCommandBase
     {
-        private readonly IVsUnconfiguredProjectServices _projectServices;
+        private readonly IUnconfiguredProjectVsServices _projectServices;
         private readonly IThreadHandling _threadHandling;
 
         [ImportingConstructor]
-        public OpenAppDesignerCommand(IVsUnconfiguredProjectServices projectServices, IThreadHandling threadHandling)
+        public OpenAppDesignerCommand(IUnconfiguredProjectVsServices projectServices, IThreadHandling threadHandling)
         {
             Requires.NotNull(projectServices, nameof(projectServices));
             Requires.NotNull(threadHandling, nameof(threadHandling));

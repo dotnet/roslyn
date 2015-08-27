@@ -22,6 +22,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
+    <Folder Include="VisualStudio\ProjectSystem\" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -123,7 +124,7 @@
     <Compile Include="HierarchyId.cs" />
     <Compile Include="IAddItemTemplatesGuidProvider.cs" />
     <Compile Include="IItemTypeGuidProvider.cs" />
-    <Compile Include="IVsUnconfiguredProjectServices.cs" />
+    <Compile Include="IUnconfiguredProjectVsServices.cs" />
     <Compile Include="LanguageServices\LanguageServiceBase.cs" />
     <Compile Include="Presentation\Input\CommandGroup.cs" />
     <Compile Include="Presentation\Input\CommandId.cs" />

@@ -6,13 +6,17 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.ProjectSystem
 {
-    [Export(typeof(IVsUnconfiguredProjectServices))]
-    internal class VsUnconfiguredProjectServices : IVsUnconfiguredProjectServices
+    /// <summary>
+    ///     Provides an implementation of <see cref="IUnconfiguredProjectVsServices"/> that delegates onto 
+    ///     it's <see cref="IUnconfiguredProjectServices.HostObject"/>.
+    /// </summary>
+    [Export(typeof(IUnconfiguredProjectVsServices))]
+    internal class UnconfiguredProjectVsServices : IUnconfiguredProjectVsServices
     {
         private readonly UnconfiguredProject _unconfiguredProject;
 
         [ImportingConstructor]
-        public VsUnconfiguredProjectServices(UnconfiguredProject unconfiguredProject)
+        public UnconfiguredProjectVsServices(UnconfiguredProject unconfiguredProject)
         {
             Requires.NotNull(unconfiguredProject, nameof(unconfiguredProject));
 
