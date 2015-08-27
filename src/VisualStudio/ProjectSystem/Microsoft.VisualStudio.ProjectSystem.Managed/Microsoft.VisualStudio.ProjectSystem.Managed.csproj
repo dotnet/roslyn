@@ -142,7 +142,7 @@
     <Compile Include="Rules\ProjectProperties.cs" />
     <Compile Include="StringComparers.cs" />
     <Compile Include="Threading\Tasks\TaskResult.cs" />
-    <Compile Include="VsUnconfiguredProjectServices.cs" />
+    <Compile Include="UnconfiguredProjectVsServices.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
