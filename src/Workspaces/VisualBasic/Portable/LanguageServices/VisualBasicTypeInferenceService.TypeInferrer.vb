@@ -180,7 +180,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If argumentList.Parent IsNot Nothing Then
-                    If argumentList.IsParentKind(SyntaxKind.InvocationExpression) Then
+                    If argumentList.IsParentKind(SyntaxKind.ArrayCreationExpression) Then
+                        Return SpecializedCollections.SingletonEnumerable(Compilation.GetSpecialType(SpecialType.System_Int32))
+                    ElseIf argumentList.IsParentKind(SyntaxKind.InvocationExpression) Then
                         Dim invocation = TryCast(argumentList.Parent, InvocationExpressionSyntax)
 
                         Dim index As Integer = 0
@@ -402,7 +404,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Function InferTypeInAwaitExpression(awaitExpression As AwaitExpressionSyntax) As IEnumerable(Of ITypeSymbol)
                 ' await <expression>
 
-                Dim types = InferTypes(awaitExpression)
+                Dim types = InferTypes(awaitExpression, filterUnusable:=False)
 
                 Dim task = Me.Compilation.GetTypeByMetadataName("System.Threading.Tasks.Task")
                 Dim taskOfT = Me.Compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1")
@@ -628,7 +630,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 ' Func<int,string> = i => Foo();
-                Dim lambdaTypes = GetTypes(lambda).Where(Function(t) Not IsUnusableType(t))
+                Dim lambdaTypes = GetTypes(lambda).Where(IsUsableTypeFunc)
                 If lambdaTypes.IsEmpty() Then
                     lambdaTypes = InferTypes(lambda)
                 End If

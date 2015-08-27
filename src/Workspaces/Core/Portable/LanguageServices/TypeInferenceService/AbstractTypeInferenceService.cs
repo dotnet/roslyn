@@ -15,16 +15,18 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
         {
             protected readonly CancellationToken CancellationToken;
             protected readonly SemanticModel SemanticModel;
+            protected readonly Func<ITypeSymbol, bool> IsUsableTypeFunc;
 
             private readonly HashSet<TExpressionSyntax> _seenExpressionInferType = new HashSet<TExpressionSyntax>();
             private readonly HashSet<TExpressionSyntax> _seenExpressionGetType = new HashSet<TExpressionSyntax>();
-            private readonly Func<ITypeSymbol, bool> isUsableTypeFunc;
+
+            private static readonly Func<ITypeSymbol, bool> isNotNull = t => t != null;
 
             protected AbstractTypeInferrer(SemanticModel semanticModel, CancellationToken cancellationToken)
             {
                 this.SemanticModel = semanticModel;
                 this.CancellationToken = cancellationToken;
-                this.isUsableTypeFunc =  t => t != null && !IsUnusableType(t);
+                this.IsUsableTypeFunc =  t => t != null && !IsUnusableType(t);
             }
 
             protected abstract IEnumerable<ITypeSymbol> InferTypesWorker_DoNotCallDirectly(int position);
@@ -40,21 +42,21 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
                 return Filter(types);
             }
 
-            public IEnumerable<ITypeSymbol> InferTypes(TExpressionSyntax expression)
+            public IEnumerable<ITypeSymbol> InferTypes(TExpressionSyntax expression, bool filterUnusable = true)
             {
                 if (expression != null)
                 {
                     if (_seenExpressionInferType.Add(expression))
                     {
                         var types = InferTypesWorker_DoNotCallDirectly(expression);
-                        return Filter(types);
+                        return Filter(types, filterUnusable);
                     }
                 }
 
                 return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
             }
 
-            protected IEnumerable<ITypeSymbol> GetTypes(TExpressionSyntax expression, bool objectAsDefault = false )
+            protected IEnumerable<ITypeSymbol> GetTypes(TExpressionSyntax expression, bool objectAsDefault = false)
             {
                 if (_seenExpressionGetType.Add(expression))
                 {
@@ -64,9 +66,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
                 return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
             }
 
-            private IEnumerable<ITypeSymbol> Filter(IEnumerable<ITypeSymbol> types)
+            private IEnumerable<ITypeSymbol> Filter(IEnumerable<ITypeSymbol> types, bool filterUnusable = true)
             {
-                return types.Where(isUsableTypeFunc)
+                return types.Where(filterUnusable ? IsUsableTypeFunc : isNotNull)
                             .Distinct()
                             .ToImmutableReadOnlyListOrEmpty();
             }

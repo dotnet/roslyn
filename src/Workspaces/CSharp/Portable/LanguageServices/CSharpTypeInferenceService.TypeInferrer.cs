@@ -48,8 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // BUG: is a usable type, so there should not (currently) be any observable effect of this logic error.
                 // BUG:
                 // BUG: (vladres) Please remove this comment once the bug is fixed.
-                if ((types = GetTypesSimple(expression).Where(t => !IsUnusableType(t))).Any() ||
-                    (types = GetTypesComplex(expression)).Where(t => !IsUnusableType(t)).Any())
+                if ((types = GetTypesSimple(expression).Where(IsUsableTypeFunc)).Any() ||
+                    (types = GetTypesComplex(expression)).Where(IsUsableTypeFunc).Any())
                 {
                     return types;
                 }
@@ -88,10 +88,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ExpressionSyntax left, right;
                 if (DecomposeBinaryOrAssignmentExpression(expression, out operatorToken, out left, out right))
                 {
-                    var types = InferTypeInBinaryOrAssignmentExpression(expression, operatorToken, left, right, left).Where(t => !IsUnusableType(t));
+                    var types = InferTypeInBinaryOrAssignmentExpression(expression, operatorToken, left, right, left).Where(IsUsableTypeFunc);
                     if (types.IsEmpty())
                     {
-                        types = InferTypeInBinaryOrAssignmentExpression(expression, operatorToken, left, right, right).Where(t => !IsUnusableType(t));
+                        types = InferTypeInBinaryOrAssignmentExpression(expression, operatorToken, left, right, right).Where(IsUsableTypeFunc);
                     }
 
                     return types;
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             type = method.ConvertToType(this.Compilation);
                         }
 
-                        if (!IsUnusableType(type))
+                        if (IsUsableTypeFunc(type))
                         {
                             return SpecializedCollections.SingletonEnumerable(type);
                         }
@@ -1272,7 +1272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // look at the siblings of this expression and use their type instead.
 
                     var arrayTypes = this.InferTypes((ExpressionSyntax)initializerExpression.Parent);
-                    var elementTypes = arrayTypes.OfType<IArrayTypeSymbol>().Select(a => a.ElementType).Where(e => !IsUnusableType(e));
+                    var elementTypes = arrayTypes.OfType<IArrayTypeSymbol>().Select(a => a.ElementType).Where(IsUsableTypeFunc);
 
                     if (elementTypes.Any())
                     {
@@ -1711,7 +1711,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
                 }
 
-                var types = GetTypes(variableType).Where(t => !IsUnusableType(t));
+                var types = GetTypes(variableType).Where(IsUsableTypeFunc);
 
                 if (variableType.IsVar)
                 {
