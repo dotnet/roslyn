@@ -136,21 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expression = expression.WalkUpParentheses();
                 var parent = expression.Parent;
 
-                if (parent is ConditionalAccessExpressionSyntax)
-                {
-                    parent = parent.Parent;
-                }
-
-
-                if (parent is MemberAccessExpressionSyntax)
-                {
-                    var awaitExpression = parent.GetAncestor<AwaitExpressionSyntax>();
-                    if (awaitExpression != null)
-                    {
-                        parent = awaitExpression;
-                    }
-                }
-
                 return parent.TypeSwitch(
                     (AnonymousObjectMemberDeclaratorSyntax memberDeclarator) => InferTypeInMemberDeclarator(memberDeclarator),
                     (ArgumentSyntax argument) => InferTypeInArgument(argument),
@@ -167,6 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (CatchDeclarationSyntax catchDeclaration) => InferTypeInCatchDeclaration(catchDeclaration),
                     (CatchFilterClauseSyntax catchFilterClause) => InferTypeInCatchFilterClause(catchFilterClause),
                     (CheckedExpressionSyntax checkedExpression) => InferTypes(checkedExpression),
+                    (ConditionalAccessExpressionSyntax conditionalAccessExpression) => InferTypeInConditionalAccessExpression(conditionalAccessExpression),
                     (ConditionalExpressionSyntax conditionalExpression) => InferTypeInConditionalExpression(conditionalExpression, expression),
                     (DoStatementSyntax doStatement) => InferTypeInDoStatement(doStatement),
                     (EqualsValueClauseSyntax equalsValue) => InferTypeInEqualsValueClause(equalsValue),
@@ -176,6 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (IfStatementSyntax ifStatement) => InferTypeInIfStatement(ifStatement),
                     (InitializerExpressionSyntax initializerExpression) => InferTypeInInitializerExpression(initializerExpression, expression),
                     (LockStatementSyntax lockStatement) => InferTypeInLockStatement(lockStatement),
+                    (MemberAccessExpressionSyntax memberAccessExpression) => InferTypeInMemberAccessExpression(memberAccessExpression),
                     (NameEqualsSyntax nameEquals) => InferTypeInNameEquals(nameEquals),
                     (ParenthesizedLambdaExpressionSyntax parenthesizedLambdaExpression) => InferTypeInParenthesizedLambdaExpression(parenthesizedLambdaExpression),
                     (PostfixUnaryExpressionSyntax postfixUnary) => InferTypeInPostfixUnaryExpression(postfixUnary),
@@ -1052,6 +1039,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                      : x); // Foo() ?? ""
             }
 
+            private IEnumerable<ITypeSymbol> InferTypeInConditionalAccessExpression(ConditionalAccessExpressionSyntax expression)
+            {
+                return InferTypes(expression);
+            }
+
             private IEnumerable<ITypeSymbol> InferTypeInConditionalExpression(ConditionalExpressionSyntax conditional, ExpressionSyntax expressionOpt = null, SyntaxToken? previousToken = null)
             {
                 if (expressionOpt != null && conditional.Condition == expressionOpt)
@@ -1442,6 +1434,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (argumentSyntax != null)
                 {
                     return InferTypeInArgument(argumentSyntax);
+                }
+
+                return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
+            }
+
+            private IEnumerable<ITypeSymbol> InferTypeInMemberAccessExpression(MemberAccessExpressionSyntax expression)
+            {
+                var awaitExpression = expression.GetAncestor<AwaitExpressionSyntax>();
+                if (awaitExpression != null)
+                {
+                    return InferTypes(awaitExpression.Expression);
                 }
 
                 return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
