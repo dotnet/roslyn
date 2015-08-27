@@ -22,6 +22,8 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input
         
         public Task<CommandStatusResult> GetCommandStatusAsync(IImmutableSet<IProjectTree> nodes, long commandId, bool focused, string commandText, CommandStatus progressiveStatus)
         {
+            Requires.NotNull(nodes, nameof(nodes));
+
             foreach (long otherCommandId in _commandIds.Value)
             {
                 if (otherCommandId == commandId)
@@ -33,6 +35,8 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input
 
         public Task<bool> TryHandleCommandAsync(IImmutableSet<IProjectTree> nodes, long commandId, bool focused, long commandExecuteOptions, IntPtr variantArgIn, IntPtr variantArgOut)
         {
+            Requires.NotNull(nodes, nameof(nodes));
+
             foreach (long otherCommandId in _commandIds.Value)
             {
                 if (otherCommandId == commandId)
