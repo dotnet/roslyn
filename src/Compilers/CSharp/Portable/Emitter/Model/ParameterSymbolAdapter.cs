@@ -29,11 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        bool Cci.IParameterTypeInformation.HasByRefBeforeCustomModifiers
+        ushort Cci.IParameterTypeInformation.CountOfCustomModifiersPrecedingByRef
         {
             get
             {
-                return this.HasByRefBeforeCustomModifiers;
+                return this.CountOfCustomModifiersPrecedingByRef;
             }
         }
 

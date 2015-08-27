@@ -2067,10 +2067,7 @@ HandleAsAGeneralExpression:
                                 Dim inferenceSignature As New UnboundLambda.TargetSignature(delegateParams, unboundLambda.Binder.Compilation.GetSpecialType(SpecialType.System_Void))
                                 Dim returnTypeInfo As KeyValuePair(Of TypeSymbol, ImmutableArray(Of Diagnostic)) = unboundLambda.InferReturnType(inferenceSignature)
 
-                                If returnTypeInfo.Key Is LambdaSymbol.ReturnTypeIsUnknown Then
-                                    lambdaReturnType = Nothing
-
-                                ElseIf Not returnTypeInfo.Value.IsDefault AndAlso returnTypeInfo.Value.HasAnyErrors() Then
+                                If Not returnTypeInfo.Value.IsDefault AndAlso returnTypeInfo.Value.HasAnyErrors() Then
                                     lambdaReturnType = Nothing
 
                                     ' Let's keep return type inference errors
@@ -2079,6 +2076,10 @@ HandleAsAGeneralExpression:
                                     End If
 
                                     Me.Diagnostic.AddRange(returnTypeInfo.Value)
+
+                                ElseIf returnTypeInfo.Key Is LambdaSymbol.ReturnTypeIsUnknown Then
+                                    lambdaReturnType = Nothing
+
                                 Else
                                     Dim boundLambda As BoundLambda = unboundLambda.Bind(New UnboundLambda.TargetSignature(inferenceSignature.ParameterTypes,
                                                                                                                           inferenceSignature.IsByRef,
@@ -2098,6 +2099,15 @@ HandleAsAGeneralExpression:
                                         End If
                                     Else
                                         lambdaReturnType = Nothing
+
+                                        ' Let's preserve diagnostics that caused the failure
+                                        If Not boundLambda.Diagnostics.IsDefaultOrEmpty Then
+                                            If Me.Diagnostic Is Nothing Then
+                                                Me.Diagnostic = New DiagnosticBag()
+                                            End If
+
+                                            Me.Diagnostic.AddRange(boundLambda.Diagnostics)
+                                        End If
                                     End If
                                 End If
 
@@ -2186,23 +2196,26 @@ HandleAsAGeneralExpression:
                 ' arguments as they stand right now, with some of them still being uninferred.
 
                 Dim methodSymbol As MethodSymbol = Candidate
-                Dim typeArguments(_typeParameterNodes.Length - 1) As TypeSymbol
+                Dim typeArguments = ArrayBuilder(Of TypeWithModifiers).GetInstance(_typeParameterNodes.Length)
 
                 For i As Integer = 0 To _typeParameterNodes.Length - 1 Step 1
                     Dim typeNode As TypeParameterNode = _typeParameterNodes(i)
+                    Dim newType As TypeSymbol
 
                     If typeNode Is Nothing OrElse typeNode.CandidateInferredType Is Nothing Then
                         'No substitution
-                        typeArguments(i) = methodSymbol.TypeParameters(i)
+                        newType = methodSymbol.TypeParameters(i)
                     Else
-                        typeArguments(i) = typeNode.CandidateInferredType
+                        newType = typeNode.CandidateInferredType
                     End If
+
+                    typeArguments.Add(New TypeWithModifiers(newType))
                 Next
 
-                Dim partialSubstitution = TypeSubstitution.CreateAdditionalMethodTypeParameterSubstitution(methodSymbol.ConstructedFrom, typeArguments.AsImmutableOrNull())
+                Dim partialSubstitution = TypeSubstitution.CreateAdditionalMethodTypeParameterSubstitution(methodSymbol.ConstructedFrom, typeArguments.ToImmutableAndFree())
 
                 ' Now we apply the partial substitution to the delegate type, leaving uninferred type parameters as is
-                Return parameterType.InternalSubstituteTypeParameters(partialSubstitution)
+                Return parameterType.InternalSubstituteTypeParameters(partialSubstitution).Type
             End Function
 
             Public Sub ReportAmbiguousInferenceError(typeInfos As ArrayBuilder(Of DominantTypeDataTypeInference))

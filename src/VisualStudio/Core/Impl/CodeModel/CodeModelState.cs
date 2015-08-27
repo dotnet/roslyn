@@ -13,11 +13,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     /// </summary>
     internal sealed class CodeModelState
     {
-        public IServiceProvider ServiceProvider { get; private set; }
-        public ICodeModelService CodeModelService { get; private set; }
-        public ISyntaxFactsService SyntaxFactsService { get; private set; }
-        public ICodeGenerationService CodeGenerator { get; private set; }
-        public VisualStudioWorkspace Workspace { get; private set; }
+        public IServiceProvider ServiceProvider { get; }
+        public ICodeModelService CodeModelService { get; }
+        public ISyntaxFactsService SyntaxFactsService { get; }
+        public ICodeGenerationService CodeGenerator { get; }
+        public VisualStudioWorkspace Workspace { get; }
 
         public CodeModelState(
             IServiceProvider serviceProvider,

@@ -7,8 +7,8 @@ namespace Roslyn.Hosting.Diagnostics.VenusMargin
 {
     public class ProjectionBufferViewModel
     {
-        public ObservableCollection<ITextBuffer> SourceBuffers { get; private set; }
-        public ObservableCollection<SnapshotSpan> SourceSpans { get; private set; }
+        public ObservableCollection<ITextBuffer> SourceBuffers { get; }
+        public ObservableCollection<SnapshotSpan> SourceSpans { get; }
 
         public ProjectionBufferViewModel()
         {

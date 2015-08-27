@@ -28,6 +28,13 @@ namespace Microsoft.Cci
         private const string RelocationSectionName = ".reloc";
 
         /// <summary>
+        /// Minimal size of PDB path in Debug Directory. We pad the path to this minimal size to
+        /// allow some tools to patch the path without the need to rewrite the entire image.
+        /// This is a workaround put in place until these tools are retired.
+        /// </summary>
+        private readonly int _minPdbPath;
+
+        /// <summary>
         /// True if we should attempt to generate a deterministic output (no timestamps or random data).
         /// </summary>
         private readonly bool _deterministic;
@@ -53,6 +60,8 @@ namespace Microsoft.Cci
             _pdbPathOpt = pdbPathOpt;
             _deterministic = deterministic;
 
+            // The PDB padding workaround is only needed for legacy tools that don't use deterministic build.
+            _minPdbPath = deterministic ? 0 : 260;
             _nativeResourcesOpt = nativeResourcesOpt;
             _nativeResourceSectionOpt = nativeResourceSectionOpt;
             _is32bit = !_properties.Requires64bits;
@@ -130,11 +139,6 @@ namespace Microsoft.Cci
             ContentId nativePdbContentId;
             if (nativePdbWriterOpt != null)
             {
-                if (entryPointToken != 0)
-                {
-                    nativePdbWriterOpt.SetEntryPoint((uint)entryPointToken);
-                }
-
                 var assembly = mdWriter.Module.AsAssembly;
                 if (assembly != null && assembly.Kind == OutputKind.WindowsRuntimeMetadata)
                 {
@@ -462,8 +466,7 @@ namespace Microsoft.Cci
                 4 +              // 4B signature "RSDS"
                 16 +             // GUID
                 sizeof(uint) +   // Age
-                Encoding.UTF8.GetByteCount(_pdbPathOpt) +
-                1;               // Null terminator
+                Math.Max(BlobUtilities.GetUTF8ByteCount(_pdbPathOpt) + 1, _minPdbPath);
         }
 
         private int ComputeSizeOfDebugDirectory()
@@ -1385,8 +1388,12 @@ namespace Microsoft.Cci
             writer.WriteUInt32(PdbWriter.Age);
 
             // UTF-8 encoded zero-terminated path to PDB
+            int pathStart = writer.Position;
             writer.WriteUTF8(_pdbPathOpt, allowUnpairedSurrogates: true);
             writer.WriteByte(0);
+
+            // padding:
+            writer.WriteBytes(0, Math.Max(0, _minPdbPath - (writer.Position - pathStart)));
 
             writer.WriteContentTo(peStream);
             writer.Free();

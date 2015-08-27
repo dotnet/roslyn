@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests
     public class InteractiveSessionTests : TestBase
     {
         private static readonly Assembly s_lazySystemRuntimeAssembly;
-        private static readonly Assembly SystemRuntimeAssembly = s_lazySystemRuntimeAssembly ?? (s_lazySystemRuntimeAssembly = Assembly.Load(new AssemblyName("System.Runtime")));
+        private static readonly Assembly SystemRuntimeAssembly = s_lazySystemRuntimeAssembly ?? (s_lazySystemRuntimeAssembly = Assembly.Load(new AssemblyName("System.Runtime, Version=4.0.20.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")));
 
         #region Namespaces, Types
 
@@ -67,11 +67,10 @@ InnerClass iC = new InnerClass();
 iC.Goo();
 ");
 
-            using (var output = new StringWriter(CultureInfo.InvariantCulture))
+            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
             {
-                Console.SetOut(output);
                 session.Execute(@"System.Console.WriteLine(iC.innerStr);");
-                Assert.Equal("test", output.ToString().Trim());
+                Assert.Equal("test", redirect.Output.Trim());
             }
         }
 
@@ -96,11 +95,10 @@ InnerStruct iS = new InnerStruct();
 iS.Goo();
 ");
 
-            using (var output = new StringWriter(CultureInfo.InvariantCulture))
+            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
             {
-                Console.SetOut(output);
                 session.Execute(@"System.Console.WriteLine(iS.innerStr);");
-                Assert.Equal("test", output.ToString().Trim());
+                Assert.Equal("test", redirect.Output.Trim());
             }
         }
 
@@ -692,11 +690,10 @@ using System;");
             {
                 session.Execute(@"public int i =  1;");
             }
-            using (var output = new StringWriter(CultureInfo.InvariantCulture))
+            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
             {
-                Console.SetOut(output);
                 session.Execute(@"System.Console.WriteLine(i);");
-                Assert.Equal(1, int.Parse(output.ToString()));
+                Assert.Equal(1, int.Parse(redirect.Output));
             }
         }
 
@@ -737,16 +734,14 @@ public class E
 int z; z = x + y;
 ");
 
-            using (var output = new StringWriter(CultureInfo.InvariantCulture))
+            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
             {
-                Console.SetOut(output);
-
                 // Ref.Emit
                 session.Execute(@"
 System.Console.Write(new E());
 System.Console.Write(x + y);
 ");
-                Assert.True(output.ToString().Trim().EndsWith("+E2", StringComparison.Ordinal), output.ToString());
+                Assert.True(redirect.Output.Trim().EndsWith("+E2", StringComparison.Ordinal), redirect.Output);
             }
         }
 
@@ -1526,11 +1521,10 @@ delegate void TestDelegate(string s);
 TestDelegate testDelB = delegate (string s) { Console.WriteLine(s); };
 ");
 
-            using (var output = new StringWriter(CultureInfo.InvariantCulture))
+            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
             {
-                Console.SetOut(output);
                 session.Execute(@"testDelB(""hello"");");
-                Assert.Equal("hello", output.ToString().Trim());
+                Assert.Equal("hello", redirect.Output.Trim());
             }
         }
 

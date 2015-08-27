@@ -6232,7 +6232,7 @@ class Program3
 
             using (var peFile = File.OpenRead(exe.Path))
             {
-                PdbValidation.ValidateDebugDirectory(peFile, pdb.Path, isPortable: false);
+                PdbValidation.ValidateDebugDirectory(peFile, pdb.Path, isPortable: false, isDeterministic: false);
             }
 
             Assert.True(new FileInfo(exe.Path).Length < oldSize);
@@ -6243,7 +6243,7 @@ class Program3
 
             using (var peFile = File.OpenRead(exe.Path))
             {
-                PdbValidation.ValidateDebugDirectory(peFile, pdb.Path, isPortable: false);
+                PdbValidation.ValidateDebugDirectory(peFile, pdb.Path, isPortable: false, isDeterministic: false);
             }
         }
 

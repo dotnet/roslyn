@@ -885,9 +885,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
             var builder = ArrayBuilder<Microsoft.Cci.ITypeReference>.GetInstance();
             Debug.Assert(((Cci.ITypeReference)this).AsGenericTypeInstanceReference != null);
-            foreach (TypeSymbol type in this.TypeArgumentsNoUseSiteDiagnostics)
+
+            var modifiers = default(ImmutableArray<ImmutableArray<CustomModifier>>);
+
+            if (this.HasTypeArgumentsCustomModifiers)
             {
-                builder.Add(moduleBeingBuilt.Translate(type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics));
+                modifiers = this.TypeArgumentsCustomModifiers;
+            }
+
+            var arguments = this.TypeArgumentsNoUseSiteDiagnostics;
+
+            for (int i = 0; i < arguments.Length; i++)
+            {
+                var arg = moduleBeingBuilt.Translate(arguments[i], syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+
+                if (!modifiers.IsDefault && !modifiers[i].IsDefaultOrEmpty)
+                {
+                    arg = new Cci.ModifiedTypeReference(arg, modifiers[i].As<Cci.ICustomModifier>());
+                }
+
+                builder.Add(arg);
             }
 
             return builder.ToImmutableAndFree();

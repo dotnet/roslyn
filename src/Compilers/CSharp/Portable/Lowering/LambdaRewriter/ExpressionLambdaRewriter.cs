@@ -678,7 +678,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameters.Add(parameterReference);
                 var parameter = ExprFactory(
                     "Parameter",
-                    _bound.Typeof(_typeMap.SubstituteType(p.Type)), _bound.Literal(p.Name));
+                    _bound.Typeof(_typeMap.SubstituteType(p.Type).Type), _bound.Literal(p.Name));
                 initializers.Add(_bound.AssignmentExpression(parameterReference, parameter));
                 _parameterMap[p] = parameterReference;
             }

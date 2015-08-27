@@ -704,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 get
                 {
                     Debug.Assert(BranchLabels != null);
-                    return (uint)BranchLabels.Count();
+                    return (uint)BranchLabels.Length;
                 }
             }
 

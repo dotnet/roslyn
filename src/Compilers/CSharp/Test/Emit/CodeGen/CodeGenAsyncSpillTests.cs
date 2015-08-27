@@ -859,7 +859,6 @@ namespace AsyncConditionalBug {
 
     static void Main(string[] args) {
       new Program().AsyncMethod().Wait();
-      Console.ReadLine();
     }
   }
 }";
@@ -889,7 +888,6 @@ namespace AsyncConditionalBug {
 
     static void Main(string[] args) {
       new Program().AsyncMethod().Wait();
-      Console.ReadLine();
     }
   }
 }";
@@ -923,7 +921,6 @@ namespace AsyncConditionalBug
         static void Main(string[] args)
         {
             new Program().AsyncMethod().Wait();
-            Console.ReadLine();
         }
     }
 }";

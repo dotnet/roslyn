@@ -57,11 +57,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim newlines = Regex.Matches(text, "\r\n|\r|\n")
-            Contract.Assert(newlines.Count = lines.Count - 1)
+            Contract.Assert(newlines.Count = lines.Length - 1)
 
             Dim builder = New StringBuilder()
 
-            For i = 0 To lines.Count() - 2
+            For i = 0 To lines.Length - 2
                 builder.Append(String.Format("' {0}{1}", lines(i), newlines(i)))
             Next
 

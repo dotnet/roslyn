@@ -74,9 +74,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' module extent namespace will be another module extent namespace. This is basically no different than type members of namespaces,
             ' so it shouldn't be TOO unexpected.
 
-            Debug.Assert(namespacesToMerge.Count <> 0)
+            Debug.Assert(namespacesToMerge.Length <> 0)
 
-            If namespacesToMerge.Count = 1 Then
+            If namespacesToMerge.Length = 1 Then
                 Dim result = namespacesToMerge(0)
                 Return result
             Else

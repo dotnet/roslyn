@@ -1,13 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Projection;
 using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -33,7 +34,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         }
 
         private IInteractiveWindow Window => _testHost.Window;
-        internal List<ReplSpan> ProjectionSpans => ((InteractiveWindow)Window).ProjectionSpans;
 
         private static IEnumerable<IInteractiveWindowCommand> MockCommands(params string[] commandNames)
         {
@@ -187,6 +187,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
                 InteractiveWindow.State.Initializing,
                 InteractiveWindow.State.WaitingForInput,
                 InteractiveWindow.State.Resetting,
+                InteractiveWindow.State.WaitingForInput,
             });
         }
 
@@ -411,152 +412,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Task.Run(() => Window.Operations.Cancel()).PumpingWait();
         }
 
-        [Fact]
-        public void TestProjectionSpans()
-        {
-            new ExpectedProjectionSpans
-            {
-                {0, ReplSpanKind.Output},
-                {0, ReplSpanKind.Prompt},
-                {0, ReplSpanKind.Language},
-            }.Check(ProjectionSpans);
-
-            Window.InsertCode("{");
-            new ExpectedProjectionSpans
-            {
-                {0, ReplSpanKind.Output},
-                {0, ReplSpanKind.Prompt},
-                {0, ReplSpanKind.Language},
-            }.Check(ProjectionSpans);
-
-            Window.Operations.BreakLine();
-            new ExpectedProjectionSpans
-            {
-                {0, ReplSpanKind.Output},
-                {0, ReplSpanKind.Prompt},
-                {0, ReplSpanKind.Language},
-                {1, ReplSpanKind.SecondaryPrompt},
-                {1, ReplSpanKind.Language},
-            }.Check(ProjectionSpans);
-
-            Window.Operations.BreakLine();
-            new ExpectedProjectionSpans
-            {
-                {0, ReplSpanKind.Output},
-                {0, ReplSpanKind.Prompt},
-                {0, ReplSpanKind.Language},
-                {1, ReplSpanKind.SecondaryPrompt},
-                {1, ReplSpanKind.Language},
-                {2, ReplSpanKind.SecondaryPrompt},
-                {2, ReplSpanKind.Language},
-            }.Check(ProjectionSpans);
-
-            Window.Operations.Backspace();
-            new ExpectedProjectionSpans
-            {
-                {0, ReplSpanKind.Output},
-                {0, ReplSpanKind.Prompt},
-                {0, ReplSpanKind.Language},
-                {1, ReplSpanKind.SecondaryPrompt},
-                {1, ReplSpanKind.Language},
-            }.Check(ProjectionSpans);
-
-            Window.InsertCode("}");
-            new ExpectedProjectionSpans
-            {
-                {0, ReplSpanKind.Output},
-                {0, ReplSpanKind.Prompt},
-                {0, ReplSpanKind.Language},
-                {1, ReplSpanKind.SecondaryPrompt},
-                {1, ReplSpanKind.Language},
-            }.Check(ProjectionSpans);
-
-            // Move back before close brace.
-            Window.TextView.Caret.MoveToPreviousCaretPosition();
-            new ExpectedProjectionSpans
-            {
-                {0, ReplSpanKind.Output},
-                {0, ReplSpanKind.Prompt},
-                {0, ReplSpanKind.Language},
-                {1, ReplSpanKind.SecondaryPrompt},
-                {1, ReplSpanKind.Language},
-            }.Check(ProjectionSpans);
-
-            Window.Operations.BreakLine();
-            new ExpectedProjectionSpans
-            {
-                {0, ReplSpanKind.Output},
-                {0, ReplSpanKind.Prompt},
-                {0, ReplSpanKind.Language},
-                {1, ReplSpanKind.SecondaryPrompt},
-                {1, ReplSpanKind.Language},
-                {2, ReplSpanKind.SecondaryPrompt},
-                {2, ReplSpanKind.Language},
-            }.Check(ProjectionSpans);
-
-            // Note: Without the PumpingWait, the next prompt won't appear.
-            Task.Run(() => Window.Operations.ExecuteInput()).PumpingWait();
-            new ExpectedProjectionSpans
-            {
-                {0, ReplSpanKind.Output},
-                {0, ReplSpanKind.Prompt},
-                {0, ReplSpanKind.Language},
-                {1, ReplSpanKind.SecondaryPrompt},
-                {1, ReplSpanKind.Language},
-                {2, ReplSpanKind.SecondaryPrompt},
-                {2, ReplSpanKind.Language},
-                {3, ReplSpanKind.Output},
-                {3, ReplSpanKind.Prompt},
-                {3, ReplSpanKind.Language},
-            }.Check(ProjectionSpans);
-
-            Window.Operations.ClearView();
-            new ExpectedProjectionSpans
-            {
-                {0, ReplSpanKind.Output},
-                {0, ReplSpanKind.Prompt},
-                {0, ReplSpanKind.Language},
-            }.Check(ProjectionSpans);
-        }
-
-        /// <remarks>
-        /// This type exists to make it easier to express assertions about <see cref="ProjectionSpans"/>.
-        /// </remarks>
-        private sealed class ExpectedProjectionSpans : IEnumerable<object> // Just for collection initializers.
-        {
-            private List<ReplSpan> _spans = new List<ReplSpan>();
-
-            public void Add(int lineNumber, ReplSpanKind kind)
-            {
-                _spans.Add(new ReplSpan("", kind, lineNumber));
-            }
-
-            public void Check(List<ReplSpan> actualReplSpans)
-            {
-                if (!_spans.Select(s => s.Kind).SequenceEqual(actualReplSpans.Select(s => s.Kind)) ||
-                    !_spans.Select(s => s.LineNumber).SequenceEqual(actualReplSpans.Select(s => s.LineNumber)))
-                {
-                    Dump("Actual:", actualReplSpans);
-                    Dump("Expected:", _spans);
-                    Assert.True(false, "Spans did not match");
-                }
-            }
-
-            private static void Dump(string header, List<ReplSpan> spans)
-            {
-                Console.WriteLine(header);
-                Console.WriteLine("{");
-                foreach (var span in spans)
-                {
-                    Console.WriteLine($"\t{{{span.LineNumber}, ReplSpanKind.{span.Kind}}},");
-                }
-                Console.WriteLine("}");
-            }
-
-            IEnumerator IEnumerable.GetEnumerator() { throw new NotImplementedException(); }
-            IEnumerator<object> IEnumerable<object>.GetEnumerator() { throw new NotImplementedException(); }
-        }
-
         [WorkItem(4235, "https://github.com/dotnet/roslyn/issues/4235")]
         [Fact]
         public void TestIndentation1()
@@ -698,6 +553,46 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Assert.Equal(new[] { 0, 15 }, ResetCommand.GetNoConfigPositions("noconfig error noconfig"));
         }
 
+        [WorkItem(4755, "https://github.com/dotnet/roslyn/issues/4755")]
+        [Fact]
+        public void ReformatBraces()
+        {
+            var buffer = Window.CurrentLanguageBuffer;
+            var snapshot = buffer.CurrentSnapshot;
+            Assert.Equal(0, snapshot.Length);
+
+            // Text before reformatting.
+            snapshot = ApplyChanges(
+                buffer,
+                new TextChange(0, 0, "{ {\r\n } }"));
+
+            // Text after reformatting.
+            Assert.Equal(9, snapshot.Length);
+            snapshot = ApplyChanges(
+                buffer,
+                new TextChange(1, 1, "\r\n    "),
+                new TextChange(5, 1, "    "),
+                new TextChange(7, 1, "\r\n"));
+
+            // Text from language buffer.
+            var actualText = snapshot.GetText();
+            Assert.Equal("{\r\n    {\r\n    }\r\n}", actualText);
+
+            // Text including prompts.
+            buffer = Window.TextView.TextBuffer;
+            snapshot = buffer.CurrentSnapshot;
+            actualText = snapshot.GetText();
+            Assert.Equal("> {\r\n>     {\r\n>     }\r\n> }", actualText);
+
+            // Prompts should be read-only.
+            var regions = buffer.GetReadOnlyExtents(new Span(0, snapshot.Length));
+            AssertEx.SetEqual(regions,
+                new Span(0, 2),
+                new Span(5, 2),
+                new Span(14, 2),
+                new Span(23, 2));
+        }
+
         [Fact]
         public void CopyWithinInput()
         {
@@ -732,6 +627,8 @@ System.Console.WriteLine();",
             var caret = Window.TextView.Caret;
             caret.MoveToPreviousCaretPosition();
             caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+            Window.Operations.SelectAll();
             Window.Operations.SelectAll();
             Window.Operations.Copy();
             VerifyClipboardData(@"foreach (var o in new[] { 1, 2, 3 })
@@ -769,6 +666,7 @@ System.Console.WriteLine();
             var caret = Window.TextView.Caret;
             caret.MoveToPreviousCaretPosition();
             caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
             Window.Operations.SelectAll();
             // Shrink the selection.
             var selection = Window.TextView.Selection;
@@ -797,9 +695,65 @@ System.Console.WriteLine();",
             var caret = Window.TextView.Caret;
             caret.MoveToPreviousCaretPosition();
             caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+            Window.Operations.SelectAll();
             Window.Operations.SelectAll();
             Window.Operations.Cut();
             VerifyClipboardData(null);
+        }
+
+        /// <summary>
+        /// When there is no selection, copy
+        /// should copy the current line.
+        /// </summary>
+        [Fact]
+        public void CopyNoSelection()
+        {
+            Submit(
+@"s +
+
+ t",
+@" 1
+
+2 ");
+            CopyNoSelectionAndVerify(0, 7, "s +\r\n", @"> s +\par ");
+            CopyNoSelectionAndVerify(7, 11, "\r\n", @"> \par ");
+            CopyNoSelectionAndVerify(11, 17, " t\r\n", @">  t\par ");
+            CopyNoSelectionAndVerify(17, 21, " 1\r\n", @" 1\par ");
+            CopyNoSelectionAndVerify(21, 23, "\r\n", @"\par ");
+            CopyNoSelectionAndVerify(23, 28, "2 ", "2 > ");
+        }
+
+        private void CopyNoSelectionAndVerify(int start, int end, string expectedText, string expectedRtf)
+        {
+            var caret = Window.TextView.Caret;
+            var snapshot = Window.TextView.TextBuffer.CurrentSnapshot;
+            for (int i = start; i < end; i++)
+            {
+                Clipboard.Clear();
+                caret.MoveTo(new SnapshotPoint(snapshot, i));
+                Window.Operations.Copy();
+                VerifyClipboardData(expectedText, expectedRtf);
+            }
+        }
+
+        [Fact]
+        public void CancelMultiLineInput()
+        {
+            ApplyChanges(
+                Window.CurrentLanguageBuffer,
+                new TextChange(0, 0, "{\r\n    {\r\n    }\r\n}"));
+
+            // Text including prompts.
+            var buffer = Window.TextView.TextBuffer;
+            var snapshot = buffer.CurrentSnapshot;
+            Assert.Equal("> {\r\n>     {\r\n>     }\r\n> }", snapshot.GetText());
+
+            Task.Run(() => Window.Operations.Cancel()).PumpingWait();
+
+            // Text after cancel.
+            snapshot = buffer.CurrentSnapshot;
+            Assert.Equal("> ", snapshot.GetText());
         }
 
         private void Submit(string submission, string output)
@@ -836,6 +790,32 @@ System.Console.WriteLine();",
             {
                 Assert.True(actualRtf.StartsWith(@"{\rtf"));
                 Assert.True(actualRtf.EndsWith(expectedRtf + "}"));
+            }
+        }
+
+        private struct TextChange
+        {
+            internal readonly int Start;
+            internal readonly int Length;
+            internal readonly string Text;
+
+            internal TextChange(int start, int length, string text)
+            {
+                Start = start;
+                Length = length;
+                Text = text;
+            }
+        }
+
+        private static ITextSnapshot ApplyChanges(ITextBuffer buffer, params TextChange[] changes)
+        {
+            using (var edit = buffer.CreateEdit())
+            {
+                foreach (var change in changes)
+                {
+                    edit.Replace(change.Start, change.Length, change.Text);
+                }
+                return edit.Apply();
             }
         }
     }

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary> 
         /// Current compilation
         /// </summary>
-        public CSharpCompilation Compilation { get; private set; }
+        public CSharpCompilation Compilation { get; }
 
         /// <summary>
         /// Given anonymous type descriptor provided constructs an anonymous type symbol.

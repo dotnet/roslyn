@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend Sub New(elementType As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), rank As Integer, declaringAssembly As AssemblySymbol)
             Me.New(elementType,
-                   customModifiers.NullToEmpty(),
+                   customModifiers,
                    rank,
                    declaringAssembly.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Array),
                    GetArrayInterfaces(elementType, rank, declaringAssembly))
@@ -55,12 +55,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(rank >= 1)
             Debug.Assert(interfaces.Length <= 2)
             Debug.Assert(interfaces.Length = 0 OrElse rank = 1)
-            Debug.Assert(rank = 1 OrElse Not customModifiers.Any())
 
             _elementType = elementType
             _rank = rank
             _systemArray = systemArray
-            _customModifiers = customModifiers
+            _customModifiers = customModifiers.NullToEmpty()
             _interfaces = interfaces
         End Sub
 
@@ -275,20 +274,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' !!! Only code implementing construction of generic types is allowed to call this method !!!
         ''' !!! All other code should use Construct methods.                                        !!! 
         ''' </summary>
-        Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeSymbol
+        Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
             ' Create a new array symbol with substitutions applied.
-            Dim newElementType As TypeSymbol = DirectCast(_elementType.InternalSubstituteTypeParameters(substitution), TypeSymbol)
-            If Not newElementType.Equals(_elementType) Then
+            Dim oldElementType = New TypeWithModifiers(_elementType, _customModifiers)
+            Dim newElementType As TypeWithModifiers = oldElementType.InternalSubstituteTypeParameters(substitution)
+            If newElementType <> oldElementType Then
                 Dim newInterfaces As ImmutableArray(Of NamedTypeSymbol)
                 If _interfaces.Length > 0 Then
-                    newInterfaces = ImmutableArray.Create(Of NamedTypeSymbol)(DirectCast(_interfaces(0).InternalSubstituteTypeParameters(substitution), NamedTypeSymbol))
+                    newInterfaces = ImmutableArray.Create(Of NamedTypeSymbol)(DirectCast(_interfaces(0).InternalSubstituteTypeParameters(substitution).AsTypeSymbolOnly(), NamedTypeSymbol))
                 Else
                     newInterfaces = ImmutableArray(Of NamedTypeSymbol).Empty
                 End If
 
-                Return New ArrayTypeSymbol(newElementType, _customModifiers, _rank, _systemArray, newInterfaces)
+                Return New TypeWithModifiers(New ArrayTypeSymbol(newElementType.Type, newElementType.CustomModifiers, _rank, _systemArray, newInterfaces))
             Else
-                Return Me ' substitution had no effect on the element type
+                Return New TypeWithModifiers(Me) ' substitution had no effect on the element type
             End If
         End Function
 

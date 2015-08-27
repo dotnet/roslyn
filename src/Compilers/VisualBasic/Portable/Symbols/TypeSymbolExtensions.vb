@@ -1119,6 +1119,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
+        ''' Return all of the type arguments and their modifiers in this type and enclosing types,
+        ''' from outer-most to inner-most type.
+        ''' </summary>
+        <Extension>
+        Public Function GetAllTypeArgumentsWithModifiers(type As NamedTypeSymbol) As ImmutableArray(Of TypeWithModifiers)
+            Dim typeArguments = type.TypeArgumentsNoUseSiteDiagnostics
+            Dim typeArgumentsCustomModifiers = type.TypeArgumentsCustomModifiers
+
+            While True
+                type = type.ContainingType
+                If type Is Nothing Then
+                    Exit While
+                End If
+                typeArguments = type.TypeArgumentsNoUseSiteDiagnostics.Concat(typeArguments)
+                typeArgumentsCustomModifiers = type.TypeArgumentsCustomModifiers.Concat(typeArgumentsCustomModifiers)
+            End While
+
+            Return ImmutableArray.CreateRange(typeArguments.Zip(typeArgumentsCustomModifiers, Function(a, m) New TypeWithModifiers(a, m)))
+        End Function
+
+        ''' <summary>
         ''' Return true if the fully qualified name of the type's containing symbol
         ''' matches the given name. This method avoids string concatenations
         ''' in the common case where the type is a top-level type.
