@@ -122,8 +122,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="VisualStudio\ProjectSystem\VS\HierarchyId.cs" />
-    <Compile Include="IAddItemTemplatesGuidProvider.cs" />
-    <Compile Include="IItemTypeGuidProvider.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\IAddItemTemplatesGuidProvider.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\IItemTypeGuidProvider.cs" />
     <Compile Include="VisualStudio\ProjectSystem\VS\IUnconfiguredProjectVsServices.cs" />
     <Compile Include="LanguageServices\LanguageServiceBase.cs" />
     <Compile Include="Presentation\Input\CommandGroup.cs" />
