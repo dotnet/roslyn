@@ -2305,12 +2305,8 @@ return 1;
     // (7,13): error CS1043: { or ; expected
     //         get return 1;
     Diagnostic(ErrorCode.ERR_SemiOrLBraceExpected, "return"),
-    // (9,15): error CS1014: A get or set accessor expected
-    // public static int Main()
-    Diagnostic(ErrorCode.ERR_GetOrSetExpected, "int"),
-    // (9,15): error CS1513: } expected
-    // public static int Main()
-    Diagnostic(ErrorCode.ERR_RbraceExpected, "int"));
+    // (8,2): error CS1513: } expected
+    Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }
 
         [Fact]
