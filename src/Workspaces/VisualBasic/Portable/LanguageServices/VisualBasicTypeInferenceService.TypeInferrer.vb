@@ -48,17 +48,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Protected Overrides Function InferTypesWorker_DoNotCallDirectly(expression As ExpressionSyntax) As IEnumerable(Of ITypeSymbol)
                 expression = expression.WalkUpParentheses()
                 Dim parent = expression.Parent
-                If TypeOf parent Is ConditionalAccessExpressionSyntax Then
-                    parent = parent.Parent
-                End If
-
-                If TypeOf parent Is MemberAccessExpressionSyntax Then
-                    Dim awaitExpression = parent.GetAncestor(Of AwaitExpressionSyntax)
-                    Dim lambdaExpression = parent.GetAncestor(Of LambdaExpressionSyntax)
-                    If Not awaitExpression?.Contains(lambdaExpression) AndAlso awaitExpression IsNot Nothing Then
-                        parent = awaitExpression
-                    End If
-                End If
 
                 Return parent.TypeSwitch(
                     Function(addRemoveHandlerStatement As AddRemoveHandlerStatementSyntax) InferTypeInAddRemoveHandlerStatementSyntax(addRemoveHandlerStatement, expression),
@@ -75,6 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(castExpression As CastExpressionSyntax) InferTypeInCastExpression(castExpression, expression),
                     Function(catchFilterClause As CatchFilterClauseSyntax) InferTypeInCatchFilterClause(catchFilterClause),
                     Function(collectionInitializer As CollectionInitializerSyntax) InferTypeInCollectionInitializerExpression(collectionInitializer, expression),
+                    Function(conditionalAccessExpression As ConditionalAccessExpressionSyntax) InferTypeInConditionalAccessExpression(conditionalAccessExpression),
                     Function(conditionalExpression As BinaryConditionalExpressionSyntax) InferTypeInBinaryConditionalExpression(conditionalExpression, expression),
                     Function(conditionalExpression As TernaryConditionalExpressionSyntax) InferTypeInTernaryConditionalExpression(conditionalExpression, expression),
                     Function(doStatement As DoStatementSyntax) InferTypeInDoStatement(),
@@ -85,6 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(forStepClause As ForStepClauseSyntax) InferTypeInForStepClause(forStepClause),
                     Function(ifStatement As ElseIfStatementSyntax) InferTypeInIfOrElseIfStatement(),
                     Function(ifStatement As IfStatementSyntax) InferTypeInIfOrElseIfStatement(),
+                    Function(memberAccessExpression As MemberAccessExpressionSyntax) InferTypeInMemberAccessExpression(memberAccessExpression),
                     Function(namedFieldInitializer As NamedFieldInitializerSyntax) InferTypeInNamedFieldInitializer(namedFieldInitializer),
                     Function(parenthesizedLambda As MultiLineLambdaExpressionSyntax) InferTypeInLambda(parenthesizedLambda),
                     Function(prefixUnary As UnaryExpressionSyntax) InferTypeInUnaryExpression(prefixUnary),
@@ -167,10 +158,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(whileStatement As WhileOrUntilClauseSyntax) InferTypeInWhileOrUntilClause(),
                     Function(yieldStatement As YieldStatementSyntax) InferTypeInYieldStatement(yieldStatement, token),
                     Function(expressionStatement As ExpressionStatementSyntax) InferTypeInExpressionStatement(expressionStatement),
-                    Function(parameterListSyntax As ParameterListSyntax) If(parameterListSyntax.Parent IsNot Nothing,
-                                                                            InferTypeInLambda(TryCast(parameterListSyntax.Parent.Parent, LambdaExpressionSyntax)),
-                                                                            SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()),
+                    Function(parameterListSyntax As ParameterListSyntax) InferTypeInParameterList(parameterListSyntax),
                     Function(x) SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)())
+            End Function
+
+            Private Function InferTypeInParameterList(parameterList As ParameterListSyntax) As IEnumerable(Of ITypeSymbol)
+                Return If(parameterList.Parent IsNot Nothing,
+                    InferTypeInLambda(TryCast(parameterList.Parent.Parent, LambdaExpressionSyntax)),
+                    SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)())
             End Function
 
             Private Function InferTypeInArgumentList(argumentList As ArgumentListSyntax,
@@ -418,6 +413,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Return types.Select(Function(t) If(t.SpecialType = SpecialType.System_Void, task, taskOfT.Construct(t)))
+            End Function
+
+            Private Function InferTypeInConditionalAccessExpression(conditional As ConditionalAccessExpressionSyntax) As IEnumerable(Of ITypeSymbol)
+                Return InferTypes(conditional)
             End Function
 
             Private Function InferTypeInBinaryConditionalExpression(conditional As BinaryConditionalExpressionSyntax,
@@ -800,6 +799,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private Function InferTypeInWhileOrUntilClause(Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)
                 Return SpecializedCollections.SingletonEnumerable(Me.Compilation.GetSpecialType(SpecialType.System_Boolean))
+            End Function
+
+            Private Function InferTypeInMemberAccessExpression(expression As MemberAccessExpressionSyntax) As IEnumerable(Of ITypeSymbol)
+                Dim awaitExpression = expression.GetAncestor(Of AwaitExpressionSyntax)
+                Dim lambdaExpression = expression.GetAncestor(Of LambdaExpressionSyntax)
+                If Not awaitExpression?.Contains(lambdaExpression) AndAlso awaitExpression IsNot Nothing Then
+                    Return InferTypes(awaitExpression.Expression)
+                End If
+
+                Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
             End Function
 
             Private Function InferTypeInNamedFieldInitializer(initializer As NamedFieldInitializerSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)
