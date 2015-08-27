@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return candidate;
         }
 
-        public abstract IEnumerable<CompletionListProvider> GetDefaultCompletionProviders();
+        public abstract IEnumerable<CompletionListProvider> GetDefaultCompletionListProviders();
 
         protected abstract string GetLanguageName();
 
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Completion
             IEnumerable<CompletionListProvider> completionProviders,
             CancellationToken cancellationToken)
         {
-            completionProviders = completionProviders ?? this.GetDefaultCompletionProviders();
+            completionProviders = completionProviders ?? this.GetDefaultCompletionListProviders();
             var completionProviderToIndex = GetCompletionProviderToIndex(completionProviders);
             var completionRules = GetCompletionRules();
 
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return false;
             }
 
-            completionProviders = completionProviders ?? GetDefaultCompletionProviders();
+            completionProviders = completionProviders ?? GetDefaultCompletionListProviders();
             return completionProviders.Any(p => p.IsTriggerCharacter(text, characterPosition, options));
         }
 

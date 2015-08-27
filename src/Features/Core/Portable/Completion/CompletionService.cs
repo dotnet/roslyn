@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal static class CompletionService
     {
-        public static IEnumerable<CompletionListProvider> GetDefaultCompletionProviders(Document document)
+        public static IEnumerable<CompletionListProvider> GetDefaultCompletionListProviders(Document document)
         {
-            return document.GetLanguageService<ICompletionService>().GetDefaultCompletionProviders();
+            return document.GetLanguageService<ICompletionService>().GetDefaultCompletionListProviders();
         }
 
         public static CompletionRules GetCompletionRules(Document document)

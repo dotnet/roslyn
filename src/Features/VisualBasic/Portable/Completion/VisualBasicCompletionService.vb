@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             New CompletionListTagCompletionProvider
         }.ToImmutableArray()
 
-        Public Overrides Function GetDefaultCompletionProviders() As IEnumerable(Of CompletionListProvider)
+        Public Overrides Function GetDefaultCompletionListProviders() As IEnumerable(Of CompletionListProvider)
             Return _completionProviders
         End Function
 

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Returns the default set of completion providers for this completion service.
         /// </summary>
-        IEnumerable<CompletionListProvider> GetDefaultCompletionProviders();
+        IEnumerable<CompletionListProvider> GetDefaultCompletionListProviders();
 
         /// <summary>
         /// Returns the set of completion rules for this completion service.
