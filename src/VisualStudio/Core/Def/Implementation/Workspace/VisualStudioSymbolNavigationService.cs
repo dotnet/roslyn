@@ -49,7 +49,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _metadataAsSourceFileService = componentModel.GetService<IMetadataAsSourceFileService>();
         }
 
+<<<<<<< HEAD
         public bool TryNavigateToSymbol(ISymbol symbol, Project project, CancellationToken cancellationToken = default(CancellationToken), bool usePreviewTab = false)
+=======
+        public bool TryNavigateToSymbol(ISymbol symbol, Project project, bool usePreviewTab = false, CancellationToken cancellationToken = default(CancellationToken))
+>>>>>>> Make Metadata as Source more cancellable
         {
             if (project == null || symbol == null)
             {

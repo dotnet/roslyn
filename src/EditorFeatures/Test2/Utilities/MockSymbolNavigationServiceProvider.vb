@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Public NavigationLineNumberReturnValue As Integer = 0
             Public NavigationCharOffsetReturnValue As Integer = 0
 
-            Public Function TryNavigateToSymbol(symbol As ISymbol, project As Project, cancellationToken As CancellationToken, Optional usePreviewTab As Boolean = False) As Boolean Implements ISymbolNavigationService.TryNavigateToSymbol
+            Public Function TryNavigateToSymbol(symbol As ISymbol, project As Project, Optional usePreviewTab As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As Boolean Implements ISymbolNavigationService.TryNavigateToSymbol
                 Me.TryNavigateToSymbolProvidedSymbol = symbol
                 Me.TryNavigateToSymbolProvidedProject = project
                 Me.TryNavigateToSymbolProvidedUsePreviewTab = usePreviewTab
