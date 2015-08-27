@@ -7,7 +7,7 @@ Be sure to select "Custom" when installing
 ![](http://i.imgur.com/YINeLkG.png)
 
 ## Step 3:
-Install "Visual Studio Extensibility tools" and "Windows 8.1 and Windows Phone 8.0/8.1 tools -> Tools and Windows SDKs"
+Install "Visual Studio Extensibility tools", "Universal Windows App Development Tools -> Tools and Windows SDK" and "Windows 8.1 and Windows Phone 8.0/8.1 tools -> Tools and Windows SDKs"
 
 ![image](https://cloud.githubusercontent.com/assets/1103906/8912333/fb30794e-3446-11e5-88f0-eaff86eeb9e0.png)
 ![image](https://cloud.githubusercontent.com/assets/1103906/8912307/da193aa2-3446-11e5-934a-e89e21696fb1.png)
