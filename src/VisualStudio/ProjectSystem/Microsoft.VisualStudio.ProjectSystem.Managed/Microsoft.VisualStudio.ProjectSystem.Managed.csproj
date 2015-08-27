@@ -120,9 +120,18 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="HierarchyId.cs" />
     <Compile Include="IAddItemTemplatesGuidProvider.cs" />
     <Compile Include="IItemTypeGuidProvider.cs" />
+    <Compile Include="IVsUnconfiguredProjectServices.cs" />
     <Compile Include="LanguageServices\LanguageServiceBase.cs" />
+    <Compile Include="Presentation\Input\CommandGroup.cs" />
+    <Compile Include="Presentation\Input\CommandId.cs" />
+    <Compile Include="Presentation\Input\GetCommandStatusResult.cs" />
+    <Compile Include="Presentation\Input\Commands\OpenAppDesignerCommand.cs" />
+    <Compile Include="Presentation\Input\SingeNodeProjectCommandBase.cs" />
+    <Compile Include="Presentation\Input\ProjectCommandBase.cs" />
+    <Compile Include="Presentation\Input\ProjectCommandAttribute.cs" />
     <Compile Include="ProjectCapability.cs" />
     <Compile Include="ProjectTree\AppDesignerFolderProjectTreeModifierBase.cs" />
     <Compile Include="ProjectTree\ProjectRootProjectTreeModifierBase.cs" />
@@ -131,6 +140,8 @@
     <Compile Include="ProjectTree\SpecialItemProjectTreeModifierBase.cs" />
     <Compile Include="Rules\ProjectProperties.cs" />
     <Compile Include="StringComparers.cs" />
+    <Compile Include="Threading\Tasks\TaskResult.cs" />
+    <Compile Include="VsUnconfiguredProjectServices.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
