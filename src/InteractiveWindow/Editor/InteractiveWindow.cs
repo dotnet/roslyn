@@ -375,10 +375,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             if (_history.UncommittedInput == null)
             {
                 string activeCode = GetActiveCode();
-                if (activeCode.Length > 0)
-                {
-                    _history.UncommittedInput = activeCode;
-                }
+                // save uncommitted input for history even if it is empty else
+                // on the next history navigation the previous history entry would 
+                // be saved as uncommitted input, which we do not want. Uncommitted 
+                // input is to save what ever user has typed and storing empty string
+                // when he hasn't typed anything does no harm.
+                _history.UncommittedInput = activeCode;
             }
         }
 

@@ -129,6 +129,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 _history.Add(entry);
             }
 
+            //If you were in middle of navigating history and entered a new command at the 
+            //prompt ( not the one that was returned by history navigation), then the history 
+            //navigation pointer is reset. If you submit a command that you got from history then
+            //the history navigation pointer is maintained and subsequent navigation starts from
+            //the same pointer location
             if (_history[(_current == -1) ? Length - 1 : _current].Text != text)
             {
                 _current = -1;
@@ -159,11 +164,16 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         internal Entry GetNext(string pattern = null)
         {
+            //if you are at the last history entry or history navigation pointer is
+            //not initialized then return null as there is no next entry
+            if ((_current == Length - 1) || (_current == -1)) return null;
             return Get(pattern, step: +1);
         }
 
         internal Entry GetPrevious(string pattern = null)
         {
+            //if at first entry then return null
+            if (_current == 0) return null;
             return Get(pattern, step: -1);
         }
 
@@ -216,8 +226,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
                 else if (!wasLive && patternEmpty)
                 {
-                    // Handles up up up enter up
-                    // Do nothing
+                    // Handles up up up enter up/down
+                    // Do nothing - when it is up after enter as want to return the same history entry again
+                    // Increment _current by step - when it is down after enter as we want to return the next entry in this case
+                    if (step > 0) _current += step;
                 }
                 else
                 {
