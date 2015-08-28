@@ -162,7 +162,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             return next;
         }
 
-        internal Entry GetNext(string pattern = null)
+        internal Entry GetNext(string pattern)
         {
             //if you are at the last history entry or history navigation pointer is
             //not initialized then return null as there is no next entry
@@ -170,7 +170,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             return Get(pattern, step: +1);
         }
 
-        internal Entry GetPrevious(string pattern = null)
+        internal Entry GetPrevious(string pattern)
         {
             //if at first entry then return null
             if (_current == 0) return null;
