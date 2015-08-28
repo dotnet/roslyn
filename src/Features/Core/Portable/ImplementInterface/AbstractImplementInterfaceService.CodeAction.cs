@@ -407,9 +407,20 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
             private SyntaxNode CreateThroughExpression(SyntaxGenerator factory)
             {
-                var through = ThroughMember.IsStatic
-                    ? factory.IdentifierName(State.ClassOrStructType.Name)
-                    : factory.ThisExpression();
+                SyntaxNode through;
+                if (State.ClassOrStructType.IsGenericType)
+                {
+                    through = ThroughMember.IsStatic
+                        ? factory.GenericName(State.ClassOrStructType.Name, State.ClassOrStructType.TypeArguments)
+                        : factory.ThisExpression();
+                }
+                else
+                {
+                    through = ThroughMember.IsStatic
+                        ? factory.IdentifierName(State.ClassOrStructType.Name)
+                        : factory.ThisExpression();
+                }
+
 
                 through = factory.MemberAccessExpression(
                     through, factory.IdentifierName(ThroughMember.Name));
