@@ -30,7 +30,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             var appDomainId = appDomain.Id;
             return runtime.GetModuleInstances().
-                Cast<DkmClrModuleInstance>().
+                // Ignore module instances that are not DkmClrModuleInstance.
+                // Specifically, ignore DkmClrNcContainerModuleInstance.
+                // (The embedded DkmClrNcModuleInstance modules will
+                // be included in GetModuleInstances and will be used.)
+                OfType<DkmClrModuleInstance>().
                 Where(module =>
                 {
                     var moduleAppDomain = module.AppDomain;
