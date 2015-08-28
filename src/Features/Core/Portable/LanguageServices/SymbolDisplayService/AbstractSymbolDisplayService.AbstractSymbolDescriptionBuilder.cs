@@ -151,6 +151,38 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 AddOverloadCountPart(symbols);
                 FixAllAnonymousTypes(symbols[0]);
+                AddExceptions(symbols[0]);
+            }
+
+            private void AddExceptions(ISymbol symbol)
+            {
+                // All values returned by DocumentationComment.ExceptionTypes are normalized to the form:
+                //  T:Fully.Qualified.Name
+                // To turn these strings into ITypeSymbols, a quick sanity check is performed for the "T:"
+                // prefix before it is trimmed off and parsed.  All strings that don't parse are simply
+                // ignored
+                var exceptions =
+                    symbol.GetDocumentationComment().ExceptionTypes
+                    .Distinct()
+                    .Where(e => e.StartsWith("T:"))
+                    .Select(e => e.Substring(2))
+                    .OrderBy(e => e)
+                    .Select(_semanticModel.Compilation.GetTypeByMetadataName)
+                    .WhereNotNull();
+                if (exceptions.Any())
+                {
+                    var parts = new List<SymbolDisplayPart>();
+                    parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, $"\r\n{WorkspacesResources.Exceptions}"));
+
+                    foreach (var exception in exceptions)
+                    {
+                        parts.AddRange(LineBreak());
+                        parts.AddRange(Space(count: 2));
+                        parts.AddRange(_displayService.ToMinimalDisplayParts(_semanticModel, _position, exception));
+                    }
+
+                    AddToGroup(SymbolDescriptionGroups.Exceptions, parts);
+                }
             }
 
             public async Task<ImmutableArray<SymbolDisplayPart>> BuildDescriptionAsync(
