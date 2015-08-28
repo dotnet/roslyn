@@ -102,11 +102,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
 
                 // currently, Parsing a field is not supported. as a workaround, wrap the field in a type and parse
                 var node = owningNode.TypeSwitch(
-                    (UsingDirectiveSyntax n) => (SyntaxNode)SyntaxFactory.ParseCompilationUnit(textToParse, options: (CSharpParseOptions)tree.Options),
                     (BaseFieldDeclarationSyntax n) => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options),
-                    (StatementSyntax n) => SyntaxFactory.ParseStatement(textToParse, options: (CSharpParseOptions)tree.Options),
+                    (BaseMethodDeclarationSyntax n) => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options),
                     (BasePropertyDeclarationSyntax n) => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options),
-                    (BaseMethodDeclarationSyntax n) => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options));
+                    (StatementSyntax n) => SyntaxFactory.ParseStatement(textToParse, options: (CSharpParseOptions)tree.Options),
+                    (UsingDirectiveSyntax n) => (SyntaxNode)SyntaxFactory.ParseCompilationUnit(textToParse, options: (CSharpParseOptions)tree.Options));
 
                 // Insert line ender if we didn't introduce any diagnostics, if not try the next owning node.
                 if (node != null && !node.ContainsDiagnostics)
