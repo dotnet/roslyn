@@ -235,6 +235,204 @@ $$", "class {$$}");
 }");
         }
 
+        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void ExpressionBodiedMethod()
+        {
+            Test(@"class T
+{
+    int M() => 1 + 2;
+    $$
+}", @"class T
+{
+    int M() => 1 + 2$$
+}");
+        }
+
+        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void ExpressionBodiedOperator()
+        {
+            Test(@"class Complex
+{
+    int real; int imaginary;
+    public static Complex operator +(Complex a, Complex b) => a.Add(b.real + 1);
+    $$
+    private Complex Add(int b) => null;
+}", @"class Complex
+{
+    int real; int imaginary;
+    public static Complex operator +(Complex a, Complex b) => a.Add(b.real + 1)$$
+    private Complex Add(int b) => null;
+}");
+        }
+
+        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void ExpressionBodiedConversionOperator()
+        {
+            Test(@"using System;
+public struct DBBool
+{
+    public static readonly DBBool dbFalse = new DBBool(-1);
+    int value;
+
+    DBBool(int value)
+    {
+        this.value = value;
+    }
+
+    public static implicit operator DBBool(bool x) => x ? new DBBool(1) : dbFalse;
+    $$
+}", @"using System;
+public struct DBBool
+{
+    public static readonly DBBool dbFalse = new DBBool(-1);
+    int value;
+
+    DBBool(int value)
+    {
+        this.value = value;
+    }
+
+    public static implicit operator DBBool(bool x) => x ? new DBBool(1) : dbFalse$$
+}");
+        }
+
+        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void ExpressionBodiedProperty()
+        {
+            Test(@"class T
+{
+    int P1 => 1 + 2;
+    $$
+}", @"class T
+{
+    int P1 => 1 + 2$$
+}");
+        }
+
+        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void ExpressionBodiedIndexer()
+        {
+            Test(@"using System;
+class SampleCollection<T>
+{
+    private T[] arr = new T[100];
+    public T this[int i] => i > 0 ? arr[i + 1] : arr[i + 2];
+    $$
+}", @"using System;
+class SampleCollection<T>
+{
+    private T[] arr = new T[100];
+    public T this[int i] => i > 0 ? arr[i + 1] : arr[i + 2]$$
+}");
+        }
+
+        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void ExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpression()
+        {
+            Test(@"using System;
+class TestClass
+{
+    Func<int, int> Y() => delegate (int x)
+    {
+        return 9;
+    };
+    $$
+}", @"using System;
+class TestClass
+{
+    Func<int, int> Y() => delegate (int x)
+    {
+        return 9;
+    }$$
+}");
+        }
+
+        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void ExpressionBodiedMethodWithSingleLineBlockBodiedAnonymousMethodExpression()
+        {
+            Test(@"using System;
+class TestClass
+{
+    Func<int, int> Y() => delegate (int x) { return 9; };
+    $$
+}", @"using System;
+class TestClass
+{
+    Func<int, int> Y() => delegate (int x) { return 9; }$$
+}");
+        }
+
+        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void ExpressionBodiedMethodWithBlockBodiedSimpleLambdaExpression()
+        {
+            Test(@"using System;
+class TestClass
+{
+    Func<int, int> Y() => f =>
+    {
+        return f * 9;
+    };
+    $$
+}", @"using System;
+class TestClass
+{
+    Func<int, int> Y() => f =>
+    {
+        return f * 9;
+    }$$
+}");
+        }
+
+        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void ExpressionBodiedMethodWithExpressionBodiedSimpleLambdaExpression()
+        {
+            Test(@"using System;
+class TestClass
+{
+    Func<int, int> Y() => f => f * 9;
+    $$
+}", @"using System;
+class TestClass
+{
+    Func<int, int> Y() => f => f * 9$$
+}");
+        }
+
+        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void ExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpressionInMethodArgs()
+        {
+            Test(@"using System;
+class TestClass
+{
+    public int Prop => Method1(delegate()
+    {
+        return 8;
+    });
+    $$
+
+    private int Method1(Func<int> p) => null;
+}", @"using System;
+class TestClass
+{
+    public int Prop => Method1(delegate()
+    {
+        return 8;
+    })$$
+
+    private int Method1(Func<int> p) => null;
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Format_Statement()
         {
