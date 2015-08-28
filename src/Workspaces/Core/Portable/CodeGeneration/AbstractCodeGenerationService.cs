@@ -275,8 +275,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         private bool GeneratingEnum(IEnumerable<ISymbol> members)
         {
-            // If we're generating an enum, every member will be an enum field
-            var field = members.FirstOrDefault() as IFieldSymbol;
+            var field = members.OfType<IFieldSymbol>().FirstOrDefault();
             return field != null && field.ContainingType.IsEnumType();
         }
 
