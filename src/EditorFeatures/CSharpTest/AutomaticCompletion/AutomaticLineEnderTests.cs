@@ -433,6 +433,58 @@ class TestClass
 }");
         }
 
+        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Format_SimpleExpressionBodiedMember()
+        {
+            Test(@"class T
+{
+    int M() => 1 + 2;
+    $$
+}", @"class T
+{
+         int   M()   =>    1       +     2$$
+}");
+        }
+
+        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Format_ExpressionBodiedMemberWithSingleLineBlock()
+        {
+            Test(@"using System;
+class TestClass
+{
+    Func<int, int> Y() => delegate (int x) { return 9; };
+    $$
+}", @"using System;
+class TestClass
+{
+                Func<int, int>  Y ()   =>   delegate(int x) { return     9  ; }$$
+}");
+        }
+
+        [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Format_ExpressionBodiedMemberWithMultiLineBlock()
+        {
+            Test(@"using System;
+class TestClass
+{
+    Func<int, int> Y() => delegate (int x)
+    {
+        return 9;
+    };
+    $$
+}", @"using System;
+class TestClass
+{
+    Func<int, int> Y() => delegate(int x)
+    {
+        return 9;
+        }$$
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Format_Statement()
         {
