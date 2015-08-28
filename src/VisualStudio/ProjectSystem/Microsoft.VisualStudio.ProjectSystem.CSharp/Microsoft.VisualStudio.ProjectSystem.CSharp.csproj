@@ -129,7 +129,7 @@
   <ItemGroup>
     <Compile Include="VisualStudio\ProjectSystem\CSharp\LanguageServices\CSharpCodeDomProvider.cs" />
     <Compile Include="VisualStudio\ProjectSystem\CSharp\Designers\PropertiesFolderProjectTreeModifier.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\CSharp\VS\Designers\CSharpProjectImageMonikerProvider.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\CSharp\VS\Designers\Imaging\CSharpProjectImageProvider.cs" />
     <Compile Include="VisualStudio\ProjectSystem\CSharp\VS\Templating\CSharpItemTemplatesGuidProvider.cs" />
     <Compile Include="VisualStudio\ProjectSystem\CSharp\VS\Templating\CSharpItemTypeGuidProvider.cs" />
     <Compile Include="VisualStudio\ProjectSystem\CSharp\LanguageServices\CSharpLanguageFeaturesProvider.cs" />

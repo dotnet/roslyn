@@ -121,10 +121,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="VisualStudio\Input\VisualStudioStandard97CommandId.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\Designers\Imaging\IProjectImageMonikerProvider.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\Designers\Imaging\ProjectImageMonikerKey.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\Designers\Imaging\ProjectImageMonikerProviderAggregator.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\Designers\Imaging\ProjectImageMonikerProviderExtensions.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\Designers\Imaging\IProjectImageProvider.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\Designers\Imaging\ProjectImageKey.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\Designers\Imaging\ProjectImageProviderAggregator.cs" />
     <Compile Include="VisualStudio\ProjectSystem\Designers\ProjectRootImageProjectTreeModifier.cs" />
     <Compile Include="VisualStudio\ProjectSystem\VS\Designers\Input\Commands\OpenAppDesignerCommand.cs" />
     <Compile Include="VisualStudio\ProjectSystem\VS\Designers\Input\Commands\OpenAppDesignerOnDefaultActionCommand.cs" />

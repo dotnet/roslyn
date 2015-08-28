@@ -5,7 +5,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Imaging
     /// <summary>
     ///     Provides common well-known <see cref="ProjectImageMoniker"/> keys.
     /// </summary>
-    internal static class ProjectImageMonikerKey
+    internal static class ProjectImageKey
     {
         public const string ProjectRoot = nameof(ProjectRoot);
         public const string AppDesignerFolder = nameof(AppDesignerFolder);

@@ -6,29 +6,29 @@ using Microsoft.VisualStudio.ProjectSystem.Designers;
 using Microsoft.VisualStudio.ProjectSystem.Designers.Imaging;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 
-namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic.VS.Designers
+namespace Microsoft.VisualStudio.ProjectSystem.CSharp.VS.Designers.Imaging
 {
     /// <summary>
-    ///     Provides VIsual Basic project images.
+    ///     Provides C# project images.
     /// </summary>
-    [Export(typeof(IProjectImageMonikerProvider))]
-    [AppliesTo(ProjectCapability.VisualBasic)]
-    internal class VisualBasicProjectImageMonikerProvider : IProjectImageMonikerProvider
+    [Export(typeof(IProjectImageProvider))]
+    [AppliesTo(ProjectCapability.CSharp)]
+    internal class CSharpProjectImageMonikerProvider : IProjectImageProvider
     {
         [ImportingConstructor]
-        public VisualBasicProjectImageMonikerProvider()
+        public CSharpProjectImageMonikerProvider()
         {
         }
 
-        public bool TryGetProjectImageMoniker(string key, out ProjectImageMoniker result)
+        public bool TryGetProjectImage(string key, out ProjectImageMoniker result)
         {
             switch (key)
             {
-                case ProjectImageMonikerKey.ProjectRoot:
-                    result = KnownMonikers.VBProjectNode.ToProjectSystemType();
+                case ProjectImageKey.ProjectRoot:
+                    result = KnownMonikers.CSProjectNode.ToProjectSystemType();
                     return true;
 
-                case ProjectImageMonikerKey.AppDesignerFolder:
+                case ProjectImageKey.AppDesignerFolder:
                     result = KnownMonikers.Property.ToProjectSystemType();
                     return true;
 

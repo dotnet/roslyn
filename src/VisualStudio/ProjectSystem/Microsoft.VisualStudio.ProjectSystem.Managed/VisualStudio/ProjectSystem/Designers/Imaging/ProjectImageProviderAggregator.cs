@@ -7,32 +7,32 @@ using Microsoft.VisualStudio.ProjectSystem.Utilities;
 namespace Microsoft.VisualStudio.ProjectSystem.Designers.Imaging
 {
     /// <summary>
-    ///     Aggregates <see cref="IProjectImageMonikerProvider"/> instances into a single importable
-    ///     <see cref="IProjectImageMonikerProvider"/>.
+    ///     Aggregates <see cref="IProjectImageProvider"/> instances into a single importable
+    ///     <see cref="IProjectImageProvider"/>.
     /// </summary>
     [Export]
     [AppliesTo(ProjectCapability.CSharpOrVisualBasic)]
-    internal class ProjectImageMonikerProviderAggregator : IProjectImageMonikerProvider
+    internal class ProjectImageProviderAggregator : IProjectImageProvider
     {
         [ImportingConstructor]
-        public ProjectImageMonikerProviderAggregator(UnconfiguredProject unconfiguredProject)
+        public ProjectImageProviderAggregator(UnconfiguredProject unconfiguredProject)
         {
             Requires.NotNull(unconfiguredProject, nameof(unconfiguredProject));
 
-            ImageProviders = new OrderPrecedenceImportCollection<IProjectImageMonikerProvider>(projectCapabilityCheckProvider: unconfiguredProject);
+            ImageProviders = new OrderPrecedenceImportCollection<IProjectImageProvider>(projectCapabilityCheckProvider: unconfiguredProject);
         }
 
         [ImportMany]
-        public OrderPrecedenceImportCollection<IProjectImageMonikerProvider> ImageProviders
+        public OrderPrecedenceImportCollection<IProjectImageProvider> ImageProviders
         {
             get;
         }
 
-        public bool TryGetProjectImageMoniker(string key, out ProjectImageMoniker result)
+        public bool TryGetProjectImage(string key, out ProjectImageMoniker result)
         {
-            foreach (Lazy<IProjectImageMonikerProvider> provider in ImageProviders)
+            foreach (Lazy<IProjectImageProvider> provider in ImageProviders)
             {
-                if (provider.Value.TryGetProjectImageMoniker(key, out result))
+                if (provider.Value.TryGetProjectImage(key, out result))
                 {
                     return true;
                 }
