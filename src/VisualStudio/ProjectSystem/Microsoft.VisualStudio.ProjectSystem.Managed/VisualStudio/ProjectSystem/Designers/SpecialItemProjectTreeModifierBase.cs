@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.VisualStudio.Imaging.Interop;
+using Microsoft.VisualStudio.ProjectSystem.Designers.Imaging;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 using Microsoft.VisualStudio.ProjectSystem.Utilities.Designers;
 
@@ -12,11 +13,16 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
     /// </summary>
     internal abstract class SpecialItemProjectTreeModifierBase : ProjectTreeModifierBase
     {
-        protected SpecialItemProjectTreeModifierBase()
+        private readonly IProjectImageProvider _imageProvider;
+
+        protected SpecialItemProjectTreeModifierBase(IProjectImageProvider imageProvider)
         {
+            Requires.NotNull(imageProvider, nameof(imageProvider));
+
+            _imageProvider = imageProvider;
         }
 
-        public abstract ImageMoniker Icon
+        public abstract string ImageKey
         {
             get;
         }
@@ -42,7 +48,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
 
             Assumes.True(item.Parent.IsProjectRoot(), "Expected returned item to be rooted by Project");
 
-            ProjectImageMoniker icon = Icon.ToProjectSystemType();
+            ProjectImageMoniker icon = GetSpecialItemIcon();
 
             item = item.SetProperties(
                         icon: icon,
@@ -71,6 +77,15 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
             }
 
             return tree;
+        }
+
+        private ProjectImageMoniker GetSpecialItemIcon()
+        {
+            ProjectImageMoniker moniker;
+            if (_imageProvider.TryGetProjectImage(ImageKey, out moniker))
+                return moniker;
+
+            return null;
         }
     }
 }

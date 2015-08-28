@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
+using Microsoft.VisualStudio.ProjectSystem.Designers.Imaging;
 using Microsoft.VisualStudio.ProjectSystem.Utilities.Designers;
 
 namespace Microsoft.VisualStudio.ProjectSystem.Designers
@@ -20,7 +22,8 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
                     ProjectTreeCapabilities.EmptyCapabilities.Add(ProjectTreeCapabilities.AppDesignerFolder)
                                                              .Add(ProjectTreeCapabilities.BubbleUp);
 
-        protected AppDesignerFolderProjectTreeModifierBase()
+        protected AppDesignerFolderProjectTreeModifierBase(IProjectImageProvider imageProvider)
+            : base(imageProvider)
         {
         }
 
@@ -29,9 +32,9 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
             get { return DefaultAppDesignerFolderCapabilities; }
         }
 
-        public override ImageMoniker Icon
+        public override string ImageKey
         {
-            get { return KnownMonikers.Property; }
+            get {  return ProjectImageKey.AppDesignerFolder; }
         }
 
         protected override sealed IProjectTree FindCandidateSpecialItem(IProjectTree projectRoot)

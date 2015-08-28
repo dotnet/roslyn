@@ -2,6 +2,7 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.ProjectSystem.Designers;
+using Microsoft.VisualStudio.ProjectSystem.Designers.Imaging;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 
 namespace Microsoft.VisualStudio.ProjectSystem.CSharp.Designers
@@ -14,7 +15,8 @@ namespace Microsoft.VisualStudio.ProjectSystem.CSharp.Designers
     internal class PropertiesFolderProjectTreeModifier : AppDesignerFolderProjectTreeModifierBase
     {
         [ImportingConstructor]
-        public PropertiesFolderProjectTreeModifier()
+        public PropertiesFolderProjectTreeModifier([Import(typeof(ProjectImageProviderAggregator))]IProjectImageProvider imageProvider)
+            : base(imageProvider)
         {
         }
         
