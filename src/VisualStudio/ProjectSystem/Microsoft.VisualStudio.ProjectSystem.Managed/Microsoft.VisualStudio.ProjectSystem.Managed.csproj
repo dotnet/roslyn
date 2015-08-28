@@ -120,6 +120,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="VisualStudio\Input\UIHierarchyWindowCommandId.cs" />
     <Compile Include="VisualStudio\Input\VisualStudioStandard97CommandId.cs" />
     <Compile Include="VisualStudio\ProjectSystem\Designers\Imaging\IProjectImageProvider.cs" />
     <Compile Include="VisualStudio\ProjectSystem\Designers\Imaging\ProjectImageKey.cs" />
@@ -134,7 +135,6 @@
     <Compile Include="VisualStudio\ProjectSystem\VS\IUnconfiguredProjectVsServices.cs" />
     <Compile Include="VisualStudio\ProjectSystem\LanguageServices\LanguageServiceBase.cs" />
     <Compile Include="VisualStudio\Input\CommandGroup.cs" />
-    <Compile Include="VisualStudio\Input\UIHierarchyWindowCommandId.cs" />
     <Compile Include="VisualStudio\ProjectSystem\Designers\Input\GetCommandStatusResult.cs" />
     <Compile Include="VisualStudio\ProjectSystem\Designers\Input\SingeNodeProjectCommandBase.cs" />
     <Compile Include="VisualStudio\ProjectSystem\Designers\Input\ProjectCommandBase.cs" />
