@@ -677,6 +677,32 @@ $$
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void NotAfterAutoPropertyAccessor()
+        {
+            Test(@"class TestClass
+{
+    public int A { get; set }
+    $$
+}", @"class TestClass
+{
+    public int A { get; set$$ }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void NotAfterAutoPropertyDeclaration()
+        {
+            Test(@"class TestClass
+{
+    public int A { get; set; }
+    $$
+}", @"class TestClass
+{
+    public int A { get; set; }$$
+}");
+        }
+
         protected override TestWorkspace CreateWorkspace(string[] code)
         {
             return CSharpWorkspaceFactory.CreateWorkspaceFromLines(code);
