@@ -7,14 +7,14 @@ using Microsoft.VisualStudio.ProjectSystem.Utilities;
 
 namespace Microsoft.VisualStudio.ProjectSystem.VS.Designers.Input.Commands
 {
-    // Opens the AppDesigner ("Property Pages") on by selecting the Open menu item on the AppDesigner folder
-    [ProjectCommand(CommandGroup.VisualStudioStandard97, VisualStudioStandard97CommandId.Open)]
+    // Opens the AppDesigner ("Property Pages") when the user double-clicks or presses ENTER on the AppDesigner folder while its selected
+    [ProjectCommand(CommandGroup.UIHierarchyWindow, UIHierarchyWindowCommandId.DoubleClick, UIHierarchyWindowCommandId.EnterKey)]
     [AppliesTo(ProjectCapability.AppDesigner)]
     [OrderPrecedence(1000)] 
-    internal class OpenAppDesignerCommand : OpenAppDesignerCommandBase
+    internal class OpenAppDesignerOnDefaultActionCommand : OpenAppDesignerCommandBase
     {
         [ImportingConstructor]
-        public OpenAppDesignerCommand(IUnconfiguredProjectVsServices projectServices, IThreadHandling threadHandling)
+        public OpenAppDesignerOnDefaultActionCommand(IUnconfiguredProjectVsServices projectServices, IThreadHandling threadHandling)
             : base(projectServices, threadHandling)
         {
         }

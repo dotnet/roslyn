@@ -2,8 +2,12 @@
 
 namespace Microsoft.VisualStudio.Input
 {
-    internal class CommandGroup
+    /// <summary>
+    ///     Provides common well-known command groups.
+    /// </summary>
+    internal static class CommandGroup
     {
-        public const string UIHierarchyWindow = "{60481700-078b-11d1-aaf8-00a0c9055a90}";
+        public const string UIHierarchyWindow = "{60481700-078B-11D1-AAF8-00A0C9055A90}";
+        public const string VisualStudioStandard97 = "{5EFC7975-14BC-11CF-9B2B-00AA00573819}";
     }
 }
