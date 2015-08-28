@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic.Designers
     ///     A tree modifier that turns "My Project" folder into a special folder.
     /// </summary>
     [Export(typeof(IProjectTreeModifier))]
-    [AppliesTo(ProjectCapabilities.VB)]
+    [AppliesTo(ProjectCapability.VisualBasic)]
     internal class MyProjectFolderProjectTreeModifier : AppDesignerFolderProjectTreeModifierBase
     {
         [ImportingConstructor]

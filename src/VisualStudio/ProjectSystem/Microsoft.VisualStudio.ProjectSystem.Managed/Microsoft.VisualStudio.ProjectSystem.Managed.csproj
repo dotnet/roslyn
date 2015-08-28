@@ -121,6 +121,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="VisualStudio\Input\VisualStudioStandard97CommandId.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\Designers\Imaging\IProjectImageMonikerProvider.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\Designers\Imaging\ProjectImageMonikerKey.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\Designers\Imaging\ProjectImageMonikerProviderAggregator.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\Designers\Imaging\ProjectImageMonikerProviderExtensions.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\Designers\ProjectRootImageProjectTreeModifier.cs" />
     <Compile Include="VisualStudio\ProjectSystem\VS\Designers\Input\Commands\OpenAppDesignerCommand.cs" />
     <Compile Include="VisualStudio\ProjectSystem\VS\Designers\Input\Commands\OpenAppDesignerOnDefaultActionCommand.cs" />
     <Compile Include="VisualStudio\ProjectSystem\VS\Designers\Input\Commands\OpenAppDesignerCommandBase.cs" />
@@ -137,7 +142,6 @@
     <Compile Include="VisualStudio\ProjectSystem\Designers\Input\ProjectCommandAttribute.cs" />
     <Compile Include="VisualStudio\ProjectSystem\ProjectCapability.cs" />
     <Compile Include="VisualStudio\ProjectSystem\Designers\AppDesignerFolderProjectTreeModifierBase.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\Designers\ProjectRootProjectTreeModifierBase.cs" />
     <Compile Include="VisualStudio\ProjectSystem\Designers\ProjectTreeExtensions.cs" />
     <Compile Include="VisualStudio\ProjectSystem\Designers\ProjectTreeModifierBase.cs" />
     <Compile Include="VisualStudio\ProjectSystem\Designers\SpecialItemProjectTreeModifierBase.cs" />
