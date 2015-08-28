@@ -13,10 +13,10 @@ namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic.VS.Designers.Imaging
     /// </summary>
     [Export(typeof(IProjectImageProvider))]
     [AppliesTo(ProjectCapability.VisualBasic)]
-    internal class VisualBasicProjectImageMonikerProvider : IProjectImageProvider
+    internal class VisualBasicProjectImageProvider : IProjectImageProvider
     {
         [ImportingConstructor]
-        public VisualBasicProjectImageMonikerProvider()
+        public VisualBasicProjectImageProvider()
         {
         }
 
