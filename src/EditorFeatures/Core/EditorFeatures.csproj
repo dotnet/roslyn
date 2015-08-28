@@ -249,6 +249,7 @@
     <Compile Include="Extensibility\Composition\ContentTypeMetadata.cs" />
     <Compile Include="Extensibility\Composition\IContentTypeMetadata.cs" />
     <Compile Include="Extensibility\Composition\OrderableContentTypeMetadata.cs" />
+    <Compile Include="Extensibility\Composition\OrderableLanguageAndRoleMetadata.cs" />
     <Compile Include="Extensibility\Highlighting\ExportHighlighterAttribute.cs" />
     <Compile Include="Extensibility\Highlighting\IHighlighter.cs" />
     <Compile Include="Extensibility\NavigationBar\AbstractNavigationBarItemService.cs" />
