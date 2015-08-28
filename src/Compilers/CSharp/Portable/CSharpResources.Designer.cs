@@ -1529,6 +1529,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid operand for pattern match..
+        /// </summary>
+        internal static string ERR_BadIsPatternExpression {
+            get {
+                return ResourceManager.GetString("ERR_BadIsPatternExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Iterators cannot have ref or out parameters.
         /// </summary>
         internal static string ERR_BadIteratorArgType {
@@ -6979,6 +6988,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_PartialWrongTypeParamsVariance {
             get {
                 return ResourceManager.GetString("ERR_PartialWrongTypeParamsVariance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to It is not legal to use nullable type &apos;{0}&apos; in a pattern; use the underlying type &apos;{1}&apos; instead..
+        /// </summary>
+        internal static string ERR_PatternNullableType {
+            get {
+                return ResourceManager.GetString("ERR_PatternNullableType", resourceCulture);
             }
         }
         

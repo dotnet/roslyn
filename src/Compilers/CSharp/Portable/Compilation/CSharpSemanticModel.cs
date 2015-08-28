@@ -1368,7 +1368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 container = baseType;
             }
 
-            if (!binder.IsInMethodBody && (options & LookupOptions.NamespacesOrTypesOnly) == 0)
+            if (!binder.IsInMethodBody && (options & (LookupOptions.NamespacesOrTypesOnly | LookupOptions.LabelsOnly)) == 0)
             {
                 // Method type parameters are not in scope outside a method body unless
                 // the position is either:

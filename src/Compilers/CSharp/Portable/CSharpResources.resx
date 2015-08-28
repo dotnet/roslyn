@@ -4650,4 +4650,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DebugEntryPointNotSourceMethodDefinition" xml:space="preserve">
     <value>Debug entry point must be a definition of a method declared in the current compilation.</value>
   </data>
+  <data name="ERR_PatternNullableType" xml:space="preserve">
+    <value>It is not legal to use nullable type '{0}' in a pattern; use the underlying type '{1}' instead.</value>
+  </data>
+  <data name="ERR_BadIsPatternExpression" xml:space="preserve">
+    <value>Invalid operand for pattern match.</value>
+  </data>
 </root>

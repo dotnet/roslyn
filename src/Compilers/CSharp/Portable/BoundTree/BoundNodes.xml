@@ -1341,6 +1341,7 @@
   <Node Name="BoundDeclarationPattern" Base="BoundPattern">
     <Field Name="LocalSymbol" Type="LocalSymbol" Null="disallow"/>
     <Field Name="DeclaredType" Type="BoundTypeExpression"/>
+    <Field Name="IsVar" Type="bool"/>
   </Node>
 
   <Node Name="BoundIsPattern" Base="BoundExpression">

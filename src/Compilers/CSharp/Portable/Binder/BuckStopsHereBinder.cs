@@ -195,8 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                // There's supposed to be a LocalScopeBinder (or other overrider of this method) in the chain.
-                throw ExceptionUtilities.Unreachable;
+                return ImmutableArray<LocalSymbol>.Empty;
             }
         }
 

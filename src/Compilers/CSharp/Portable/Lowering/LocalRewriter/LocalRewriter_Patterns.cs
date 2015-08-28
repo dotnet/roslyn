@@ -29,9 +29,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var declPattern = (BoundDeclarationPattern)pattern;
                         var type = declPattern.DeclaredType.Type;
+                        if (declPattern.IsVar)
+                        {
+                            Debug.Assert(input.Type == type);
+                            var assignment = _factory.AssignmentExpression(_factory.Local(declPattern.LocalSymbol), input);
+                            var result = _factory.Literal(true);
+                            return _factory.Sequence(assignment, result);
+                        }
                         // a pattern match of the form "expression is Type identifier" is equivalent to
                         // an invocation of one of these helpers:
-                        if (type.IsReferenceType)
+                        else if (type.IsReferenceType)
                         {
                             // bool Is<T>(object e, out T t) where T : class // reference type
                             // {
@@ -42,19 +49,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var result = _factory.ObjectNotEqual(_factory.Local(declPattern.LocalSymbol), _factory.Null(type));
                             return _factory.Sequence(assignment, result);
                         }
-                        if (type.IsNullableType())
+                        else if (type.IsNullableType())
                         {
-                            // TODO: only assign t when returning true (avoid returning a new default value)
                             // bool Is<T>(object e, out T? t) where T : struct
                             // {
-                            //     if (e == null)
-                            //     {
-                            //         t = null;
-                            //         return true;
-                            //     }
-                            //     T? tmp = e as T?;
-                            //     t = tmp.GetValueOrDefault();
-                            //     return tmp.HasValue;
+                            //     t = e as T?;
+                            //     return t.HasValue;
                             // }
                             throw new NotImplementedException();
                         }

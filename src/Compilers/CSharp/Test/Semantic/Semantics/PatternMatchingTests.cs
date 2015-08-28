@@ -28,39 +28,52 @@ public class X
     {
         var s = nameof(Main);
         if (s is string t) Console.WriteLine(t);
-        Console.WriteLine(null is string t ? t : nameof(X));
+        s = null;
+        Console.WriteLine(s is string t ? t : nameof(X));
+        int? x = 12;
+        if (x is var y) Console.WriteLine(y);
     }
 }";
             var expectedOutput =
 @"Main
-X";
+X
+12";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
-        public void PatternScopeErrors()
+        public void PatternErrors()
         {
             var source =
 @"using System;
+using NullableInt = System.Nullable<int>;
 public class X
 {
     public static void Main()
     {
         var s = nameof(Main);
-        if (s is string t) { } else Console.WriteLine(t);
-        if (null is dynamic t) { } else Console.WriteLine(t);
+        if (s is string t) { } else Console.WriteLine(t); // t not in scope
+        if (null is dynamic t) { } // null not allowed
+        if (s is NullableInt x) { } // error: cannot use nullable type
+        if (s is long l) { } // error: cannot convert string to long
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
             compilation.VerifyDiagnostics(
-                // (7,55): error CS0103: The name 't' does not exist in the current context
-                //         if (s is string t) { } else Console.WriteLine(t);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "t").WithArguments("t").WithLocation(7, 55),
-                // (8,59): error CS0103: The name 't' does not exist in the current context
-                //         if (null is dynamic t) { } else Console.WriteLine(t);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "t").WithArguments("t").WithLocation(8, 59)
+                // (8,55): error CS0103: The name 't' does not exist in the current context
+                //         if (s is string t) { } else Console.WriteLine(t); // t not in scope
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "t").WithArguments("t").WithLocation(8, 55),
+                // (9,13): error CS8098: Invalid operand for pattern match.
+                //         if (null is dynamic t) { } // null not allowed
+                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithLocation(9, 13),
+                // (10,18): error CS8097: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+                //         if (s is NullableInt x) { } // error: cannot use nullable type
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "NullableInt").WithArguments("int?", "int").WithLocation(10, 18),
+                // (11,18): error CS0030: Cannot convert type 'string' to 'long'
+                //         if (s is long l) { } // error: cannot convert string to long
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "long l").WithArguments("string", "long").WithLocation(11, 18)
                 );
         }
     }
