@@ -65,6 +65,9 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\PooledStringBuilder.cs">
       <Link>Collections\PooledStringBuilder.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\CorLightup.cs">
+      <Link>InternalUtilities\CorLightup.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\MetadataReference\MetadataFileReferenceProvider.cs">
       <Link>MetadataReference\MetadataFileReferenceProvider.cs</Link>
     </Compile>
@@ -405,6 +408,7 @@
     <Compile Include="FindSymbols\SyntaxTree\AbstractSyntaxTreeInfo.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeDeclarationInfo.cs" />
     <Compile Include="Formatting\FormattingOptionsProvider.cs" />
+    <Compile Include="LanguageServices\TypeInferenceService\AbstractTypeInferenceService.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileMergeSessionResult.cs" />
     <Compile Include="LinkedFileDiffMerging\DefaultDocumentTextDifferencingService.cs" />
     <Compile Include="Log\AggregateLogger.cs" />

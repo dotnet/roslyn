@@ -1787,6 +1787,32 @@ namespace Microsoft.CodeAnalysis
                 lazyLatestProjectVersion: newLatestProjectVersion);
         }
 
+        internal ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId)
+        {
+            var projectState = this.GetProjectState(documentId.ProjectId);
+            if (projectState == null)
+            {
+                // this document no longer exist
+                return ImmutableArray<DocumentId>.Empty;
+            }
+
+            var documentState = projectState.GetDocumentState(documentId);
+            if (documentState == null)
+            {
+                // this document no longer exist
+                return ImmutableArray<DocumentId>.Empty;
+            }
+
+            var filePath = documentState.FilePath;
+            if (string.IsNullOrEmpty(filePath))
+            {
+                // this document can't have any related document. only related document is itself.
+                return ImmutableArray.Create<DocumentId>(documentId);
+            }
+
+            return this.GetDocumentIdsWithFilePath(filePath);
+        }
+
         /// <summary>
         /// Gets the set of <see cref="DocumentId"/>s in this <see cref="Solution"/> with a
         /// <see cref="TextDocument.FilePath"/> that matches the given file path.

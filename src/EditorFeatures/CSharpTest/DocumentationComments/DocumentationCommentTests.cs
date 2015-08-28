@@ -1084,6 +1084,186 @@ static void Main(string[] args)
             VerifyPressingEnter(code, expected);
         }
 
+        [WorkItem(2091, "https://github.com/dotnet/roslyn/issues/2091")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void PressingEnter_InTextBeforeSpace()
+        {
+            const string code =
+@"class C
+{
+    /// <summary>
+    /// hello$$ world
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            const string expected =
+@"class C
+{
+    /// <summary>
+    /// hello
+    /// $$world
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            VerifyPressingEnter(code, expected);
+        }
+
+        [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void PressingEnter_Indentation1()
+        {
+            const string code =
+@"class C
+{
+    /// <summary>
+    ///     hello world$$
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            const string expected =
+@"class C
+{
+    /// <summary>
+    ///     hello world
+    ///     $$
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            VerifyPressingEnter(code, expected);
+        }
+
+        [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void PressingEnter_Indentation2()
+        {
+            const string code =
+@"class C
+{
+    /// <summary>
+    ///     hello $$world
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            const string expected =
+@"class C
+{
+    /// <summary>
+    ///     hello 
+    ///     $$world
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            VerifyPressingEnter(code, expected);
+        }
+
+        [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void PressingEnter_Indentation3()
+        {
+            const string code =
+@"class C
+{
+    /// <summary>
+    ///     hello$$ world
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            const string expected =
+@"class C
+{
+    /// <summary>
+    ///     hello
+    ///     $$world
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            VerifyPressingEnter(code, expected);
+        }
+
+        [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void PressingEnter_Indentation4()
+        {
+            const string code =
+@"class C
+{
+    /// <summary>
+    ///     $$hello world
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            const string expected =
+@"class C
+{
+    /// <summary>
+    ///     
+    /// $$hello world
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            VerifyPressingEnter(code, expected);
+        }
+
+        [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void PressingEnter_Indentation5_UseTabs()
+        {
+            const string code =
+@"class C
+{
+    /// <summary>
+	///     hello world$$
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            const string expected =
+@"class C
+{
+    /// <summary>
+	///     hello world
+	///     $$
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            VerifyPressingEnter(code, expected, useTabs: true);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void Command_Class()
         {
@@ -1335,7 +1515,239 @@ public class Class1
 	}
 }";
 
-            VerifyTypingCharacter(code, expected, useTab: true);
+            VerifyTypingCharacter(code, expected, useTabs: true);
+        }
+
+        [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TestOpenLineAbove1()
+        {
+            const string code =
+@"class C
+{
+    /// <summary>
+    /// stuff$$
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            var expected =
+@"class C
+{
+    /// <summary>
+    /// $$
+    /// stuff
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            VerifyOpenLineAbove(code, expected);
+        }
+
+        [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TestOpenLineAbove2()
+        {
+            const string code =
+@"class C
+{
+    /// <summary>
+    /// $$stuff
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            const string expected =
+@"class C
+{
+    /// <summary>
+    /// $$
+    /// stuff
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            VerifyOpenLineAbove(code, expected);
+        }
+
+        [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TestOpenLineAbove3()
+        {
+            const string code =
+@"class C
+{
+    /// $$<summary>
+    /// stuff
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            // Note that the caret position specified below does not look correct because
+            // it is in virtual space in this case.
+            const string expected =
+@"class C
+{
+$$
+    /// <summary>
+    /// stuff
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            VerifyOpenLineAbove(code, expected);
+        }
+
+        [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TestOpenLineAbove4_Tabs()
+        {
+            const string code =
+@"class C
+{
+		  /// <summary>
+    /// $$stuff
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            const string expected =
+@"class C
+{
+		  /// <summary>
+		  /// $$
+    /// stuff
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            VerifyOpenLineAbove(code, expected, useTabs: true);
+        }
+
+        [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TestOpenLineBelow1()
+        {
+            const string code =
+@"class C
+{
+    /// <summary>
+    /// stuff$$
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            const string expected =
+@"class C
+{
+    /// <summary>
+    /// stuff
+    /// $$
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            VerifyOpenLineBelow(code, expected);
+        }
+
+        [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TestOpenLineBelow2()
+        {
+            const string code =
+@"class C
+{
+    /// <summary>
+    /// $$stuff
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            const string expected =
+@"class C
+{
+    /// <summary>
+    /// stuff
+    /// $$
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            VerifyOpenLineBelow(code, expected);
+        }
+
+        [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TestOpenLineBelow3()
+        {
+            const string code =
+@"/// <summary>
+/// stuff
+/// $$</summary>
+";
+
+            const string expected =
+@"/// <summary>
+/// stuff
+/// </summary>
+/// $$
+";
+
+            VerifyOpenLineBelow(code, expected);
+        }
+
+        [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TestOpenLineBelow4_Tabs()
+        {
+            const string code =
+@"class C
+{
+    /// <summary>
+		  /// $$stuff
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            const string expected =
+@"class C
+{
+    /// <summary>
+		  /// stuff
+		  /// $$
+    /// </summary>
+    void M()
+    {
+    }
+}";
+
+            VerifyOpenLineBelow(code, expected, useTabs: true);
         }
 
         protected override char DocumentationCommentCharacter

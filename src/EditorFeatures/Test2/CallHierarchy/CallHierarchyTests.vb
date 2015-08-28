@@ -24,7 +24,7 @@ namespace C
 using C;
 namespace G
 {
-    public Class G
+    public class G
     {
         public void G()
         {
@@ -67,7 +67,7 @@ public class DSSS
             Dim root = testState.GetRoot()
             testState.VerifyResult(root, String.Format(EditorFeaturesResources.CallsTo, "GetFive"), {"DSSS.bar()", "D.bar()", "G.G.G()"}, CallHierarchySearchScope.EntireSolution)
             Dim documents = testState.GetDocuments({"Test3.cs", "Test4.cs"})
-            testState.VerifyResult(root, String.Format(EditorFeaturesResources.CallsTo, "GetFive"), {"DSSS.bar()", "D.bar()"}, CallHierarchySearchScope.CurrentProject)
+            testState.VerifyResult(root, String.Format(EditorFeaturesResources.CallsTo, "GetFive"), {"DSSS.bar()", "D.bar()", "G.G.G()"}, CallHierarchySearchScope.CurrentProject)
             documents = testState.GetDocuments({"Test3.cs"})
             testState.VerifyResult(root, String.Format(EditorFeaturesResources.CallsTo, "GetFive"), {"D.bar()"}, CallHierarchySearchScope.CurrentDocument, documents)
         End Sub

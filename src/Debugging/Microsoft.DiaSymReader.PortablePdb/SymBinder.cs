@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
+using Roslyn.Utilities;
 
 [assembly: Guid("CA89ACD1-A1D5-43DE-890A-5FDF50BC1F93")]
 
@@ -36,7 +37,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             try
             {
                 // TODO: use memory mapped files?
-                bytes = File.ReadAllBytes(fileName);
+                bytes = PortableShim.File.ReadAllBytes(fileName);
             }
             catch
             {

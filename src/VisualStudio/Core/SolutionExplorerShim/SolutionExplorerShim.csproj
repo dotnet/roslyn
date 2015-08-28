@@ -45,7 +45,7 @@
       <Project>{3cdeeab7-2256-418a-beb2-620b5cb16302}</Project>
       <Name>EditorFeatures</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Features\Core\Features.csproj">
+    <ProjectReference Include="..\..\..\Features\Core\Portable\Features.csproj">
       <Project>{edc68a0e-c68d-4a74-91b7-bf38ec909888}</Project>
       <Name>Features</Name>
     </ProjectReference>

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests
     public class InteractiveSessionTests : TestBase
     {
         private static readonly Assembly s_lazySystemRuntimeAssembly;
-        private static readonly Assembly SystemRuntimeAssembly = s_lazySystemRuntimeAssembly ?? (s_lazySystemRuntimeAssembly = Assembly.Load(new AssemblyName("System.Runtime")));
+        private static readonly Assembly SystemRuntimeAssembly = s_lazySystemRuntimeAssembly ?? (s_lazySystemRuntimeAssembly = Assembly.Load(new AssemblyName("System.Runtime, Version=4.0.20.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")));
 
         #region Namespaces, Types
 
