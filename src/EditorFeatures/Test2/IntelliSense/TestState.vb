@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Property
 
         Private Sub New(workspaceElement As XElement,
-                        extraCompletionProviders As IEnumerable(Of Lazy(Of CompletionListProvider, OrderableLanguageMetadata)),
+                        extraCompletionProviders As IEnumerable(Of Lazy(Of CompletionListProvider, OrderableLanguageAndRoleMetadata)),
                         extraSignatureHelpProviders As IEnumerable(Of Lazy(Of ISignatureHelpProvider, OrderableLanguageMetadata)),
                         Optional extraExportedTypes As List(Of Type) = Nothing)
             MyBase.New(workspaceElement, CreatePartCatalog(extraExportedTypes))
@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
             Dim language = languageServices.Language
 
-            Dim completionProviders = GetExports(Of CompletionListProvider, OrderableLanguageMetadata)() _
+            Dim completionProviders = GetExports(Of CompletionListProvider, OrderableLanguageAndRoleMetadata)() _
                 .Where(Function(f) f.Metadata.Language = language) _
                 .Concat(extraCompletionProviders) _
                 .ToList()
@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         </Document>
                     </Project>
                 </Workspace>,
-                CreateLazyProviders(extraCompletionProviders, LanguageNames.VisualBasic),
+                CreateLazyProviders(extraCompletionProviders, LanguageNames.VisualBasic, roles:=Nothing),
                 CreateLazyProviders(extraSignatureHelpProviders, LanguageNames.VisualBasic),
                 extraExportedTypes)
         End Function
@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         </Document>
                     </Project>
                 </Workspace>,
-                CreateLazyProviders(extraCompletionProviders, LanguageNames.CSharp),
+                CreateLazyProviders(extraCompletionProviders, LanguageNames.CSharp, roles:=Nothing),
                 CreateLazyProviders(extraSignatureHelpProviders, LanguageNames.CSharp),
                 extraExportedTypes)
         End Function
@@ -128,21 +128,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Optional extraExportedTypes As List(Of Type) = Nothing) As TestState
             Return New TestState(
                 workspaceElement,
-                CreateLazyProviders(extraCompletionProviders, LanguageNames.VisualBasic),
+                CreateLazyProviders(extraCompletionProviders, LanguageNames.VisualBasic, roles:=Nothing),
                 CreateLazyProviders(extraSignatureHelpProviders, LanguageNames.VisualBasic),
                 extraExportedTypes)
-        End Function
-
-
-        Private Shared Function CreateLazyProviders(Of TProvider)(
-                providers As TProvider(),
-                languageName As String) As IEnumerable(Of Lazy(Of TProvider, OrderableLanguageMetadata))
-            If providers Is Nothing Then
-                Return Array.Empty(Of Lazy(Of TProvider, OrderableLanguageMetadata))()
-            End If
-
-            Return providers.Select(Function(p) New Lazy(Of TProvider, OrderableLanguageMetadata)(
-                                        Function() p, New TestOrderableLanguageMetadata(languageName), True))
         End Function
 
 #Region "IntelliSense Operations"

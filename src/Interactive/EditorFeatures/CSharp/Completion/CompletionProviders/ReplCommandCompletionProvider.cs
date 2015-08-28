@@ -23,7 +23,6 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
 {
     [ExportCompletionProvider("ReplCommandCompletionProvider", LanguageNames.CSharp)]
-    [ContentType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName)]
     [TextViewRole(PredefinedInteractiveTextViewRoles.InteractiveTextViewRole)]
     [Order(Before = PredefinedCompletionProviderNames.Keyword)]
     internal class ReplCommandCompletionProvider : AbstractCompletionProvider
