@@ -156,19 +156,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             private void AddExceptions(ISymbol symbol)
             {
-                // All values returned by DocumentationComment.ExceptionTypes are normalized to the form:
-                //  T:Fully.Qualified.Name
-                // To turn these strings into ITypeSymbols, a quick sanity check is performed for the "T:"
-                // prefix before it is trimmed off and parsed.  All strings that don't parse are simply
-                // ignored
+                // clean up the list of possible exceptions by de-duplicating and ordering them
                 var exceptions =
                     symbol.GetDocumentationComment().ExceptionTypes
                     .Distinct()
-                    .Where(e => e.StartsWith("T:"))
-                    .Select(e => e.Substring(2))
                     .OrderBy(e => e)
-                    .Select(_semanticModel.Compilation.GetTypeByMetadataName)
-                    .WhereNotNull();
+                    .Select(e => DocumentationCommentId.GetFirstSymbolForDeclarationId(e, _semanticModel.Compilation))
+                    .WhereNotNull()
+                    .ToList();
                 if (exceptions.Any())
                 {
                     var parts = new List<SymbolDisplayPart>();
