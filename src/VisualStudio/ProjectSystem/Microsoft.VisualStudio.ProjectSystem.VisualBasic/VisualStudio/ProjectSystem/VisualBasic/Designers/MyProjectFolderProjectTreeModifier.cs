@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic.Designers
 
         public override bool IsExpandable
         {
-            get { return true; }
+            get { return false; }
         }
 
         protected override string GetAppDesignerFolderName()

@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
                         resetExpandedIcon: icon == null,
                         capabilities: DefaultCapabilities.Union(item.Capabilities));
 
-            if (IsExpandable)
+            if (!IsExpandable)
             {
                 item = HideAllChildren(item);
             }
