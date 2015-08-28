@@ -632,6 +632,51 @@ $$
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void NotAfterExisitingSemicolon()
+        {
+            Test(@"class TestClass
+{
+    private int i;
+    $$
+}", @"class TestClass
+{
+    private int i;$$
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void NotAfterCloseBraceInMethod()
+        {
+            Test(@"class TestClass
+{
+    void Test() { }
+    $$
+}", @"class TestClass
+{
+    void Test() { }$$
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void NotAfterCloseBraceInStatement()
+        {
+            Test(@"class TestClass
+{
+    void Test()
+    {
+        if (true) { }
+        $$
+    }
+}", @"class TestClass
+{
+    void Test()
+    {
+        if (true) { }$$
+    }
+}");
+        }
+
         protected override TestWorkspace CreateWorkspace(string[] code)
         {
             return CSharpWorkspaceFactory.CreateWorkspaceFromLines(code);
