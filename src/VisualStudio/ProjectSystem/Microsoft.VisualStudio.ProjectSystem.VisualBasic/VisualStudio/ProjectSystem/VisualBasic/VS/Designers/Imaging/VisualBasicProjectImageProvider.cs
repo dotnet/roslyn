@@ -2,14 +2,13 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Imaging;
-using Microsoft.VisualStudio.ProjectSystem.Designers;
 using Microsoft.VisualStudio.ProjectSystem.Designers.Imaging;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 
 namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic.VS.Designers.Imaging
 {
     /// <summary>
-    ///     Provides VIsual Basic project images.
+    ///     Provides Visual Basic project images.
     /// </summary>
     [Export(typeof(IProjectImageProvider))]
     [AppliesTo(ProjectCapability.VisualBasic)]
