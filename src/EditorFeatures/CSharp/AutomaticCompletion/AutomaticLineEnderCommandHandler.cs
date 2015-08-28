@@ -102,7 +102,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             var node = owningNode.TypeSwitch(
                 (UsingDirectiveSyntax n) => (SyntaxNode)SyntaxFactory.ParseCompilationUnit(textToParse, options: (CSharpParseOptions)tree.Options),
                 (BaseFieldDeclarationSyntax n) => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options),
-                (StatementSyntax n) => SyntaxFactory.ParseStatement(textToParse, options: (CSharpParseOptions)tree.Options));
+                (StatementSyntax n) => SyntaxFactory.ParseStatement(textToParse, options: (CSharpParseOptions)tree.Options),
+                (BasePropertyDeclarationSyntax n) => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options),
+                (BaseMethodDeclarationSyntax n) => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options));
 
             if (node == null)
             {
@@ -217,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         }
 
         /// <summary>
-        /// find owning usings/field/statement of the given position
+        /// find owning usings/field/statement/expression-bodied member of the given position
         /// </summary>
         private static SyntaxNode GetOwningNode(SyntaxNode root, int position)
         {
@@ -229,8 +231,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             }
 
             return token.GetAncestors<SyntaxNode>()
-                        .Where(n => n is StatementSyntax || n is BaseFieldDeclarationSyntax || n is UsingDirectiveSyntax)
+                        .Where(AllowedConstructs)
+                        .Select(OwningNode)
                         .FirstOrDefault();
+        }
+
+        private static bool AllowedConstructs(SyntaxNode n)
+        {
+            return n is StatementSyntax ||
+                   n is BaseFieldDeclarationSyntax ||
+                   n is UsingDirectiveSyntax ||
+                   n is ArrowExpressionClauseSyntax;
+        }
+
+        private static SyntaxNode OwningNode(SyntaxNode n)
+        {
+            return n is ArrowExpressionClauseSyntax ? n.Parent : n;
         }
     }
 }
