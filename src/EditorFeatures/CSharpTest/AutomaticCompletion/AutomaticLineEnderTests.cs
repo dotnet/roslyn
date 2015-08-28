@@ -414,7 +414,7 @@ class TestClass
             Test(@"using System;
 class TestClass
 {
-    public int Prop => Method1(delegate()
+    public int Prop => Method1(delegate ()
     {
         return 8;
     });
