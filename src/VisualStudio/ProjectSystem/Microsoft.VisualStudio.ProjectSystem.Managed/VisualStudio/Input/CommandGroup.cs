@@ -7,7 +7,7 @@ namespace Microsoft.VisualStudio.Input
     /// </summary>
     internal static class CommandGroup
     {
-        public const string UIHierarchyWindow = "{60481700-078B-11D1-AAF8-00A0C9055A90}";
-        public const string VisualStudioStandard97 = "{5EFC7975-14BC-11CF-9B2B-00AA00573819}";
+        public const string UIHierarchyWindow = VSConstants.CMDSETID.UIHierarchyWindowCommandSet_string;
+        public const string VisualStudioStandard97 = VSConstants.CMDSETID.StandardCommandSet97_string;
     }
 }
