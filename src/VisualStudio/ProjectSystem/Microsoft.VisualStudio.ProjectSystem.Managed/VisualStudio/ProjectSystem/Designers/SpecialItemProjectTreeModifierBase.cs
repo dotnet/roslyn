@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
             get;
         }
 
-        public abstract bool HideChildren
+        public abstract bool IsExpandable
         {
             get;
         }
@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
                         resetExpandedIcon: icon == null,
                         capabilities: DefaultCapabilities.Union(item.Capabilities));
 
-            if (HideChildren)
+            if (IsExpandable)
             {
                 item = HideAllChildren(item);
             }

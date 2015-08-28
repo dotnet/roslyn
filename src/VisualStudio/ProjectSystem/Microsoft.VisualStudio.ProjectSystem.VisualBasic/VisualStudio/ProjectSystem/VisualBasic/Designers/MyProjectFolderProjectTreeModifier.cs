@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic.Designers
         {
         }
 
-        public override bool HideChildren
+        public override bool IsExpandable
         {
             get { return true; }
         }
