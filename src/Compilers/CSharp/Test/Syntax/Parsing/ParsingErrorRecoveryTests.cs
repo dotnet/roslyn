@@ -5494,7 +5494,7 @@ class C
             Assert.False(pd.AccessorList.OpenBraceToken.IsMissing);
             Assert.NotNull(pd.AccessorList.CloseBraceToken);
             Assert.True(pd.AccessorList.CloseBraceToken.IsMissing);
-            Assert.Equal(2, pd.AccessorList.Accessors.Count);
+            Assert.Equal(1, pd.AccessorList.Accessors.Count);
             var acc = pd.AccessorList.Accessors[0];
             Assert.Equal(SyntaxKind.GetAccessorDeclaration, acc.Kind());
             Assert.NotNull(acc.Keyword);
@@ -5508,10 +5508,9 @@ class C
             Assert.True(acc.Body.CloseBraceToken.IsMissing);
             Assert.Equal(SyntaxKind.None, acc.SemicolonToken.Kind());
 
-            Assert.Equal(3, file.Errors().Length);
+            Assert.Equal(2, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_GetOrSetExpected, file.Errors()[1].Code);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[2].Code);
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[1].Code);
         }
 
         [Fact]

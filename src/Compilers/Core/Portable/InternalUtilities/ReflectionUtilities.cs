@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 
 namespace Roslyn.Utilities
 {
@@ -72,6 +74,35 @@ namespace Roslyn.Utilities
             }
 
             return (T)(object)methodInfo.CreateDelegate(typeof(T));
+        }
+
+        public static T InvokeConstructor<T>(this ConstructorInfo constructorInfo, params object[] args)
+        {
+            if (constructorInfo == null)
+            {
+                return default(T);
+            }
+
+            try
+            {
+                return (T)constructorInfo.Invoke(args);
+            }
+            catch (TargetInvocationException e)
+            {
+                ExceptionDispatchInfo.Capture(e.InnerException).Throw();
+                Debug.Assert(false, "Unreachable");
+                return default(T);
+            }
+        }
+
+        public static object InvokeConstructor(this ConstructorInfo constructorInfo, params object[] args)
+        {
+            return constructorInfo.InvokeConstructor<object>(args);
+        }
+
+        public static T Invoke<T>(this MethodInfo methodInfo, object obj, params object[] args)
+        {
+            return (T)methodInfo.Invoke(obj, args);
         }
     }
 }

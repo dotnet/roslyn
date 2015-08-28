@@ -37,6 +37,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
             Assert.Equal(fixedExpectations, normalized)
         End Sub
 
+        Private Sub VerifySyntaxRaw(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)
+            Assert.IsAssignableFrom(GetType(TSyntax), type)
+            Dim normalized = type.ToFullString()
+            Assert.Equal(expectedText, normalized)
+        End Sub
+
         Private Function ParseCompilationUnit(text As String) As CompilationUnitSyntax
             Dim fixedText = text.Replace(vbLf, vbCrLf)
             Return SyntaxFactory.ParseCompilationUnit(fixedText)
@@ -1897,6 +1903,88 @@ End Interface</x>.Value)
 #End Region
 
 #Region "Add/Insert/Remove/Get/Set members & elements"
+
+        <Fact>
+        Public Sub TestRemoveNodeInTrivia()
+            Dim code = "
+'''<summary> ... </summary>
+Public Class C
+End Class
+"
+            Dim cu = SyntaxFactory.ParseCompilationUnit(code)
+            Dim cls = cu.Members(0)
+            Dim summary = cls.DescendantNodes(descendIntoTrivia:=True).OfType(Of XmlElementSyntax)().First()
+            Dim newCu = _g.RemoveNode(cu, summary)
+            VerifySyntaxRaw(Of CompilationUnitSyntax)(
+                newCu,
+                "
+
+Public Class C
+End Class
+")
+        End Sub
+
+        <Fact>
+        Public Sub TestReplaceNodeInTrivia()
+            Dim code = "
+'''<summary> ... </summary>
+Public Class C
+End Class
+"
+            Dim cu = SyntaxFactory.ParseCompilationUnit(code)
+            Dim cls = cu.Members(0)
+            Dim summary = cls.DescendantNodes(descendIntoTrivia:=True).OfType(Of XmlElementSyntax)().First()
+            Dim summary2 = summary.WithContent(Nothing)
+            Dim newCu = _g.ReplaceNode(cu, summary, summary2)
+            VerifySyntaxRaw(Of CompilationUnitSyntax)(
+                newCu,
+                "
+'''<summary></summary>
+Public Class C
+End Class
+")
+        End Sub
+
+        <Fact>
+        Public Sub TestInsertNodeAfterInTrivia()
+            Dim code = "
+'''<summary> ... </summary>
+Public Class C
+End Class
+"
+            Dim cu = SyntaxFactory.ParseCompilationUnit(code)
+            Dim cls = cu.Members(0)
+            Dim text = cls.DescendantNodes(descendIntoTrivia:=True).OfType(Of XmlTextSyntax)().First()
+            Dim newCu = _g.InsertNodesAfter(cu, text, {text})
+            VerifySyntaxRaw(Of CompilationUnitSyntax)(
+                newCu,
+                "
+'''<summary> ...  ... </summary>
+Public Class C
+End Class
+")
+        End Sub
+
+        <Fact>
+        Public Sub TestInsertNodeBeforeInTrivia()
+            Dim code = "
+'''<summary> ... </summary>
+Public Class C
+End Class
+"
+            Dim cu = SyntaxFactory.ParseCompilationUnit(code)
+            Dim cls = cu.Members(0)
+            Dim text = cls.DescendantNodes(descendIntoTrivia:=True).OfType(Of XmlTextSyntax)().First()
+            Dim newCu = _g.InsertNodesBefore(cu, text, {text})
+            VerifySyntaxRaw(Of CompilationUnitSyntax)(
+                newCu,
+                "
+'''<summary> ...  ... </summary>
+Public Class C
+End Class
+")
+        End Sub
+
         <Fact>
         Public Sub TestDeclarationKind()
             Assert.Equal(DeclarationKind.CompilationUnit, _g.GetDeclarationKind(_g.CompilationUnit()))
