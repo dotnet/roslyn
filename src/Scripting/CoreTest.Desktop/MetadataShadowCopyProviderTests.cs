@@ -20,11 +20,21 @@ namespace Roslyn.Services.UnitTests
     {
         private readonly MetadataShadowCopyProvider _provider;
 
-        private static readonly ImmutableArray<string> s_systemNoShadowCopyDirectories = ImmutableArray.Create(
-                FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.Windows)),
-                FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles)),
-                FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86)),
-                FileUtilities.NormalizeDirectoryPath(RuntimeEnvironment.GetRuntimeDirectory()));
+        private static readonly ImmutableArray<string> s_systemNoShadowCopyDirectories;
+
+        static MetadataShadowCopyProviderTests()
+        {
+            IEnumerable<string> list = new List<string>() {
+                Environment.GetFolderPath(Environment.SpecialFolder.Windows),
+                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
+                RuntimeEnvironment.GetRuntimeDirectory()};
+
+            // On Mono special folders can be empty strings.
+            list = list.Where(e => e != string.Empty).Select(e => FileUtilities.NormalizeDirectoryPath(e));
+
+            s_systemNoShadowCopyDirectories = ImmutableArray.Create(list.ToArray());
+        }
 
         public MetadataShadowCopyProviderTests()
         {
@@ -41,6 +51,9 @@ namespace Roslyn.Services.UnitTests
         [Fact]
         public void Errors()
         {
+            var root = Path.GetPathRoot(System.Environment.CurrentDirectory);
+            var dllInRoot = Path.Combine(root, "foo.dll");
+
             Assert.Throws<ArgumentNullException>(() => _provider.NeedsShadowCopy(null));
             Assert.Throws<ArgumentException>(() => _provider.NeedsShadowCopy("c:foo.dll"));
             Assert.Throws<ArgumentException>(() => _provider.NeedsShadowCopy("bar.dll"));
@@ -59,14 +72,14 @@ namespace Roslyn.Services.UnitTests
             Assert.Throws<ArgumentException>(() => _provider.GetReference(@"\bar.dll"));
             Assert.Throws<ArgumentException>(() => _provider.GetReference(@"../bar.dll"));
 
-            Assert.Throws<ArgumentOutOfRangeException>(() => _provider.GetMetadataShadowCopy(@"c:\foo.dll", (MetadataImageKind)Byte.MaxValue));
+            Assert.Throws<ArgumentOutOfRangeException>(() => _provider.GetMetadataShadowCopy(dllInRoot, (MetadataImageKind)Byte.MaxValue));
             Assert.Throws<ArgumentNullException>(() => _provider.GetMetadataShadowCopy(null, MetadataImageKind.Assembly));
             Assert.Throws<ArgumentException>(() => _provider.GetMetadataShadowCopy("c:foo.dll", MetadataImageKind.Assembly));
             Assert.Throws<ArgumentException>(() => _provider.GetMetadataShadowCopy("bar.dll", MetadataImageKind.Assembly));
             Assert.Throws<ArgumentException>(() => _provider.GetMetadataShadowCopy(@"\bar.dll", MetadataImageKind.Assembly));
             Assert.Throws<ArgumentException>(() => _provider.GetMetadataShadowCopy(@"../bar.dll", MetadataImageKind.Assembly));
 
-            Assert.Throws<ArgumentOutOfRangeException>(() => _provider.GetMetadata(@"c:\foo.dll", (MetadataImageKind)Byte.MaxValue));
+            Assert.Throws<ArgumentOutOfRangeException>(() => _provider.GetMetadata(dllInRoot, (MetadataImageKind)Byte.MaxValue));
             Assert.Throws<ArgumentNullException>(() => _provider.GetMetadata(null, MetadataImageKind.Assembly));
             Assert.Throws<ArgumentException>(() => _provider.GetMetadata("c:foo.dll", MetadataImageKind.Assembly));
         }

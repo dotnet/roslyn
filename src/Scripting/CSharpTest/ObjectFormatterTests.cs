@@ -347,7 +347,8 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests
 
             options = new ObjectFormattingOptions(maxLineLength: 20, memberFormat: MemberDisplayFormat.List);
             var str = CSharpObjectFormatter.Instance.FormatObject(obj, options);
-            Assert.Equal("LongMembers {\r\n  LongName012345 ...\r\n  LongValue: \"01 ...\r\n}\r\n", str);
+            Assert.Equal("LongMembers {" + Environment.NewLine + "  LongName012345 ..." + Environment.NewLine +
+                    "  LongValue: \"01 ..." + Environment.NewLine + "}" + Environment.NewLine, str);
         }
 
         [Fact]
@@ -413,17 +414,6 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests
             Array z = Array.CreateInstance(typeof(Object), lengths: new int[] { 0, 0 }, lowerBounds: new int[] { 0, 0 });
             str = CSharpObjectFormatter.Instance.FormatObject(z, s_inline);
             Assert.Equal("object[0, 0] { }", str);
-        }
-
-        [Fact]
-        public void DebuggerProxy_FrameworkTypes_IEnumerable()
-        {
-            string str;
-            object obj;
-
-            obj = Enumerable.Range(0, 10);
-            str = CSharpObjectFormatter.Instance.FormatObject(obj, s_inline);
-            Assert.Equal("RangeIterator { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }", str);
         }
 
         [Fact]

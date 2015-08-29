@@ -1687,27 +1687,6 @@ fruit.Skip(1).Where(s => s.Length > 4).Count()
             Assert.Equal(2, result);
         }
 
-        [WorkItem(541166)]
-        [Fact]
-        public void DefineExtensionMethods()
-        {
-            var engine = new CSharpScriptEngine();
-            var session = engine.CreateSession();
-            session.AddReference(TestReferences.NetFx.v4_0_30319.System_Core);
-
-            // No error for extension method defined in interactive session.
-            session.Execute("static void E(this object o) { }");
-
-            ScriptingTestHelpers.AssertCompilationError(session, "void F(this object o) { }",
-                // (1,6): error CS1105: Extension method must be static
-                // void F(this object o) { }
-                Diagnostic(ErrorCode.ERR_BadExtensionMeth, "F").WithLocation(1, 6));
-
-            ScriptingTestHelpers.AssertCompilationError(session, "static void G(this dynamic o) { }",
-                // error CS1103: The first parameter of an extension method cannot be of type 'dynamic'
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic"));
-        }
-
         [Fact]
         public void ImplicitlyTypedFields()
         {
