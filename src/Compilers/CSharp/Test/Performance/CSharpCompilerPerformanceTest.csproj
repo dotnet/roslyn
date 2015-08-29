@@ -35,14 +35,14 @@
       <HintPath>..\..\..\..\..\packages\xunit.extensibility.execution.2.1.0-beta4-build3109\lib\net45\xunit.execution.desktop.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="xunit.performance.core, Version=1.0.0.9, Culture=neutral, PublicKeyToken=67066efe964d3b03, processorArchitecture=MSIL">
+    <Reference Include="xunit.performance.core, Version=1.0.0.10, Culture=neutral, PublicKeyToken=67066efe964d3b03, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\packages\Microsoft.DotNet.xunit.performance.1.0.0-alpha-build0009\lib\net46\xunit.performance.core.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.DotNet.xunit.performance.1.0.0-alpha-build0011\lib\net46\xunit.performance.core.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="xunit.performance.execution.desktop, Version=1.0.0.9, Culture=neutral, PublicKeyToken=67066efe964d3b03, processorArchitecture=MSIL">
+    <Reference Include="xunit.performance.execution.desktop, Version=1.0.0.10, Culture=neutral, PublicKeyToken=67066efe964d3b03, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\packages\Microsoft.DotNet.xunit.performance.1.0.0-alpha-build0009\lib\net46\xunit.performance.execution.desktop.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.DotNet.xunit.performance.1.0.0-alpha-build0011\lib\net46\xunit.performance.execution.desktop.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
