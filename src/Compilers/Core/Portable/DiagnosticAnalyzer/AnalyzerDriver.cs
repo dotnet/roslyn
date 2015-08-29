@@ -889,7 +889,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockAnalyzerAction>> _lazyCodeBlockEndActionsByAnalyzer;
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockAnalyzerAction>> _lazyCodeBlockActionsByAnalyzer;
 
-        private readonly ConditionalWeakTable<SyntaxReference, DeclarationAnalysisData> _declarationAnalysisDataCache;
+        private readonly ConditionalWeakTable<Compilation, Dictionary<SyntaxReference, DeclarationAnalysisData>> _declarationAnalysisDataCache;
         private class DeclarationAnalysisData
         {
             /// <summary>
@@ -927,7 +927,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal AnalyzerDriver(ImmutableArray<DiagnosticAnalyzer> analyzers, Func<SyntaxNode, TLanguageKindEnum> getKind, AnalyzerManager analyzerManager) : base(analyzers, analyzerManager)
         {
             _getKind = getKind;
-            _declarationAnalysisDataCache = new ConditionalWeakTable<SyntaxReference, DeclarationAnalysisData>();
+            _declarationAnalysisDataCache = new ConditionalWeakTable<Compilation, Dictionary<SyntaxReference, DeclarationAnalysisData>>();
         }
 
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>> NodeActionsByAnalyzerAndKind
@@ -1091,15 +1091,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                 }
             }
-            else
+            else if (analysisStateOpt != null)
             {
-                analysisStateOpt?.MarkDeclarationsComplete(symbol, analysisScope.Analyzers);
+                analysisStateOpt.MarkDeclarationsComplete(symbol, analysisScope.Analyzers);
+
+                foreach (var decl in symbol.DeclaringSyntaxReferences)
+                {
+                    ClearCachedAnalysisDataIfAnalyzed(decl, decl.GetSyntax(), symbolEvent.Compilation, analysisStateOpt);
+                }
             }
         }
 
         private DeclarationAnalysisData GetOrComputeDeclarationAnalysisData(
             SyntaxReference declaration,
             Func<DeclarationAnalysisData> computeDeclarationAnalysisData,
+            Compilation compilation,
             bool cacheAnalysisData)
         {
             if (!cacheAnalysisData)
@@ -1107,7 +1113,45 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return computeDeclarationAnalysisData();
             }
 
-            return _declarationAnalysisDataCache.GetValue(declaration, decl => computeDeclarationAnalysisData());
+            // NOTE: The driver guarantees that only a single thread will be performing analysis on individual declaration.
+            // However, there might be multiple threads analyzing different trees at the same time, so we need to lock the map for read/write.
+
+            var map = _declarationAnalysisDataCache.GetValue(compilation, _ => new Dictionary<SyntaxReference, DeclarationAnalysisData>());
+            
+            DeclarationAnalysisData data;
+            lock (map)
+            {
+                if (map.TryGetValue(declaration, out data))
+                {
+                    return data;
+                }
+            }
+
+            data = computeDeclarationAnalysisData();
+
+            lock (map)
+            {
+                map[declaration] = data;
+            }
+
+            return data;
+        }
+
+        private void ClearCachedAnalysisDataIfAnalyzed(SyntaxReference declaration, SyntaxNode node, Compilation compilation, AnalysisState analysisState)
+        {
+            Debug.Assert(analysisState != null);
+
+            Dictionary<SyntaxReference, DeclarationAnalysisData> map;
+            if (!_declarationAnalysisDataCache.TryGetValue(compilation, out map) ||
+                !analysisState.IsDeclarationComplete(node))
+            {
+                return;
+            }
+
+            lock (map)
+            {
+                map.Remove(declaration);
+            }
         }
 
         private DeclarationAnalysisData ComputeDeclarationAnalysisData(
@@ -1166,6 +1210,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var declarationAnalysisData = GetOrComputeDeclarationAnalysisData(
                 decl,
                 () => ComputeDeclarationAnalysisData(symbol, decl, semanticModel, shouldExecuteSyntaxNodeActions, analysisScope, cancellationToken),
+                symbolEvent.Compilation,
                 cacheAnalysisData);
 
             if (!analysisScope.ShouldAnalyze(declarationAnalysisData.TopmostNodeForAnalysis))
@@ -1220,6 +1265,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 foreach (var analyzer in analysisScope.Analyzers)
                 {
                     analysisStateOpt.MarkDeclarationComplete(decl, analyzer);
+                }
+
+                if (cacheAnalysisData)
+                {
+                    ClearCachedAnalysisDataIfAnalyzed(decl, declarationAnalysisData.DeclaringReferenceSyntax, symbolEvent.Compilation, analysisStateOpt);
                 }
             }
         }
