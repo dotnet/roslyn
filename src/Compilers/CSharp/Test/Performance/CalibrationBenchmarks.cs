@@ -25,13 +25,4 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceTests
             Thread.Sleep(durationInMilliseconds);
         }
     }
-
-    public class Facts
-    {
-        [Fact]
-        public void EmptyFact()
-        {
-
-        }
-    }
 }

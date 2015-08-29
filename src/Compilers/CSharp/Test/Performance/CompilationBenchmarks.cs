@@ -1,14 +1,35 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
+﻿using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.Xunit.Performance;
 
-namespace CSharpCompilerPerformanceTest
+namespace Microsoft.CodeAnalysis.CSharp.PerformanceTests
 {
-    public class CompilationBenchmarks
+    public class CompilationBenchmarks : CSharpTestBase
     {
         [Benchmark]
         public void EmptyCompilation()
         {
-            var compilation = CSharpCompilation.Create("empty");
+            var compilation = CreateCSharpCompilation(code: string.Empty);
+        }
+
+        [Benchmark]
+        public void CompileHelloWorld()
+        {
+            const string helloWorldCSharpSource = @"using static System.Console;
+
+namespace HelloApplication
+{
+    class Program
+    {
+        static void Main()
+        {
+             WriteLine(""Hello, World"");
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(helloWorldCSharpSource);
+            var errors = compilation.GetDiagnostics();
         }
     }
 }
