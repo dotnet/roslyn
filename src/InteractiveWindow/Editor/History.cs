@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             //If you were in middle of navigating history and entered a new command at the 
             //prompt ( not the one that was returned by history navigation), then the history 
-            //navigation pointer is reset. If you submit a command that you got from history then
+            //navigation pointer is reset. However if you submit a command that you got from history then
             //the history navigation pointer is maintained and subsequent navigation starts from
             //the same pointer location
             if (_history[(_current == -1) ? Length - 1 : _current].Text != text)
@@ -164,16 +164,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         internal Entry GetNext(string pattern)
         {
-            //if you are at the last history entry or history navigation pointer is
-            //not initialized then return null as there is no next entry
-            if ((_current == Length - 1) || (_current == -1)) return null;
             return Get(pattern, step: +1);
         }
 
         internal Entry GetPrevious(string pattern)
         {
-            //if at first entry then return null
-            if (_current == 0) return null;
             return Get(pattern, step: -1);
         }
 
@@ -181,68 +176,84 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             Debug.Assert(step == -1 || step == +1);
 
+            int end;
             bool wasLive = _live;
-            _live = true;
+            bool wasUninitialized = (_current == -1);
+            bool patternEmpty = string.IsNullOrWhiteSpace(pattern);
 
+            _live = true;
             if (Length == 0)
             {
                 return null;
             }
 
-            bool patternEmpty = string.IsNullOrWhiteSpace(pattern);
-
-            int start, end;
             if (step > 0)
             {
-                start = 0;
                 end = Length - 1;
-            }
-            else
-            {
-                start = Length - 1;
-                end = 0;
-            }
-
-            // no search in progress:
-            if (_current == -1)
-            {
-                _current = start;
-            }
-
-            int visited = 0;
-            while (true)
-            {
-                if (_current == end)
+                if (wasUninitialized) return null;
+             
+                while (true)
                 {
-                    if (visited < Length)
+                    if (_current == end)
                     {
-                        _current = start;
+                        return null;
                     }
                     else
                     {
-                        // we cycled through the entire history:
+                        _current += step;
+                    }
+
+                    Entry entry;
+                    if (TryMatch(pattern, out entry)) return entry;
+                }
+
+            }
+            else  //step == -1
+            {
+                end = 0;
+                if (wasUninitialized)
+                {
+                    _current = Length - 1;
+                    Entry entry;
+                    if (TryMatch(pattern, out entry)) return entry;
+                }
+
+                while (true)
+                {
+                    if (_current == end)
+                    {
                         return null;
                     }
-                }
-                else if (!wasLive && patternEmpty)
-                {
-                    // Handles up up up enter up/down
-                    // Do nothing - when it is up after enter as want to return the same history entry again
-                    // Increment _current by step - when it is down after enter as we want to return the next entry in this case
-                    if (step > 0) _current += step;
-                }
-                else
-                {
-                    _current += step;
-                }
+                    else if (!wasLive && patternEmpty)
+                    {
+                        // if history pointer was uninitialized then add step else do nothing.
+                        // We want to return the same history entry again in cases like up, up, up, enter, up
+                        if(wasUninitialized) _current += step;
+                    }
+                    else
+                    {
+                        _current += step;
+                    }
 
-                var entry = _history[_current];
-                if (patternEmpty || Matches(entry.Text, pattern))
-                {
-                    return entry;
+                    Entry entry;
+                    if (TryMatch(pattern, out entry)) return entry;
                 }
+            }
+        }
 
-                visited++;
+        private bool TryMatch(string pattern, out Entry entry)
+        {
+            bool patternEmpty = string.IsNullOrWhiteSpace(pattern);
+            var _entry = _history[_current];
+            if (patternEmpty || Matches(_entry.Text, pattern))
+            {
+                entry = _entry;
+                return true;
+            }
+            else
+            {
+                entry = null;
+                return false;
             }
         }
 
