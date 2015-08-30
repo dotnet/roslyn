@@ -63,8 +63,8 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         private static readonly Func<int[], string> _rangeInspector = ranges =>
             ranges.Length == 0 ? "NoRange" : "new[] { " + string.Join(", ", ranges.Select(i => "0x" + i.ToString("X2"))) + " }";
 
-        private static readonly int[] NoTokens = new int[0];
-        private static readonly int[] NoRange = new int[0];
+        private static readonly int[] NoTokens = Array.Empty<int>();
+        private static readonly int[] NoRange = Array.Empty<int>();
         private static readonly int NoOffset = int.MaxValue;
 
         [Fact]

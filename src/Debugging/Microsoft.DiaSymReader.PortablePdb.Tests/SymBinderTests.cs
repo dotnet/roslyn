@@ -2,7 +2,6 @@
 
 using System;
 using System.IO;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -17,8 +16,8 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         {
             var importer = new SymMetadataImport(new MemoryStream(TestResources.Documents.PortableDll));
 
-            string filePath = PortableShim.Path.GetTempFileName();
-            PortableShim.File.WriteAllBytes(filePath, TestResources.Documents.PortablePdb);
+            string filePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            File.WriteAllBytes(filePath, TestResources.Documents.PortablePdb);
 
             string searchPath = null;
 
@@ -34,7 +33,7 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
 
             Assert.Throws<ObjectDisposedException>(() => symReader.GetDocuments(0, out actualCount, null));
 
-            PortableShim.File.Delete(filePath);
+            File.Delete(filePath);
         }
 
         [Fact]
