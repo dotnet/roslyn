@@ -61,7 +61,6 @@
     </Reference>  
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="VisualBasicScriptEngine.vb" />
     <Compile Include="InteractiveSessionTests.vb" />
     <Compile Include="ObjectFormatterTests.vb" />
     <Compile Include="ScriptTests.vb" />

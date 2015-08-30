@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     {
                         var options = result.Options;
                         var state = result.State;
-                        script = Compile(state, text, null, ref options);
+                        script = Compile(state?.Script, text, null, ref options);
                         result = new TaskResult(options, state);
                     }
                     catch (CompilationErrorException e)
@@ -738,22 +738,19 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return result;
             }
 
-            private Script<object> Compile(ScriptState<object> previous, string text, string path, ref ScriptOptions options)
+            private Script<object> Compile(Script previousScript, string text, string path, ref ScriptOptions options)
             {
-                Script script = _repl.CreateScript(text).WithOptions(options);
+                Script script;
 
-                if (previous != null)
+                var scriptOptions = options.WithPath(path).WithIsInteractive(path == null);
+
+                if (previousScript != null)
                 {
-                    script = script.WithPrevious(previous.Script);
+                    script = previousScript.ContinueWith(text, scriptOptions);
                 }
                 else
                 {
-                    script = script.WithGlobalsType(_hostObject.GetType());
-                }
-
-                if (path != null)
-                {
-                    script = script.WithPath(path).WithOptions(script.Options.WithIsInteractive(false));
+                    script = _repl.CreateScript(text).WithOptions(scriptOptions).WithGlobalsType(_hostObject.GetType());
                 }
 
                 // force build so exception is thrown now if errors are found.
@@ -824,7 +821,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         {
                             var options = result.Options;
                             var state = result.State;
-                            script = Compile(state, content, fullPath, ref options);
+                            script = Compile(state?.Script, content, fullPath, ref options);
                             result = new TaskResult(options, state);
                         }
                         catch (CompilationErrorException e)
@@ -886,10 +883,14 @@ namespace Microsoft.CodeAnalysis.Interactive
                         try
                         {
                             var state = result.State;
-                            var globals = state ?? (object)_hostObject;
-                            state = script.RunAsync(globals, CancellationToken.None);
-                            var value = await state.ReturnValue.ConfigureAwait(false);
-                            return new ExecuteResult(result.With(state), value, null, true);
+
+                            var task = (state == null) ?
+                                script.RunAsync(_hostObject, CancellationToken.None) :
+                                script.ContinueAsync(state, CancellationToken.None);
+
+                            state = await task.ConfigureAwait(false);
+
+                            return new ExecuteResult(result.With(state), state.ReturnValue, null, true);
                         }
                         catch (Exception e)
                         {
