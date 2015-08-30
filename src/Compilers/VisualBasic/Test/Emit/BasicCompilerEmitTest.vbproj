@@ -159,7 +159,7 @@
     <Compile Include="Emit\NoPiaEmbedTypes.vb" />
     <Compile Include="Emit\OptionalArgumentsTests.vb" />
     <Compile Include="Emit\ResourceTests.vb" />
-    <Compile Include="Emit\ScriptTests.vb" />
+    <Compile Include="CodeGen\CodeGenScriptTests.vb" />
     <Compile Include="ErrorHandling.vb" />
     <Compile Include="ExpressionTrees\CodeGenExprLambda.vb" />
     <Compile Include="ExpressionTrees\ExpTreeTestResources.Designer.vb" />

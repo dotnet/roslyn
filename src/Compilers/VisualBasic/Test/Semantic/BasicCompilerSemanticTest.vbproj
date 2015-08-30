@@ -195,6 +195,7 @@
     <Compile Include="Semantics\QueryExpressions_LookupSymbols.vb" />
     <Compile Include="Semantics\QueryExpressions_SemanticModel.vb" />
     <Compile Include="Semantics\RedimStatementTests.vb" />
+    <Compile Include="Semantics\ScriptSemanticsTests.vb" />
     <Compile Include="Semantics\SelectCaseTests.vb" />
     <Compile Include="Semantics\SyncLockTests.vb" />
     <Compile Include="Semantics\SyntaxTreeRootTests.vb" />

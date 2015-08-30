@@ -95,6 +95,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommandLineDiagnosticFormatterTests.cs" />
+    <Compile Include="CommandLineScriptTests.cs" />
     <Compile Include="CommandLineTests.cs" />
     <Compile Include="CommandLineTestResources.Designer.cs">
       <AutoGen>True</AutoGen>
