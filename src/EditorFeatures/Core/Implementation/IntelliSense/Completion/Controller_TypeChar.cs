@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             if (Workspace.TryGetWorkspace(this.SubjectBuffer.AsTextContainer(), out workspace))
             {
                 var extensionProviders = workspace.Services.SelectMatchingExtensionValues(
-                    _allCompletionProviders, this.SubjectBuffer);
+                    _allCompletionProviders, this.SubjectBuffer.ContentType, this.TextView.Roles);
 
                 return defaultProviders.Concat(extensionProviders.Where(p => !(p is SnippetCompletionProvider)));
             }
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             if (Workspace.TryGetWorkspace(this.SubjectBuffer.AsTextContainer(), out workspace))
             {
                 var extensionProviders = workspace.Services.SelectMatchingExtensionValues(
-                    _allCompletionProviders, this.SubjectBuffer);
+                    _allCompletionProviders, this.SubjectBuffer.ContentType);
 
                 return extensionProviders.OfType<SnippetCompletionProvider>();
             }

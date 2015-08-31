@@ -264,7 +264,6 @@
     <Compile Include="IntelliSense\SignatureHelpControllerTests.vb" />
     <Compile Include="IntelliSense\QuickInfoControllerTests.vb" />
     <Compile Include="IntelliSense\ModelTests.vb" />
-    <Compile Include="IntelliSense\OrderableLanguageMetadata.vb" />
     <Compile Include="IntelliSense\SignatureHelpWaiter.vb" />
     <Compile Include="IntelliSense\TestCompletionPresenter.vb" />
     <Compile Include="IntelliSense\TestCompletionPresenterSession.vb" />
