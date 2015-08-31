@@ -1715,9 +1715,102 @@ End Namespace
             Dim tree3 = SyntaxFactory.ParseSyntaxTree("", VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic11))
 
             Dim assemblyName = GetUniqueName()
-            Dim CompilationOptions = New VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-            VisualBasic.VisualBasicCompilation.Create(assemblyName, {tree1, tree2}, {MscorlibRef}, CompilationOptions)
-            Assert.Throws(Of ArgumentException)(Function() VisualBasic.VisualBasicCompilation.Create(assemblyName, {tree1, tree3}, {MscorlibRef}, CompilationOptions))
+            Dim CompilationOptions = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+            VisualBasicCompilation.Create(assemblyName, {tree1, tree2}, {MscorlibRef}, CompilationOptions)
+            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.Create(assemblyName, {tree1, tree3}, {MscorlibRef}, CompilationOptions))
+        End Sub
+
+        <ClrOnlyFact(ClrOnlyReason.Submission)>
+        Public Sub SubmissionCompilation_Errors()
+            Dim genericParameter = GetType(List(Of)).GetGenericArguments()(0)
+            Dim open = GetType(Dictionary(Of,)).MakeGenericType(GetType(Integer), genericParameter)
+            Dim ptr = GetType(Integer).MakePointerType()
+            Dim byRefType = GetType(Integer).MakeByRefType()
+
+            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateSubmission("a", returnType:=genericParameter))
+            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateSubmission("a", returnType:=open))
+            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateSubmission("a", returnType:=GetType(Void)))
+            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateSubmission("a", returnType:=byRefType))
+            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateSubmission("a", hostObjectType:=genericParameter))
+            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateSubmission("a", hostObjectType:=open))
+            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateSubmission("a", hostObjectType:=GetType(Void)))
+            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateSubmission("a", hostObjectType:=GetType(Integer)))
+            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateSubmission("a", hostObjectType:=ptr))
+            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateSubmission("a", hostObjectType:=byRefType))
+
+            Dim s0 = VisualBasicCompilation.CreateSubmission("a0", hostObjectType:=GetType(List(Of Integer)))
+            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateSubmission("a1", previousSubmission:=s0, hostObjectType:=GetType(List(Of Boolean))))
+
+            ' invalid options
+            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateSubmission("a", options:=TestOptions.ReleaseExe))
+            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateSubmission("a", options:=TestOptions.ReleaseDll.WithOutputKind(OutputKind.NetModule)))
+            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateSubmission("a", options:=TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata)))
+            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateSubmission("a", options:=TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeApplication)))
+            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateSubmission("a", options:=TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsApplication)))
+            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateSubmission("a", options:=TestOptions.ReleaseDll.WithCryptoKeyContainer("foo")))
+            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateSubmission("a", options:=TestOptions.ReleaseDll.WithCryptoKeyFile("foo.snk")))
+            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateSubmission("a", options:=TestOptions.ReleaseDll.WithDelaySign(True)))
+            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateSubmission("a", options:=TestOptions.ReleaseDll.WithDelaySign(False)))
+        End Sub
+
+        <ClrOnlyFact(ClrOnlyReason.Submission)>
+        Public Sub SubmissionResultType()
+            Dim submission = VisualBasicCompilation.CreateSubmission("sub")
+            Dim hasValue As Boolean
+            Assert.Equal(SpecialType.System_Void, submission.GetSubmissionResultType(hasValue).SpecialType)
+            Assert.False(hasValue)
+
+            TestSubmissionResult(CreateSubmission("?1", parseOptions:=TestOptions.Script), expectedType:=SpecialType.System_Void, expectedHasValue:=False)
+            TestSubmissionResult(CreateSubmission("?1", parseOptions:=TestOptions.Interactive), expectedType:=SpecialType.System_Int32, expectedHasValue:=True)
+
+            TestSubmissionResult(CreateSubmission("1", parseOptions:=TestOptions.Script), expectedType:=SpecialType.System_Void, expectedHasValue:=False)
+            ' TODO (https://github.com/dotnet/roslyn/issues/4763): '?' should be optional
+            ' TestSubmissionResult(CreateSubmission("1", parseOptions:=TestOptions.Interactive), expectedType:=SpecialType.System_Int32, expectedHasValue:=True)
+
+            ' TODO (https://github.com/dotnet/roslyn/issues/4766): ReturnType should not be ignored
+            ' TestSubmissionResult(CreateSubmission("?1", parseOptions:=TestOptions.Interactive, returnType:=GetType(Double)), expectedType:=SpecialType.System_Double, expectedHasValue:=True)
+
+            TestSubmissionResult(CreateSubmission("
+Sub Foo() 
+End Sub
+"), expectedType:=SpecialType.System_Void, expectedHasValue:=False)
+
+            TestSubmissionResult(CreateSubmission("Imports System", parseOptions:=TestOptions.Interactive), expectedType:=SpecialType.System_Void, expectedHasValue:=False)
+            TestSubmissionResult(CreateSubmission("Dim i As Integer", parseOptions:=TestOptions.Interactive), expectedType:=SpecialType.System_Void, expectedHasValue:=False)
+            TestSubmissionResult(CreateSubmission("System.Console.WriteLine()", parseOptions:=TestOptions.Interactive), expectedType:=SpecialType.System_Void, expectedHasValue:=False)
+            TestSubmissionResult(CreateSubmission("?System.Console.WriteLine()", parseOptions:=TestOptions.Interactive), expectedType:=SpecialType.System_Void, expectedHasValue:=True)
+            TestSubmissionResult(CreateSubmission("System.Console.ReadLine()", parseOptions:=TestOptions.Interactive), expectedType:=SpecialType.System_String, expectedHasValue:=True)
+            TestSubmissionResult(CreateSubmission("?System.Console.ReadLine()", parseOptions:=TestOptions.Interactive), expectedType:=SpecialType.System_String, expectedHasValue:=True)
+            TestSubmissionResult(CreateSubmission("?Nothing", parseOptions:=TestOptions.Interactive), expectedType:=SpecialType.System_Object, expectedHasValue:=True)
+            TestSubmissionResult(CreateSubmission("?AddressOf System.Console.WriteLine", parseOptions:=TestOptions.Interactive), expectedType:=DirectCast(Nothing, SpecialType?), expectedHasValue:=True)
+            TestSubmissionResult(CreateSubmission("?Function(x) x", parseOptions:=TestOptions.Interactive), expectedType:=AddressOf IsDelegateType, expectedHasValue:=True)
+        End Sub
+
+        Private Shared Sub TestSubmissionResult(s As VisualBasicCompilation, expectedType As SpecialType?, expectedHasValue As Boolean)
+            Dim hasValue As Boolean
+            Dim type = s.GetSubmissionResultType(hasValue)
+            Assert.Equal(expectedType, If(type IsNot Nothing, type.SpecialType, DirectCast(Nothing, SpecialType?)))
+            Assert.Equal(expectedHasValue, hasValue)
+        End Sub
+
+        Private Shared Sub TestSubmissionResult(s As VisualBasicCompilation, expectedType As Func(Of TypeSymbol, Boolean), expectedHasValue As Boolean)
+            Dim hasValue As Boolean
+            Dim type = s.GetSubmissionResultType(hasValue)
+            Assert.True(expectedType(type), "unexpected type")
+            Assert.Equal(expectedHasValue, hasValue)
+        End Sub
+
+        ''' <summary>
+        ''' Previous submission has to have no errors.
+        ''' </summary>
+        <ClrOnlyFact(ClrOnlyReason.Submission)>
+        Public Sub PreviousSubmissionWithError()
+            Dim s0 = CreateSubmission("Dim a As X = 1")
+
+            s0.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_UndefinedType1, "X").WithArguments("X"))
+
+            Assert.Throws(Of InvalidOperationException)(Function() CreateSubmission("?a + 1", previous:=s0))
         End Sub
     End Class
 End Namespace

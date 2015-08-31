@@ -14157,5 +14157,37 @@ class Program
 
         }
 
+        [Fact]
+        [WorkItem(4196, "https://github.com/dotnet/roslyn/issues/4196")]
+        public void BadDefaultParameterValue()
+        {
+            // In this DLL there is an optional parameter which has a corrupted metadata value
+            // as the default argument.  This can happen in legitamite code when run through an
+            // obfuscator program.  For compatibility with the native compiler we need to treat
+            // the value as default(T) 
+            string source = @"
+using System;
+using BadDefaultParameterValue;
+
+class Program
+{
+    static void Main()
+    {
+        Util.M(""test"");
+    }
+}";
+
+            var testReference = AssemblyMetadata.CreateFromImage(TestResources.Repros.BadDefaultParameterValue).GetReference();
+            var compilation = CompileAndVerify(source, additionalRefs: new[] { testReference });
+            compilation.VerifyIL("Program.Main", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldstr      ""test""
+  IL_0005:  ldnull
+  IL_0006:  call       ""void BadDefaultParameterValue.Util.M(string, string)""
+  IL_000b:  ret
+}");
+        }
     }
 }

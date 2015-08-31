@@ -116,9 +116,6 @@
   <data name="AbsolutePathExpected" xml:space="preserve">
     <value>Absolute path expected</value>
   </data>
-  <data name="ExecutionStateFrozen" xml:space="preserve">
-    <value>Execution state is frozen and cannot be modified.</value>
-  </data>
   <data name="GlobalsNotAssignable" xml:space="preserve">
     <value>The globals of type '{0}' is not assignable to '{1}'</value>
   </data>
@@ -130,5 +127,11 @@
   </data>
   <data name="InvalidCharactersInAssemblyName" xml:space="preserve">
     <value>Invalid characters in assemblyName</value>
+  </data>
+  <data name="ScriptRequiresGlobalVariables" xml:space="preserve">
+    <value>The script requires access to global variables but none were given</value>
+  </data>
+  <data name="GlobalVariablesWithoutGlobalType" xml:space="preserve">
+    <value>Global variables passed to a script without a global type</value>
   </data>
 </root>

@@ -8,7 +8,9 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 
-    Public Class ScriptTests
+    ' TODO (tomat): review tests
+
+    Public Class CodeGenScriptTests
         Inherits BasicTestBase
 
         <Fact>
@@ -221,60 +223,6 @@ Next
             Assert.False(s__.AnonymousTypeManager.AreTemplatesSealed)
         End Sub
 
-        Private Function CreateSubmission(code As String, options As VisualBasicParseOptions, Optional expectedErrorCount As Integer = 0) As VisualBasicCompilation
-            Dim submission = VisualBasicCompilation.CreateSubmission(
-                "sub",
-                references:={MetadataReference.CreateFromAssemblyInternal(GetType(Object).Assembly)},
-                syntaxTree:=Parse(code, options:=options))
-
-            Assert.Equal(expectedErrorCount, submission.GetDiagnostics(CompilationStage.Declare, True).Length())
-
-            Return submission
-        End Function
-
-        Private Shared Sub TestResult(s As VisualBasicCompilation, expectedType As SpecialType?, expectedHasValue As Boolean)
-            Dim hasValue As Boolean
-            Dim type = s.GetSubmissionResultType(hasValue)
-            Assert.Equal(expectedType, If(type IsNot Nothing, type.SpecialType, DirectCast(Nothing, SpecialType?)))
-            Assert.Equal(expectedHasValue, hasValue)
-        End Sub
-
-        Private Shared Sub TestResult(s As VisualBasicCompilation, expectedType As Func(Of TypeSymbol, Boolean), expectedHasValue As Boolean)
-            Dim hasValue As Boolean
-            Dim type = s.GetSubmissionResultType(hasValue)
-            Assert.True(expectedType(type), "unexpected type")
-            Assert.Equal(expectedHasValue, hasValue)
-        End Sub
-
-        <Fact>
-        Public Sub SubmissionResultType()
-            Dim submission = VisualBasicCompilation.CreateSubmission("sub")
-            Dim hasValue As Boolean
-            Assert.Equal(SpecialType.System_Void, submission.GetSubmissionResultType(hasValue).SpecialType)
-            Assert.False(hasValue)
-
-            TestResult(CreateSubmission("?1", TestOptions.Script, expectedErrorCount:=1), expectedType:=SpecialType.System_Void, expectedHasValue:=False)
-            TestResult(CreateSubmission("?1", TestOptions.Interactive), expectedType:=SpecialType.System_Int32, expectedHasValue:=True)
-
-            ' TODO (tomat): optional ?
-            ' TestResult(CreateSubmission("1", OptionsInteractive), expectedType:=SpecialType.System_Int32, expectedHasValue:=True)
-
-            TestResult(CreateSubmission(<text>
-Sub Foo() 
-End Sub
-        </text>.Value, TestOptions.Interactive), expectedType:=SpecialType.System_Void, expectedHasValue:=False)
-
-            TestResult(CreateSubmission("Imports System", TestOptions.Interactive), expectedType:=SpecialType.System_Void, expectedHasValue:=False)
-            TestResult(CreateSubmission("Dim i As Integer", TestOptions.Interactive), expectedType:=SpecialType.System_Void, expectedHasValue:=False)
-            TestResult(CreateSubmission("System.Console.WriteLine()", TestOptions.Interactive), expectedType:=SpecialType.System_Void, expectedHasValue:=False)
-            TestResult(CreateSubmission("?System.Console.WriteLine()", TestOptions.Interactive), expectedType:=SpecialType.System_Void, expectedHasValue:=True)
-            TestResult(CreateSubmission("System.Console.ReadLine()", TestOptions.Interactive), expectedType:=SpecialType.System_String, expectedHasValue:=True)
-            TestResult(CreateSubmission("?System.Console.ReadLine()", TestOptions.Interactive), expectedType:=SpecialType.System_String, expectedHasValue:=True)
-            TestResult(CreateSubmission("?Nothing", TestOptions.Interactive), expectedType:=SpecialType.System_Object, expectedHasValue:=True)
-            TestResult(CreateSubmission("?AddressOf System.Console.WriteLine", TestOptions.Interactive), expectedType:=DirectCast(Nothing, SpecialType?), expectedHasValue:=True)
-            TestResult(CreateSubmission("?Function(x) x", TestOptions.Interactive), expectedType:=AddressOf IsDelegateType, expectedHasValue:=True)
-        End Sub
-
         ''' <summary>
         ''' LookupSymbols should not include the submission class.
         ''' </summary>
@@ -282,7 +230,11 @@ End Sub
         <Fact>
         Public Sub LookupSymbols()
             Dim text = "1 + "
-            Dim compilation = CreateSubmission(text, TestOptions.Interactive, expectedErrorCount:=1)
+            Dim compilation = CreateSubmission(text)
+
+            compilation.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_ObsoleteLineNumbersAreLabels, "1 "))
+
             Dim tree = compilation.SyntaxTrees.Single()
             Dim model = compilation.GetSemanticModel(tree)
             Dim symbols = model.LookupSymbols(text.Length)
