@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         void IInteractiveWindow.Close()
         {
-            Caret.PositionChanged -= CaretPositionChanged;
+            _textView.Caret.PositionChanged -= CaretPositionChanged;
 
             UIThread(uiOnly => _textView.Close());
         }
@@ -101,8 +101,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 return _sessionStack;
             }
         }
-
-        private ITextBuffer TextBuffer => _textView.TextBuffer;
 
         public ITextBuffer CurrentLanguageBuffer => _currentLanguageBuffer;
 
@@ -467,8 +465,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         #region Caret and Cursor
 
-        private ITextCaret Caret => _textView.Caret;
-
         private void CaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
         {
             // make sure language buffer exist
@@ -508,14 +504,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             try
             {
                 // detach event handler
-                Caret.PositionChanged -= CaretPositionChanged;
+                _textView.Caret.PositionChanged -= CaretPositionChanged;
 
                 IndentCurrentLine(caret);
             }
             finally
             {
                 // attach event handler
-                Caret.PositionChanged += CaretPositionChanged;
+                _textView.Caret.PositionChanged += CaretPositionChanged;
             }
         }
 
@@ -604,7 +600,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             // Make sure the caret line is rendered
             DoEvents();
-            Caret.EnsureVisible();
+            _textView.Caret.EnsureVisible();
         }
 
 #endregion
