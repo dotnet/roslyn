@@ -51,6 +51,8 @@ nameof(List<>.Add);
 typeof(List<>[]);
 typeof(List<List<>>);           // should be error
 nameof(List<List<>>);           // should be error
+nameof(List<int>.Inner<>);      // should be error
+nameof(List<>.Inner<int>);      // should be error
 ```
 
 Note: This is nearly identical to how the C# compiler *today* parses things.  It already uses unbound-type-arguments for error recovery purposes.   As such, these grammar changes need almost no changes to the C# parser.
@@ -70,7 +72,7 @@ Method<,>();
 Method<int,>();
 ```
 
-We still need to prevent cases like ```typeof(List<List<>>)``` though.  To enforce this we will require that type-argument-lists cannot contain omitted-type-arguments if they are contained within a type-argument-list with non-ommitted-type-argument.  (Note: the compiler already does this today so it can error in this case for 'typeof').
+We still need to prevent cases like ```typeof(List<List<>>)``` though.  To enforce this we will require that type-argument-lists cannot contain omitted-type-arguments if they are contained within a type-argument-list with non-ommitted-type-argument.  Similarly, a type name cannot have a mix of type-arguments-lists with/without in a fully qualified name.  (Note: the compiler already does this today so it can error in this case for 'typeof').
 
 
 ##### Semantic Model Details  
