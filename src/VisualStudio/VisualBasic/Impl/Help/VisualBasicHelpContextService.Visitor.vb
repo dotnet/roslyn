@@ -951,7 +951,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                     Return HelpKeywords.AnonymousType
                 End If
 
-                If symbol.MatchesKind(SymbolKind.Alias, SymbolKind.Local, SymbolKind.Parameter, SymbolKind.Property) Then
+                If symbol.MatchesKind(SymbolKind.Alias, SymbolKind.Local, SymbolKind.Parameter) Then
                     Return FormatTypeOrNamespace(symbol.GetSymbolType())
                 End If
 

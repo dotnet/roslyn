@@ -2092,6 +2092,20 @@ Class C
     End Sub
 End Class]]></a>.Value, "System.Object.GetType")
         End Sub
+
+        <WorkItem(4150, "https://github.com/dotnet/roslyn/issues/4150")>
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Sub TestPropertyFromMemberAccess()
+            Test(<a><![CDATA[Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        args.Le[||]ngth
+    End Sub
+End Module]]></a>.Value, "System.Array.Length")
+        End Sub
     End Class
 End Namespace
 
