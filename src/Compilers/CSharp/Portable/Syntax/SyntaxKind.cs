@@ -236,6 +236,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                         // This only exists in transient form during parsing.
         InterpolatedStringTextToken = 8517,             // literal text that is part of an interpolated string
 
+        Utf8StringToken = 8518,
+
         // trivia
         EndOfLineTrivia = 8539,
         WhitespaceTrivia = 8540,
@@ -328,6 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         OmittedArraySizeExpression = 8654,
         InterpolatedStringExpression = 8655,
         ImplicitElementAccess = 8656,
+        Utf8StringExpression = 8657,
 
         // binary expressions
         AddExpression = 8668,

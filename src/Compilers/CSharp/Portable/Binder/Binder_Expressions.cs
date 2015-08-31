@@ -496,6 +496,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.NullLiteralExpression:
                     return BindLiteralConstant((LiteralExpressionSyntax)node, diagnostics);
 
+                case SyntaxKind.Utf8StringExpression:
+                    return BindUtf8String((Utf8StringExpressionSyntax)node, diagnostics);
+
                 case SyntaxKind.ParenthesizedExpression:
                     // Parenthesis tokens are ignored, and operand is bound in the context of parent
                     // expression.
@@ -4245,6 +4248,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundLiteral(node, cv, type);
+        }
+
+        private BoundExpression BindUtf8String(Utf8StringExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            var type = Compilation.GetWellKnownType(WellKnownType.System_UTF8String);
+            var member = Compilation.GetWellKnownTypeMember(WellKnownMember.System_UTF8String__ctor);
+
+            new BoundArrayCreation(node,
+                ImmutableArray.Create(new BoundLiteral(node, ConstantValue.Create(1), Compilation.GetSpecialType(SpecialType.System_Int32))),
+                new BoundArrayInitialization()
+
+            throw new Exception();
         }
 
         private BoundExpression BindCheckedExpression(CheckedExpressionSyntax node, DiagnosticBag diagnostics)

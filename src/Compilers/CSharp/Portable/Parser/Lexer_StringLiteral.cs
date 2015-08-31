@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                 }
 
-                info.Text = TextWindow.GetText(true);
                 if (quoteCharacter == '\'')
                 {
+                    info.Text = TextWindow.GetText(true);
                     info.Kind = SyntaxKind.CharacterLiteralToken;
                     if (_builder.Length != 1)
                     {
@@ -77,7 +77,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
                 else
                 {
-                    info.Kind = SyntaxKind.StringLiteralToken;
+                    if (TextWindow.PeekChar() == 'u' && TextWindow.PeekChar(1) == '8')
+                    {
+                        TextWindow.AdvanceChar(2);
+                        info.Kind = SyntaxKind.Utf8StringToken;
+                    }
+                    else
+                    {
+                        info.Kind = SyntaxKind.StringLiteralToken;
+                    }
+
+                    info.Text = TextWindow.GetText(true);
                     if (_builder.Length > 0)
                     {
                         info.StringValue = TextWindow.Intern(_builder);

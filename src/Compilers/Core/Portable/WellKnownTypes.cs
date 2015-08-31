@@ -246,6 +246,8 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_GCLatencyMode,
         System_IFormatProvider,
 
+        System_UTF8String,
+
         Available,
         Last = Available - 1,
     }
@@ -485,7 +487,9 @@ namespace Microsoft.CodeAnalysis
             "System.Environment",
 
             "System.Runtime.GCLatencyMode",
-            "System.IFormatProvider"
+            "System.IFormatProvider",
+
+            "System.UTF8String"
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
@@ -517,7 +521,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (typeId == WellKnownType.Last)
                 {
-                    typeIdName = "System.IFormatProvider";
+                    typeIdName = "System.UTF8String";
                 }
                 else
                 {

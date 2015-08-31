@@ -1555,6 +1555,12 @@
       <summary>Creates an OmittedArraySizeExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
+  <Node Name="Utf8StringExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="Utf8StringExpression" />
+    <Field Name="Utf8StringToken" Type="SyntaxToken">
+      <Kind Name="Utf8StringToken" />
+    </Field>
+  </Node>
   <Node Name="InterpolatedStringExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="InterpolatedStringExpression"/>
     <Field Name="StringStartToken" Type="SyntaxToken">
