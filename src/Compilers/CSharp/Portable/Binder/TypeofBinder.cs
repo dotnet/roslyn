@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </return>
             public static Dictionary<GenericNameSyntax, bool> Create(ExpressionSyntax typeSyntax)
             {
-                OpenTypeVisitor visitor = new OpenTypeVisitor();
-                ((CSharpSyntaxVisitor)visitor).Visit(typeSyntax);
+                var visitor = new OpenTypeVisitor();
+                visitor.Visit(typeSyntax);
                 return visitor._allowedMap;
             }
 
