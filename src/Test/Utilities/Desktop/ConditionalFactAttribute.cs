@@ -35,9 +35,6 @@ namespace Roslyn.Test.Utilities
 
         // Can't sign. 
         Signing,
-
-        // Can't find System.Object when compiling a submission (not understood).
-        Submission,
     }
 
     public class ClrOnlyFact : FactAttribute

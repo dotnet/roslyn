@@ -213,7 +213,7 @@ class CLS
                 Diagnostic(ErrorCode.ERR_AnonymousTypeNotAvailable, "new"));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void CompilationChain_AnonymousTypeTemplates()
         {
             var s0 = CreateSubmission("var x = new { a = 1 }; ");
@@ -236,7 +236,7 @@ class CLS
             Assert.False(sx.AnonymousTypeManager.AreTemplatesSealed);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void CompilationChain_DynamicSiteDelegates()
         {
             // TODO: references should be inherited
@@ -260,7 +260,7 @@ class CLS
             Assert.False(sx.AnonymousTypeManager.AreTemplatesSealed);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void Submissions_EmitToPeStream()
         {
             var s0 = CreateSubmission("int a = 1;");
@@ -271,7 +271,7 @@ class CLS
             s12.VerifyEmitDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void CrossSubmissionGenericInterfaceImplementation_Generic()
         {
             var c0 = CreateSubmission(@"
@@ -293,7 +293,7 @@ abstract public class C : I<int>
             c1.VerifyEmitDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void CrossSubmissionGenericInterfaceImplementation_Explicit_GenericMethod()
         {
             var c0 = CreateSubmission(@"
@@ -315,7 +315,7 @@ abstract public class C : I<int>
             c1.VerifyEmitDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void CrossSubmissionGenericInterfaceImplementation_Explicit()
         {
             var c0 = CreateSubmission(@"
@@ -337,7 +337,7 @@ abstract public class C : I<int>
             c1.VerifyEmitDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void CrossSubmissionGenericInterfaceImplementation_Explicit_NoGenericParametersInSignature()
         {
             var c0 = CreateSubmission(@"
@@ -359,7 +359,7 @@ abstract public class C : I<int>
             c1.VerifyEmitDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void GenericInterfaceImplementation_Explicit_NoGenericParametersInSignature()
         {
             var c0 = CreateSubmission(@"
@@ -376,7 +376,7 @@ abstract public class C : I<int>
             c0.VerifyEmitDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void CrossSubmissionInterfaceImplementation_Explicit_NoGenericParametersInSignature()
         {
             var c0 = CreateSubmission(@"
@@ -398,7 +398,7 @@ abstract public class C : I
             c1.VerifyEmitDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void CrossSubmissionNestedGenericInterfaceImplementation_Explicit()
         {
             var c0 = CreateSubmission(@"
@@ -423,7 +423,7 @@ abstract public class D : C<int>.I
             c1.VerifyEmitDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void NestedGenericInterfaceImplementation_Explicit()
         {
             var c0 = CreateSubmission(@"
@@ -443,7 +443,7 @@ abstract public class D : C<int>.I
             c0.VerifyEmitDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void ExternalInterfaceImplementation_Explicit()
         {
             var c0 = CreateSubmission(@"
@@ -465,7 +465,7 @@ abstract public class C : IEnumerable<int>
             c0.VerifyEmitDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void AbstractAccessors()
         {
             var c0 = CreateSubmission(@"
@@ -478,7 +478,7 @@ public abstract class C
             c0.VerifyEmitDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void ExprStmtWithMethodCall()
         {
             var s0 = CreateSubmission("int Foo() { return 2;}");
