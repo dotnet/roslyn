@@ -80,17 +80,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var symbolDisplayService = _document.GetLanguageService<ISymbolDisplayService>();
                 var textChangeSpan = _provider.GetTextChangeSpan(_text, _position);
 
-                return overridableMembers.Select(m => CreateItem(
-                    m, textChangeSpan, symbolDisplayService, semanticModel, startToken, modifiers)).ToList();
+                var members = overridableMembers.ToArray();
+                return members.Select(m => CreateItem(
+                    m, textChangeSpan, symbolDisplayService, semanticModel, startToken, modifiers, members.Length < 101)).ToList();
             }
 
             private MemberInsertionCompletionItem CreateItem(
                 ISymbol symbol, TextSpan textChangeSpan, ISymbolDisplayService symbolDisplayService,
-                SemanticModel semanticModel, SyntaxToken startToken, DeclarationModifiers modifiers)
+                SemanticModel semanticModel, SyntaxToken startToken, DeclarationModifiers modifiers, bool minimallyQualify)
             {
                 var position = startToken.SpanStart;
 
-                var displayString = symbolDisplayService.ToMinimalDisplayString(semanticModel, position, symbol, _overrideNameFormat);
+                var displayString = minimallyQualify ? symbolDisplayService.ToMinimalDisplayString(semanticModel, position, symbol, _overrideNameFormat)
+                                                    : symbolDisplayService.ToDisplayString(symbol, SymbolDisplayFormats.SignatureFormat);
 
                 return new MemberInsertionCompletionItem(_provider,
                     displayString,
