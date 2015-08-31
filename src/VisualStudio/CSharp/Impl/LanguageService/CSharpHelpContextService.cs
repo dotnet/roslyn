@@ -153,6 +153,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 symbol = ((ILocalSymbol)symbol).Type;
             }
 
+            // Range variable: use the type
+            if (symbol is IRangeVariableSymbol)
+            {
+                var info = semanticModel.GetTypeInfo(token.Parent, CancellationToken.None);
+                symbol = info.Type;
+            }
+
             // Just use syntaxfacts for operators
             if (symbol is IMethodSymbol && ((IMethodSymbol)symbol).MethodKind == MethodKind.BuiltinOperator)
             {
