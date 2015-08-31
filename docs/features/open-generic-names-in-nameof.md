@@ -1,7 +1,8 @@
-## Language Proposal:  
+### Language Proposal:  
 Allow Open Generic Names (i.e. ```Dictionary<,>```) to be used within a ```nameof``` expression.
 
-### To implement this we first change the grammar in the following ways:
+#### Grammar changes  
+To implement this we first change the grammar in the following ways:
 
 typeof-expression:  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~~typeof   (   type   )~~  
@@ -54,7 +55,7 @@ nameof(List<List<>>);           // should be error
 
 Note: This is nearly identical to how the C# compiler *today* parses things.  It already uses unbound-type-arguments for error recovery purposes.   As such, these grammar changes need almost no changes to the C# parser.
 
-### Semantic Changes
+#### Semantic Changes  
 
 Of course, many of these we do not want to actually be allowed by the language as a whole.  This is where the "unbound-type" grammar-production comes in.  On the static-semantic side of things we  effectively want to say is that in all places in the langauge where we see "type" explicitly used, it is not ok to have an "omitted-type-argument".  The only times it is ok to have an ommitted type argument, is when the production starts with "unbound-type" or within a 'real' "nameof" expression.
 
@@ -72,7 +73,7 @@ Method<int,>();
 We still need to prevent cases like ```typeof(List<List<>>)``` though.  To enforce this we will require that type-argument-lists cannot contain omitted-type-arguments if they are contained within a type-argument-list with non-ommitted-type-argument.  (Note: the compiler already does this today so it can error in this case for 'typeof').
 
 
-### Semantic Model Details  
+##### Semantic Model Details  
 This change produces some interesting cases for the semantic model.  For example (as raised by Neal) what should the SemanticModel produce for the following:
 
 ```C#
