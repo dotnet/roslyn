@@ -52,12 +52,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 throw new ArgumentNullException(nameof(evaluator));
             }
 
-            _dangerous_uiOnly = new UIThreadOnly(this, host, rtfBuilderService);
+            _dangerous_uiOnly = new UIThreadOnly(this, host, rtfBuilderService, intellisenseSessionStackMap, smartIndenterService);
 
             this.Properties = new PropertyCollection();
-
-            _intellisenseSessionStackMap = intellisenseSessionStackMap;
-            _smartIndenterService = smartIndenterService;
 
             var replContentType = contentTypeRegistry.GetContentType(PredefinedInteractiveContentTypes.InteractiveContentTypeName);
             var replOutputContentType = contentTypeRegistry.GetContentType(PredefinedInteractiveContentTypes.InteractiveOutputContentTypeName);
@@ -155,12 +152,16 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private sealed class UIThreadOnly
         {
+            private const string BoxSelectionCutCopyTag = "MSDEVColumnSelect";
+
             private readonly InteractiveWindow _window;
 
             private readonly IInteractiveWindowEditorFactoryService _factory;
 
             private readonly History _history = new History();
             private string _historySearch;
+
+            private readonly ISmartIndentationService _smartIndenterService;
 
             // Pending submissions to be processed whenever the REPL is ready to accept submissions.
             private readonly Queue<PendingSubmission> _pendingSubmissions = new Queue<PendingSubmission>();
@@ -185,6 +186,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             // State captured when we started reading standard input.
             private int _standardInputStart = -1;
+
+            private IIntellisenseSessionStack _sessionStack; // TODO: remove
+            private readonly IIntellisenseSessionStackMapService _intellisenseSessionStackMap;
 
             private IEditorOperations _editorOperations;
             public IEditorOperations EditorOperations
@@ -216,11 +220,18 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
             }
 
-            public UIThreadOnly(InteractiveWindow window, IInteractiveWindowEditorFactoryService factory, IRtfBuilderService rtfBuilderService)
+            public UIThreadOnly(
+                InteractiveWindow window, 
+                IInteractiveWindowEditorFactoryService factory, 
+                IRtfBuilderService rtfBuilderService,
+                IIntellisenseSessionStackMapService intellisenseSessionStackMap,
+                ISmartIndentationService smartIndenterService)
             {
                 _window = window;
                 _factory = factory;
                 _rtfBuilderService = rtfBuilderService;
+                _intellisenseSessionStackMap = intellisenseSessionStackMap;
+                _smartIndenterService = smartIndenterService;
             }
 
             private bool ReadingStandardInput => 
@@ -265,6 +276,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
+            }
+
+            public void Close()
+            {
+                _window._textView.Caret.PositionChanged -= _window.CaretPositionChanged;
+                _window._textView.Close();
             }
 
             public void ClearHistory()
@@ -631,7 +648,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     return new SnapshotPoint(_window._projectionBuffer.CurrentSnapshot, _window._projectionBuffer.CurrentSnapshot.Length);
                 }
 
-                SnapshotPoint? point = _window.GetPositionInBuffer(projectionPoint, editableBuffer);
+                SnapshotPoint? point = GetPositionInBuffer(projectionPoint, editableBuffer);
                 if (point != null)
                 {
                     return projectionPoint;
@@ -1036,7 +1053,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         // TODO (tomat): this should rather send an abstract "finish" command that various features
                         // can implement as needed (IntelliSense, inline rename would commit, etc.).
                         // For now, commit IntelliSense:
-                        var completionSession = _window.SessionStack.TopSession as ICompletionSession;
+                        var completionSession = SessionStack.TopSession as ICompletionSession;
                         if (completionSession != null)
                         {
                             completionSession.Commit();
@@ -1056,6 +1073,19 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 catch (Exception e) when (_window.ReportAndPropagateException(e))
                 {
                     throw ExceptionUtilities.Unreachable;
+                }
+            }
+
+            private IIntellisenseSessionStack SessionStack
+            {
+                get
+                {
+                    if (_sessionStack == null)
+                    {
+                        _sessionStack = _intellisenseSessionStackMap.GetStackForTextView(_window._textView);
+                    }
+
+                    return _sessionStack;
                 }
             }
 
@@ -1088,7 +1118,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             private ITextBuffer GetLanguageBuffer(SnapshotPoint point)
             {
                 var sourceSpans = GetSourceSpans(point.Snapshot);
-                int promptIndex = _window.GetPromptIndexForPoint(sourceSpans, point);
+                int promptIndex = GetPromptIndexForPoint(sourceSpans, point);
                 if (promptIndex < 0)
                 {
                     return null;
@@ -1135,6 +1165,31 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
 
                 return inputBuffer;
+            }
+
+            private int GetPromptIndexForPoint(ReadOnlyCollection<SnapshotSpan> sourceSpans, SnapshotPoint point)
+            {
+                int index = _window.GetSourceSpanIndex(sourceSpans, point);
+                if (index == sourceSpans.Count)
+                {
+                    index--;
+                }
+                // Find the nearest preceding prompt.
+                while (!IsPrompt(sourceSpans[index]))
+                {
+                    index--;
+                }
+                return index;
+            }
+
+            private static ReadOnlyCollection<SnapshotSpan> GetSourceSpans(ITextSnapshot snapshot)
+            {
+                return ((IProjectionSnapshot)snapshot).GetSourceSpans();
+            }
+
+            private bool IsPrompt(SnapshotSpan span)
+            {
+                return _window.GetSpanKind(span) == ReplSpanKind.Prompt;
             }
 
             public void ResetCursor()
@@ -1198,7 +1253,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 var snapshot = _window._projectionBuffer.CurrentSnapshot;
                 var spanCount = snapshot.SpanCount;
-                Debug.Assert(_window.IsPrompt(snapshot.GetSourceSpan(spanCount - SpansPerLineOfInput)));
+                Debug.Assert(IsPrompt(snapshot.GetSourceSpan(spanCount - SpansPerLineOfInput)));
 
                 // projection buffer update must be the last operation as it might trigger event that accesses prompt line mapping:
                 RemoveProjectionSpans(spanCount - SpansPerLineOfInput, SpansPerLineOfInput);
@@ -1245,6 +1300,162 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 var caretPosition = textView.Caret.Position.BufferPosition;
                 var caretSpan = new SnapshotSpan(caretPosition.Snapshot, caretPosition, 0);
                 textView.ViewScroller.EnsureSpanVisible(caretSpan);
+            }
+
+            /// <remarks>
+            /// DO NOT REGISTER THIS AS AN EVENT HANDLER - it needs to happen on the UI thread.
+            /// Use <see cref="InteractiveWindow.CaretPositionChanged"/>.
+            /// </remarks>
+            public void CaretPositionChangedInternal(object sender, CaretPositionChangedEventArgs e)
+            {
+                // make sure language buffer exist
+                if (_window._currentLanguageBuffer == null)
+                {
+                    return;
+                }
+
+                var caretPoint = e.NewPosition.BufferPosition;
+
+                // make sure caret is on the right line
+                // 1. changes are on virtual space
+                if (e.NewPosition.BufferPosition == e.OldPosition.BufferPosition)
+                {
+                    return;
+                }
+
+                // 2. caret is at the end of the surface line
+                if (caretPoint != caretPoint.GetContainingLine().End)
+                {
+                    return;
+                }
+
+                // 3. subject line has length == 0
+                var point = e.NewPosition.Point.GetInsertionPoint(b => b == _window._currentLanguageBuffer);
+                if (!point.HasValue)
+                {
+                    return;
+                }
+
+                var line = point.Value.GetContainingLine();
+                if (point.Value != line.End || line.Length != 0)
+                {
+                    return;
+                }
+
+                try
+                {
+                    // detach event handler
+                    _window._textView.Caret.PositionChanged -= _window.CaretPositionChanged;
+
+                    IndentCurrentLine(caretPoint);
+                }
+                finally
+                {
+                    // attach event handler
+                    _window._textView.Caret.PositionChanged += _window.CaretPositionChanged;
+                }
+            }
+
+            /// <summary>
+            /// Indents the line where the caret is currently located.
+            /// </summary>
+            /// <remarks>
+            /// We don't send this command to the editor since smart indentation doesn't work along with
+            /// BufferChanged event. Instead, we need to implement indentation ourselves. We still use
+            /// ISmartIndentProvider provided by the language.
+            /// </remarks>
+            private void IndentCurrentLine(SnapshotPoint caretPosition)
+            {
+                Debug.Assert(_window._currentLanguageBuffer != null);
+
+                var caretLine = caretPosition.GetContainingLine();
+                var indentation = _smartIndenterService.GetDesiredIndentation(_window._textView, caretLine);
+
+                // When the user submits via ctrl-enter, the indenter service sometimes
+                // gets confused and maps the subject position after the last newline in
+                // a language buffer to the location *before* the next prompt in the
+                // surface buffer.  When this happens, indentation will be 0.  Fortunately,
+                // no indentation is required in such cases, so we can just do nothing.
+                if (indentation != null && indentation != 0)
+                {
+                    var sourceSpans = GetSourceSpans(caretPosition.Snapshot);
+                    var promptIndex = GetPromptIndexForPoint(sourceSpans, caretPosition);
+                    var promptSpan = sourceSpans[promptIndex];
+                    Debug.Assert(IsPrompt(promptSpan));
+                    int promptLength = promptSpan.Length;
+                    Debug.Assert(promptLength == 2 || promptLength == 0); // Not required, just expected.
+                    var adjustedIndentationValue = indentation.GetValueOrDefault() - promptLength;
+
+                    if (caretPosition == caretLine.End)
+                    {
+                        // create virtual space:
+                        _window._textView.Caret.MoveTo(new VirtualSnapshotPoint(caretPosition, adjustedIndentationValue));
+                    }
+                    else
+                    {
+                        var langCaret = GetPositionInLanguageBuffer(caretPosition);
+                        if (langCaret == null)
+                        {
+                            return;
+                        }
+
+                        // insert whitespace indentation:
+                        var options = _window._textView.Options;
+                        string whitespace = GetWhiteSpaceForVirtualSpace(adjustedIndentationValue, options.IsConvertTabsToSpacesEnabled() ? default(int?) : options.GetTabSize());
+                        _window._currentLanguageBuffer.Insert(langCaret.Value, whitespace);
+                    }
+                }
+            }
+
+            private SnapshotPoint? GetPositionInLanguageBuffer(SnapshotPoint point)
+            {
+                Debug.Assert(_window._currentLanguageBuffer != null);
+                return GetPositionInBuffer(point, _window._currentLanguageBuffer);
+            }
+
+            private SnapshotPoint? GetPositionInStandardInputBuffer(SnapshotPoint point)
+            {
+                Debug.Assert(_window._standardInputBuffer != null);
+                return GetPositionInBuffer(point, _window._standardInputBuffer);
+            }
+
+            private SnapshotPoint? GetPositionInBuffer(SnapshotPoint point, ITextBuffer buffer)
+            {
+                return _window._textView.BufferGraph.MapDownToBuffer(
+                            point,
+                            PointTrackingMode.Positive,
+                            buffer,
+                            PositionAffinity.Successor);
+            }
+
+            // Mimics EditorOperations.GetWhiteSpaceForPositionAndVirtualSpace.
+            private static string GetWhiteSpaceForVirtualSpace(int virtualSpaces, int? tabSize)
+            {
+                string textToInsert;
+                if (tabSize.HasValue)
+                {
+                    int tabSizeInt = tabSize.GetValueOrDefault();
+
+                    int spacesAfterPreviousTabStop = virtualSpaces % tabSizeInt;
+                    int columnOfPreviousTabStop = virtualSpaces - spacesAfterPreviousTabStop;
+
+                    int requiredTabs = (columnOfPreviousTabStop + tabSizeInt - 1) / tabSizeInt;
+
+                    if (requiredTabs > 0)
+                    {
+                        textToInsert = new string('\t', requiredTabs) + new string(' ', spacesAfterPreviousTabStop);
+                    }
+                    else
+                    {
+                        textToInsert = new string(' ', virtualSpaces);
+                    }
+                }
+                else
+                {
+                    textToInsert = new string(' ', virtualSpaces);
+                }
+
+                return textToInsert;
             }
 
             public void Cancel()
@@ -1334,7 +1545,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             private void SetActiveCode(string text)
             {
                 // TODO (tomat): this should be handled by the language intellisense provider, not here:
-                var completionSession = _window.SessionStack.TopSession;
+                var completionSession = SessionStack.TopSession;
                 if (completionSession != null)
                 {
                     completionSession.Dismiss();
@@ -1495,7 +1706,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             private SnapshotSpan? GetContainingRegion(SnapshotPoint point)
             {
                 var sourceSpans = GetSourceSpans(point.Snapshot);
-                int promptIndex = _window.GetPromptIndexForPoint(sourceSpans, point);
+                int promptIndex = GetPromptIndexForPoint(sourceSpans, point);
                 if (promptIndex < 0)
                 {
                     return null;
@@ -1546,7 +1757,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 int nextPromptIndex = -1;
                 for (int i = promptIndex + 1; i < sourceSpans.Count; i++)
                 {
-                    if (_window.IsPrompt(sourceSpans[i]))
+                    if (IsPrompt(sourceSpans[i]))
                     {
                         nextPromptIndex = i;
                         break;
@@ -1715,7 +1926,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 var sourceSpans = projectionSnapshot.GetSourceSpans();
                 var promptSpanIndex = _window.GetProjectionSpanIndexFromEditableBufferPosition(projectionSnapshot, sourceSpans.Count, startLine) - 1;
                 var promptSpan = sourceSpans[promptSpanIndex];
-                Debug.Assert(_window.IsPrompt(promptSpan));
+                Debug.Assert(IsPrompt(promptSpan));
 
                 minPromptLength = maxPromptLength = promptSpan.Length;
             }
@@ -1864,7 +2075,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     {
                         continue;
                     }
-                    if (!_window.IsPrompt(sourceSpan))
+                    if (!IsPrompt(sourceSpan))
                     {
                         var sourceSnapshot = sourceSpan.Snapshot;
                         var mappedSpans = _window._textView.BufferGraph.MapDownToBuffer(span, SpanTrackingMode.EdgeExclusive, sourceSnapshot.TextBuffer);
@@ -1948,7 +2159,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                 if (_window._currentLanguageBuffer != null)
                 {
-                    result = _window.GetPositionInLanguageBuffer(projectionPoint);
+                    result = GetPositionInLanguageBuffer(projectionPoint);
                 }
 
                 if (result != null)
@@ -1958,7 +2169,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                 if (_window._standardInputBuffer != null)
                 {
-                    result = _window.GetPositionInStandardInputBuffer(projectionPoint);
+                    result = GetPositionInStandardInputBuffer(projectionPoint);
                 }
 
                 return result;
@@ -2009,7 +2220,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     return false;
                 }
 
-                var standardInputPoint = _window.GetPositionInStandardInputBuffer(point);
+                var standardInputPoint = GetPositionInStandardInputBuffer(point);
                 if (!standardInputPoint.HasValue)
                 {
                     return false;
@@ -2054,7 +2265,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
 
                 // handle "RETURN" command that is not handled by either editor or service
-                var langCaret = _window.GetPositionInLanguageBuffer(_window._textView.Caret.Position.BufferPosition);
+                var langCaret = GetPositionInLanguageBuffer(_window._textView.Caret.Position.BufferPosition);
                 if (langCaret != null)
                 {
                     int caretPosition = langCaret.Value.Position;
@@ -2068,7 +2279,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                     // insert new line (triggers secondary prompt injection in buffer changed event):
                     _window._currentLanguageBuffer.Insert(caretPosition, _window._lineBreakString);
-                    _window.IndentCurrentLine(_window._textView.Caret.Position.BufferPosition);
+                    IndentCurrentLine(_window._textView.Caret.Position.BufferPosition);
                     ScrollToCaret();
 
                     return true;

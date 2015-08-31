@@ -13,10 +13,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
-using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -38,17 +36,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         public event EventHandler<SubmissionBufferAddedEventArgs> SubmissionBufferAdded;
 
-        ////
-        //// Services
-        //// 
-
-        private readonly IIntellisenseSessionStackMapService _intellisenseSessionStackMap;
-        private readonly ISmartIndentationService _smartIndenterService;
-
         // the language engine and content type of the active submission:
         private readonly IInteractiveEvaluator _evaluator;
-
-        private IIntellisenseSessionStack _sessionStack; // TODO: remove
 
         public PropertyCollection Properties { get; }
 
@@ -78,29 +67,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private readonly string _lineBreakString;
 
-        private const string BoxSelectionCutCopyTag = "MSDEVColumnSelect";
-
         void IInteractiveWindow.Close()
         {
-            _textView.Caret.PositionChanged -= CaretPositionChanged;
-
-            UIThread(uiOnly => _textView.Close());
+            UIThread(uiOnly => uiOnly.Close());
         }
 
         #region Misc Helpers
-
-        private IIntellisenseSessionStack SessionStack
-        {
-            get
-            {
-                if (_sessionStack == null)
-                {
-                    _sessionStack = _intellisenseSessionStackMap.GetStackForTextView(_textView);
-                }
-
-                return _sessionStack;
-            }
-        }
 
         public ITextBuffer CurrentLanguageBuffer => _currentLanguageBuffer;
 
@@ -276,108 +248,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             UIThread(uiOnly => uiOnly.SelectAll());
         }
 
-        /// <summary>
-        /// Indents the line where the caret is currently located.
-        /// </summary>
-        /// <remarks>
-        /// We don't send this command to the editor since smart indentation doesn't work along with
-        /// BufferChanged event. Instead, we need to implement indentation ourselves. We still use
-        /// ISmartIndentProvider provided by the language.
-        /// </remarks>
-        private void IndentCurrentLine(SnapshotPoint caretPosition)
-        {
-            Debug.Assert(_currentLanguageBuffer != null);
-
-            var caretLine = caretPosition.GetContainingLine();
-            var indentation = _smartIndenterService.GetDesiredIndentation(_textView, caretLine);
-
-            // When the user submits via ctrl-enter, the indenter service sometimes
-            // gets confused and maps the subject position after the last newline in
-            // a language buffer to the location *before* the next prompt in the
-            // surface buffer.  When this happens, indentation will be 0.  Fortunately,
-            // no indentation is required in such cases, so we can just do nothing.
-            if (indentation != null && indentation != 0)
-            {
-                var sourceSpans = GetSourceSpans(caretPosition.Snapshot);
-                var promptIndex = GetPromptIndexForPoint(sourceSpans, caretPosition);
-                var promptSpan = sourceSpans[promptIndex];
-                Debug.Assert(IsPrompt(promptSpan));
-                int promptLength = promptSpan.Length;
-                Debug.Assert(promptLength == 2 || promptLength == 0); // Not required, just expected.
-                var adjustedIndentationValue = indentation.GetValueOrDefault() - promptLength;
-
-                if (caretPosition == caretLine.End)
-                {
-                    // create virtual space:
-                    _textView.Caret.MoveTo(new VirtualSnapshotPoint(caretPosition, adjustedIndentationValue));
-                }
-                else
-                {
-                    var langCaret = GetPositionInLanguageBuffer(caretPosition);
-                    if (langCaret == null)
-                    {
-                        return;
-                    }
-
-                    // insert whitespace indentation:
-                    var options = _textView.Options;
-                    string whitespace = GetWhiteSpaceForVirtualSpace(adjustedIndentationValue, options.IsConvertTabsToSpacesEnabled() ? default(int?) : options.GetTabSize());
-                    _currentLanguageBuffer.Insert(langCaret.Value, whitespace);
-                }
-            }
-        }
-
-        private SnapshotPoint? GetPositionInLanguageBuffer(SnapshotPoint point)
-        {
-            Debug.Assert(_currentLanguageBuffer != null);
-            return GetPositionInBuffer(point, _currentLanguageBuffer);
-        }
-
-        private SnapshotPoint? GetPositionInStandardInputBuffer(SnapshotPoint point)
-        {
-            Debug.Assert(_standardInputBuffer != null);
-            return GetPositionInBuffer(point, _standardInputBuffer);
-        }
-
-        private SnapshotPoint? GetPositionInBuffer(SnapshotPoint point, ITextBuffer buffer)
-        {
-            return _textView.BufferGraph.MapDownToBuffer(
-                        point,
-                        PointTrackingMode.Positive,
-                        buffer,
-                        PositionAffinity.Successor);
-        }
-
-        // Mimics EditorOperations.GetWhiteSpaceForPositionAndVirtualSpace.
-        private static string GetWhiteSpaceForVirtualSpace(int virtualSpaces, int? tabSize)
-        {
-            string textToInsert;
-            if (tabSize.HasValue)
-            {
-                int tabSizeInt = tabSize.GetValueOrDefault();
-
-                int spacesAfterPreviousTabStop = virtualSpaces % tabSizeInt;
-                int columnOfPreviousTabStop = virtualSpaces - spacesAfterPreviousTabStop;
-
-                int requiredTabs = (columnOfPreviousTabStop + tabSizeInt - 1) / tabSizeInt;
-
-                if (requiredTabs > 0)
-                {
-                    textToInsert = new string('\t', requiredTabs) + new string(' ', spacesAfterPreviousTabStop);
-                }
-                else
-                {
-                    textToInsert = new string(' ', virtualSpaces);
-                }
-            }
-            else
-            {
-                textToInsert = new string(' ', virtualSpaces);
-            }
-
-            return textToInsert;
-        }
-
         #endregion
 
         #region Keyboard Commands
@@ -467,52 +337,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private void CaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
         {
-            // make sure language buffer exist
-            if (_currentLanguageBuffer == null)
-            {
-                return;
-            }
-
-            var caret = e.NewPosition.BufferPosition;
-
-            // make sure caret is on the right line
-            // 1. changes are on virtual space
-            if (e.NewPosition.BufferPosition == e.OldPosition.BufferPosition)
-            {
-                return;
-            }
-
-            // 2. caret is at the end of the surface line
-            if (caret != caret.GetContainingLine().End)
-            {
-                return;
-            }
-
-            // 3. subject line has length == 0
-            var point = e.NewPosition.Point.GetInsertionPoint(b => b == _currentLanguageBuffer);
-            if (!point.HasValue)
-            {
-                return;
-            }
-
-            var line = point.Value.GetContainingLine();
-            if (point.Value != line.End || line.Length != 0)
-            {
-                return;
-            }
-
-            try
-            {
-                // detach event handler
-                _textView.Caret.PositionChanged -= CaretPositionChanged;
-
-                IndentCurrentLine(caret);
-            }
-            finally
-            {
-                // attach event handler
-                _textView.Caret.PositionChanged += CaretPositionChanged;
-            }
+            UIThread(uiOnly => uiOnly.CaretPositionChangedInternal(sender, e));
         }
 
         #endregion
@@ -640,31 +465,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     ReplSpanKind.Prompt;
             }
             return ReplSpanKind.Language;
-        }
-
-        private bool IsPrompt(SnapshotSpan span)
-        {
-            return GetSpanKind(span) == ReplSpanKind.Prompt;
-        }
-
-        private static ReadOnlyCollection<SnapshotSpan> GetSourceSpans(ITextSnapshot snapshot)
-        {
-            return ((IProjectionSnapshot)snapshot).GetSourceSpans();
-        }
-
-        private int GetPromptIndexForPoint(ReadOnlyCollection<SnapshotSpan> sourceSpans, SnapshotPoint point)
-        {
-            int index = GetSourceSpanIndex(sourceSpans, point);
-            if (index == sourceSpans.Count)
-            {
-                index--;
-            }
-            // Find the nearest preceding prompt.
-            while (!IsPrompt(sourceSpans[index]))
-            {
-                index--;
-            }
-            return index;
         }
 
         /// <summary>
