@@ -32,34 +32,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     /// </summary>
     internal partial class InteractiveWindow : IInteractiveWindow, IInteractiveWindowOperations2
     {
-        private enum ReplSpanKind
-        {
-            /// <summary>
-            /// Primary, secondary, or standard input prompt.
-            /// </summary>
-            Prompt,
-
-            /// <summary>
-            /// Line break inserted at end of output.
-            /// </summary>
-            LineBreak,
-
-            /// <summary>
-            /// The span represents output from the program (standard output).
-            /// </summary>
-            Output,
-
-            /// <summary>
-            /// The span represents code inputted after a prompt or secondary prompt.
-            /// </summary>
-            Language,
-
-            /// <summary>
-            /// The span represents the input for a standard input (non code input).
-            /// </summary>
-            StandardInput,
-        }
-
         private bool _adornmentToMinimize;
 
         private readonly IWpfTextView _textView;
@@ -196,24 +168,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             // These should all have finished already, but we'll await them so that their
             // statuses are folded into the task we return.
             await Task.WhenAll(pendingSubmissions.Select(p => p.Task)).ConfigureAwait(false);
-        }
-
-        private class PendingSubmission
-        {
-            public readonly string Input;
-
-            /// <remarks>
-            /// Set only on the last submission in each batch (to notify the caller).
-            /// </remarks>
-            public readonly TaskCompletionSource<object> Completion;
-
-            public Task Task;
-
-            public PendingSubmission(string input, TaskCompletionSource<object> completion)
-            {
-                Input = input;
-                Completion = completion;
-            }
         }
 
         void IInteractiveWindow.AddInput(string command)
@@ -799,20 +753,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private static readonly object s_suppressPromptInjectionTag = new object();
 
-        private struct SpanRangeEdit
-        {
-            public readonly int Start;
-            public readonly int End;
-            public readonly object[] Replacement;
-
-            public SpanRangeEdit(int start, int count, object[] replacement)
-            {
-                Start = start;
-                End = start + count;
-                Replacement = replacement;
-            }
-        }
-
         private bool TryGetCurrentLanguageBufferExtent(IProjectionSnapshot projectionSnapshot, out Span result)
         {
             if (projectionSnapshot.SpanCount == 0)
@@ -1076,82 +1016,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         #endregion
 
-        private sealed class EditResolver : IProjectionEditResolver
-        {
-            private readonly InteractiveWindow _window;
-
-            public EditResolver(InteractiveWindow window)
-            {
-                _window = window;
-            }
-
-            // We always favor the last buffer of our language type.  This handles cases where we're on a boundary between a prompt and a language 
-            // buffer - we favor the language buffer because the prompts cannot be edited.  In the case of two language buffers this also works because
-            // our spans are laid out like:
-            // <lang span 1 including newline>
-            // <prompt span><lang span 2>
-            // 
-            // In the case where the prompts are in the margin we have an insertion conflict between the two language spans.  But because
-            // lang span 1 includes the new line in order to be oun the boundary we need to be on lang span 2's line.
-            // 
-            // This works the same way w/ our input buffer where the input buffer present instead of <lang span 2>.
-
-            void IProjectionEditResolver.FillInInsertionSizes(SnapshotPoint projectionInsertionPoint, ReadOnlyCollection<SnapshotPoint> sourceInsertionPoints, string insertionText, IList<int> insertionSizes)
-            {
-                int index = IndexOfEditableBuffer(sourceInsertionPoints);
-                if (index != -1)
-                {
-                    insertionSizes[index] = insertionText.Length;
-                }
-            }
-
-            int IProjectionEditResolver.GetTypicalInsertionPosition(SnapshotPoint projectionInsertionPoint, ReadOnlyCollection<SnapshotPoint> sourceInsertionPoints)
-            {
-                int index = IndexOfEditableBuffer(sourceInsertionPoints);
-                return index != -1 ? index : 0;
-            }
-
-            void IProjectionEditResolver.FillInReplacementSizes(SnapshotSpan projectionReplacementSpan, ReadOnlyCollection<SnapshotSpan> sourceReplacementSpans, string insertionText, IList<int> insertionSizes)
-            {
-                int index = IndexOfEditableBuffer(sourceReplacementSpans);
-                if (index != -1)
-                {
-                    insertionSizes[index] = insertionText.Length;
-                }
-            }
-
-            private int IndexOfEditableBuffer(ReadOnlyCollection<SnapshotPoint> points)
-            {
-                for (int i = points.Count - 1; i >= 0; i--)
-                {
-                    if (IsEditableBuffer(points[i].Snapshot.TextBuffer))
-                    {
-                        return i;
-                    }
-                }
-
-                return -1;
-            }
-
-            private int IndexOfEditableBuffer(ReadOnlyCollection<SnapshotSpan> spans)
-            {
-                for (int i = spans.Count - 1; i >= 0; i--)
-                {
-                    if (IsEditableBuffer(spans[i].Snapshot.TextBuffer))
-                    {
-                        return i;
-                    }
-                }
-
-                return -1;
-            }
-
-            private bool IsEditableBuffer(ITextBuffer buffer)
-            {
-                return buffer == _window._currentLanguageBuffer || buffer == _window._standardInputBuffer;
-            }
-        }
-
         #region UI Dispatcher Helpers
 
         private Dispatcher Dispatcher => ((FrameworkElement)_textView).Dispatcher;
@@ -1216,13 +1080,5 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         internal event Action<State> StateChanged;
 
 #endregion
-    }
-
-    internal static class ProjectionBufferExtensions
-    {
-        internal static SnapshotSpan GetSourceSpan(this IProjectionSnapshot snapshot, int index)
-        {
-            return snapshot.GetSourceSpans(index, 1)[0];
-        }
     }
 }
