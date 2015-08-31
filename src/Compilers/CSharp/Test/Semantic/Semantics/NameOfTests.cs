@@ -1343,5 +1343,98 @@ class Test {
                 //   void M(string s = nameof(List<>.Select)) {
                 Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "List<>.Select").WithLocation(5, 28));
         }
+
+        [Fact, WorkItem(4827, "https://github.com/dotnet/roslyn/issues/4827")]
+        public void NameofOpenGenericType_SemanticModel1()
+        {
+            var source =
+@"class C<T> { public class Nested { } }
+class Test {
+  void M(string s = nameof(C<>.Nested)) {
+  }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            var tree = compilation.SyntaxTrees[0];
+            var semanticModel = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
+
+            var nameofExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+            Assert.True(nameofExpression.Expression.Kind() == SyntaxKind.IdentifierName &&
+                ((IdentifierNameSyntax)nameofExpression.Expression).Identifier.ValueText == "nameof");
+
+            var constantVal = semanticModel.GetConstantValue(nameofExpression);
+            Assert.Equal(constantVal.Value, "Nested");
+
+            var nameofArg = nameofExpression.ArgumentList.Arguments[0].Expression as MemberAccessExpressionSyntax;
+            var argSymbol = semanticModel.GetSymbolInfo(nameofArg);
+            Assert.Equal(argSymbol.CandidateReason, CandidateReason.None);
+            Assert.Equal(argSymbol.Symbol.Name, "Nested");
+            Assert.Equal(argSymbol.Symbol.ContainingType.Name, "C");
+            Assert.Equal(argSymbol.Symbol.ContainingType.OriginalDefinition, argSymbol.Symbol.ContainingType);
+
+            var leftSymbol = semanticModel.GetSymbolInfo(nameofArg.Expression);
+            Assert.Equal(leftSymbol.CandidateReason, CandidateReason.None);
+            Assert.Equal(leftSymbol.Symbol.Name, "C");
+            Assert.Equal(leftSymbol.Symbol.OriginalDefinition, argSymbol.Symbol.ContainingType);
+
+            var rightSymbol = semanticModel.GetSymbolInfo(nameofArg.Name);
+            Assert.Equal(rightSymbol.CandidateReason, CandidateReason.None);
+            Assert.Equal(rightSymbol.Symbol.Name, "Nested");
+            Assert.Equal(rightSymbol.Symbol.ContainingType.Name, "C");
+            Assert.Equal(rightSymbol.Symbol.ContainingType.OriginalDefinition, argSymbol.Symbol.ContainingType);
+        }
+
+        [Fact, WorkItem(4827, "https://github.com/dotnet/roslyn/issues/4827")]
+        public void NameofOpenGenericType_SemanticModel2()
+        {
+            var source =
+@"
+class KeyValuePair<A,B> 
+{
+}
+class G<T,U>
+{
+    public KeyValuePair<T,U> AProperty { get; }
+}
+class D<T> : G<T, int>
+{
+}
+class Test {
+  void M(string s = nameof(D<>.AProperty)) {
+  }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees[0];
+            var semanticModel = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
+
+            var nameofExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+            Assert.True(nameofExpression.Expression.Kind() == SyntaxKind.IdentifierName &&
+                ((IdentifierNameSyntax)nameofExpression.Expression).Identifier.ValueText == "nameof");
+
+            var constantVal = semanticModel.GetConstantValue(nameofExpression);
+            Assert.Equal(constantVal.Value, "AProperty");
+
+            var nameofArg = nameofExpression.ArgumentList.Arguments[0].Expression as MemberAccessExpressionSyntax;
+            var leftSymbol = semanticModel.GetSymbolInfo(nameofArg.Expression);
+            Assert.Equal(leftSymbol.CandidateReason, CandidateReason.None);
+            Assert.Equal(leftSymbol.Symbol.Name, "D");
+            Assert.Equal(leftSymbol.Symbol.Kind, SymbolKind.NamedType);
+            Assert.Equal(leftSymbol.Symbol, leftSymbol.Symbol.OriginalDefinition);
+            var leftNamedType = (NamedTypeSymbol)leftSymbol.Symbol;
+
+            var argSymbol = semanticModel.GetSymbolInfo(nameofArg);
+            Assert.Equal(argSymbol.CandidateReason, CandidateReason.None);
+            Assert.Equal(argSymbol.Symbol.Name, "AProperty");
+            Assert.Equal(argSymbol.Symbol.Kind, SymbolKind.Property);
+            var argProperty = (PropertySymbol)argSymbol.Symbol;
+            Assert.Equal(argProperty.ContainingType.Name, "G");
+            Assert.NotEqual(argProperty.ContainingType, argProperty.ContainingType.OriginalDefinition);
+
+            // Type of "D<>.AProperty" will be "KeyValuePair<T,int>"
+            Assert.Equal(argProperty.ContainingType.TypeArguments[0], leftNamedType.TypeParameters[0]);
+            Assert.Equal(argProperty.ContainingType.TypeArguments[1].TypeKind, TypeKind.Struct);
+            Assert.Equal(argProperty.ContainingType.TypeArguments[1].Name, "Int32");
+        }
     }
 }
