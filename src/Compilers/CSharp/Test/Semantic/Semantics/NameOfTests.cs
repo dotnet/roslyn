@@ -189,7 +189,7 @@ class Program
     {
         string s;
         // identifier expected errors
-        s = nameof(System.Action<>);
+
         s = nameof(int);
         s = nameof(void);
 
@@ -260,9 +260,6 @@ class Test<T>
                 // (17,66): error CS1031: Type expected
                 //         s = nameof(System.Collections.Generic.Dictionary<Program,>.KeyCollection);
                 Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(17, 66),
-                // (11,27): error CS0305: Using the generic type 'Action<T>' requires 1 type arguments
-                //         s = nameof(System.Action<>);
-                Diagnostic(ErrorCode.ERR_BadArity, "Action<>").WithArguments("System.Action<T>", "type", "1").WithLocation(11, 27),
                 // (13,13): error CS0103: The name 'nameof' does not exist in the current context
                 //         s = nameof(void);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "nameof").WithArguments("nameof").WithLocation(13, 13),
@@ -296,9 +293,6 @@ class Test<T>
                 // (31,20): error CS8083: An alias-qualified name is not an expression.
                 //         s = nameof(global::Program); // not an expression
                 Diagnostic(ErrorCode.ERR_AliasQualifiedNameNotAnExpression, "global::Program").WithLocation(31, 20),
-                // (32,20): error CS0305: Using the generic type 'Test<T>' requires 1 type arguments
-                //         s = nameof(Test<>.s); // inaccessible
-                Diagnostic(ErrorCode.ERR_BadArity, "Test<>").WithArguments("Test<T>", "type", "1").WithLocation(32, 20),
                 // (32,27): error CS0122: 'Test<T>.s' is inaccessible due to its protection level
                 //         s = nameof(Test<>.s); // inaccessible
                 Diagnostic(ErrorCode.ERR_BadAccess, "s").WithArguments("Test<T>.s").WithLocation(32, 27),
@@ -1167,6 +1161,157 @@ public class Program
   ) { }
 }";
             var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(4827, "https://github.com/dotnet/roslyn/issues/4827")]
+        public void NameofOpenGenericType1()
+        {
+            var source =
+@"class A<T> { }
+class Test {
+  void M(string s = nameof(A<>)) {
+  }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(4827, "https://github.com/dotnet/roslyn/issues/4827")]
+        public void NameofOpenGenericType2()
+        {
+            var source =
+@"class A<T> { }
+class Test {
+  void M(string v = nameof(A<,>)) {
+  }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (3,28): error CS0305: Using the generic type 'A<T>' requires 1 type arguments
+                //   void M(string v = nameof(A<,>)) {
+                Diagnostic(ErrorCode.ERR_BadArity, "A<,>").WithArguments("A<T>", "type", "1").WithLocation(3, 28));
+        }
+
+        [Fact, WorkItem(4827, "https://github.com/dotnet/roslyn/issues/4827")]
+        public void NameofOpenGenericType3()
+        {
+            var source =
+@"class B<X,Y> { }
+class Test {
+  void M(string s = nameof(B<>)) {
+  }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (3,28): error CS0305: Using the generic type 'B<X, Y>' requires 2 type arguments
+                //   void M(string s = nameof(B<>)) {
+                Diagnostic(ErrorCode.ERR_BadArity, "B<>").WithArguments("B<X, Y>", "type", "2").WithLocation(3, 28));
+        }
+
+        [Fact, WorkItem(4827, "https://github.com/dotnet/roslyn/issues/4827")]
+        public void NameofOpenGenericType4()
+        {
+            var source =
+@"class B<X,Y> { }
+class Test {
+  void M(string v = nameof(B<,>)) {
+  }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(4827, "https://github.com/dotnet/roslyn/issues/4827")]
+        public void NameofOpenGenericType5()
+        {
+            var source =
+@"class C<T> { public class Nested { } }
+class Test {
+  void M(string s = nameof(C.Nested)) {
+  }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (3,28): error CS0305: Using the generic type 'C<T>' requires 1 type arguments
+                //   void M(string s = nameof(C.Nested)) {
+                Diagnostic(ErrorCode.ERR_BadArity, "C").WithArguments("C<T>", "type", "1").WithLocation(3, 28));
+        }
+
+        [Fact, WorkItem(4827, "https://github.com/dotnet/roslyn/issues/4827")]
+        public void NameofOpenGenericType6()
+        {
+            var source =
+@"class C<T> { public class Nested { } }
+class Test {
+  void M(string s = nameof(C<>.Nested)) {
+  }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(4827, "https://github.com/dotnet/roslyn/issues/4827")]
+        public void NameofOpenGenericType7()
+        {
+            var source =
+@"class C<T> { public class Nested { } }
+class Test {
+  void M(string s = nameof(C<,>.Nested)) {
+  }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (3,28): error CS0305: Using the generic type 'C<T>' requires 1 type arguments
+                //   void M(string s = nameof(C<,>.Nested)) {
+                Diagnostic(ErrorCode.ERR_BadArity, "C<,>").WithArguments("C<T>", "type", "1").WithLocation(3, 28));
+        }
+
+        [Fact, WorkItem(4827, "https://github.com/dotnet/roslyn/issues/4827")]
+        public void NameofOpenGenericType_OpenNameOnRight()
+        {
+            var source =
+@"class Test {
+  void M(string s = nameof(System.Action<>)) {
+  }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(4827, "https://github.com/dotnet/roslyn/issues/4827")]
+        public void NameofNestedOpenGenericType()
+        {
+            var source =
+@"class Test {
+  void M(string s = nameof(System.Action<System.Action<>>)) {
+  }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (2,49): error CS7003: Unexpected use of an unbound generic name
+                //   void M(string s = nameof(System.Action<System.Action<>>)) {
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "Action<>").WithLocation(2, 49));
+        }
+
+        [Fact, WorkItem(4827, "https://github.com/dotnet/roslyn/issues/4827")]
+        public void NameofOpenGenericTypeWithMethod()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+class Test {
+  void M(string s = nameof(List<>.Add)) {
+  }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(4827, "https://github.com/dotnet/roslyn/issues/4827")]
+        public void NameofOpenGenericTypeWithExtensionMethod()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+using System.Linq;
+class Test {
+  void M(string s = nameof(List<>.Select)) {
+  }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+                // (5,28): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
+                //   void M(string s = nameof(List<>.Select)) {
+                Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "List<>.Select").WithLocation(5, 28));
         }
     }
 }
