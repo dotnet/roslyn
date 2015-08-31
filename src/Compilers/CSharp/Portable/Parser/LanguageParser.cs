@@ -8012,9 +8012,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.CreateMissingIdentifierName);
         }
 
+        private ExpressionSyntax ParseExpression(Precedence precedence)
+        {
+            return ParseWithStackGuard(
+                () => this.ParseSubExpression(precedence),
+                this.CreateMissingIdentifierName);
+        }
+
         private ExpressionSyntax ParseExpressionCore()
         {
-            return this.ParseSubExpression(0);
+            return this.ParseSubExpression(Precedence.Any);
         }
 
         private bool IsPossibleExpression()
@@ -8109,7 +8116,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private static uint GetPrecedence(SyntaxKind op)
+        enum Precedence : uint
+        {
+            Any = 0, // Loosest possible precedence, used to accept all expressions
+            Assignment,
+            Lambda = Assignment, // "The => operator has the same precedence as assignment (=) and is right-associative."
+            Ternary,
+            Coalescing,
+            ConditionalOr,
+            ConditionalAnd,
+            LogicalOr,
+            LogicalXor,
+            LogicalAnd,
+            Equality,
+            Relational,
+            Shift,
+            Additive,
+            Mutiplicative,
+            Unary,
+            Cast,
+            PointerIndirection,
+            AddressOf,
+            Primary_UNUSED, // Primaries are parsed in an ad-hoc manner.
+        }
+
+        private static Precedence GetPrecedence(SyntaxKind op)
         {
             switch (op)
             {
@@ -8124,39 +8155,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.OrAssignmentExpression:
                 case SyntaxKind.LeftShiftAssignmentExpression:
                 case SyntaxKind.RightShiftAssignmentExpression:
-                    return 1;
+                    return Precedence.Assignment;
                 case SyntaxKind.CoalesceExpression:
-                    return 2;
+                    return Precedence.Coalescing;
                 case SyntaxKind.LogicalOrExpression:
-                    return 3;
+                    return Precedence.ConditionalOr;
                 case SyntaxKind.LogicalAndExpression:
-                    return 4;
+                    return Precedence.ConditionalAnd;
                 case SyntaxKind.BitwiseOrExpression:
-                    return 5;
+                    return Precedence.LogicalOr;
                 case SyntaxKind.ExclusiveOrExpression:
-                    return 6;
+                    return Precedence.LogicalXor;
                 case SyntaxKind.BitwiseAndExpression:
-                    return 7;
+                    return Precedence.LogicalAnd;
                 case SyntaxKind.EqualsExpression:
                 case SyntaxKind.NotEqualsExpression:
-                    return 8;
+                    return Precedence.Equality;
                 case SyntaxKind.LessThanExpression:
                 case SyntaxKind.LessThanOrEqualExpression:
                 case SyntaxKind.GreaterThanExpression:
                 case SyntaxKind.GreaterThanOrEqualExpression:
                 case SyntaxKind.IsExpression:
                 case SyntaxKind.AsExpression:
-                    return 9;
+                case SyntaxKind.IsPatternExpression:
+                    return Precedence.Relational;
                 case SyntaxKind.LeftShiftExpression:
                 case SyntaxKind.RightShiftExpression:
-                    return 10;
+                    return Precedence.Shift;
                 case SyntaxKind.AddExpression:
                 case SyntaxKind.SubtractExpression:
-                    return 11;
+                    return Precedence.Additive;
                 case SyntaxKind.MultiplyExpression:
                 case SyntaxKind.DivideExpression:
                 case SyntaxKind.ModuloExpression:
-                    return 12;
+                    return Precedence.Mutiplicative;
                 case SyntaxKind.UnaryPlusExpression:
                 case SyntaxKind.UnaryMinusExpression:
                 case SyntaxKind.BitwiseNotExpression:
@@ -8171,15 +8203,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.RefValueExpression:
                 case SyntaxKind.RefTypeExpression:
                 case SyntaxKind.AwaitExpression:
-                    return 13;
+                    return Precedence.Unary;
                 case SyntaxKind.CastExpression:
-                    return 14;
+                    return Precedence.Cast;
                 case SyntaxKind.PointerIndirectionExpression:
-                    return 15;
+                    return Precedence.PointerIndirection;
                 case SyntaxKind.AddressOfExpression:
-                    return 16;
+                    return Precedence.AddressOf;
                 default:
-                    return 0;
+                    return Precedence.Any;
             }
         }
 
@@ -8246,7 +8278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return false;
         }
 
-        private ExpressionSyntax ParseSubExpression(uint precedence)
+        private ExpressionSyntax ParseSubExpression(Precedence precedence)
         {
             _recursionDepth++;
 
@@ -8261,11 +8293,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-
-        private ExpressionSyntax ParseSubExpressionCore(uint precedence)
+        private ExpressionSyntax ParseSubExpressionCore(Precedence precedence)
         {
             ExpressionSyntax leftOperand = null;
-            uint newPrecedence = 0;
+            Precedence newPrecedence = 0;
             SyntaxKind opKind = SyntaxKind.None;
 
             // all of these are tokens that start statements and are invalid
@@ -8387,20 +8418,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     opToken = SyntaxFactory.Token(opToken.GetLeadingTrivia(), kind, opToken2.GetTrailingTrivia());
                 }
 
-                if (opKind == SyntaxKind.IsExpression || opKind == SyntaxKind.AsExpression)
+                if (opKind == SyntaxKind.AsExpression)
                 {
                     var type = this.ParseTypeCore(parentIsParameter: false, isOrAs: true, expectSizes: false, isArrayCreation: false);
-                    if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && (!this.IsInQuery || this.CurrentToken.ContextualKind == SyntaxKind.IdentifierToken))
-                    {
-                        var identifier = this.EatToken();
-                        var pattern = _syntaxFactory.DeclarationPattern(type, identifier);
-                        leftOperand = _syntaxFactory.IsPatternExpression(leftOperand, opToken, pattern);
-                        leftOperand = CheckFeatureAvailability(leftOperand, MessageID.IDS_FeaturePatternMatching);
-                    }
-                    else
-                    {
-                        leftOperand = _syntaxFactory.BinaryExpression(opKind, leftOperand, opToken, type);
-                    }
+                    leftOperand = _syntaxFactory.BinaryExpression(opKind, leftOperand, opToken, type);
+                }
+                else if (opKind == SyntaxKind.IsExpression)
+                {
+                    leftOperand = ParseIsExpression(leftOperand, opToken);
                 }
                 else
                 {
@@ -8425,22 +8450,406 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // Only take the ternary if we're at a precedence less than the null coalescing
             // expression.
 
-            var nullCoalescingPrecedence = GetPrecedence(SyntaxKind.CoalesceExpression);
-            if (tk == SyntaxKind.QuestionToken && precedence < nullCoalescingPrecedence)
+            if (tk == SyntaxKind.QuestionToken && precedence <= Precedence.Ternary)
             {
                 var questionToken = this.EatToken();
 
-                var colonLeft = this.ParseSubExpression(nullCoalescingPrecedence - 1);
+                var colonLeft = this.ParseSubExpression(Precedence.Any);
                 var colon = this.EatToken(SyntaxKind.ColonToken);
 
-                var colonRight = this.ParseSubExpression(nullCoalescingPrecedence - 1);
+                var colonRight = this.ParseSubExpression(Precedence.Any);
                 leftOperand = _syntaxFactory.ConditionalExpression(leftOperand, questionToken, colonLeft, colon, colonRight);
             }
 
             return leftOperand;
         }
 
-        private ExpressionSyntax ParseTerm(uint precedence)
+        private ExpressionSyntax ParseIsExpression(ExpressionSyntax leftOperand, SyntaxToken opToken)
+        {
+            var node = this.ParseTypeOrPattern();
+            if (node is PatternSyntax)
+            {
+                return _syntaxFactory.IsPatternExpression(leftOperand, opToken, (PatternSyntax)node);
+            }
+            else
+            {
+                Debug.Assert(node is TypeSyntax);
+                return _syntaxFactory.BinaryExpression(SyntaxKind.IsExpression, leftOperand, opToken, (TypeSyntax)node);
+            }
+        }
+
+        // Priority is the TypeSyntax. It might return TypeSyntax which might be a constant pattern such as enum 'Days.Sunday' 
+        // We handle such cases in the binder of is operator.
+        // It is used for parsing patterns in the is operators.
+        private CSharpSyntaxNode ParseTypeOrPattern()
+        {
+            var tk = this.CurrentToken.Kind;
+            CSharpSyntaxNode node = null;
+
+            switch (tk)
+            {
+                case SyntaxKind.AsteriskToken:
+                    var asteriskToken = this.EatToken();
+                    return _syntaxFactory.WildcardPattern(asteriskToken);
+                case SyntaxKind.CloseParenToken:
+                case SyntaxKind.CloseBracketToken:
+                case SyntaxKind.CloseBraceToken:
+                case SyntaxKind.SemicolonToken:
+                case SyntaxKind.CommaToken:
+                    // HACK: for error recovery, we prefer a (missing) type.
+                    return this.ParseTypeCore(parentIsParameter: false, isOrAs: true, expectSizes: false, isArrayCreation: false);
+                default:
+                    // attempt to disambiguate.
+                    break;
+            }
+
+            // If it is a nameof, skip the 'if' and parse as a constant pattern.
+            if (SyntaxFacts.IsPredefinedType(tk) ||
+                (tk == SyntaxKind.IdentifierToken && this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword))
+            {
+                var resetPoint = this.GetResetPoint();
+                TypeSyntax type = this.ParseTypeCore(parentIsParameter: false, isOrAs: true, expectSizes: false, isArrayCreation: false);
+
+                tk = this.CurrentToken.Kind;
+                if (!type.IsMissing)
+                {
+                    // X.Y.Z ( ... ) : RecursivePattern
+                    if (tk == SyntaxKind.OpenParenToken)
+                    {
+                        node = _syntaxFactory.RecursivePattern(type, this.ParseSubRecursivePatternList());
+                    }
+                    // X.Y.Z { ... } : PropertyPattern
+                    else if (tk == SyntaxKind.OpenBraceToken)
+                    {
+                        node = _syntaxFactory.PropertyPattern(type, this.ParseSubPropertyPatternList());
+                    }
+                    // X.Y.Z id
+                    else if (this.IsTrueIdentifier())
+                    {
+                        var identifier = ParseIdentifierToken();
+                        node = _syntaxFactory.DeclarationPattern(type, identifier);
+                    }
+                }
+                if (node == null)
+                {
+                    Debug.Assert(Precedence.Shift == Precedence.Relational + 1);
+                    if (IsExpectedBinaryOperator(tk) && GetPrecedence(SyntaxFacts.GetBinaryExpression(tk)) > Precedence.Relational)
+                    {
+                        this.Reset(ref resetPoint);
+                        // We parse a shift-expression ONLY (nothing looser) - i.e. not a relational expression
+                        // So x is y < z should be parsed as (x is y) < z
+                        // But x is y << z should be parsed as x is (y << z)
+                        node = _syntaxFactory.ConstantPattern(this.ParseExpression(Precedence.Shift));
+                    }
+                    // it is a typical is operator! 
+                    else
+                    {
+                        // Note that we don't bother checking for primary expressions such as X[e], X(e), X++, and X--
+                        // as those are never semantically valid constant expressions for a pattern, and X(e) is
+                        // syntactically a recursive pattern that we checked for earlier.
+                        node = type;
+                    }
+                }
+                this.Release(ref resetPoint);
+            }
+            else
+            {
+                // it still might be a pattern such as (operand is 3) or (operand is -3)
+                node = _syntaxFactory.ConstantPattern(this.ParseExpressionCore());
+            }
+            return node;
+        }
+
+        private SubRecursivePatternListSyntax ParseSubRecursivePatternList()
+        {
+            if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNodeKind == SyntaxKind.SubRecursivePatternList)
+            {
+                return (SubRecursivePatternListSyntax)this.EatNode();
+            }
+
+            SyntaxToken openToken, closeToken;
+            SeparatedSyntaxList<SubRecursivePatternSyntax> subPatterns;
+            ParseSubRecursivePatternList(out openToken, out subPatterns, out closeToken, SyntaxKind.OpenParenToken, SyntaxKind.CloseParenToken);
+
+            return _syntaxFactory.SubRecursivePatternList(openToken, subPatterns, closeToken);
+        }
+
+        private void ParseSubRecursivePatternList(
+            out SyntaxToken openToken,
+            out SeparatedSyntaxList<SubRecursivePatternSyntax> subPatterns,
+            out SyntaxToken closeToken,
+            SyntaxKind openKind,
+            SyntaxKind closeKind)
+        {
+            var open = this.EatToken(openKind);
+            var saveTerm = _termState;
+            _termState |= TerminatorState.IsEndOfArgumentList;
+
+            SeparatedSyntaxListBuilder<SubRecursivePatternSyntax> list = default(SeparatedSyntaxListBuilder<SubRecursivePatternSyntax>);
+            try
+            {
+                if (this.CurrentToken.Kind != closeKind && this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
+                {
+                    tryAgain:
+                    if (list.IsNull)
+                    {
+                        list = _pool.AllocateSeparated<SubRecursivePatternSyntax>();
+                    }
+
+                    if (this.IsPossibleArgumentExpression() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                    {
+                        // first argument
+                        list.Add(this.ParseSubRecursivePattern());
+
+                        // additional arguments
+                        while (true)
+                        {
+                            if (this.CurrentToken.Kind == closeKind || this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
+                            {
+                                break;
+                            }
+                            else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleArgumentExpression())
+                            {
+                                list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+                                list.Add(this.ParseSubRecursivePattern());
+                                continue;
+                            }
+                            else if (this.SkipBadSubPatternListTokens(ref open, list, SyntaxKind.CommaToken, closeKind) == PostSkipAction.Abort)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                    else if (this.SkipBadSubPatternListTokens(ref open, list, SyntaxKind.IdentifierToken, closeKind) == PostSkipAction.Continue)
+                    {
+                        goto tryAgain;
+                    }
+                }
+
+                _termState = saveTerm;
+
+                openToken = open;
+                closeToken = this.EatToken(closeKind);
+                subPatterns = list.ToList();
+            }
+            finally
+            {
+                if (!list.IsNull)
+                {
+                    _pool.Free(list);
+                }
+            }
+        }
+
+        private SubRecursivePatternSyntax ParseSubRecursivePattern()
+        {
+            NameColonSyntax nameColon = null;
+            if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && this.PeekToken(1).Kind == SyntaxKind.ColonToken)
+            {
+                var name = this.ParseIdentifierName();
+                var colon = this.EatToken(SyntaxKind.ColonToken);
+                nameColon = _syntaxFactory.NameColon(name, colon);
+            }
+
+            PatternSyntax pattern = this.CurrentToken.Kind == SyntaxKind.CommaToken ?
+                                            this.AddError(_syntaxFactory.ConstantPattern(this.CreateMissingIdentifierName()), ErrorCode.ERR_MissingArgument) :
+                                            ParsePattern();
+
+            return _syntaxFactory.SubRecursivePattern(nameColon, pattern);
+        }
+
+        // This method is used when we always want a pattern as a result.
+        // For instance, it is used in parsing recursivepattern and propertypattern.
+        // SubPatterns in these (recursivepattern, propertypattern) must be a type of Pattern.
+        private PatternSyntax ParsePattern()
+        {
+            var node = this.ParseExpressionOrPattern();
+            if (node is PatternSyntax)
+            {
+                return (PatternSyntax)node;
+            }
+            Debug.Assert(node is ExpressionSyntax);
+            return _syntaxFactory.ConstantPattern((ExpressionSyntax)node);
+        }
+
+        // Priority is the ExpressionSyntax. It might return ExpressionSyntax which might be a constant pattern such as 'case 3:' 
+        // All constant expressions are converted to the constant pattern in the switch binder if it is a match statement.
+        // It is used for parsing patterns in the switch cases. It never returns constant pattern!
+        private CSharpSyntaxNode ParseExpressionOrPattern()
+        {
+            var tk = this.CurrentToken.Kind;
+            CSharpSyntaxNode node = null;
+
+            if (tk == SyntaxKind.AsteriskToken)
+            {
+                var asteriskToken = this.EatToken();
+                return _syntaxFactory.WildcardPattern(asteriskToken);
+            }
+
+            // If it is a nameof, skip the 'if' and parse as an expression. 
+            if ((SyntaxFacts.IsPredefinedType(tk) || tk == SyntaxKind.IdentifierToken) &&
+                  this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword)
+            {
+                var resetPoint = this.GetResetPoint();
+                TypeSyntax type = this.ParseTypeCore(parentIsParameter: false, isOrAs: true, expectSizes: false, isArrayCreation: false);
+
+
+                tk = this.CurrentToken.Kind;
+                if (!type.IsMissing)
+                {
+                    // X.Y.Z ( ... ) : RecursivePattern
+                    if (tk == SyntaxKind.OpenParenToken)
+                    {
+                        node = _syntaxFactory.RecursivePattern(type, this.ParseSubRecursivePatternList());
+                    }
+                    // X.Y.Z { ... } : PropertyPattern
+                    else if (tk == SyntaxKind.OpenBraceToken)
+                    {
+                        node = _syntaxFactory.PropertyPattern(type, this.ParseSubPropertyPatternList());
+                    }
+                    // X.Y.Z id
+                    else if (this.IsTrueIdentifier())
+                    {
+                        var identifier = ParseIdentifierToken();
+                        node = _syntaxFactory.DeclarationPattern(type, identifier);
+                    }
+                }
+                if (node == null)
+                {
+                    // it is an expression for typical switch case. 
+                    // This can be transformed to the constant pattern in the SwitchBinder if there is a CaseMatchLabel in the sections.
+                    this.Reset(ref resetPoint);
+                    node = this.ParseExpression();
+                }
+                this.Release(ref resetPoint);
+            }
+            else
+            {
+                node = this.ParseExpression();
+            }
+            return node;
+        }
+
+        private SubPropertyPatternListSyntax ParseSubPropertyPatternList()
+        {
+            var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
+
+            var subPatterns = _pool.AllocateSeparated<SubPropertyPatternSyntax>();
+            try
+            {
+                this.ParseSubPropertyPatternList(ref openBrace, subPatterns);
+
+                var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
+                return _syntaxFactory.SubPropertyPatternList(
+                    openBrace,
+                    subPatterns,
+                    closeBrace);
+            }
+            finally
+            {
+                _pool.Free(subPatterns);
+            }
+        }
+
+        private void ParseSubPropertyPatternList(ref SyntaxToken startToken, SeparatedSyntaxListBuilder<SubPropertyPatternSyntax> list)
+        {
+            if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
+            {
+                tryAgain:
+                if (IsPossibleSubPropertyPattern() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                {
+                    // first argument
+                    list.Add(ParseSubPropertyPattern());
+
+                    // additional arguments
+                    while (true)
+                    {
+                        if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
+                        {
+                            break;
+                        }
+                        else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || IsPossibleSubPropertyPattern())
+                        {
+                            list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+
+                            // check for exit case after legal trailing comma
+                            if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
+                            {
+                                break;
+                            }
+
+                            list.Add(ParseSubPropertyPattern());
+                            continue;
+                        }
+                        else if (this.SkipBadSubPatternListTokens(ref startToken, list, SyntaxKind.CommaToken, SyntaxKind.CloseBraceToken) == PostSkipAction.Abort)
+                        {
+                            break;
+                        }
+                    }
+                }
+                else if (this.SkipBadSubPatternListTokens(ref startToken, list, SyntaxKind.IdentifierToken, SyntaxKind.CloseBraceToken) == PostSkipAction.Continue)
+                {
+                    goto tryAgain;
+                }
+            }
+        }
+
+        private bool IsPossibleSubPropertyPattern()
+        {
+            return (this.CurrentToken.Kind == SyntaxKind.IdentifierToken) && (this.PeekToken(1).Kind == SyntaxKind.IsKeyword);
+        }
+
+        private SubPropertyPatternSyntax ParseSubPropertyPattern()
+        {
+            var name = this.ParseIdentifierName();
+            var operandToken = this.EatToken(SyntaxKind.IsKeyword);
+
+            PatternSyntax pattern = this.CurrentToken.Kind == SyntaxKind.CommaToken ?
+                                                        this.AddError(_syntaxFactory.ConstantPattern(this.CreateMissingIdentifierName()), ErrorCode.ERR_MissingArgument) :
+                                                        ParsePattern();
+
+            return _syntaxFactory.SubPropertyPattern(name, operandToken, pattern);
+        }
+
+        private PostSkipAction SkipBadSubPatternListTokens<TNode>(ref SyntaxToken open, SeparatedSyntaxListBuilder<TNode> list, SyntaxKind expected, SyntaxKind closeKind) where TNode : CSharpSyntaxNode
+        {
+            return this.SkipBadSeparatedListTokensWithExpectedKind(ref open, list,
+                p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossiblePattern(),
+                p => p.CurrentToken.Kind == closeKind || p.CurrentToken.Kind == SyntaxKind.SemicolonToken || p.IsTerminator(),
+                expected);
+        }
+
+        // It should not be accurate. This method is just used in the SkipBadSubPatternListTokens.
+        // It is very general way of checking whether there is a possible pattern.
+        private bool IsPossiblePattern()
+        {
+            // TODO(@gafter): this doesn't accept many forms that should be accepted, such as (1+1).
+            var tk = this.CurrentToken.Kind;
+            switch (tk)
+            {
+                case SyntaxKind.AsteriskToken:
+                case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.CharacterLiteralToken:
+                case SyntaxKind.NumericLiteralToken:
+                case SyntaxKind.NullKeyword:
+                case SyntaxKind.TrueKeyword:
+                case SyntaxKind.FalseKeyword:
+                case SyntaxKind.ArgListKeyword:
+                    return true;
+                case SyntaxKind.IdentifierToken:
+                    var next = this.PeekToken(1).Kind;
+                    if (next == SyntaxKind.DotToken || next == SyntaxKind.OpenBraceToken ||
+                       next == SyntaxKind.OpenParenToken)
+                    {
+                        return true;
+                    }
+                    break;
+            }
+
+            return false;
+        }
+
+        private ExpressionSyntax ParseTerm(Precedence precedence)
         {
             ExpressionSyntax expr = null;
 
@@ -8558,9 +8967,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return this.ParsePostFixExpression(expr);
         }
 
-        private bool IsPossibleLambdaExpression(uint precedence)
+        private bool IsPossibleLambdaExpression(Precedence precedence)
         {
-            if (precedence <= LambdaPrecedence && this.PeekToken(1).Kind == SyntaxKind.EqualsGreaterThanToken)
+            if (precedence <= Precedence.Lambda && this.PeekToken(1).Kind == SyntaxKind.EqualsGreaterThanToken)
             {
                 return true;
             }
@@ -8853,7 +9262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                expression = this.ParseSubExpression(0);
+                expression = this.ParseSubExpression(Precedence.Any);
             }
 
             return _syntaxFactory.Argument(nameColon, refOrOutKeyword, expression);
@@ -8895,7 +9304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             var keyword = this.EatToken();
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-            var expr = this.ParseSubExpression(0);
+            var expr = this.ParseSubExpression(Precedence.Any);
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
 
             return _syntaxFactory.MakeRefExpression(keyword, openParen, expr, closeParen);
@@ -8918,7 +9327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var kind = (checkedOrUnchecked.Kind == SyntaxKind.CheckedKeyword) ? SyntaxKind.CheckedExpression : SyntaxKind.UncheckedExpression;
 
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-            var expr = this.ParseSubExpression(0);
+            var expr = this.ParseSubExpression(Precedence.Any);
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
 
             return _syntaxFactory.CheckedExpression(kind, checkedOrUnchecked, openParen, expr, closeParen);
@@ -8928,7 +9337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             var @refvalue = this.EatToken(SyntaxKind.RefValueKeyword);
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-            var expr = this.ParseSubExpression(0);
+            var expr = this.ParseSubExpression(Precedence.Any);
             var comma = this.EatToken(SyntaxKind.CommaToken);
             var type = this.ParseType(false);
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
@@ -8936,9 +9345,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return _syntaxFactory.RefValueExpression(@refvalue, openParen, expr, comma, type, closeParen);
         }
 
-        private bool ScanParenthesizedImplicitlyTypedLambda(uint precedence)
+        private bool ScanParenthesizedImplicitlyTypedLambda(Precedence precedence)
         {
-            if (!(precedence <= LambdaPrecedence))
+            if (!(precedence <= Precedence.Lambda))
             {
                 return false;
             }
@@ -8978,9 +9387,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return false;
         }
 
-        private bool ScanExplicitlyTypedLambda(uint precedence)
+        private bool ScanExplicitlyTypedLambda(Precedence precedence)
         {
-            if (!(precedence <= LambdaPrecedence))
+            if (!(precedence <= Precedence.Lambda))
             {
                 return false;
             }
@@ -9056,7 +9465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private ExpressionSyntax ParseCastOrParenExpressionOrLambda(uint precedence)
+        private ExpressionSyntax ParseCastOrParenExpressionOrLambda(Precedence precedence)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.OpenParenToken);
 
@@ -9081,7 +9490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         var openParen = this.EatToken(SyntaxKind.OpenParenToken);
                         var type = this.ParseType(false);
                         var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-                        var expr = this.ParseSubExpression(GetPrecedence(SyntaxKind.CastExpression));
+                        var expr = this.ParseSubExpression(Precedence.Cast);
                         return _syntaxFactory.CastExpression(openParen, type, closeParen, expr);
                     }
                 }
@@ -9096,7 +9505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     this.Reset(ref resetPoint);
                     var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-                    var expression = this.ParseSubExpression(0);
+                    var expression = this.ParseSubExpression(Precedence.Any);
                     var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
                     return _syntaxFactory.ParenthesizedExpression(openParen, expression, closeParen);
                 }
@@ -9148,12 +9557,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return (type == ScanTypeFlags.GenericTypeOrMethod || type == ScanTypeFlags.GenericTypeOrExpression || type == ScanTypeFlags.NonGenericTypeOrExpression) && CanFollowCast(this.CurrentToken.Kind);
         }
 
-        private bool ScanAsyncLambda(uint precedence)
+        private bool ScanAsyncLambda(Precedence precedence)
         {
             // Adapted from CParser::ScanAsyncLambda
 
             // Precedence must not exceed that of lambdas
-            if (precedence > LambdaPrecedence)
+            if (precedence > Precedence.Lambda)
             {
                 return false;
             }
@@ -9872,8 +10281,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             IsInAsync = parentScopeIsInAsync;
             return _syntaxFactory.AnonymousMethodExpression(asyncToken, @delegate, parameterList, body);
         }
-
-        private const int LambdaPrecedence = 1;
 
         private ExpressionSyntax ParseLambdaExpression()
         {

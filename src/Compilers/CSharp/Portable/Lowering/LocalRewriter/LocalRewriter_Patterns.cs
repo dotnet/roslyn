@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
     {
-        public override BoundNode VisitIsPattern(BoundIsPattern node)
+        public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
             var expression = VisitExpression(node.Expression);
             var result = TranslatePattern(expression, node.Pattern);

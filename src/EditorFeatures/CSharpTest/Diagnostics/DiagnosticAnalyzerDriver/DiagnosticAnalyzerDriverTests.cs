@@ -32,6 +32,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             var syntaxKindsPatterns = new HashSet<SyntaxKind>();
             syntaxKindsPatterns.Add(SyntaxKind.IsPatternExpression);
             syntaxKindsPatterns.Add(SyntaxKind.DeclarationPattern);
+            syntaxKindsPatterns.Add(SyntaxKind.WildcardPattern);
+            syntaxKindsPatterns.Add(SyntaxKind.ConstantPattern);
+            syntaxKindsPatterns.Add(SyntaxKind.RecursivePattern);
+            syntaxKindsPatterns.Add(SyntaxKind.SubRecursivePattern);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(source, TestOptions.Regular))

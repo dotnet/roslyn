@@ -331,6 +331,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // patterns (for pattern-matching)
         DeclarationPattern = 8658,
+        WildcardPattern = 8659,
+        ConstantPattern = 8660,
+        RecursivePattern = 8661,
+        SubRecursivePattern = 8662,
+        SubRecursivePatternList = 8663,
+        PropertyPattern = 8554,
+        SubPropertyPattern = 8555,
+        SubPropertyPatternList = 8556,
 
         // binary expressions
         AddExpression = 8668,
