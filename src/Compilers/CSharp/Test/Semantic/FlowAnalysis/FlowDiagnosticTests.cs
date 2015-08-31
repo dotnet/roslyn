@@ -857,9 +857,17 @@ class Program
     }
 }";
             var comp = CreateCompilationWithMscorlib(program);
-            var parseErrors = comp.SyntaxTrees[0].GetDiagnostics();
-            var errors = comp.GetDiagnostics();
-            Assert.Equal(parseErrors.Count(), errors.Count());
+            comp.SyntaxTrees[0].GetDiagnostics().Verify(
+                // (6,21): error CS1031: Type expected
+                //         var s = foo<,int>(123);
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(6, 21));
+            comp.VerifyDiagnostics(
+                // (6,21): error CS1031: Type expected
+                //         var s = foo<,int>(123);
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(6, 21),
+                // (6,17): error CS0305: Using the generic method 'Program.foo<T>(int)' requires 1 type arguments
+                //         var s = foo<,int>(123);
+                Diagnostic(ErrorCode.ERR_BadArity, "foo<,int>").WithArguments("Program.foo<T>(int)", "method", "1").WithLocation(6, 17));
         }
 
         [Fact]

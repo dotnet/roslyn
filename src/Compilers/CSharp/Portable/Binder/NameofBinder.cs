@@ -10,11 +10,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal class NameofBinder : Binder
+    internal class NameofBinder : TypeofOrNameofBinder
     {
         private readonly SyntaxNode _nameofArgument;
 
-        public NameofBinder(SyntaxNode nameofArgument, Binder next) : base(next)
+        public NameofBinder(ExpressionSyntax nameofArgument, Binder next) : base(nameofArgument, next, next.Flags)
         {
             _nameofArgument = nameofArgument;
         }
