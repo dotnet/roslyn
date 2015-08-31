@@ -21181,6 +21181,37 @@ public class Test
         }
 
         [Fact]
+        public void CS7003ERR_UnexpectedUnboundGenericName1()
+        {
+            var text = @"
+using System.Collections.Generic;
+class C
+{
+    void Main()
+    {
+        object v = new List<>();
+        v = new Dictionary<,>();
+        v = new Dictionary<int,>();
+        v = new Dictionary<,int>();
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+                // (9,32): error CS1031: Type expected
+                //         v = new Dictionary<int,>();
+                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(9, 32),
+                // (10,28): error CS1031: Type expected
+                //         v = new Dictionary<,int>();
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(10, 28),
+                // (7,24): error CS7003: Unexpected use of an unbound generic name
+                //         object v = new List<>();
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "List<>").WithLocation(7, 24),
+                // (8,17): error CS7003: Unexpected use of an unbound generic name
+                //         v = new Dictionary<,>();
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "Dictionary<,>").WithLocation(8, 17));
+        }
+
+        [Fact]
         public void CS7013WRN_MetadataNameTooLong()
         {
             var text = @"

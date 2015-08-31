@@ -1260,6 +1260,36 @@ class Test {
         }
 
         [Fact, WorkItem(4827, "https://github.com/dotnet/roslyn/issues/4827")]
+        public void NameofOpenGenericType8()
+        {
+            var source =
+@"class B<X,Y> { }
+class Test {
+  void M(string v = nameof(B<int,>)) {
+  }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (3,34): error CS1031: Type expected
+                //   void M(string v = nameof(B<int,>)) {
+                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(3, 34));
+        }
+
+        [Fact, WorkItem(4827, "https://github.com/dotnet/roslyn/issues/4827")]
+        public void NameofOpenGenericType9()
+        {
+            var source =
+@"class B<X,Y> { }
+class Test {
+  void M(string v = nameof(B<,int>)) {
+  }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (3,30): error CS1031: Type expected
+                //   void M(string v = nameof(B<,int>)) {
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(3, 30));
+        }
+
+        [Fact, WorkItem(4827, "https://github.com/dotnet/roslyn/issues/4827")]
         public void NameofOpenGenericType_OpenNameOnRight()
         {
             var source =
