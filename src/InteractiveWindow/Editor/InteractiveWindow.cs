@@ -5,14 +5,19 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Formatting;
+using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -28,39 +33,91 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     /// </summary>
     internal partial class InteractiveWindow : IInteractiveWindow, IInteractiveWindowOperations2
     {
-        private bool _adornmentToMinimize;
-
-        private readonly IWpfTextView _textView;
-
         public event EventHandler<SubmissionBufferAddedEventArgs> SubmissionBufferAdded;
 
-        public PropertyCollection Properties { get; }
-
-        ////
-        //// Buffer composition.
-        //// 
-        private readonly ITextBuffer _outputBuffer;
-        private readonly IProjectionBuffer _projectionBuffer;
-        private readonly ITextBuffer _standardInputBuffer;
-        private readonly IContentType _inertType;
-
-        private ITextBuffer _currentLanguageBuffer;
-
-        ////
-        //// Standard input.
-        ////
+        PropertyCollection IPropertyOwner.Properties { get; } = new PropertyCollection();
 
         private readonly SemaphoreSlim _inputReaderSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
+        private readonly UIThreadOnly _dangerous_uiOnly;
 
-        //// 
-        //// Output.
-        //// 
+        #region Initialization
 
-        private readonly OutputBuffer _buffer;
-        private readonly TextWriter _outputWriter;
-        private readonly InteractiveWindowWriter _errorOutputWriter;
+        public InteractiveWindow(
+            IInteractiveWindowEditorFactoryService host,
+            IContentTypeRegistryService contentTypeRegistry,
+            ITextBufferFactoryService bufferFactory,
+            IProjectionBufferFactoryService projectionBufferFactory,
+            IEditorOperationsFactoryService editorOperationsFactory,
+            ITextEditorFactoryService editorFactory,
+            IRtfBuilderService rtfBuilderService,
+            IIntellisenseSessionStackMapService intellisenseSessionStackMap,
+            ISmartIndentationService smartIndenterService,
+            IInteractiveEvaluator evaluator)
+        {
+            if (evaluator == null)
+            {
+                throw new ArgumentNullException(nameof(evaluator));
+            }
 
-        private readonly string _lineBreakString;
+            _dangerous_uiOnly = new UIThreadOnly(
+                this,
+                host,
+                contentTypeRegistry,
+                bufferFactory,
+                projectionBufferFactory,
+                editorOperationsFactory,
+                editorFactory,
+                rtfBuilderService,
+                intellisenseSessionStackMap,
+                smartIndenterService,
+                evaluator);
+
+            evaluator.CurrentWindow = this;
+
+            RequiresUIThread();
+        }
+
+        async Task<ExecutionResult> IInteractiveWindow.InitializeAsync()
+        {
+            try
+            {
+                RequiresUIThread();
+                var uiOnly = _dangerous_uiOnly; // Verified above.
+
+                if (uiOnly.State != State.Starting)
+                {
+                    throw new InvalidOperationException(InteractiveWindowResources.AlreadyInitialized);
+                }
+
+                uiOnly.State = State.Initializing;
+
+                // Anything that reads options should wait until after this call so the evaluator can set the options first
+                ExecutionResult result = await uiOnly.Evaluator.InitializeAsync().ConfigureAwait(continueOnCapturedContext: true);
+                Debug.Assert(OnUIThread()); // ConfigureAwait should bring us back to the UI thread.
+
+                if (result.IsSuccessful)
+                {
+                    uiOnly.PrepareForInput();
+                }
+
+                return result;
+            }
+            catch (Exception e) when (ReportAndPropagateException(e))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        private bool ReportAndPropagateException(Exception e)
+        {
+            FatalError.ReportWithoutCrashUnlessCanceled(e); // Drop return value.
+
+            ((IInteractiveWindow)this).WriteErrorLine(InteractiveWindowResources.InternalError);
+
+            return false; // Never consider the exception handled.
+        }
+
+        #endregion
 
         void IInteractiveWindow.Close()
         {
@@ -69,14 +126,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         #region Misc Helpers
 
-        public ITextBuffer CurrentLanguageBuffer => _currentLanguageBuffer;
+        /// <remarks>
+        /// The caller is responsible for using the buffer in a thread-safe manner.
+        /// </remarks>
+        public ITextBuffer CurrentLanguageBuffer => _dangerous_uiOnly.CurrentLanguageBuffer;
 
         void IDisposable.Dispose()
         {
-            if (_buffer != null)
-            {
-                _buffer.Dispose();
-            }
+            UIThread(uiOnly => ((IDisposable)uiOnly).Dispose());
         }
 
         public static InteractiveWindow FromBuffer(ITextBuffer buffer)
@@ -92,15 +149,30 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         public event Action ReadyForInput;
 
-        IWpfTextView IInteractiveWindow.TextView => _textView;
+        /// <remarks>
+        /// The caller is responsible for using the text view in a thread-safe manner.
+        /// </remarks>
+        IWpfTextView IInteractiveWindow.TextView => _dangerous_uiOnly.TextView;
 
-        ITextBuffer IInteractiveWindow.OutputBuffer => _outputBuffer;
+        /// <remarks>
+        /// The caller is responsible for using the buffer in a thread-safe manner.
+        /// </remarks>
+        ITextBuffer IInteractiveWindow.OutputBuffer => _dangerous_uiOnly.OutputBuffer;
 
-        TextWriter IInteractiveWindow.OutputWriter => _outputWriter;
+        /// <remarks>
+        /// The caller is responsible for using the writer in a thread-safe manner.
+        /// </remarks>
+        TextWriter IInteractiveWindow.OutputWriter => _dangerous_uiOnly.OutputWriter;
 
-        TextWriter IInteractiveWindow.ErrorOutputWriter => _errorOutputWriter;
+        /// <remarks>
+        /// The caller is responsible for using the writer in a thread-safe manner.
+        /// </remarks>
+        TextWriter IInteractiveWindow.ErrorOutputWriter => _dangerous_uiOnly.ErrorOutputWriter;
 
-        IInteractiveEvaluator IInteractiveWindow.Evaluator => _dangerous_uiOnly.Evaluator; // Caller's responsibility
+        /// <remarks>
+        /// The caller is responsible for using the evaluator in a thread-safe manner.
+        /// </remarks>
+        IInteractiveEvaluator IInteractiveWindow.Evaluator => _dangerous_uiOnly.Evaluator;
 
         /// <remarks>
         /// Normally, an async method would have an NFW exception filter.  This
@@ -142,8 +214,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         void IInteractiveWindow.FlushOutput()
         {
-            // Flush can only be called on the UI thread.
-            UIThread(uiOnly => _buffer.Flush());
+            UIThread(uiOnly => uiOnly.FlushOutput());
         }
 
         void IInteractiveWindow.InsertCode(string text)
@@ -191,7 +262,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         internal void AppendOutput(IEnumerable<string> output)
         {
             RequiresUIThread();
-            _dangerous_uiOnly.AppendOutput(output);
+            _dangerous_uiOnly.AppendOutput(output); // Verified above.
         }
 
         /// <summary>
@@ -374,53 +445,27 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         Span IInteractiveWindow.Write(string text)
         {
-            int result = _buffer.Write(text);
-            return new Span(result, (text != null ? text.Length : 0));
+            return UIThread(uiOnly => uiOnly.Write(text));
         }
 
-        public Span WriteLine(string text)
+        Span IInteractiveWindow.WriteLine(string text)
         {
-            int result = _buffer.Write(text);
-            _buffer.Write(_lineBreakString);
-            return new Span(result, (text != null ? text.Length : 0) + _lineBreakString.Length);
+            return UIThread(uiOnly => uiOnly.WriteLine(text));
         }
 
         Span IInteractiveWindow.WriteError(string text)
         {
-            int result = _buffer.Write(text);
-            var res = new Span(result, (text != null ? text.Length : 0));
-            _errorOutputWriter.Spans.Add(res);
-            return res;
+            return UIThread(uiOnly => uiOnly.WriteError(text));
         }
 
         Span IInteractiveWindow.WriteErrorLine(string text)
         {
-            int result = _buffer.Write(text);
-            _buffer.Write(_lineBreakString);
-            var res = new Span(result, (text != null ? text.Length : 0) + _lineBreakString.Length);
-            _errorOutputWriter.Spans.Add(res);
-            return res;
+            return UIThread(uiOnly => uiOnly.WriteErrorLine(text));
         }
 
         void IInteractiveWindow.Write(UIElement element)
         {
-            if (element == null)
-            {
-                return;
-            }
-
-            _buffer.Flush();
-            InlineAdornmentProvider.AddInlineAdornment(_textView, element, OnAdornmentLoaded);
-            _adornmentToMinimize = true; // TODO (https://github.com/dotnet/roslyn/issues/4044): probably ui only
-            WriteLine(string.Empty);
-            WriteLine(string.Empty);
-        }
-
-        private void OnAdornmentLoaded(object source, EventArgs e)
-        {
-            // Make sure the caret line is rendered
-            DoEvents();
-            _textView.Caret.EnsureVisible();
+            UIThread(uiOnly => uiOnly.Write(element));
         }
 
 #endregion
@@ -436,7 +481,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         #region UI Dispatcher Helpers
 
-        private Dispatcher Dispatcher => ((FrameworkElement)_textView).Dispatcher;
+        private Dispatcher Dispatcher => ((FrameworkElement)_dangerous_uiOnly.TextView).Dispatcher; // Always safe to access the dispatcher.
 
         internal bool OnUIThread()
         {

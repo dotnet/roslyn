@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
 
@@ -31,7 +32,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             void IProjectionEditResolver.FillInInsertionSizes(SnapshotPoint projectionInsertionPoint, ReadOnlyCollection<SnapshotPoint> sourceInsertionPoints, string insertionText, IList<int> insertionSizes)
             {
-                int index = IndexOfEditableBuffer(sourceInsertionPoints);
+                int index = _window.UIThread(uiOnly => IndexOfEditableBuffer(sourceInsertionPoints, uiOnly));
                 if (index != -1)
                 {
                     insertionSizes[index] = insertionText.Length;
@@ -40,24 +41,25 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             int IProjectionEditResolver.GetTypicalInsertionPosition(SnapshotPoint projectionInsertionPoint, ReadOnlyCollection<SnapshotPoint> sourceInsertionPoints)
             {
-                int index = IndexOfEditableBuffer(sourceInsertionPoints);
+                int index = _window.UIThread(uiOnly => IndexOfEditableBuffer(sourceInsertionPoints, uiOnly));
                 return index != -1 ? index : 0;
             }
 
             void IProjectionEditResolver.FillInReplacementSizes(SnapshotSpan projectionReplacementSpan, ReadOnlyCollection<SnapshotSpan> sourceReplacementSpans, string insertionText, IList<int> insertionSizes)
             {
-                int index = IndexOfEditableBuffer(sourceReplacementSpans);
+                int index = _window.UIThread(uiOnly => IndexOfEditableBuffer(sourceReplacementSpans, uiOnly));
                 if (index != -1)
                 {
                     insertionSizes[index] = insertionText.Length;
                 }
             }
 
-            private int IndexOfEditableBuffer(ReadOnlyCollection<SnapshotPoint> points)
+            private int IndexOfEditableBuffer(ReadOnlyCollection<SnapshotPoint> points, UIThreadOnly uiOnly)
             {
+                Debug.Assert(_window.OnUIThread());
                 for (int i = points.Count - 1; i >= 0; i--)
                 {
-                    if (IsEditableBuffer(points[i].Snapshot.TextBuffer))
+                    if (IsEditableBuffer(points[i].Snapshot.TextBuffer, uiOnly))
                     {
                         return i;
                     }
@@ -66,11 +68,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 return -1;
             }
 
-            private int IndexOfEditableBuffer(ReadOnlyCollection<SnapshotSpan> spans)
+            private int IndexOfEditableBuffer(ReadOnlyCollection<SnapshotSpan> spans, UIThreadOnly uiOnly)
             {
+                Debug.Assert(_window.OnUIThread());
                 for (int i = spans.Count - 1; i >= 0; i--)
                 {
-                    if (IsEditableBuffer(spans[i].Snapshot.TextBuffer))
+                    if (IsEditableBuffer(spans[i].Snapshot.TextBuffer, uiOnly))
                     {
                         return i;
                     }
@@ -79,9 +82,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 return -1;
             }
 
-            private bool IsEditableBuffer(ITextBuffer buffer)
+            private bool IsEditableBuffer(ITextBuffer buffer, UIThreadOnly uiOnly)
             {
-                return buffer == _window._currentLanguageBuffer || buffer == _window._standardInputBuffer;
+                return buffer == uiOnly.CurrentLanguageBuffer || buffer == uiOnly.StandardInputBuffer;
             }
         }
     }

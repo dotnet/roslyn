@@ -96,7 +96,7 @@
     <Compile Include="InteractiveWindow.ReplSpanKind.cs" />
     <Compile Include="InteractiveWindow.EditResolver.cs" />
     <Compile Include="InteractiveWindow.State.cs" />
-    <Compile Include="InteractiveWindow_UIThread.cs" />
+    <Compile Include="InteractiveWindow.UIThreadOnly.cs" />
     <Compile Include="PredefinedInteractiveContentTypes.cs" />
     <Compile Include="InteractiveContentTypeDefinitions.cs" />
     <Compile Include="InteractiveWindow.cs" />
