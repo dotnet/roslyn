@@ -847,6 +847,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument))
             {
+                if (typeSyntax.Kind() == SyntaxKind.GenericName)
+                {
+                    var genericName = (GenericNameSyntax)typeSyntax;
+                    if (genericName.IsUnboundGenericName && IsUnboundTypeAllowed(genericName))
+                    {
+                        return type;
+                    }
+                }
+
                 // Note: lookup won't have reported this, since the arity was correct.
                 // CONSIDER: the text of this error message makes sense, but we might want to add a separate code.
                 Error(diagnostics, ErrorCode.ERR_BadArity, typeSyntax, type, MessageID.IDS_SK_TYPE.Localize(), typeArgumentsSyntax.Count);

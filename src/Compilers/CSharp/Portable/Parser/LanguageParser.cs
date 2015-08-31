@@ -5468,16 +5468,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         return result;
                     }
 
-                    switch (this.ScanType(out lastTokenOfList))
+                    if (this.CurrentToken.Kind != SyntaxKind.CommaToken)
                     {
-                        case ScanTypeFlags.NotType:
-                            lastTokenOfList = null;
-                            return ScanTypeFlags.NotType;
+                        switch (this.ScanType(out lastTokenOfList))
+                        {
+                            case ScanTypeFlags.NotType:
+                                lastTokenOfList = null;
+                                return ScanTypeFlags.NotType;
 
-                        case ScanTypeFlags.MustBeType:
-                        case ScanTypeFlags.GenericTypeOrMethod:
-                            result = ScanTypeFlags.GenericTypeOrMethod;
-                            break;
+                            case ScanTypeFlags.MustBeType:
+                            case ScanTypeFlags.GenericTypeOrMethod:
+                                result = ScanTypeFlags.GenericTypeOrMethod;
+                                break;
+                        }
                     }
                 }
                 while (this.CurrentToken.Kind == SyntaxKind.CommaToken);
