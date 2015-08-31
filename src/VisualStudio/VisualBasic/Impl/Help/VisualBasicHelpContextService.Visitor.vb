@@ -940,8 +940,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                 Return Format(symbol, isContainingType:=False)
             End Function
 
+            Private Function GetSymbolType(symbol As ISymbol) As ITypeSymbol
+                If TypeOf symbol Is IRangeVariableSymbol Then
+                    Dim info = Me._semanticModel.GetSpeculativeTypeInfo(Me._span.Start, SyntaxFactory.ParseName(symbol.Name), SpeculativeBindingOption.BindAsExpression)
+                    Return info.Type
+                End If
+
+                Return symbol.GetSymbolType()
+            End Function
+
             Private Function Format(symbol As ISymbol, isContainingType As Boolean) As String
-                Dim symbolType = symbol.GetSymbolType()
+                Dim symbolType = GetSymbolType(symbol)
 
                 If TypeOf symbolType Is IArrayTypeSymbol Then
                     symbolType = DirectCast(symbolType, IArrayTypeSymbol).ElementType
@@ -951,8 +960,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                     Return HelpKeywords.AnonymousType
                 End If
 
-                If symbol.MatchesKind(SymbolKind.Alias, SymbolKind.Local, SymbolKind.Parameter) Then
-                    Return FormatTypeOrNamespace(symbol.GetSymbolType())
+                If symbol.MatchesKind(SymbolKind.Alias, SymbolKind.Local, SymbolKind.Parameter, SymbolKind.RangeVariable) Then
+                    Return FormatTypeOrNamespace(GetSymbolType(symbol))
                 End If
 
                 If Not isContainingType AndAlso TypeOf symbol Is INamedTypeSymbol Then
