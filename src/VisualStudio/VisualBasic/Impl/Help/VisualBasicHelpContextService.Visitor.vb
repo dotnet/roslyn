@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Text
@@ -438,7 +439,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                     symbol = _semanticModel.GetMemberGroup(node).FirstOrDefault()
                 End If
 
-                If symbol Is Nothing Then
+                If symbol Is Nothing OrElse symbol.IsKind(SymbolKind.RangeVariable) Then
                     symbol = _semanticModel.GetTypeInfo(node).Type
                 End If
 
@@ -951,7 +952,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                     Return HelpKeywords.AnonymousType
                 End If
 
-                If symbol.MatchesKind(SymbolKind.Alias, SymbolKind.Local, SymbolKind.Parameter) Then
+                If symbol.MatchesKind(SymbolKind.Alias, SymbolKind.Local, SymbolKind.Parameter, SymbolKind.RangeVariable) Then
                     Return FormatTypeOrNamespace(symbol.GetSymbolType())
                 End If
 

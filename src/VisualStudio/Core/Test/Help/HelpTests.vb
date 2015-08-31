@@ -2106,6 +2106,45 @@ Module Program
     End Sub
 End Module]]></a>.Value, "System.Array.Length")
         End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Sub TestParameterFromReference()
+            Test(<a><![CDATA[Module Program
+    Sub Main(args As String())
+        a[||]rgs
+    End Sub
+End Module]]></a>.Value, "System.String()")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Sub TestLocalFromReference()
+            Test(<a><![CDATA[Module Program
+    Sub Main(args As String())
+        Dim x As Integer
+        x[||]
+    End Sub
+End Module]]></a>.Value, "System.Int32")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Sub TestAliasFromReference()
+            Test(<a><![CDATA[Imports s = System.Linq.Enumerable
+
+Module Program
+    Sub Main(args As String())
+        Dim x As s[||]
+    End Sub
+End Module]]></a>.Value, "System.Linq.Enumerable")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Sub TestRangeVariable()
+            Test(<a><![CDATA[Module Program
+    Sub Main(args As String())
+        Dim z = From x In args Select x[||]
+    End Sub
+End Module]]></a>.Value, "vb.String")
+        End Sub
     End Class
 End Namespace
 
