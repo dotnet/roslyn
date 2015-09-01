@@ -83,7 +83,7 @@
   <ItemGroup>
     <Reference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\packages\Microsoft.CodeAnalysis.Test.Resources.Proprietary.1.1.0-beta1-20150716-08\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.CodeAnalysis.Test.Resources.Proprietary.1.1.0-beta1-20150824-02\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll</HintPath>
     </Reference>
     <Reference Include="xunit">
       <HintPath>..\..\..\..\..\packages\xunit.1.9.2\lib\net20\xunit.dll</HintPath>
@@ -195,6 +195,7 @@
     <Compile Include="Semantics\QueryExpressions_LookupSymbols.vb" />
     <Compile Include="Semantics\QueryExpressions_SemanticModel.vb" />
     <Compile Include="Semantics\RedimStatementTests.vb" />
+    <Compile Include="Semantics\ScriptSemanticsTests.vb" />
     <Compile Include="Semantics\SelectCaseTests.vb" />
     <Compile Include="Semantics\SyncLockTests.vb" />
     <Compile Include="Semantics\SyntaxTreeRootTests.vb" />

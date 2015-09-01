@@ -59,16 +59,15 @@
     <Reference Include="System.Reflection.Metadata, Version=$(SystemReflectionMetadataAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
-    </Reference>  
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ObjectFormatterTestBase.cs" />
     <Compile Include="ObjectFormatterTests.Fixtures.cs" />
     <Compile Include="RedirectedOutput.cs" />
-    <Compile Include="ScriptEngine.cs" />
     <Compile Include="ScriptingTestHelpers.cs" />
-    <Compile Include="Session.cs" />
-    <Compile Include="Submission.cs" />
+    <Compile Include="ScriptOptionsTests.cs" />
+    <Compile Include="ScriptTaskExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests" />

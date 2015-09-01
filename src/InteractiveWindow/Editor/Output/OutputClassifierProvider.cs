@@ -17,7 +17,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     /// </summary>
     [Export(typeof(IClassifierProvider))]
     [ContentType(PredefinedInteractiveContentTypes.InteractiveOutputContentTypeName)]
-    [TextViewRole(PredefinedTextViewRoles.Document)]
     internal sealed class OutputClassifierProvider : IClassifierProvider
     {
         private static readonly object s_textBufferPropertyKey = new object();

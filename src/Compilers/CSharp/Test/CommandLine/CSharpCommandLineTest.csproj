@@ -85,7 +85,7 @@
   <ItemGroup>
     <Reference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\packages\Microsoft.CodeAnalysis.Test.Resources.Proprietary.1.1.0-beta1-20150716-08\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.CodeAnalysis.Test.Resources.Proprietary.1.1.0-beta1-20150824-02\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
@@ -95,6 +95,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommandLineDiagnosticFormatterTests.cs" />
+    <Compile Include="CommandLineScriptTests.cs" />
     <Compile Include="CommandLineTests.cs" />
     <Compile Include="CommandLineTestResources.Designer.cs">
       <AutoGen>True</AutoGen>
