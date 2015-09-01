@@ -38,7 +38,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         PropertyCollection IPropertyOwner.Properties { get; } = new PropertyCollection();
 
         private readonly SemaphoreSlim _inputReaderSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
-        private readonly UIThreadOnly _dangerous_uiOnly;
+
+        /// <remarks>
+        /// WARNING: Members of this object should only be accessed from the UI thread.
+        /// </remarks>
+        private readonly UIThreadOnly _uiOnly;
 
         #region Initialization
 
@@ -59,7 +63,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 throw new ArgumentNullException(nameof(evaluator));
             }
 
-            _dangerous_uiOnly = new UIThreadOnly(
+            _uiOnly = new UIThreadOnly(
                 this,
                 host,
                 contentTypeRegistry,
@@ -82,7 +86,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             try
             {
                 RequiresUIThread();
-                var uiOnly = _dangerous_uiOnly; // Verified above.
+                var uiOnly = _uiOnly; // Verified above.
 
                 if (uiOnly.State != State.Starting)
                 {
@@ -129,7 +133,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// <remarks>
         /// The caller is responsible for using the buffer in a thread-safe manner.
         /// </remarks>
-        public ITextBuffer CurrentLanguageBuffer => _dangerous_uiOnly.CurrentLanguageBuffer;
+        public ITextBuffer CurrentLanguageBuffer => _uiOnly.CurrentLanguageBuffer;
 
         void IDisposable.Dispose()
         {
@@ -152,27 +156,27 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// <remarks>
         /// The caller is responsible for using the text view in a thread-safe manner.
         /// </remarks>
-        IWpfTextView IInteractiveWindow.TextView => _dangerous_uiOnly.TextView;
+        IWpfTextView IInteractiveWindow.TextView => _uiOnly.TextView;
 
         /// <remarks>
         /// The caller is responsible for using the buffer in a thread-safe manner.
         /// </remarks>
-        ITextBuffer IInteractiveWindow.OutputBuffer => _dangerous_uiOnly.OutputBuffer;
+        ITextBuffer IInteractiveWindow.OutputBuffer => _uiOnly.OutputBuffer;
 
         /// <remarks>
         /// The caller is responsible for using the writer in a thread-safe manner.
         /// </remarks>
-        TextWriter IInteractiveWindow.OutputWriter => _dangerous_uiOnly.OutputWriter;
+        TextWriter IInteractiveWindow.OutputWriter => _uiOnly.OutputWriter;
 
         /// <remarks>
         /// The caller is responsible for using the writer in a thread-safe manner.
         /// </remarks>
-        TextWriter IInteractiveWindow.ErrorOutputWriter => _dangerous_uiOnly.ErrorOutputWriter;
+        TextWriter IInteractiveWindow.ErrorOutputWriter => _uiOnly.ErrorOutputWriter;
 
         /// <remarks>
         /// The caller is responsible for using the evaluator in a thread-safe manner.
         /// </remarks>
-        IInteractiveEvaluator IInteractiveWindow.Evaluator => _dangerous_uiOnly.Evaluator;
+        IInteractiveEvaluator IInteractiveWindow.Evaluator => _uiOnly.Evaluator;
 
         /// <remarks>
         /// Normally, an async method would have an NFW exception filter.  This
@@ -262,7 +266,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         internal void AppendOutput(IEnumerable<string> output)
         {
             RequiresUIThread();
-            _dangerous_uiOnly.AppendOutput(output); // Verified above.
+            _uiOnly.AppendOutput(output); // Verified above.
         }
 
         /// <summary>
@@ -319,13 +323,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         #region Keyboard Commands
 
         /// <remarks>Only consistent on the UI thread.</remarks>
-        bool IInteractiveWindow.IsRunning => _dangerous_uiOnly.State != State.WaitingForInput;
+        bool IInteractiveWindow.IsRunning => _uiOnly.State != State.WaitingForInput;
 
         /// <remarks>Only consistent on the UI thread.</remarks>
-        bool IInteractiveWindow.IsResetting => _dangerous_uiOnly.State == State.Resetting || _dangerous_uiOnly.State == State.ResettingAndReadingStandardInput;
+        bool IInteractiveWindow.IsResetting => _uiOnly.State == State.Resetting || _uiOnly.State == State.ResettingAndReadingStandardInput;
 
         /// <remarks>Only consistent on the UI thread.</remarks>
-        bool IInteractiveWindow.IsInitializing => _dangerous_uiOnly.State == State.Starting || _dangerous_uiOnly.State == State.Initializing;
+        bool IInteractiveWindow.IsInitializing => _uiOnly.State == State.Starting || _uiOnly.State == State.Initializing;
 
         IInteractiveWindowOperations IInteractiveWindow.Operations => this;
 
@@ -399,15 +403,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         #endregion
 
-        #region Caret and Cursor
-
-        private void CaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
-        {
-            UIThread(uiOnly => uiOnly.CaretPositionChangedInternal(sender, e));
-        }
-
-        #endregion
-
         #region Active Code and Standard Input
 
         TextReader IInteractiveWindow.ReadStandardInput()
@@ -470,18 +465,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
 #endregion
 
-#region Buffers, Spans and Prompts
-
-        private void ProjectionBufferChanged(object sender, TextContentChangedEventArgs e)
-        {
-            UIThread(uiOnly => uiOnly.ProjectionBufferChangedInternal(sender, e));
-        }
-
-        #endregion
-
         #region UI Dispatcher Helpers
 
-        private Dispatcher Dispatcher => ((FrameworkElement)_dangerous_uiOnly.TextView).Dispatcher; // Always safe to access the dispatcher.
+        private Dispatcher Dispatcher => ((FrameworkElement)_uiOnly.TextView).Dispatcher; // Always safe to access the dispatcher.
 
         internal bool OnUIThread()
         {
@@ -492,21 +478,21 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             if (!OnUIThread())
             {
-                return (T)Dispatcher.Invoke(func, _dangerous_uiOnly); // Safe because of dispatch.
+                return (T)Dispatcher.Invoke(func, _uiOnly); // Safe because of dispatch.
             }
 
-            return func(_dangerous_uiOnly); // Safe because of check.
+            return func(_uiOnly); // Safe because of check.
         }
 
         private void UIThread(Action<UIThreadOnly> action)
         {
             if (!OnUIThread())
             {
-                Dispatcher.Invoke(action, _dangerous_uiOnly); // Safe because of dispatch.
+                Dispatcher.Invoke(action, _uiOnly); // Safe because of dispatch.
                 return;
             }
 
-            action(_dangerous_uiOnly); // Safe because of check.
+            action(_uiOnly); // Safe because of check.
         }
 
         private void RequiresUIThread()

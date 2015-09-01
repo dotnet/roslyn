@@ -159,7 +159,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 _projectionBuffer.Properties.AddProperty(typeof(InteractiveWindow), window);
 
                 AppendNewOutputProjectionBuffer();
-                _projectionBuffer.Changed += new EventHandler<TextContentChangedEventArgs>(window.ProjectionBufferChanged);
+                _projectionBuffer.Changed += new EventHandler<TextContentChangedEventArgs>(ProjectionBufferChanged);
 
                 var roleSet = editorFactory.CreateTextViewRoleSet(
                     PredefinedTextViewRoles.Analyzable,
@@ -169,7 +169,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     PredefinedInteractiveTextViewRoles.InteractiveTextViewRole);
 
                 TextView = factory.CreateTextView(window, _projectionBuffer, roleSet);
-                TextView.Caret.PositionChanged += window.CaretPositionChanged;
+                TextView.Caret.PositionChanged += CaretPositionChanged;
 
                 var options = TextView.Options;
                 options.SetOptionValue(DefaultTextViewHostOptions.HorizontalScrollBarId, true);
@@ -237,7 +237,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// <summary>Implements <see cref="IInteractiveWindow.Close"/>.</summary>
             public void Close()
             {
-                TextView.Caret.PositionChanged -= _window.CaretPositionChanged;
+                TextView.Caret.PositionChanged -= CaretPositionChanged;
                 TextView.Close();
             }
 
@@ -1370,11 +1370,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 return true;
             }
 
-            /// <remarks>
-            /// DO NOT REGISTER THIS AS AN EVENT HANDLER - it needs to happen on the UI thread.
-            /// Use <see cref="InteractiveWindow.ProjectionBufferChanged"/>.
-            /// </remarks>
-            internal void ProjectionBufferChangedInternal(object sender, TextContentChangedEventArgs e)
+            private void ProjectionBufferChanged(object sender, TextContentChangedEventArgs e)
             {
                 // this is an edit performed in this event:
                 if (e.EditTag == SuppressPromptInjectionTag)
@@ -1615,11 +1611,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 textView.ViewScroller.EnsureSpanVisible(caretSpan);
             }
 
-            /// <remarks>
-            /// DO NOT REGISTER THIS AS AN EVENT HANDLER - it needs to happen on the UI thread.
-            /// Use <see cref="InteractiveWindow.CaretPositionChanged"/>.
-            /// </remarks>
-            internal void CaretPositionChangedInternal(object sender, CaretPositionChangedEventArgs e)
+            private void CaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
             {
                 // make sure language buffer exist
                 if (CurrentLanguageBuffer == null)
@@ -1658,14 +1650,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 try
                 {
                     // detach event handler
-                    TextView.Caret.PositionChanged -= _window.CaretPositionChanged;
+                    TextView.Caret.PositionChanged -= CaretPositionChanged;
 
                     IndentCurrentLine(caretPoint);
                 }
                 finally
                 {
                     // attach event handler
-                    TextView.Caret.PositionChanged += _window.CaretPositionChanged;
+                    TextView.Caret.PositionChanged += CaretPositionChanged;
                 }
             }
 
