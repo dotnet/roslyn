@@ -26,7 +26,10 @@ namespace Microsoft.CodeAnalysis.Scripting
                       new DesktopMetadataReferenceResolver(
                           MetadataFileReferenceResolver.Default,
                           null,
-                          GacFileResolver.Default),
+                          new GacFileResolver(
+                              GacFileResolver.DefaultArchitectures,
+                              preferredCulture: null,
+                              provider: MetadataFileReferenceProvider.Default)),
                       MetadataFileReferenceProvider.Default),
                   isInteractive: true)
         {

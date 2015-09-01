@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim referenceDirectiveResolver As MetadataFileReferenceResolver = Nothing
             Dim metadataProvider As MetadataFileReferenceProvider = GetMetadataProvider()
 
-            Dim externalReferenceResolver = GetExternalMetadataResolver(touchedFilesLogger)
+            Dim externalReferenceResolver = GetExternalMetadataResolver(touchedFilesLogger, metadataProvider)
             Dim resolvedReferences = ResolveMetadataReferences(externalReferenceResolver, metadataProvider, diagnostics, assemblyIdentityComparer, touchedFilesLogger, referenceDirectiveResolver)
 
             If ReportErrors(diagnostics, consoleOutput, errorLogger) Then

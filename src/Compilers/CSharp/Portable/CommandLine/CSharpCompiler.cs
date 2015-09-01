@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var xmlFileResolver = new LoggingXmlFileResolver(Arguments.BaseDirectory, touchedFilesLogger);
             var sourceFileResolver = new LoggingSourceFileResolver(ImmutableArray<string>.Empty, Arguments.BaseDirectory, touchedFilesLogger);
 
-            var externalReferenceResolver = GetExternalMetadataResolver(touchedFilesLogger);
+            var externalReferenceResolver = GetExternalMetadataResolver(touchedFilesLogger, metadataProvider);
             MetadataFileReferenceResolver referenceDirectiveResolver;
             var resolvedReferences = ResolveMetadataReferences(externalReferenceResolver, metadataProvider, diagnostics, assemblyIdentityComparer, touchedFilesLogger, out referenceDirectiveResolver);
             if (ReportErrors(diagnostics, consoleOutput, errorLogger))

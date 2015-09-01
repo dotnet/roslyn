@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -36,13 +37,13 @@ namespace CSharpInteractive
             }
         }
 
-        internal override MetadataFileReferenceResolver GetExternalMetadataResolver(TouchedFileLogger touchedFiles)
+        internal override MetadataFileReferenceResolver GetExternalMetadataResolver(TouchedFileLogger touchedFiles, MetadataFileReferenceProvider provider)
         {
             // We don't log touched files atm.
             return new DesktopMetadataReferenceResolver(
                 new RelativePathReferenceResolver(Arguments.ReferencePaths, Arguments.BaseDirectory),
                 null,
-                new GacFileResolver(GacFileResolver.Default.Architectures, CultureInfo.CurrentCulture));
+                new GacFileResolver(GacFileResolver.DefaultArchitectures, CultureInfo.CurrentCulture, provider));
         }
 
         public override void PrintLogo(TextWriter consoleOutput)
