@@ -21,8 +21,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
 
-        Protected Overrides Function IsExclusiveAsync(document As Document, position As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of Boolean)
-            Return SpecializedTasks.True
+        Protected Overrides Function IsExclusiveAsync() As Boolean
+            Return True
         End Function
 
         Protected Overrides Function GetSymbolsWorker(context As AbstractSyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))

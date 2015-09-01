@@ -12,5 +12,9 @@ namespace Microsoft.CodeAnalysis.Completion
         public static readonly PerLanguageOption<bool> IncludeKeywords = new PerLanguageOption<bool>(FeatureName, "IncludeKeywords", defaultValue: true);
         public static readonly PerLanguageOption<bool> TriggerOnTyping = new PerLanguageOption<bool>(FeatureName, "TriggerOnTyping", defaultValue: true);
         public static readonly PerLanguageOption<bool> TriggerOnTypingLetters = new PerLanguageOption<bool>(FeatureName, "TriggerOnTypingLetters", defaultValue: true);
+
+        public static readonly Option<bool> AlwaysShowBuilder = new Option<bool>(FeatureName, "AlwaysShowBuilder", defaultValue: false);
+        public static readonly Option<bool> FilterOutOfScopeLocals = new Option<bool>(FeatureName, "FilterOutOfScopeLocals", defaultValue: true);
+        public static readonly Option<bool> ShowXmlDocCommentCompletion = new Option<bool>(FeatureName, "ShowXmlDocCommentCompletion", defaultValue: true);
     }
 }

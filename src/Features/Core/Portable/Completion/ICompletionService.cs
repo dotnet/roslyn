@@ -29,7 +29,13 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Returns the <see cref="CompletionList"/> for the specified position in the document.
         /// </summary>
-        Task<CompletionList> GetCompletionListAsync(Document document, int position, CompletionTriggerInfo triggerInfo, IEnumerable<CompletionListProvider> completionProviders, CancellationToken cancellationToken);
+        Task<CompletionList> GetCompletionListAsync(
+            Document document,
+            int position,
+            CompletionTriggerInfo triggerInfo,
+            OptionSet options,
+            IEnumerable<CompletionListProvider> providers,
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns true if the character at the specific position in the document should trigger

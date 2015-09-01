@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -20,11 +22,34 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         /// <summary>
-        /// Returns the <see cref="CompletionList"/> for the specified position in the document.
+        /// Returns the <see cref="CompletionList"/> for the specified <paramref name="position"/>
+        /// in the <paramref name="document"/>.
         /// </summary>
-        public static Task<CompletionList> GetCompletionListAsync(Document document, int position, CompletionTriggerInfo triggerInfo, IEnumerable<CompletionListProvider> completionProviders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<CompletionList> GetCompletionListAsync(
+            Document document,
+            int position,
+            CompletionTriggerInfo triggerInfo,
+            OptionSet options = null,
+            IEnumerable<CompletionListProvider> providers = null,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
-            return document.GetLanguageService<ICompletionService>().GetCompletionListAsync(document, position, triggerInfo, completionProviders, cancellationToken);
+            if (document == null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
+            var completionService = document.GetLanguageService<ICompletionService>();
+            if (completionService != null)
+            {
+                options = options ?? document.Project.Solution.Workspace.Options;
+                providers = providers ?? GetDefaultCompletionListProviders(document);
+
+                return completionService.GetCompletionListAsync(document, position, triggerInfo, options, providers, cancellationToken);
+            }
+            else
+            {
+                return null;
+            }
         }
 
         /// <summary>
