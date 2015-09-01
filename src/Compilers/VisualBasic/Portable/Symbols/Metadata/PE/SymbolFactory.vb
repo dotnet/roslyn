@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Friend Shared ReadOnly Instance As New SymbolFactory()
 
-        Friend Overrides Function GetArrayTypeSymbol(moduleSymbol As PEModuleSymbol, rank As Integer, elementType As TypeSymbol) As TypeSymbol
+        Friend Overrides Function GetArrayTypeSymbol(moduleSymbol As PEModuleSymbol, rank As Integer, elementType As TypeSymbol, customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol))) As TypeSymbol
             If TypeOf elementType Is UnsupportedMetadataTypeSymbol Then
                 Return elementType
             End If
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Return New ArrayTypeSymbol(
                             elementType,
-                            Nothing,
+                            VisualBasicCustomModifier.Convert(customModifiers),
                             rank, moduleSymbol.ContainingAssembly)
         End Function
 

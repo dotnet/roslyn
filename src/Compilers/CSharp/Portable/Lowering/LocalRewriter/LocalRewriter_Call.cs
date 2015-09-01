@@ -874,8 +874,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(parameter.IsOptional);
             ConstantValue defaultConstantValue = parameter.ExplicitDefaultConstantValue;
             BoundExpression defaultValue;
-
             SourceLocation callerSourceLocation;
+
+            // For compatibility with the native compiler we treat all bad imported constant
+            // values as default(T).  
+            if (defaultConstantValue != null && defaultConstantValue.IsBad)
+            {
+                defaultConstantValue = ConstantValue.Null;
+            }
 
             if (parameter.IsCallerLineNumber && ((callerSourceLocation = GetCallerLocation(syntax, enableCallerInfo)) != null))
             {

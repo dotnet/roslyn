@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         CompileNamedType(symbol);
                     }
-                    catch (Exception e) when (FatalError.Report(e))
+                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }

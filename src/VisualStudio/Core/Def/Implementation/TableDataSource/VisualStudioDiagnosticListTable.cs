@@ -279,13 +279,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = item.Message;
                                 return true;
                             case StandardTableKeyNames.DocumentName:
-                                content = GetFileName(item.OriginalFilePath, item.MappedFilePath);
+                                content = GetFileName(item.DataLocation?.OriginalFilePath, item.DataLocation?.MappedFilePath);
                                 return true;
                             case StandardTableKeyNames.Line:
-                                content = item.MappedStartLine;
+                                content = item.DataLocation?.MappedStartLine ?? 0;
                                 return true;
                             case StandardTableKeyNames.Column:
-                                content = item.MappedStartColumn;
+                                content = item.DataLocation?.MappedStartColumn ?? 0;
                                 return true;
                             case StandardTableKeyNames.ProjectName:
                                 content = GetProjectName(_factory._workspace, item.ProjectId);
@@ -314,7 +314,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             return false;
                         }
 
-                        return TryNavigateTo(_factory._workspace, item.DocumentId, item.OriginalStartLine, item.OriginalStartColumn, previewTab);
+                        return TryNavigateTo(_factory._workspace, item.DocumentId, 
+                            item.DataLocation?.OriginalStartLine ?? 0, item.DataLocation?.OriginalStartColumn ?? 0, previewTab);
                     }
 
                     protected override bool IsEquivalent(DiagnosticData item1, DiagnosticData item2)

@@ -58,9 +58,9 @@ done
 
 restore_nuget()
 {
-    curl -O https://dotnetci.blob.core.windows.net/roslyn/nuget.1.zip
-    unzip nuget.1.zip
-    rm nuget.1.zip
+    curl -O https://dotnetci.blob.core.windows.net/roslyn/nuget.4.zip
+    unzip nuget.4.zip
+    rm nuget.4.zip
 }
 
 run_msbuild()

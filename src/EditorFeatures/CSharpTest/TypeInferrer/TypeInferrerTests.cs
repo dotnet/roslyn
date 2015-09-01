@@ -1600,5 +1600,88 @@ class C
 }";
             Test(text, "global::System.Threading.Tasks.Task<System.Boolean>");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WorkItem(4233, "https://github.com/dotnet/roslyn/issues/4233")]
+        public void TestAwaitExpressionWithGenericMethod1()
+        {
+            var text =
+@"using System.Threading.Tasks;
+
+public class C
+{
+    private async void M()
+    {
+        bool merged = await X([|Test()|]);
+    }
+
+    private async Task<T> X<T>(T t) { return t; }
+}";
+            Test(text, "System.Boolean", testPosition: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WorkItem(4233, "https://github.com/dotnet/roslyn/issues/4233")]
+        public void TestAwaitExpressionWithGenericMethod2()
+        {
+            var text =
+@"using System.Threading.Tasks;
+
+public class C
+{
+    private async void M()
+    {
+        bool merged = await Task.Run(() => [|Test()|]);;
+    }
+
+    private async Task<T> X<T>(T t) { return t; }
+}";
+            Test(text, "System.Boolean");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WorkItem(4483, "https://github.com/dotnet/roslyn/issues/4483")]
+        public void TestNullCoalescingOperator1()
+        {
+            var text =
+    @"class C
+{
+    void M()
+    {
+        object z = [|a|]?? null;
+    }
+}";
+            Test(text, "System.Object");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WorkItem(4483, "https://github.com/dotnet/roslyn/issues/4483")]
+        public void TestNullCoalescingOperator2()
+        {
+            var text =
+    @"class C
+{
+    void M()
+    {
+        object z = [|a|] ?? b ?? c;
+    }
+}";
+            Test(text, "System.Object");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WorkItem(4483, "https://github.com/dotnet/roslyn/issues/4483")]
+        public void TestNullCoalescingOperator3()
+        {
+            var text =
+    @"class C
+{
+    void M()
+    {
+        object z = a ?? [|b|] ?? c;
+    }
+}";
+            Test(text, "System.Object");
+        }
     }
 }

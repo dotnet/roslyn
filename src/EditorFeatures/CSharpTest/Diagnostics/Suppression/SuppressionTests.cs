@@ -2,15 +2,23 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.ErrorLogger;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
@@ -149,6 +157,49 @@ class Class
 #pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
     }}
 }}");
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [WorkItem(3311, "https://github.com/dotnet/roslyn/issues/3311")]
+                public void TestNoDuplicateSuppressionCodeFixes()
+                {
+                    var source = @"
+class Class
+{
+    void Method()
+    {
+        [|int x = 0, y = 0;|]
+    }
+}";
+                    using (var workspace = CreateWorkspaceFromFile(source, parseOptions: null, compilationOptions: null))
+                    {
+                        var diagnosticService = new TestDiagnosticAnalyzerService(LanguageNames.CSharp, new CSharpCompilerDiagnosticAnalyzer());
+                        var incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace);
+                        var suppressionProvider = CreateDiagnosticProviderAndFixer(workspace).Item2;
+                        var suppressionProviderFactory = new Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>(() => suppressionProvider,
+                            new CodeChangeProviderMetadata("SuppressionProvider", languages: new[] { LanguageNames.CSharp }));
+                        var fixService = new CodeFixService(diagnosticService,
+                            SpecializedCollections.EmptyEnumerable<Lazy<IErrorLoggerService>>(),
+                            SpecializedCollections.EmptyEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>(),
+                            SpecializedCollections.SingletonEnumerable(suppressionProviderFactory));
+
+                        TextSpan span;
+                        var document = GetDocumentAndSelectSpan(workspace, out span);
+                        var diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, span, CancellationToken.None)
+                            .WaitAndGetResult(CancellationToken.None)
+                            .Where(d => d.Id == "CS0219");
+                        Assert.Equal(2, diagnostics.Count());
+
+                        var fixes = fixService.GetFixesAsync(document, span, includeSuppressionFixes: true, cancellationToken: CancellationToken.None)
+                            .WaitAndGetResult(CancellationToken.None)
+                            .SelectMany(fixCollection => fixCollection.Fixes)
+                            .Where(fix => fix.PrimaryDiagnostic.Id == "CS0219");
+                        
+                        // Ensure that both the fixes have identical equivalence key, and hence get de-duplicated in LB menu.
+                        Assert.Equal(2, fixes.Count());
+                        Assert.NotNull(fixes.First().Action.EquivalenceKey);
+                        Assert.Equal(fixes.First().Action.EquivalenceKey, fixes.Last().Action.EquivalenceKey);
+                    }
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]

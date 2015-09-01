@@ -3,6 +3,9 @@
 using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -28,5 +31,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
     [ProvideBindingPath]  // make sure our DLLs are loadable from other packages
     internal sealed class InteractiveWindowPackage : Package
     {
+        protected override void Initialize()
+        {
+            base.Initialize();
+
+            FatalError.Handler = FailFast.OnFatalException;
+            FatalError.NonFatalHandler = WatsonReporter.Report;
+        }
     }
 }
