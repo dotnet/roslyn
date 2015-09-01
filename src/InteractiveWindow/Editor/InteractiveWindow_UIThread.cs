@@ -157,9 +157,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             private readonly InteractiveWindow _window;
 
-            private readonly IInteractiveWindowEditorFactoryService _host; // TODO (acasey): _factory
+            private readonly IInteractiveWindowEditorFactoryService _factory;
 
-            private readonly History History = new History(); // TODO (acasey): _history
+            private readonly History _history = new History();
             private string _historySearch;
 
             // Pending submissions to be processed whenever the REPL is ready to accept submissions.
@@ -176,7 +176,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             private readonly IReadOnlyRegion[] _standardInputProtection = new IReadOnlyRegion[2];
             private readonly IReadOnlyRegion[] _outputProtection = new IReadOnlyRegion[2];
 
-            private string UncommittedInput; // TODO (acasey): _uncommittedInput
+            private string _uncommittedInput;
 
             /// <remarks>Always access through <see cref="GetStandardInputValue"/> and <see cref="SetStandardInputValue"/>.</remarks>
             private SnapshotSpan? _standardInputValue;
@@ -219,7 +219,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             public UIThreadOnly(InteractiveWindow window, IInteractiveWindowEditorFactoryService factory, IRtfBuilderService rtfBuilderService)
             {
                 _window = window;
-                _host = factory;
+                _factory = factory;
                 _rtfBuilderService = rtfBuilderService;
             }
 
@@ -269,7 +269,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             public void ClearHistory()
             {
-                History.Clear();
+                _history.Clear();
             }
 
             public void ClearView()
@@ -285,7 +285,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 InlineAdornmentProvider.RemoveAllAdornments(_window._textView);
 
                 // remove all the spans except our initial span from the projection buffer
-                UncommittedInput = null;
+                _uncommittedInput = null;
 
                 // Clear the projection and buffers last as this might trigger events that might access other state of the REPL window:
                 RemoveProtection(_window._outputBuffer, _outputProtection);
@@ -316,7 +316,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 // 2) We need at least one non-inert span due to bugs in projection buffer.
                 AppendNewOutputProjectionBuffer();
 
-                History.ForgetOriginalBuffers();
+                _history.ForgetOriginalBuffers();
 
                 // If we were waiting for input, we need to restore the prompt that we just cleared.
                 // If we are in any other state, then we'll let normal transitions trigger the next prompt.
@@ -391,7 +391,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     _window.Caret.EnsureVisible();
                     ResetCursor();
 
-                    UncommittedInput = null;
+                    _uncommittedInput = null;
                     _standardInputStart = _window._standardInputBuffer.CurrentSnapshot.Length;
 
                     var value = await GetStandardInputValue().ConfigureAwait(true);
@@ -506,12 +506,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             private void StoreUncommittedInput()
             {
-                if (UncommittedInput == null)
+                if (_uncommittedInput == null)
                 {
                     string activeCode = GetActiveCode();
                     if (!string.IsNullOrEmpty(activeCode))
                     {
-                        UncommittedInput = activeCode;
+                        _uncommittedInput = activeCode;
                     }
                 }
             }
@@ -556,7 +556,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                 // Add command to history before calling FinishCurrentSubmissionInput as it adds newline 
                 // to the end of the command.
-                History.Add(_window._currentLanguageBuffer.CurrentSnapshot.GetExtent());
+                _history.Add(_window._currentLanguageBuffer.CurrentSnapshot.GetExtent());
                 FinishCurrentSubmissionInput();
             }
 
@@ -566,22 +566,22 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 {
                     // Do nothing.
                 }
-                else if (string.IsNullOrEmpty(UncommittedInput))
+                else if (string.IsNullOrEmpty(_uncommittedInput))
                 {
-                    UncommittedInput = text;
+                    _uncommittedInput = text;
                 }
                 else
                 {
-                    UncommittedInput += text;
+                    _uncommittedInput += text;
                 }
             }
 
             private void RestoreUncommittedInput()
             {
-                if (UncommittedInput != null)
+                if (_uncommittedInput != null)
                 {
-                    SetActiveCode(UncommittedInput);
-                    UncommittedInput = null;
+                    SetActiveCode(_uncommittedInput);
+                    _uncommittedInput = null;
                 }
             }
 
@@ -624,7 +624,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// </summary>
             private SnapshotPoint GetClosestEditablePoint(SnapshotPoint projectionPoint)
             {
-                ITextBuffer editableBuffer = (ReadingStandardInput) ? _window._standardInputBuffer : _window._currentLanguageBuffer;
+                ITextBuffer editableBuffer = ReadingStandardInput ? _window._standardInputBuffer : _window._currentLanguageBuffer;
 
                 if (editableBuffer == null)
                 {
@@ -783,7 +783,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     var historySpan = _window._currentLanguageBuffer.CurrentSnapshot.GetExtent();
                     FinishCurrentSubmissionInput();
 
-                    History.UncommittedInput = null;
+                    _history.UncommittedInput = null;
 
                     var snapshotSpan = _window._currentLanguageBuffer.CurrentSnapshot.GetExtent();
                     var trimmedSpan = snapshotSpan.TrimEnd();
@@ -796,7 +796,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     }
                     else
                     {
-                        History.Add(historySpan);
+                        _history.Add(historySpan);
                         State = State.ExecutingInput;
 
                         StartCursorTimer();
@@ -1013,9 +1013,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 ResetCursor();
 
-                if (!succeeded && History.Last != null)
+                if (!succeeded && _history.Last != null)
                 {
-                    History.Last.Failed = true;
+                    _history.Last.Failed = true;
                 }
 
                 PrepareForInput();
@@ -1209,7 +1209,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// </summary>
             private void AddLanguageBuffer()
             {
-                ITextBuffer buffer = _host.CreateAndActivateBuffer(_window);
+                ITextBuffer buffer = _factory.CreateAndActivateBuffer(_window);
 
                 buffer.Properties.AddProperty(typeof(IInteractiveEvaluator), _window._evaluator);
                 buffer.Properties.AddProperty(typeof(InteractiveWindow), _window);
@@ -1251,7 +1251,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 ClearInput();
                 EditorOperations.MoveToEndOfDocument(false);
-                UncommittedInput = null;
+                _uncommittedInput = null;
                 _historySearch = null;
             }
 
@@ -1274,7 +1274,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     return;
                 }
 
-                var previous = History.GetPrevious(search);
+                var previous = _history.GetPrevious(search);
                 if (previous != null)
                 {
                     if (string.IsNullOrWhiteSpace(search))
@@ -1295,7 +1295,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     return;
                 }
 
-                var next = History.GetNext(search);
+                var next = _history.GetNext(search);
                 if (next != null)
                 {
                     if (string.IsNullOrWhiteSpace(search))
@@ -1309,8 +1309,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
                 else
                 {
-                    string code = History.UncommittedInput;
-                    History.UncommittedInput = null;
+                    string code = _history.UncommittedInput;
+                    _history.UncommittedInput = null;
                     if (!string.IsNullOrEmpty(code))
                     {
                         SetActiveCode(code);
@@ -1369,12 +1369,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             private void StoreUncommittedInputForHistory()
             {
-                if (History.UncommittedInput == null)
+                if (_history.UncommittedInput == null)
                 {
                     string activeCode = GetActiveCode();
                     if (activeCode.Length > 0)
                     {
-                        History.UncommittedInput = activeCode;
+                        _history.UncommittedInput = activeCode;
                     }
                 }
             }
@@ -1982,7 +1982,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 AppendLineNoPromptInjection(_window._standardInputBuffer);
                 var inputSpan = new SnapshotSpan(_window._standardInputBuffer.CurrentSnapshot, GetStandardInputSpan());
-                History.Add(inputSpan);
+                _history.Add(inputSpan);
                 SetStandardInputValue(inputSpan);
 
                 MakeStandardInputReadonly();
@@ -2008,7 +2008,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
 
                 var standardInputPoint = _window.GetPositionInStandardInputBuffer(point);
-                if (!standardInputPoint.HasValue) return false;
+                if (!standardInputPoint.HasValue)
+                {
+                    return false;
+                }
 
                 var standardInputPosition = standardInputPoint.GetValueOrDefault().Position;
                 var standardInputSpan = GetStandardInputSpan();
