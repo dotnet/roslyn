@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -1462,6 +1463,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return BetterResult.Right;
                 }
+
+                Debug.Assert(m1ParameterCount == m2ParameterCount);
+                if (m1ParametersUsedIncludingExpansionAndOptional == m2ParametersUsedIncludingExpansionAndOptional &&
+                    m1ParametersUsedIncludingExpansionAndOptional == m1ParameterCount - 1)
+                {
+                    var m1ParamsParameter = m1.LeastOverriddenMember.OriginalDefinition.GetParameters().Last();
+                    var m2ParamsParameter = m2.LeastOverriddenMember.OriginalDefinition.GetParameters().Last();
+
+                    Debug.Assert(m1ParamsParameter.Type.IsSingleDimensionalArray());
+                    Debug.Assert(m2ParamsParameter.Type.IsSingleDimensionalArray());
+
+                    result = BetterParamArrayTypeTieBreaker(m1ParamsParameter.Type, m2ParamsParameter.Type);
+
+                    if (result != BetterResult.Neither)
+                    {
+                        return result;
+                    }
+                }
             }
 
             // Otherwise if all parameters of MP have a corresponding argument whereas default
@@ -1540,6 +1559,90 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Otherwise, neither function member is better.
+            return BetterResult.Neither;
+        }
+
+        private static BetterResult BetterParamArrayTypeTieBreaker(TypeSymbol type1, TypeSymbol type2)
+        {
+            // Duplicating VS2013 logic, relevant code is in 
+            // BetterTypeEnum BSYMMGR::CompareTypes(TypeArray * ta1, TypeArray * ta2)
+
+            if (type1 == type2)
+            {
+                return BetterResult.Neither;
+            }
+
+            if (type1.IsTypeParameter())
+            {
+                if (type2.IsTypeParameter())
+                {
+                    return BetterResult.Neither;
+                }
+
+                return BetterResult.Right;
+            }
+            else if (type2.IsTypeParameter())
+            {
+                return BetterResult.Left;
+            }
+
+            if (type1.Kind == type2.Kind)
+            {
+                switch (type1.Kind)
+                {
+                    case SymbolKind.NamedType:
+                    case SymbolKind.ErrorType:
+
+                        var t1 = (NamedTypeSymbol)type1;
+                        var t2 = (NamedTypeSymbol)type2;
+
+                        var builder1 = ArrayBuilder<TypeSymbol>.GetInstance();
+                        var builder2 = ArrayBuilder<TypeSymbol>.GetInstance();
+                        HashSet<DiagnosticInfo> h = null;
+
+                        t1.GetAllTypeArguments(builder1, ref h);
+                        t2.GetAllTypeArguments(builder2, ref h);
+
+                        // The one with more arguments is more specific.
+                        if (builder1.Count > builder2.Count)
+                        {
+                            return BetterResult.Left;
+                        }
+                        else if (builder1.Count < builder2.Count)
+                        {
+                            return BetterResult.Right;
+                        }
+
+                        BetterResult result = BetterResult.Neither;
+
+                        for (int i = 0; i < builder1.Count; i++)
+                        {
+                            var current = BetterParamArrayTypeTieBreaker(builder1[i], builder2[i]);
+
+                            if (current != BetterResult.Neither && result != current)
+                            {
+                                if (result!= BetterResult.Neither)
+                                {
+                                    result = BetterResult.Neither;
+                                    break;
+                                }
+
+                                result = current;
+                            }
+                        }
+
+                        builder1.Free();
+                        builder2.Free();
+                        return result;
+
+                    case SymbolKind.ArrayType:
+                        return BetterParamArrayTypeTieBreaker(((ArrayTypeSymbol)type1).ElementType, ((ArrayTypeSymbol)type2).ElementType);
+    
+                case SymbolKind.PointerType:
+                        return BetterParamArrayTypeTieBreaker(((PointerTypeSymbol)type1).PointedAtType, ((PointerTypeSymbol)type2).PointedAtType);
+                }
+            }
+
             return BetterResult.Neither;
         }
 

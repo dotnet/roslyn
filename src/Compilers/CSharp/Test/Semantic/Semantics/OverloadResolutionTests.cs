@@ -8173,5 +8173,263 @@ namespace ClassLibraryOverloadResolution
     Diagnostic(ErrorCode.ERR_AmbigCall, "Should").WithArguments("FluentAssertions.AssertionExtensions.Should<TKey, TValue>(System.Collections.Generic.IDictionary<TKey, TValue>)", "Extensions.TestExtensions.Should<TKey, TValue>(System.Collections.Generic.IReadOnlyDictionary<TKey, TValue>)").WithLocation(34, 18)
                 );
         }
+
+        [Fact, WorkItem(4458, "https://github.com/dotnet/roslyn/issues/4458")]
+        public void TieBreakOnTypeOfUnusedParamArray_01()
+        {
+            string source1 = @"
+using System;
+using System.Linq.Expressions;
+
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        Test2(10);
+        Test4(10);
+        Test5(10);
+        Test11(10);
+        Test12(10);
+    }
+
+    static void Test2(int a, params Action<Action>[] p)
+    {
+    }
+
+    static void Test2(int a, params Expression<Action>[] p)
+    {
+    }
+
+    static void Test4(int a, Action[] p = null)
+    {
+    }
+
+    static void Test4(int a, Expression<Action>[] p = null)
+    {
+    }
+
+    static void Test5(int a, Action<Action>[] p = null)
+    {
+    }
+
+    static void Test5(int a, Expression<Action>[] p = null)
+    {
+    }
+
+    static void Test11(int a, params C1<Action, Expression<Action>, Action>[] p)
+    {
+    }
+
+    static void Test11(int a, params C1<Expression<Action>, Action, Expression<Action>>[] p)
+    {
+    }
+
+    static void Test12(int a, params C1<Expression<Action>, Action, Expression<Action>>[] p)
+    {
+    }
+
+    static void Test12(int a, params C1<Action, Expression<Action>, Action>[] p)
+    {
+    }
+}
+
+public class C1<T1, T2, T3> {}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+
+            compilation.VerifyDiagnostics(
+    // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Test2(int, params Action<Action>[])' and 'Program.Test2(int, params Expression<Action>[])'
+    //         Test2(10);
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Test2").WithArguments("Program.Test2(int, params System.Action<System.Action>[])", "Program.Test2(int, params System.Linq.Expressions.Expression<System.Action>[])").WithLocation(9, 9),
+    // (10,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Test4(int, Action[])' and 'Program.Test4(int, Expression<Action>[])'
+    //         Test4(10);
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Test4").WithArguments("Program.Test4(int, System.Action[])", "Program.Test4(int, System.Linq.Expressions.Expression<System.Action>[])").WithLocation(10, 9),
+    // (11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Test5(int, Action<Action>[])' and 'Program.Test5(int, Expression<Action>[])'
+    //         Test5(10);
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Test5").WithArguments("Program.Test5(int, System.Action<System.Action>[])", "Program.Test5(int, System.Linq.Expressions.Expression<System.Action>[])").WithLocation(11, 9),
+    // (12,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Test11(int, params C1<Action, Expression<Action>, Action>[])' and 'Program.Test11(int, params C1<Expression<Action>, Action, Expression<Action>>[])'
+    //         Test11(10);
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Test11").WithArguments("Program.Test11(int, params C1<System.Action, System.Linq.Expressions.Expression<System.Action>, System.Action>[])", "Program.Test11(int, params C1<System.Linq.Expressions.Expression<System.Action>, System.Action, System.Linq.Expressions.Expression<System.Action>>[])").WithLocation(12, 9),
+    // (13,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Test12(int, params C1<Expression<Action>, Action, Expression<Action>>[])' and 'Program.Test12(int, params C1<Action, Expression<Action>, Action>[])'
+    //         Test12(10);
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Test12").WithArguments("Program.Test12(int, params C1<System.Linq.Expressions.Expression<System.Action>, System.Action, System.Linq.Expressions.Expression<System.Action>>[])", "Program.Test12(int, params C1<System.Action, System.Linq.Expressions.Expression<System.Action>, System.Action>[])").WithLocation(13, 9)
+                );
+        }
+
+        [Fact, WorkItem(4458, "https://github.com/dotnet/roslyn/issues/4458")]
+        public void TieBreakOnTypeOfUnusedParamArray_02()
+        {
+            string source1 = @"
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        var x = new Test(10); 
+        Test1(10); 
+        Test3(10); 
+        Test6(10); 
+        Test7(10);
+        Test8(10);
+        Test9(10);
+        Test10(10);
+        Test13(10);
+        Test14(10);
+        Test15(10);
+        Test16(10);
+    }
+
+    static void Test1(int a, params Action[] p)
+    {
+        System.Console.WriteLine(3);
+    }
+
+    static void Test1(int a, params Expression<Action>[] p)
+    {
+        System.Console.WriteLine(4);
+    }
+
+    static void Test3(int a, params Action<Action, Action>[] p)
+    {
+        System.Console.WriteLine(7);
+    }
+
+    static void Test3(int a, params Expression<Action>[] p)
+    {
+        System.Console.WriteLine(8);
+    }
+
+    static void Test6(int a, params Action[] p)
+    {
+        System.Console.WriteLine(13);
+    }
+
+    static void Test6(int a, Expression<Action>[] p = null)
+    {
+        System.Console.WriteLine(14);
+    }
+
+    static void Test7(int a, Action[] p = null)
+    {
+        System.Console.WriteLine(15);
+    }
+
+    static void Test7(int a, params Expression<Action>[] p)
+    {
+        System.Console.WriteLine(16);
+    }
+
+    static void Test8(int a, params Action<Action>[] p)
+    {
+        System.Console.WriteLine(17);
+    }
+
+    static void Test8(int a, Expression<Action>[] p = null)
+    {
+        System.Console.WriteLine(18);
+    }
+
+    static void Test9(int a, Action<Action>[] p = null)
+    {
+        System.Console.WriteLine(19);
+    }
+
+    static void Test9(int a, params Expression<Action>[] p)
+    {
+        System.Console.WriteLine(20);
+    }
+
+    static void Test10(int a, params List<Action>[] p)
+    {
+        System.Console.WriteLine(21);
+    }
+
+    static void Test10(int a, params List<Expression<Action>>[] p)
+    {
+        System.Console.WriteLine(22);
+    }
+
+    static void Test13(int a, params C2<Action>.C3[] p)
+    {
+        System.Console.WriteLine(23);
+    }
+
+    static void Test13(int a, params C4.C5<Expression<Action>>[] p)
+    {
+        System.Console.WriteLine(24);
+    }
+
+    static void Test14(int a, params C2<Expression<Action>>.C3[] p)
+    {
+        System.Console.WriteLine(25);
+    }
+
+    static void Test14(int a, params C4.C5<Action>[] p)
+    {
+        System.Console.WriteLine(26);
+    }
+
+    static void Test15<T>(T a, params C2<T>[] p)
+    {
+        System.Console.WriteLine(27);
+    }
+
+    static void Test15<T>(T a, params C2<Action>[] p)
+    {
+        System.Console.WriteLine(28);
+    }
+
+    static void Test16<T>(T a, params C2<Action>[] p)
+    {
+        System.Console.WriteLine(29);
+    }
+
+    static void Test16<T>(T a, params C2<T>[] p)
+    {
+        System.Console.WriteLine(30);
+    }
+}
+
+public class Test
+{
+    public Test(int a, params Action[] p) { System.Console.WriteLine(1); }
+    public Test(int a, params Expression<Action>[] p) { System.Console.WriteLine(2); }
+}
+
+public class C2<T1> 
+{
+    public class C3 
+    {
+    }
+}
+
+public class C4
+{
+    public class C5<T>
+    {
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"2
+4
+7
+14
+15
+18
+19
+22
+24
+25
+28
+29");
+        }
     }
 }
