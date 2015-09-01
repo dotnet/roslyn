@@ -90,7 +90,13 @@
     <Compile Include="Commands\InteractiveCommandsFactory.cs" />
     <Compile Include="IInteractiveWindowOperations.cs" />
     <Compile Include="IInteractiveWindowOperations2.cs" />
-    <Compile Include="InteractiveWindow_UIThread.cs" />
+    <Compile Include="InteractiveWindow.SpanRangeEdit.cs" />
+    <Compile Include="ProjectionBufferExtensions.cs" />
+    <Compile Include="InteractiveWindow.PendingSubmission.cs" />
+    <Compile Include="InteractiveWindow.ReplSpanKind.cs" />
+    <Compile Include="InteractiveWindow.EditResolver.cs" />
+    <Compile Include="InteractiveWindow.State.cs" />
+    <Compile Include="InteractiveWindow.UIThreadOnly.cs" />
     <Compile Include="PredefinedInteractiveContentTypes.cs" />
     <Compile Include="InteractiveContentTypeDefinitions.cs" />
     <Compile Include="InteractiveWindow.cs" />

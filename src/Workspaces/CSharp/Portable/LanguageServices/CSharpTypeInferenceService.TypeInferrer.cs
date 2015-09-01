@@ -30,31 +30,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override IEnumerable<ITypeSymbol> GetTypes_DoNotCallDirectly(ExpressionSyntax expression, bool objectAsDefault)
             {
-                IEnumerable<ITypeSymbol> types;
-
-                // BUG: (vladres) Are following expressions parenthesized correctly?
-                // BUG:
-                // BUG: (davip) It is parenthesized incorrectly. This problem was introduced in Changeset 822325 when 
-                // BUG: this method was changed from returning a single ITypeSymbol to returning an IEnumerable<ITypeSymbol> 
-                // BUG: to better deal with overloads. The old version was:
-                // BUG: 
-                // BUG:     if (!IsUnusableType(type = GetTypeSimple(expression)) ||
-                // BUG:         !IsUnusableType(type = GetTypeComplex(expression)))
-                // BUG:           { return type; }
-                // BUG: 
-                // BUG: The intent is to only use *usable* types, whether simple or complex. I have confirmed this intent with Ravi, who made the change. 
-                // BUG: 
-                // BUG: Note that the current implementation of GetTypesComplex and GetTypesSimple already ensure the returned value 
-                // BUG: is a usable type, so there should not (currently) be any observable effect of this logic error.
-                // BUG:
-                // BUG: (vladres) Please remove this comment once the bug is fixed.
-                if ((types = GetTypesSimple(expression).Where(IsUsableTypeFunc)).Any() ||
-                    (types = GetTypesComplex(expression)).Where(IsUsableTypeFunc).Any())
+                var types = GetTypesSimple(expression).Where(IsUsableTypeFunc);
+                if (types.Any())
                 {
                     return types;
                 }
 
-                return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
+                return GetTypesComplex(expression).Where(IsUsableTypeFunc);
             }
 
             private static bool DecomposeBinaryOrAssignmentExpression(ExpressionSyntax expression, out SyntaxToken operatorToken, out ExpressionSyntax left, out ExpressionSyntax right)
