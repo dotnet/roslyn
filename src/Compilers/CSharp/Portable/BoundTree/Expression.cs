@@ -63,14 +63,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         bool IInvocation.IsVirtual => (this.Method.IsVirtual || this.Method.IsAbstract || this.Method.IsOverride) && !this.ReceiverOpt.SuppressVirtualCalls;
 
-        ImmutableArray<IArgument> IInvocation.ArgumentsInParameterOrder
+        ImmutableArray<IArgument> IInvocation.ArgumentsInSourceOrder
         {
-            // ToDO: This should use a ConditionalWeakTable to avoid creating a new array at each access.
             get
             {
-                return DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Method.Parameters, this.Method.Parameters[this.Method.ParameterCount - 1].IsParams);
+                ImmutableArray<IArgument>.Builder sourceOrderArguments = ImmutableArray.CreateBuilder<IArgument>(this.Arguments.Length);
+                for (int index = 0; index < this.Arguments.Length; index++)
+                {
+                    sourceOrderArguments.Add(DeriveArgument(index, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Method.Parameters));
+                }
+
+                return sourceOrderArguments.ToImmutable();
             }
         }
+        
+        ImmutableArray<IArgument> IInvocation.ArgumentsInParameterOrder => DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Method.Parameters);
 
         IArgument IInvocation.ArgumentMatchingParameter(IParameterSymbol parameter)
         {
@@ -79,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.Invocation;
         
-        internal static ImmutableArray<IArgument> DeriveArguments(ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNames, ImmutableArray<int> argumentsToParameters, ImmutableArray<RefKind> argumentRefKinds, ImmutableArray<Symbols.ParameterSymbol> parameters, bool hasParamsParameter)
+        internal static ImmutableArray<IArgument> DeriveArguments(ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNames, ImmutableArray<int> argumentsToParameters, ImmutableArray<RefKind> argumentRefKinds, ImmutableArray<Symbols.ParameterSymbol> parameters)
         {
             ArrayBuilder<IArgument> arguments = ArrayBuilder<IArgument>.GetInstance(boundArguments.Length);
             for (int index = 0; index < parameters.Length; index++)
@@ -116,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    arguments.Add(DeriveArgument(argumentIndex, boundArguments, argumentNames, argumentRefKinds, parameters, hasParamsParameter));
+                    arguments.Add(DeriveArgument(argumentIndex, boundArguments, argumentNames, argumentRefKinds, parameters));
                 }
             }
 
@@ -125,8 +132,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static System.Runtime.CompilerServices.ConditionalWeakTable<BoundExpression, IArgument> ArgumentMappings = new System.Runtime.CompilerServices.ConditionalWeakTable<BoundExpression, IArgument>();
 
-        private static IArgument DeriveArgument(int index, ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, ImmutableArray<Symbols.ParameterSymbol> parameters, bool hasParamsParameter)
+        private static IArgument DeriveArgument(int index, ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, ImmutableArray<Symbols.ParameterSymbol> parameters)
         {
+            if (index >= boundArguments.Length)
+            {
+                // Check for an omitted argument that becomes an empty params array.
+                if (parameters.Length > 0 && parameters[parameters.Length - 1].IsParams)
+                {
+                    return new Argument(ArgumentKind.ParamArray, ArgumentMode.In, CreateParamArray(parameters[parameters.Length - 1], boundArguments, index));
+                }
+
+                // There is no supplied argument and there is no params parameter. Any action is suspect at this point.
+                return null;
+            }
+
             return ArgumentMappings.GetValue(
                 boundArguments[index],
                 (argument) =>
@@ -139,7 +158,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return
                             mode == ArgumentMode.In
-                            ? ((index >= parameters.Length - 1 && hasParamsParameter) ? (IArgument)new Argument(ArgumentKind.ParamArray, mode, argument) : new SimpleArgument(CreateParamArray(parameters[parameters.Length - 1], boundArguments, index)))
+                            ? ((index >= parameters.Length - 1 && parameters.Length > 0 && parameters[parameters.Length - 1].IsParams)
+                                ? (IArgument)new Argument(ArgumentKind.ParamArray, mode, CreateParamArray(parameters[parameters.Length - 1], boundArguments, index))
+                                : new SimpleArgument(argument))
                             : (IArgument)new Argument(ArgumentKind.Positional, mode, argument);
                     }
 
@@ -158,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     paramArrayArguments.Add(boundArguments[index]);
                 }
 
-                return new ArrayCreation(arrayType, paramArrayArguments, null);
+                return new ArrayCreation(arrayType, paramArrayArguments, boundArguments.Length > 0 ? boundArguments[0].Syntax : null);
             }
 
             return null;
@@ -169,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int index = ArgumentIndexMatchingParameter(arguments, argumentsToParameters, targetMethod, parameter);
             if (index >= 0)
             {
-                return DeriveArgument(index, arguments, argumentNames, argumentRefKinds, targetMethod.Parameters, targetMethod.Parameters[targetMethod.Parameters.Length - 1].IsParams);
+                return DeriveArgument(index, arguments, argumentNames, argumentRefKinds, targetMethod.Parameters);
             }
 
             return null;
@@ -306,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         IMethodSymbol IObjectCreation.Constructor => this.Constructor;
 
-        ImmutableArray<IArgument> IObjectCreation.ConstructorArguments => BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Constructor.ParameterCount, this.Constructor.Parameters[this.Constructor.ParameterCount - 1].IsParams);
+        ImmutableArray<IArgument> IObjectCreation.ConstructorArguments => BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Constructor.Parameters);
 
         IArgument IObjectCreation.ArgumentMatchingParameter(IParameterSymbol parameter)
         {

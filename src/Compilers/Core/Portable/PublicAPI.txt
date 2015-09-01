@@ -1602,6 +1602,15 @@ Microsoft.CodeAnalysis.Semantics.Binary.ResultType.get -> Microsoft.CodeAnalysis
 Microsoft.CodeAnalysis.Semantics.Binary.Kind.get -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.Binary.ConstantValue.get -> object
 Microsoft.CodeAnalysis.Semantics.Binary.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.Semantics.ArrayCreation
+Microsoft.CodeAnalysis.Semantics.ArrayCreation.ArrayCreation(Microsoft.CodeAnalysis.IArrayTypeSymbol arrayType, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Semantics.IExpression> elementValues, Microsoft.CodeAnalysis.SyntaxNode syntax) -> void
+Microsoft.CodeAnalysis.Semantics.ArrayCreation.DimensionSizes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IExpression>
+Microsoft.CodeAnalysis.Semantics.ArrayCreation.ElementValues.get -> Microsoft.CodeAnalysis.Semantics.IArrayInitializer
+Microsoft.CodeAnalysis.Semantics.ArrayCreation.ElementType.get -> Microsoft.CodeAnalysis.ITypeSymbol
+Microsoft.CodeAnalysis.Semantics.ArrayCreation.ResultType.get -> Microsoft.CodeAnalysis.ITypeSymbol
+Microsoft.CodeAnalysis.Semantics.ArrayCreation.Kind.get -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.ArrayCreation.ConstantValue.get -> object
+Microsoft.CodeAnalysis.Semantics.ArrayCreation.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IExpression.ResultType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Semantics.IExpression.ConstantValue.get -> object
