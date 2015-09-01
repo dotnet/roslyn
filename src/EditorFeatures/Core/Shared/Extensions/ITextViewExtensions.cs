@@ -341,8 +341,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             var visibleEnd = visibleSpansInBuffer.Last().End;
 
             var snapshot = subjectBuffer.CurrentSnapshot;
-            var startLine = snapshot.GetLineNumberFromPosition(visibleStart);
-            var endLine = snapshot.GetLineNumberFromPosition(visibleEnd);
+            var startLine = visibleStart.GetContainingLine().LineNumber;
+            var endLine = visibleEnd.GetContainingLine().LineNumber;
 
             startLine = Math.Max(startLine - extraLines, 0);
             endLine = Math.Min(endLine + extraLines, snapshot.LineCount - 1);
