@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 }
 
                 // 3) If the symbols ARE equivalent ignoring assemblies, they may or may not be equivalent if containing assemblies are NOT ignored.
-                if (equivalentTypesWithDifferingAssemblies.Object.Any())
+                if (equivalentTypesWithDifferingAssemblies.Object.Count > 0)
                 {
                     // Step 3a) Ensure that all pairs of named types in equivalentTypesWithDifferingAssemblies are indeed equivalent types.
                     return VerifyForwardedTypes(equivalentTypesWithDifferingAssemblies.Object, searchSymbol, symbolToMatch,
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var verifiedKeys = new HashSet<INamedTypeSymbol>();
-            var count = equivalentTypesWithDifferingAssemblies.Count();
+            var count = equivalentTypesWithDifferingAssemblies.Count;
             int verifiedCount = 0;
 
             // First check forwarded types in searchSymbolCompilation.
