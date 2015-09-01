@@ -6647,5 +6647,146 @@ End Module
                                  commitChar:=Nothing,
                                  textTypedSoFar:="")
         End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemFuncExcludedInExpressionContext1()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        args.Select($$)
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemIsAbsent(text, "Func(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemFuncExcludedInExpressionContext2()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        $$
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemIsAbsent(text, "Func(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemFuncIncludedInGetType()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        GetType($$)
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Func(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemFuncIncludedInTypeOf()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        Dim s = TypeOf args Is $$
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Func(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemFuncIncludedInReturnTypeContext()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Function x() as $$
+    End Function
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Func(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemFuncIncludedInFieldTypeContext()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Dim x as $$
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Func(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemDelegateInStatementContext()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main()
+        $$
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Delegate")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemDelegateInExpressionContext()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main()
+        Dim x = $$
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Delegate")
+        End Sub
     End Class
 End Namespace
