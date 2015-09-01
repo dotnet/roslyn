@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal static class CompletionService
     {
-        private static readonly Task<CompletionList> s_emptyCompletionListTask = Task.FromResult(new CompletionList(ImmutableArray<CompletionItem>.Empty));
+        private static Task<CompletionList> s_emptyCompletionListTask;
 
         public static IEnumerable<CompletionListProvider> GetDefaultCompletionListProviders(Document document)
         {
@@ -51,6 +51,12 @@ namespace Microsoft.CodeAnalysis.Completion
             }
             else
             {
+                if (s_emptyCompletionListTask == null)
+                {
+                    var value = Task.FromResult(new CompletionList(ImmutableArray<CompletionItem>.Empty));
+                    Interlocked.CompareExchange(ref s_emptyCompletionListTask, value, null);
+                }
+
                 return s_emptyCompletionListTask;
             }
         }
