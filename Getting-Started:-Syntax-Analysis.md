@@ -1,7 +1,3 @@
-#### The .NET Compiler Platform ("Roslyn")
-# Getting Started: Syntax Analysis
-
-
 ## Prerequisites
 * [Visual Studio 2015](https://www.visualstudio.com/downloads)
 * [.NET Compiler Platform SDK](https://aka.ms/roslynsdktemplates)
