@@ -700,10 +700,16 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         [Fact]
         public void CheckHistoryPreviousAfterReset()
         {
-            const string resetCommand = "#reset";
-            InsertInputExecuteAndWaitToFinish(resetCommand);
+            const string resetCommand1 = "#reset";
+            const string resetCommand2 = "#reset  ";
+            InsertInputExecuteAndWaitToFinish(resetCommand1);
+            InsertInputExecuteAndWaitToFinish(resetCommand2);
             Window.Operations.HistoryPrevious();
-            Assert.Equal(resetCommand, GetTextFromCurrentLanguageBuffer());
+            Assert.Equal(resetCommand2, GetTextFromCurrentLanguageBuffer());
+            Window.Operations.HistoryPrevious();
+            Assert.Equal(resetCommand1, GetTextFromCurrentLanguageBuffer());
+            Window.Operations.HistoryPrevious();
+            Assert.Equal(resetCommand1, GetTextFromCurrentLanguageBuffer());
         }
 
         [Fact]
