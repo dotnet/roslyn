@@ -4152,7 +4152,8 @@ namespace MyNs
         /// <exception cref=""T:MyNs.MyException2""></exception>
         /// <exception cref=""System.Int32""></exception>
         /// <exception cref=""double""></exception>
-        /// <exception cref=""Not_A_Class_And_Therefore_Not_Listed""></exception>
+        /// <exception cref=""Not_A_Class_But_Still_Displayed""></exception>
+        /// <exception cref=""T:"">looks like a proper prefix but isn't</exception>
         void M()
         {
             M$$();
@@ -4160,7 +4161,7 @@ namespace MyNs
     }
 }
 ",
-                Exceptions($"\r\n{WorkspacesResources.Exceptions}\r\n  MyException1\r\n  MyException2\r\n  double\r\n  int"));
+                Exceptions($"\r\n{WorkspacesResources.Exceptions}\r\n  MyException1\r\n  MyException2\r\n  int\r\n  double\r\n  Not_A_Class_But_Still_Displayed\r\n  T:"));
         }
     }
 }

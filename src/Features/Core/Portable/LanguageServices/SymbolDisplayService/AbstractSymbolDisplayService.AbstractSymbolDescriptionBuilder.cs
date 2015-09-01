@@ -156,24 +156,32 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             private void AddExceptions(ISymbol symbol)
             {
-                // clean up the list of possible exceptions by de-duplicating and ordering them
-                var exceptions =
-                    symbol.GetDocumentationComment().ExceptionTypes
-                    .Distinct()
-                    .OrderBy(e => e)
-                    .Select(e => DocumentationCommentId.GetFirstSymbolForDeclarationId(e, _semanticModel.Compilation))
-                    .WhereNotNull()
-                    .ToList();
-                if (exceptions.Any())
+                var exceptionTypes = symbol.GetDocumentationComment().ExceptionTypes;
+                if (exceptionTypes.Any())
                 {
                     var parts = new List<SymbolDisplayPart>();
-                    parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, $"\r\n{WorkspacesResources.Exceptions}"));
-
-                    foreach (var exception in exceptions)
+                    parts.Add(new SymbolDisplayPart(kind: SymbolDisplayPartKind.Text, symbol: null, text: $"\r\n{WorkspacesResources.Exceptions}"));
+                    foreach (var exceptionString in exceptionTypes)
                     {
                         parts.AddRange(LineBreak());
                         parts.AddRange(Space(count: 2));
-                        parts.AddRange(_displayService.ToMinimalDisplayParts(_semanticModel, _position, exception));
+
+                        // try to get the actual exception symbol
+                        var exceptionSymbol = DocumentationCommentId.GetFirstSymbolForDeclarationId(exceptionString, _semanticModel.Compilation);
+                        if (exceptionSymbol != null)
+                        {
+                            parts.AddRange(_displayService.ToMinimalDisplayParts(_semanticModel, _position, exceptionSymbol));
+                        }
+                        else
+                        {
+                            // unable to parse exception symbol, fall back to displaying the raw text after trying to
+                            // strip off the leading prefix of "[E|F|M|N|P|T|!]:"
+                            var colonIndex = exceptionString.IndexOf(':');
+                            var displayText = colonIndex >= 0 && exceptionString.Length > colonIndex + 1
+                                ? exceptionString.Substring(colonIndex + 1)
+                                : exceptionString;
+                            parts.Add(new SymbolDisplayPart(kind: SymbolDisplayPartKind.Text, symbol: null, text: displayText));
+                        }
                     }
 
                     AddToGroup(SymbolDescriptionGroups.Exceptions, parts);

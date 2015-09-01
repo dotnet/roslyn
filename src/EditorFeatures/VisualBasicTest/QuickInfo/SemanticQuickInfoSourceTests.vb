@@ -2049,14 +2049,15 @@ Namespace MyNs
         ''' <exception cref=""T:MyNs.MyException2""></exception>
         ''' <exception cref=""System.Int32""></exception>
         ''' <exception cref=""Double""></exception>
-        ''' <exception cref=""Not_A_Class_And_Therefore_Not_Listed""></exception>
+        ''' <exception cref=""Not_A_Class_But_Still_Displayed""></exception>
+        ''' <exception cref=""T:"">looks like a proper prefix but isn't</exception>
         Sub M()
             M$$()
         End Sub
     End Class
 End Namespace
 ",
-                Exceptions($"{vbCrLf}{WorkspacesResources.Exceptions}{vbCrLf}  MyException1{vbCrLf}  MyException2{vbCrLf}  Double{vbCrLf}  Integer"))
+                Exceptions($"{vbCrLf}{WorkspacesResources.Exceptions}{vbCrLf}  MyException1{vbCrLf}  MyException2{vbCrLf}  Integer{vbCrLf}  Double{vbCrLf}  Not_A_Class_But_Still_Displayed{vbCrLf}  T:"))
         End Sub
 
     End Class
