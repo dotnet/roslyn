@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
 
-        Protected Overrides Function IsExclusiveAsync() As Boolean
+        Protected Overrides Function IsExclusive() As Boolean
             Return True
         End Function
 

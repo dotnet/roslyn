@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return candidate;
         }
 
-        public abstract IEnumerable<CompletionListProvider> GetDefaultCompletionListProviders();
+        public abstract IEnumerable<CompletionListProvider> GetDefaultCompletionProviders();
 
         protected abstract string GetLanguageName();
 
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Completion
             CancellationToken cancellationToken)
         {
             options = options ?? document.Project.Solution.Workspace.Options;
-            providers = providers ?? GetDefaultCompletionListProviders();
+            providers = providers ?? GetDefaultCompletionProviders();
 
             var completionProviderToIndex = GetCompletionProviderToIndex(providers);
             var completionRules = GetCompletionRules();
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return false;
             }
 
-            completionProviders = completionProviders ?? GetDefaultCompletionListProviders();
+            completionProviders = completionProviders ?? GetDefaultCompletionProviders();
             return completionProviders.Any(p => p.IsTriggerCharacter(text, characterPosition, options));
         }
 

@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
             }
 
-            if (IsExclusiveAsync())
+            if (IsExclusive())
             {
                 context.MakeExclusive(true);
             }
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return CreateItems(position, unionedSymbolsList, textChangeSpan, originatingContextMap, missingSymbolsMap, totalProjects, preselect: preselect, cancellationToken: cancellationToken);
         }
 
-        protected virtual bool IsExclusiveAsync()
+        protected virtual bool IsExclusive()
         {
             return false;
         }

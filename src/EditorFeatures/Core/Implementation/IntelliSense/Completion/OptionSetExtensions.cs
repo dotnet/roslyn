@@ -5,7 +5,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
     internal static class OptionSetExtensions
     {
-        public static OptionSet SetDebuggerCompletionOptions(this OptionSet options)
+        public static OptionSet WithDebuggerCompletionOptions(this OptionSet options)
         {
             return options
                 .WithChangedOption(CompletionOptions.AlwaysShowBuilder, true)

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
@@ -11,9 +12,11 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal static class CompletionService
     {
+        private static readonly Task<CompletionList> s_emptyCompletionListTask = Task.FromResult(new CompletionList(ImmutableArray<CompletionItem>.Empty));
+
         public static IEnumerable<CompletionListProvider> GetDefaultCompletionListProviders(Document document)
         {
-            return document.GetLanguageService<ICompletionService>().GetDefaultCompletionListProviders();
+            return document.GetLanguageService<ICompletionService>().GetDefaultCompletionProviders();
         }
 
         public static CompletionRules GetCompletionRules(Document document)
@@ -48,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
             else
             {
-                return null;
+                return s_emptyCompletionListTask;
             }
         }
 

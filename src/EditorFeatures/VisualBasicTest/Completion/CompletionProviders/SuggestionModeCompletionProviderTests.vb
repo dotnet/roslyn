@@ -312,7 +312,7 @@ End Class
 
             Using workspaceFixture = New VisualBasicTestWorkspaceFixture()
                 Dim options = If(useDebuggerOptions,
-                                 workspaceFixture.Workspace.Options.SetDebuggerCompletionOptions(),
+                                 workspaceFixture.Workspace.Options.WithDebuggerCompletionOptions(),
                                  workspaceFixture.Workspace.Options)
 
                 Dim document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular)

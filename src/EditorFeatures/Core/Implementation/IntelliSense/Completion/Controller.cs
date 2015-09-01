@@ -206,14 +206,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return null;
             }
 
-            return SetDebuggerOptionsIfNeeded(workspace.Options);
-        }
-
-        private OptionSet SetDebuggerOptionsIfNeeded(OptionSet options)
-        {
             return _isDebugger
-                ? options.SetDebuggerCompletionOptions()
-                : options;
+                ? workspace.Options.WithDebuggerCompletionOptions()
+                : workspace.Options;
         }
 
         private void CommitItem(CompletionItem item)

@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var service = document.Project.LanguageServices.GetService<ICompletionService>();
                 if (service != null)
                 {
-                    return service.GetDefaultCompletionListProviders();
+                    return service.GetDefaultCompletionProviders();
                 }
             }
 

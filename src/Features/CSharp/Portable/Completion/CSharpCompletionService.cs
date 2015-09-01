@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
                 new ExternAliasCompletionProvider(),
             }.ToImmutableArray();
 
-        public override IEnumerable<CompletionListProvider> GetDefaultCompletionListProviders()
+        public override IEnumerable<CompletionListProvider> GetDefaultCompletionProviders()
         {
             return _defaultCompletionProviders;
         }

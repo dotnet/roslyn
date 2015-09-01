@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Completion
                                 .ToImmutableList();
         }
 
-        public override IEnumerable<CompletionListProvider> GetDefaultCompletionListProviders()
+        public override IEnumerable<CompletionListProvider> GetDefaultCompletionProviders()
         {
             return _completionProviders;
         }
