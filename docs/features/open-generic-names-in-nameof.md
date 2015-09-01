@@ -82,9 +82,9 @@ This change produces some interesting cases for the semantic model.  For example
 class KeyValuePair<A,B> 
 {
 }
-class G<T,U>
+class G<X,Y>
 {
-    public KeyValuePair<T,U> AProperty { get; }
+    public KeyValuePair<X,Y> AProperty { get; }
 }
 class D<T> : G<T, int>
 {
