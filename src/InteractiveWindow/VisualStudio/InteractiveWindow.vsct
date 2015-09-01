@@ -110,6 +110,8 @@
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
           <ButtonText>Reset</ButtonText>
+          <CanonicalName>.InteractiveConsole.Reset</CanonicalName>
+          <LocCanonicalName>.InteractiveConsole.Reset</LocCanonicalName>
         </Strings>
       </Button>
       
@@ -119,8 +121,8 @@
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
           <ButtonText>Execute or Paste Input</ButtonText>
-          <CanonicalName>ExecuteOrPasteInput</CanonicalName>
-          <LocCanonicalName>ExecuteOrPasteInput</LocCanonicalName>
+          <CanonicalName>.InteractiveConsole.ExecuteOrPasteInput</CanonicalName>
+          <LocCanonicalName>.InteractiveConsole.ExecuteOrPasteInput</LocCanonicalName>
         </Strings>
       </Button>
 
@@ -130,6 +132,8 @@
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
           <ButtonText>History Previous</ButtonText>
+          <CanonicalName>.InteractiveConsole.HistoryPrevious</CanonicalName>
+          <LocCanonicalName>.InteractiveConsole.HistoryPrevious</LocCanonicalName>
         </Strings>
       </Button>
 
@@ -139,6 +143,8 @@
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
           <ButtonText>History Next</ButtonText>
+          <CanonicalName>.InteractiveConsole.HistoryNext</CanonicalName>
+          <LocCanonicalName>.InteractiveConsole.HistoryNext</LocCanonicalName>
         </Strings>
       </Button>
 
@@ -148,6 +154,8 @@
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
           <ButtonText>Search History Next</ButtonText>
+          <CanonicalName>.InteractiveConsole.SearchHistoryNext</CanonicalName>
+          <LocCanonicalName>.InteractiveConsole.SearchHistoryNext</LocCanonicalName>
         </Strings>
       </Button>
 
@@ -157,6 +165,8 @@
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
           <ButtonText>Search History Previous</ButtonText>
+          <CanonicalName>.InteractiveConsole.SearchHistoryPrevious</CanonicalName>
+          <LocCanonicalName>.InteractiveConsole.SearchHistoryPrevious</LocCanonicalName>
         </Strings>
       </Button>
 
@@ -167,6 +177,8 @@
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
           <ButtonText>Clear Screen</ButtonText>
+          <CanonicalName>.InteractiveConsole.ClearScreen</CanonicalName>
+          <LocCanonicalName>.InteractiveConsole.ClearScreen</LocCanonicalName>
         </Strings>
       </Button>
 
@@ -176,6 +188,8 @@
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
           <ButtonText>Break Line</ButtonText>
+          <CanonicalName>.InteractiveConsole.BreakLine</CanonicalName>
+          <LocCanonicalName>.InteractiveConsole.BreakLine</LocCanonicalName>
         </Strings>
       </Button>
 
@@ -188,6 +202,8 @@
                 <Strings>
                     <CommandName>cmdidAbortExecution</CommandName>
                     <ButtonText>Cancel Execution</ButtonText>
+                    <CanonicalName>.InteractiveConsole.CancelExecution</CanonicalName>
+                    <LocCanonicalName>.InteractiveConsole.CancelExecution</LocCanonicalName>
                 </Strings>
             </Button>
             -->
@@ -198,7 +214,9 @@
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
-          <ButtonText>Execute In Interactive</ButtonText>
+          <ButtonText>Execute in Interactive</ButtonText>
+          <CanonicalName>.InteractiveConsole.ExecuteInInteractive</CanonicalName>
+          <LocCanonicalName>.InteractiveConsole.ExecuteInInteractive</LocCanonicalName>
         </Strings>
       </Button>
 
@@ -207,7 +225,9 @@
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
-          <ButtonText>Copy To Interactive</ButtonText>
+          <ButtonText>Copy to Interactive</ButtonText>
+          <CanonicalName>.InteractiveConsole.CopyToInteractive</CanonicalName>
+          <LocCanonicalName>.InteractiveConsole.CopyToInteractive</LocCanonicalName>
         </Strings>
       </Button>
     </Buttons>

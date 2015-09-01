@@ -42,8 +42,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 New VisualBasic.Snippets.SnippetCommandHandler(mockEditorAdaptersFactoryService.Object, mockSVsServiceProvider.Object))
 
             If languageName = LanguageNames.VisualBasic Then
-                Dim snippetProvider = New VisualBasic.Snippets.SnippetCompletionProvider(Nothing)
-                Dim snippetLazy = New Lazy(Of CompletionListProvider, OrderableLanguageMetadata)(Function() snippetProvider, New TestOrderableLanguageMetadata(languageName))
+                Dim snippetProvider As CompletionListProvider = New VisualBasic.Snippets.SnippetCompletionProvider(Nothing)
 
                 Dim asyncCompletionService = New AsyncCompletionService(
                     GetService(Of IEditorOperationsFactoryService)(),
@@ -51,7 +50,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                     GetService(Of IInlineRenameService)(),
                     New TestCompletionPresenter(Me),
                     GetExports(Of IAsynchronousOperationListener, FeatureMetadata)(),
-                    {snippetLazy},
+                    CreateLazyProviders({snippetProvider}, languageName, roles:=Nothing),
                     GetExports(Of IBraceCompletionSessionProvider, IBraceCompletionMetadata)())
 
                 Dim CompletionCommandHandler = New CompletionCommandHandler(asyncCompletionService)

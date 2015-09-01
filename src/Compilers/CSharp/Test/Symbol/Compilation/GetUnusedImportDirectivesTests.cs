@@ -358,5 +358,26 @@ using System;
                 // using System;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithWarningAsError(false));
         }
+
+        [Fact]
+        public void UnusedUsingInteractive()
+        {
+            var tree = Parse("using System;", options: TestOptions.Interactive);
+            var comp = CSharpCompilation.CreateSubmission("sub1", tree, new[] { MscorlibRef_v4_0_30316_17626 });
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnusedUsingScript()
+        {
+            var tree = Parse("using System;", options: TestOptions.Script);
+            var comp = CreateCompilationWithMscorlib(tree);
+
+            comp.VerifyDiagnostics(
+                // (2,1): info CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
+        }
     }
 }

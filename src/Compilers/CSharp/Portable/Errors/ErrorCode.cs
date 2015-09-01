@@ -1311,5 +1311,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NameofExtensionMethod = 8093,
         WRN_AlignmentMagnitude = 8094,
         ERR_ConstantStringTooLong = 8095,
+        ERR_DebugEntryPointNotSourceMethodDefinition = 8096,
     }
 }

@@ -11,38 +11,29 @@ namespace Microsoft.CodeAnalysis.Scripting
     /// </summary>
     public abstract class ScriptState
     {
-        private readonly ScriptExecutionState _executionState;
-        private readonly Script _script;
-        private ScriptVariables _variables;
-
-        internal ScriptState(ScriptExecutionState executionState, Script script)
-        {
-            _executionState = executionState;
-            _script = script;
-        }
-
         /// <summary>
         /// The script that ran to produce this result.
         /// </summary>
-        public Script Script
-        {
-            get { return _script; }
-        }
+        public Script Script { get; }
 
-        internal ScriptExecutionState ExecutionState
+        internal ScriptExecutionState ExecutionState { get; }
+
+        internal ScriptState(ScriptExecutionState executionState, Script script)
         {
-            get { return _executionState; }
+            Debug.Assert(executionState != null);
+            Debug.Assert(script != null);
+
+            ExecutionState = executionState;
+            Script = script;
         }
 
         /// <summary>
         /// The final value produced by running the script.
         /// </summary>
-        public Task ReturnValue
-        {
-            get { return GetReturnValue(); }
-        }
+        public object ReturnValue => GetReturnValue();
+        internal abstract object GetReturnValue();
 
-        internal abstract Task GetReturnValue();
+        private ScriptVariables _lazyVariables;
 
         /// <summary>
         /// The global variables accessible to or declared by the script.
@@ -51,18 +42,28 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             get
             {
-                if (_variables == null)
+                if (_lazyVariables == null)
                 {
-                    Interlocked.CompareExchange(ref _variables, new ScriptVariables(_executionState), null);
+                    Interlocked.CompareExchange(ref _lazyVariables, new ScriptVariables(ExecutionState), null);
                 }
 
-                return _variables;
+                return _lazyVariables;
             }
+        }
+
+        public Task<ScriptState<object>> ContinueWithAsync(string code, ScriptOptions options = null, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return ContinueWithAsync<object>(code, options, cancellationToken);
+        }
+
+        public Task<ScriptState<TResult>> ContinueWithAsync<TResult>(string code, ScriptOptions options = null, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return Script.ContinueWith<TResult>(code, options).ContinueAsync(this, cancellationToken);
         }
 
         // How do we resolve overloads? We should use the language semantics.
         // https://github.com/dotnet/roslyn/issues/3720
-#if TODO 
+#if TODO
         /// <summary>
         /// Invoke a method declared by the script.
         /// </summary>
@@ -149,23 +150,13 @@ namespace Microsoft.CodeAnalysis.Scripting
 
     public sealed class ScriptState<T> : ScriptState
     {
-        private readonly Task<T> _value;
+        public new T ReturnValue { get; }
+        internal override object GetReturnValue() => ReturnValue;
 
-        internal ScriptState(ScriptExecutionState executionState, Task<T> value, Script script) :
-            base(executionState, script)
+        internal ScriptState(ScriptExecutionState executionState, T value, Script script) 
+            : base(executionState, script)
         {
-            Debug.Assert(value != null);
-            _value = value;
-        }
-
-        public new Task<T> ReturnValue
-        {
-            get { return _value; }
-        }
-
-        internal override Task GetReturnValue()
-        {
-            return ReturnValue;
+            ReturnValue = value;
         }
     }
 }

@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Roslyn.Test.Utilities
@@ -150,7 +151,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        public static void Equal<T>(ImmutableArray<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null, string message = null)
+        public static void Equal<T>(ImmutableArray<T> expected, IEnumerable<T> actual, Func<T, T, bool> comparer = null, string message = null)
         {
             if (actual == null || expected.IsDefault)
             {
@@ -162,7 +163,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        public static void Equal<T>(IEnumerable<T> expected, ImmutableArray<T> actual, IEqualityComparer<T> comparer = null, string message = null, string itemSeparator = null)
+        public static void Equal<T>(IEnumerable<T> expected, ImmutableArray<T> actual, Func<T, T, bool> comparer = null, string message = null, string itemSeparator = null)
         {
             if (expected == null || actual.IsDefault)
             {
@@ -174,12 +175,12 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        public static void Equal<T>(ImmutableArray<T> expected, ImmutableArray<T> actual, IEqualityComparer<T> comparer = null, string message = null, string itemSeparator = null)
+        public static void Equal<T>(ImmutableArray<T> expected, ImmutableArray<T> actual, Func<T, T, bool> comparer = null, string message = null, string itemSeparator = null)
         {
             Equal(expected, (IEnumerable<T>)actual, comparer, message, itemSeparator);
         }
 
-        public static void Equal<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null, string message = null,
+        public static void Equal<T>(IEnumerable<T> expected, IEnumerable<T> actual, Func<T, T, bool> comparer = null, string message = null,
             string itemSeparator = null, Func<T, string> itemInspector = null)
         {
             if (ReferenceEquals(expected, actual))
@@ -208,7 +209,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private static bool SequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null)
+        private static bool SequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, Func<T, T, bool> comparer = null)
         {
             var enumerator1 = expected.GetEnumerator();
             var enumerator2 = actual.GetEnumerator();
@@ -231,7 +232,7 @@ namespace Roslyn.Test.Utilities
                 var value1 = enumerator1.Current;
                 var value2 = enumerator2.Current;
 
-                if (!(comparer != null ? comparer.Equals(value1, value2) : AssertEqualityComparer<T>.Equals(value1, value2)))
+                if (!(comparer != null ? comparer(value1, value2) : AssertEqualityComparer<T>.Equals(value1, value2)))
                 {
                     return false;
                 }
@@ -248,9 +249,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (string.IsNullOrEmpty(message))
                 {
-                    message = GetAssertMessage(
-                        ToString(expected, itemSeparator),
-                        ToString(actual, itemSeparator));
+                    message = GetAssertMessage(expected, actual);
                 }
 
                 Assert.True(result, message);
@@ -380,29 +379,6 @@ namespace Roslyn.Test.Utilities
             throw new Exception("No exception was thrown.");
         }
 
-        public static void AssertEqualToleratingWhitespaceDifferences(
-            string expected,
-            string actual,
-            bool escapeQuotes = true,
-            [CallerFilePath]string expectedValueSourcePath = null,
-            [CallerLineNumber]int expectedValueSourceLine = 0)
-        {
-            var normalizedExpected = NormalizeWhitespace(expected);
-            var normalizedActual = NormalizeWhitespace(actual);
-
-            if (normalizedExpected != normalizedActual)
-            {
-                Assert.True(false, GetAssertMessage(expected, actual, escapeQuotes, expectedValueSourcePath, expectedValueSourceLine));
-            }
-        }
-
-        public static void AssertContainsToleratingWhitespaceDifferences(string expectedSubString, string actualString)
-        {
-            expectedSubString = NormalizeWhitespace(expectedSubString);
-            actualString = NormalizeWhitespace(actualString);
-            Assert.Contains(expectedSubString, actualString, StringComparison.Ordinal);
-        }
-
         internal static string NormalizeWhitespace(string input)
         {
             var output = new StringBuilder();
@@ -430,12 +406,10 @@ namespace Roslyn.Test.Utilities
             return GetAssertMessage(expected, actual, itemInspector: itemInspector, itemSeparator: "\r\n", expectedValueSourcePath: expectedValueSourcePath, expectedValueSourceLine: expectedValueSourceLine);
         }
 
-        private static readonly string s_diffToolPath = Environment.GetEnvironmentVariable("ROSLYN_DIFFTOOL");
-
         public static string GetAssertMessage<T>(
             IEnumerable<T> expected,
             IEnumerable<T> actual,
-            IEqualityComparer<T> comparer = null,
+            Func<T, T, bool> comparer = null,
             Func<T, string> itemInspector = null,
             string itemSeparator = null,
             string expectedValueSourcePath = null,
@@ -472,37 +446,7 @@ namespace Roslyn.Test.Utilities
             message.AppendLine("Actual:");
             message.AppendLine(actualString);
 
-            string link;
-            if (TryGenerateExpectedSourceFielAndGetDiffLink(actualString, expected.Count(), expectedValueSourcePath, expectedValueSourceLine, out link))
-            {
-                message.AppendLine(link);
-            }
-
             return message.ToString();
-        }
-
-        internal static bool TryGenerateExpectedSourceFielAndGetDiffLink(string actualString, int expectedLineCount, string expectedValueSourcePath, int expectedValueSourceLine, out string link)
-        {
-            // add a link to a .cmd file that opens a diff tool:
-            if (!string.IsNullOrEmpty(s_diffToolPath) && expectedValueSourcePath != null && expectedValueSourceLine != 0)
-            {
-                var actualFile = Path.GetTempFileName();
-                var testFileLines = File.ReadLines(expectedValueSourcePath);
-
-                File.WriteAllLines(actualFile, testFileLines.Take(expectedValueSourceLine));
-                File.AppendAllText(actualFile, actualString);
-                File.AppendAllLines(actualFile, testFileLines.Skip(expectedValueSourceLine + expectedLineCount));
-
-                var compareCmd = Path.GetTempFileName() + ".cmd";
-                File.WriteAllText(compareCmd, string.Format("\"{0}\" \"{1}\" \"{2}\"", s_diffToolPath, actualFile, expectedValueSourcePath));
-
-                link = "file://" + compareCmd;
-
-                return true;
-            }
-
-            link = null;
-            return false;
         }
     }
 }

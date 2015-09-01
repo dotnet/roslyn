@@ -89,7 +89,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             out int count,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]byte[] signature)
         {
-            var localSignatureHandle = _symMethod.MetadataReader.GetMethodBody(_symMethod.Handle).LocalSignature;
+            var localSignatureHandle = _symMethod.MetadataReader.GetMethodBody(_symMethod.BodyHandle).LocalSignature;
             var metadataImport = _symMethod.SymReader.PdbReader.MetadataImport;
             var local = _symMethod.MetadataReader.GetLocalVariable(_handle);
 
@@ -160,8 +160,8 @@ namespace Microsoft.DiaSymReader.PortablePdb
             public object GetPointerType(object elementType) => null;
             public object GetPrimitiveType(PrimitiveTypeCode typeCode) => null;
             public object GetSZArrayType(object elementType) => null;
-            public object GetTypeFromDefinition(TypeDefinitionHandle handle) => null;
-            public object GetTypeFromReference(TypeReferenceHandle handle) => null;
+            public object GetTypeFromDefinition(TypeDefinitionHandle handle, bool? isValueType) => null;
+            public object GetTypeFromReference(TypeReferenceHandle handle, bool? isValueType) => null;
         }
     }
 }

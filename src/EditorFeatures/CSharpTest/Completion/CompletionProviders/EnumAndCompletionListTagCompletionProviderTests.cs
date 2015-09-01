@@ -419,5 +419,45 @@ class C
 ";
             VerifyItemIsAbsent(markup, "E");
         }
+
+        [WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void InExpressionBodiedProperty()
+        {
+            var markup =
+@"class C
+{
+    Colors Colors => $$
+}
+
+enum Colors
+{
+    Red,
+    Blue,
+    Green,
+}
+";
+            VerifyItemExists(markup, "Colors");
+        }
+
+        [WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void InExpressionBodiedMethod()
+        {
+            var markup =
+@"class C
+{
+    Colors GetColors() => $$
+}
+
+enum Colors
+{
+    Red,
+    Blue,
+    Green,
+}
+";
+            VerifyItemExists(markup, "Colors");
+        }
     }
 }

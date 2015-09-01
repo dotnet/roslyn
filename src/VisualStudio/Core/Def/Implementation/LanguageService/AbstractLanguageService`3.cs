@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Debugging;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
@@ -143,12 +144,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     {
                         var subjectBuffer = wpfTextView.TextBuffer;
                         var snapshot = subjectBuffer.CurrentSnapshot;
-                        var fullSpan = new SnapshotSpan(snapshot, start: 0, length: snapshot.Length);
+                        var fullSpan = snapshot.GetFullSpan();
                         var tagger = outliningTaggerProvider.CreateTagger<IOutliningRegionTag>(subjectBuffer);
+                        using (var disposable = tagger as IDisposable)
+                        {
+                            tagger.GetAllTags(new NormalizedSnapshotSpanCollection(fullSpan), CancellationToken.None);
 
-                        tagger.GetAllTags(new NormalizedSnapshotSpanCollection(fullSpan), CancellationToken.None);
-
-                        outliningManager.CollapseAll(fullSpan, c => c.Tag.IsImplementation);
+                            outliningManager.CollapseAll(fullSpan, c => c.Tag.IsImplementation);
+                        }
                     }
                     else
                     {

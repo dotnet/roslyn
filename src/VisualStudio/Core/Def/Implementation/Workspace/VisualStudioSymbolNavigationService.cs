@@ -86,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var result = _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol).WaitAndGetResult(CancellationToken.None);
 
             var vsRunningDocumentTable4 = GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4>();
-            var fileAlreadyOpen = vsRunningDocumentTable4.IsMonikerValid((string)result.FilePath);
+            var fileAlreadyOpen = vsRunningDocumentTable4.IsMonikerValid(result.FilePath);
 
             var openDocumentService = GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
 
@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var documentCookie = vsRunningDocumentTable4.GetDocumentCookie(result.FilePath);
 
             var vsTextBuffer = (IVsTextBuffer)vsRunningDocumentTable4.GetDocumentData(documentCookie);
-            var textBuffer = _editorAdaptersFactory.GetDataBuffer((IVsTextBuffer)vsTextBuffer);
+            var textBuffer = _editorAdaptersFactory.GetDataBuffer(vsTextBuffer);
 
             if (!fileAlreadyOpen)
             {

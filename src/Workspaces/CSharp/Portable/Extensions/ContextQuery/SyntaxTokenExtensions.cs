@@ -508,10 +508,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
+        public static bool IsAnyAccessorDeclarationContext(this SyntaxToken targetToken, int position, SyntaxKind kind = SyntaxKind.None)
+        {
+            return targetToken.IsAccessorDeclarationContext<EventDeclarationSyntax>(position, kind) ||
+                targetToken.IsAccessorDeclarationContext<PropertyDeclarationSyntax>(position, kind) ||
+                targetToken.IsAccessorDeclarationContext<IndexerDeclarationSyntax>(position, kind);
+        }
+
         public static bool IsAccessorDeclarationContext<TMemberNode>(this SyntaxToken targetToken, int position, SyntaxKind kind = SyntaxKind.None)
             where TMemberNode : SyntaxNode
         {
-            if (!IsAccessorDeclarationContextWorker(targetToken))
+            if (!IsAccessorDeclarationContextWorker(ref targetToken))
             {
                 return false;
             }
@@ -541,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return decl != null;
         }
 
-        private static bool IsAccessorDeclarationContextWorker(SyntaxToken targetToken)
+        private static bool IsAccessorDeclarationContextWorker(ref SyntaxToken targetToken)
         {
             // cases:
             //   int Foo { |

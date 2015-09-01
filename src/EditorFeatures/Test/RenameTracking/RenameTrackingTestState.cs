@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.VisualBasic.RenameTracking;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
@@ -142,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         {
             WaitForAsyncOperations();
 
-            var tags = _tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(_view.TextBuffer.CurrentSnapshot, new Span(0, _view.TextBuffer.CurrentSnapshot.Length))));
+            var tags = _tagger.GetTags(_view.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection());
 
             Assert.Equal(0, tags.Count());
         }
@@ -158,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         {
             WaitForAsyncOperations();
 
-            var tags = _tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(_view.TextBuffer.CurrentSnapshot, new Span(0, _view.TextBuffer.CurrentSnapshot.Length))));
+            var tags = _tagger.GetTags(_view.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection());
 
             // There should only ever be one tag
             Assert.Equal(1, tags.Count());

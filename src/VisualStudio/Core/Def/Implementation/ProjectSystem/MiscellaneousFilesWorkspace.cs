@@ -359,9 +359,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this.ParseOptions = parseOptions;
             }
 
-            public string LanguageName { get; private set; }
-            public string ScriptExtension { get; private set; }
-            public ParseOptions ParseOptions { get; private set; }
+            public string LanguageName { get; }
+            public string ScriptExtension { get; }
+            public ParseOptions ParseOptions { get; }
         }
     }
 }

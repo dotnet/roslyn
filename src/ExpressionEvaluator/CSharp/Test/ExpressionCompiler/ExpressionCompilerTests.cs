@@ -2054,6 +2054,7 @@ class C<T>
     E<T> e1 = null;
     try
     {
+        string.Empty.ToString();
     }
     catch (E<T> e2)
     {
@@ -2074,7 +2075,7 @@ class C<T>
             // Return type E<T> with type argument T from <>c<T>.
             Assert.Equal(returnType.TypeArguments[0].ContainingSymbol, containingType.ContainingType);
             var locals = methodData.ILBuilder.LocalSlotManager.LocalsInOrder();
-            Assert.Equal(locals.Length, 1);
+            Assert.Equal(1, locals.Length);
             // All locals of type E<T> with type argument T from <>c<T>.
             foreach (var local in locals)
             {
@@ -2085,27 +2086,30 @@ class C<T>
 
             methodData.VerifyIL(
 @"{
-  // Code size       12 (0xc)
+  // Code size       23 (0x17)
   .maxstack  1
   .locals init (E<T> V_0) //e1
   IL_0000:  ldnull
   IL_0001:  stloc.0
   .try
-{
-  IL_0002:  leave.s    IL_000a
-}
+  {
+    IL_0002:  ldsfld     ""string string.Empty""
+    IL_0007:  callvirt   ""string object.ToString()""
+    IL_000c:  pop
+    IL_000d:  leave.s    IL_0015
+  }
   catch E<T>
-{
-  IL_0004:  stloc.0
-  IL_0005:  leave.s    IL_000a
-}
+  {
+    IL_000f:  stloc.0
+    IL_0010:  leave.s    IL_0015
+  }
   catch object
-{
-  IL_0007:  pop
-  IL_0008:  leave.s    IL_000a
-}
-  IL_000a:  ldloc.0
-  IL_000b:  ret
+  {
+    IL_0012:  pop
+    IL_0013:  leave.s    IL_0015
+  }
+  IL_0015:  ldloc.0
+  IL_0016:  ret
 }");
         }
 
@@ -3809,6 +3813,7 @@ class C
                         win32Resources: null,
                         manifestResources: null,
                         options: EmitOptions.Default,
+                        debugEntryPoint: null,
                         testData: testData0,
                         getHostDiagnostics: null,
                         cancellationToken: default(CancellationToken));

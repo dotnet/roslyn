@@ -82,6 +82,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             // Cases:
+            //   ($"{x}") -> $"{x}"
+            if (expression.IsKind(SyntaxKind.InterpolatedStringExpression))
+            {
+                return true;
+            }
+
+            // Cases:
             //   {(x)} -> {x}
             if (node.Parent is InitializerExpressionSyntax)
             {

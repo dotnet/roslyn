@@ -89,7 +89,7 @@ public class Top : A<E> { // base is A<E>
             Assert.True(type.IsDefinition);
             var allTypeParameters = ArrayBuilder<TypeParameterSymbol>.GetInstance();
             type.GetAllTypeParameters(allTypeParameters);
-            return new TypeMap(allTypeParameters.ToImmutableAndFree(), typeArguments).SubstituteNamedType(type);
+            return new TypeMap(allTypeParameters.ToImmutableAndFree(), typeArguments.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers)).SubstituteNamedType(type);
         }
 
         [Fact]

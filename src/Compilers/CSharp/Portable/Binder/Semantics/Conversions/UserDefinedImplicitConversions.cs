@@ -278,7 +278,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         u.Add(UserDefinedConversionAnalysis.Normal(op, fromConversion, toConversion, convertsFrom, convertsTo));
                     }
-                    else if ((object)source != null && (object)target != null && source.IsNullableType() && convertsFrom.IsNonNullableValueType() && target.CanBeAssignedNull())
+                    else if ((object)source != null && source.IsNullableType() && convertsFrom.IsNonNullableValueType() &&
+                        (allowAnyTarget || target.CanBeAssignedNull()))
                     {
                         // As mentioned above, here we diverge from the specification, in two ways.
                         // First, we only check for the lifted form if the normal form was inapplicable.
@@ -375,9 +376,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static int? MostSpecificConversionOperator(TypeSymbol sx, TypeSymbol tx, ImmutableArray<UserDefinedConversionAnalysis> u)
         {
-            Debug.Assert((object)sx != null);
-            Debug.Assert((object)tx != null);
+            return MostSpecificConversionOperator(conv => conv.FromType == sx && conv.ToType == tx, u);
+        }
 
+        /// <summary>
+        /// Find the most specific among a set of conversion operators, with the given constraint on the conversion.
+        /// </summary>
+        private static int? MostSpecificConversionOperator(Func<UserDefinedConversionAnalysis, bool> constraint, ImmutableArray<UserDefinedConversionAnalysis> u)
+        {
             // SPEC: If U contains exactly one user-defined conversion operator from SX to TX 
             // SPEC: then that is the most-specific conversion operator;
             //
@@ -421,8 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BestIndex bestUnlifted = UniqueIndex(u,
                 conv =>
-                conv.FromType == sx &&
-                conv.ToType == tx &&
+                constraint(conv) &&
                 LiftingCount(conv) == 0);
 
             if (bestUnlifted.Kind == BestIndexKind.Best)
@@ -451,8 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BestIndex bestHalfLifted = UniqueIndex(u,
                 conv =>
-                conv.FromType == sx &&
-                conv.ToType == tx &&
+                constraint(conv) &&
                 LiftingCount(conv) == 1);
 
             if (bestHalfLifted.Kind == BestIndexKind.Best)
@@ -470,8 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BestIndex bestFullyLifted = UniqueIndex(u,
                 conv =>
-                conv.FromType == sx &&
-                conv.ToType == tx &&
+                constraint(conv) &&
                 LiftingCount(conv) == 2);
 
             if (bestFullyLifted.Kind == BestIndexKind.Best)
@@ -820,126 +823,77 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)source != null);
             Debug.Assert(!source.IsValidSwitchGoverningType());
 
-            // NOTE:    There are multiple possible approaches for implementing (2):
-            // NOTE:    1)  AnalyzeImplicitUserDefinedConversion from source type to each of the possible governing types
-            // NOTE:        mentioned in (2): Though this approach exactly matches the specification, it is highly inefficient.
-            // NOTE:        We need to consider 20 possible target types (ten primitive non-nullable types
-            // NOTE:        and ten primitive nullable types) to determine if there is exactly one valid user defined conversion to
-            // NOTE:        any one of these types, requiring 20 calls to AnalyzeImplicitUserDefinedConversion.
-            // NOTE:    2)  Native compiler's approach: Native compiler implements this by walking through all the implicit user defined operators
-            // NOTE:        from the source type to a valid switch governing type, as per (2), and determining if there is a unique best.
-            // NOTE:        This part is that piece of code doesn't call into the code for analyzing user defined implicit conversion, but does the
-            // NOTE:        analysis of applicable lifted/normal forms itself. This makes it very difficult to maintain and is bug prone.
-            // NOTE:        See the SPEC VIOLATION comment later in this method for one of the cases where it gets the analysis wrong and violates the
-            // NOTE:        language specification.
-            // NOTE:    3)  Use an approach similar to native compiler's approach, but call into the common code for analyzing user defined implicit conversion.
-
-
-            // NOTE:    We choose approach (3) and implement it as a slight variation of AnalyzeImplicitUserDefinedConversion as follows:
-
+            // NOTE: For (2) we use an approach similar to native compiler's approach, but call into the common code for analyzing user defined implicit conversions.
             // NOTE:    (a) Compute the set of types D from which user-defined conversion operators should be considered by considering only the source type.
             // NOTE:    (b) Instead of computing applicable user defined implicit conversions U from the source type to a specific target type,
             // NOTE:        we compute these from the source type to ANY target type.
-            // NOTE:    (c) If U is empty, the conversion is undefined and a compile-time error occurs.
-            // NOTE:    (d) Find the most specific source type SX of the operators in U...
-            // NOTE:    (e) Instead of finding the most specific target type TX of the operators in U, we consider all unique target types TX for all operators in U.
-            // NOTE:        Let this set of unique target types be called Y.
-            // NOTE:    (f) Check if there is exactly one target type TX in Y such that it satisfied both conditions below:
-            // NOTE:        (i)  TX is a valid switch governing type as per condition (2) of the SPEC for establishing the switch governing type and 
-            // NOTE:        (ii) There is a valid most specific user defined implicit conversion operator from SX to TX.
-            // NOTE:        If there exists such unique TX in Y, then that operator is the resultant user defined conversion and TX is the resultant switch governing type.
-            // NOTE:        Otherwise we either have ambiguity or no applicable operators.
+            // NOTE:    (c) From the conversions in U, select the most specific of them that targets a valid switch governing type
+
+            // SPEC VIOLATION: Because we use the same strategy for computing the most specific conversion, as the Dev10 compiler did (in fact
+            // SPEC VIOLATION: we share the code), we inherit any spec deviances in that analysis. Specifically, the analysis only considers
+            // SPEC VIOLATION: which conversion has the least amount of lifting, where a conversion may be considered to be in unlifted form,
+            // SPEC VIOLATION: half-lifted form (only the argument type or return type is lifted) or fully lifted form. The most specific computation
+            // SPEC VIOLATION: looks for a unique conversion that is least lifted. The spec, on the other hand, requires that the conversion
+            // SPEC VIOLATION: be *unique*, not merely most use the least amount of lifting among the applicable conversions.
+
+            // SPEC VIOLATION: This introduces a SPEC VIOLATION for the following tests in the native compiler:
+
+            // NOTE:    // See test SwitchTests.CS0166_AggregateTypeWithMultipleImplicitConversions_07
+            // NOTE:    struct Conv
+            // NOTE:    {
+            // NOTE:        public static implicit operator int (Conv C) { return 1; }
+            // NOTE:        public static implicit operator int (Conv? C2) { return 0; }
+            // NOTE:        public static int Main()
+            // NOTE:        {
+            // NOTE:            Conv? D = new Conv();
+            // NOTE:            switch(D)
+            // NOTE:            {   ...
+
+            // SPEC VIOLATION: Native compiler allows the above code to compile
+            // SPEC VIOLATION: even though there are two user-defined implicit conversions:
+            // SPEC VIOLATION: 1) To int type (applicable in normal form): public static implicit operator int (Conv? C2)
+            // SPEC VIOLATION: 2) To int? type (applicable in lifted form): public static implicit operator int (Conv C)
+
+            // NOTE:    // See also test SwitchTests.TODO
+            // NOTE:    struct Conv
+            // NOTE:    {
+            // NOTE:        public static implicit operator int? (Conv C) { return 1; }
+            // NOTE:        public static implicit operator string (Conv? C2) { return 0; }
+            // NOTE:        public static int Main()
+            // NOTE:        {
+            // NOTE:            Conv? D = new Conv();
+            // NOTE:            switch(D)
+            // NOTE:            {   ...
+
+            // SPEC VIOLATION: Native compiler allows the above code to compile too
+            // SPEC VIOLATION: even though there are two user-defined implicit conversions:
+            // SPEC VIOLATION: 1) To string type (applicable in normal form): public static implicit operator string (Conv? C2)
+            // SPEC VIOLATION: 2) To int? type (applicable in half-lifted form): public static implicit operator int? (Conv C)
+
+            // SPEC VIOLATION: This occurs because the native compiler compares the applicable conversions to find one with the least amount
+            // SPEC VIOLATION: of lifting, ignoring whether the return types are the same or not.
+            // SPEC VIOLATION: We do the same to maintain compatibility with the native compiler.
 
             // (a) Compute the set of types D from which user-defined conversion operators should be considered by considering only the source type.
             var d = ArrayBuilder<NamedTypeSymbol>.GetInstance();
             ComputeUserDefinedImplicitConversionTypeSet(source, t: null, d: d, useSiteDiagnostics: ref useSiteDiagnostics);
 
             // (b) Instead of computing applicable user defined implicit conversions U from the source type to a specific target type,
-            //     we compute these from the source type to ANY target type.
+            //     we compute these from the source type to ANY target type. We will filter out those that are valid switch governing
+            //     types later.
             var ubuild = ArrayBuilder<UserDefinedConversionAnalysis>.GetInstance();
             ComputeApplicableUserDefinedImplicitConversionSet(null, source, target: null, d: d, u: ubuild, useSiteDiagnostics: ref useSiteDiagnostics, allowAnyTarget: true);
             d.Free();
             ImmutableArray<UserDefinedConversionAnalysis> u = ubuild.ToImmutableAndFree();
 
-            // (c) If U is empty, the conversion is undefined and a compile-time error occurs.
-            if (u.Length == 0)
+            // (c) Find that conversion with the least amount of lifting
+            int? best = MostSpecificConversionOperator(conv => conv.ToType.IsValidSwitchGoverningType(isTargetTypeOfUserDefinedOp: true), u);
+            if (best != null)
             {
-                return UserDefinedConversionResult.NoApplicableOperators(u);
+                return UserDefinedConversionResult.Valid(u, best.Value);
             }
 
-            // (d) Find the most specific source type SX of the operators in U...
-            TypeSymbol sx = MostSpecificSourceTypeForImplicitUserDefinedConversion(u, source, ref useSiteDiagnostics);
-            if ((object)sx == null)
-            {
-                return UserDefinedConversionResult.NoBestSourceType(u);
-            }
-
-            return MostSpecificConversionOperatorForSwitchGoverningType(sx, u);
-        }
-
-        private static UserDefinedConversionResult MostSpecificConversionOperatorForSwitchGoverningType(TypeSymbol sx, ImmutableArray<UserDefinedConversionAnalysis> u)
-        {
-            // This method finds the most specific user-defined implicit conversion operator from the best source type SX to a valid switch governing type.
-            // It implements steps (e) and (f) for AnalyzeImplicitUserDefinedConversionForSwitchGoverningType, see comments in that method for details.
-
-            // (e) Instead of finding the most specific target type TX of the operators in U, we consider all unique target types TX for all operators in U.
-            //     Let this set of unique target types be called Y.
-            var y = new HashSet<TypeSymbol>();
-            UserDefinedConversionResult? exactConversionResult = null;
-
-            // (f) Check if there is exactly one target type TX in Y such that it satisfied both conditions below:
-            //     (i)  TX is a valid switch governing type as per condition (2) of the SPEC for establishing the switch governing type and 
-            //     (ii) There is a valid most specific user defined implicit conversion operator from SX to TX.
-
-            foreach (UserDefinedConversionAnalysis analysis in u)
-            {
-                TypeSymbol tx = analysis.ToType;
-
-                if (y.Add(tx) && tx.IsValidSwitchGoverningType(isTargetTypeOfUserDefinedOp: true))
-                {
-                    if (!exactConversionResult.HasValue)
-                    {
-                        // NOTE:    As mentioned in the comments at the start of this function, native compiler doesn't call into
-                        // NOTE:    the code for analyzing user defined implicit conversion, i.e. MostSpecificConversionOperator,
-                        // NOTE:    but does the analysis of applicable lifted/normal forms itself.
-                        // NOTE:    This introduces a SPEC VIOLATION for the following test in the native compiler:
-
-                        // NOTE:    // See test SwitchTests.CS0166_AggregateTypeWithMultipleImplicitConversions_07
-                        // NOTE:    struct Conv
-                        // NOTE:    {
-                        // NOTE:        public static implicit operator int (Conv C) { return 1; }
-                        // NOTE:        public static implicit operator int (Conv? C2) { return 0; }
-                        // NOTE:        public static int Main()
-                        // NOTE:        {
-                        // NOTE:            Conv? D = new Conv();
-                        // NOTE:            switch(D)
-                        // NOTE:            {   ...
-
-                        // SPEC VIOLATION: Native compiler allows the above code to compile
-                        // SPEC VIOLATION: even though there are two user-defined implicit conversions:
-                        // SPEC VIOLATION: 1) To int type (applicable in normal form): public static implicit operator int (Conv? C2)
-                        // SPEC VIOLATION: 2) To int? type (applicable in lifted form): public static implicit operator int (Conv C)
-
-                        // SPEC VIOLATION: We maintain compatibility with the native compiler.
-
-                        int? best = MostSpecificConversionOperator(sx, tx, u);
-                        if (best != null)
-                        {
-                            exactConversionResult = UserDefinedConversionResult.Valid(u, best.Value);
-                            continue;
-                        }
-                    }
-
-                    return UserDefinedConversionResult.Ambiguous(u);
-                }
-            }
-
-            // If there exists such unique TX in Y, then that operator is the resultant user defined conversion and TX is the resultant switch governing type.
-            // Otherwise we either have ambiguity or no applicable operators.
-
-            return exactConversionResult.HasValue ?
-                exactConversionResult.Value :
-                UserDefinedConversionResult.NoApplicableOperators(u);
+            return UserDefinedConversionResult.NoApplicableOperators(u);
         }
     }
 }

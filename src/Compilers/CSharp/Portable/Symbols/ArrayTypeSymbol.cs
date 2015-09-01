@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    rank,
                    declaringAssembly.GetSpecialType(SpecialType.System_Array),
                    GetArrayInterfaces(elementType, rank, declaringAssembly),
-                   customModifiers.NullToEmpty())
+                   customModifiers)
         {
         }
 
@@ -56,13 +56,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(rank >= 1);
             Debug.Assert(constructedInterfaces.Length <= 2);
             Debug.Assert(constructedInterfaces.Length == 0 || rank == 1);
-            Debug.Assert(rank == 1 || !customModifiers.Any());
 
             _elementType = elementType;
             _rank = rank;
             _baseType = array;
             _interfaces = constructedInterfaces;
-            _customModifiers = customModifiers;
+            _customModifiers = customModifiers.NullToEmpty();
         }
 
         private static ImmutableArray<NamedTypeSymbol> GetArrayInterfaces(
@@ -79,14 +78,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var iListOfT = declaringAssembly.GetSpecialType(SpecialType.System_Collections_Generic_IList_T);
                 if (!iListOfT.IsErrorType())
                 {
-                    constructedInterfaces.Add(new ConstructedNamedTypeSymbol(iListOfT, ImmutableArray.Create<TypeSymbol>(elementType)));
+                    constructedInterfaces.Add(new ConstructedNamedTypeSymbol(iListOfT, ImmutableArray.Create(new TypeWithModifiers(elementType))));
                 }
 
                 var iReadOnlyListOfT = declaringAssembly.GetSpecialType(SpecialType.System_Collections_Generic_IReadOnlyList_T);
 
                 if (!iReadOnlyListOfT.IsErrorType())
                 {
-                    constructedInterfaces.Add(new ConstructedNamedTypeSymbol(iReadOnlyListOfT, ImmutableArray.Create<TypeSymbol>(elementType)));
+                    constructedInterfaces.Add(new ConstructedNamedTypeSymbol(iReadOnlyListOfT, ImmutableArray.Create(new TypeWithModifiers(elementType))));
                 }
             }
 

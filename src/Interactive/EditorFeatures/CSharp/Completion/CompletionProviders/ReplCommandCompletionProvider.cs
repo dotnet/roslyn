@@ -13,15 +13,18 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
 {
-    [Order(Before = PredefinedCompletionProviderNames.Keyword)]
     [ExportCompletionProvider("ReplCommandCompletionProvider", LanguageNames.CSharp)]
+    [TextViewRole(PredefinedInteractiveTextViewRoles.InteractiveTextViewRole)]
+    [Order(Before = PredefinedCompletionProviderNames.Keyword)]
     internal class ReplCommandCompletionProvider : AbstractCompletionProvider
     {
         private async Task<TextSpan> GetTextChangeSpanAsync(Document document, int position, CancellationToken cancellationToken)

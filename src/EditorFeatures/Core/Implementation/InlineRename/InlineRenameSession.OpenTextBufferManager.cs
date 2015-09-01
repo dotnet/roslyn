@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     {
                         // We will compute the new read only regions to be all spans that are not currently in an editable span
                         var editableSpans = GetEditableSpansForSnapshot(_subjectBuffer.CurrentSnapshot);
-                        var entireBufferSpan = new NormalizedSnapshotSpanCollection(new SnapshotSpan(_subjectBuffer.CurrentSnapshot, 0, _subjectBuffer.CurrentSnapshot.Length));
+                        var entireBufferSpan = _subjectBuffer.CurrentSnapshot.GetSnapshotSpanCollection();
                         var newReadOnlySpans = NormalizedSnapshotSpanCollection.Difference(entireBufferSpan, new NormalizedSnapshotSpanCollection(editableSpans));
 
                         foreach (var newReadOnlySpan in newReadOnlySpans)

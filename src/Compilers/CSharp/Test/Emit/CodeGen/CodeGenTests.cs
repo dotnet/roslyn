@@ -14004,5 +14004,190 @@ using System;
 }                                                                                         
 ");
         }
+
+        [Fact]
+        public void NamedParamsOptimizationAndParams001()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Test(a1: 5, a2: 42.ToString());
+        Test(a2: 42.ToString(), a1: 5);
+    }
+
+    public static void Test(int a1, params object[] a2)
+    {
+        System.Console.WriteLine(a2[0]);
+    }
+}
+";
+            var compilation = CompileAndVerify(source, expectedOutput: @"42
+42");
+
+            compilation.VerifyIL("Program.Main",
+    @"
+{
+  // Code size       51 (0x33)
+  .maxstack  5
+  .locals init (int V_0)
+  IL_0000:  ldc.i4.5
+  IL_0001:  ldc.i4.1
+  IL_0002:  newarr     ""object""
+  IL_0007:  dup
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldc.i4.s   42
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  call       ""string int.ToString()""
+  IL_0013:  stelem.ref
+  IL_0014:  call       ""void Program.Test(int, params object[])""
+  IL_0019:  ldc.i4.5
+  IL_001a:  ldc.i4.1
+  IL_001b:  newarr     ""object""
+  IL_0020:  dup
+  IL_0021:  ldc.i4.0
+  IL_0022:  ldc.i4.s   42
+  IL_0024:  stloc.0
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  call       ""string int.ToString()""
+  IL_002c:  stelem.ref
+  IL_002d:  call       ""void Program.Test(int, params object[])""
+  IL_0032:  ret
+}
+");
+
+        }
+
+        [Fact]
+        public void NamedParamsOptimizationAndParams002()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Test(a2: 42.ToString(), a1: 5.ToString());
+    }
+
+    public static void Test(string a1, params object[] a2)
+    {
+        System.Console.WriteLine(a2[0]);
+    }
+}
+";
+            var compilation = CompileAndVerify(source, expectedOutput: @"42");
+
+            compilation.VerifyIL("Program.Main",
+    @"
+{
+  // Code size       36 (0x24)
+  .maxstack  5
+  .locals init (object V_0,
+                int V_1)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  call       ""string int.ToString()""
+  IL_000a:  stloc.0
+  IL_000b:  ldc.i4.5
+  IL_000c:  stloc.1
+  IL_000d:  ldloca.s   V_1
+  IL_000f:  call       ""string int.ToString()""
+  IL_0014:  ldc.i4.1
+  IL_0015:  newarr     ""object""
+  IL_001a:  dup
+  IL_001b:  ldc.i4.0
+  IL_001c:  ldloc.0
+  IL_001d:  stelem.ref
+  IL_001e:  call       ""void Program.Test(string, params object[])""
+  IL_0023:  ret
+}
+");
+
+        }
+
+        [Fact]
+        public void NamedParamsOptimizationAndParams003()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Test(a2: 42.ToString(), a1: 5);
+    }
+
+    public static void Test(int a1, int aOpt = 333, params object[] a2)
+    {
+        System.Console.WriteLine(a2[0]);
+    }
+}
+";
+            var compilation = CompileAndVerify(source, expectedOutput: @"42");
+
+            compilation.VerifyIL("Program.Main",
+    @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  6
+  .locals init (int V_0)
+  IL_0000:  ldc.i4.5
+  IL_0001:  ldc.i4     0x14d
+  IL_0006:  ldc.i4.1
+  IL_0007:  newarr     ""object""
+  IL_000c:  dup
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.s   42
+  IL_0010:  stloc.0
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""string int.ToString()""
+  IL_0018:  stelem.ref
+  IL_0019:  call       ""void Program.Test(int, int, params object[])""
+  IL_001e:  ret
+}
+");
+
+        }
+
+        [Fact]
+        [WorkItem(4196, "https://github.com/dotnet/roslyn/issues/4196")]
+        public void BadDefaultParameterValue()
+        {
+            // In this DLL there is an optional parameter which has a corrupted metadata value
+            // as the default argument.  This can happen in legitamite code when run through an
+            // obfuscator program.  For compatibility with the native compiler we need to treat
+            // the value as default(T) 
+            string source = @"
+using System;
+using BadDefaultParameterValue;
+
+class Program
+{
+    static void Main()
+    {
+        Util.M(""test"");
+    }
+}";
+
+            var testReference = AssemblyMetadata.CreateFromImage(TestResources.Repros.BadDefaultParameterValue).GetReference();
+            var compilation = CompileAndVerify(source, additionalRefs: new[] { testReference });
+            compilation.VerifyIL("Program.Main", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldstr      ""test""
+  IL_0005:  ldnull
+  IL_0006:  call       ""void BadDefaultParameterValue.Util.M(string, string)""
+  IL_000b:  ret
+}");
+        }
     }
 }

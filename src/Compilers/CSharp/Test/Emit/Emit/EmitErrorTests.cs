@@ -106,7 +106,10 @@ public class B
     }
 }
 ";
-            VerifyEmitDiagnostics(source2, compilation1);
+            var compilation2 = CompileAndVerify(
+                source2,
+                new[] { new CSharpCompilationReference(compilation1) },
+                verify: false);
         }
 
         [WorkItem(543039, "DevDiv")]
@@ -135,7 +138,60 @@ public class B
     }
 }
 ";
-            VerifyEmitDiagnostics(source2, compilation1);
+            var compilation2 = CompileAndVerify(
+                source2,
+                new[] { new CSharpCompilationReference(compilation1) },
+                verify: false);
+        }
+
+        [WorkItem(543039, "DevDiv")]
+        [Fact]
+        public void BadDefaultArgumentInOtherAssembly_UserDefinedType()
+        {
+            string source1 = @"
+public struct S 
+{
+    public override string ToString() { return ""S::ToString""; }
+}
+
+public class A
+{
+    public static S Foo(S p = 42) { return p; }
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1);
+            compilation1.VerifyDiagnostics(
+                // (9,27): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type 'S'
+                //     public static S Foo(S p = 42) { return p; }
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "p").WithArguments("int", "S").WithLocation(9, 27));
+
+            string source2 = @"
+public class B
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(A.Foo());
+    }
+}
+";
+
+            var compilation2 = CompileAndVerify(
+                source2,
+                new[] { new CSharpCompilationReference(compilation1) },
+                verify: false);
+            compilation2.VerifyIL("B.Main()", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloc.0
+  IL_0009:  call       ""S A.Foo(S)""
+  IL_000e:  box        ""S""
+  IL_0013:  call       ""void System.Console.WriteLine(object)""
+  IL_0018:  ret
+}");
         }
 
         [WorkItem(543039, "DevDiv")]

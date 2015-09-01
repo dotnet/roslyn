@@ -37,6 +37,10 @@
     </Bitmaps>
   </Commands>
 
+  <VisibilityConstraints>
+    <VisibilityItem context="guidVBProjectContext" guid="guidVisualBasicInteractiveCommandSet" id="cmdidResetInteractiveFromProject" />
+  </VisibilityConstraints>
+  
   <!-- We need to pick a different keyboard shortcut for VB Interactive
   <KeyBindings>
     <KeyBinding guid="guidVisualBasicInteractiveCommandSet" id="cmdidVisualBasicInteractiveToolWindow" editor="guidVSStd97" mod1="Control" key1="W" mod2="Control" key2="I" />
@@ -57,5 +61,7 @@
     <GuidSymbol name="guidVisualBasicInteractiveImages" value="{4B45CA50-2FB8-4BAC-AAB5-3B5BBAF0C093}" >
       <IDSymbol name="bmpVisualBasicInteractiveWindow" value="0x01" />
     </GuidSymbol>
+
+    <GuidSymbol name="guidVBProjectContext" value="{164B10B9-B200-11D0-8C61-00A0C91E29D5}" />
   </Symbols>
 </CommandTable>

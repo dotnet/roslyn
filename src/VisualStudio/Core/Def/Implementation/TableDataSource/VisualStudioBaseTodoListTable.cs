@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    internal class VisualStudioBaseTodoListTable : AbstractTable<TaskListEventArgs, TodoTaskItem>
+    internal class VisualStudioBaseTodoListTable : AbstractTable<TodoListEventArgs, TodoItem>
     {
         private static readonly string[] s_columns = new string[]
         {
@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _source.Shutdown();
         }
 
-        private class TableDataSource : AbstractRoslynTableDataSource<TaskListEventArgs, TodoTaskItem>
+        private class TableDataSource : AbstractRoslynTableDataSource<TodoListEventArgs, TodoItem>
         {
             private readonly Workspace _workspace;
             private readonly string _identifier;
@@ -86,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public override string SourceTypeIdentifier => StandardTableDataSources.CommentTableDataSource;
             public override string Identifier => _identifier;
 
-            private void OnTodoListUpdated(object sender, TaskListEventArgs e)
+            private void OnTodoListUpdated(object sender, TodoListEventArgs e)
             {
                 if (_workspace != e.Workspace)
                 {
@@ -95,16 +95,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 Contract.Requires(e.DocumentId != null);
 
-                if (e.TaskItems.Length == 0)
+                if (e.TodoItems.Length == 0)
                 {
                     OnDataRemoved(e.DocumentId);
                     return;
                 }
 
-                OnDataAddedOrChanged(e.DocumentId, e, e.TaskItems.Length);
+                OnDataAddedOrChanged(e.DocumentId, e, e.TodoItems.Length);
             }
 
-            protected override AbstractTableEntriesFactory<TodoTaskItem> CreateTableEntryFactory(object key, TaskListEventArgs data)
+            protected override AbstractTableEntriesFactory<TodoItem> CreateTableEntryFactory(object key, TodoListEventArgs data)
             {
                 var documentId = (DocumentId)key;
                 Contract.Requires(documentId == data.DocumentId);
@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return new TableEntriesFactory(this, data.Workspace, data.DocumentId);
             }
 
-            private class TableEntriesFactory : AbstractTableEntriesFactory<TodoTaskItem>
+            private class TableEntriesFactory : AbstractTableEntriesFactory<TodoItem>
             {
                 private readonly TableDataSource _source;
                 private readonly Workspace _workspace;
@@ -126,31 +126,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     _documentId = documentId;
                 }
 
-                protected override ImmutableArray<TodoTaskItem> GetItems()
+                protected override ImmutableArray<TodoItem> GetItems()
                 {
                     var provider = _source._todoListProvider;
 
                     // TODO: remove this wierd cast once we completely move off legacy task list. we, for now, need this since we share data
                     //       between old and new API.
-                    return provider.GetTodoItems(_workspace, _documentId, CancellationToken.None).Cast<TodoTaskItem>().ToImmutableArray();
+                    return provider.GetTodoItems(_workspace, _documentId, CancellationToken.None).Cast<TodoItem>().ToImmutableArray();
                 }
 
-                protected override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TodoTaskItem> items)
+                protected override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TodoItem> items)
                 {
                     return CreateTrackingPoints(_workspace, _documentId, items, (d, s) => CreateTrackingPoint(s, d.OriginalLine, d.OriginalColumn));
                 }
 
-                protected override AbstractTableEntriesSnapshot<TodoTaskItem> CreateSnapshot(int version, ImmutableArray<TodoTaskItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
+                protected override AbstractTableEntriesSnapshot<TodoItem> CreateSnapshot(int version, ImmutableArray<TodoItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
                 {
                     return new TableEntriesSnapshot(this, version, items, trackingPoints);
                 }
 
-                private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<TodoTaskItem>
+                private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<TodoItem>
                 {
                     private readonly TableEntriesFactory _factory;
 
                     public TableEntriesSnapshot(
-                        TableEntriesFactory factory, int version, ImmutableArray<TodoTaskItem> items, ImmutableArray<ITrackingPoint> trackingPoints) :
+                        TableEntriesFactory factory, int version, ImmutableArray<TodoItem> items, ImmutableArray<ITrackingPoint> trackingPoints) :
                         base(version, GetProjectGuid(factory._workspace, factory._documentId.ProjectId), items, trackingPoints)
                     {
                         _factory = factory;
@@ -199,7 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         }
                     }
 
-                    private LinePosition GetLineColumn(TodoTaskItem item)
+                    private LinePosition GetLineColumn(TodoItem item)
                     {
                         return VisualStudioVenusSpanMappingService.GetAdjustedLineColumn(
                             _factory._workspace,
@@ -227,7 +227,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         return TryNavigateTo(_factory._workspace, _factory._documentId, item.OriginalLine, item.OriginalColumn, previewTab);
                     }
 
-                    protected override bool IsEquivalent(TodoTaskItem item1, TodoTaskItem item2)
+                    protected override bool IsEquivalent(TodoItem item1, TodoItem item2)
                     {
                         // everything same except location
                         return item1.DocumentId == item2.DocumentId && item1.Message == item2.Message;
