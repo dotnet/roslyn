@@ -80,17 +80,17 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             private readonly OutputBuffer _buffer;
 
-            private readonly ITextBuffer OutputBuffer;
-            private readonly ITextBuffer StandardInputBuffer;
-            private ITextBuffer CurrentLanguageBuffer;
+            public readonly ITextBuffer OutputBuffer;
+            public readonly ITextBuffer StandardInputBuffer;
+            public ITextBuffer CurrentLanguageBuffer { get; private set; }
 
-            private readonly TextWriter OutputWriter;
-            private readonly InteractiveWindowWriter ErrorOutputWriter;
+            public readonly TextWriter OutputWriter;
+            public readonly InteractiveWindowWriter ErrorOutputWriter;
 
             // the language engine and content type of the active submission:
-            private readonly IInteractiveEvaluator Evaluator;
+            public readonly IInteractiveEvaluator Evaluator;
 
-            private readonly IWpfTextView TextView;
+            public readonly IWpfTextView TextView;
 
             /// <remarks>Always access through <see cref="EditorOperations"/>.</remarks>
             private IEditorOperations _editorOperations;
@@ -195,7 +195,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 State == State.ResettingAndReadingStandardInput;
 
             /// <summary>Implements <see cref="IInteractiveWindowOperations.ResetAsync"/>.</summary>
-            private async Task<ExecutionResult> ResetAsync(bool initialize)
+            public async Task<ExecutionResult> ResetAsync(bool initialize)
             {
                 try
                 {
@@ -235,18 +235,20 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             /// <summary>Implements <see cref="IInteractiveWindow.Close"/>.</summary>
-            private void Close()
+            public void Close()
             {
                 TextView.Caret.PositionChanged -= _window.CaretPositionChanged;
                 TextView.Close();
             }
 
-            private void ClearHistory()
+            /// <summary>Implements <see cref="IInteractiveWindowOperations.ClearHistory"/>.</summary>
+            public void ClearHistory()
             {
                 _history.Clear();
             }
 
-            private void ClearView()
+            /// <summary>Implements <see cref="IInteractiveWindowOperations.ClearView"/>.</summary>
+            public void ClearView()
             {
                 if (ReadingStandardInput)
                 {
@@ -315,7 +317,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
             }
 
-            private async Task<TextReader> ReadStandardInputAsync()
+            /// <summary>Implements the core of <see cref="IInteractiveWindow.ReadStandardInput"/>.</summary>
+            public async Task<TextReader> ReadStandardInputAsync()
             {
                 try
                 {
@@ -440,7 +443,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             /// <summary>Implements <see cref="IInteractiveWindow.InsertCode"/>.</summary>
-            private void InsertCode(string text)
+            public void InsertCode(string text)
             {
                 if (ReadingStandardInput)
                 {
@@ -463,7 +466,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             /// <summary>Implements the core of <see cref="IInteractiveWindow.SubmitAsync"/>.</summary>
-            private void Submit(PendingSubmission[] pendingSubmissions)
+            public void Submit(PendingSubmission[] pendingSubmissions)
             {
                 if (!ReadingStandardInput)
                 {
@@ -509,13 +512,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             /// <summary>Implements <see cref="IInteractiveWindow.FlushOutput"/>.</summary>
-            private void FlushOutput()
+            public void FlushOutput()
             {
                 _buffer.Flush();
             }
 
             /// <summary>Implements <see cref="IInteractiveWindow.AddInput"/>.</summary>
-            private void AddInput(string command)
+            public void AddInput(string command)
             {
                 // If the language buffer is readonly then input can not be added. Return immediately.
                 // The language buffer gets marked as readonly in SubmitAsync method when input on the prompt 
@@ -570,8 +573,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             /// <summary>
             /// Pastes from the clipboard into the text view
+            /// Implements <see cref="IInteractiveWindowOperations.Paste"/>.
             /// </summary>
-            private bool Paste()
+            public bool Paste()
             {
                 MoveCaretToClosestEditableBuffer();
 
@@ -674,7 +678,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 TextView.Caret.EnsureVisible();
             }
 
-            private void PrepareForInput()
+            public void PrepareForInput()
             {
                 _buffer.Flush();
 
@@ -928,7 +932,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// WARNING: this has to be the only method that writes to the output buffer so that 
             /// the output buffering counters are kept in sync.
             /// </summary>
-            private void AppendOutput(IEnumerable<string> output)
+            internal void AppendOutput(IEnumerable<string> output)
             {
                 Debug.Assert(output.Any());
 
@@ -1004,7 +1008,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 PrepareForInput();
             }
 
-            private async Task ExecuteInputAsync()
+            /// <summary>Implements <see cref="IInteractiveWindowOperations.ExecuteInput"/>.</summary>
+            public async Task ExecuteInputAsync()
             {
                 try
                 {
@@ -1369,7 +1374,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// DO NOT REGISTER THIS AS AN EVENT HANDLER - it needs to happen on the UI thread.
             /// Use <see cref="InteractiveWindow.ProjectionBufferChanged"/>.
             /// </remarks>
-            private void ProjectionBufferChangedInternal(object sender, TextContentChangedEventArgs e)
+            internal void ProjectionBufferChangedInternal(object sender, TextContentChangedEventArgs e)
             {
                 // this is an edit performed in this event:
                 if (e.EditTag == SuppressPromptInjectionTag)
@@ -1614,7 +1619,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// DO NOT REGISTER THIS AS AN EVENT HANDLER - it needs to happen on the UI thread.
             /// Use <see cref="InteractiveWindow.CaretPositionChanged"/>.
             /// </remarks>
-            private void CaretPositionChangedInternal(object sender, CaretPositionChangedEventArgs e)
+            internal void CaretPositionChangedInternal(object sender, CaretPositionChangedEventArgs e)
             {
                 // make sure language buffer exist
                 if (CurrentLanguageBuffer == null)
@@ -1766,7 +1771,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 return textToInsert;
             }
 
-            private void Cancel()
+            /// <summary>Implements <see cref="IInteractiveWindowOperations.Cancel"/>.</summary>
+            public void Cancel()
             {
                 ClearInput();
                 EditorOperations.MoveToEndOfDocument(false);
@@ -1786,7 +1792,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
             }
 
-            private void HistoryPrevious(string search)
+            /// <summary>Implements <see cref="IInteractiveWindowOperations.HistoryPrevious"/>.</summary>
+            public void HistoryPrevious(string search)
             {
                 if (CurrentLanguageBuffer == null)
                 {
@@ -1807,7 +1814,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
             }
 
-            private void HistoryNext(string search)
+            /// <summary>Implements <see cref="IInteractiveWindowOperations.HistoryNext"/>.</summary>
+            public void HistoryNext(string search)
             {
                 if (CurrentLanguageBuffer == null)
                 {
@@ -1866,13 +1874,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
             }
 
-            private void HistorySearchNext()
+            /// <summary>Implements <see cref="IInteractiveWindowOperations.HistorySearchNext"/>.</summary>
+            public void HistorySearchNext()
             {
                 EnsureHistorySearch();
                 HistoryNext(_historySearch);
             }
 
-            private void HistorySearchPrevious()
+            /// <summary>Implements <see cref="IInteractiveWindowOperations.HistorySearchPrevious"/>.</summary>
+            public void HistorySearchPrevious()
             {
                 EnsureHistorySearch();
                 HistoryPrevious(_historySearch);
@@ -1902,8 +1912,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             /// <summary>
             /// Moves to the beginning of the line.
+            /// Implements <see cref="IInteractiveWindowOperations.Home"/>.
             /// </summary>
-            private void Home(bool extendSelection)
+            public void Home(bool extendSelection)
             {
                 var caret = TextView.Caret;
 
@@ -1957,8 +1968,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             /// <summary>
             /// Moves to the end of the line.
+            /// Implements <see cref="IInteractiveWindowOperations.End"/>.
             /// </summary>
-            private void End(bool extendSelection)
+            public void End(bool extendSelection)
             {
                 var caret = TextView.Caret;
 
@@ -1990,7 +2002,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
             }
 
-            private void SelectAll()
+            /// <summary>Implements <see cref="IInteractiveWindowOperations.SelectAll"/>.</summary>
+            public void SelectAll()
             {
                 SnapshotSpan? span = GetContainingRegion(TextView.Caret.Position.BufferPosition);
 
@@ -2094,7 +2107,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         textBuffer).Value);
             }
 
-            private bool Delete()
+            /// <summary>Implements <see cref="IInteractiveWindowOperations.Delete"/>.</summary>
+            public bool Delete()
             {
                 _historySearch = null;
                 bool handled = false;
@@ -2239,7 +2253,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 minPromptLength = maxPromptLength = promptSpan.Length;
             }
 
-            private void Cut()
+            /// <summary>Implements <see cref="IInteractiveWindowOperations.Cut"/>.</summary>
+            public void Cut()
             {
                 if (TextView.Selection.IsEmpty)
                 {
@@ -2321,7 +2336,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
             }
 
-            private void Copy()
+            /// <summary>Implements <see cref="IInteractiveWindowOperations2.Copy"/>.</summary>
+            public void Copy()
             {
                 CopySelection();
             }
@@ -2407,8 +2423,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 return builder;
             }
 
-            private bool Backspace()
-           {
+            /// <summary>Implements <see cref="IInteractiveWindowOperations.Backspace"/>.</summary>
+            public bool Backspace()
+            {
                 bool handled = false;
                 if (!TextView.Selection.IsEmpty)
                 {
@@ -2483,7 +2500,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 return result;
             }
 
-            private bool TrySubmitStandardInput()
+            /// <summary>Implements <see cref="IInteractiveWindowOperations.TrySubmitStandardInput"/>.</summary>
+            public bool TrySubmitStandardInput()
             {
                 _historySearch = null;
                 if (ReadingStandardInput)
@@ -2554,12 +2572,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 AppendProjectionSpans(promptSpan, inputSpan);
             }
 
-            private bool BreakLine()
+            /// <summary>Implements <see cref="IInteractiveWindowOperations.BreakLine"/>.</summary>
+            public bool BreakLine()
             {
                 return HandlePostServicesReturn(false);
             }
 
-            private bool Return()
+            /// <summary>Implements <see cref="IInteractiveWindowOperations.Return"/>.</summary>
+            public bool Return()
             {
                 _historySearch = null;
                 return HandlePostServicesReturn(true);
@@ -2686,20 +2706,23 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             #region Output
 
-            private Span Write(string text)
+            /// <summary>Implements <see cref="IInteractiveWindow.Write(string)"/>.</summary>
+            public Span Write(string text)
             {
                 int result = _buffer.Write(text);
                 return new Span(result, (text != null ? text.Length : 0));
             }
 
-            private Span WriteLine(string text)
+            /// <summary>Implements <see cref="IInteractiveWindow.WriteLine(string)"/>.</summary>
+            public Span WriteLine(string text)
             {
                 int result = _buffer.Write(text);
                 _buffer.Write(_lineBreakString);
                 return new Span(result, (text != null ? text.Length : 0) + _lineBreakString.Length);
             }
 
-            private Span WriteError(string text)
+            /// <summary>Implements <see cref="IInteractiveWindow.WriteError(string)"/>.</summary>
+            public Span WriteError(string text)
             {
                 int result = _buffer.Write(text);
                 var res = new Span(result, (text != null ? text.Length : 0));
@@ -2707,7 +2730,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 return res;
             }
 
-            private Span WriteErrorLine(string text)
+            /// <summary>Implements <see cref="IInteractiveWindow.WriteErrorLine(string)"/>.</summary>
+            public Span WriteErrorLine(string text)
             {
                 int result = _buffer.Write(text);
                 _buffer.Write(_lineBreakString);
@@ -2716,7 +2740,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 return res;
             }
 
-            private void Write(UIElement element)
+            /// <summary>Implements <see cref="IInteractiveWindow.Write(UIElement)"/>.</summary>
+            public void Write(UIElement element)
             {
                 if (element == null)
                 {
