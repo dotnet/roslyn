@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     internal abstract class AbstractTableDataSource<TData> : ITableDataSource
     {
         protected readonly object Gate;
-        protected readonly Dictionary<object, AbstractTableEntriesFactory<TData>> Map;
+        protected readonly Dictionary<object, TableEntriesFactory<TData>> Map;
 
         protected bool IsStable;
         protected ImmutableArray<SubscriptionWithoutLock> Subscriptions;
@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public AbstractTableDataSource()
         {
             Gate = new object();
-            Map = new Dictionary<object, AbstractTableEntriesFactory<TData>>();
+            Map = new Dictionary<object, TableEntriesFactory<TData>>();
             Subscriptions = ImmutableArray<SubscriptionWithoutLock>.Empty;
 
             IsStable = true;
@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         public abstract string Identifier { get; }
 
-        public void Refresh(AbstractTableEntriesFactory<TData> factory)
+        public void Refresh(TableEntriesFactory<TData> factory)
         {
             var snapshot = this.Subscriptions;
 
@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         protected void OnDataRemoved(object key)
         {
             ImmutableArray<SubscriptionWithoutLock> snapshot;
-            AbstractTableEntriesFactory<TData> factory;
+            TableEntriesFactory<TData> factory;
 
             lock (Gate)
             {
@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         protected void RefreshAllFactories()
         {
             ImmutableArray<SubscriptionWithoutLock> snapshot;
-            List<AbstractTableEntriesFactory<TData>> factories;
+            List<TableEntriesFactory<TData>> factories;
 
             lock (Gate)
             {

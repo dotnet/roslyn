@@ -9,25 +9,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     internal abstract class AbstractRoslynTableDataSource<TArgs, TData> : AbstractTableDataSource<TData>
     {
-        protected abstract AbstractTableEntriesFactory<TData> CreateTableEntryFactory(object key, TArgs data);
+        protected abstract AbstractTableEntriesSource<TData> CreateTableEntrySource(object key, TArgs data);
+        protected abstract object GetKey(object key, TArgs data);
 
-        protected void OnDataAddedOrChanged(object key, Solution solution, ProjectId projectId, DocumentId documentId, TArgs data, int itemCount)
+        protected void OnDataAddedOrChanged(Solution solution, ProjectId projectId, DocumentId documentId, object key, TArgs data, int itemCount)
         {
             // reuse factory. it is okay to re-use factory since we make sure we remove the factory before
             // adding it back
             bool newFactory = false;
             ImmutableArray<SubscriptionWithoutLock> snapshot;
-            AbstractTableEntriesFactory<TData> factory;
+            TableEntriesFactory<TData> factory;
 
             lock (Gate)
             {
                 snapshot = Subscriptions;
-                if (!Map.TryGetValue(key, out factory))
-                {
-                    factory = CreateTableEntryFactory(key, data);
-                    Map.Add(key, factory);
-                    newFactory = true;
-                }
+                GetOrCreateFactory(key, data, out factory, out newFactory);
             }
 
             factory.OnUpdated(itemCount);
@@ -36,6 +32,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             {
                 snapshot[i].AddOrUpdate(factory, newFactory);
             }
+        }
+
+        private void GetOrCreateFactory(object id, TArgs data, out TableEntriesFactory<TData> factory, out bool newFactory)
+        {
+            newFactory = false;
+
+            var key = GetKey(id, data);
+            if (Map.TryGetValue(key, out factory))
+            {
+                return;
+            }
+
+            var source = CreateTableEntrySource(key, data);
+            factory = new TableEntriesFactory<TData>(this, source);
+
+            Map.Add(key, factory);
+
+            newFactory = true;
         }
 
         protected void ConnectToSolutionCrawlerService(Workspace workspace)

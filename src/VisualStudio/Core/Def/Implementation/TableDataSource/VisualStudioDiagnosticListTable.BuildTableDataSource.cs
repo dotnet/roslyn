@@ -1,131 +1,17 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.ComponentModel;
-using System.ComponentModel.Composition;
-using System.Linq;
+using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableManager;
+using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    [Export(typeof(VisualStudioDiagnosticListTable))]
     internal partial class VisualStudioDiagnosticListTable : VisualStudioBaseDiagnosticListTable
     {
-        internal const string IdentifierString = nameof(VisualStudioDiagnosticListTable);
-
-        private readonly IErrorList _errorList;
-        private readonly LiveTableDataSource _liveTableSource;
-        private readonly BuildTableDataSource _buildTableSource;
-
-        [ImportingConstructor]
-        public VisualStudioDiagnosticListTable(
-            SVsServiceProvider serviceProvider,
-            VisualStudioWorkspace workspace,
-            IDiagnosticService diagnosticService,
-            ExternalErrorDiagnosticUpdateSource errorSource,
-            ITableManagerProvider provider) :
-            this(serviceProvider, (Workspace)workspace, diagnosticService, errorSource, provider)
-        {
-            ConnectWorkspaceEvents();
-
-            _errorList = serviceProvider.GetService(typeof(SVsErrorList)) as IErrorList;
-            if (_errorList == null)
-            {
-                AddInitialTableSource(workspace.CurrentSolution, _liveTableSource);
-                return;
-            }
-
-            _errorList.PropertyChanged += OnErrorListPropertyChanged;
-
-            AddInitialTableSource(workspace.CurrentSolution, GetCurrentDataSource());
-        }
-
-        private ITableDataSource GetCurrentDataSource()
-        {
-            if (_errorList == null)
-            {
-                return _liveTableSource;
-            }
-
-            return _errorList.AreOtherErrorSourceEntriesShown ? (ITableDataSource)_liveTableSource : _buildTableSource;
-        }
-
-        /// this is for test only
-        internal VisualStudioDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
-            this(null, workspace, diagnosticService, null, provider)
-        {
-            AddInitialTableSource(workspace.CurrentSolution, _liveTableSource);
-        }
-
-        private VisualStudioDiagnosticListTable(
-            SVsServiceProvider serviceProvider,
-            Workspace workspace,
-            IDiagnosticService diagnosticService,
-            ExternalErrorDiagnosticUpdateSource errorSource,
-            ITableManagerProvider provider) :
-            base(serviceProvider, workspace, diagnosticService, provider)
-        {
-            _liveTableSource = new LiveTableDataSource(serviceProvider, workspace, diagnosticService, IdentifierString);
-            _buildTableSource = new BuildTableDataSource(workspace, errorSource);
-        }
-
-        protected override void AddTableSourceIfNecessary(Solution solution)
-        {
-            if (solution.ProjectIds.Count == 0)
-            {
-                return;
-            }
-
-            RemoveTableSourcesIfNecessary();
-            AddTableSource(GetCurrentDataSource());
-        }
-
-        protected override void RemoveTableSourceIfNecessary(Solution solution)
-        {
-            if (solution.ProjectIds.Count > 0)
-            {
-                return;
-            }
-
-            RemoveTableSourcesIfNecessary();
-        }
-
-        private void RemoveTableSourcesIfNecessary()
-        {
-            RemoveTableSourceIfNecessary(_buildTableSource);
-            RemoveTableSourceIfNecessary(_liveTableSource);
-        }
-
-        private void RemoveTableSourceIfNecessary(ITableDataSource source)
-        {
-            if (!this.TableManager.Sources.Any(s => s == source))
-            {
-                return;
-            }
-
-            this.TableManager.RemoveSource(source);
-        }
-
-        protected override void ShutdownSource()
-        {
-            _liveTableSource.Shutdown();
-            _buildTableSource.Shutdown();
-        }
-
-        private void OnErrorListPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(IErrorList.AreOtherErrorSourceEntriesShown))
-            {
-                AddTableSourceIfNecessary(this.Workspace.CurrentSolution);
-            }
-        }
-<<<<<<< HEAD
-<<<<<<< HEAD
-
         private class BuildTableDataSource : AbstractTableDataSource<DiagnosticData>
         {
             private readonly Workspace _workspace;
@@ -177,14 +63,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 // adding it back
                 bool newFactory = false;
                 ImmutableArray<SubscriptionWithoutLock> snapshot;
-                AbstractTableEntriesFactory<DiagnosticData> factory;
+                TableEntriesFactory<DiagnosticData> factory;
 
                 lock (Gate)
                 {
                     snapshot = Subscriptions;
                     if (!Map.TryGetValue(key, out factory))
                     {
-                        factory = new TableEntriesFactory(this, _workspace);
+                        factory = new TableEntriesFactory<DiagnosticData>(this, new TableEntriesSource(this, _workspace));
                         Map.Add(key, factory);
                         newFactory = true;
                     }
@@ -198,29 +84,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
             }
 
-            private class TableEntriesFactory : AbstractTableEntriesFactory<DiagnosticData>
+            private class TableEntriesSource : AbstractTableEntriesSource<DiagnosticData>
             {
                 private readonly BuildTableDataSource _source;
                 private readonly Workspace _workspace;
 
-                public TableEntriesFactory(BuildTableDataSource source, Workspace workspace) :
-                    base(source)
+                public TableEntriesSource(BuildTableDataSource source, Workspace workspace)
                 {
                     _source = source;
                     _workspace = workspace;
                 }
 
-                protected override ImmutableArray<DiagnosticData> GetItems()
+                public override ImmutableArray<DiagnosticData> GetItems()
                 {
                     return _source._buildErrorSource.GetBuildErrors();
                 }
 
-                protected override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<DiagnosticData> items)
+                public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<DiagnosticData> items)
                 {
                     return ImmutableArray<ITrackingPoint>.Empty;
                 }
 
-                protected override AbstractTableEntriesSnapshot<DiagnosticData> CreateSnapshot(
+                public override AbstractTableEntriesSnapshot<DiagnosticData> CreateSnapshot(
                     int version, ImmutableArray<DiagnosticData> items, ImmutableArray<ITrackingPoint> trackingPoints)
                 {
                     return new TableEntriesSnapshot(this, version, items);
@@ -228,13 +113,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<DiagnosticData>
                 {
-                    private readonly TableEntriesFactory _factory;
+                    private readonly TableEntriesSource _factorySource;
 
                     public TableEntriesSnapshot(
-                        TableEntriesFactory factory, int version, ImmutableArray<DiagnosticData> items) :
+                        TableEntriesSource factorySource, int version, ImmutableArray<DiagnosticData> items) :
                         base(version, Guid.Empty, items, ImmutableArray<ITrackingPoint>.Empty)
                     {
-                        _factory = factory;
+                        _factorySource = factorySource;
                     }
 
                     public override bool TryGetValue(int index, string columnName, out object content)
@@ -287,10 +172,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = item.DataLocation?.MappedStartColumn ?? 0;
                                 return true;
                             case StandardTableKeyNames.ProjectName:
-                                content = GetProjectName(_factory._workspace, item.ProjectId);
+                                content = GetProjectName(_factorySource._workspace, item.ProjectId);
                                 return content != null;
                             case StandardTableKeyNames.ProjectGuid:
-                                var guid = GetProjectGuid(_factory._workspace, item.ProjectId);
+                                var guid = GetProjectGuid(_factorySource._workspace, item.ProjectId);
                                 content = guid;
                                 return guid != Guid.Empty;
                             default:
@@ -313,8 +198,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             return false;
                         }
 
-                        return TryNavigateTo(_factory._workspace, item.DocumentId, 
-                            item.DataLocation?.OriginalStartLine ?? 0, item.DataLocation?.OriginalStartColumn ?? 0, previewTab);
+                        return TryNavigateTo(_factorySource._workspace, item.DocumentId,
+                                             item.DataLocation?.OriginalStartLine ?? 0, item.DataLocation?.OriginalStartColumn ?? 0, previewTab);
                     }
 
                     protected override bool IsEquivalent(DiagnosticData item1, DiagnosticData item2)
@@ -331,9 +216,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
             }
         }
-=======
->>>>>>> 8e58be7... introduced tableEntrySource which takes part of responsibility of TableEntryFactory
-=======
->>>>>>> 575f0ac... fixed merge build break
     }
 }

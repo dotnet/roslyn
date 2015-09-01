@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return;
                 }
 
-                OnDataAddedOrChanged(e.Id, e.Solution, e.ProjectId, e.DocumentId, e, count);
+                OnDataAddedOrChanged(e.Solution, e.ProjectId, e.DocumentId, e.Id, e, count);
             }
 
             private static bool ShouldInclude(DiagnosticData diagnostic)
@@ -74,9 +74,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return diagnostic.Severity != DiagnosticSeverity.Hidden;
             }
 
-            protected override AbstractTableEntriesFactory<DiagnosticData> CreateTableEntryFactory(object key, DiagnosticsUpdatedArgs data)
+            protected override object GetKey(object key, DiagnosticsUpdatedArgs data)
             {
-                return new TableEntriesFactory(this, data.Workspace, data.ProjectId, data.DocumentId, data.Id);
+                throw new NotImplementedException();
+            }
+
+            protected override AbstractTableEntriesSource<DiagnosticData> CreateTableEntrySource(object key, DiagnosticsUpdatedArgs data)
+            {
+                return new TableEntriesSource(this, data.Workspace, data.ProjectId, data.DocumentId, data.Id);
             }
 
             private ImmutableArray<DocumentId> GetRelatedDocumentIds(DiagnosticsUpdatedArgs data)
@@ -85,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return document.GetLinkedDocumentIds().Add(data.DocumentId);
             }
 
-            private class TableEntriesFactory : AbstractTableEntriesFactory<DiagnosticData>
+            private class TableEntriesSource : AbstractTableEntriesSource<DiagnosticData>
             {
                 private readonly LiveTableDataSource _source;
                 private readonly Workspace _workspace;
@@ -94,8 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 private readonly object _id;
                 private readonly string _buildTool;
 
-                public TableEntriesFactory(LiveTableDataSource source, Workspace workspace, ProjectId projectId, DocumentId documentId, object id) :
-                    base(source)
+                public TableEntriesSource(LiveTableDataSource source, Workspace workspace, ProjectId projectId, DocumentId documentId, object id)
                 {
                     _source = source;
                     _workspace = workspace;
@@ -105,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     _buildTool = (id as BuildToolId)?.BuildTool ?? string.Empty;
                 }
 
-                protected override ImmutableArray<DiagnosticData> GetItems()
+                public override ImmutableArray<DiagnosticData> GetItems()
                 {
                     var provider = _source._diagnosticService;
                     var items = provider.GetDiagnostics(_workspace, _projectId, _documentId, _id, CancellationToken.None)
@@ -114,14 +118,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return items.ToImmutableArrayOrEmpty();
                 }
 
-                protected override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<DiagnosticData> items)
+                public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<DiagnosticData> items)
                 {
                     return CreateTrackingPoints(_workspace, _documentId, items, (d, s) => CreateTrackingPoint(s, 
                         d.DataLocation?.OriginalStartLine ?? 0, 
                         d.DataLocation?.OriginalStartColumn ?? 0));
                 }
 
-                protected override AbstractTableEntriesSnapshot<DiagnosticData> CreateSnapshot(
+                public override AbstractTableEntriesSnapshot<DiagnosticData> CreateSnapshot(
                     int version, ImmutableArray<DiagnosticData> items, ImmutableArray<ITrackingPoint> trackingPoints)
                 {
                     var snapshot = new TableEntriesSnapshot(this, version, items, trackingPoints);
@@ -137,14 +141,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<DiagnosticData>, IWpfTableEntriesSnapshot
                 {
-                    private readonly TableEntriesFactory _factory;
+                    private readonly TableEntriesSource _factorySource;
                     private FrameworkElement[] _descriptions;
 
                     public TableEntriesSnapshot(
-                        TableEntriesFactory factory, int version, ImmutableArray<DiagnosticData> items, ImmutableArray<ITrackingPoint> trackingPoints) :
-                        base(version, GetProjectGuid(factory._workspace, factory._projectId), items, trackingPoints)
+                        TableEntriesSource factorySource, int version, ImmutableArray<DiagnosticData> items, ImmutableArray<ITrackingPoint> trackingPoints) :
+                        base(version, GetProjectGuid(factorySource._workspace, factorySource._projectId), items, trackingPoints)
                     {
-                        _factory = factory;
+                        _factorySource = factorySource;
                     }
 
                     public override bool TryGetValue(int index, string columnName, out object content)
@@ -179,10 +183,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = item.Category;
                                 return true;
                             case StandardTableKeyNames.ErrorSource:
-                                content = GetErrorSource(_factory._buildTool);
+                                content = GetErrorSource(_factorySource._buildTool);
                                 return true;
                             case StandardTableKeyNames.BuildTool:
-                                content = GetBuildTool(_factory._buildTool);
+                                content = GetBuildTool(_factorySource._buildTool);
                                 return content != null;
                             case StandardTableKeyNames.Text:
                                 content = item.Message;
@@ -197,7 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = item.DataLocation?.MappedStartColumn ?? 0;
                                 return true;
                             case StandardTableKeyNames.ProjectName:
-                                content = GetProjectName(_factory._workspace, _factory._projectId);
+                                content = GetProjectName(_factorySource._workspace, _factorySource._projectId);
                                 return content != null;
                             case StandardTableKeyNames.ProjectGuid:
                                 content = ProjectGuid;
@@ -217,7 +221,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             return PredefinedBuildTools.Build;
                         }
 
-                        return _factory._buildTool;
+                        return _factorySource._buildTool;
                     }
 
                     private ErrorSource GetErrorSource(string buildTool)
@@ -263,7 +267,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     public override bool TryNavigateTo(int index, bool previewTab)
                     {
                         // this item is not navigatable
-                        if (_factory._documentId == null)
+                        if (_factorySource._documentId == null)
                         {
                             return false;
                         }
@@ -274,14 +278,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             return false;
                         }
 
-                        var trackingLinePosition = GetTrackingLineColumn(_factory._workspace, _factory._documentId, index);
+                        var trackingLinePosition = GetTrackingLineColumn(_factorySource._workspace, _factorySource._documentId, index);
                         if (trackingLinePosition != LinePosition.Zero)
                         {
-                            return TryNavigateTo(_factory._workspace, _factory._documentId, trackingLinePosition.Line, trackingLinePosition.Character, previewTab);
+                            return TryNavigateTo(_factorySource._workspace, _factorySource._documentId, trackingLinePosition.Line, trackingLinePosition.Character, previewTab);
                         }
 
+<<<<<<< HEAD
                         return TryNavigateTo(_factory._workspace, _factory._documentId, 
                             item.DataLocation?.OriginalStartLine ?? 0, item.DataLocation?.OriginalStartColumn ?? 0, previewTab);
+=======
+                        return TryNavigateTo(_factorySource._workspace, _factorySource._documentId, item.OriginalStartLine, item.OriginalStartColumn, previewTab);
+>>>>>>> 8e58be7... introduced tableEntrySource which takes part of responsibility of TableEntryFactory
                     }
 
                     protected override bool IsEquivalent(DiagnosticData item1, DiagnosticData item2)

@@ -101,32 +101,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return;
                 }
 
-                OnDataAddedOrChanged(e.DocumentId, e.Solution, e.ProjectId, e.DocumentId, e, e.TodoItems.Length);
+                OnDataAddedOrChanged(e.Solution, e.ProjectId, e.DocumentId, e.DocumentId, e, e.TodoItems.Length);
             }
 
-            protected override AbstractTableEntriesFactory<TodoItem> CreateTableEntryFactory(object key, TodoListEventArgs data)
+            protected override object GetKey(object key, TodoListEventArgs data)
+            {
+                throw new NotImplementedException();
+            }
+
+            protected override AbstractTableEntriesSource<TodoItem> CreateTableEntrySource(object key, TodoListEventArgs data)
             {
                 var documentId = (DocumentId)key;
                 Contract.Requires(documentId == data.DocumentId);
 
-                return new TableEntriesFactory(this, data.Workspace, data.DocumentId);
+                return new TableEntriesSource(this, data.Workspace, data.DocumentId);
             }
 
-            private class TableEntriesFactory : AbstractTableEntriesFactory<TodoItem>
+            private class TableEntriesSource : AbstractTableEntriesSource<TodoItem>
             {
                 private readonly TableDataSource _source;
                 private readonly Workspace _workspace;
                 private readonly DocumentId _documentId;
 
-                public TableEntriesFactory(TableDataSource source, Workspace workspace, DocumentId documentId) :
-                    base(source)
+                public TableEntriesSource(TableDataSource source, Workspace workspace, DocumentId documentId)
                 {
                     _source = source;
                     _workspace = workspace;
                     _documentId = documentId;
                 }
 
-                protected override ImmutableArray<TodoItem> GetItems()
+                public override ImmutableArray<TodoItem> GetItems()
                 {
                     var provider = _source._todoListProvider;
 
@@ -135,25 +139,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return provider.GetTodoItems(_workspace, _documentId, CancellationToken.None).Cast<TodoItem>().ToImmutableArray();
                 }
 
-                protected override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TodoItem> items)
+                public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TodoItem> items)
                 {
                     return CreateTrackingPoints(_workspace, _documentId, items, (d, s) => CreateTrackingPoint(s, d.OriginalLine, d.OriginalColumn));
                 }
 
-                protected override AbstractTableEntriesSnapshot<TodoItem> CreateSnapshot(int version, ImmutableArray<TodoItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
+                public override AbstractTableEntriesSnapshot<TodoItem> CreateSnapshot(int version, ImmutableArray<TodoItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
                 {
                     return new TableEntriesSnapshot(this, version, items, trackingPoints);
                 }
 
                 private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<TodoItem>
                 {
-                    private readonly TableEntriesFactory _factory;
+                    private readonly TableEntriesSource _factorySource;
 
                     public TableEntriesSnapshot(
-                        TableEntriesFactory factory, int version, ImmutableArray<TodoItem> items, ImmutableArray<ITrackingPoint> trackingPoints) :
-                        base(version, GetProjectGuid(factory._workspace, factory._documentId.ProjectId), items, trackingPoints)
+                        TableEntriesSource factorySource, int version, ImmutableArray<TodoItem> items, ImmutableArray<ITrackingPoint> trackingPoints) :
+                        base(version, GetProjectGuid(factorySource._workspace, factorySource._documentId.ProjectId), items, trackingPoints)
                     {
-                        _factory = factory;
+                        _factorySource = factorySource;
                     }
 
                     public override bool TryGetValue(int index, string columnName, out object content)
@@ -185,7 +189,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = GetLineColumn(item).Character;
                                 return true;
                             case StandardTableKeyNames.ProjectName:
-                                content = GetProjectName(_factory._workspace, _factory._documentId.ProjectId);
+                                content = GetProjectName(_factorySource._workspace, _factorySource._documentId.ProjectId);
                                 return content != null;
                             case StandardTableKeyNames.ProjectGuid:
                                 content = ProjectGuid;
@@ -202,8 +206,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     private LinePosition GetLineColumn(TodoItem item)
                     {
                         return VisualStudioVenusSpanMappingService.GetAdjustedLineColumn(
-                            _factory._workspace,
-                            _factory._documentId,
+                            _factorySource._workspace,
+                            _factorySource._documentId,
                             item.OriginalLine,
                             item.OriginalColumn,
                             item.MappedLine,
@@ -218,13 +222,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             return false;
                         }
 
-                        var trackingLinePosition = GetTrackingLineColumn(_factory._workspace, _factory._documentId, index);
+                        var trackingLinePosition = GetTrackingLineColumn(_factorySource._workspace, _factorySource._documentId, index);
                         if (trackingLinePosition != LinePosition.Zero)
                         {
-                            return TryNavigateTo(_factory._workspace, _factory._documentId, trackingLinePosition.Line, trackingLinePosition.Character, previewTab);
+                            return TryNavigateTo(_factorySource._workspace, _factorySource._documentId, trackingLinePosition.Line, trackingLinePosition.Character, previewTab);
                         }
 
-                        return TryNavigateTo(_factory._workspace, _factory._documentId, item.OriginalLine, item.OriginalColumn, previewTab);
+                        return TryNavigateTo(_factorySource._workspace, _factorySource._documentId, item.OriginalLine, item.OriginalColumn, previewTab);
                     }
 
                     protected override bool IsEquivalent(TodoItem item1, TodoItem item2)

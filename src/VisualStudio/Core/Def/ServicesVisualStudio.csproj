@@ -63,6 +63,8 @@
     <Compile Include="Implementation\Serialization\AssemblySerializationInfoService.cs" />
     <Compile Include="Implementation\SolutionSize\SolutionSizeTracker.cs" />
     <Compile Include="Implementation\TableDataSource\AbstractTableDataSource.cs" />
+    <Compile Include="Implementation\TableDataSource\AbstractTableEntriesSource.cs" />
+    <Compile Include="Implementation\TableDataSource\AggregatedTableEntriesFactory.cs" />
     <Compile Include="Implementation\TableDataSource\MiscDiagnosticTableControlEventProcessorProvider.cs" />
     <Compile Include="Implementation\TableDataSource\MiscellaneousDiagnosticListTable.cs" />
     <Compile Include="Implementation\TableDataSource\MiscellaneousTodoListTable.cs" />
@@ -72,6 +74,7 @@
     <Compile Include="Implementation\TableDataSource\MiscTodoListTableControlEventProcessorProvider.cs" />
     <Compile Include="Implementation\TableDataSource\UriNavigator.cs" />
     <Compile Include="Implementation\TableDataSource\VisualStudioBaseDiagnosticListTable.LiveTableDataSource.cs" />
+    <Compile Include="Implementation\TableDataSource\VisualStudioDiagnosticListTable.BuildTableDataSource.cs" />
     <Compile Include="Implementation\TableDataSource\VisualStudioDiagnosticListTable.cs" />
     <Compile Include="Implementation\TableDataSource\VisualStudioTodoListTable.cs" />
     <Compile Include="Implementation\Utilities\BrowserHelper.cs" />
@@ -420,7 +423,7 @@
     <Compile Include="Implementation\TableDataSource\AbstractTable.cs" />
     <Compile Include="Implementation\TableDataSource\AbstractTableControlEventProcessorProvider.cs" />
     <Compile Include="Implementation\TableDataSource\AbstractRoslynTableDataSource.cs" />
-    <Compile Include="Implementation\TableDataSource\AbstractTableEntriesFactory.cs" />
+    <Compile Include="Implementation\TableDataSource\TableEntriesFactory.cs" />
     <Compile Include="Implementation\TableDataSource\AbstractTableEntriesSnapshot.cs" />
     <Compile Include="Implementation\TableDataSource\DiagnosticTableControlEventProcessorProvider.cs" />
     <Compile Include="Implementation\TableDataSource\TodoListTableControlEventProcessorProvider.cs" />

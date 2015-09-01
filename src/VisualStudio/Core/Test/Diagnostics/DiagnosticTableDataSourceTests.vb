@@ -154,7 +154,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
                 Dim subscription = sinkAndSubscription.Value
 
-                Dim factory = TryCast(sink.Entries.First(), AbstractTableEntriesFactory(Of DiagnosticData))
+                Dim factory = TryCast(sink.Entries.First(), TableEntriesFactory(Of DiagnosticData))
                 Dim snapshot1 = factory.GetCurrentSnapshot()
 
                 factory.OnUpdated(snapshot1.Count)
