@@ -224,6 +224,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.UnaryMinusExpression(Parenthesize(expression))
         End Function
 
+        Private Function AsExpressionList(expressions As IEnumerable(Of SyntaxNode)) As SeparatedSyntaxList(Of ExpressionSyntax)
+            Return SyntaxFactory.SeparatedList(Of ExpressionSyntax)(expressions.OfType(Of ExpressionSyntax)())
+        End Function
+
+        Public Overrides Function ArrayCreationExpression(elementType As SyntaxNode, size As SyntaxNode) As SyntaxNode
+            Dim sizes = SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(AsArgument(size)))
+            Dim initializer = SyntaxFactory.CollectionInitializer()
+            Return SyntaxFactory.ArrayCreationExpression(Nothing, DirectCast(elementType, TypeSyntax), sizes, initializer)
+        End Function
+
+        Public Overrides Function ArrayCreationExpression(elementType As SyntaxNode, elements As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Dim sizes = SyntaxFactory.ArgumentList()
+            Dim initializer = SyntaxFactory.CollectionInitializer(AsExpressionList(elements))
+            Return SyntaxFactory.ArrayCreationExpression(Nothing, DirectCast(elementType, TypeSyntax), sizes, initializer)
+        End Function
+
         Public Overloads Overrides Function ObjectCreationExpression(typeName As SyntaxNode, arguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Return SyntaxFactory.ObjectCreationExpression(
                 Nothing,

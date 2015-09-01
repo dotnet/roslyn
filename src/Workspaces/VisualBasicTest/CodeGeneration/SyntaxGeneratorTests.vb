@@ -328,6 +328,17 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub TestArrayCreationExpressions()
+            VerifySyntax(Of ArrayCreationExpressionSyntax)(
+                _g.ArrayCreationExpression(_g.IdentifierName("x"), _g.LiteralExpression(10)),
+                "New x(10) {}")
+
+            VerifySyntax(Of ArrayCreationExpressionSyntax)(
+                _g.ArrayCreationExpression(_g.IdentifierName("x"), {_g.IdentifierName("y"), _g.IdentifierName("z")}),
+                "New x() {y, z}")
+        End Sub
+
+        <Fact>
         Public Sub TestObjectCreationExpressions()
             VerifySyntax(Of ObjectCreationExpressionSyntax)(
                 _g.ObjectCreationExpression(_g.IdentifierName("x")),

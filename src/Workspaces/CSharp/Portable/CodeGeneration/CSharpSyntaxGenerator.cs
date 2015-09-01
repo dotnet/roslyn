@@ -3406,6 +3406,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
+        private SeparatedSyntaxList<ExpressionSyntax> AsExpressionList(IEnumerable<SyntaxNode> expressions)
+        {
+            return SyntaxFactory.SeparatedList(expressions.OfType<ExpressionSyntax>());
+        }
+
+        public override SyntaxNode ArrayCreationExpression(SyntaxNode elementType, SyntaxNode size)
+        {
+            var arrayType = SyntaxFactory.ArrayType((TypeSyntax)elementType, SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList((ExpressionSyntax)size))));
+            return SyntaxFactory.ArrayCreationExpression(arrayType);
+        }
+
+        public override SyntaxNode ArrayCreationExpression(SyntaxNode elementType, IEnumerable<SyntaxNode> elements)
+        {
+            var arrayType = SyntaxFactory.ArrayType((TypeSyntax)elementType, SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier()));
+            var initializer = SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression, AsExpressionList(elements));
+            return SyntaxFactory.ArrayCreationExpression(arrayType, initializer);
+        }
+
         public override SyntaxNode ObjectCreationExpression(SyntaxNode type, IEnumerable<SyntaxNode> arguments)
         {
             return SyntaxFactory.ObjectCreationExpression((TypeSyntax)type, CreateArgumentList(arguments), null);

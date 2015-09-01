@@ -1610,6 +1610,16 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
+        /// Creates an array creation expression for a single dimensional array of specified size.
+        /// </summary>
+        public abstract SyntaxNode ArrayCreationExpression(SyntaxNode elementType, SyntaxNode size);
+
+        /// <summary>
+        /// Creates an array creation expression for a single dimensional array with specified initial element values.
+        /// </summary>
+        public abstract SyntaxNode ArrayCreationExpression(SyntaxNode elementType, IEnumerable<SyntaxNode> elements);
+
+        /// <summary>
         /// Creates an object creation expression.
         /// </summary>
         public abstract SyntaxNode ObjectCreationExpression(SyntaxNode namedType, IEnumerable<SyntaxNode> arguments);
