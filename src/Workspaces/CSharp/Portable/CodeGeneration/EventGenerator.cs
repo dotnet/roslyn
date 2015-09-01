@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 GenerateAccessorDeclaration(@event, @event.RemoveMethod, SyntaxKind.RemoveAccessorDeclaration, destination, options),
             };
 
-            return SyntaxFactory.AccessorList(accessors.WhereNotNull().ToSyntaxList());
+            return SyntaxFactory.AccessorList(default(SyntaxList<FieldDeclarationSyntax>), accessors.WhereNotNull().ToSyntaxList());
         }
 
         private static AccessorDeclarationSyntax GenerateAccessorDeclaration(

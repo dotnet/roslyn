@@ -90,6 +90,7 @@ namespace ConvertToAutoPropertyCS
             var newProperty = property
                 .WithAccessorList(
                     SyntaxFactory.AccessorList(
+                        default(SyntaxList<FieldDeclarationSyntax>),
                         SyntaxFactory.List(new[]
                             {
                                 SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),

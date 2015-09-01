@@ -210,7 +210,9 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             if (oldParentingNode is BasePropertyDeclarationSyntax)
             {
                 var getAccessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, newBody);
-                var accessorList = SyntaxFactory.AccessorList(SyntaxFactory.List(new[] { getAccessor }));
+                var accessorList = SyntaxFactory.AccessorList(
+                    default(SyntaxList<FieldDeclarationSyntax>),
+                    SyntaxFactory.List(new[] { getAccessor }));
 
                 newParentingNode = ((BasePropertyDeclarationSyntax)oldParentingNode).RemoveNode(oldBody, SyntaxRemoveOptions.KeepNoTrivia);
 
