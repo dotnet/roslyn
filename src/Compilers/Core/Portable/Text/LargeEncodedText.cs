@@ -41,6 +41,15 @@ namespace Microsoft.CodeAnalysis.Text
             _length = offset;
         }
 
+        private LargeEncodedText(ImmutableArray<char[]> chunks, int[] chunkStartOffsets, int length, Encoding encoding, SourceHashAlgorithm checksumAlgorithm)
+            : base(checksumAlgorithm: checksumAlgorithm)
+        {
+            _chunks = chunks;
+            _chunkStartOffsets = chunkStartOffsets;
+            _length = length;
+            _encoding = encoding;
+        }
+
         internal static SourceText Decode(Stream stream, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, bool throwIfBinaryDetected)
         {
             stream.Seek(0, SeekOrigin.Begin);
@@ -126,6 +135,16 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         public override Encoding Encoding => _encoding;
+
+        public override SourceText WithEncoding(Encoding encoding)
+        {
+            return new LargeEncodedText(_chunks, _chunkStartOffsets, _length, encoding, this.ChecksumAlgorithm);
+        }
+
+        public override SourceText WithChecksumAlgorithm(SourceHashAlgorithm algorithm)
+        {
+            return new LargeEncodedText(_chunks, _chunkStartOffsets, _length, _encoding, algorithm);
+        }
 
         public override int Length => _length;
 

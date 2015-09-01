@@ -32,6 +32,16 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override Encoding Encoding => UnderlyingText.Encoding;
 
+        public override SourceText WithEncoding(Encoding encoding)
+        {
+            return new SubText(this.UnderlyingText.WithEncoding(encoding), this.UnderlyingSpan);
+        }
+
+        public override SourceText WithChecksumAlgorithm(SourceHashAlgorithm algorithm)
+        {
+            return new SubText(this.UnderlyingText.WithChecksumAlgorithm(algorithm), this.UnderlyingSpan);
+        }
+
         public SourceText UnderlyingText { get; }
 
         public TextSpan UnderlyingSpan { get; }

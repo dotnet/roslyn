@@ -63,6 +63,16 @@ namespace Microsoft.CodeAnalysis.Text
                 _containerOpt = containerOpt;
             }
 
+            private SnapshotSourceText(ITextSnapshot roslynSnapshot, Encoding encodingOpt, TextBufferContainer containerOpt, SourceHashAlgorithm checksumAlgorithm)
+                : base(checksumAlgorithm: checksumAlgorithm)
+            {
+                Contract.ThrowIfNull(roslynSnapshot);
+
+                this.RoslynSnapshot = roslynSnapshot;
+                _encodingOpt = encodingOpt;
+                _containerOpt = containerOpt;
+            }
+
             /// <summary>
             /// A weak map of all Editor ITextSnapshots and their associated SourceText
             /// </summary>
@@ -99,6 +109,16 @@ namespace Microsoft.CodeAnalysis.Text
             public override Encoding Encoding
             {
                 get { return _encodingOpt; }
+            }
+
+            public override SourceText WithEncoding(Encoding encoding)
+            {
+                return new SnapshotSourceText(this.RoslynSnapshot, encoding, _containerOpt, this.ChecksumAlgorithm);
+            }
+
+            public override SourceText WithChecksumAlgorithm(SourceHashAlgorithm algorithm)
+            {
+                return new SnapshotSourceText(this.RoslynSnapshot, _encodingOpt, _containerOpt, algorithm);
             }
 
             public ITextSnapshot EditorSnapshot
