@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Contract.ThrowIfFalse(equivalentTypesWithDifferingAssemblies.All(kvp => kvp.Key.ContainingType == null));
             Contract.ThrowIfFalse(equivalentTypesWithDifferingAssemblies.All(kvp => kvp.Value.ContainingType == null));
 
-            var referencedAssemblies = new Dictionary<string, IAssemblySymbol>();
+            var referencedAssemblies = new MultiDictionary<string, IAssemblySymbol>();
             foreach (var reference in compilation.References)
             {
                 var referencedAssemblyOrModule = compilation.GetAssemblyOrModuleSymbol(reference);
@@ -430,13 +430,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                         expectedForwardedType = kvp.Value.OriginalDefinition;
                     }
 
-                    IAssemblySymbol referencedAssembly;
-                    if (referencedAssemblies.TryGetValue(originalType.ContainingAssembly.Name, out referencedAssembly))
+                    foreach (var referencedAssembly in referencedAssemblies[originalType.ContainingAssembly.Name])
                     {
                         var fullyQualifiedTypeName = originalType.MetadataName;
                         if (originalType.ContainingNamespace != null)
                         {
-                            fullyQualifiedTypeName = originalType.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.SignatureFormat) + "." + fullyQualifiedTypeName;
+                            fullyQualifiedTypeName = originalType.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.SignatureFormat) + 
+                                "." + fullyQualifiedTypeName;
                         }
 
                         // Resolve forwarded type and verify that the types from different assembly are indeed equivalent.
