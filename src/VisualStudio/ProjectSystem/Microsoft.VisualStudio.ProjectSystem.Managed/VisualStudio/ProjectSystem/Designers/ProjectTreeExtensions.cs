@@ -30,5 +30,17 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
 
             return tree.Capabilities.Contains(capability); 
         }
+
+
+        /// <summary>
+        ///     Returns a value indicating whether the specified <see cref="IProjectTree"/> is 
+        ///     included as part of the project.
+        /// </summary>
+        public static bool IsIncludedInProject(this IProjectTree tree)
+        {
+            Requires.NotNull(tree, nameof(tree));
+
+            return tree.HasCapability(ProjectTreeCapabilities.IncludeInProjectCandidate);
+        }
     }
 }
