@@ -92,7 +92,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         'such situation happens when lifting Me in a ctor.
         'CLR requires that the first use of "Me" must be a constructor call for which "Me" is a receiver
         'only after that we can proceed with lifting "Me"
-        Private _thisProxyInitDeferred As BoundExpression
+        Private _meProxyDeferredInit As BoundExpression
+        Private _meIsInitialized As Boolean
+        Private _meProxyDeferredInitDone As Boolean
 
         ' Are we code that will be rewritten into an expression tree?
         Private _inExpressionLambda As Boolean
@@ -176,6 +178,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             rewriter.MakeFrames(closureDebugInfoBuilder)
 
             Dim body = DirectCast(rewriter.Visit(node), BoundBlock)
+
+            Debug.Assert(rewriter._meProxyDeferredInitDone OrElse rewriter._meProxyDeferredInit Is Nothing)
 
             ' The dispenser could be updated during the lambda rewrite:
             delegateRelaxationIdDispenser = rewriter._delegateRelaxationIdDispenser
@@ -534,9 +538,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim assignment = New BoundAssignmentOperator(syntaxNode, left, right, True, left.Type)
 
                     ' if we are capturing "Me" in a ctor, we should do it after "Me" is initialized
-                    If _innermostFramePointer.Kind = SymbolKind.Parameter AndAlso _topLevelMethod.MethodKind = MethodKind.Constructor AndAlso _topLevelMethod Is _currentMethod Then
-                        Debug.Assert(_thisProxyInitDeferred Is Nothing, "we should be capturing 'Me' only once")
-                        _thisProxyInitDeferred = assignment
+                    If _innermostFramePointer.Kind = SymbolKind.Parameter AndAlso _topLevelMethod.MethodKind = MethodKind.Constructor AndAlso
+                       _topLevelMethod Is _currentMethod AndAlso Not _meIsInitialized Then
+                        Debug.Assert(_meProxyDeferredInit Is Nothing, "we should be capturing 'Me' only once")
+                        _meProxyDeferredInit = assignment
                     Else
                         prologue.Add(assignment)
                     End If
@@ -1363,14 +1368,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 rewrittenCall = OptimizeMethodCallForDelegateInvoke(rewrittenCall, rewrittenMethod, rewrittenReceiverOpt, rewrittenArguments)
 
                 ' Check if we need to init Me proxy and this is a ctor call
-                If _thisProxyInitDeferred IsNot Nothing AndAlso _currentMethod Is _topLevelMethod Then
+                If _currentMethod Is _topLevelMethod Then
                     Dim receiver As BoundExpression = node.ReceiverOpt
                     ' are we calling a ctor on Me or MyBase?
                     If node.Method.MethodKind = MethodKind.Constructor AndAlso receiver IsNot Nothing AndAlso receiver.IsInstanceReference Then
-                        Return LocalRewriter.GenerateSequenceValueSideEffects(Me._currentMethod,
+                        Debug.Assert(Not _meProxyDeferredInitDone)
+                        _meIsInitialized = True
+
+                        If _meProxyDeferredInit IsNot Nothing Then
+                            _meProxyDeferredInitDone = True
+                            Return LocalRewriter.GenerateSequenceValueSideEffects(Me._currentMethod,
                                                                               rewrittenCall,
                                                                               ImmutableArray(Of LocalSymbol).Empty,
-                                                                              ImmutableArray.Create(Of BoundExpression)(_thisProxyInitDeferred))
+                                                                              ImmutableArray.Create(Of BoundExpression)(_meProxyDeferredInit))
+                        End If
                     End If
                 End If
 
