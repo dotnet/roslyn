@@ -12,18 +12,13 @@ namespace Microsoft.CodeAnalysis.Scripting
     /// Extends MetadataFileReferenceResolver to enable resolution of assembly
     /// simple names in the GAC.
     /// </summary>
-    internal sealed class GacFileResolver
+    internal sealed class GacFileResolver : MetadataReferenceResolver
     {
+        internal static readonly ImmutableArray<ProcessorArchitecture> DefaultArchitectures = GlobalAssemblyCache.CurrentArchitectures;
+
         private readonly ImmutableArray<ProcessorArchitecture> _architectures;
         private readonly CultureInfo _preferredCulture;
-
-        /// <summary>
-        /// A resolver that is configured to resolve against the GAC associated
-        /// with the bitness of the currently executing process.
-        /// </summary>
-        internal static GacFileResolver Default = new GacFileResolver(
-            architectures: GlobalAssemblyCache.CurrentArchitectures,
-            preferredCulture: null);
+        private readonly MetadataFileReferenceProvider _provider;
 
         /// <summary>
         /// Constructs an instance of a <see cref="GacFileResolver"/>
@@ -31,12 +26,15 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <param name="architectures">Supported architectures used to filter GAC assemblies.</param>
         /// <param name="preferredCulture">A culture to use when choosing the best assembly from 
         /// among the set filtered by <paramref name="architectures"/></param>
+        /// <param name="provider">Metadata provider.</param>
         public GacFileResolver(
             ImmutableArray<ProcessorArchitecture> architectures,
-            CultureInfo preferredCulture)
+            CultureInfo preferredCulture,
+            MetadataFileReferenceProvider provider)
         {
             _architectures = architectures;
             _preferredCulture = preferredCulture;
+            _provider = provider;
         }
 
         /// <summary>
@@ -55,7 +53,16 @@ namespace Microsoft.CodeAnalysis.Scripting
             get { return _preferredCulture; }
         }
 
-        public string ResolveReference(string reference)
+        public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
+        {
+            var path = ResolveReference(reference);
+            var metadata = (path == null) ? null : _provider.GetReference(path, properties);
+            return (metadata == null) ?
+                ImmutableArray<PortableExecutableReference>.Empty :
+                ImmutableArray.Create(metadata);
+        }
+
+        internal string ResolveReference(string reference)
         {
             if (PathUtilities.IsFilePath(reference))
             {
@@ -72,12 +79,13 @@ namespace Microsoft.CodeAnalysis.Scripting
             var other = obj as GacFileResolver;
             return (other != null) &&
                 _architectures.SequenceEqual(other._architectures) &&
-                _preferredCulture == other._preferredCulture;
+                _preferredCulture == other._preferredCulture &&
+                object.Equals(_provider, other._provider);
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(_preferredCulture, Hash.CombineValues(_architectures));
+            return Hash.Combine(_preferredCulture, Hash.Combine(_provider, Hash.CombineValues(_architectures)));
         }
     }
 }

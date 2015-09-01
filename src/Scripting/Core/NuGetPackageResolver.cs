@@ -1,16 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Immutable;
 using System.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
-    internal sealed class NuGetPackageResolver
+    internal sealed class NuGetPackageResolver : MetadataReferenceResolver
     {
-        internal static readonly NuGetPackageResolver Instance = new NuGetPackageResolver();
+        private readonly MetadataFileReferenceProvider _provider;
 
-        private NuGetPackageResolver()
+        internal NuGetPackageResolver(MetadataFileReferenceProvider provider)
         {
+            _provider = provider;
         }
 
         internal string ResolveNuGetPackage(string reference)
@@ -42,6 +45,26 @@ namespace Microsoft.CodeAnalysis.Scripting
             }
 
             return PathUtilities.CombineAbsoluteAndRelativePaths(resolvedPath, assemblyName);
+        }
+
+        public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
+        {
+            var path = ResolveNuGetPackage(reference);
+            var metadata = (path == null) ? null : _provider.GetReference(path, properties);
+            return (metadata == null) ?
+                ImmutableArray<PortableExecutableReference>.Empty :
+                ImmutableArray.Create(metadata);
+        }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as NuGetPackageResolver;
+            return (other != null) && object.Equals(_provider, other._provider);
+        }
+
+        public override int GetHashCode()
+        {
+            return _provider.GetHashCode();
         }
 
         private static string GetPackageAssemblyName(string reference)

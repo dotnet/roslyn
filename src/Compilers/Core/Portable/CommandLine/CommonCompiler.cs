@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis
             return MetadataFileReferenceProvider.Default;
         }
 
-        internal virtual MetadataFileReferenceResolver GetExternalMetadataResolver(TouchedFileLogger touchedFiles)
+        internal virtual MetadataFileReferenceResolver GetExternalMetadataResolver(TouchedFileLogger touchedFiles, MetadataFileReferenceProvider provider)
         {
             return CreateLoggingMetadataResolver(touchedFiles);
         }
