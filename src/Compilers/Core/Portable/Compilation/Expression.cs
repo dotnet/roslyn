@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -341,7 +342,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public ArrayCreation(IArrayTypeSymbol arrayType, IEnumerable<IExpression> elementValues, SyntaxNode syntax)
         {
             _arrayType = arrayType;
-            this.DimensionSizes = ImmutableArray.Create<IExpression>(new IntegerLiteral(elementValues.Count(), null, null));
+            this.DimensionSizes = ImmutableArray.Create<IExpression>(new IntegerLiteral(elementValues.Count(), null, syntax));
+            this.ElementValues = new DimensionInitializer(elementValues);
             this.Syntax = syntax;
         }
 
@@ -358,6 +360,38 @@ namespace Microsoft.CodeAnalysis.Semantics
         public OperationKind Kind => OperationKind.ArrayCreation;
 
         public object ConstantValue => null;
+
+        private class DimensionInitializer : IDimensionArrayInitializer
+        {
+            private ImmutableArray<IArrayInitializer> _elementValues;
+
+            public DimensionInitializer(IEnumerable<IExpression> elementValues)
+            {
+                ImmutableArray<IArrayInitializer>.Builder builder = ImmutableArray.CreateBuilder<IArrayInitializer>();
+                foreach (IExpression element in elementValues)
+                {
+                    builder.Add(new ExpressionInitializer(element));
+                }
+
+                _elementValues = builder.ToImmutable();
+            }
+
+            public ArrayInitializerKind ArrayClass => ArrayInitializerKind.Dimension;
+
+            public ImmutableArray<IArrayInitializer> ElementValues => _elementValues;
+        }
+
+        private class ExpressionInitializer : IExpressionArrayInitializer
+        {
+            public ExpressionInitializer(IExpression expression)
+            {
+                ElementValue = expression;
+            }
+
+            public ArrayInitializerKind ArrayClass => ArrayInitializerKind.Expression;
+
+            public IExpression ElementValue { get; }
+        }
     }
     
 }

@@ -240,12 +240,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Implements IInvocation
 
         Private Function IArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IInvocation.ArgumentMatchingParameter
-            Return ArgumentMatchingParameter(Me.Arguments, parameter, Me.Method.ParameterCount, Me.Method.Parameters(Me.Method.ParameterCount - 1).IsParamArray)
+            Return ArgumentMatchingParameter(Me.Arguments, parameter, Me.Method.Parameters)
         End Function
+
+        Private ReadOnly Property IArgumentsInSourceOrder As ImmutableArray(Of IArgument) Implements IInvocation.ArgumentsInSourceOrder
+            Get
+                Return DeriveArguments(Me.Arguments, Me.Method.Parameters)
+            End Get
+        End Property
 
         Private ReadOnly Property IArgumentsInParameterOrder As ImmutableArray(Of IArgument) Implements IInvocation.ArgumentsInParameterOrder
             Get
-                Return DeriveArguments(Me.Arguments, Me.Method.ParameterCount, Me.Method.Parameters(Me.Method.ParameterCount - 1).IsParamArray)
+                Return DeriveArguments(Me.Arguments, Me.Method.Parameters)
             End Get
         End Property
 
@@ -273,34 +279,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.Invocation
         End Function
 
-        Friend Shared Function ArgumentMatchingParameter(arguments As ImmutableArray(Of BoundExpression), parameter As IParameterSymbol, parameterCount As Integer, hasParamArrayParameter As Boolean) As IArgument
+        Friend Shared Function ArgumentMatchingParameter(arguments As ImmutableArray(Of BoundExpression), parameter As IParameterSymbol, parameters As ImmutableArray(Of Symbols.ParameterSymbol)) As IArgument
             Dim index As Integer = parameter.Ordinal
             If index <= arguments.Length Then
-                Return DeriveArgument(index, arguments(index), parameterCount, hasParamArrayParameter)
+                Return DeriveArgument(index, arguments(index), parameters)
             End If
 
             Return Nothing
         End Function
 
-        Friend Shared Function DeriveArguments(boundArguments As ImmutableArray(Of BoundExpression), parameterCount As Integer, hasParamArrayParameter As Boolean) As ImmutableArray(Of IArgument)
+        Friend Shared Function DeriveArguments(boundArguments As ImmutableArray(Of BoundExpression), parameters As ImmutableArray(Of Symbols.ParameterSymbol)) As ImmutableArray(Of IArgument)
             Dim argumentsLength As Integer = boundArguments.Length
-            Dim arguments As ArrayBuilder(Of IArgument) = ArrayBuilder(Of IArgument).GetInstance(argumentsLength)
+            Dim arguments As ImmutableArray(Of IArgument).Builder = ImmutableArray.CreateBuilder(Of IArgument)(argumentsLength)
             For index As Integer = 0 To argumentsLength - 1 Step 1
-                arguments.Add(DeriveArgument(index, boundArguments(index), parameterCount, hasParamArrayParameter))
+                arguments.Add(DeriveArgument(index, boundArguments(index), parameters))
             Next
 
-            Return arguments.ToImmutableAndFree()
+            Return arguments.ToImmutable()
         End Function
 
         Private Shared ArgumentMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundExpression, IArgument)
 
-        Private Shared Function DeriveArgument(index As Integer, argument As BoundExpression, parameterCount As Integer, hasParamArrayParameter As Boolean) As IArgument
+        Private Shared Function DeriveArgument(index As Integer, argument As BoundExpression, parameters As ImmutableArray(Of Symbols.ParameterSymbol)) As IArgument
             Select Case argument.Kind
                 Case BoundKind.ByRefArgumentWithCopyBack
                     Return DirectCast(argument, BoundByRefArgumentWithCopyBack)
                 Case Else
                     ' Apparently the VB bound trees don't encode named arguments, which seems unnecesarily lossy.
-                    Return ArgumentMappings.GetValue(argument, Function(a) If(index >= parameterCount - 1 AndAlso hasParamArrayParameter, New Argument(a, ArgumentKind.ParamArray), New Argument(a, ArgumentKind.Positional)))
+                    Return ArgumentMappings.GetValue(argument, Function(a) If(index >= parameters.Length - 1 AndAlso parameters.Length > 0 AndAlso parameters(parameters.Length - 1).IsParamArray, New Argument(a, ArgumentKind.ParamArray), New Argument(a, ArgumentKind.Positional)))
             End Select
         End Function
 
@@ -921,7 +927,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Implements IObjectCreation
 
         Private Function IArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IObjectCreation.ArgumentMatchingParameter
-            Return BoundCall.ArgumentMatchingParameter(Me.Arguments, parameter, Me.ConstructorOpt.ParameterCount, Me.ConstructorOpt.Parameters(Me.ConstructorOpt.ParameterCount - 1).IsParamArray)
+            Return BoundCall.ArgumentMatchingParameter(Me.Arguments, parameter, Me.ConstructorOpt.Parameters)
         End Function
 
         Private ReadOnly Property IConstructor As IMethodSymbol Implements IObjectCreation.Constructor
@@ -932,7 +938,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IConstructorArguments As ImmutableArray(Of IArgument) Implements IObjectCreation.ConstructorArguments
             Get
-                Return BoundCall.DeriveArguments(Me.Arguments, Me.ConstructorOpt.ParameterCount, Me.ConstructorOpt.Parameters(Me.ConstructorOpt.ParameterCount - 1).IsParamArray)
+                Return BoundCall.DeriveArguments(Me.Arguments, Me.ConstructorOpt.Parameters)
             End Get
         End Property
 
@@ -999,15 +1005,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ArrayInitializerMappings.GetValue(
                 initializer,
                 Function(arrayInitalizer)
-                    Dim dimension As ArrayBuilder(Of IArrayInitializer) = ArrayBuilder(Of IArrayInitializer).GetInstance(arrayInitalizer.Initializers.Length)
+                    Dim dimension As ImmutableArray(Of IArrayInitializer).Builder = ImmutableArray.CreateBuilder(Of IArrayInitializer)(arrayInitalizer.Initializers.Length)
 
                     For index As Integer = 0 To arrayInitalizer.Initializers.Length - 1
                         Dim elementInitializer As BoundExpression = arrayInitalizer.Initializers(index)
                         Dim elementArray As BoundArrayInitialization = TryCast(elementInitializer, BoundArrayInitialization)
-                        dimension(index) = If(elementArray IsNot Nothing, MakeInitializer(elementArray), New ElementInitializer(elementInitializer))
+                        dimension.Add(If(elementArray IsNot Nothing, MakeInitializer(elementArray), New ElementInitializer(elementInitializer)))
                     Next
 
-                    Return New DimensionInitializer(dimension.ToImmutableAndFree())
+                    Return New DimensionInitializer(dimension.ToImmutable())
                 End Function)
 
         End Function

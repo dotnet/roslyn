@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         ImmutableArray<IArgument> ArgumentsInParameterOrder { get; }
         /// <summary>
         /// Arguments of the invocation, excluding the instance argument. Arguments are in the order specified in source,
-        /// and params/ParamArray arguments have not been collected into arrays. Arguments are not present
+        /// and params/ParamArray arguments have been collected into arrays. Arguments are not present
         /// unless supplied in source.
         /// </summary>
         ImmutableArray<IArgument> ArgumentsInSourceOrder { get; }

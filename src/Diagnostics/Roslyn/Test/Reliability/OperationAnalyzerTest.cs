@@ -2,10 +2,10 @@
 
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Performance;
+using Microsoft.CodeAnalysis.Reliability;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Performance
+namespace Microsoft.CodeAnalysis.UnitTests.Reliability
 {
     public class BigForOperationAnalyzerTests : CodeFixTestBase
     {
@@ -223,6 +223,8 @@ class C
         M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
         M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
         M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+        M0(1);
+        M0(1, 2, 4, 3);
     }
 }
 ";
@@ -234,11 +236,12 @@ class C
                 GetCSharpResultAt(17, 21, InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor),
                 GetCSharpResultAt(17, 33, InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor),
                 GetCSharpResultAt(19, 9, InvocationTestAnalyzer.BigParamarrayArgumentsDescriptor),
-                GetCSharpResultAt(20, 9, InvocationTestAnalyzer.BigParamarrayArgumentsDescriptor)
+                GetCSharpResultAt(20, 9, InvocationTestAnalyzer.BigParamarrayArgumentsDescriptor),
+                GetCSharpResultAt(22, 21, InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor)
             });
         }
 
-        [Fact(Skip = "VB support for arguments is broken.")]
+        [Fact]
         public void InvocationVisualBasic()
         {
             const string Source = @"
@@ -257,14 +260,21 @@ Class C
         M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
         M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
         M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)
+        M0(1)
+        M0(1, 2, 4, 3)
     End Sub
 End Class
 ";
             // ToDo: The VB support for named and paramarray arguments is broken.
             VerifyBasic(Source, new[]
             {
-                GetBasicResultAt(12, 9, InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor),
-                GetBasicResultAt(16, 9, InvocationTestAnalyzer.BigParamarrayArgumentsDescriptor)
+                GetBasicResultAt(12, 21, InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor),
+                GetBasicResultAt(13, 15, InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor),
+                GetBasicResultAt(13, 21, InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor),
+                GetBasicResultAt(13, 33, InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor),
+                GetBasicResultAt(15, 9, InvocationTestAnalyzer.BigParamarrayArgumentsDescriptor),
+                GetBasicResultAt(16, 9, InvocationTestAnalyzer.BigParamarrayArgumentsDescriptor),
+                GetBasicResultAt(18, 21, InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor)
             });
         }
     }

@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Diagnostics.Analyzers;
 
-namespace Microsoft.CodeAnalysis.Performance
+namespace Microsoft.CodeAnalysis.Reliability
 {
     // These analyzers are not intended for any actual use. They exist solely to test IOperation support.
 
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Performance
             ReliabilityCategory,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
-
+        
         /// <summary>Gets the set of supported diagnostic descriptors from this analyzer.</summary>
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
@@ -357,36 +357,58 @@ namespace Microsoft.CodeAnalysis.Performance
                  {
                      IInvocation invocation = (IInvocation)operationContext.Operation;
                      long priorArgumentValue = long.MinValue;
-                     int paramarrayElementsCount = 0;
                      foreach (IArgument argument in invocation.ArgumentsInParameterOrder)
                      {
-                         object argumentValue = argument.Value.ConstantValue;
-                         if (argumentValue != null && argument.Value.ResultType.SpecialType == SpecialType.System_Int32)
+                         TestAscendingArgument(operationContext, argument.Value, ref priorArgumentValue);
+                         
+                         if (argument.Kind == ArgumentKind.ParamArray)
                          {
-                             int integerArgument = (int)argumentValue;
-                             if (integerArgument < priorArgumentValue)
+                             IArrayCreation arrayArgument = argument.Value as IArrayCreation;
+                             if (arrayArgument != null && arrayArgument.ElementValues.ArrayClass == ArrayInitializerKind.Dimension)
                              {
-                                 Report(operationContext, argument.Value.Syntax, OutOfNumericalOrderArgumentsDescriptor);
+                                 IDimensionArrayInitializer dimension = arrayArgument.ElementValues as IDimensionArrayInitializer;
+                                 if (dimension != null)
+                                 {
+                                     if (dimension.ElementValues.Length > 10)
+                                     {
+                                         Report(operationContext, invocation.Syntax, BigParamarrayArgumentsDescriptor);
+                                     }
+
+                                     foreach (IArrayInitializer dimensionValues in dimension.ElementValues)
+                                     {
+                                         if (dimensionValues.ArrayClass == ArrayInitializerKind.Expression)
+                                         {
+                                             IExpressionArrayInitializer expressionInitializer = dimensionValues as IExpressionArrayInitializer;
+                                             if (expressionInitializer != null)
+                                             {
+                                                 TestAscendingArgument(operationContext, expressionInitializer.ElementValue, ref priorArgumentValue);
+                                             }
+                                         }
+                                     }
+                                 }
                              }
-
-                             priorArgumentValue = integerArgument;
                          }
-
-                         else if (argument.Kind == ArgumentKind.ParamArray)
-                         {
-                             paramarrayElementsCount++;
-                         }
-                     }
-
-                     if (paramarrayElementsCount > 10)
-                     {
-                         Report(operationContext, invocation.Syntax, BigParamarrayArgumentsDescriptor);
                      }
                  },
                  OperationKind.Invocation);
         }
-        
-        void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)
+
+        private static void TestAscendingArgument(OperationAnalysisContext operationContext, IExpression argument, ref long priorArgumentValue)
+        {
+            object argumentValue = argument.ConstantValue;
+            if (argumentValue != null && argument.ResultType.SpecialType == SpecialType.System_Int32)
+            {
+                int integerArgument = (int)argumentValue;
+                if (integerArgument < priorArgumentValue)
+                {
+                    Report(operationContext, argument.Syntax, OutOfNumericalOrderArgumentsDescriptor);
+                }
+
+                priorArgumentValue = integerArgument;
+            }
+        }
+
+        private static void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)
         {
             context.ReportDiagnostic(Diagnostic.Create(descriptor, syntax.GetLocation()));
         }
