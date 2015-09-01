@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -66,25 +65,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _source.Shutdown();
         }
 
-        private class TableDataSource : AbstractRoslynTableDataSource<TodoListEventArgs, TodoItem>
+        private class TableDataSource : AbstractRoslynTableDataSource<TodoItem>
         {
             private readonly Workspace _workspace;
             private readonly string _identifier;
             private readonly ITodoListProvider _todoListProvider;
 
-            public TableDataSource(Workspace workspace, ITodoListProvider todoListProvider, string identifier)
+            public TableDataSource(Workspace workspace, ITodoListProvider todoListProvider, string identifier) :
+                base(workspace)
             {
                 _workspace = workspace;
                 _identifier = identifier;
                 _todoListProvider = todoListProvider;
                 _todoListProvider.TodoListUpdated += OnTodoListUpdated;
-
-                ConnectToSolutionCrawlerService(_workspace);
             }
 
             public override string DisplayName => ServicesVSResources.TodoTableSourceName;
             public override string SourceTypeIdentifier => StandardTableDataSources.CommentTableDataSource;
             public override string Identifier => _identifier;
+            public override object GetItemKey(object data) => ((TodoListEventArgs)data).Id;
+
+            protected override object GetAggregationKey(object data)
+            {
+                var args = (TodoListEventArgs)data;
+                return args.Id;
+            }
+
 
             private void OnTodoListUpdated(object sender, TodoListEventArgs e)
             {
@@ -97,24 +103,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 if (e.TodoItems.Length == 0)
                 {
-                    OnDataRemoved(e.DocumentId);
+                    OnDataRemoved(e);
                     return;
                 }
 
-                OnDataAddedOrChanged(e.Solution, e.ProjectId, e.DocumentId, e.DocumentId, e, e.TodoItems.Length);
+                OnDataAddedOrChanged(e);
             }
 
-            protected override object GetKey(object key, TodoListEventArgs data)
+            public override AbstractTableEntriesSource<TodoItem> CreateTableEntrySource(object data)
             {
-                throw new NotImplementedException();
-            }
-
-            protected override AbstractTableEntriesSource<TodoItem> CreateTableEntrySource(object key, TodoListEventArgs data)
-            {
-                var documentId = (DocumentId)key;
-                Contract.Requires(documentId == data.DocumentId);
-
-                return new TableEntriesSource(this, data.Workspace, data.DocumentId);
+                var item = (TodoListEventArgs)data;
+                return new TableEntriesSource(this, item.Workspace, item.DocumentId);
             }
 
             private class TableEntriesSource : AbstractTableEntriesSource<TodoItem>
@@ -129,6 +128,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     _workspace = workspace;
                     _documentId = documentId;
                 }
+
+                public override object Key => _documentId;
 
                 public override ImmutableArray<TodoItem> GetItems()
                 {

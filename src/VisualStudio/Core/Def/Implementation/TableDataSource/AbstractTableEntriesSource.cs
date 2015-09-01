@@ -16,6 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
         }
 
+        public abstract object Key { get; }
         public abstract ImmutableArray<TData> GetItems();
         public abstract ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TData> items);
         public abstract AbstractTableEntriesSnapshot<TData> CreateSnapshot(int version, ImmutableArray<TData> items, ImmutableArray<ITrackingPoint> trackingPoints);

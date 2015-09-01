@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 if (!started)
                 {
-                    OnDataAddedOrChanged(this, _buildErrorSource.GetBuildErrors().Length);
+                    OnDataAddedOrChanged(null);
                 }
             }
 
@@ -56,32 +56,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public override string DisplayName => ServicesVSResources.BuildTableSourceName;
             public override string SourceTypeIdentifier => StandardTableDataSources.ErrorTableDataSource;
             public override string Identifier => IdentifierString;
+            public override object GetItemKey(object data) => this;
 
-            protected void OnDataAddedOrChanged(object key, int itemCount)
+            protected override object GetAggregationKey(object data)
             {
-                // reuse factory. it is okay to re-use factory since we make sure we remove the factory before
-                // adding it back
-                bool newFactory = false;
-                ImmutableArray<SubscriptionWithoutLock> snapshot;
-                TableEntriesFactory<DiagnosticData> factory;
+                return this;
+            }
 
-                lock (Gate)
-                {
-                    snapshot = Subscriptions;
-                    if (!Map.TryGetValue(key, out factory))
-                    {
-                        factory = new TableEntriesFactory<DiagnosticData>(this, new TableEntriesSource(this, _workspace));
-                        Map.Add(key, factory);
-                        newFactory = true;
-                    }
-                }
-
-                factory.OnUpdated(itemCount);
-
-                for (var i = 0; i < snapshot.Length; i++)
-                {
-                    snapshot[i].AddOrUpdate(factory, newFactory);
-                }
+            public override AbstractTableEntriesSource<DiagnosticData> CreateTableEntrySource(object data)
+            {
+                return new TableEntriesSource(this, _workspace);
             }
 
             private class TableEntriesSource : AbstractTableEntriesSource<DiagnosticData>
@@ -94,6 +78,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     _source = source;
                     _workspace = workspace;
                 }
+
+                public override object Key => this;
 
                 public override ImmutableArray<DiagnosticData> GetItems()
                 {
