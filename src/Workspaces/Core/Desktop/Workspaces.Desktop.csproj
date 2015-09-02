@@ -101,6 +101,7 @@
     <Compile Include="Log\RoslynEventSource.cs" />
     <Compile Include="Options\Providers\ExportedOptionKeyOptionProvider.cs" />
     <Compile Include="Utilities\Documentation\FileBasedXmlDocumentationProvider.cs" />
+    <Compile Include="Utilities\ReferencePathUtilities_Desktop.cs" />
     <Compile Include="Utilities\ReferencePathUtilities.cs" />
     <Compile Include="WorkspaceDesktopResources.Designer.cs">
       <AutoGen>True</AutoGen>
