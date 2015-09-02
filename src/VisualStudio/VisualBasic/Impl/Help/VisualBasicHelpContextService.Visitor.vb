@@ -14,16 +14,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             Inherits VisualBasicSyntaxVisitor
 
             Public result As String = Nothing
-            Private _span As TextSpan
-            Private _semanticModel As SemanticModel
-            Private _provider As VisualBasicHelpContextService
-            Private _isNotMetadata As Boolean
+            Private ReadOnly _span As TextSpan
+            Private ReadOnly _semanticModel As SemanticModel
+            Private ReadOnly _provider As VisualBasicHelpContextService
+            Private ReadOnly _isNotMetadata As Boolean
+            Private ReadOnly _cancellationToken As CancellationToken
 
-            Public Sub New(span As TextSpan, semanticModel As SemanticModel, isNotMetadata As Boolean, provider As VisualBasicHelpContextService)
+            Public Sub New(span As TextSpan, semanticModel As SemanticModel, isNotMetadata As Boolean, provider As VisualBasicHelpContextService, cancellationToken As CancellationToken)
                 Me._span = span
                 Me._semanticModel = semanticModel
                 Me._isNotMetadata = isNotMetadata
                 Me._provider = provider
+                Me._cancellationToken = cancellationToken
             End Sub
 
             Private Function Keyword(text As String) As String
@@ -433,14 +435,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                     End If
                 End If
 
-                Dim symbol = _semanticModel.GetSymbolInfo(node).Symbol
+                Dim symbol = _semanticModel.GetSymbolInfo(node, _cancellationToken).Symbol
 
                 If symbol Is Nothing Then
-                    symbol = _semanticModel.GetMemberGroup(node).FirstOrDefault()
+                    symbol = _semanticModel.GetMemberGroup(node, _cancellationToken).FirstOrDefault()
                 End If
 
                 If symbol Is Nothing OrElse symbol.IsKind(SymbolKind.RangeVariable) Then
-                    symbol = _semanticModel.GetTypeInfo(node).Type
+                    symbol = _semanticModel.GetTypeInfo(node, _cancellationToken).Type
                 End If
 
                 If symbol IsNot Nothing Then
@@ -589,7 +591,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                 If node.Nullable.Kind() = SyntaxKind.QuestionToken Then
                     result = HelpKeywords.Nullable
                 Else
-                    Dim symbol = _semanticModel.GetDeclaredSymbol(node)
+                    Dim symbol = _semanticModel.GetDeclaredSymbol(node, _cancellationToken)
 
                     If symbol IsNot Nothing Then
                         result = Format(symbol)
@@ -679,7 +681,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             Public Overrides Sub VisitLiteralExpression(node As LiteralExpressionSyntax)
                 Select Case node.Token.Kind()
                     Case SyntaxKind.IntegerLiteralToken
-                        Dim typeInfo = _semanticModel.GetTypeInfo(node).Type
+                        Dim typeInfo = _semanticModel.GetTypeInfo(node, _cancellationToken).Type
 
                         If typeInfo IsNot Nothing Then
                             result = "vb." + typeInfo.ToDisplayString(TypeFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes))
@@ -777,7 +779,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                 End If
 
                 If bestName IsNot Nothing Then
-                    Dim local = TryCast(_semanticModel.GetDeclaredSymbol(bestName), ILocalSymbol)
+                    Dim local = TryCast(_semanticModel.GetDeclaredSymbol(bestName, _cancellationToken), ILocalSymbol)
                     If local IsNot Nothing Then
                         If local.Type.IsAnonymousType Then
                             result = HelpKeywords.AnonymousType
@@ -796,9 +798,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitGenericName(node As GenericNameSyntax)
-                Dim symbol = _semanticModel.GetSymbolInfo(node).Symbol
+                Dim symbol = _semanticModel.GetSymbolInfo(node, _cancellationToken).Symbol
                 If symbol Is Nothing Then
-                    symbol = _semanticModel.GetTypeInfo(node).Type
+                    symbol = _semanticModel.GetTypeInfo(node, _cancellationToken).Type
                 End If
 
                 If symbol IsNot Nothing Then
@@ -809,9 +811,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
 
             Public Overrides Sub VisitQualifiedName(node As QualifiedNameSyntax)
                 ' Bind the thing on the right
-                Dim symbol = _semanticModel.GetSymbolInfo(node.Right).Symbol
+                Dim symbol = _semanticModel.GetSymbolInfo(node.Right, _cancellationToken).Symbol
                 If symbol Is Nothing Then
-                    symbol = _semanticModel.GetTypeInfo(node.Right).Type
+                    symbol = _semanticModel.GetTypeInfo(node.Right, _cancellationToken).Type
                 End If
 
                 If symbol IsNot Nothing Then
@@ -828,7 +830,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitInvocationExpression(node As InvocationExpressionSyntax)
-                Dim info = _semanticModel.GetSymbolInfo(node.Expression)
+                Dim info = _semanticModel.GetSymbolInfo(node.Expression, _cancellationToken)
 
                 ' Array indexing
                 If info.Symbol IsNot Nothing Then
@@ -915,7 +917,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                     Return False
                 End If
 
-                Dim symbol = _semanticModel.GetDeclaredSymbol(token.Parent)
+                Dim symbol = _semanticModel.GetDeclaredSymbol(token.Parent, _cancellationToken)
                 If symbol IsNot Nothing Then
                     result = Format(symbol)
                     Return True

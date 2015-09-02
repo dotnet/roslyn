@@ -57,13 +57,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             {
                 var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
 
-                var result = TryGetText(token, semanticModel, document, syntaxFacts);
+                var result = TryGetText(token, semanticModel, document, cancellationToken, syntaxFacts);
                 if (string.IsNullOrEmpty(result))
                 {
                     var previousToken = token.GetPreviousToken();
                     if (IsValid(previousToken, span))
                     {
-                        result = TryGetText(previousToken, semanticModel, document, syntaxFacts);
+                        result = TryGetText(previousToken, semanticModel, document, cancellationToken, syntaxFacts);
                     }
                 }
 
@@ -106,13 +106,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             return token.Kind() == SyntaxKind.EndIfDirectiveTrivia || token.Span.IntersectsWith(span);
         }
 
-        private string TryGetText(SyntaxToken token, SemanticModel semanticModel, Document document, ISyntaxFactsService syntaxFacts)
+        private string TryGetText(SyntaxToken token, SemanticModel semanticModel, Document document, CancellationToken cancellationToken, ISyntaxFactsService syntaxFacts)
         {
             string text = null;
             if (TryGetTextForContextualKeyword(token, document, syntaxFacts, out text) ||
                TryGetTextForKeyword(token, document, syntaxFacts, out text) ||
                TryGetTextForPreProcessor(token, document, syntaxFacts, out text) ||
-               TryGetTextForSymbol(token, semanticModel, document, out text) ||
+               TryGetTextForSymbol(token, semanticModel, document, cancellationToken, out text) ||
                TryGetTextForOperator(token, document, out text))
             {
                 return text;
@@ -121,13 +121,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             return string.Empty;
         }
 
-        private bool TryGetTextForSymbol(SyntaxToken token, SemanticModel semanticModel, Document document, out string text)
+        private bool TryGetTextForSymbol(SyntaxToken token, SemanticModel semanticModel, Document document, CancellationToken cancellationToken, out string text)
         {
             ISymbol symbol;
             if (token.Parent is TypeArgumentListSyntax)
             {
                 var genericName = token.GetAncestor<GenericNameSyntax>();
-                symbol = semanticModel.GetSymbolInfo(genericName, CancellationToken.None).Symbol ?? semanticModel.GetTypeInfo(genericName, CancellationToken.None).Type;
+                symbol = semanticModel.GetSymbolInfo(genericName, cancellationToken).Symbol ?? semanticModel.GetTypeInfo(genericName, cancellationToken).Type;
             }
             else if (token.Parent is NullableTypeSyntax && token.IsKind(SyntaxKind.QuestionToken))
             {
@@ -136,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
             else
             {
-                var symbols = semanticModel.GetSymbols(token, document.Project.Solution.Workspace, bindLiteralsToUnderlyingType: true, cancellationToken: CancellationToken.None);
+                var symbols = semanticModel.GetSymbols(token, document.Project.Solution.Workspace, bindLiteralsToUnderlyingType: true, cancellationToken: cancellationToken);
                 symbol = symbols.FirstOrDefault();
 
                 if (symbol == null)
@@ -156,7 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             // Range variable: use the type
             if (symbol is IRangeVariableSymbol)
             {
-                var info = semanticModel.GetTypeInfo(token.Parent, CancellationToken.None);
+                var info = semanticModel.GetTypeInfo(token.Parent, cancellationToken);
                 symbol = info.Type;
             }
 

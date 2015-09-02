@@ -39,7 +39,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End If
 
             If token.Span.IntersectsWith(span) OrElse token.GetAncestor(Of XmlElementSyntax)() IsNot Nothing Then
-                Dim visitor = New Visitor(token.Span, Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False), document.Project.Solution.Workspace.Kind <> WorkspaceKind.MetadataAsSource, Me)
+                Dim visitor = New Visitor(token.Span, Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False), document.Project.Solution.Workspace.Kind <> WorkspaceKind.MetadataAsSource, Me, cancellationToken)
                 visitor.Visit(token.Parent)
                 Return visitor.result
             End If
