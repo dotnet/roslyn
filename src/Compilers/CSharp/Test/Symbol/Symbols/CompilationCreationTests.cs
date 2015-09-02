@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SpecialType.None, c107.SpecialType);
 
-            var arrayOfc107 = new ArrayTypeSymbol(c1.Assembly, c107);
+            var arrayOfc107 = ArrayTypeSymbol.CreateCSharpArray(c1.Assembly, c107);
 
             Assert.Equal(SpecialType.None, arrayOfc107.SpecialType);
 

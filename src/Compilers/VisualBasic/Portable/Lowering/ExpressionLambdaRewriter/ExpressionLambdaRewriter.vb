@@ -656,7 +656,7 @@ lSelect:
             Dim boundType As BoundExpression = _factory.[Typeof](arrayType.ElementType)
             Dim initializer As BoundArrayInitialization = node.InitializerOpt
             If initializer IsNot Nothing AndAlso Not initializer.Initializers.IsEmpty Then
-                Debug.Assert(arrayType.Rank = 1, "Rank > 1 should be addressed in DiagnosticsPass")
+                Debug.Assert(arrayType.IsSZArray, "Not SZArray should be addressed in DiagnosticsPass")
                 Return ConvertRuntimeHelperToExpressionTree("NewArrayInit", boundType, ConvertArgumentsIntoArray(node.InitializerOpt.Initializers))
             Else
                 Return ConvertRuntimeHelperToExpressionTree("NewArrayBounds", boundType, ConvertArgumentsIntoArray(node.Bounds))

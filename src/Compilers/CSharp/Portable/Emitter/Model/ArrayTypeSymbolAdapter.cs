@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        bool Cci.IArrayTypeReference.IsVector
+        bool Cci.IArrayTypeReference.IsSZArray
         {
             get
             {
-                return this.Rank == 1;
+                return this.IsSZArray;
             }
         }
 

@@ -21,15 +21,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             NamedTypeSymbol elementType = new MockNamedTypeSymbol("TestClass", Enumerable.Empty<Symbol>());   // this can be any type.
 
-            ArrayTypeSymbol ats1 = new ArrayTypeSymbol(compilation.Assembly, elementType, rank: 1);
+            ArrayTypeSymbol ats1 = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, elementType, rank: 1);
             Assert.Equal(1, ats1.Rank);
+            Assert.True(ats1.IsSZArray);
             Assert.Same(elementType, ats1.ElementType);
             Assert.Equal(SymbolKind.ArrayType, ats1.Kind);
             Assert.True(ats1.IsReferenceType);
             Assert.False(ats1.IsValueType);
             Assert.Equal("TestClass[]", ats1.ToTestDisplayString());
 
-            ArrayTypeSymbol ats2 = new ArrayTypeSymbol(compilation.Assembly, elementType, rank: 2);
+            ArrayTypeSymbol ats2 = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, elementType, rank: 2);
             Assert.Equal(2, ats2.Rank);
             Assert.Same(elementType, ats2.ElementType);
             Assert.Equal(SymbolKind.ArrayType, ats2.Kind);
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(ats2.IsValueType);
             Assert.Equal("TestClass[,]", ats2.ToTestDisplayString());
 
-            ArrayTypeSymbol ats3 = new ArrayTypeSymbol(compilation.Assembly, elementType, rank: 3);
+            ArrayTypeSymbol ats3 = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, elementType, rank: 3);
             Assert.Equal(3, ats3.Rank);
             Assert.Equal("TestClass[,,]", ats3.ToTestDisplayString());
         }
