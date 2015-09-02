@@ -28,6 +28,14 @@ nameof(List<>.Inner<int>);      // Error.  you must provide all type arguments, 
 
 #### Semantic Changes  
 
+The explanation for this grammar change would be as follows:
+
+
+> The last second form of nameof-expression consists of a nameof keyword followed by a parenthesized unbound-type-name.  The meaning of an unbound-type-name is determined as follows:  
+
+> •	Convert the sequence of tokens to a expression by replacing each generic-dimension-specifier with a type-argument-list having the same number of commas and the keyword object as each type-argument.  
+
+> The meaning of the named-entity of a nameof-expression is the meaning of it as an expression; that is, either as a simple-name, a base-access or a member-access. However, where the lookup described in §7.6.3 and §7.6.5 results in an error because an instance member was found in a static context, a nameof-expression produces no such error
 
 
 ##### Semantic Model Details  
