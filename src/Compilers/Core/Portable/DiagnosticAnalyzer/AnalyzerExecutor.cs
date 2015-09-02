@@ -985,6 +985,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Debug.Assert(_isCompilerAnalyzer != null);
 
+            if (diagnostic is DiagnosticWithInfo)
+            {
+                // Compiler diagnostic
+                return true;
+            }
+
             return _analyzerManager.IsSupportedDiagnostic(analyzer, diagnostic, _isCompilerAnalyzer, this);
         }
 

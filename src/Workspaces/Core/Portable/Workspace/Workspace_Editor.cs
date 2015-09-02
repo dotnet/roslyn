@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis
 
         // text buffer maps
         private readonly Dictionary<SourceTextContainer, DocumentId> _bufferToDocumentInCurrentContextMap = new Dictionary<SourceTextContainer, DocumentId>();
-        private readonly Dictionary<SourceTextContainer, ImmutableArray<DocumentId>> _bufferToDocumentIdMap = new Dictionary<SourceTextContainer, ImmutableArray<DocumentId>>();
         private readonly Dictionary<DocumentId, TextTracker> _textTrackers = new Dictionary<DocumentId, TextTracker>();
 
         /// <summary>
@@ -120,7 +119,7 @@ namespace Microsoft.CodeAnalysis
                 tracker.Disconnect();
                 _textTrackers.Remove(documentId);
 
-                var currentContextDocumentId = RemoveTextToDocumentIdMapping_NoLock(tracker.TextContainer, documentId);
+                var currentContextDocumentId = UpdateCurrentContextMapping_NoLock(tracker.TextContainer, documentId);
                 if (currentContextDocumentId != null)
                 {
                     return currentContextDocumentId;
@@ -249,15 +248,14 @@ namespace Microsoft.CodeAnalysis
 
         private ImmutableArray<DocumentId> GetRelatedDocumentIds_NoLock(SourceTextContainer container)
         {
-            ImmutableArray<DocumentId> docIds;
-            if (_bufferToDocumentIdMap.TryGetValue(container, out docIds))
+            DocumentId documentId;
+            if (!_bufferToDocumentInCurrentContextMap.TryGetValue(container, out documentId))
             {
-                return docIds;
+                // it is not an opened file
+                return ImmutableArray<DocumentId>.Empty;
             }
-            else
-            {
-                return ImmutableArray.Create<DocumentId>();
-            }
+
+            return this.CurrentSolution.GetRelatedDocumentIds(documentId);
         }
 
         /// <summary>
@@ -292,12 +290,19 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(documentId));
             }
 
-            SourceTextContainer container = null;
             using (_stateLock.DisposableWait())
             {
-                container = _bufferToDocumentIdMap.Where(kvp => kvp.Value.Contains(documentId)).Select(kvp => kvp.Key).FirstOrDefault();
+                var container = GetOpenDocumentSourceTextContainer_NoLock(documentId);
                 return container != null ? GetDocumentIdInCurrentContext_NoLock(container) : documentId;
             }
+        }
+
+        private SourceTextContainer GetOpenDocumentSourceTextContainer_NoLock(DocumentId documentId)
+        {
+            SourceTextContainer container;
+            var documentIds = this.CurrentSolution.GetRelatedDocumentIds(documentId);
+            container = _bufferToDocumentInCurrentContextMap.Where(kvp => documentIds.Contains(kvp.Value)).Select(kvp => kvp.Key).FirstOrDefault();
+            return container;
         }
 
         private DocumentId GetDocumentIdInCurrentContext_NoLock(SourceTextContainer container)
@@ -311,8 +316,6 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                Debug.Assert(!_bufferToDocumentIdMap.ContainsKey(container) ||
-                             !_bufferToDocumentIdMap[container].Any());
                 return null;
             }
         }
@@ -335,7 +338,7 @@ namespace Microsoft.CodeAnalysis
             SourceTextContainer container = null;
             using (_stateLock.DisposableWait())
             {
-                container = _bufferToDocumentIdMap.Where(kvp => kvp.Value.Contains(documentId)).Select(kvp => kvp.Key).FirstOrDefault();
+                container = GetOpenDocumentSourceTextContainer_NoLock(documentId);
             }
 
             if (container != null)
@@ -438,7 +441,7 @@ namespace Microsoft.CodeAnalysis
         {
             var tracker = new TextTracker(this, documentId, textContainer, onChangedHandler);
             _textTrackers.Add(documentId, tracker);
-            this.AddTextToDocumentIdMapping_NoLock(textContainer, documentId, isCurrentContext);
+            this.UpdateCurrentContextMapping_NoLock(textContainer, documentId, isCurrentContext);
             tracker.Connect();
         }
 
@@ -564,18 +567,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void AddTextToDocumentIdMapping_NoLock(SourceTextContainer textContainer, DocumentId id, bool isCurrentContext)
+        private void UpdateCurrentContextMapping_NoLock(SourceTextContainer textContainer, DocumentId id, bool isCurrentContext)
         {
-            ImmutableArray<DocumentId> docIds;
-            if (_bufferToDocumentIdMap.TryGetValue(textContainer, out docIds))
-            {
-                _bufferToDocumentIdMap[textContainer] = docIds.Add(id);
-            }
-            else
-            {
-                _bufferToDocumentIdMap[textContainer] = ImmutableArray.Create(id);
-            }
-
             if (isCurrentContext || !_bufferToDocumentInCurrentContextMap.ContainsKey(textContainer))
             {
                 _bufferToDocumentInCurrentContextMap[textContainer] = id;
@@ -583,38 +576,33 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <returns>The DocumentId of the current context document attached to the textContainer, if any.</returns>
-        private DocumentId RemoveTextToDocumentIdMapping_NoLock(SourceTextContainer textContainer, DocumentId id)
+        private DocumentId UpdateCurrentContextMapping_NoLock(SourceTextContainer textContainer, DocumentId id)
         {
-            ImmutableArray<DocumentId> docIds;
-            if (_bufferToDocumentIdMap.TryGetValue(textContainer, out docIds))
+            var documentIds = this.CurrentSolution.GetRelatedDocumentIds(id);
+            if (documentIds.Length == 0)
             {
-                docIds = docIds.Remove(id);
-                if (docIds.Length > 0)
-                {
-                    _bufferToDocumentIdMap[textContainer] = docIds;
-
-                    if (_bufferToDocumentInCurrentContextMap[textContainer] == id)
-                    {
-                        // The current context document for this buffer has been removed, but there are
-                        // other documents associated with the buffer. Arbitrarily choose the first
-                        // remaining document as the new current context document.
-                        var newCurrentContextDocumentId = docIds.First();
-                        _bufferToDocumentInCurrentContextMap[textContainer] = newCurrentContextDocumentId;
-                        return newCurrentContextDocumentId;
-                    }
-                    else
-                    {
-                        return _bufferToDocumentInCurrentContextMap[textContainer];
-                    }
-                }
-                else
-                {
-                    _bufferToDocumentIdMap.Remove(textContainer);
-                    _bufferToDocumentInCurrentContextMap.Remove(textContainer);
-                }
+                // no related document. remove map and return no context
+                _bufferToDocumentInCurrentContextMap.Remove(textContainer);
+                return null;
             }
 
-            return null;
+            if (documentIds.Length == 1 && documentIds[0] == id)
+            {
+                // only related document is myself. remove map and return no context
+                _bufferToDocumentInCurrentContextMap.Remove(textContainer);
+                return null;
+            }
+
+            if (documentIds[0] != id)
+            {
+                // there are related documents, set first one as new context.
+                _bufferToDocumentInCurrentContextMap[textContainer] = documentIds[0];
+                return documentIds[0];
+            }
+
+            // there are multiple related documents, and first one is myself. return next one.
+            _bufferToDocumentInCurrentContextMap[textContainer] = documentIds[1];
+            return documentIds[1];
         }
 
         private SourceText GetOpenDocumentText(Solution solution, DocumentId documentId)
@@ -639,9 +627,9 @@ namespace Microsoft.CodeAnalysis
             // keep open documents using same text
             foreach (var docId in this.GetOpenDocumentIds())
             {
-                if (newSolution.ContainsDocument((DocumentId)docId))
+                if (newSolution.ContainsDocument(docId))
                 {
-                    newSolution = newSolution.WithDocumentText((DocumentId)docId, this.GetOpenDocumentText(oldSolution, (DocumentId)docId), PreservationMode.PreserveIdentity);
+                    newSolution = newSolution.WithDocumentText(docId, this.GetOpenDocumentText(oldSolution, docId), PreservationMode.PreserveIdentity);
                 }
             }
 
@@ -656,9 +644,9 @@ namespace Microsoft.CodeAnalysis
             // keep open documents open using same text
             foreach (var docId in this.GetOpenDocumentIds(oldProject.Id))
             {
-                if (newSolution.ContainsDocument((DocumentId)docId))
+                if (newSolution.ContainsDocument(docId))
                 {
-                    newSolution = newSolution.WithDocumentText((DocumentId)docId, this.GetOpenDocumentText(oldSolution, (DocumentId)docId), PreservationMode.PreserveIdentity);
+                    newSolution = newSolution.WithDocumentText(docId, this.GetOpenDocumentText(oldSolution, docId), PreservationMode.PreserveIdentity);
                 }
             }
 

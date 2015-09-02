@@ -4,6 +4,10 @@
           Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props') AND '$(MSBuildProjectExtension)' != '.vcxproj'" />
 
   <PropertyGroup>
+    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == ''">$(UserProfile)\.nuget\packages</NuGetPackageRoot>
+  </PropertyGroup>
+  
+  <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">14.0</VisualStudioVersion>
   </PropertyGroup>
 
@@ -38,11 +42,13 @@
     <SystemCollectionsImmutableAssemblyVersion Condition="'$(SystemCollectionsImmutableAssemblyVersion)' == ''">1.1.36</SystemCollectionsImmutableAssemblyVersion>
     <NuGetCommandLineAssemblyVersion Condition="'$(NuGetCommandLineAssemblyVersion)' == ''">2.8.5</NuGetCommandLineAssemblyVersion>
     <MicrosoftCompositionAssemblyVersion Condition="'$(MicrosoftCompositionAssemblyVersion)' == ''">1.0.27</MicrosoftCompositionAssemblyVersion>
+    <MicrosoftCodeAnalysisAnalyzersAssemblyVersion Condition="'$(MicrosoftCodeAnalysisAnalyzersAssemblyVersion)' == ''">1.0.0</MicrosoftCodeAnalysisAnalyzersAssemblyVersion>
     <SystemReflectionMetadataVersion>$(SystemReflectionMetadataAssemblyVersion)-alpha-00012</SystemReflectionMetadataVersion>
     <SystemCollectionsImmutableVersion>$(SystemCollectionsImmutableAssemblyVersion)</SystemCollectionsImmutableVersion>
     <MicrosoftDiaSymReaderNativeVersion>1.1.0-alpha1</MicrosoftDiaSymReaderNativeVersion>
     <NuGetCommandLineVersion>$(NuGetCommandLineAssemblyVersion)</NuGetCommandLineVersion>
     <MicrosoftCompositionVersion>$(MicrosoftCompositionAssemblyVersion)</MicrosoftCompositionVersion>
+    <MicrosoftCodeAnalysisAnalyzersVersion>$(MicrosoftCodeAnalysisAnalyzersAssemblyVersion)</MicrosoftCodeAnalysisAnalyzersVersion>
 
     <!-- If we still have Roslyn installed, our VSIX-producing packages are not going to install, so let's not even try.
          OpenSourceDebug overrides this by simple virtue that it's property setting is after the include of this file -->
@@ -78,8 +84,8 @@
   <!-- Import the global NuGet packages -->
   <PropertyGroup>
     <ToolsetCompilerPackageName>Microsoft.Net.Compilers</ToolsetCompilerPackageName>
-    <ToolsetCompilerPropsFilePath>$(NuGetPackagesPath)\Microsoft.Net.Compilers.1.1.0-beta1-20150727-01\build\Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
-    <RoslynDiagnosticsPropsFilePath>$(NuGetPackagesPath)\Microsoft.Net.RoslynDiagnostics.1.1.0-beta1-20150727-01\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
+    <ToolsetCompilerPropsFilePath>$(NuGetPackagesPath)\Microsoft.Net.Compilers.1.1.0-beta1-20150825-02\build\Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
+    <RoslynDiagnosticsPropsFilePath>$(NuGetPackagesPath)\Microsoft.Net.RoslynDiagnostics.1.1.1-beta1-20150818-01\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
     <AdditionalFileItemNames>$(AdditionalFileItemNames);PublicAPI</AdditionalFileItemNames>
   </PropertyGroup>
 

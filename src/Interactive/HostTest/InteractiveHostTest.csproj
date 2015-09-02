@@ -29,7 +29,7 @@
       <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
       <Name>CompilerTestResources</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Test\Utilities\Portable\TestUtilities.FX45.csproj">
+    <ProjectReference Include="..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
       <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
       <Name>TestUtilities.FX45</Name>
     </ProjectReference>
@@ -57,7 +57,7 @@
       <Project>{FE2CBEA6-D121-4FAA-AA8B-FC9900BF8C83}</Project>
       <Name>CSharpInteractiveEditorFeatures</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Features\Core\Features.csproj">
+    <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj">
       <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
       <Name>Features</Name>
     </ProjectReference>

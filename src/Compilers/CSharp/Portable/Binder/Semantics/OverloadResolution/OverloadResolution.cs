@@ -1551,8 +1551,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (arguments.Count < declaredParameterCount)
                 {
-                    // params parameter isn't used (see ExpressionBinder::TryGetExpandedParams in the native compiler)
-                    parametersUsedIncludingExpansionAndOptional = declaredParameterCount - 1;
+                    ImmutableArray<int> argsToParamsOpt = m.Result.ArgsToParamsOpt;
+
+                    if (argsToParamsOpt.IsDefaultOrEmpty || !argsToParamsOpt.Contains(declaredParameterCount - 1))
+                    {
+                        // params parameter isn't used (see ExpressionBinder::TryGetExpandedParams in the native compiler)
+                        parametersUsedIncludingExpansionAndOptional = declaredParameterCount - 1;
+                    }
+                    else
+                    {
+                        // params parameter is used by a named argument
+                        parametersUsedIncludingExpansionAndOptional = declaredParameterCount;
+                    }
                 }
                 else
                 {
@@ -2584,10 +2594,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // using the generic parameters of "method", so we can now substitute these type parameters 
                     // in the constructed effective parameters.
 
-                    var map = new TypeMap(method.TypeParameters, typeArguments, allowAlpha: true);
+                    var map = new TypeMap(method.TypeParameters, typeArguments.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers), allowAlpha: true);
 
                     effectiveParameters = new EffectiveParameters(
-                        map.SubstituteTypes(constructedEffectiveParameters.ParameterTypes),
+                        map.SubstituteTypesWithoutModifiers(constructedEffectiveParameters.ParameterTypes),
                         constructedEffectiveParameters.ParameterRefKinds);
 
                     ignoreOpenTypes = false;

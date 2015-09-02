@@ -1,5 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Roslyn.Test.Utilities
+
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
     Public Class NoncompliantOverloadingInMetadata
@@ -7109,7 +7111,6 @@ Imports Extensions
 Module Program
     Sub Main
         Dim x As Integer = 1
-        x.Foo()
         Foo(x)
     End Sub
 End Module
@@ -7138,10 +7139,15 @@ End Module
 </compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
             ' Dev10 reports error BC30521: Overload resolution failed because no accessible 'Foo' is most specific for these arguments:
-            CompileAndVerify(compilation2, expectedOutput:=
-            <![CDATA[
-2
-]]>)
+            CompilationUtils.AssertTheseDiagnostics(compilation2,
+<expected>
+BC30521: Overload resolution failed because no accessible 'Foo' is most specific for these arguments:
+    Extension method 'Public Sub Foo()' defined in 'c': Not most specific.
+    Extension method 'Public Sub FoO()' defined in 'c': Not most specific.
+    Extension method 'Public Sub Foo()' defined in 'D': Not most specific.
+        x.Foo()
+          ~~~
+</expected>)
         End Sub
 
         <Fact()>
@@ -7207,7 +7213,9 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC31429: 'Foo' is ambiguous because multiple kinds of members with this name exist in module 'c'.
+BC30521: Overload resolution failed because no accessible 'Foo' is most specific for these arguments:
+    Extension method 'Public Sub Foo()' defined in 'c': Not most specific.
+    Extension method 'Public Sub FoO()' defined in 'c': Not most specific.
         x.Foo()
           ~~~
 BC31429: 'Foo' is ambiguous because multiple kinds of members with this name exist in module 'c'.
@@ -7289,7 +7297,6 @@ Imports Extensions
 Module Program
     Sub Main
         Dim x As Integer = 1
-        x.Foo()
         Foo(x)
     End Sub
 End Module
@@ -7318,10 +7325,14 @@ End Module
 </compilation>, customIL.Value, includeVbRuntime:=True, includeSystemCore:=True, appendDefaultHeader:=False, options:=TestOptions.ReleaseExe)
 
             ' Dev10 reports error BC30521: Overload resolution failed because no accessible 'Foo' is most specific for these arguments:
-            CompileAndVerify(compilation2, expectedOutput:=
-            <![CDATA[
-2
-]]>)
+            CompilationUtils.AssertTheseDiagnostics(compilation2,
+<expected>
+BC30521: Overload resolution failed because no accessible 'Foo' is most specific for these arguments:
+    Extension method 'Public Sub Foo()' defined in 'c': Not most specific.
+    Extension method 'Public Sub FoO()' defined in 'c': Not most specific.
+        x.Foo()
+          ~~~
+</expected>)
         End Sub
 
         <Fact()>
@@ -8591,6 +8602,136 @@ End Module
             <![CDATA[
 aAxxx
 ]]>)
+        End Sub
+
+        <Fact, WorkItem(4704, "https://github.com/dotnet/roslyn/issues/4704")>
+        Public Sub UnsupportedOverloadingOfExtensionMethods()
+
+            Dim ilSource =
+            <![CDATA[
+.assembly extern mscorlib
+{
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )                         // .z\V.4..
+  .ver 4:0:0:0
+}
+
+.assembly '<<GeneratedFileName>>'
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
+}
+
+// MVID: {866DFDCB-9BF6-47CA-A90A-4C1FCEA128C0}
+.imagebase 0x10000000
+.file alignment 0x00000200
+.stackreserve 0x00100000
+.subsystem 0x0003       // WINDOWS_CUI
+.corflags 0x00000001    //  ILONLY
+// Image base: 0x00BA0000
+
+
+// =============== CLASS MEMBERS DECLARATION ===================
+
+.class public abstract auto ansi sealed beforefieldinit Matrix
+       extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
+
+.method public hidebysig static void 
+        ToArray(int32 a,
+                string[] b) cil managed
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
+  .param [2]
+  .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00 ) 
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldstr      "1"
+  IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+  IL_000a:  ret
+} // end of method Matrix::ToArray
+
+.method public hidebysig static void 
+        ToArray(int32 a,
+                [out] string[]& b) cil managed
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldstr      "2"
+  IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+  IL_000a:  ret
+} // end of method Matrix::ToArray
+
+} // end of class Matrix
+
+// =============================================================
+]]>
+
+            Dim compDef1 =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Class Module1
+    Shared Sub Main()
+        Dim a As Integer = 5
+
+        Matrix.ToArray(a, "Field1", "Field2", "Field3")
+        Matrix.ToArray(a, {"Field1", "Field2", "Field3"})
+        a.ToArray({"Field1", "Field2", "Field3"})
+
+        Dim b As System.Action(Of Integer, String, String, String) = AddressOf Matrix.ToArray
+        Dim c As System.Action(Of Integer, String()) = AddressOf Matrix.ToArray
+
+    End Sub
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation1 = CompilationUtils.CreateCompilationWithCustomILSource(compDef1, ilSource.Value, TestOptions.ReleaseExe, appendDefaultHeader:=False)
+
+            AssertTheseDiagnostics(compilation1,
+<expected>
+BC31429: 'ToArray' is ambiguous because multiple kinds of members with this name exist in class 'Matrix'.
+        Matrix.ToArray(a, "Field1", "Field2", "Field3")
+               ~~~~~~~
+BC31429: 'ToArray' is ambiguous because multiple kinds of members with this name exist in class 'Matrix'.
+        Matrix.ToArray(a, {"Field1", "Field2", "Field3"})
+               ~~~~~~~
+BC30521: Overload resolution failed because no accessible 'ToArray' is most specific for these arguments:
+    Extension method 'Public Sub ToArray(ParamArray b As String())' defined in 'Matrix': Not most specific.
+    Extension method 'Public Sub ToArray(ByRef b As String())' defined in 'Matrix': Not most specific.
+        a.ToArray({"Field1", "Field2", "Field3"})
+          ~~~~~~~
+BC31429: 'ToArray' is ambiguous because multiple kinds of members with this name exist in class 'Matrix'.
+        Dim b As System.Action(Of Integer, String, String, String) = AddressOf Matrix.ToArray
+                                                                               ~~~~~~~~~~~~~~
+BC31429: 'ToArray' is ambiguous because multiple kinds of members with this name exist in class 'Matrix'.
+        Dim c As System.Action(Of Integer, String()) = AddressOf Matrix.ToArray
+                                                                 ~~~~~~~~~~~~~~
+</expected>)
+
+
+            Dim compDef2 =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Class Module1
+    Shared Sub Main()
+        Dim a As Integer = 5
+
+        a.ToArray("Field1", "Field2", "Field3")
+        Dim b As System.Action(Of String, String, String) = AddressOf a.ToArray
+   	    b("Field1", "Field2", "Field3")
+    End Sub
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation2 = CompilationUtils.CreateCompilationWithCustomILSource(compDef2, ilSource.Value, TestOptions.ReleaseExe, appendDefaultHeader:=False)
+
+
+            CompileAndVerify(compilation2, expectedOutput:="1
+1")
         End Sub
 
     End Class

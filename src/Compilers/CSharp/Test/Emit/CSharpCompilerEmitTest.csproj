@@ -34,7 +34,7 @@
       <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
       <Name>CompilerTestResources</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.FX45.csproj">
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
       <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
       <Name>TestUtilities.FX45</Name>
     </ProjectReference>
@@ -162,7 +162,7 @@
     <Compile Include="Emit\OptionalArgumentsTests.cs" />
     <Compile Include="Emit\OutputStreams.cs" />
     <Compile Include="Emit\ResourceTests.cs" />
-    <Compile Include="Emit\ScriptTests.cs" />
+    <Compile Include="CodeGen\CodeGenScriptTests.cs" />
     <Compile Include="PDB\CheckSumTest.cs" />
     <Compile Include="PDB\PDBAsyncTests.cs" />
     <Compile Include="PDB\PDBConstantTests.cs" />
@@ -184,7 +184,7 @@
   <ItemGroup>
     <Reference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\packages\Microsoft.CodeAnalysis.Test.Resources.Proprietary.1.1.0-beta1-20150716-08\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.CodeAnalysis.Test.Resources.Proprietary.1.1.0-beta1-20150824-02\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />

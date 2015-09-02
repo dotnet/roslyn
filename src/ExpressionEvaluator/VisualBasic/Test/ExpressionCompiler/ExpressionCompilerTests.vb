@@ -1959,6 +1959,7 @@ End Class"
 "DirectCast(Function()
     Dim e1 As E(Of T) = Nothing
     Try
+        e1 = Nothing
     Catch e2 As E(Of T)
         e1 = e2
     End Try
@@ -1980,28 +1981,30 @@ End Function, Func(Of E(Of T)))()")
             Next
             methodData.VerifyIL(
 "{
-  // Code size       22 (0x16)
+  // Code size       24 (0x18)
   .maxstack  2
   .locals init (E(Of T) V_0, //e1
-  E(Of T) V_1) //e2
+                E(Of T) V_1) //e2
   IL_0000:  ldnull
   IL_0001:  stloc.0
   .try
-{
-  IL_0002:  leave.s    IL_0014
-}
+  {
+    IL_0002:  ldnull
+    IL_0003:  stloc.0
+    IL_0004:  leave.s    IL_0016
+  }
   catch E(Of T)
-{
-  IL_0004:  dup
-  IL_0005:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
-  IL_000a:  stloc.1
-  IL_000b:  ldloc.1
-  IL_000c:  stloc.0
-  IL_000d:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
-  IL_0012:  leave.s    IL_0014
-}
-  IL_0014:  ldloc.0
-  IL_0015:  ret
+  {
+    IL_0006:  dup
+    IL_0007:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_000c:  stloc.1
+    IL_000d:  ldloc.1
+    IL_000e:  stloc.0
+    IL_000f:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_0014:  leave.s    IL_0016
+  }
+  IL_0016:  ldloc.0
+  IL_0017:  ret
 }")
         End Sub
 

@@ -880,6 +880,81 @@ End Module
             </compilation>)
         End Sub
 
+        <Fact()>
+        Public Sub EmptyTryOrEmptyFinally()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System        
+Module EmitTest
+    Sub Main()
+        Try
+        Catch
+            Console.Write("Catch 0 ")
+        Finally
+        End Try
+
+        Try
+        Catch
+            Console.Write("Catch 1 ")
+        Finally
+            Console.Write("Finally 1 ")
+        End Try
+
+        Try
+            Console.Write("Try 2 ")
+        Catch
+            Console.Write("Catch 2 ")
+        Finally
+        End Try
+
+        Try
+            Console.Write("Try 3")
+        Finally
+        End Try
+    End Sub
+
+End Module
+    </file>
+</compilation>,
+expectedOutput:="Finally 1 Try 2 Try 3").
+            VerifyIL("EmitTest.Main",
+            <![CDATA[
+{
+  // Code size       59 (0x3b)
+  .maxstack  1
+  .try
+  {
+    IL_0000:  leave.s    IL_000d
+  }
+  finally
+  {
+    IL_0002:  ldstr      "Finally 1 "
+    IL_0007:  call       "Sub System.Console.Write(String)"
+    IL_000c:  endfinally
+  }
+  IL_000d:  nop
+  .try
+  {
+    IL_000e:  ldstr      "Try 2 "
+    IL_0013:  call       "Sub System.Console.Write(String)"
+    IL_0018:  leave.s    IL_0030
+  }
+  catch System.Exception
+  {
+    IL_001a:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_001f:  ldstr      "Catch 2 "
+    IL_0024:  call       "Sub System.Console.Write(String)"
+    IL_0029:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_002e:  leave.s    IL_0030
+  }
+  IL_0030:  ldstr      "Try 3"
+  IL_0035:  call       "Sub System.Console.Write(String)"
+  IL_003a:  ret
+}
+]]>)
+        End Sub
+
     End Class
 End Namespace
 

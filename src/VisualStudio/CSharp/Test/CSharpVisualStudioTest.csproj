@@ -30,7 +30,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\Test\Utilities\Portable\TestUtilities.FX45.csproj">
+    <ProjectReference Include="..\..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
       <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
       <Name>TestUtilities.FX45</Name>
     </ProjectReference>
@@ -98,7 +98,7 @@
       <Project>{C0E80510-4FBE-4B0C-AF2C-4F473787722C}</Project>
       <Name>ServicesVisualStudioImpl</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Features\CSharp\CSharpFeatures.csproj">
+    <ProjectReference Include="..\..\..\Features\CSharp\Portable\CSharpFeatures.csproj">
       <Project>{3973B09A-4FBF-44A5-8359-3D22CEB71F71}</Project>
       <Name>CSharpFeatures</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -108,7 +108,7 @@
       <Name>TextEditorFeatures</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Features\Core\Features.csproj">
+    <ProjectReference Include="..\..\..\Features\Core\Portable\Features.csproj">
       <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
       <Name>Features</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

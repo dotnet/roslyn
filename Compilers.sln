@@ -33,7 +33,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "VisualBasic", "VisualBasic"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompilerTestResources", "src\Compilers\Test\Resources\Core\CompilerTestResources.csproj", "{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestUtilities.FX45", "src\Test\Utilities\Portable\TestUtilities.FX45.csproj", "{F7712928-1175-47B3-8819-EE086753DEE2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestUtilities.FX45", "src\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj", "{F7712928-1175-47B3-8819-EE086753DEE2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpCompilerTestUtilities", "src\Compilers\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj", "{4371944A-D3BA-4B5B-8285-82E5FFC6D1F9}"
 EndProject
@@ -98,12 +98,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CscCore", "src\Compilers\CS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VbcCore", "src\Compilers\VisualBasic\VbcCore\VbcCore.csproj", "{8CE3A581-2969-4864-A803-013E9D977C3A}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "TestUtilities.Shared", "src\Test\Utilities\Portable\TestUtilities.Shared.shproj", "{6FF42825-5464-4151-AC55-ED828168C192}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "TestUtilities.Shared", "src\Test\Utilities\Shared\TestUtilities.Shared.shproj", "{6FF42825-5464-4151-AC55-ED828168C192}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		src\Test\Utilities\Portable\TestUtilities.projitems*{6ff42825-5464-4151-ac55-ed828168c192}*SharedItemsImports = 13
-		src\Test\Utilities\Portable\TestUtilities.projitems*{f7712928-1175-47b3-8819-ee086753dee2}*SharedItemsImports = 4
+		src\Test\Utilities\Shared\TestUtilities.projitems*{6ff42825-5464-4151-ac55-ed828168c192}*SharedItemsImports = 13
+		src\Test\Utilities\Shared\TestUtilities.projitems*{f7712928-1175-47b3-8819-ee086753dee2}*SharedItemsImports = 4
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{d0bc9be7-24f6-40ca-8dc6-fcb93bd44b34}*SharedItemsImports = 13
 		src\Compilers\Core\SharedCollections\SharedCollections.projitems*{afde6bea-5038-4a4a-a88e-dbd2e4088eed}*SharedItemsImports = 4
 		src\Compilers\Core\SharedCollections\SharedCollections.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4

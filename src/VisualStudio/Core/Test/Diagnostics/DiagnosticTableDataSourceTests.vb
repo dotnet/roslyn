@@ -119,7 +119,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim filename = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
-                Assert.Equal(item.OriginalFilePath, filename)
+                Assert.Equal(item.DataLocation?.OriginalFilePath, filename)
 
                 Dim text = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Text, text))
@@ -127,11 +127,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim line = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Line, line))
-                Assert.Equal(item.MappedStartLine, line)
+                Assert.Equal(If(item.DataLocation?.MappedStartLine, 0), line)
 
                 Dim column = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Column, column))
-                Assert.Equal(item.MappedStartColumn, column)
+                Assert.Equal(If(item.DataLocation?.MappedStartColumn, 0), column)
             End Using
         End Sub
 
@@ -167,7 +167,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim filename = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
-                Assert.Equal(item.OriginalFilePath, filename)
+                Assert.Equal(item.DataLocation?.OriginalFilePath, filename)
 
                 Dim text = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Text, text))
@@ -175,11 +175,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim line = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Line, line))
-                Assert.Equal(item.MappedStartLine, line)
+                Assert.Equal(If(item.DataLocation?.MappedStartLine, 0), line)
 
                 Dim column = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Column, column))
-                Assert.Equal(item.MappedStartColumn, column)
+                Assert.Equal(If(item.DataLocation?.MappedStartColumn, 0), column)
             End Using
         End Sub
 
@@ -495,7 +495,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         Private Function CreateItem(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Error, Optional link As String = Nothing) As DiagnosticData
             Return New DiagnosticData("test", "test", "test", "test format", severity, True, 0,
-                                      workspace, projectId, documentId, TextSpan.FromBounds(0, 10), "test", 20, 20, 20, 20,
+                                      workspace, projectId, New DiagnosticDataLocation(documentId, TextSpan.FromBounds(0, 10), "test", 20, 20, 20, 20),
                                       title:="Title", description:="Description", helpLink:=link)
         End Function
 

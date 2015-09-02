@@ -2,8 +2,9 @@
 
 ||Windows - Debug|Windows - Release|Linux|Mac OSX|
 |:--:|:--:|:--:|:--:|:--:|
-|**master**|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_windows_debug/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_windows_debug/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_windows_release/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_windows_release/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_linux/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_linux/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_mac/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_mac/)|
-|**stabilization**|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabilization_windows_debug/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabilization_windows_debug/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabilization_windows_release/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabilization_windows_release/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabilization_linux/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabilization_linux/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabilization_mac/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabilization_mac/)|
+|**master**|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_master_win_dbg/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_master_win_dbg/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_master_win_rel/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_master_win_rel/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_master_lin/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_master_lin/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_master_mac/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_master_mac/)|
+|**future**|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_future_win_dbg/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_future_win_dbg/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_future_win_rel/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_future_win_rel/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_future_lin/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_future_lin/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_future_mac/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_future_mac/)|
+|**stabilization**|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabil_win_dbg/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabil_win_dbg/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabil_win_rel/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabil_win_rel/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabil_lin/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabil_lin/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabil_mac/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabil_mac/)|
 
 
 [![Join the chat at https://gitter.im/dotnet/roslyn](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/dotnet/roslyn?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
@@ -44,9 +45,14 @@ From the NuGet package manager console:
 
 ### Get started
 
+* Tutorial articles by Alex Turner in MSDN Magazine
+  - [Use Roslyn to Write a Live Code Analyzer for Your API](https://msdn.microsoft.com/en-us/magazine/dn879356)
+  - [Adding a Code Fix to your Roslyn Analyzer](https://msdn.microsoft.com/en-us/magazine/dn904670.aspx)
 * [Roslyn Overview](https://github.com/dotnet/roslyn/wiki/Roslyn%20Overview) 
 * [API Changes between CTP 6 and RC](https://github.com/dotnet/roslyn/wiki/VS-2015-RC-API-Changes)
 * [Samples and Walkthroughs](https://github.com/dotnet/roslyn/wiki/Samples-and-Walkthroughs)
+* [Documentation](https://github.com/dotnet/roslyn/tree/master/docs)
+* [Analyzer documentation](https://github.com/dotnet/roslyn/tree/master/docs/analyzers)
 * [Syntax Visualizer Tool](https://github.com/dotnet/roslyn/wiki/Syntax%20Visualizer)
 * [Roadmap](https://github.com/dotnet/roslyn/wiki/Roadmap) 
 * [Language Feature Status](https://github.com/dotnet/roslyn/wiki/Languages-features-in-C%23-6-and-VB-14)

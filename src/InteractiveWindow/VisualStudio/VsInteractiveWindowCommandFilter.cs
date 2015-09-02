@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -122,30 +123,48 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
 
             public int QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
             {
-                switch (_layer)
+                try
                 {
-                    case CommandFilterLayer.PreLanguage:
-                        return _window.PreLanguageCommandFilterQueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
+                    switch (_layer)
+                    {
+                        case CommandFilterLayer.PreLanguage:
+                            return _window.PreLanguageCommandFilterQueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
 
-                    case CommandFilterLayer.PreEditor:
-                        return _window.PreEditorCommandFilterQueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
+                        case CommandFilterLayer.PreEditor:
+                            return _window.PreEditorCommandFilterQueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
+
+                        default:
+                            throw Roslyn.Utilities.ExceptionUtilities.UnexpectedValue(_layer);
+                    }
                 }
-
-                throw new InvalidOperationException();
+                catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+                {
+                    // Exceptions should not escape from command filters.
+                    return _window._editorCommandFilter.QueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
+                }
             }
 
             public int Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
             {
-                switch (_layer)
+                try
                 {
-                    case CommandFilterLayer.PreLanguage:
-                        return _window.PreLanguageCommandFilterExec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+                    switch (_layer)
+                    {
+                        case CommandFilterLayer.PreLanguage:
+                            return _window.PreLanguageCommandFilterExec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
 
-                    case CommandFilterLayer.PreEditor:
-                        return _window.PreEditorCommandFilterExec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+                        case CommandFilterLayer.PreEditor:
+                            return _window.PreEditorCommandFilterExec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+
+                        default:
+                            throw Roslyn.Utilities.ExceptionUtilities.UnexpectedValue(_layer);
+                    }
                 }
-
-                throw new InvalidOperationException();
+                catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+                {
+                    // Exceptions should not escape from command filters.
+                    return _window._editorCommandFilter.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+                }
             }
         }
 
@@ -248,7 +267,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
             }
             else if (pguidCmdGroup == VSConstants.GUID_VSStandardCommandSet97)
             {
-                // undo/redo support:
                 switch ((VSConstants.VSStd97CmdID)nCmdID)
                 {
                     case VSConstants.VSStd97CmdID.Paste:
@@ -258,6 +276,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                     case VSConstants.VSStd97CmdID.Cut:
                         _window.Operations.Cut();
                         return VSConstants.S_OK;
+
+                    case VSConstants.VSStd97CmdID.Copy:
+                        var operations = _window.Operations as IInteractiveWindowOperations2;
+                        if (operations != null)
+                        {
+                            operations.Copy();
+                            return VSConstants.S_OK;
+                        }
+                        break;
 
                     case VSConstants.VSStd97CmdID.Delete:
                         if (_window.Operations.Delete())

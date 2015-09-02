@@ -42,7 +42,7 @@
       <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
       <Name>CSharpCodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Utilities\Portable\TestUtilities.FX45.csproj">
+    <ProjectReference Include="..\..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
       <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
       <Name>TestUtilities.FX45</Name>
     </ProjectReference>
@@ -50,7 +50,7 @@
       <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
       <Name>BasicCodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Features\VisualBasic\BasicFeatures.vbproj">
+    <ProjectReference Include="..\..\..\Features\VisualBasic\Portable\BasicFeatures.vbproj">
       <Project>{a1bcd0ce-6c2f-4f8c-9a48-d9d93928e26d}</Project>
       <Name>BasicFeatures</Name>
     </ProjectReference>
@@ -58,7 +58,7 @@
       <Project>{57ca988d-f010-4bf2-9a2e-07d6dcd2ff2c}</Project>
       <Name>BasicWorkspace</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Features\Core\Features.csproj">
+    <ProjectReference Include="..\..\..\Features\Core\Portable\Features.csproj">
       <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
       <Name>Features</Name>
     </ProjectReference>

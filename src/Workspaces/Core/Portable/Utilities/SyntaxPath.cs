@@ -53,7 +53,7 @@ namespace Roslyn.Utilities
             var parent = nodeOrToken.Parent;
             if (parent != null)
             {
-                AddSegment((SyntaxNodeOrToken)parent);
+                AddSegment(parent);
 
                 // TODO(cyrusn): Is there any way to optimize this for large lists?  I would like to
                 // be able to do a binary search.  However, there's no easy way to tell if a node

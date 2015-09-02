@@ -12692,6 +12692,7 @@ End Namespace
 Class C
     Shared Sub M()
         Try
+            Dim o = Nothing
         Catch e As Exception
         End Try
     End Sub
@@ -12848,6 +12849,35 @@ BC42104: Variable 'blah1' is used before it has been assigned a value. A null re
 
 </errors>)
 
+        End Sub
+
+        <Fact>
+        <WorkItem(4196, "https://github.com/dotnet/roslyn/issues/4196")>
+        Public Sub BadDefaultParameterValue()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports BadDefaultParameterValue
+Module C
+    Sub Main
+        Util.M("test")
+    End Sub
+End Module
+    </file>
+</compilation>
+
+            Dim testReference = AssemblyMetadata.CreateFromImage(TestResources.Repros.BadDefaultParameterValue).GetReference()
+            Dim compilation = CompileAndVerify(source, additionalRefs:=New MetadataReference() {testReference})
+            compilation.VerifyIL("C.Main",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldstr      "test"
+  IL_0005:  ldnull
+  IL_0006:  call       "Sub BadDefaultParameterValue.Util.M(String, String)"
+  IL_000b:  ret
+}]]>)
         End Sub
     End Class
 End Namespace

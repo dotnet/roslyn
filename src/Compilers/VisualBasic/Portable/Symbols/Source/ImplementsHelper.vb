@@ -595,7 +595,7 @@ DoneWithErrorReporting:
                     substitutedImplementations(i) = unsubstitutedImplementations(i) ' default: no substitution necessary
 
                     If unsubstitutedInterfaceType.IsGenericType Then
-                        Dim substitutedInterfaceType = TryCast(unsubstitutedInterfaceType.InternalSubstituteTypeParameters(substitution), SubstitutedNamedType)
+                        Dim substitutedInterfaceType = TryCast(unsubstitutedInterfaceType.InternalSubstituteTypeParameters(substitution).AsTypeSymbolOnly(), SubstitutedNamedType)
 
                         If substitutedInterfaceType IsNot Nothing Then
                             ' Get the substituted version of the member

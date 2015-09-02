@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     method: overriddenMethod,
                     accessibility: overriddenMethod.ComputeResultantAccessibility(newContainingType),
                     modifiers: modifiers,
-                    statements: ((IMethodSymbol)overriddenMethod).ReturnsVoid
+                    statements: overriddenMethod.ReturnsVoid
                         ? new SyntaxNode[] { codeFactory.ExpressionStatement(body) }
                         : new SyntaxNode[] { codeFactory.ReturnStatement(body) });
             }

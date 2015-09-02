@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (typeMap != null)
                 {
-                    resultType = typeMap.SubstituteType(resultType);
+                    resultType = typeMap.SubstituteType(resultType).Type;
                 }
 
                 NamedTypeSymbol builderType = F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T).Construct(resultType);

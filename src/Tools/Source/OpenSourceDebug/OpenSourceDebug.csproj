@@ -147,27 +147,6 @@
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Diagnostics\FxCop\Core\AnalyzerPowerPack.Common.csproj">
-      <Project>{36755424-5267-478c-9434-37a507e22711}</Project>
-      <Name>AnalyzerPowerPack.Common</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bContentFilesProjectOutputGroup%3bBuiltProjectOutputGroupDependencies</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Diagnostics\FxCop\CSharp\AnalyzerPowerPack.CSharp.csproj">
-      <Project>{3ba13187-2a3b-4b08-9199-c11fda1d5ad0}</Project>
-      <Name>AnalyzerPowerPack.CSharp</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bContentFilesProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Diagnostics\FxCop\VisualBasic\AnalyzerPowerPack.VisualBasic.vbproj">
-      <Project>{2fccb9be-dd4e-48f2-b678-80e6fb196948}</Project>
-      <Name>AnalyzerPowerPack.VisualBasic</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bContentFilesProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
       <Name>Workspaces.Desktop</Name>
@@ -192,20 +171,6 @@
     <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj">
       <Project>{57CA988D-F010-4BF2-9A2E-07D6DCD2FF2C}</Project>
       <Name>BasicWorkspace</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </ProjectReference>
-    <ProjectReference Include="..\SyntaxVisualizer\SyntaxVisualizerControl\SyntaxVisualizerControl.csproj">
-      <Project>{AFE45E23-E7EE-48C5-8143-EBE2FF67070F}</Project>
-      <Name>SyntaxVisualizerControl</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </ProjectReference>
-    <ProjectReference Include="..\SyntaxVisualizer\SyntaxVisualizerDgmlHelper\SyntaxVisualizerDgmlHelper.vbproj">
-      <Project>{DA4F74AF-2694-4AC9-A8CC-18382DE8215E}</Project>
-      <Name>SyntaxVisualizerDgmlHelper</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>

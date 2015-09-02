@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
                 }
             }
 
-            var name = syntaxFactsService.GetDisplayName((SyntaxNode)fieldDeclarator ?? memberDeclaration,
+            var name = syntaxFactsService.GetDisplayName(fieldDeclarator ?? memberDeclaration,
                 DisplayNameOptions.IncludeNamespaces |
                 DisplayNameOptions.IncludeParameters);
 

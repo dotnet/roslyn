@@ -1,0 +1,17 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(NuGetPackagesPath)\xunit.core.2.1.0-beta4-build3109\build\portable-net45+netcore45+wp8+wpa81\xunit.core.props" />
+  <ItemGroup>
+    <Reference Include="xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(NuGetPackagesPath)\xunit.abstractions.2.0.0\lib\portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="xunit.assert, Version=2.1.0.3109, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(NuGetPackagesPath)\xunit.assert.2.1.0-beta4-build3109\lib\portable-net45+netcore45+wp8+wpa81\xunit.assert.dll</HintPath>
+    </Reference>
+    <Reference Include="xunit.core, Version=2.1.0.3109, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(NuGetPackagesPath)\xunit.extensibility.core.2.1.0-beta4-build3109\lib\portable-net45+netcore45+wp8+wpa81\xunit.core.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

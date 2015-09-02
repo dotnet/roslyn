@@ -217,7 +217,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             ' collect all indent operation
             Dim operations = New List(Of IndentBlockOperation)()
             While node IsNot Nothing
-                operations.AddRange(FormattingOperations.GetIndentBlockOperations(Formatter.GetDefaultFormattingRules(document), node, optionSet))
+                operations.AddRange(FormattingOperations.GetIndentBlockOperations(
+                                    Formatter.GetDefaultFormattingRules(document), node, lastToken:=Nothing, optionSet:=optionSet))
                 node = node.Parent
             End While
 

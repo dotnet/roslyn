@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if ((object)node.Name != (object)lastName
+                if (node.Name != (object)lastName
                     && predicate(node.Name))
                 {
                     return true;
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var node = _nodes[i];
-                var isSameName = (object)node.Name == (object)lastName;
+                var isSameName = node.Name == (object)lastName;
                 if ((isSameName && lastGood) // check for same string instance to avoid invoking predicate when we already know the outcome (assumes no side effects of predicate.)
                     || (!string.IsNullOrEmpty(node.Name) // don't consider unnamed things like the global namespace itself.
                           && predicate(node.Name)))

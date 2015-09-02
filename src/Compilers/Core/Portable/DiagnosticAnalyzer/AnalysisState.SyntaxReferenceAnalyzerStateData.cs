@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         internal sealed class CodeBlockAnalyzerStateData : AnalyzerStateData
         {
-            public SyntaxNodeAnalyzerStateData ExecutableNodesAnalysisState { get; private set; }
+            public SyntaxNodeAnalyzerStateData ExecutableNodesAnalysisState { get; }
 
             public ImmutableHashSet<AnalyzerAction> CurrentCodeBlockEndActions { get; set; }
             public ImmutableHashSet<AnalyzerAction> CurrentCodeBlockNodeActions { get; set; }

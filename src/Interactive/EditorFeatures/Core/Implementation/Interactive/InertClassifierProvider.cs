@@ -3,6 +3,7 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -16,8 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
     /// buffers that have been reset but which we still want to look good.
     /// </summary>
     [Export(typeof(IClassifierProvider))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [TextViewRole(PredefinedTextViewRoles.Document)]
+    [TextViewRole(PredefinedInteractiveTextViewRoles.InteractiveTextViewRole)]
     internal partial class InertClassifierProvider : IClassifierProvider
     {
         private static readonly object s_classificationsKey = new object();
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             var classifier = classifierAggregator.GetClassifier(textView);
             try
             {
-                var classifications = classifier.GetClassificationSpans(textBuffer.CurrentSnapshot.GetSpan());
+                var classifications = classifier.GetClassificationSpans(textBuffer.CurrentSnapshot.GetFullSpan());
                 textBuffer.Properties.AddProperty(s_classificationsKey, classifications);
             }
             finally

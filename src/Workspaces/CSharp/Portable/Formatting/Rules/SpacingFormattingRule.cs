@@ -31,6 +31,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpacingAfterMethodDeclarationName);
             }
 
+            // For Generic Method Declaration
+            if (currentToken.IsOpenParenInParameterList() && previousKind == SyntaxKind.GreaterThanToken && previousParentKind == SyntaxKind.TypeParameterList)
+            {
+                return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpacingAfterMethodDeclarationName);
+            }
+
             // Case: public static implicit operator string(Program p) { return null; }
             if (previousToken.IsKeyword() && currentToken.IsOpenParenInParameterListOfAConversionOperatorDeclaration())
             {
@@ -247,7 +253,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     case BinaryOperatorSpacingOptions.Single:
                         return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                     case BinaryOperatorSpacingOptions.Remove:
-                        return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                        if (currentKind == SyntaxKind.IsKeyword ||
+                            currentKind == SyntaxKind.AsKeyword ||
+                            previousKind == SyntaxKind.IsKeyword ||
+                            previousKind == SyntaxKind.AsKeyword)
+                        {
+                            // User want spaces removed but at least one is required for the "as" & "is" keyword
+                            return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                        }
+                        else
+                        {
+                            return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                        }
                     case BinaryOperatorSpacingOptions.Ignore:
                         return CreateAdjustSpacesOperation(0, AdjustSpacesOption.PreserveSpaces);
                     default:
@@ -300,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return nextOperation.Invoke();
         }
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
         {
             nextOperation.Invoke(list);
 

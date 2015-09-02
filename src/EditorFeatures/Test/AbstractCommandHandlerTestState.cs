@@ -6,6 +6,7 @@ using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
@@ -137,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         public IEnumerable<Lazy<TExport, TMetadata>> GetExports<TExport, TMetadata>()
         {
-            return (IEnumerable<Lazy<TExport, TMetadata>>)Workspace.ExportProvider.GetExports<TExport, TMetadata>();
+            return Workspace.ExportProvider.GetExports<TExport, TMetadata>();
         }
 
         public T GetExportedValue<T>()
@@ -148,6 +149,46 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public IEnumerable<T> GetExportedValues<T>()
         {
             return Workspace.ExportProvider.GetExportedValues<T>();
+        }
+
+        protected static IEnumerable<Lazy<TProvider, OrderableLanguageMetadata>> CreateLazyProviders<TProvider>(
+            TProvider[] providers,
+            string languageName)
+        {
+            if (providers == null)
+            {
+                return Array.Empty<Lazy<TProvider, OrderableLanguageMetadata>>();
+            }
+
+            return providers.Select(p =>
+                new Lazy<TProvider, OrderableLanguageMetadata>(
+                    () => p,
+                    new OrderableLanguageMetadata(
+                        new Dictionary<string, object> {
+                            {"Language", languageName },
+                            {"Name", string.Empty }}),
+                    true));
+        }
+
+        protected static IEnumerable<Lazy<TProvider, OrderableLanguageAndRoleMetadata>> CreateLazyProviders<TProvider>(
+            TProvider[] providers,
+            string languageName,
+            string[] roles)
+        {
+            if (providers == null)
+            {
+                return Array.Empty<Lazy<TProvider, OrderableLanguageAndRoleMetadata>>();
+            }
+
+            return providers.Select(p =>
+                new Lazy<TProvider, OrderableLanguageAndRoleMetadata>(
+                    () => p,
+                    new OrderableLanguageAndRoleMetadata(
+                        new Dictionary<string, object> {
+                            {"Language", languageName },
+                            {"Name", string.Empty },
+                            {"Roles", roles }}),
+                    true));
         }
         #endregion
 
@@ -344,7 +385,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         {
             commandHandler(new SelectAllCommandArgs(TextView, SubjectBuffer), nextHandler);
         }
-
         #endregion
     }
 }

@@ -19,7 +19,9 @@
 
   <Target Name="RestorePackages">
     <Exec Command="&quot;$(MSBuildThisFileDirectory)\.nuget\Nuget.exe&quot; install xunit.runners -pre -version 2.0.0-alpha-build2576 -outputdirectory packages"/>
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)\.nuget\Nuget.exe&quot; restore &quot;$(RoslynSolution)&quot;" />
+    <Exec Command="&quot;$(MSBuildThisFileDirectory)\.nuget\Nuget.exe&quot; restore .nuget\packages.config -PackagesDirectory packages" />
+    <Exec Command="&quot;$(MSBuildThisFileDirectory)\.nuget\V3\Nuget.exe&quot; restore .nuget\V3\packages.config -PackagesDirectory packages" />
+    <Exec Command="&quot;$(MSBuildThisFileDirectory)\.nuget\V3\Nuget.exe&quot; restore &quot;$(RoslynSolution)&quot;" />
   </Target>
 
   <Target Name="Build" DependsOnTargets="RestorePackages">

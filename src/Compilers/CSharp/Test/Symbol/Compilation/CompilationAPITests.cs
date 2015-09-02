@@ -1383,7 +1383,7 @@ class A
                 Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("A.Main()").WithLocation(4, 17));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Unknown)]
+        [Fact]
         public void GetEntryPoint_Submission()
         {
             var source = @"1 + 1";
@@ -1402,7 +1402,7 @@ class A
             entryPoint.Diagnostics.Verify();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Unknown)]
+        [Fact]
         public void GetEntryPoint_Submission_MainIgnored()
         {
             var source = @"
@@ -1924,6 +1924,83 @@ public class C { public static FrameworkName Foo() { return null; }}";
             {
                 CSharpCompilation.Create(assemblyName, new[] { tree1, tree3 }, new[] { MscorlibRef }, compilationOptions);
             });
+        }
+
+        [Fact]
+        public void SubmissionCompilation_Errors()
+        {
+            var genericParameter = typeof(List<>).GetGenericArguments()[0];
+            var open = typeof(Dictionary<,>).MakeGenericType(typeof(int), genericParameter);
+            var ptr = typeof(int).MakePointerType();
+            var byref = typeof(int).MakeByRefType();
+
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", returnType: genericParameter));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", returnType: open));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", returnType: typeof(void)));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", returnType: byref));
+
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", hostObjectType: genericParameter));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", hostObjectType: open));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", hostObjectType: typeof(void)));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", hostObjectType: typeof(int)));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", hostObjectType: ptr));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", hostObjectType: byref));
+
+            var s0 = CSharpCompilation.CreateSubmission("a0", hostObjectType: typeof(List<int>));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a1", previousSubmission: s0, hostObjectType: typeof(List<bool>)));
+
+            // invalid options:
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", options: TestOptions.ReleaseExe));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.NetModule)));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata)));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeApplication)));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsApplication)));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", options: TestOptions.ReleaseDll.WithCryptoKeyContainer("foo")));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", options: TestOptions.ReleaseDll.WithCryptoKeyFile("foo.snk")));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", options: TestOptions.ReleaseDll.WithDelaySign(true)));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", options: TestOptions.ReleaseDll.WithDelaySign(false)));
+        }
+
+        private static void TestSubmissionResult(CSharpCompilation s, SpecialType? expectedType, bool expectedHasValue)
+        {
+            bool hasValue;
+            var type = s.GetSubmissionResultType(out hasValue);
+            Assert.Equal(expectedType, type != null ? type.SpecialType : (SpecialType?)null);
+            Assert.Equal(expectedHasValue, hasValue);
+        }
+
+        [Fact]
+        public void SubmissionResultType()
+        {
+            var submission = CSharpCompilation.CreateSubmission("sub");
+            bool hasValue;
+            Assert.Equal(SpecialType.System_Void, submission.GetSubmissionResultType(out hasValue).SpecialType);
+            Assert.False(hasValue);
+
+            TestSubmissionResult(CreateSubmission("1", parseOptions: TestOptions.Script), expectedType: SpecialType.System_Void, expectedHasValue: false);
+            TestSubmissionResult(CreateSubmission("1", parseOptions: TestOptions.Interactive), expectedType: SpecialType.System_Int32, expectedHasValue: true);
+            TestSubmissionResult(CreateSubmission("1;", parseOptions: TestOptions.Interactive), expectedType: SpecialType.System_Void, expectedHasValue: false);
+            TestSubmissionResult(CreateSubmission("void foo() { }", parseOptions: TestOptions.Interactive), expectedType: SpecialType.System_Void, expectedHasValue: false);
+            TestSubmissionResult(CreateSubmission("using System;", parseOptions: TestOptions.Interactive), expectedType: SpecialType.System_Void, expectedHasValue: false);
+            TestSubmissionResult(CreateSubmission("int i;", parseOptions: TestOptions.Interactive), expectedType: SpecialType.System_Void, expectedHasValue: false);
+            TestSubmissionResult(CreateSubmission("System.Console.WriteLine();", parseOptions: TestOptions.Interactive), expectedType: SpecialType.System_Void, expectedHasValue: false);
+            TestSubmissionResult(CreateSubmission("System.Console.WriteLine()", parseOptions: TestOptions.Interactive), expectedType: SpecialType.System_Void, expectedHasValue: true);
+            TestSubmissionResult(CreateSubmission("null", parseOptions: TestOptions.Interactive), expectedType: null, expectedHasValue: true);
+            TestSubmissionResult(CreateSubmission("System.Console.WriteLine", parseOptions: TestOptions.Interactive), expectedType: null, expectedHasValue: true);
+        }
+
+        /// <summary>
+        /// Previous submission has to have no errors.
+        /// </summary>
+        [Fact]
+        public void PreviousSubmissionWithError()
+        {
+            var s0 = CreateSubmission("int a = \"x\";");
+            s0.VerifyDiagnostics(
+                // (1,9): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""x""").WithArguments("string", "int"));
+
+            Assert.Throws<InvalidOperationException>(() => CreateSubmission("a + 1", previous: s0));
         }
     }
 }

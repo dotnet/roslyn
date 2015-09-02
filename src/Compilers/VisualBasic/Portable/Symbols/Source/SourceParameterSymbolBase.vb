@@ -66,13 +66,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Friend Overrides ReadOnly Property HasByRefBeforeCustomModifiers As Boolean
+        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
             Get
-                Return False
+                Return 0
             End Get
         End Property
 
-        Friend MustOverride Function WithTypeAndCustomModifiers(type As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), hasByRefBeforeCustomModifiers As Boolean) As ParameterSymbol
+        Friend MustOverride Function WithTypeAndCustomModifiers(type As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), countOfCustomModifiersPrecedingByRef As UShort) As ParameterSymbol
 
     End Class
 End Namespace

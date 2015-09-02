@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _pendingNonSourceEvents = new HashSet<CompilationEvent>();
             _lazyAnalyzerActionCountsMap = null;
             _semanticModelsMap = new ConditionalWeakTable<SyntaxTree, SemanticModel>();
-            _compilationEventsPool = new ObjectPool<HashSet<CompilationEvent>>(() => new HashSet<CompilationEvent>());            
+            _compilationEventsPool = new ObjectPool<HashSet<CompilationEvent>>(() => new HashSet<CompilationEvent>());
         }
 
         private static ImmutableDictionary<DiagnosticAnalyzer, PerAnalyzerState> CreateAnalyzerStateMap(ImmutableArray<DiagnosticAnalyzer> analyzers)
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 t =>
                 {
                     var mappedModel = compilation.GetSemanticModel(t);
-                    
+
                     // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.
                     mappedModel.GetDiagnostics(null, cancellationToken);
 
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // Add the events to our global pending events map.
             AddToEventsMap_NoLock(compilationEvents);
-            
+
             // Mark the events for analysis for each analyzer.
             foreach (var kvp in _analyzerStateMap)
             {
@@ -528,6 +528,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool TryStartAnalyzingDeclaration(SyntaxReference decl, DiagnosticAnalyzer analyzer, out DeclarationAnalyzerStateData state)
         {
             return _analyzerStateMap[analyzer].TryStartAnalyzingDeclaration(decl, out state);
+        }
+
+        /// <summary>
+        /// True if the given symbol declaration is fully analyzed.
+        /// </summary>
+        public bool IsDeclarationComplete(SyntaxNode decl)
+        {
+            foreach (var analyzerState in _analyzerStateMap.Values)
+            {
+                if (!analyzerState.IsDeclarationComplete(decl))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         /// <summary>

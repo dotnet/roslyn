@@ -722,6 +722,7 @@
     <Compile Include="Symbols\TypeSymbol.SymbolAndDiagnostics.cs" />
     <Compile Include="Symbols\TypeSymbolExtensions.cs" />
     <Compile Include="Symbols\TypeUnification.cs" />
+    <Compile Include="Symbols\TypeWithModifiers.cs" />
     <Compile Include="Symbols\UnboundGenericType.cs" />
     <Compile Include="Symbols\UnsupportedMetadataTypeSymbol.cs" />
     <Compile Include="Symbols\VarianceSafety.cs" />
@@ -844,7 +845,8 @@
     <None Include="..\CSharpCodeAnalysisRules.ruleset">
       <SubType>Designer</SubType>
     </None>
-    <PublicAPI Include="PublicAPI.txt" />
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
     <BoundTreeDefinition Include="BoundTree\BoundNodes.xml">
@@ -884,7 +886,9 @@
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.FX45" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.Destkop.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.CSharp.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
   </ItemGroup>

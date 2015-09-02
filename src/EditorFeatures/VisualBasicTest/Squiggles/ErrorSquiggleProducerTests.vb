@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
             End Using
         End Function
 
-        Private Function ProduceSquiggles(analyzerMap As ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticAnalyzer)), ParamArray lines As String()) As IEnumerable(Of ITagSpan(Of IErrorTag))
+        Private Function ProduceSquiggles(analyzerMap As Dictionary(Of String, DiagnosticAnalyzer()), ParamArray lines As String()) As IEnumerable(Of ITagSpan(Of IErrorTag))
             Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(lines)
                 Return GetErrorSpans(workspace, analyzerMap)
             End Using
@@ -71,13 +71,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
         <Fact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Sub SuggestionTagsForUnnecessaryCode()
 
-            Dim analyzerMap = ImmutableDictionary.CreateBuilder(Of String, ImmutableArray(Of DiagnosticAnalyzer))
+            Dim analyzerMap = New Dictionary(Of String, DiagnosticAnalyzer())
             analyzerMap.Add(LanguageNames.VisualBasic,
-                    ImmutableArray.Create(Of DiagnosticAnalyzer)(
+                    {
                         New VisualBasicSimplifyTypeNamesDiagnosticAnalyzer(),
-                        New VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer()))
+                        New VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer()
+                    })
 
-            Dim spans = ProduceSquiggles(analyzerMap.ToImmutable(),
+            Dim spans = ProduceSquiggles(analyzerMap,
 "
 ' System.Diagnostics is used - rest are unused.
 Imports System.Diagnostics

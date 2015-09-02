@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
@@ -17,6 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         public SpecializedGenericNestedTypeInstanceReference(NamedTypeSymbol underlyingNamedType)
             : base(underlyingNamedType)
         {
+            Debug.Assert(underlyingNamedType.IsDefinition);
+            // Definition doesn't have custom modifiers on type arguments
+            Debug.Assert(!underlyingNamedType.HasTypeArgumentsCustomModifiers);
         }
 
         public sealed override void Dispatch(Cci.MetadataVisitor visitor)

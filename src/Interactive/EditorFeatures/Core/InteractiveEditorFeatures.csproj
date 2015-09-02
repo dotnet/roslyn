@@ -41,7 +41,7 @@
       <Project>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</Project>
       <Name>EditorFeatures</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Features\Core\Features.csproj">
+    <ProjectReference Include="..\..\..\Features\Core\Portable\Features.csproj">
       <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
       <Name>Features</Name>
     </ProjectReference>
@@ -148,9 +148,11 @@
   <ItemGroup>
     <Compile Include="CommandHandlers\InteractiveCompletionCommandHandler.cs" />
     <Compile Include="CommandHandlers\InteractiveIntelliSenseCommandHandler.cs" />
+    <Compile Include="Extensibility\Interactive\CSharpVBResetCommand.cs" />
     <Compile Include="Extensibility\Interactive\InteractiveCommandHandler.cs" />
     <Compile Include="Extensibility\Interactive\InteractiveEvaluator.cs" />
     <Compile Include="Extensibility\Interactive\InteractiveMetadataReferenceResolver.cs" />
+    <Compile Include="Extensibility\Interactive\CSharpVBInteractiveCommandContentTypes.cs" />
     <Compile Include="Implementation\Completion\InteractiveCommandCompletionService.cs" />
     <Compile Include="Implementation\Completion\Presentation\CompletionPresenter.cs" />
     <Compile Include="Implementation\Interactive\Commands\CommandArgumentsParser.cs" />
