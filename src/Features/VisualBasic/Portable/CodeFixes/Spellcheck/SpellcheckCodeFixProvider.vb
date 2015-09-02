@@ -80,15 +80,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
         Private Async Function CreateSpellCheckCodeIssueAsync(document As Document, identifierName As SimpleNameSyntax, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CodeAction))
             ' TODO(DustinCa): This isn't quite right. Using all default completion providers means that we might
             ' show items that don't make sense (like snippets)
-            Dim completionService = document.GetLanguageService(Of ICompletionService)()
-            Dim providers = completionService.GetDefaultCompletionProviders()
 
-            Dim completionList = Await completionService.GetCompletionListAsync(document, identifierName.SpanStart, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo(), providers, cancellationToken).ConfigureAwait(False)
+            Dim completionList = Await CompletionService.GetCompletionListAsync(document, identifierName.SpanStart, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo(), cancellationToken:=cancellationToken).ConfigureAwait(False)
             If completionList Is Nothing Then
                 Return Nothing
             End If
 
-            Dim completionRules = completionService.GetCompletionRules()
+            Dim completionRules = CompletionService.GetCompletionRules(document)
+
             Dim onlyConsiderGenerics = TryCast(identifierName, GenericNameSyntax) IsNot Nothing
 
             Dim results = New List(Of SpellcheckResult)()
@@ -124,7 +123,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
 
                 ' If it's within tolerances, keep it.
                 If editDistancePercentage <= s_maximumEditDistancePercentage AndAlso longestCommonPercentage >= s_minimumLongestCommonSubsequencePercentage Then
-                    results.Add(New SpellcheckResult(name, GetReasonableName(completionRules.GetTextChange(item).NewText), goodness))
+                    Dim textChange = completionRules.GetTextChange(item)
+                    results.Add(New SpellcheckResult(name, GetReasonableName(textChange.NewText), goodness))
                 End If
             Next
 
