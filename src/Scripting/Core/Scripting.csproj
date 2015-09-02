@@ -64,6 +64,9 @@
     <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GlobalAssemblyCache.cs">
       <Link>GlobalAssemblyCache.cs</Link>
     </Compile>
+    <Compile Include="..\..\Workspaces\Core\Desktop\Utilities\ReferencePathUtilities.cs">
+      <Link>ReferencePathUtilities.cs</Link>
+    </Compile>
     <Compile Include="AssemblyLoadResult.cs" />
     <Compile Include="DesktopMetadataReferenceResolver.cs" />
     <Compile Include="InteractiveAssemblyLoader.cs" />
