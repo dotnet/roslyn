@@ -31,12 +31,13 @@ nameof(List<>.Inner<int>);      // Error.  you must provide all type arguments, 
 The explanation for this grammar change would be as follows:
 
 
-> The last second form of nameof-expression consists of a nameof keyword followed by a parenthesized unbound-type-name.  The meaning of an unbound-type-name is determined as follows:  
+> The last form of nameof-expression consists of a nameof keyword followed by a parenthesized unbound-type-name.  The meaning of an unbound-type-name is determined as follows:  
 
 > •	Convert the sequence of tokens to a expression by replacing each generic-dimension-specifier with a type-argument-list having the same number of commas and the keyword object as each type-argument.  
 
-> The meaning of the named-entity of a nameof-expression is the meaning of it as an expression; that is, either as a simple-name, a base-access or a member-access. However, where the lookup described in §7.6.3 and §7.6.5 results in an error because an instance member was found in a static context, a nameof-expression produces no such error
+> The meaning of the named-entity of a nameof-expression is the meaning of it as an expression; that is, either as a simple-name, a base-access or a member-access. However, where the lookup described in §7.6.3 and §7.6.5 results in an error because an instance member was found in a static context, a nameof-expression produces no such error. 
 
+> Additionally, if an unbound-type-name is specified, and it contains dots, only the last identifier in the is allowed to refer to a non-type-member.  All other identifiers in the dotted name must refer to namespaces or types.
 
 ##### Semantic Model Details  
 This change produces some interesting cases for the semantic model.  For example (as raised by Neal) what should the SemanticModel produce for the following:
@@ -60,4 +61,6 @@ class Test {
 
 While the compiler will simply replace ```nameof(D<>.AProperty)``` with the constant "AProperty", the semantic model can be used to query for information about ```D<>``` and ```D<>.AProperty```.  What sort of results should one get back for these?  
 
-To me, i don't think there is much difficulty in these scenarios.  In the example, provided, the Symbol you get back for ```D<>.AProperty``` is simply the property symbol for ```G<T,int>.AProperty```.  In this case the first type argument for ```G``` is ```D<T>```'s first *type parameter*.  Similarly, the return type of that property symbol would be ```KeyValuePair<A,B>``` constructed with ```D<T>```'s first type parameter, and ```Int32```.
+From the discussion at the LDM, ```D<>``` will produce the special "Unbound Generic Type" (the same one you get when you have ```typeof(D<>)```.  These unbound generic types are just the NamedTypeSymbol constructed with a special dummy "type argument".  These unbound generic types would have nested types (as they do today), but will also have the members of unconstructed type (just constructed with the dummy type argument).  This way, ```nameof(List<>.Add)``` will work.
+
+As such, ```D<>.AProperty``` will have the type ```KeyValuePair<DummyUnboundTypeArgument,int>```
