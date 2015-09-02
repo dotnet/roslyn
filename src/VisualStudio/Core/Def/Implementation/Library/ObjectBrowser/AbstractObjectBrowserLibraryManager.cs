@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
@@ -13,6 +14,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using IServiceProvider = System.IServiceProvider;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
 {
@@ -28,6 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         private ObjectListItem _activeListItem;
         private AbstractListItemFactory _listItemFactory;
+        private object classMemberGate = new object();
 
         protected AbstractObjectBrowserLibraryManager(string languageName, Guid libraryGuid, IServiceProvider serviceProvider)
             : base(libraryGuid, serviceProvider)
@@ -63,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             this.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
         }
 
-        private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+        private async void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
             switch (e.Kind)
             {
@@ -73,15 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                     var oldDocument = e.OldSolution.GetDocument(e.DocumentId);
                     var newDocument = e.NewSolution.GetDocument(e.DocumentId);
 
-                    var oldTextVersion = oldDocument.GetTextVersionAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-                    var newTextVersion = newDocument.GetTextVersionAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-
-                    if (oldTextVersion != newTextVersion)
-                    {
-                        UpdateClassVersion();
-                        UpdateMembersVersion();
-                    }
-
+                    await DocumentChangedAsync(oldDocument, newDocument).ConfigureAwait(false);
                     break;
 
                 case WorkspaceChangeKind.ProjectAdded:
@@ -101,14 +96,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             }
         }
 
+        private async Task DocumentChangedAsync(Document oldDocument, Document newDocument)
+        {
+            var oldTextVersion = await oldDocument.GetTextVersionAsync(CancellationToken.None).ConfigureAwait(false);
+            var newTextVersion = await newDocument.GetTextVersionAsync(CancellationToken.None).ConfigureAwait(false);
+
+            if (oldTextVersion != newTextVersion)
+            {
+                UpdateClassAndMemberVersions();
+            }
+        }
+
         internal uint ClassVersion
         {
-            get { return _classVersion; }
+            get
+            {
+                lock (classMemberGate)
+                {
+                    return _classVersion;
+                }
+            }
         }
 
         internal uint MembersVersion
         {
-            get { return _membersVersion; }
+            get
+            {
+                lock (classMemberGate)
+                {
+                    return _membersVersion;
+                }
+            }
         }
 
         internal uint PackageVersion
@@ -116,12 +134,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             get { return _packageVersion; }
         }
 
-        internal void UpdateClassVersion()
+        internal void UpdateClassAndMemberVersions()
+        {
+            lock (classMemberGate)
+            {
+                UpdateClassVersion();
+                UpdateMembersVersion();
+            }
+        }
+
+        private void UpdateClassVersion()
         {
             _classVersion = unchecked(_classVersion + 1);
         }
 
-        internal void UpdateMembersVersion()
+        private void UpdateMembersVersion()
         {
             _membersVersion = unchecked(_membersVersion + 1);
         }
