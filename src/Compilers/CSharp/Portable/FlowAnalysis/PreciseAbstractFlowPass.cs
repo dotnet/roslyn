@@ -875,7 +875,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitIsPattern(BoundIsPattern node)
+        public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
             VisitRvalue(node.Expression);
             return null;

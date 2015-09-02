@@ -1276,7 +1276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Visitors
 
-        public override BoundNode VisitIsPattern(BoundIsPattern node)
+        public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
             VisitRvalue(node.Expression);
             var stateWhenFalse = this.State.Clone();

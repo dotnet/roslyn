@@ -1606,6 +1606,91 @@
       <Kind Name="IdentifierToken"/>
     </Field>
   </Node>
+  <Node Name="WildcardPatternSyntax" Base="PatternSyntax">
+    <Kind Name="WildcardPattern"/>
+    <Field Name="AsteriskToken" Type="SyntaxToken">
+      <Kind Name="AsteriskToken"/>
+    </Field>
+  </Node>
+  <Node Name="ConstantPatternSyntax" Base="PatternSyntax">
+    <Kind Name="ConstantPattern"/>
+    <Field Name="Expression" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>ExpressionSyntax node representing the constant expression.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="RecursivePatternSyntax" Base="PatternSyntax">
+    <Kind Name="RecursivePattern"/>
+    <Field Name="Type" Type="TypeSyntax" />
+    <Field Name="PatternList" Type="SubRecursivePatternListSyntax">
+      <PropertyComment>
+        <summary>SubPatternListSyntax node representing the list of patterns in a recursive pattern.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="SubRecursivePatternListSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="SubRecursivePatternList"/>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing open parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="SubPatterns" Type="SeparatedSyntaxList&lt;SubRecursivePatternSyntax&gt;">
+      <PropertyComment>
+        <summary>SeparatedSyntaxList of SubPatternsSyntax representing the list of subpatterns.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing close parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="SubRecursivePatternSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="SubRecursivePattern"/>
+    <Field Name="NameColon" Type="NameColonSyntax" Optional="true">
+      <PropertyComment>
+        <summary>NameColonSyntax node representing the optional name arguments.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax">
+      <PropertyComment>
+        <summary>PatternSyntax node representing the pattern.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="PropertyPatternSyntax" Base="PatternSyntax">
+    <Kind Name="PropertyPattern"/>
+    <Field Name="Type" Type="TypeSyntax" />
+    <Field Name="PatternList" Type="SubPropertyPatternListSyntax" />
+  </Node>
+  <Node Name="SubPropertyPatternListSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="SubPropertyPatternList"/>
+    <Field Name="OpenBraceToken" Type="SyntaxToken">
+      <Kind Name="OpenBraceToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing open brace.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="SubPatterns" Type="SeparatedSyntaxList&lt;SubPropertyPatternSyntax&gt;" />
+    <Field Name="CloseBraceToken" Type="SyntaxToken">
+      <Kind Name="CloseBraceToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing close brace.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="SubPropertyPatternSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="SubPropertyPattern"/>
+    <Field Name="Left" Type="IdentifierNameSyntax"/>
+    <Field Name="IsKeyword" Type="SyntaxToken">
+      <Kind Name="IsKeyword"/>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax" />
+  </Node>
   <AbstractNode Name="InterpolatedStringContentSyntax" Base="CSharpSyntaxNode" />
   <Node Name="InterpolatedStringTextSyntax" Base="InterpolatedStringContentSyntax">
     <Kind Name="InterpolatedStringText"/>
