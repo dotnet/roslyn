@@ -4,32 +4,10 @@ Allow Open Generic Names (i.e. ```Dictionary<,>```) to be used within a ```nameo
 #### Grammar changes  
 To implement this we first change the grammar in the following ways:
 
-typeof-expression:  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~~typeof   (   type   )~~  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+typeof   (   unbound-type   )  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~~typeof   (   unbound-type-name   )~~  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;typeof ( void )
-  
-~~unbound-type-name:~~  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~~identifier   generic-dimension-specifieropt~~  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~~identifier   ::   identifier   generic-dimension-specifieropt~~  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~~unbound-type-name   .   identifier   generic-dimension-specifieropt~~
-
-~~generic-dimension-specifier:~~  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~~&lt;   commasopt   &gt;~~  
-
-~~commas:~~  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~~,~~  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~~commas   ,~~
-
-
-unbound-type:  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type
-
-type-argument:  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;empty&gt;
-
+named-entity:  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;simple-name  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;named-entity-target   .   identifier   type-argument-listopt  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+unbound-type-name  
 
 The net effect of these grammar changes is that anywhere where we used to allow a generic-name, we now allow 'ommitted-type-arguments' to be present in the 'type-argument-list'.  i.e. *grammatically* the following are allowed:
 
