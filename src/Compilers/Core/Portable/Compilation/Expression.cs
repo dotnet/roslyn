@@ -79,39 +79,6 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             return Semantics.BinaryOperationKind.None;
         }
-
-        public static LiteralKind DeriveLiteralKind(ITypeSymbol type)
-        {
-            switch (type.SpecialType)
-            {
-                case SpecialType.System_Boolean:
-                    return Semantics.LiteralKind.Boolean;
-                case SpecialType.System_Byte:
-                case SpecialType.System_Int16:
-                case SpecialType.System_Int32:
-                case SpecialType.System_Int64:
-                case SpecialType.System_IntPtr:
-                case SpecialType.System_SByte:
-                case SpecialType.System_UInt16:
-                case SpecialType.System_UInt32:
-                case SpecialType.System_UInt64:
-                case SpecialType.System_UIntPtr:
-                    return Semantics.LiteralKind.Integer;
-                case SpecialType.System_DateTime:
-                    return Semantics.LiteralKind.DateTime;
-                case SpecialType.System_Decimal:
-                    return Semantics.LiteralKind.Decimal;
-                case SpecialType.System_Double:
-                case SpecialType.System_Single:
-                    return Semantics.LiteralKind.Floating;
-                case SpecialType.System_Char:
-                    return Semantics.LiteralKind.Character;
-                case SpecialType.System_String:
-                    return Semantics.LiteralKind.String;
-            }
-
-            return Semantics.LiteralKind.None;
-        }
     }
 
     public class Relational : IRelational
@@ -173,11 +140,11 @@ namespace Microsoft.CodeAnalysis.Semantics
 
     public class Assignment : IExpressionStatement
     {
-        AssignmentExpression assignment;
+        private readonly AssignmentExpression _assignment;
 
         public Assignment(IReference target, IExpression value, SyntaxNode syntax)
         {
-            this.assignment = new AssignmentExpression(target, value, syntax);
+            _assignment = new AssignmentExpression(target, value, syntax);
             this.Syntax = syntax;
         }
 
@@ -185,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public OperationKind Kind => OperationKind.ExpressionStatement;
 
-        public IExpression Expression => this.assignment;
+        public IExpression Expression => _assignment;
 
         class AssignmentExpression : IAssignment
         {
@@ -212,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
     public class CompoundAssignment : IExpressionStatement
     {
-        CompoundAssignmentExpression _compoundAssignment;
+        private readonly CompoundAssignmentExpression _compoundAssignment;
 
         public CompoundAssignment(IReference target, IExpression value, BinaryOperationKind binaryKind, IMethodSymbol operatorMethod, SyntaxNode syntax)
         {
@@ -259,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
     public class IntegerLiteral : ILiteral
     {
-        long _value;
+        private readonly long _value;
 
         public IntegerLiteral(long value, ITypeSymbol resultType, SyntaxNode syntax)
         {
@@ -267,9 +234,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             this.ResultType = resultType;
             this.Syntax = syntax;
         }
-
-        public LiteralKind LiteralClass => LiteralKind.Integer;
-
+        
         public string Spelling =>_value.ToString();
 
         public ITypeSymbol ResultType { get; }
@@ -283,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
     internal class Literal : ILiteral
     {
-        ConstantValue _value;
+        private readonly ConstantValue _value;
 
         public Literal(ConstantValue value, ITypeSymbol resultType, SyntaxNode syntax)
         {
@@ -291,8 +256,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             this.ResultType = resultType;
             this.Syntax = syntax;
         }
-
-        public LiteralKind LiteralClass => Semantics.Expression.DeriveLiteralKind(this.ResultType);
 
         public string Spelling => _value.Value.ToString();
 
@@ -363,7 +326,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private class DimensionInitializer : IDimensionArrayInitializer
         {
-            private ImmutableArray<IArrayInitializer> _elementValues;
+            private readonly ImmutableArray<IArrayInitializer> _elementValues;
 
             public DimensionInitializer(IEnumerable<IExpression> elementValues)
             {

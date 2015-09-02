@@ -66,19 +66,19 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         ArgumentKind Kind { get; }
         /// <summary>
-        /// Mode of argument.
+        /// Parameter the argument matches.
         /// </summary>
-        ArgumentMode Mode { get; }
+        IParameterSymbol Parameter { get; }
         /// <summary>
         /// Value supplied for the argument.
         /// </summary>
         IExpression Value { get; }
         /// <summary>
-        /// Conversion applied to the argument value passing it into the target method. Applicable only to In or Reference arguments.
+        /// Conversion applied to the argument value passing it into the target method. Applicable only to VB Reference arguments.
         /// </summary>
         IExpression InConversion { get; }
         /// <summary>
-        /// Conversion applied to the argument value after the invocation. Applicable only to Out or Reference arguments.
+        /// Conversion applied to the argument value after the invocation. Applicable only to VB Reference arguments.
         /// </summary>
         IExpression OutConversion { get; }
     }
@@ -104,36 +104,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Argument was omitted in source but has a default value supplied automatically.
         /// </summary>
         DefaultValue
-    }
-
-    /// <summary>
-    /// Modes of arguments.
-    /// </summary>
-    public enum ArgumentMode
-    {
-        /// <summary>
-        /// Argument is passed as an input value only.
-        /// </summary>
-        In,
-        /// <summary>
-        /// Argument is passed without an input value and is assigned a value by the time the invoked method returns.
-        /// </summary>
-        Out,
-        /// <summary>
-        /// Argument is passed by reference.
-        /// </summary>
-        Reference
-    }
-
-    /// <summary>
-    /// Represents a named argument.
-    /// </summary>
-    public interface INamedArgument : IArgument
-    {
-        /// <summary>
-        /// Name of the parameter that the argument matches.
-        /// </summary>
-        string Name { get; }
     }
 
     /// <summary>
@@ -214,11 +184,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Created to capture the step value of a VB for loop.
         /// </summary>
-        StepValue,
+        ForLoopStepValue,
         /// <summary>
         /// Created to capture the limit value of a VB for loop.
         /// </summary>
-        LimitValue
+        ForLoopLimitValue
     }
 
     public interface IThisReference : IParameterReference
@@ -376,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         OperatorRightShift,
         OperatorAnd,
         OperatorOr,
-        OperatorXor,
+        OperatorExclusiveOr,
         OperatorConditionalAnd,
         OperatorConditionalOr,
 
@@ -389,7 +359,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         IntegerRightShift,
         IntegerAnd,
         IntegerOr,
-        IntegerXor,
+        IntegerExclusiveOr,
 
         UnsignedAdd,
         UnsignedSubtract,
@@ -400,7 +370,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         UnsignedRightShift,
         UnsignedAnd,
         UnsignedOr,
-        UnsignedXor,
+        UnsignedExclusiveOr,
 
         FloatingAdd,
         FloatingSubtract,
@@ -416,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         BooleanAnd,
         BooleanOr,
-        BooleanXor,
+        BooleanExclusiveOr,
         BooleanConditionalAnd,
         BooleanConditionalOr,
 
@@ -424,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         EnumSubtract,
         EnumAnd,
         EnumOr,
-        EnumXor,
+        EnumExclusiveOr,
 
         PointerIntegerAdd,
         IntegerPointerAdd,
@@ -440,7 +410,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         DynamicRightShift,
         DynamicAnd,
         DynamicOr,
-        DynamicXor,
+        DynamicExclusiveOr,
 
         ObjectAdd,
         ObjectSubtract,
@@ -453,7 +423,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         ObjectRightShift,
         ObjectAnd,
         ObjectOr,
-        ObjectXor,
+        ObjectExclusiveOr,
         ObjectConditionalAnd,
         ObjectConditionalOr,
         ObjectConcatenation,
@@ -640,23 +610,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
     public interface ILiteral : IExpression
     {
-        LiteralKind LiteralClass { get; }
         string Spelling { get; }
-    }
-
-    /// <summary>
-    /// Kinds of literals.
-    /// </summary>
-    public enum LiteralKind
-    {
-        None,
-        Boolean,
-        DateTime,
-        Integer,
-        Floating,
-        Character,
-        Decimal,
-        String
     }
 
     public interface IAwait : IExpression
