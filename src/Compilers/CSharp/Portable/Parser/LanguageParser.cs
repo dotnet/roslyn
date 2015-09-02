@@ -7741,17 +7741,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     {
                         ExpressionSyntax expression;
                         specifier = this.EatToken();
+
                         if (this.CurrentToken.Kind == SyntaxKind.ColonToken)
                         {
                             expression = this.CreateMissingIdentifierName();
                             expression = this.AddError(expression, ErrorCode.ERR_ConstantExpected);
+                            colon = this.EatToken(SyntaxKind.ColonToken);
+                            label = _syntaxFactory.CaseSwitchLabel(specifier, expression, colon);
                         }
                         else
                         {
-                            expression = this.ParseExpressionCore();
+                            var node = ParseExpressionOrPattern();
+                            if (this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword && node is ExpressionSyntax)
+                            {
+                                // if there is a 'where' token, we treat a case expression as a constant pattern.
+                                node = _syntaxFactory.ConstantPattern((ExpressionSyntax)node);
+                            }
+                            if (node is PatternSyntax)
+                            {
+                                SyntaxToken with = null; ;
+                                ExpressionSyntax condition = null;
+                                if (this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
+                                {
+                                    with = this.EatContextualToken(SyntaxKind.WhereKeyword);
+                                    condition = ParseSubExpression(Precedence.Expression);
+                                }
+                                colon = this.EatToken(SyntaxKind.ColonToken);
+                                label = _syntaxFactory.CaseMatchLabel(specifier, (PatternSyntax)node, with, condition, colon);
+                                label = CheckFeatureAvailability(label, MessageID.IDS_FeaturePatternMatching);
+                            }
+                            else
+                            {
+                                colon = this.EatToken(SyntaxKind.ColonToken);
+                                label = _syntaxFactory.CaseSwitchLabel(specifier, (ExpressionSyntax)node, colon);
+                            }
                         }
-                        colon = this.EatToken(SyntaxKind.ColonToken);
-                        label = _syntaxFactory.CaseSwitchLabel(specifier, expression, colon);
                     }
                     else
                     {
@@ -8769,13 +8793,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // it is an expression for typical switch case. 
                     // This can be transformed to the constant pattern in the SwitchBinder if there is a CaseMatchLabel in the sections.
                     this.Reset(ref resetPoint);
-                    node = this.ParseExpression();
+                    node = this.ParseSubExpression(Precedence.Expression);
                 }
                 this.Release(ref resetPoint);
             }
             else
             {
-                node = this.ParseExpression();
+                node = this.ParseSubExpression(Precedence.Expression);
             }
             return node;
         }

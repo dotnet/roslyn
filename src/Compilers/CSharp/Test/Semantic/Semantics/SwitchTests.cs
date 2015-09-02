@@ -853,15 +853,16 @@ class C
 ";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (8,13): error CS8058: Feature 'pattern matching' is experimental and unsupported; use '/features:patterns' to enable.
+                //             case F(null):
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "case F(null):").WithArguments("pattern matching", "patterns").WithLocation(8, 13),
                 // (6,17): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //         switch (o)
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "o").WithLocation(6, 17),
-                // (8,20): error CS1503: Argument 1: cannot convert from '<null>' to 'int'
-                //             case F(null):
-                Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "int").WithLocation(8, 20),
                 // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
                 //                 M();
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17));
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17)
+                );
         }
 
         [Fact]

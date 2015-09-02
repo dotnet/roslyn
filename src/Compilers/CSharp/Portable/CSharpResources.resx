@@ -4321,7 +4321,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Feature '{0}' is not available in C# 6.  Please use language version {1} or greater.</value>
   </data>
   <data name="ERR_FeatureIsExperimental" xml:space="preserve">
-    <value>Feature '{0}' is only available in 'experimental' language version.</value>
+    <value>Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</value>
+  </data>
+  <data name="ERR_FeatureIsUnimplemented" xml:space="preserve">
+    <value>Feature '{0}' is not implemented in this compiler.</value>
   </data>
   <data name="IDS_VersionExperimental" xml:space="preserve">
     <value>'experimental'</value>

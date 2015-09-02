@@ -456,42 +456,53 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Prevent cascading diagnostics
             bool hasErrors = node.HasErrors;
 
-            if (node.Kind() == SyntaxKind.CaseSwitchLabel)
+            switch (node.Kind())
             {
-                var caseLabelSyntax = (CaseSwitchLabelSyntax)node;
-                // Bind the label case expression
-                boundLabelExpressionOpt = BindValue(caseLabelSyntax.Value, diagnostics, BindValueKind.RValue);
+                case SyntaxKind.CaseSwitchLabel:
+                    var caseLabelSyntax = (CaseSwitchLabelSyntax)node;
+                    // Bind the label case expression
+                    boundLabelExpressionOpt = BindValue(caseLabelSyntax.Value, diagnostics, BindValueKind.RValue);
 
-                boundLabelExpressionOpt = ConvertCaseExpression(switchGoverningType, caseLabelSyntax, boundLabelExpressionOpt, ref labelExpressionConstant, diagnostics);
+                    boundLabelExpressionOpt = ConvertCaseExpression(switchGoverningType, caseLabelSyntax, boundLabelExpressionOpt, ref labelExpressionConstant, diagnostics);
 
-                // Check for bind errors
-                hasErrors = hasErrors || boundLabelExpressionOpt.HasAnyErrors;
+                    // Check for bind errors
+                    hasErrors = hasErrors || boundLabelExpressionOpt.HasAnyErrors;
 
 
-                // SPEC:    The constant expression of each case label must denote a value that
-                // SPEC:    is implicitly convertible (§6.1) to the governing type of the switch statement.
+                    // SPEC:    The constant expression of each case label must denote a value that
+                    // SPEC:    is implicitly convertible (§6.1) to the governing type of the switch statement.
 
-                // Prevent cascading diagnostics
-                if (!hasErrors && labelExpressionConstant == null)
-                {
-                    diagnostics.Add(ErrorCode.ERR_ConstantExpected, caseLabelSyntax.Location);
-                    hasErrors = true;
-                }
+                    // Prevent cascading diagnostics
+                    if (!hasErrors && labelExpressionConstant == null)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_ConstantExpected, caseLabelSyntax.Location);
+                        hasErrors = true;
+                    }
 
-                // LabelSymbols for all the switch case labels are created by BuildLabels().
-                // Fetch the matching switch case label symbols
-                matchedLabelSymbols = FindMatchingSwitchCaseLabels(labelExpressionConstant, caseLabelSyntax);
-            }
-            else
-            {
-                Debug.Assert(node.Kind() == SyntaxKind.DefaultSwitchLabel);
-                matchedLabelSymbols = GetDefaultLabels();
+                    // LabelSymbols for all the switch case labels are created by BuildLabels().
+                    // Fetch the matching switch case label symbols
+                    matchedLabelSymbols = FindMatchingSwitchCaseLabels(labelExpressionConstant, caseLabelSyntax);
+                    break;
+                case SyntaxKind.CaseMatchLabel:
+                    // pattern matching in case is not yet implemented.
+                    if (!node.HasErrors)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_FeatureIsUnimplemented, node, MessageID.IDS_FeaturePatternMatching.Localize());
+                        hasErrors = true;
+                    }
+                    matchedLabelSymbols = new List<SourceLabelSymbol>();
+                    break;
+                case SyntaxKind.DefaultSwitchLabel:
+                    matchedLabelSymbols = GetDefaultLabels();
+                    break;
+                default:
+                    throw ExceptionUtilities.Unreachable;
             }
 
             // Get the corresponding matching label symbol created during BuildLabels()
             // and also check for duplicate case labels.
 
-            Debug.Assert(!matchedLabelSymbols.IsEmpty());
+            Debug.Assert(hasErrors || !matchedLabelSymbols.IsEmpty());
             bool first = true;
             bool hasDuplicateErrors = false;
             foreach (SourceLabelSymbol label in matchedLabelSymbols)

@@ -2238,6 +2238,42 @@
       <summary>Represents a switch label within a switch statement.</summary>
     </TypeComment>
   </AbstractNode>
+  <Node Name="CaseMatchLabelSyntax" Base="SwitchLabelSyntax">
+    <Kind Name="CaseMatchLabel"/>
+    <Field Name="Keyword" Type="SyntaxToken" Override="true">
+      <Kind Name="CaseKeyword"/>
+      <PropertyComment>
+        <summary>Gets the case keyword token.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax">
+      <PropertyComment>
+        <summary>
+          Gets a PatternSyntax that represents the pattern that gets matched for the case label.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="WhereKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="WhereKeyword"/>
+      <PropertyComment>
+        <summary>Gets the with keyword token.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Condition" Type="ExpressionSyntax"  Optional="true">
+      <PropertyComment>
+        <summary>
+          Gets an ExpressionSyntax that represents the condition after the with keyword.
+        </summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="ColonToken" Type="SyntaxToken" Override="true"/>
+    <TypeComment>
+      <summary>Represents a case label within a switch statement.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates a CaseMatchLabelSyntax node.</summary>
+    </FactoryComment>
+  </Node>
   <Node Name="CaseSwitchLabelSyntax" Base="SwitchLabelSyntax">
     <Kind Name="CaseSwitchLabel"/>
     <Field Name="Keyword" Type="SyntaxToken" Override="true">

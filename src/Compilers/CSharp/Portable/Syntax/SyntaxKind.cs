@@ -339,6 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         PropertyPattern = 8554,
         SubPropertyPattern = 8555,
         SubPropertyPatternList = 8556,
+        CaseMatchLabel = 8557,
 
         // binary expressions
         AddExpression = 8668,
