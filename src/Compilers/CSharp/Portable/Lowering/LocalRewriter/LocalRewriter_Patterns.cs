@@ -70,7 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var tmpType = _factory.SpecialType(SpecialType.System_Nullable_T).Construct(type);
                             var tmp = _factory.SynthesizedLocal(tmpType, syntax);
                             var asg1 = _factory.AssignmentExpression(_factory.Local(tmp), _factory.As(input, tmpType));
-                            var asg2 = _factory.Call(_factory.Local(tmp), GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
+                            var value = _factory.Call(_factory.Local(tmp), GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
+                            var asg2 = _factory.AssignmentExpression(_factory.Local(declPattern.LocalSymbol), value);
                             var result = MakeNullableHasValue(syntax, _factory.Local(tmp));
                             return _factory.Sequence(tmp, asg1, asg2, result);
                         }

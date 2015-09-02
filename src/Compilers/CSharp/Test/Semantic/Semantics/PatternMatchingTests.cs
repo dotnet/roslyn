@@ -27,19 +27,34 @@ public class X
     public static void Main()
     {
         var s = nameof(Main);
-        if (s is string t) Console.WriteLine(t);
+        if (s is string t) Console.WriteLine(""1. {0}"", t);
         s = null;
-        Console.WriteLine(s is string t ? t : nameof(X));
+        Console.WriteLine(""2. {0}"", s is string t ? t : nameof(X));
         int? x = 12;
-        if (x is var y) Console.WriteLine(y);
+        if (x is var y) Console.WriteLine(""3. {0}"", y);
+        if (x is int y) Console.WriteLine(""4. {0}"", y);
+        x = null;
+        if (x is var y) Console.WriteLine(""5. {0}"", y);
+        if (x is int y) Console.WriteLine(""6. {0}"", y);
+        Console.WriteLine(""7. {0}"", (x is bool is bool));
     }
 }";
             var expectedOutput =
-@"Main
-X
-12";
+@"1. Main
+2. X
+3. 12
+4. 12
+5. 
+7. True";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // warning CS0184: The given expression is never of the provided ('bool') type
+                //         Console.WriteLine("7. {0}", (x is bool is bool));
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "x is bool").WithArguments("bool"),
+                // warning CS0183: The given expression is always of the provided ('bool') type
+                //         Console.WriteLine("7. {0}", (x is bool is bool));
+                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "x is bool is bool").WithArguments("bool")
+                );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 

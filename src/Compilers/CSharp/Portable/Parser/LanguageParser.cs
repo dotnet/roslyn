@@ -8072,7 +8072,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private ExpressionSyntax ParseExpressionCore()
         {
-            return this.ParseSubExpression(Precedence.Any);
+            return this.ParseSubExpression(Precedence.Expression);
         }
 
         private bool IsPossibleExpression()
@@ -8169,7 +8169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         enum Precedence : uint
         {
-            Any = 0, // Loosest possible precedence, used to accept all expressions
+            Expression = 0, // Loosest possible precedence, used to accept all expressions
             Assignment,
             Lambda = Assignment, // "The => operator has the same precedence as assignment (=) and is right-associative."
             Ternary,
@@ -8262,7 +8262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.AddressOfExpression:
                     return Precedence.AddressOf;
                 default:
-                    return Precedence.Any;
+                    return Precedence.Expression;
             }
         }
 
@@ -8504,12 +8504,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (tk == SyntaxKind.QuestionToken && precedence <= Precedence.Ternary)
             {
                 var questionToken = this.EatToken();
-
-                var colonLeft = this.ParseSubExpression(Precedence.Any);
+                var whenTrue = this.ParseSubExpression(Precedence.Expression);
                 var colon = this.EatToken(SyntaxKind.ColonToken);
-
-                var colonRight = this.ParseSubExpression(Precedence.Any);
-                leftOperand = _syntaxFactory.ConditionalExpression(leftOperand, questionToken, colonLeft, colon, colonRight);
+                var whenFalse = this.ParseSubExpression(Precedence.Expression);
+                leftOperand = _syntaxFactory.ConditionalExpression(leftOperand, questionToken, whenTrue, colon, whenFalse);
             }
 
             return leftOperand;
@@ -8520,7 +8518,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var node = this.ParseTypeOrPattern();
             if (node is PatternSyntax)
             {
-                return _syntaxFactory.IsPatternExpression(leftOperand, opToken, (PatternSyntax)node);
+                var result = _syntaxFactory.IsPatternExpression(leftOperand, opToken, (PatternSyntax)node);
+                return CheckFeatureAvailability(result, MessageID.IDS_FeaturePatternMatching);
             }
             else
             {
@@ -9313,7 +9312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                expression = this.ParseSubExpression(Precedence.Any);
+                expression = this.ParseSubExpression(Precedence.Expression);
             }
 
             return _syntaxFactory.Argument(nameColon, refOrOutKeyword, expression);
@@ -9355,7 +9354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             var keyword = this.EatToken();
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-            var expr = this.ParseSubExpression(Precedence.Any);
+            var expr = this.ParseSubExpression(Precedence.Expression);
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
 
             return _syntaxFactory.MakeRefExpression(keyword, openParen, expr, closeParen);
@@ -9378,7 +9377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var kind = (checkedOrUnchecked.Kind == SyntaxKind.CheckedKeyword) ? SyntaxKind.CheckedExpression : SyntaxKind.UncheckedExpression;
 
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-            var expr = this.ParseSubExpression(Precedence.Any);
+            var expr = this.ParseSubExpression(Precedence.Expression);
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
 
             return _syntaxFactory.CheckedExpression(kind, checkedOrUnchecked, openParen, expr, closeParen);
@@ -9388,7 +9387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             var @refvalue = this.EatToken(SyntaxKind.RefValueKeyword);
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-            var expr = this.ParseSubExpression(Precedence.Any);
+            var expr = this.ParseSubExpression(Precedence.Expression);
             var comma = this.EatToken(SyntaxKind.CommaToken);
             var type = this.ParseType(false);
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
@@ -9556,7 +9555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     this.Reset(ref resetPoint);
                     var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-                    var expression = this.ParseSubExpression(Precedence.Any);
+                    var expression = this.ParseSubExpression(Precedence.Expression);
                     var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
                     return _syntaxFactory.ParenthesizedExpression(openParen, expression, closeParen);
                 }
