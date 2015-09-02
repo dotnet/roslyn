@@ -27,8 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         private readonly AnalyzerExecutor _executor;
         private readonly StateManager _stateManager;
         private readonly SimpleTaskQueue _eventQueue;
-        private readonly SolutionCrawlerAnalysisState _solutionCrawlerAnalysisState;
-
+        
         public DiagnosticIncrementalAnalyzer(
             DiagnosticAnalyzerService owner,
             int correlationId,
@@ -43,7 +42,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             _eventQueue = new SimpleTaskQueue(TaskScheduler.Default);
             _stateManager = new StateManager(analyzerManager);
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
-            _solutionCrawlerAnalysisState = new SolutionCrawlerAnalysisState(analyzerManager);
         }
 
         private void OnProjectAnalyzerReferenceChanged(object sender, ProjectAnalyzerReferenceChangedEventArgs e)
@@ -298,8 +296,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         RaiseDocumentDiagnosticsUpdatedIfNeeded(StateType.Document, document, stateSet, data.OldItems, data.Items);
                     }
                 }
-
-                _solutionCrawlerAnalysisState.OnDocumentAnalyzed(document);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
@@ -352,8 +348,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         RaiseProjectDiagnosticsUpdatedIfNeeded(project, stateSet, data.OldItems, data.Items);
                     }
                 }
-
-                _solutionCrawlerAnalysisState.OnProjectAnalyzed(project);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
@@ -483,7 +477,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         private bool ShouldRunAnalyzerForClosedFile(CompilationOptions options, bool openedDocument, DiagnosticAnalyzer analyzer)
         {
             // we have opened document, doesnt matter
-            if (openedDocument)
+            if (openedDocument || analyzer.IsCompilerAnalyzer())
             {
                 return true;
             }
@@ -1010,11 +1004,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             return string.Format("project remove: {0}", id.ToString());
         }
 
-#region unused 
-        public override Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
+        public override Task NewSolutionSnapshotAsync(Solution newSolution, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyTask;
         }
-#endregion
     }
 }
