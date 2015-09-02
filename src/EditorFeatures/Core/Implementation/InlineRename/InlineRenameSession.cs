@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -192,6 +193,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             AssertIsForeground();
             VerifyNotDismissed();
+
+            if (_workspace.Kind == WorkspaceKind.Interactive)
+            {
+                Debug.Assert(documents.Count() == 1); // No linked files.
+                Debug.Assert(buffer.IsReadOnly(0) == buffer.IsReadOnly(Span.FromBounds(0, buffer.CurrentSnapshot.Length))); // All or nothing.
+                if (buffer.IsReadOnly(0))
+                {
+                    return false;
+                }
+            }
 
             var documentSupportsRefactoringService = _workspace.Services.GetService<IDocumentSupportsSuggestionService>();
 
