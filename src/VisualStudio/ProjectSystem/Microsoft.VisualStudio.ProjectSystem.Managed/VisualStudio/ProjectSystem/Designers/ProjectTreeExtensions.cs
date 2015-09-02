@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
         {
             Requires.NotNull(tree, nameof(tree));
 
-            return tree.HasCapability(ProjectTreeCapabilities.IncludeInProjectCandidate);
+            return !tree.HasCapability(ProjectTreeCapabilities.IncludeInProjectCandidate);
         }
     }
 }

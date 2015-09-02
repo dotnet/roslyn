@@ -41,11 +41,11 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
         {
             string folderName = GetAppDesignerFolderName();
 
-            IProjectTree folder = projectRoot.Children.FirstOrDefault(n => StringComparers.Paths.Equals(n.Caption, folderName) && n.IsFolder);
-            if (folder == null || folder.HasCapability(ProjectTreeCapabilities.AppDesignerFolder) || folder.IsIncludedInProject())
+            IProjectTree candidate = projectRoot.Children.FirstOrDefault(n => StringComparers.Paths.Equals(n.Caption, folderName));
+            if (candidate == null || !candidate.IsFolder || candidate.HasCapability(ProjectTreeCapabilities.AppDesignerFolder) || !candidate.IsIncludedInProject())
                 return null; // Couldn't find a candidate or already have a AppDesigner folder
 
-            return folder;
+            return candidate;
         }
 
         protected virtual string GetAppDesignerFolderName()
