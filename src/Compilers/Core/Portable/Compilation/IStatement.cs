@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         Range,
         /// <summary>
-        /// Indicates default in C3 or Case Else in VB.
+        /// Indicates default in C# or Case Else in VB.
         /// </summary>
         Default
     }

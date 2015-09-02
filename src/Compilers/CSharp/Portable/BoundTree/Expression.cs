@@ -68,9 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 ImmutableArray<IArgument>.Builder sourceOrderArguments = ImmutableArray.CreateBuilder<IArgument>(this.Arguments.Length);
-                for (int index = 0; index < this.Arguments.Length; index++)
+                for (int argumentIndex = 0; argumentIndex < this.Arguments.Length; argumentIndex++)
                 {
-                    sourceOrderArguments.Add(DeriveArgument(index, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Method.Parameters));
+                    sourceOrderArguments.Add(DeriveArgument(this.ArgsToParamsOpt.IsDefault ? argumentIndex : this.ArgsToParamsOpt[argumentIndex], argumentIndex, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Method.Parameters));
                 }
 
                 return sourceOrderArguments.ToImmutable();
@@ -89,18 +89,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static ImmutableArray<IArgument> DeriveArguments(ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNames, ImmutableArray<int> argumentsToParameters, ImmutableArray<RefKind> argumentRefKinds, ImmutableArray<Symbols.ParameterSymbol> parameters)
         {
             ArrayBuilder<IArgument> arguments = ArrayBuilder<IArgument>.GetInstance(boundArguments.Length);
-            for (int index = 0; index < parameters.Length; index++)
+            for (int parameterIndex = 0; parameterIndex < parameters.Length; parameterIndex++)
             {
                 int argumentIndex = -1;
                 if (argumentsToParameters.IsDefault)
                 {
-                    argumentIndex = index;
+                    argumentIndex = parameterIndex;
                 }
                 else
                 {
                     for (int candidateIndex = 0; candidateIndex < boundArguments.Length; candidateIndex++)
                     {
-                        if (argumentsToParameters[candidateIndex] == index)
+                        if (argumentsToParameters[candidateIndex] == parameterIndex)
                         {
                             argumentIndex = candidateIndex;
                             break;
@@ -111,10 +111,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (argumentIndex == -1)
                 {
                     // No argument has been supplied for the parameter.
-                    Symbols.ParameterSymbol parameter = parameters[index];
+                    Symbols.ParameterSymbol parameter = parameters[parameterIndex];
                     if (parameter.HasExplicitDefaultValue)
                     {
-                        arguments.Add(new Argument(ArgumentKind.DefaultValue, ArgumentMode.In, new Literal(parameter.ExplicitDefaultConstantValue, parameter.Type, null)));
+                        arguments.Add(new Argument(ArgumentKind.DefaultValue, parameter, new Literal(parameter.ExplicitDefaultConstantValue, parameter.Type, null)));
                     }
                     else
                     {
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    arguments.Add(DeriveArgument(argumentIndex, boundArguments, argumentNames, argumentRefKinds, parameters));
+                    arguments.Add(DeriveArgument(parameterIndex, argumentIndex, boundArguments, argumentNames, argumentRefKinds, parameters));
                 }
             }
 
@@ -132,14 +132,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static System.Runtime.CompilerServices.ConditionalWeakTable<BoundExpression, IArgument> ArgumentMappings = new System.Runtime.CompilerServices.ConditionalWeakTable<BoundExpression, IArgument>();
 
-        private static IArgument DeriveArgument(int index, ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, ImmutableArray<Symbols.ParameterSymbol> parameters)
+        private static IArgument DeriveArgument(int parameterIndex, int argumentIndex, ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, ImmutableArray<Symbols.ParameterSymbol> parameters)
         {
-            if (index >= boundArguments.Length)
+            if (argumentIndex >= boundArguments.Length)
             {
                 // Check for an omitted argument that becomes an empty params array.
                 if (parameters.Length > 0 && parameters[parameters.Length - 1].IsParams)
                 {
-                    return new Argument(ArgumentKind.ParamArray, ArgumentMode.In, CreateParamArray(parameters[parameters.Length - 1], boundArguments, index));
+                    return new Argument(ArgumentKind.ParamArray, parameters[parameters.Length - 1], CreateParamArray(parameters[parameters.Length - 1], boundArguments, argumentIndex));
                 }
 
                 // There is no supplied argument and there is no params parameter. Any action is suspect at this point.
@@ -147,24 +147,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return ArgumentMappings.GetValue(
-                boundArguments[index],
+                boundArguments[argumentIndex],
                 (argument) =>
                 {
-                    string name = !argumentNames.IsDefaultOrEmpty ? argumentNames[index] : null;
-                    RefKind refMode = !argumentRefKinds.IsDefaultOrEmpty ? argumentRefKinds[index] : RefKind.None;
+                    string name = !argumentNames.IsDefaultOrEmpty ? argumentNames[argumentIndex] : null;
+                    RefKind refMode = !argumentRefKinds.IsDefaultOrEmpty ? argumentRefKinds[argumentIndex] : RefKind.None;
 
-                    ArgumentMode mode = refMode == RefKind.None ? ArgumentMode.In : (refMode == RefKind.Out ? ArgumentMode.Out : ArgumentMode.Reference);
                     if (name == null)
                     {
                         return
-                            mode == ArgumentMode.In
-                            ? ((index >= parameters.Length - 1 && parameters.Length > 0 && parameters[parameters.Length - 1].IsParams)
-                                ? (IArgument)new Argument(ArgumentKind.ParamArray, mode, CreateParamArray(parameters[parameters.Length - 1], boundArguments, index))
-                                : new SimpleArgument(argument))
-                            : (IArgument)new Argument(ArgumentKind.Positional, mode, argument);
+                            refMode == RefKind.None
+                            ? ((argumentIndex >= parameters.Length - 1 && parameters.Length > 0 && parameters[parameters.Length - 1].IsParams)
+                                ? (IArgument)new Argument(ArgumentKind.ParamArray, parameters[parameters.Length - 1], CreateParamArray(parameters[parameters.Length - 1], boundArguments, argumentIndex))
+                                : new SimpleArgument(parameters[parameterIndex], argument))
+                            : (IArgument)new Argument(ArgumentKind.Positional, parameters[parameterIndex], argument);
                     }
 
-                    return new NamedArgument(mode, argument, name);
+                    return new Argument(ArgumentKind.Named, parameters[parameterIndex], argument);
                 });
         }
         
@@ -187,10 +186,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static IArgument ArgumentMatchingParameter(ImmutableArray<BoundExpression> arguments, ImmutableArray<int> argumentsToParameters, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, Symbols.MethodSymbol targetMethod, IParameterSymbol parameter)
         {
-            int index = ArgumentIndexMatchingParameter(arguments, argumentsToParameters, targetMethod, parameter);
-            if (index >= 0)
+            int argumentIndex = ArgumentIndexMatchingParameter(arguments, argumentsToParameters, targetMethod, parameter);
+            if (argumentIndex >= 0)
             {
-                return DeriveArgument(index, arguments, argumentNames, argumentRefKinds, targetMethod.Parameters);
+                return DeriveArgument(parameter.Ordinal, argumentIndex, arguments, argumentNames, argumentRefKinds, targetMethod.Parameters);
             }
 
             return null;
@@ -221,17 +220,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         class SimpleArgument : IArgument
         {
-            readonly IExpression ArgumentValue;
-            public SimpleArgument(IExpression value)
+            private readonly IExpression _argumentValue;
+            private readonly IParameterSymbol _parameter;
+
+            public SimpleArgument(IParameterSymbol parameter, IExpression value)
             {
-                this.ArgumentValue = value;
+                _argumentValue = value;
+                _parameter = parameter;
             }
 
             public ArgumentKind Kind => ArgumentKind.Positional;
-            
-            public ArgumentMode Mode => ArgumentMode.In;
+
+            public IParameterSymbol Parameter => _parameter;
            
-            public IExpression Value => this.ArgumentValue;
+            public IExpression Value => _argumentValue;
 
             public IExpression InConversion => null;
 
@@ -240,37 +242,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         class Argument : IArgument
         {
-            readonly IExpression ArgumentValue;
-            readonly ArgumentKind ArgumentKind;
-            readonly ArgumentMode ArgumentMode;
-            public Argument(ArgumentKind kind, ArgumentMode mode, IExpression value)
+            private readonly IExpression _argumentValue;
+            private readonly ArgumentKind _argumentKind;
+            private readonly IParameterSymbol _parameter;
+
+            public Argument(ArgumentKind kind, IParameterSymbol parameter, IExpression value)
             {
-                this.ArgumentValue = value;
-                this.ArgumentKind = kind;
-                this.ArgumentMode = mode;
+                _argumentValue = value;
+                _argumentKind = kind;
+                _parameter = parameter;
             }
 
-            public ArgumentKind Kind => this.ArgumentKind;
-           
-            public ArgumentMode Mode => this.ArgumentMode;
+            public ArgumentKind Kind => _argumentKind;
+
+            public IParameterSymbol Parameter => _parameter;
             
-            public IExpression Value => this.ArgumentValue;
+            public IExpression Value => _argumentValue;
 
             public IExpression InConversion => null;
 
             public IExpression OutConversion => null;
-        }
-
-        class NamedArgument : Argument, INamedArgument
-        {
-            readonly string ArgumentName;
-            public NamedArgument(ArgumentMode mode, IExpression value, string name)
-                : base(ArgumentKind.Named, mode, value)
-            {
-                this.ArgumentName = name;
-            }
-
-            public string Name => this.ArgumentName;
         }
     }
 
@@ -316,8 +307,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundLiteral : ILiteral
     {
-        LiteralKind ILiteral.LiteralClass => Semantics.Expression.DeriveLiteralKind(this.Type);
-
         string ILiteral.Spelling => this.Syntax.ToString();
 
         protected override OperationKind ExpressionKind => OperationKind.Literal;
@@ -517,28 +506,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         class ElementInitializer : IExpressionArrayInitializer
         {
-            readonly BoundExpression element;
+            private readonly BoundExpression _element;
 
             public ElementInitializer(BoundExpression element)
             {
-                this.element = element;
+                _element = element;
             }
 
-            public IExpression ElementValue => this.element;
+            public IExpression ElementValue => _element;
 
             public ArrayInitializerKind ArrayClass => ArrayInitializerKind.Expression;
         }
 
         class DimensionInitializer : IDimensionArrayInitializer
         {
-            readonly ImmutableArray<IArrayInitializer> dimension;
+            private readonly ImmutableArray<IArrayInitializer> _dimension;
 
             public DimensionInitializer(ImmutableArray<IArrayInitializer> dimension)
             {
-                this.dimension = dimension;
+                _dimension = dimension;
             }
 
-            public ImmutableArray<IArrayInitializer> ElementValues => this.dimension;
+            public ImmutableArray<IArrayInitializer> ElementValues => _dimension;
 
             public ArrayInitializerKind ArrayClass => ArrayInitializerKind.Dimension;
         }
@@ -1275,18 +1264,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BinaryOperatorKind.Int:
                         case BinaryOperatorKind.Long:
-                            return BinaryOperationKind.IntegerXor;
+                            return BinaryOperationKind.IntegerExclusiveOr;
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return BinaryOperationKind.UnsignedXor;
+                            return BinaryOperationKind.UnsignedExclusiveOr;
                         case BinaryOperatorKind.Bool:
-                            return BinaryOperationKind.BooleanXor;
+                            return BinaryOperationKind.BooleanExclusiveOr;
                         case BinaryOperatorKind.Enum:
-                            return BinaryOperationKind.EnumXor;
+                            return BinaryOperationKind.EnumExclusiveOr;
                         case BinaryOperatorKind.Dynamic:
-                            return BinaryOperationKind.DynamicXor;
+                            return BinaryOperationKind.DynamicExclusiveOr;
                         case BinaryOperatorKind.UserDefined:
-                            return BinaryOperationKind.OperatorXor;
+                            return BinaryOperationKind.OperatorExclusiveOr;
                     }
 
                     break;

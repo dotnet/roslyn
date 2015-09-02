@@ -265,7 +265,6 @@ Class C
     End Sub
 End Class
 ";
-            // ToDo: The VB support for named and paramarray arguments is broken.
             VerifyBasic(Source, new[]
             {
                 GetBasicResultAt(12, 21, InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor),

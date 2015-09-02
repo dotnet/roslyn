@@ -185,12 +185,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundLiteral
         Implements ILiteral
 
-        Private ReadOnly Property ILiteralClass As LiteralKind Implements ILiteral.LiteralClass
-            Get
-                Return Semantics.Expression.DeriveLiteralKind(Me.Type)
-            End Get
-        End Property
-
         Private ReadOnly Property ISpelling As String Implements ILiteral.Spelling
             Get
                 Return Me.Syntax.ToString()
@@ -303,10 +297,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function DeriveArgument(index As Integer, argument As BoundExpression, parameters As ImmutableArray(Of Symbols.ParameterSymbol)) As IArgument
             Select Case argument.Kind
                 Case BoundKind.ByRefArgumentWithCopyBack
-                    Return DirectCast(argument, BoundByRefArgumentWithCopyBack)
+                    Return ArgumentMappings.GetValue(argument, Function(a) New ByRefArgument(parameters(index), DirectCast(argument, BoundByRefArgumentWithCopyBack)))
                 Case Else
                     ' Apparently the VB bound trees don't encode named arguments, which seems unnecesarily lossy.
-                    Return ArgumentMappings.GetValue(argument, Function(a) If(index >= parameters.Length - 1 AndAlso parameters.Length > 0 AndAlso parameters(parameters.Length - 1).IsParamArray, New Argument(a, ArgumentKind.ParamArray), New Argument(a, ArgumentKind.Positional)))
+                    Return ArgumentMappings.GetValue(argument, Function(a) If(index >= parameters.Length - 1 AndAlso parameters.Length > 0 AndAlso parameters(parameters.Length - 1).IsParamArray, New Argument(ArgumentKind.ParamArray, parameters(parameters.Length - 1), a), New Argument(ArgumentKind.Positional, parameters(index), a)))
             End Select
         End Function
 
@@ -315,10 +309,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private ReadOnly _value As IExpression
             Private ReadOnly _kind As ArgumentKind
+            Private ReadOnly _parameter As IParameterSymbol
 
-            Public Sub New(value As IExpression, kind As ArgumentKind)
-                Me._value = value
-                Me._kind = kind
+            Public Sub New(kind As ArgumentKind, parameter As IParameterSymbol, value As IExpression)
+                _value = value
+                _kind = kind
+                _parameter = parameter
             End Sub
 
             Public ReadOnly Property Kind As ArgumentKind Implements IArgument.Kind
@@ -327,9 +323,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Public ReadOnly Property Mode As ArgumentMode Implements IArgument.Mode
+            Public ReadOnly Property Parameter As IParameterSymbol Implements IArgument.Parameter
                 Get
-                    Return ArgumentMode.In
+                    Return _parameter
                 End Get
             End Property
 
@@ -351,49 +347,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
         End Class
-    End Class
 
-    Partial Class BoundByRefArgumentWithCopyBack
-        Implements IArgument
+        Private Class ByRefArgument
+            Implements IArgument
 
-        Private ReadOnly Property IKind As ArgumentKind Implements IArgument.Kind
-            Get
-                ' Do the VB bound trees encode named arguments?
-                Return ArgumentKind.Positional
-            End Get
-        End Property
+            Private ReadOnly _parameter As IParameterSymbol
+            Private ReadOnly _argument As BoundByRefArgumentWithCopyBack
 
-        Private ReadOnly Property IMode As ArgumentMode Implements IArgument.Mode
-            Get
-                If Me.InPlaceholder IsNot Nothing AndAlso Me.InPlaceholder.IsOut Then
-                    Return ArgumentMode.Out
-                End If
+            Public Sub New(parameter As IParameterSymbol, argument As BoundByRefArgumentWithCopyBack)
+                _parameter = parameter
+                _argument = argument
+            End Sub
 
-                Return ArgumentMode.Reference
-            End Get
-        End Property
+            Public ReadOnly Property InConversion As IExpression Implements IArgument.InConversion
+                Get
+                    Return _argument.InConversion
+                End Get
+            End Property
 
-        Private ReadOnly Property IValue As IExpression Implements IArgument.Value
-            Get
-                Return Me.OriginalArgument
-            End Get
-        End Property
+            Public ReadOnly Property Kind As ArgumentKind Implements IArgument.Kind
+                Get
+                    ' Do the VB bound trees encode named arguments?
+                    Return ArgumentKind.Positional
+                End Get
+            End Property
 
-        Private ReadOnly Property IInConversion As IExpression Implements IArgument.InConversion
-            Get
-                Return Me.InConversion
-            End Get
-        End Property
+            Public ReadOnly Property OutConversion As IExpression Implements IArgument.OutConversion
+                Get
+                    Return _argument.OutConversion
+                End Get
+            End Property
 
-        Private ReadOnly Property IOutConversion As IExpression Implements IArgument.OutConversion
-            Get
-                Return Me.OutConversion
-            End Get
-        End Property
+            Public ReadOnly Property Parameter As IParameterSymbol Implements IArgument.Parameter
+                Get
+                    Return _parameter
+                End Get
+            End Property
 
-        Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.None
-        End Function
+            Public ReadOnly Property Value As IExpression Implements IArgument.Value
+                Get
+                    Return _argument.OriginalArgument
+                End Get
+            End Property
+        End Class
     End Class
 
     Partial Class BoundOmittedArgument
@@ -589,7 +585,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Case BinaryOperatorKind.Or
                         Return BinaryOperationKind.OperatorOr
                     Case BinaryOperatorKind.Xor
-                        Return BinaryOperationKind.OperatorXor
+                        Return BinaryOperationKind.OperatorExclusiveOr
                     Case BinaryOperatorKind.AndAlso
                         Return BinaryOperationKind.OperatorConditionalAnd
                     Case BinaryOperatorKind.OrElse
@@ -1259,7 +1255,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Case BinaryOperatorKind.Or
                             Return BinaryOperationKind.IntegerOr
                         Case BinaryOperatorKind.Xor
-                            Return BinaryOperationKind.IntegerXor
+                            Return BinaryOperationKind.IntegerExclusiveOr
                         Case BinaryOperatorKind.LeftShift
                             Return BinaryOperationKind.IntegerLeftShift
                         Case BinaryOperatorKind.RightShift
@@ -1282,7 +1278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Case BinaryOperatorKind.Or
                             Return BinaryOperationKind.UnsignedOr
                         Case BinaryOperatorKind.Xor
-                            Return BinaryOperationKind.UnsignedXor
+                            Return BinaryOperationKind.UnsignedExclusiveOr
                         Case BinaryOperatorKind.LeftShift
                             Return BinaryOperationKind.UnsignedLeftShift
                         Case BinaryOperatorKind.RightShift
@@ -1321,7 +1317,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Case BinaryOperatorKind.Or
                             Return BinaryOperationKind.BooleanOr
                         Case BinaryOperatorKind.Xor
-                            Return BinaryOperationKind.BooleanXor
+                            Return BinaryOperationKind.BooleanExclusiveOr
                         Case BinaryOperatorKind.AndAlso
                             Return BinaryOperationKind.BooleanConditionalAnd
                         Case BinaryOperatorKind.OrElse
@@ -1355,7 +1351,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Case BinaryOperatorKind.Or
                             Return BinaryOperationKind.ObjectOr
                         Case BinaryOperatorKind.Xor
-                            Return BinaryOperationKind.ObjectXor
+                            Return BinaryOperationKind.ObjectExclusiveOr
                         Case BinaryOperatorKind.AndAlso
                             Return BinaryOperationKind.ObjectConditionalAnd
                         Case BinaryOperatorKind.OrElse
@@ -1378,7 +1374,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Case BinaryOperatorKind.Or
                         Return BinaryOperationKind.EnumOr
                     Case BinaryOperatorKind.Xor
-                        Return BinaryOperationKind.EnumXor
+                        Return BinaryOperationKind.EnumExclusiveOr
                 End Select
             End If
 
