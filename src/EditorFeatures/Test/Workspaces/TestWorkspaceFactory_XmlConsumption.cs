@@ -139,7 +139,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             for (int i = 1; i < submissions.Count; i++)
             {
-                workspace.OnProjectReferenceAdded(submissions[i].Id, new ProjectReference(submissions[i - 1].Id));
+                for (int j = i - 1; j >= 0; j--)
+                {
+                    if (submissions[j].CompilationOptions != null)
+                    {
+                       workspace.OnProjectReferenceAdded(submissions[i].Id, new ProjectReference(submissions[j].Id));
+                        break;
+                    }
+                }
             }
 
             foreach (var project in projectMap.Values)
@@ -188,6 +195,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 // The project
 
                 var document = new TestHostDocument(exportProvider, languageServices, textBuffer, submissionName, cursorPosition, spans, SourceCodeKind.Interactive);
+                var documents = new List<TestHostDocument> { document };
+
+                if (languageName == NoCompilationConstants.LanguageName)
+                {
+                    submissions.Add(
+                        new TestHostProject(
+                            languageServices, 
+                            compilationOptions: null, 
+                            parseOptions: null, 
+                            assemblyName: submissionName, 
+                            references: null, 
+                            documents: documents, 
+                            isSubmission: true));
+                    continue;
+                }
 
                 var syntaxFactory = languageServices.GetService<ISyntaxTreeFactoryService>();
                 var compilationFactory = languageServices.GetService<ICompilationFactoryService>();
@@ -203,7 +225,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     parseOptions,
                     submissionName,
                     references,
-                    new List<TestHostDocument> { document }, isSubmission: true);
+                    documents, 
+                    isSubmission: true);
 
                 submissions.Add(project);
             }
