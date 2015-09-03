@@ -126,62 +126,62 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="VisualStudio\Input\UIHierarchyWindowCommandId.cs" />
-    <Compile Include="VisualStudio\Input\VisualStudioStandard97CommandId.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\Designers\Imaging\IProjectImageProvider.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\Designers\Imaging\ProjectImageKey.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\Designers\Imaging\ProjectImageProviderAggregator.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\Designers\ProjectRootImageProjectTreeModifier.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\VS\Designers\Input\Commands\OpenAppDesignerCommand.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\VS\Designers\Input\Commands\OpenAppDesignerOnDefaultActionCommand.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\VS\Designers\Input\Commands\OpenAppDesignerCommandBase.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\VS\Designers\ProjectDesignerPageMetadata.cs" />
-    <Compile Include="VisualStudio\Shell\HierarchyId.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\IAddItemTemplatesGuidProvider.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\IItemTypeGuidProvider.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\VS\IUnconfiguredProjectVsServices.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\LanguageServices\LanguageServiceBase.cs" />
-    <Compile Include="VisualStudio\Input\CommandGroup.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\Designers\Input\GetCommandStatusResult.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\Designers\Input\SingeNodeProjectCommandBase.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\Designers\Input\ProjectCommandBase.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\Designers\Input\ProjectCommandAttribute.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\ProjectCapability.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\Designers\AppDesignerFolderProjectTreeModifierBase.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\Designers\ProjectTreeExtensions.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\Designers\ProjectTreeModifierBase.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\Designers\SpecialItemProjectTreeModifierBase.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\Rules\ProjectProperties.cs" />
+    <Compile Include="Input\UIHierarchyWindowCommandId.cs" />
+    <Compile Include="Input\VisualStudioStandard97CommandId.cs" />
+    <Compile Include="ProjectSystem\Designers\Imaging\IProjectImageProvider.cs" />
+    <Compile Include="ProjectSystem\Designers\Imaging\ProjectImageKey.cs" />
+    <Compile Include="ProjectSystem\Designers\Imaging\ProjectImageProviderAggregator.cs" />
+    <Compile Include="ProjectSystem\Designers\ProjectRootImageProjectTreeModifier.cs" />
+    <Compile Include="ProjectSystem\VS\Designers\Input\Commands\OpenAppDesignerCommand.cs" />
+    <Compile Include="ProjectSystem\VS\Designers\Input\Commands\OpenAppDesignerOnDefaultActionCommand.cs" />
+    <Compile Include="ProjectSystem\VS\Designers\Input\Commands\OpenAppDesignerCommandBase.cs" />
+    <Compile Include="ProjectSystem\VS\Designers\ProjectDesignerPageMetadata.cs" />
+    <Compile Include="Shell\HierarchyId.cs" />
+    <Compile Include="ProjectSystem\IAddItemTemplatesGuidProvider.cs" />
+    <Compile Include="ProjectSystem\IItemTypeGuidProvider.cs" />
+    <Compile Include="ProjectSystem\VS\IUnconfiguredProjectVsServices.cs" />
+    <Compile Include="ProjectSystem\LanguageServices\LanguageServiceBase.cs" />
+    <Compile Include="Input\CommandGroup.cs" />
+    <Compile Include="ProjectSystem\Designers\Input\GetCommandStatusResult.cs" />
+    <Compile Include="ProjectSystem\Designers\Input\SingeNodeProjectCommandBase.cs" />
+    <Compile Include="ProjectSystem\Designers\Input\ProjectCommandBase.cs" />
+    <Compile Include="ProjectSystem\Designers\Input\ProjectCommandAttribute.cs" />
+    <Compile Include="ProjectSystem\ProjectCapability.cs" />
+    <Compile Include="ProjectSystem\Designers\AppDesignerFolderProjectTreeModifierBase.cs" />
+    <Compile Include="ProjectSystem\Designers\ProjectTreeExtensions.cs" />
+    <Compile Include="ProjectSystem\Designers\ProjectTreeModifierBase.cs" />
+    <Compile Include="ProjectSystem\Designers\SpecialItemProjectTreeModifierBase.cs" />
+    <Compile Include="ProjectSystem\Rules\ProjectProperties.cs" />
     <Compile Include="StringComparers.cs" />
     <Compile Include="Threading\Tasks\TaskResult.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\VS\UnconfiguredProjectVsServices.cs" />
-    <Compile Include="VisualStudio\Shell\Interop\VsHierarchyExtensions.cs" />
+    <Compile Include="ProjectSystem\VS\UnconfiguredProjectVsServices.cs" />
+    <Compile Include="Shell\Interop\VsHierarchyExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <XamlPropertyRule Include="VisualStudio\ProjectSystem\Rules\CSharp.xaml">
+    <XamlPropertyRule Include="ProjectSystem\Rules\CSharp.xaml">
       <Generator>MSBuild:GenerateRuleSourceFromXaml</Generator>
       <SubType>Designer</SubType>
     </XamlPropertyRule>
-    <XamlPropertyRule Include="VisualStudio\ProjectSystem\Rules\General.xaml">
+    <XamlPropertyRule Include="ProjectSystem\Rules\General.xaml">
       <Generator>MSBuild:GenerateRuleSourceFromXaml</Generator>
       <SubType>Designer</SubType>
     </XamlPropertyRule>
-    <XamlPropertyRule Include="VisualStudio\ProjectSystem\Rules\ProjectReference.xaml">
+    <XamlPropertyRule Include="ProjectSystem\Rules\ProjectReference.xaml">
       <Generator>MSBuild:GenerateRuleSourceFromXaml</Generator>
       <SubType>Designer</SubType>
     </XamlPropertyRule>
-    <XamlPropertyRule Include="VisualStudio\ProjectSystem\Rules\ResolvedAssemblyReference.xaml">
+    <XamlPropertyRule Include="ProjectSystem\Rules\ResolvedAssemblyReference.xaml">
       <Generator>MSBuild:GenerateRuleSourceFromXaml</Generator>
       <SubType>Designer</SubType>
     </XamlPropertyRule>
-    <XamlPropertyRule Include="VisualStudio\ProjectSystem\Rules\ResolvedCOMReference.xaml">
+    <XamlPropertyRule Include="ProjectSystem\Rules\ResolvedCOMReference.xaml">
       <Generator>MSBuild:GenerateRuleSourceFromXaml</Generator>
       <SubType>Designer</SubType>
     </XamlPropertyRule>
-    <XamlPropertyRule Include="VisualStudio\ProjectSystem\Rules\ResolvedProjectReference.xaml">
+    <XamlPropertyRule Include="ProjectSystem\Rules\ResolvedProjectReference.xaml">
       <Generator>MSBuild:GenerateRuleSourceFromXaml</Generator>
       <SubType>Designer</SubType>
     </XamlPropertyRule>

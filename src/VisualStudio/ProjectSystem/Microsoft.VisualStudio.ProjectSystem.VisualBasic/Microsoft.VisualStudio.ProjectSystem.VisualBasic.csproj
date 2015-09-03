@@ -7,7 +7,7 @@
     <ProjectGuid>{04AA393A-48C2-424D-985C-77385A962019}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Microsoft</RootNamespace>
+    <RootNamespace>Microsoft.VisualStudio</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.ProjectSystem.VisualBasic</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <ImportVSSDKTargets>false</ImportVSSDKTargets>
@@ -129,16 +129,16 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="VisualStudio\ProjectSystem\VisualBasic\LanguageServices\VisualBasicCodeDomProvider.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\VisualBasic\Designers\MyProjectFolderProjectTreeModifier.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\VisualBasic\VS\Designers\VisualBasicProjectDesignerPageProvider.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\VisualBasic\VS\Designers\VisualBasicProjectDesignerPage.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\VisualBasic\VS\Designers\Imaging\VisualBasicProjectImageProvider.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\VisualBasic\VS\Templating\VisualBasicItemTemplatesGuidProvider.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\VisualBasic\VS\Templating\VisualBasicItemTypeGuidProvider.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\VisualBasic\LanguageServices\VisualBasicLanguageService.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\VisualBasic\Capabilities\VisualBasicProjectEvalProjectCapabilityProvider.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\VisualBasic\Capabilities\VisualBasicProjectXmlProjectCapabilityProvider.cs" />
+    <Compile Include="ProjectSystem\VisualBasic\LanguageServices\VisualBasicCodeDomProvider.cs" />
+    <Compile Include="ProjectSystem\VisualBasic\Designers\MyProjectFolderProjectTreeModifier.cs" />
+    <Compile Include="ProjectSystem\VisualBasic\VS\Designers\VisualBasicProjectDesignerPageProvider.cs" />
+    <Compile Include="ProjectSystem\VisualBasic\VS\Designers\VisualBasicProjectDesignerPage.cs" />
+    <Compile Include="ProjectSystem\VisualBasic\VS\Designers\Imaging\VisualBasicProjectImageProvider.cs" />
+    <Compile Include="ProjectSystem\VisualBasic\VS\Templating\VisualBasicItemTemplatesGuidProvider.cs" />
+    <Compile Include="ProjectSystem\VisualBasic\VS\Templating\VisualBasicItemTypeGuidProvider.cs" />
+    <Compile Include="ProjectSystem\VisualBasic\LanguageServices\VisualBasicLanguageService.cs" />
+    <Compile Include="ProjectSystem\VisualBasic\Capabilities\VisualBasicProjectEvalProjectCapabilityProvider.cs" />
+    <Compile Include="ProjectSystem\VisualBasic\Capabilities\VisualBasicProjectXmlProjectCapabilityProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

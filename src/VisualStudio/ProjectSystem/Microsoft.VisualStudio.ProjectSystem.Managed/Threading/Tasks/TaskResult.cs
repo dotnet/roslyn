@@ -2,7 +2,7 @@
 
 using System.Threading.Tasks;
 
-namespace Microsoft.Threading
+namespace Microsoft.VisualStudio.Threading
 {
     /// <summary>
     ///     Provides sentinel Tasks that represent commonly returned values.

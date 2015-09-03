@@ -3,8 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.Threading;
-using Microsoft.VisualStudio.ProjectSystem.Designers;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input
 {

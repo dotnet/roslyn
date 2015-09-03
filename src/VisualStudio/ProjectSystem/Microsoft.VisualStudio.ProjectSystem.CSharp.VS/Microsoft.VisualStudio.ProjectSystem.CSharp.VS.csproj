@@ -7,7 +7,7 @@
     <ProjectGuid>{765EF6EB-9F36-4D68-8C3D-9E11CD49E0BC}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Microsoft</RootNamespace>
+    <RootNamespace>Microsoft.VisualStudio</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.ProjectSystem.CSharp.VS</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <ImportVSSDKTargets>false</ImportVSSDKTargets>
