@@ -102,7 +102,7 @@
             Condition="Exists('$(RoslynDiagnosticsPropsFilePath)') And ('$(UseRoslynAnalyzers)' == 'true')" />
   </ImportGroup>
 
-  <Target Name="EnsureGlobalNuGets" Condition="'$(BootstrapBuildPath)' == ''">
+  <Target Name="EnsureGlobalNuGets" Condition="'$(BootstrapBuildPath)' == '' AND '$(BuildingProject)' != 'false'">
     <Error Condition="!Exists('$(ToolsetCompilerPropsFilePath)')"
            Text="This project requires the $(ToolsetCompilerPackageName) NuGet package to build. Use NuGet Package Restore to download the required files (&quot;powershell .nuget\NuGetRestore.ps1&quot;). The missing file is &quot;$(ToolsetCompilerPropsFilePath)&quot;." />
   </Target>
