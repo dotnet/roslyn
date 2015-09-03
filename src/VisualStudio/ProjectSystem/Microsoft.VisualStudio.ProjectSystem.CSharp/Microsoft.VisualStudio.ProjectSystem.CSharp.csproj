@@ -129,10 +129,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ProjectSystem\CSharp\Designers\PropertiesFolderProjectTreeModifier.cs" />
-    <Compile Include="ProjectSystem\CSharp\LanguageServices\CSharpLanguageFeaturesProvider.cs" />
-    <Compile Include="ProjectSystem\CSharp\LanguageServices\CSharpLanguageService.cs" />
-    <Compile Include="ProjectSystem\CSharp\Capabilities\CSharpProjectXmlProjectCapabilityProvider.cs" />
+    <Compile Include="ProjectSystem\Designers\PropertiesFolderProjectTreeModifier.cs" />
+    <Compile Include="ProjectSystem\LanguageServices\CSharpLanguageFeaturesProvider.cs" />
+    <Compile Include="ProjectSystem\LanguageServices\CSharpLanguageService.cs" />
+    <Compile Include="ProjectSystem\Capabilities\CSharpProjectXmlProjectCapabilityProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

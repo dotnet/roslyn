@@ -129,10 +129,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ProjectSystem\VisualBasic\Designers\MyProjectFolderProjectTreeModifier.cs" />
-    <Compile Include="ProjectSystem\VisualBasic\LanguageServices\VisualBasicLanguageService.cs" />
-    <Compile Include="ProjectSystem\VisualBasic\Capabilities\VisualBasicProjectEvalProjectCapabilityProvider.cs" />
-    <Compile Include="ProjectSystem\VisualBasic\Capabilities\VisualBasicProjectXmlProjectCapabilityProvider.cs" />
+    <Compile Include="ProjectSystem\Designers\MyProjectFolderProjectTreeModifier.cs" />
+    <Compile Include="ProjectSystem\LanguageServices\VisualBasicLanguageService.cs" />
+    <Compile Include="ProjectSystem\Capabilities\VisualBasicProjectEvalProjectCapabilityProvider.cs" />
+    <Compile Include="ProjectSystem\Capabilities\VisualBasicProjectXmlProjectCapabilityProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
