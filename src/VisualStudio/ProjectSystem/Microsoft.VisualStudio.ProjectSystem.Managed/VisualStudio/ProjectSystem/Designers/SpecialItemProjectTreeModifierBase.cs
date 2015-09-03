@@ -46,8 +46,6 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
             if (item == null)
                 return tree;
 
-            Assumes.True(item.Parent.IsProjectRoot(), "Expected returned item to be rooted by Project");
-
             ProjectImageMoniker icon = GetSpecialItemIcon();
 
             item = item.SetProperties(
@@ -62,7 +60,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
                 item = HideAllChildren(item);
             }
 
-            return item.Parent;
+            return item.Root;
         }
 
         protected abstract IProjectTree FindCandidateSpecialItem(IProjectTree projectRoot);
