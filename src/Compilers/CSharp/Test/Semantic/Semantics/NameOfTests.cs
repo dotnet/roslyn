@@ -295,7 +295,7 @@ class Test<T>
                 Diagnostic(ErrorCode.ERR_AliasQualifiedNameNotAnExpression, "global::Program").WithLocation(31, 20),
                 // (32,27): error CS0122: 'Test<T>.s' is inaccessible due to its protection level
                 //         s = nameof(Test<>.s); // inaccessible
-                Diagnostic(ErrorCode.ERR_BadAccess, "s").WithArguments("Test<T>.s").WithLocation(32, 27),
+                Diagnostic(ErrorCode.ERR_BadAccess, "s").WithArguments("Test<>.s").WithLocation(32, 27),
                 // (33,20): error CS0841: Cannot use local variable 'b' before it is declared
                 //         s = nameof(b); // cannot use before declaration
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "b").WithArguments("b").WithLocation(33, 20),
@@ -1328,6 +1328,19 @@ class Test {
         }
 
         [Fact, WorkItem(4827, "https://github.com/dotnet/roslyn/issues/4827")]
+        public void NameofOpenGenericTypeWithInstanceMethod()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+class Test {
+  void M(string s = nameof(List<>.Add)) {
+  }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(4827, "https://github.com/dotnet/roslyn/issues/4827")]
         public void NameofOpenGenericTypeWithExtensionMethod()
         {
             var source =
@@ -1369,18 +1382,21 @@ class Test {
             Assert.Equal(argSymbol.CandidateReason, CandidateReason.None);
             Assert.Equal(argSymbol.Symbol.Name, "Nested");
             Assert.Equal(argSymbol.Symbol.ContainingType.Name, "C");
-            Assert.Equal(argSymbol.Symbol.ContainingType.OriginalDefinition, argSymbol.Symbol.ContainingType);
+            Assert.NotEqual(argSymbol.Symbol.ContainingType.OriginalDefinition, argSymbol.Symbol.ContainingType);
+            Assert.True(argSymbol.Symbol.ContainingType.IsUnboundGenericType);
 
             var leftSymbol = semanticModel.GetSymbolInfo(nameofArg.Expression);
             Assert.Equal(leftSymbol.CandidateReason, CandidateReason.None);
             Assert.Equal(leftSymbol.Symbol.Name, "C");
-            Assert.Equal(leftSymbol.Symbol.OriginalDefinition, argSymbol.Symbol.ContainingType);
+            Assert.Equal(leftSymbol.Symbol, argSymbol.Symbol.ContainingType);
+            Assert.NotEqual(leftSymbol.Symbol.OriginalDefinition, argSymbol.Symbol.ContainingType);
+            Assert.True(((NamedTypeSymbol)leftSymbol.Symbol).IsUnboundGenericType);
 
             var rightSymbol = semanticModel.GetSymbolInfo(nameofArg.Name);
             Assert.Equal(rightSymbol.CandidateReason, CandidateReason.None);
             Assert.Equal(rightSymbol.Symbol.Name, "Nested");
             Assert.Equal(rightSymbol.Symbol.ContainingType.Name, "C");
-            Assert.Equal(rightSymbol.Symbol.ContainingType.OriginalDefinition, argSymbol.Symbol.ContainingType);
+            Assert.True(rightSymbol.Symbol.ContainingType.IsUnboundGenericType);
         }
 
         [Fact, WorkItem(4827, "https://github.com/dotnet/roslyn/issues/4827")]
@@ -1420,7 +1436,8 @@ class Test {
             Assert.Equal(leftSymbol.CandidateReason, CandidateReason.None);
             Assert.Equal(leftSymbol.Symbol.Name, "D");
             Assert.Equal(leftSymbol.Symbol.Kind, SymbolKind.NamedType);
-            Assert.Equal(leftSymbol.Symbol, leftSymbol.Symbol.OriginalDefinition);
+            Assert.True(((NamedTypeSymbol)leftSymbol.Symbol).IsUnboundGenericType);
+            Assert.NotEqual(leftSymbol.Symbol, leftSymbol.Symbol.OriginalDefinition);
             var leftNamedType = (NamedTypeSymbol)leftSymbol.Symbol;
 
             var argSymbol = semanticModel.GetSymbolInfo(nameofArg);
@@ -1432,7 +1449,7 @@ class Test {
             Assert.NotEqual(argProperty.ContainingType, argProperty.ContainingType.OriginalDefinition);
 
             // Type of "D<>.AProperty" will be "KeyValuePair<T,int>"
-            Assert.Equal(argProperty.ContainingType.TypeArguments[0], leftNamedType.TypeParameters[0]);
+            Assert.Equal(argProperty.ContainingType.TypeArguments[0], leftNamedType.TypeArguments[0]);
             Assert.Equal(argProperty.ContainingType.TypeArguments[1].TypeKind, TypeKind.Struct);
             Assert.Equal(argProperty.ContainingType.TypeArguments[1].Name, "Int32");
         }

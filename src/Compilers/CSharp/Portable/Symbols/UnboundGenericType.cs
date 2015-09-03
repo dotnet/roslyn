@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static partial class TypeSymbolExtensions
     {
-        static public NamedTypeSymbol AsUnboundGenericType(this NamedTypeSymbol type)
+        static public NamedTypeSymbol AsUnboundGenericType(this NamedTypeSymbol type, bool withUseSiteDiagnostic = true)
         {
             if (!type.IsGenericType)
             {
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var constructedFrom = ((object)originalContainingType == null) ?
                 original :
-                original.AsMember(originalContainingType.IsGenericType ? originalContainingType.AsUnboundGenericType() : originalContainingType);
+                original.AsMember(originalContainingType.IsGenericType ? originalContainingType.AsUnboundGenericType(withUseSiteDiagnostic) : originalContainingType);
             if (n == 0)
             {
                 return constructedFrom;
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeArguments = UnboundArgumentErrorTypeSymbol.CreateTypeArguments(
                 constructedFrom.TypeParameters,
                 n,
-                new CSDiagnosticInfo(ErrorCode.ERR_UnexpectedUnboundGenericName));
+                withUseSiteDiagnostic ? new CSDiagnosticInfo(ErrorCode.ERR_UnexpectedUnboundGenericName) : null);
             return constructedFrom.Construct(typeArguments, unbound: true);
         }
     }

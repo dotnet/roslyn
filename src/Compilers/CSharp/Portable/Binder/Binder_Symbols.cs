@@ -852,7 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var genericName = (GenericNameSyntax)typeSyntax;
                     if (genericName.IsUnboundGenericName && IsUnboundTypeAllowed(genericName))
                     {
-                        return type;
+                        return type.AsUnboundGenericType(withUseSiteDiagnostic: false);
                     }
                 }
 
