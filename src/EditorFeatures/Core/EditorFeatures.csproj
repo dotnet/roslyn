@@ -289,6 +289,7 @@
     <Compile Include="Extensibility\SignatureHelp\SignatureHelpParameter.cs" />
     <Compile Include="Extensibility\SignatureHelp\SignatureHelpTriggerInfo.cs" />
     <Compile Include="Extensibility\SignatureHelp\SignatureHelpTriggerReason.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\OptionSetExtensions.cs" />
     <Compile Include="Implementation\TodoComment\ITodoListProvider.cs" />
     <Compile Include="Implementation\TodoComment\TodoItem.cs" />
     <Compile Include="Implementation\TodoComment\TodoListEventArgs.cs" />

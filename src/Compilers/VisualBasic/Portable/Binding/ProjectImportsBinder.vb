@@ -33,6 +33,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function GetSyntaxReference(node As VisualBasicSyntaxNode) As SyntaxReference
             Return _tree.GetReference(node)
         End Function
+
+        Friend Overrides ReadOnly Property SuppressObsoleteDiagnostics As Boolean
+            Get
+                ' Obsolete diagnostics is not reported for project level imports. This is VS2013 behavior.
+                ' This also ensures that we don't get into circularity while binding imports because we are 
+                ' remapping diagnostics in SourceModuleSymbol.BindImports
+                Return True
+            End Get
+        End Property
     End Class
 
 End Namespace

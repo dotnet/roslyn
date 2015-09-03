@@ -8,3 +8,4 @@ Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.MSBuildProjectLoader(Microso
 Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.Properties.get -> System.Collections.Immutable.ImmutableDictionary<string, string>
 Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.SkipUnrecognizedProjects.get -> bool
 Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.SkipUnrecognizedProjects.set -> void
+static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(Microsoft.CodeAnalysis.Host.HostServices hostServices) -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace

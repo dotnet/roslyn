@@ -68,10 +68,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.VisualBasic)
         End Function
 
-        Protected Overrides Function IsExclusiveAsync(documentOpt As Document, caretPosition As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of Boolean)
-            Return SpecializedTasks.False
-        End Function
-
         Private Function GetTypeFromSymbol(symbol As ISymbol) As ITypeSymbol
             Dim symbolType = symbol.TypeSwitch(Function(f As IFieldSymbol) f.Type,
                     Function(l As ILocalSymbol) l.Type,

@@ -6648,6 +6648,7 @@ End Module
                                  textTypedSoFar:="")
         End Sub
 
+
         <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SystemFuncExcludedInExpressionContext1()
@@ -6787,6 +6788,45 @@ Module Program
 End Module
 ]]></code>.Value
             VerifyItemExists(text, "Delegate")
+        End Sub
+
+        <WorkItem(4750, "https://github.com/dotnet/roslyn/issues/4750")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub ConditionalAccessInWith1()
+            Dim text =
+<code><![CDATA[
+Module Module1
+    Sub Main()
+        Dim s As String
+
+        With s
+1:         Console.WriteLine(If(?.$$, -1))
+            Console.WriteLine()
+        End With
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Length")
+        End Sub
+
+        <WorkItem(4750, "https://github.com/dotnet/roslyn/issues/4750")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub ConditionalAccessInWith2()
+            Dim text =
+<code><![CDATA[
+Module Module1
+    Sub Main()
+        Dim s As String
+
+        With s
+1:         Console.WriteLine(If(?.Length, -1))
+           ?.$$
+            Console.WriteLine()
+        End With
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Length")
         End Sub
     End Class
 End Namespace

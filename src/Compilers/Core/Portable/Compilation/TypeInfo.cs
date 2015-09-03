@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// The type of the expression represented by the syntax node. For expressions that do not
-        /// have a type, null is returned. If the type could not be determined due to an error, than
+        /// have a type, null is returned. If the type could not be determined due to an error, then
         /// an IErrorTypeSymbol is returned.
         /// </summary>
         public ITypeSymbol Type { get; }
