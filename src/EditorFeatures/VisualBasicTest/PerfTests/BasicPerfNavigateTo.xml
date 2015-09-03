@@ -15,7 +15,7 @@
 <TaoTest xmlns="http://microsoft.com/schemas/VSLanguages/TAO">
   <InitTest>
     <StartTarget />
-    <OpenProject ProjectFile="$(WorkingDir)\..\..\LegacyTest\TypeResponsivenessTest\tests\vb\Solution\AustralianGovernment\EAuthorise.sln" DeleteSuoFileBeforeOpening="true" DeleteIDECacheBeforeOpening="true"/>
+    <OpenProject ProjectFile="C:\Roslyn\LegacyTest\TypeResponsivenessTest\tests\vb\Solution\AustralianGovernment\EAuthorise.sln" DeleteSuoFileBeforeOpening="true" DeleteIDECacheBeforeOpening="true"/>
     <WaitForSolutionCrawler/>
   </InitTest>
 
