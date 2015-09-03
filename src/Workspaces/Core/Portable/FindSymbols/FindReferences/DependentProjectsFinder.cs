@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             foreach (var projectId in solution.ProjectIds)
             {
                 var project = solution.GetProject(projectId);
-                if (project.IsSubmission)
+                if (project.IsSubmission && project.SupportsCompilation)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 

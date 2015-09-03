@@ -24,6 +24,12 @@
     "System.Linq": "4.0.0"
   },
   "frameworks": {
-      "dnxcore50": {}
+    "dnxcore50": {
+      "imports": "portable-net452"
+    }
+  },
+  "runtimes": {
+    "win-x86": { },
+    "win-x64": { }
   }
 }

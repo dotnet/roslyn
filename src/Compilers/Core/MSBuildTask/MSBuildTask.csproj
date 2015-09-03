@@ -29,10 +29,6 @@
       <HintPath>$(MSBuildProgramFiles32)\Reference Assemblies\Microsoft\MSBuild\v14.0\Microsoft.Build.Utilities.Core.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable, Version=$(SystemCollectionsImmutableAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <None Include="Microsoft.CSharp.Core.targets">
@@ -41,7 +37,7 @@
     <None Include="Microsoft.VisualBasic.Core.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="packages.config" />
+    <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\VBCSCompiler\BuildProtocol.cs">

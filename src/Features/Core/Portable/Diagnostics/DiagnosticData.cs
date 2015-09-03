@@ -406,6 +406,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static DiagnosticDataLocation CreateLocation(Document document, Location location)
         {
+            if (document == null)
+            {
+                return null;
+            }
+
             TextSpan sourceSpan;
             FileLinePositionSpan mappedLineInfo;
             FileLinePositionSpan originalLineInfo;
@@ -432,7 +437,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var additionalLocations = diagnostic.AdditionalLocations.Count == 0
                 ? (IReadOnlyCollection<DiagnosticDataLocation>)SpecializedCollections.EmptyArray<DiagnosticDataLocation>()
-                : diagnostic.AdditionalLocations.Where(loc => loc.IsInSource).Select(loc => CreateLocation(document.Project.GetDocument(loc.SourceTree), loc)).ToReadOnlyCollection();
+                : diagnostic.AdditionalLocations.Where(loc => loc.IsInSource)
+                                                .Select(loc => CreateLocation(document.Project.GetDocument(loc.SourceTree), loc))
+                                                .WhereNotNull()
+                                                .ToReadOnlyCollection();
 
             return new DiagnosticData(
                 diagnostic.Id,

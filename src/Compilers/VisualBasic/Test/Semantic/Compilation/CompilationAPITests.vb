@@ -1720,7 +1720,7 @@ End Namespace
             Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.Create(assemblyName, {tree1, tree3}, {MscorlibRef}, CompilationOptions))
         End Sub
 
-        <ClrOnlyFact(ClrOnlyReason.Submission)>
+        <Fact>
         Public Sub SubmissionCompilation_Errors()
             Dim genericParameter = GetType(List(Of)).GetGenericArguments()(0)
             Dim open = GetType(Dictionary(Of,)).MakeGenericType(GetType(Integer), genericParameter)
@@ -1753,7 +1753,7 @@ End Namespace
             Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateSubmission("a", options:=TestOptions.ReleaseDll.WithDelaySign(False)))
         End Sub
 
-        <ClrOnlyFact(ClrOnlyReason.Submission)>
+        <Fact>
         Public Sub SubmissionResultType()
             Dim submission = VisualBasicCompilation.CreateSubmission("sub")
             Dim hasValue As Boolean
@@ -1803,7 +1803,7 @@ End Sub
         ''' <summary>
         ''' Previous submission has to have no errors.
         ''' </summary>
-        <ClrOnlyFact(ClrOnlyReason.Submission)>
+        <Fact>
         Public Sub PreviousSubmissionWithError()
             Dim s0 = CreateSubmission("Dim a As X = 1")
 

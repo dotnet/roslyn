@@ -53,7 +53,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\CSharpResultProvider.projitems" Label="Shared" />
   <ImportGroup Label="Targets">

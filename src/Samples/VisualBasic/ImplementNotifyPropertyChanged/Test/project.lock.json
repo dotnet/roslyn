@@ -1,0 +1,101 @@
+{
+  "locked": false,
+  "version": 1,
+  "targets": {
+    ".NETFramework,Version=v4.5.2": {
+      "Microsoft.Composition/1.0.27": {
+        "compile": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Hosting.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll": {}
+        },
+        "runtime": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Hosting.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll": {}
+        }
+      },
+      "Moq/4.2.1402.2112": {
+        "compile": {
+          "lib/net40/Moq.dll": {}
+        },
+        "runtime": {
+          "lib/net40/Moq.dll": {}
+        }
+      },
+      "xunit/1.9.2": {
+        "compile": {
+          "lib/net20/xunit.dll": {}
+        },
+        "runtime": {
+          "lib/net20/xunit.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Microsoft.Composition/1.0.27": {
+      "sha512": "pwu80Ohe7SBzZ6i69LVdzowp6V+LaVRzd5F7A6QlD42vQkX0oT7KXKWWPlM/S00w1gnMQMRnEdbtOV12z6rXdQ==",
+      "type": "Package",
+      "files": [
+        "_rels/.rels",
+        "Microsoft.Composition.nuspec",
+        "License-Stable.rtf",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.XML",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.xml",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Hosting.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Hosting.XML",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.XML",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.XML",
+        "package/services/metadata/core-properties/12e2c94035674b25b911285cc26e3260.psmdcp",
+        "[Content_Types].xml"
+      ]
+    },
+    "Moq/4.2.1402.2112": {
+      "sha512": "/TWoXE2OIjJjSvcxER7HMoZwpgETSGlKbLZiME7sVVoPMoqgLvDyjSISveTyHxNoDXd18cZlM8aHdS9ZOAbjMw==",
+      "type": "Package",
+      "files": [
+        "_rels/.rels",
+        "Moq.nuspec",
+        "lib/net35/Moq.dll",
+        "lib/net35/Moq.xml",
+        "lib/net40/Moq.dll",
+        "lib/net40/Moq.xml",
+        "lib/sl4/Moq.Silverlight.dll",
+        "lib/sl4/Moq.Silverlight.xml",
+        "package/services/metadata/core-properties/98e2d674c8ec4e5fbda07a9e01280647.psmdcp",
+        "[Content_Types].xml"
+      ]
+    },
+    "xunit/1.9.2": {
+      "sha512": "c1wppJtYPUGPHVP9U1wjmfii4553MuQSXkAt8rudkXW+eUFJxOOfDvhBJ6S0YHHDMFEJwiMN770AT4Lno8EBpw==",
+      "type": "Package",
+      "files": [
+        "_rels/.rels",
+        "xunit.nuspec",
+        "lib/net20/xunit.dll",
+        "lib/net20/xunit.dll.tdnet",
+        "lib/net20/xunit.xml",
+        "lib/net20/xunit.runner.msbuild.dll",
+        "lib/net20/xunit.runner.tdnet.dll",
+        "lib/net20/xunit.runner.utility.dll",
+        "package/services/metadata/core-properties/cb77589bcde944baab7b67d60ca583c7.psmdcp",
+        "[Content_Types].xml"
+      ]
+    }
+  },
+  "projectFileDependencyGroups": {
+    "": [
+      "xunit >= 1.9.2"
+    ],
+    ".NETFramework,Version=v4.5.2": []
+  }
+}

@@ -1,4 +1,8 @@
 {
+  "supports": {
+    "net46.app": {},
+    "dnxcore50.app": {}
+  },
   "dependencies": {
     "System.Dynamic.Runtime": "4.0.10",
     "Microsoft.CSharp": "4.0.0"

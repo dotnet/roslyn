@@ -1,10 +1,11 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
@@ -293,38 +294,42 @@ Class C1
     End Sub
 End Class
 </a>
-            VerifyBuilder(markup, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo().WithIsDebugger(True))
+            VerifyBuilder(markup, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo(), useDebuggerOptions:=True)
         End Sub
 
-        Private Sub VerifyNotBuilder(markup As XElement, Optional triggerInfo As CompletionTriggerInfo? = Nothing)
-            VerifySuggestionModeWorker(markup, isBuilder:=False, triggerInfo:=triggerInfo)
+        Private Sub VerifyNotBuilder(markup As XElement, Optional triggerInfo As CompletionTriggerInfo? = Nothing, Optional useDebuggerOptions As Boolean = False)
+            VerifySuggestionModeWorker(markup, isBuilder:=False, triggerInfo:=triggerInfo, useDebuggerOptions:=useDebuggerOptions)
         End Sub
 
-        Private Sub VerifyBuilder(markup As XElement, Optional triggerInfo As CompletionTriggerInfo? = Nothing)
-            VerifySuggestionModeWorker(markup, isBuilder:=True, triggerInfo:=triggerInfo)
+        Private Sub VerifyBuilder(markup As XElement, Optional triggerInfo As CompletionTriggerInfo? = Nothing, Optional useDebuggerOptions As Boolean = False)
+            VerifySuggestionModeWorker(markup, isBuilder:=True, triggerInfo:=triggerInfo, useDebuggerOptions:=useDebuggerOptions)
         End Sub
 
-        Private Sub VerifySuggestionModeWorker(markup As XElement, isBuilder As Boolean, triggerInfo As CompletionTriggerInfo?)
+        Private Sub VerifySuggestionModeWorker(markup As XElement, isBuilder As Boolean, triggerInfo As CompletionTriggerInfo?, Optional useDebuggerOptions As Boolean = False)
             Dim code As String = Nothing
             Dim position As Integer = 0
             MarkupTestFile.GetPosition(markup.NormalizedValue, code, position)
 
             Using workspaceFixture = New VisualBasicTestWorkspaceFixture()
+                Dim options = If(useDebuggerOptions,
+                                 workspaceFixture.Workspace.Options.WithDebuggerCompletionOptions(),
+                                 workspaceFixture.Workspace.Options)
+
                 Dim document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular)
-                CheckResults(document1, position, isBuilder, triggerInfo)
+                CheckResults(document1, position, isBuilder, triggerInfo, options)
 
                 If CanUseSpeculativeSemanticModel(document1, position) Then
                     Dim document2 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular, cleanBeforeUpdate:=False)
-                    CheckResults(document2, position, isBuilder, triggerInfo)
+                    CheckResults(document2, position, isBuilder, triggerInfo, options)
                 End If
             End Using
 
         End Sub
 
-        Private Sub CheckResults(document As Document, position As Integer, isBuilder As Boolean, triggerInfo As CompletionTriggerInfo?)
+        Private Sub CheckResults(document As Document, position As Integer, isBuilder As Boolean, triggerInfo As CompletionTriggerInfo?, options As OptionSet)
             triggerInfo = If(triggerInfo, CompletionTriggerInfo.CreateTypeCharTriggerInfo("a"c))
 
-            Dim completionList = GetCompletionList(document, position, triggerInfo.Value)
+            Dim completionList = GetCompletionList(document, position, triggerInfo.Value, options)
 
             If isBuilder Then
                 Assert.NotNull(completionList)
