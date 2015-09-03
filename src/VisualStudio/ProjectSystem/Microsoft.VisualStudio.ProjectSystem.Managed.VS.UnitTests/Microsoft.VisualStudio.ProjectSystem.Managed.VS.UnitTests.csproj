@@ -1,26 +1,24 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\packages\xunit.runner.visualstudio.2.1.0-beta4-build1109\build\net20\xunit.runner.visualstudio.props" Condition="Exists('..\..\..\..\packages\xunit.runner.visualstudio.2.1.0-beta4-build1109\build\net20\xunit.runner.visualstudio.props')" />
+  <Import Project="..\..\..\..\packages\xunit.core.2.1.0-beta4-build3109\build\portable-net45+netcore45+wp8+wpa81\xunit.core.props" Condition="Exists('..\..\..\..\packages\xunit.core.2.1.0-beta4-build3109\build\portable-net45+netcore45+wp8+wpa81\xunit.core.props')" />
   <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{7D150B7B-CE02-4CD4-8EC9-6A7C18727A36}</ProjectGuid>
+    <ProjectGuid>{469B50E9-FE67-459E-8AFA-44CBE523DBF6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft</RootNamespace>
-    <AssemblyName>Microsoft.VisualStudio.ProjectSystem.CSharp</AssemblyName>
+    <AssemblyName>Microsoft.VisualStudio.ProjectSystem.Managed.VS.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <ImportVSSDKTargets>false</ImportVSSDKTargets>
-    <CreateVsixContainer>false</CreateVsixContainer>
-    <DeployExtension>false</DeployExtension>
-    <UseCodebase>true</UseCodebase>
     <SignAssembly>false</SignAssembly>
-    <OutDir>$(OutDir)\ProjectSystem\CSharp\</OutDir>
+    <OutDir>$(OutDir)\ProjectSystem\</OutDir>
+    <Nonshipping>true</Nonshipping>
   </PropertyGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.CSharp.VS" />
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.CSharp.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.CSharp.VS.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
@@ -121,24 +119,27 @@
       <HintPath>..\..\..\..\packages\Microsoft.Tpl.Dataflow.4.5.24\lib\portable-net45+win8+wpa81\System.Threading.Tasks.Dataflow.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\packages\xunit.abstractions.2.0.0\lib\net35\xunit.abstractions.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="xunit.assert, Version=2.1.0.3109, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\packages\xunit.assert.2.1.0-beta4-build3109\lib\dotnet\xunit.assert.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="xunit.core, Version=2.1.0.3109, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\packages\xunit.extensibility.core.2.1.0-beta4-build3109\lib\dotnet\xunit.core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.VisualStudio.ProjectSystem.Managed\Microsoft.VisualStudio.ProjectSystem.Managed.csproj">
       <Project>{6c6a41ce-72c5-4d77-8208-d01693f9bc88}</Project>
       <Name>Microsoft.VisualStudio.ProjectSystem.Managed</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="VisualStudio\ProjectSystem\CSharp\VS\Designers\CSharpProjectDesignerPage.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\CSharp\LanguageServices\CSharpCodeDomProvider.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\CSharp\Designers\PropertiesFolderProjectTreeModifier.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\CSharp\VS\Designers\Imaging\CSharpProjectImageProvider.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\CSharp\VS\Designers\CSharpProjectDesignerPageProvider.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\CSharp\VS\Templating\CSharpItemTemplatesGuidProvider.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\CSharp\VS\Templating\CSharpItemTypeGuidProvider.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\CSharp\LanguageServices\CSharpLanguageFeaturesProvider.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\CSharp\LanguageServices\CSharpLanguageService.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\CSharp\Capabilities\CSharpProjectXmlProjectCapabilityProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

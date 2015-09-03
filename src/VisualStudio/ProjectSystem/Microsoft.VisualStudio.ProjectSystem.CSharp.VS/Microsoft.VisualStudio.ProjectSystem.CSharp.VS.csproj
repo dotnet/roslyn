@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{7D150B7B-CE02-4CD4-8EC9-6A7C18727A36}</ProjectGuid>
+    <ProjectGuid>{765EF6EB-9F36-4D68-8C3D-9E11CD49E0BC}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft</RootNamespace>
-    <AssemblyName>Microsoft.VisualStudio.ProjectSystem.CSharp</AssemblyName>
+    <AssemblyName>Microsoft.VisualStudio.ProjectSystem.CSharp.VS</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <ImportVSSDKTargets>false</ImportVSSDKTargets>
     <CreateVsixContainer>false</CreateVsixContainer>
@@ -18,8 +18,6 @@
     <OutDir>$(OutDir)\ProjectSystem\CSharp\</OutDir>
   </PropertyGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.CSharp.VS" />
-    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.CSharp.VS.UnitTests" />
   </ItemGroup>
   <ItemGroup>
@@ -123,22 +121,18 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Microsoft.VisualStudio.ProjectSystem.CSharp\Microsoft.VisualStudio.ProjectSystem.CSharp.csproj">
+      <Project>{7d150b7b-ce02-4cd4-8ec9-6a7c18727a36}</Project>
+      <Name>Microsoft.VisualStudio.ProjectSystem.CSharp</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Microsoft.VisualStudio.ProjectSystem.Managed.VS\Microsoft.VisualStudio.ProjectSystem.Managed.VS.csproj">
+      <Project>{1c5666ea-24a4-4ec2-b8fb-faedf6b14697}</Project>
+      <Name>Microsoft.VisualStudio.ProjectSystem.Managed.VS</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Microsoft.VisualStudio.ProjectSystem.Managed\Microsoft.VisualStudio.ProjectSystem.Managed.csproj">
       <Project>{6c6a41ce-72c5-4d77-8208-d01693f9bc88}</Project>
       <Name>Microsoft.VisualStudio.ProjectSystem.Managed</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="VisualStudio\ProjectSystem\CSharp\VS\Designers\CSharpProjectDesignerPage.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\CSharp\LanguageServices\CSharpCodeDomProvider.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\CSharp\Designers\PropertiesFolderProjectTreeModifier.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\CSharp\VS\Designers\Imaging\CSharpProjectImageProvider.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\CSharp\VS\Designers\CSharpProjectDesignerPageProvider.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\CSharp\VS\Templating\CSharpItemTemplatesGuidProvider.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\CSharp\VS\Templating\CSharpItemTypeGuidProvider.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\CSharp\LanguageServices\CSharpLanguageFeaturesProvider.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\CSharp\LanguageServices\CSharpLanguageService.cs" />
-    <Compile Include="VisualStudio\ProjectSystem\CSharp\Capabilities\CSharpProjectXmlProjectCapabilityProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

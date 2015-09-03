@@ -18,7 +18,9 @@
     <OutDir>$(OutDir)\ProjectSystem\VisualBasic\</OutDir>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic.VS" />
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic.VS.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
