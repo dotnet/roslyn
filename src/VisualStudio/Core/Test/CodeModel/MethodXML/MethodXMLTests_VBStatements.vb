@@ -190,5 +190,155 @@ End Class
             Test(definition, expected)
         End Sub
 
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        Public Sub VBStatements_AddHandler4()
+            Dim definition =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Test">
+        <CompilationOptions RootNamespace="N"/>
+        <Document>
+Imports System
+
+Class A
+    Event E As EventHandler
+End Class
+
+Class B
+    Property A As New A
+
+    Sub Handler(sender As Object, e As EventArgs)
+    End Sub
+End Class
+
+Class C
+    Dim b As New B
+
+    $$Sub M()
+        AddHandler b.A.E, AddressOf b.Handler
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<Block>
+    <ExpressionStatement line="18">
+        <Expression>
+            <MethodCall>
+                <Expression>
+                    <NameRef variablekind="method" name="add_E">
+                        <Expression>
+                            <NameRef variablekind="property" name="A" fullname="N.B.A">
+                                <Expression>
+                                    <NameRef variablekind="field" name="b" fullname="N.C.b">
+                                        <Expression>
+                                            <ThisReference/>
+                                        </Expression>
+                                    </NameRef>
+                                </Expression>
+                            </NameRef>
+                        </Expression>
+                    </NameRef>
+                </Expression>
+                <Type implicit="yes">N.A, Test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null</Type>
+                <Argument>
+                    <Expression>
+                        <NewDelegate name="Handler">
+                            <Type implicit="yes">System.EventHandler, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</Type>
+                            <Expression>
+                                <NameRef variablekind="field" name="b" fullname="N.C.b">
+                                    <Expression>
+                                        <ThisReference/>
+                                    </Expression>
+                                </NameRef>
+                            </Expression>
+                            <Type implicit="yes">N.B, Test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null</Type>
+                        </NewDelegate>
+                    </Expression>
+                </Argument>
+            </MethodCall>
+        </Expression>
+    </ExpressionStatement>
+</Block>
+
+            Test(definition, expected)
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        Public Sub VBStatements_AddHandler5()
+            Dim definition =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Test">
+        <CompilationOptions RootNamespace="N"/>
+        <Document>
+Imports System
+
+Class A
+    Sub Handler(sender As Object, e As EventArgs)
+    End Sub
+End Class
+
+Class B
+    Property A As New A
+
+    Event E As EventHandler
+End Class
+
+Class C
+    Dim b As New B
+
+    $$Sub M()
+        AddHandler b.E, AddressOf b.A.Handler
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<Block>
+    <ExpressionStatement line="18">
+        <Expression>
+            <MethodCall>
+                <Expression>
+                    <NameRef variablekind="method" name="add_E">
+                        <Expression>
+                            <NameRef variablekind="field" name="b" fullname="N.C.b">
+                                <Expression>
+                                    <ThisReference/>
+                                </Expression>
+                            </NameRef>
+                        </Expression>
+                    </NameRef>
+                </Expression>
+                <Type implicit="yes">N.B, Test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null</Type>
+                <Argument>
+                    <Expression>
+                        <NewDelegate name="Handler">
+                            <Type implicit="yes">System.EventHandler, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</Type>
+                            <Expression>
+                                <NameRef variablekind="property" name="A" fullname="N.B.A">
+                                    <Expression>
+                                        <NameRef variablekind="field" name="b" fullname="N.C.b">
+                                            <Expression>
+                                                <ThisReference/>
+                                            </Expression>
+                                        </NameRef>
+                                    </Expression>
+                                </NameRef>
+                            </Expression>
+                            <Type implicit="yes">N.A, Test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null</Type>
+                        </NewDelegate>
+                    </Expression>
+                </Argument>
+            </MethodCall>
+        </Expression>
+    </ExpressionStatement>
+</Block>
+
+            Test(definition, expected)
+        End Sub
+
     End Class
 End Namespace
