@@ -4,7 +4,7 @@ using System.CodeDom.Compiler;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 
-namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic
+namespace Microsoft.VisualStudio.ProjectSystem
 {
     /// <summary>
     /// Provides the VB CodeDomProvider.

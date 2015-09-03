@@ -4,19 +4,19 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 
-namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic.Templating
+namespace Microsoft.VisualStudio.ProjectSystem.Templating
 {
     /// <summary>
-    /// Implementation of the item templates Guid provider for Visual Basic project system.
+    /// Implementation of the item type provider for Visual Basic project system.
     /// </summary>
-    //[Export(typeof(IAddItemTemplatesGuidProvider))]
+    //[Export(typeof(IItemTypeGuidProvider))]
     [AppliesTo(ProjectCapabilities.VB)]
-    internal class VisualBasicItemTemplatesGuidProvider : IAddItemTemplatesGuidProvider
+    internal class VisualBasicItemTypeGuidProvider : IItemTypeGuidProvider
     {
         private static readonly Guid VBProjectType = new Guid("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}");
 
         [ImportingConstructor]
-        public VisualBasicItemTemplatesGuidProvider()
+        internal VisualBasicItemTypeGuidProvider()
         {
         }
 
@@ -28,9 +28,9 @@ namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic.Templating
         }
 
         /// <summary>
-        /// Returns the item templates Guid.
+        /// Returns the item type Guid.
         /// </summary>
-        public Guid AddItemTemplatesGuid
+        public Guid ProjectTypeGuid
         {
             get { return VBProjectType; }
         }

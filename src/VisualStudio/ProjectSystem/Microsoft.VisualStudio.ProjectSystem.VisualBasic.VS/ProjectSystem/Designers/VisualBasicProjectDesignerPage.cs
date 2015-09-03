@@ -3,7 +3,7 @@
 using System;
 using Microsoft.VisualStudio.ProjectSystem.VS.Designers;
 
-namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic.VS.Designers
+namespace Microsoft.VisualStudio.ProjectSystem.Designers
 {
     /// <summary>
     ///     Provides common well-known Visual Basic project property pages.

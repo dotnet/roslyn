@@ -129,13 +129,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ProjectSystem\VisualBasic\LanguageServices\VisualBasicCodeDomProvider.cs" />
     <Compile Include="ProjectSystem\VisualBasic\Designers\MyProjectFolderProjectTreeModifier.cs" />
-    <Compile Include="ProjectSystem\VisualBasic\VS\Designers\VisualBasicProjectDesignerPageProvider.cs" />
-    <Compile Include="ProjectSystem\VisualBasic\VS\Designers\VisualBasicProjectDesignerPage.cs" />
-    <Compile Include="ProjectSystem\VisualBasic\VS\Designers\Imaging\VisualBasicProjectImageProvider.cs" />
-    <Compile Include="ProjectSystem\VisualBasic\VS\Templating\VisualBasicItemTemplatesGuidProvider.cs" />
-    <Compile Include="ProjectSystem\VisualBasic\VS\Templating\VisualBasicItemTypeGuidProvider.cs" />
     <Compile Include="ProjectSystem\VisualBasic\LanguageServices\VisualBasicLanguageService.cs" />
     <Compile Include="ProjectSystem\VisualBasic\Capabilities\VisualBasicProjectEvalProjectCapabilityProvider.cs" />
     <Compile Include="ProjectSystem\VisualBasic\Capabilities\VisualBasicProjectXmlProjectCapabilityProvider.cs" />
