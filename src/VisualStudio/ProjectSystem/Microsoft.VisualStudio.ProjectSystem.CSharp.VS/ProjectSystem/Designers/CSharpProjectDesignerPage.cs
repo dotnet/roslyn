@@ -3,7 +3,7 @@
 using System;
 using Microsoft.VisualStudio.ProjectSystem.VS.Designers;
 
-namespace Microsoft.VisualStudio.ProjectSystem.CSharp.VS.Designers
+namespace Microsoft.VisualStudio.ProjectSystem.Designers
 {
     /// <summary>
     ///     Provides common well-known C# project property pages.

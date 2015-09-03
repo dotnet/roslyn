@@ -137,6 +137,14 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ProjectSystem\Designers\CSharpProjectDesignerPage.cs" />
+    <Compile Include="ProjectSystem\Designers\CSharpProjectDesignerPageProvider.cs" />
+    <Compile Include="ProjectSystem\Designers\Imaging\CSharpProjectImageProvider.cs" />
+    <Compile Include="ProjectSystem\LanguageServices\CSharpCodeDomProvider.cs" />
+    <Compile Include="ProjectSystem\Templating\CSharpItemTemplatesGuidProvider.cs" />
+    <Compile Include="ProjectSystem\Templating\CSharpItemTypeGuidProvider.cs" />
+  </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
   <Import Project="..\..\..\..\packages\Microsoft.VisualStudio.ProjectSystem.SDK.Tools.14.0.50729-pre\build\Microsoft.VisualStudio.ProjectSystem.Sdk.Tools.targets" Condition="Exists('..\..\..\..\packages\Microsoft.VisualStudio.ProjectSystem.SDK.Tools.14.0.50729-pre\build\Microsoft.VisualStudio.ProjectSystem.Sdk.Tools.targets')" />
   <Import Project="..\..\..\..\packages\Microsoft.VisualStudio.SDK.VsixSuppression.14.0.50703\build\Microsoft.VisualStudio.SDK.VsixSuppression.targets" Condition="Exists('..\..\..\..\packages\Microsoft.VisualStudio.SDK.VsixSuppression.14.0.50703\build\Microsoft.VisualStudio.SDK.VsixSuppression.targets')" />

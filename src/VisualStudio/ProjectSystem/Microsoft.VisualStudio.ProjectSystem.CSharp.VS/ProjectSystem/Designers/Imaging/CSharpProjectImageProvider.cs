@@ -2,11 +2,9 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Imaging;
-using Microsoft.VisualStudio.ProjectSystem.Designers;
-using Microsoft.VisualStudio.ProjectSystem.Designers.Imaging;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 
-namespace Microsoft.VisualStudio.ProjectSystem.CSharp.VS.Designers.Imaging
+namespace Microsoft.VisualStudio.ProjectSystem.Designers.Imaging
 {
     /// <summary>
     ///     Provides C# project images.

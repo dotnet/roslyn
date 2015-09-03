@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 using Microsoft.VisualStudio.ProjectSystem.VS;
 
-namespace Microsoft.VisualStudio.ProjectSystem.CSharp.VS.Designers
+namespace Microsoft.VisualStudio.ProjectSystem.Designers
 {
     /// <summary>
     ///     Provides project designer property pages.

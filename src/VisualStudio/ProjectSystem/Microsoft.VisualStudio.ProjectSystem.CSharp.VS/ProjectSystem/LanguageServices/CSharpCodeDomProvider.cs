@@ -4,7 +4,7 @@ using System.CodeDom.Compiler;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 
-namespace Microsoft.VisualStudio.ProjectSystem.CSharp.LanguageServices
+namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
 {
     /// <summary>
     /// Provides the CSharp CodeDomProvider.
