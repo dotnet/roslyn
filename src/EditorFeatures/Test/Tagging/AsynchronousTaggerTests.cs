@@ -52,24 +52,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
     }
 }"))
             {
-                Callback tagProducer = (span, cancellationToken) =>
-                    {
-                        return new List<ITagSpan<TestTag>>() { new TagSpan<TestTag>(span, new TestTag()) };
-                    };
                 var asyncListener = new TaggerOperationListener();
-
-                var notificationService = workspace.GetService<IForegroundNotificationService>();
 
                 var eventSource = CreateEventSource();
                 var taggerProvider = new TestTaggerProvider(
-                    tagProducer,
-                    eventSource,
-                    workspace,
-                    asyncListener,
-                    notificationService);
+                    (span, _) => new List<ITagSpan<TestTag>> { new TagSpan<TestTag>(span, new TestTag()) },
+                    eventSource, workspace, asyncListener, workspace.GetService<IForegroundNotificationService>());
 
-                var document = workspace.Documents.First();
-                var textBuffer = document.TextBuffer;
+                var textBuffer = workspace.Documents.First().TextBuffer;
                 var snapshot = textBuffer.CurrentSnapshot;
                 var tagger = taggerProvider.CreateTagger<TestTag>(textBuffer);
 
@@ -79,12 +69,41 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
                     var snapshotSpans = new NormalizedSnapshotSpanCollection(snapshot, spans);
 
                     eventSource.SendUpdateEvent();
-
                     asyncListener.CreateWaitTask().PumpingWait();
 
                     var tags = tagger.GetTags(snapshotSpans);
 
                     Assert.Equal(1, tags.Count());
+                }
+            }
+        }
+
+        [Fact]
+        public void GetTagsOnBackgroundThread()
+        {
+            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(@"class C {}"))
+            {
+                var asyncListener = new TaggerOperationListener();
+
+                var eventSource = CreateEventSource();
+                var taggerProvider = new TestTaggerProvider(
+                    (span, _) => new List<ITagSpan<TestTag>> { new TagSpan<TestTag>(span, new TestTag()) },
+                    eventSource, workspace, asyncListener, workspace.GetService<IForegroundNotificationService>());
+
+                var textBuffer = workspace.Documents.First().TextBuffer;
+                var tagger = taggerProvider.CreateTagger<TestTag>(textBuffer);
+
+                using (IDisposable disposable = (IDisposable)tagger)
+                {
+                    var snapshotSpans = textBuffer.CurrentSnapshot.GetSnapshotSpanCollection();
+
+                    eventSource.SendUpdateEvent();
+                    asyncListener.CreateWaitTask().PumpingWait();
+
+                    var task = Task.Run(() => tagger.GetTags(snapshotSpans));
+
+                    var tags = task.Result;
+                    Assert.True(tags.IsEmpty());
                 }
             }
         }

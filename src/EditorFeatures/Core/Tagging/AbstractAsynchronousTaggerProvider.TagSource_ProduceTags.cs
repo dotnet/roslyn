@@ -687,7 +687,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             public TagSpanIntervalTree<TTag> GetTagIntervalTreeForBuffer(ITextBuffer buffer)
             {
-                this._workQueue.AssertIsForeground();
+                if (!this._workQueue.IsForeground())
+                {
+                    return null;
+                }
 
                 // If we're currently pausing updates to the UI, then just use the tags we had before we
                 // were paused so that nothing changes.  
@@ -702,7 +705,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             public TagSpanIntervalTree<TTag> GetAccurateTagIntervalTreeForBuffer(ITextBuffer buffer, CancellationToken cancellationToken)
             {
-                this._workQueue.AssertIsForeground();
+                if (!this._workQueue.IsForeground())
+                {
+                    return null;
+                }
 
                 if (!this.UpToDate)
                 {
