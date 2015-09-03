@@ -167,6 +167,7 @@
     <Compile Include="Implementation\Interactive\InteractiveWorkspace.cs" />
     <Compile Include="Implementation\Interactive\LoadCommandCompletionProvider.ItemRules.cs" />
     <Compile Include="Implementation\Interactive\LoadCommandCompletionProvider.cs" />
+    <Compile Include="Implementation\Interactive\InteractiveDocumentSupportsSuggestionService.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
