@@ -126,22 +126,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Input\UIHierarchyWindowCommandId.cs" />
-    <Compile Include="Input\VisualStudioStandard97CommandId.cs" />
     <Compile Include="ProjectSystem\Designers\Imaging\IProjectImageProvider.cs" />
     <Compile Include="ProjectSystem\Designers\Imaging\ProjectImageKey.cs" />
     <Compile Include="ProjectSystem\Designers\Imaging\ProjectImageProviderAggregator.cs" />
     <Compile Include="ProjectSystem\Designers\ProjectRootImageProjectTreeModifier.cs" />
-    <Compile Include="ProjectSystem\VS\Designers\Input\Commands\OpenAppDesignerCommand.cs" />
-    <Compile Include="ProjectSystem\VS\Designers\Input\Commands\OpenAppDesignerOnDefaultActionCommand.cs" />
-    <Compile Include="ProjectSystem\VS\Designers\Input\Commands\OpenAppDesignerCommandBase.cs" />
-    <Compile Include="ProjectSystem\VS\Designers\ProjectDesignerPageMetadata.cs" />
-    <Compile Include="Shell\HierarchyId.cs" />
-    <Compile Include="ProjectSystem\IAddItemTemplatesGuidProvider.cs" />
-    <Compile Include="ProjectSystem\IItemTypeGuidProvider.cs" />
-    <Compile Include="ProjectSystem\VS\IUnconfiguredProjectVsServices.cs" />
     <Compile Include="ProjectSystem\LanguageServices\LanguageServiceBase.cs" />
-    <Compile Include="Input\CommandGroup.cs" />
     <Compile Include="ProjectSystem\Designers\Input\GetCommandStatusResult.cs" />
     <Compile Include="ProjectSystem\Designers\Input\SingeNodeProjectCommandBase.cs" />
     <Compile Include="ProjectSystem\Designers\Input\ProjectCommandBase.cs" />
@@ -154,8 +143,6 @@
     <Compile Include="ProjectSystem\Rules\ProjectProperties.cs" />
     <Compile Include="StringComparers.cs" />
     <Compile Include="Threading\Tasks\TaskResult.cs" />
-    <Compile Include="ProjectSystem\VS\UnconfiguredProjectVsServices.cs" />
-    <Compile Include="Shell\Interop\VsHierarchyExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

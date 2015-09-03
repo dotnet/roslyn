@@ -2,10 +2,9 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Input;
-using Microsoft.VisualStudio.ProjectSystem.Designers.Input;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 
-namespace Microsoft.VisualStudio.ProjectSystem.VS.Designers.Input.Commands
+namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
 {
     // Opens the AppDesigner ("Property Pages") on by selecting the Open menu item on the AppDesigner folder
     [ProjectCommand(CommandGroup.VisualStudioStandard97, VisualStudioStandard97CommandId.Open)]

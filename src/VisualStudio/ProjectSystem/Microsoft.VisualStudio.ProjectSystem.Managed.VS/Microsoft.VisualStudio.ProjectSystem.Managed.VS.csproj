@@ -122,6 +122,27 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Input\CommandGroup.cs" />
+    <Compile Include="Input\UIHierarchyWindowCommandId.cs" />
+    <Compile Include="Input\VisualStudioStandard97CommandId.cs" />
+    <Compile Include="ProjectSystem\Designers\Input\Commands\OpenAppDesignerCommand.cs" />
+    <Compile Include="ProjectSystem\Designers\Input\Commands\OpenAppDesignerCommandBase.cs" />
+    <Compile Include="ProjectSystem\Designers\Input\Commands\OpenAppDesignerOnDefaultActionCommand.cs" />
+    <Compile Include="ProjectSystem\Designers\ProjectDesignerPageMetadata.cs" />
+    <Compile Include="ProjectSystem\IAddItemTemplatesGuidProvider.cs" />
+    <Compile Include="ProjectSystem\IItemTypeGuidProvider.cs" />
+    <Compile Include="ProjectSystem\IUnconfiguredProjectVsServices.cs" />
+    <Compile Include="ProjectSystem\UnconfiguredProjectVsServices.cs" />
+    <Compile Include="Shell\HierarchyId.cs" />
+    <Compile Include="Shell\Interop\VsHierarchyExtensions.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.VisualStudio.ProjectSystem.Managed\Microsoft.VisualStudio.ProjectSystem.Managed.csproj">
+      <Project>{6c6a41ce-72c5-4d77-8208-d01693f9bc88}</Project>
+      <Name>Microsoft.VisualStudio.ProjectSystem.Managed</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
   <Import Project="..\..\..\..\packages\Microsoft.VisualStudio.ProjectSystem.SDK.Tools.14.0.50729-pre\build\Microsoft.VisualStudio.ProjectSystem.Sdk.Tools.targets" Condition="Exists('..\..\..\..\packages\Microsoft.VisualStudio.ProjectSystem.SDK.Tools.14.0.50729-pre\build\Microsoft.VisualStudio.ProjectSystem.Sdk.Tools.targets')" />
   <Import Project="..\..\..\..\packages\Microsoft.VisualStudio.SDK.VsixSuppression.14.0.50703\build\Microsoft.VisualStudio.SDK.VsixSuppression.targets" Condition="Exists('..\..\..\..\packages\Microsoft.VisualStudio.SDK.VsixSuppression.14.0.50703\build\Microsoft.VisualStudio.SDK.VsixSuppression.targets')" />
