@@ -3,7 +3,7 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 
-namespace Microsoft.VisualStudio.ProjectSystem.CSharp.Capabilities
+namespace Microsoft.VisualStudio.ProjectSystem.Capabilities
 {
     /// <summary>
     /// Adds the "CSharp" and other capabilities to projects that import *.CSharp.targets.

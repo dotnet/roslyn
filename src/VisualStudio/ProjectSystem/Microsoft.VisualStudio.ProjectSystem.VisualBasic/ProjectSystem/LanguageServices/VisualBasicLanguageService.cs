@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.ProjectSystem.Utilities;
 using Microsoft.VisualStudio.ProjectSystem.VS;
 using Microsoft.VisualStudio.ProjectSystem.LanguageServices;
 
-namespace Microsoft.VisualStudio.ProjectSystem.VisualBasic.LanguageServices
+namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
 {
     /// <summary>
     /// Provides integration with the VB language service.
