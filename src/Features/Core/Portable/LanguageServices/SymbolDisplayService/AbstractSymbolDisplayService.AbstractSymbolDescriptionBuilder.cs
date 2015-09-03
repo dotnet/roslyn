@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.DocumentationCommentFormatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -174,12 +175,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         }
                         else
                         {
-                            // unable to parse exception symbol, fall back to displaying the raw text after trying to
-                            // strip off the leading prefix of "[E|F|M|N|P|T|!]:"
-                            var colonIndex = exceptionString.IndexOf(':');
-                            var displayText = colonIndex >= 0 && exceptionString.Length > colonIndex + 1
-                                ? exceptionString.Substring(colonIndex + 1)
-                                : exceptionString;
+                            // unable to parse exception symbol, fall back to displaying the raw text
+                            var displayText = AbstractDocumentationCommentFormattingService.TrimCrefPrefix(exceptionString);
                             parts.Add(new SymbolDisplayPart(kind: SymbolDisplayPartKind.Text, symbol: null, text: displayText));
                         }
                     }

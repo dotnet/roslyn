@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.DocumentationCommentFormatting
             }
         }
 
-        private static string TrimCrefPrefix(string value)
+        internal static string TrimCrefPrefix(string value)
         {
             if (value.Length >= 2 && value[1] == ':')
             {
