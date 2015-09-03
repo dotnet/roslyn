@@ -1336,6 +1336,11 @@
     <Field Name="Format" Type="BoundExpression" Null="allow"/>
   </Node>
 
+  <Node Name="BoundIsPatternExpression" Base="BoundExpression">
+    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
+    <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
+  </Node>
+
   <AbstractNode Name="BoundPattern" Base="BoundNode"/>
 
   <Node Name="BoundDeclarationPattern" Base="BoundPattern">
@@ -1344,9 +1349,24 @@
     <Field Name="IsVar" Type="bool"/>
   </Node>
 
-  <Node Name="BoundIsPatternExpression" Base="BoundExpression">
-    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
-    <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
+  <Node Name="BoundConstantPattern" Base="BoundPattern">
+    <Field Name="BoundConstant" Type="BoundExpression"/>
+  </Node>
+
+  <Node Name="BoundWildcardPattern" Base="BoundPattern">
+  </Node>
+
+  <Node Name="BoundPropertyPattern" Base="BoundPattern">
+    <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
+    <Field Name="Patterns" Type="ImmutableArray&lt;BoundPattern&gt;" Null="disallow"/>
+    <Field Name="Properties" Type="ImmutableArray&lt;Symbol&gt;" Null="disallow"/>
+  </Node>
+  
+  <Node Name="BoundRecursivePattern" Base="BoundPattern">
+    <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
+    <Field Name="IsOperator" Type="MethodSymbol" Null="allow"/>
+    <Field Name="Patterns" Type="ImmutableArray&lt;BoundPattern&gt;" Null="disallow"/>
+    <Field Name="PatternsToParams" Type="ImmutableArray&lt;int&gt;" Null="disallow"/>
   </Node>
 
 </Tree>

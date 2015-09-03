@@ -19,6 +19,61 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        BoundExpression DeclPattern(CSharpSyntaxNode syntax, BoundExpression input, LocalSymbol target)
+        {
+            var type = target.Type;
+            // a pattern match of the form "expression is Type identifier" is equivalent to
+            // an invocation of one of these helpers:
+            if (type.IsReferenceType)
+            {
+                // bool Is<T>(object e, out T t) where T : class // reference type
+                // {
+                //     t = e as T;
+                //     return t != null;
+                // }
+                var assignment = _factory.AssignmentExpression(_factory.Local(target), _factory.As(input, type));
+                var result = _factory.ObjectNotEqual(_factory.Local(target), _factory.Null(type));
+                return _factory.Sequence(assignment, result);
+            }
+            else if (type.IsNullableType())
+            {
+                // bool Is<T>(object e, out T? t) where T : struct
+                // {
+                //     t = e as T?;
+                //     return e == null || t.HasValue;
+                // }
+                throw new NotImplementedException();
+            }
+            else if (type.IsValueType)
+            {
+                // TODO: only assign t when returning true (avoid returning a new default value)
+                // bool Is<T>(object e, out T t) where T : struct // non-Nullable value type
+                // {
+                //     T? tmp = e as T?;
+                //     t = tmp.GetValueOrDefault();
+                //     return tmp.HasValue;
+                // }
+                var tmpType = _factory.SpecialType(SpecialType.System_Nullable_T).Construct(type);
+                var tmp = _factory.SynthesizedLocal(tmpType, syntax);
+                var asg1 = _factory.AssignmentExpression(_factory.Local(tmp), _factory.As(input, tmpType));
+                var value = _factory.Call(_factory.Local(tmp), GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
+                var asg2 = _factory.AssignmentExpression(_factory.Local(target), value);
+                var result = MakeNullableHasValue(syntax, _factory.Local(tmp));
+                return _factory.Sequence(tmp, asg1, asg2, result);
+            }
+            else
+            {
+                // bool Is<T>(this object i, out T o)
+                // {
+                //     // inefficient because it performs the type test twice.
+                //     bool s = i is T;
+                //     if (s) o = (T)i;
+                //     return s;
+                // }
+                throw new NotImplementedException();
+            }
+        }
+
         // input must be used no more than once in the result.
         BoundExpression TranslatePattern(BoundExpression input, BoundPattern pattern)
         {
@@ -28,64 +83,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DeclarationPattern:
                     {
                         var declPattern = (BoundDeclarationPattern)pattern;
-                        var type = declPattern.DeclaredType.Type;
+                        Debug.Assert(declPattern.LocalSymbol.Type == declPattern.DeclaredType.Type);
                         if (declPattern.IsVar)
                         {
-                            Debug.Assert(input.Type == type);
+                            Debug.Assert(input.Type == declPattern.LocalSymbol.Type);
                             var assignment = _factory.AssignmentExpression(_factory.Local(declPattern.LocalSymbol), input);
                             var result = _factory.Literal(true);
                             return _factory.Sequence(assignment, result);
                         }
-                        // a pattern match of the form "expression is Type identifier" is equivalent to
-                        // an invocation of one of these helpers:
-                        else if (type.IsReferenceType)
+
+                        return DeclPattern(syntax, input, declPattern.LocalSymbol);
+                    }
+                case BoundKind.PropertyPattern:
+                    {
+                        var pat = (BoundPropertyPattern)pattern;
+                        var temp = _factory.SynthesizedLocal(pat.Type);
+                        var matched = DeclPattern(syntax, input, temp);
+                        input = _factory.Local(temp);
+                        for (int i = 0; i < pat.Patterns.Length; i++)
                         {
-                            // bool Is<T>(object e, out T t) where T : class // reference type
-                            // {
-                            //     t = e as T;
-                            //     return t != null;
-                            // }
-                            var assignment = _factory.AssignmentExpression(_factory.Local(declPattern.LocalSymbol), _factory.As(input, type));
-                            var result = _factory.ObjectNotEqual(_factory.Local(declPattern.LocalSymbol), _factory.Null(type));
-                            return _factory.Sequence(assignment, result);
+                            var subProperty = pat.Properties[i];
+                            var subPattern = pat.Patterns[i];
+                            var subExpression =
+                                subProperty.Kind == SymbolKind.Field
+                                    ? (BoundExpression)_factory.Field(input, (FieldSymbol)subProperty)
+                                    : _factory.Call(input, ((PropertySymbol)subProperty).GetMethod);
+                            var partialMatch = this.TranslatePattern(subExpression, subPattern);
+                            matched = _factory.LogicalAnd(matched, partialMatch);
                         }
-                        else if (type.IsNullableType())
-                        {
-                            // bool Is<T>(object e, out T? t) where T : struct
-                            // {
-                            //     t = e as T?;
-                            //     return t.HasValue;
-                            // }
-                            throw new NotImplementedException();
-                        }
-                        else if (type.IsValueType)
-                        {
-                            // TODO: only assign t when returning true (avoid returning a new default value)
-                            // bool Is<T>(object e, out T t) where T : struct // non-Nullable value type
-                            // {
-                            //     T? tmp = e as T?;
-                            //     t = tmp.GetValueOrDefault();
-                            //     return tmp.HasValue;
-                            // }
-                            var tmpType = _factory.SpecialType(SpecialType.System_Nullable_T).Construct(type);
-                            var tmp = _factory.SynthesizedLocal(tmpType, syntax);
-                            var asg1 = _factory.AssignmentExpression(_factory.Local(tmp), _factory.As(input, tmpType));
-                            var value = _factory.Call(_factory.Local(tmp), GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
-                            var asg2 = _factory.AssignmentExpression(_factory.Local(declPattern.LocalSymbol), value);
-                            var result = MakeNullableHasValue(syntax, _factory.Local(tmp));
-                            return _factory.Sequence(tmp, asg1, asg2, result);
-                        }
-                        else
-                        {
-                            // bool Is<T>(this object i, out T o)
-                            // {
-                            //     // inefficient because it performs the type test twice.
-                            //     bool s = i is T;
-                            //     if (s) o = (T)i;
-                            //     return s;
-                            // }
-                            throw new NotImplementedException();
-                        }
+                        return _factory.Sequence(temp, matched);
                     }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(pattern.Kind);

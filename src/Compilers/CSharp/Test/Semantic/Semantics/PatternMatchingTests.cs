@@ -59,6 +59,65 @@ public class X
         }
 
         [Fact]
+        public void PropertyPatternTest()
+        {
+            var source =
+@"using System;
+public class Expression {}
+public class Constant : Expression
+{
+    public readonly int Value;
+    public Constant(int Value)
+    {
+        this.Value = Value;
+    }
+    //public static bool operator is(Constant self, out int Value)
+    //{
+    //    Value = self.Value;
+    //    return true;
+    //}
+}
+public class Plus : Expression
+{
+    public readonly Expression Left, Right;
+    public Plus(Expression Left, Expression Right)
+    {
+        this.Left = Left;
+        this.Right = Right;
+    }
+    //public static bool operator is(Plus self, out Expression Left, out Expression Right)
+    //{
+    //    Left = self.Left;
+    //    Right = self.Right;
+    //    return true;
+    //}
+}
+public class X
+{
+    public static void Main()
+    {
+        // ((1 + (2 + 3)) + 6)
+        Expression expr = new Plus(new Plus(new Constant(1), new Plus(new Constant(2), new Constant(3))), new Constant(6));
+        // The recursive form of this pattern would be 
+        //  expr is Plus(Plus(Constant(int x1), Plus(Constant(int x2), Constant(int x3))), Constant(int x6))
+        if (expr is Plus { Left is Plus { Left is Constant { Value is int x1 }, Right is Plus { Left is Constant { Value is int x2 }, Right is Constant { Value is int x3 } } }, Right is Constant { Value is int x6 } })
+        {
+            Console.WriteLine(""{0} {1} {2} {3}"", x1, x2, x3, x6);
+        }
+        else
+        {
+            Console.WriteLine(""wrong"");
+        }
+    }
+}";
+            var expectedOutput =
+@"1 2 3 6";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
         public void PatternErrors()
         {
             var source =
@@ -88,7 +147,7 @@ public class X
                 Diagnostic(ErrorCode.ERR_PatternNullableType, "NullableInt").WithArguments("int?", "int").WithLocation(10, 18),
                 // (11,18): error CS0030: Cannot convert type 'string' to 'long'
                 //         if (s is long l) { } // error: cannot convert string to long
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "long l").WithArguments("string", "long").WithLocation(11, 18)
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "long").WithArguments("string", "long").WithLocation(11, 18)
                 );
         }
     }
