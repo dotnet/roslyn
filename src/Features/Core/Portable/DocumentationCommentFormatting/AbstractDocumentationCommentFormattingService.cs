@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.DocumentationCommentFormatting
         internal static IEnumerable<SymbolDisplayPart> CrefToSymbolDisplayParts(string crefValue, int position, SemanticModel semanticModel, SymbolDisplayFormat format = null)
         {
             // first try to parse the symbol
-            if (semanticModel?.Compilation != null)
+            if (semanticModel != null)
             {
                 var symbol = DocumentationCommentId.GetFirstSymbolForDeclarationId(crefValue, semanticModel.Compilation);
                 if (symbol != null)
