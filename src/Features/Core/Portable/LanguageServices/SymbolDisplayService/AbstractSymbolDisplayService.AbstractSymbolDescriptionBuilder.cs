@@ -166,19 +166,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     {
                         parts.AddRange(LineBreak());
                         parts.AddRange(Space(count: 2));
-
-                        // try to get the actual exception symbol
-                        var exceptionSymbol = DocumentationCommentId.GetFirstSymbolForDeclarationId(exceptionString, _semanticModel.Compilation);
-                        if (exceptionSymbol != null)
-                        {
-                            parts.AddRange(_displayService.ToMinimalDisplayParts(_semanticModel, _position, exceptionSymbol));
-                        }
-                        else
-                        {
-                            // unable to parse exception symbol, fall back to displaying the raw text
-                            var displayText = AbstractDocumentationCommentFormattingService.TrimCrefPrefix(exceptionString);
-                            parts.Add(new SymbolDisplayPart(kind: SymbolDisplayPartKind.Text, symbol: null, text: displayText));
-                        }
+                        parts.AddRange(AbstractDocumentationCommentFormattingService.CrefToSymbolDisplayParts(exceptionString, _position, _semanticModel));
                     }
 
                     AddToGroup(SymbolDescriptionGroups.Exceptions, parts);

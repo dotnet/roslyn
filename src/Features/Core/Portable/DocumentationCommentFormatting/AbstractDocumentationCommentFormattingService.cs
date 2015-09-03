@@ -5,6 +5,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DocumentationCommentFormatting
 {
@@ -58,28 +59,6 @@ namespace Microsoft.CodeAnalysis.DocumentationCommentFormatting
                 Builder.AddRange(parts);
 
                 _anyNonWhitespaceSinceLastPara = true;
-            }
-
-            public bool TryAppendSymbol(ISymbol symbol)
-            {
-                if (symbol == null)
-                {
-                    return false;
-                }
-
-                var format = Format;
-                if (symbol.IsConstructor())
-                {
-                    format = format.WithMemberOptions(SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeExplicitInterface);
-                }
-
-                var parts = SemanticModel != null
-                    ? symbol.ToMinimalDisplayParts(SemanticModel, Position, format)
-                    : symbol.ToDisplayParts(format);
-
-                AppendParts(parts);
-
-                return true;
             }
 
             public void MarkBeginOrEndPara()
@@ -177,13 +156,13 @@ namespace Microsoft.CodeAnalysis.DocumentationCommentFormatting
             if (name == "see" ||
                 name == "seealso")
             {
-                AppendTextFromSeeTag(state, element, compilation);
+                AppendTextFromAttribute(state, element, "cref");
                 return;
             }
             else if (name == "paramref" ||
-                    name == "typeparamref")
+                     name == "typeparamref")
             {
-                AppendTextFromTagWithNameAttribute(state, element, compilation);
+                AppendTextFromAttribute(state, element, "name");
                 return;
             }
 
@@ -203,47 +182,39 @@ namespace Microsoft.CodeAnalysis.DocumentationCommentFormatting
             }
         }
 
-        private static void AppendTextFromTagWithNameAttribute(FormatterState state, XElement element, Compilation compilation)
+        private static void AppendTextFromAttribute(FormatterState state, XElement element, string attributeName)
         {
-            var nameAttribute = element.Attribute("name");
-
-            if (nameAttribute == null)
+            var attribute = element.Attribute(attributeName);
+            if (attribute == null)
             {
                 return;
             }
 
-            if (compilation != null && state.TryAppendSymbol(DocumentationCommentId.GetFirstSymbolForDeclarationId(nameAttribute.Value, compilation)))
-            {
-                return;
-            }
-            else
-            {
-                state.AppendString(TrimCrefPrefix(nameAttribute.Value));
-            }
+            state.AppendParts(CrefToSymbolDisplayParts(attribute.Value, state.Position, state.SemanticModel, state.Format));
         }
 
-        private static void AppendTextFromSeeTag(FormatterState state, XElement element, Compilation compilation)
+        internal static IEnumerable<SymbolDisplayPart> CrefToSymbolDisplayParts(string crefValue, int position, SemanticModel semanticModel, SymbolDisplayFormat format = null)
         {
-            var crefAttribute = element.Attribute("cref");
-
-            if (crefAttribute == null)
+            // first try to parse the symbol
+            if (semanticModel?.Compilation != null)
             {
-                return;
+                var symbol = DocumentationCommentId.GetFirstSymbolForDeclarationId(crefValue, semanticModel.Compilation);
+                if (symbol != null)
+                {
+                    if (symbol.IsConstructor())
+                    {
+                        format = format.WithMemberOptions(SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeExplicitInterface);
+                    }
+
+                    return symbol.ToMinimalDisplayParts(semanticModel, position, format);
+                }
             }
 
-            var crefValue = crefAttribute.Value;
-
-            if (compilation != null && state.TryAppendSymbol(DocumentationCommentId.GetFirstSymbolForDeclarationId(crefValue, compilation)))
-            {
-                return;
-            }
-            else
-            {
-                state.AppendString(TrimCrefPrefix(crefValue));
-            }
+            // if any of that fails fall back to just displaying the raw text
+            return SpecializedCollections.SingletonEnumerable(new SymbolDisplayPart(kind: SymbolDisplayPartKind.Text, symbol: null, text: TrimCrefPrefix(crefValue)));
         }
 
-        internal static string TrimCrefPrefix(string value)
+        private static string TrimCrefPrefix(string value)
         {
             if (value.Length >= 2 && value[1] == ':')
             {
