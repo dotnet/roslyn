@@ -138,6 +138,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ProjectSystem\LanguageServices\VisualBasicLanguageService.cs" />
     <Compile Include="ProjectSystem\Designers\Imaging\VisualBasicProjectImageProvider.cs" />
     <Compile Include="ProjectSystem\Designers\VisualBasicProjectDesignerPage.cs" />
     <Compile Include="ProjectSystem\Designers\VisualBasicProjectDesignerPageProvider.cs" />

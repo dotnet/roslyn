@@ -142,6 +142,8 @@
     <Compile Include="ProjectSystem\Designers\CSharpProjectDesignerPageProvider.cs" />
     <Compile Include="ProjectSystem\Designers\Imaging\CSharpProjectImageProvider.cs" />
     <Compile Include="ProjectSystem\LanguageServices\CSharpCodeDomProvider.cs" />
+    <Compile Include="ProjectSystem\LanguageServices\CSharpLanguageFeaturesProvider.cs" />
+    <Compile Include="ProjectSystem\LanguageServices\CSharpLanguageService.cs" />
     <Compile Include="ProjectSystem\Templating\CSharpItemTemplatesGuidProvider.cs" />
     <Compile Include="ProjectSystem\Templating\CSharpItemTypeGuidProvider.cs" />
   </ItemGroup>
