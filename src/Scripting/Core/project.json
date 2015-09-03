@@ -17,7 +17,7 @@
     "System.Runtime.InteropServices": "4.0.20",
     "System.Threading": "4.0.10",
     "System.Threading.Tasks": "4.0.10"
-  }, 
+  },
   "frameworks": {
     "dotnet": {
       "imports": "portable-net452"

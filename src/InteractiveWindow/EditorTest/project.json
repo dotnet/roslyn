@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "BasicUndo": "0.9.3",
+    "Moq": "4.2.1402.2112",
+    "System.Diagnostics.Debug": "4.0.10",
+    "System.Runtime": "4.0.20",
+    "System.Runtime.Extensions": "4.0.10",
+    "xunit": "1.9.2"
+  },
+  "frameworks": {
+    "net46": { }
+  }
+}
