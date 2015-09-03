@@ -24,5 +24,24 @@ namespace Microsoft.VisualStudio.Shell.Interop
 
             return result;
         }
+
+        /// <summary>
+        ///     Gets the value of the specified property if the hierarchy supports it.
+        /// </summary>
+        public static T GetProperty<T>(this IVsHierarchy hierarchy, VsHierarchyPropID property, T defaultValue)
+        {
+            Requires.NotNull(hierarchy, nameof(hierarchy));
+            
+            object resultObject;
+            HResult hr = hierarchy.GetProperty(HierarchyId.Root, (int)property, out resultObject);
+            if (hr == VSConstants.DISP_E_MEMBERNOTFOUND)
+                return defaultValue;
+
+            if (hr.Failed)
+                throw hr.Exception;
+
+            // NOTE: We consider it a bug in the underlying project system or the caller if this cast fails
+            return (T)resultObject;
+        }
     }
 }

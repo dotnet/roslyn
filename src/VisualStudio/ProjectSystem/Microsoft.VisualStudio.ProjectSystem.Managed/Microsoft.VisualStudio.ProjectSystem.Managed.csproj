@@ -129,6 +129,7 @@
     <Compile Include="VisualStudio\ProjectSystem\VS\Designers\Input\Commands\OpenAppDesignerCommand.cs" />
     <Compile Include="VisualStudio\ProjectSystem\VS\Designers\Input\Commands\OpenAppDesignerOnDefaultActionCommand.cs" />
     <Compile Include="VisualStudio\ProjectSystem\VS\Designers\Input\Commands\OpenAppDesignerCommandBase.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\VS\Designers\ProjectDesignerPageMetadata.cs" />
     <Compile Include="VisualStudio\Shell\HierarchyId.cs" />
     <Compile Include="VisualStudio\ProjectSystem\IAddItemTemplatesGuidProvider.cs" />
     <Compile Include="VisualStudio\ProjectSystem\IItemTypeGuidProvider.cs" />

@@ -25,19 +25,19 @@ namespace Microsoft.VisualStudio.ProjectSystem.VS.Designers.Input.Commands
             _threadHandling = threadHandling;
         }
 
-        protected override Task<CommandStatusResult> GetCommandStatusAsync(IProjectTree node, bool focused, string commandText, CommandStatus progressiveStatus)
+        protected override async Task<CommandStatusResult> GetCommandStatusAsync(IProjectTree node, bool focused, string commandText, CommandStatus progressiveStatus)
         {
-            if (node.Capabilities.Contains(ProjectTreeCapabilities.AppDesignerFolder))
+            if (node.Capabilities.Contains(ProjectTreeCapabilities.AppDesignerFolder) && await GetSupportsAppDesignerAsync())
             {
-                return GetCommandStatusResult.Handled(commandText, CommandStatus.Enabled);
+                return new CommandStatusResult(true, commandText, CommandStatus.Enabled | CommandStatus.Supported);
             }
 
-            return GetCommandStatusResult.Unhandled;
+            return CommandStatusResult.Unhandled;
         }
 
         protected override async Task<bool> TryHandleCommandAsync(IProjectTree node, bool focused, long commandExecuteOptions, IntPtr variantArgIn, IntPtr variantArgOut)
         {
-            if (node.Capabilities.Contains(ProjectTreeCapabilities.AppDesignerFolder))
+            if (node.Capabilities.Contains(ProjectTreeCapabilities.AppDesignerFolder) && await GetSupportsAppDesignerAsync())
             {
                 await _threadHandling.SwitchToUIThread();
 
@@ -56,6 +56,13 @@ namespace Microsoft.VisualStudio.ProjectSystem.VS.Designers.Input.Commands
             }
 
             return false;
+        }
+
+        public async Task<bool> GetSupportsAppDesignerAsync()
+        {
+            await _threadHandling.SwitchToUIThread();
+
+            return _projectServices.Hierarchy.GetProperty(VsHierarchyPropID.SupportsProjectDesigner, defaultValue: false);
         }
     }
 }

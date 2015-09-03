@@ -129,6 +129,8 @@
   <ItemGroup>
     <Compile Include="VisualStudio\ProjectSystem\VisualBasic\LanguageServices\VisualBasicCodeDomProvider.cs" />
     <Compile Include="VisualStudio\ProjectSystem\VisualBasic\Designers\MyProjectFolderProjectTreeModifier.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\VisualBasic\VS\Designers\VisualBasicProjectDesignerPageProvider.cs" />
+    <Compile Include="VisualStudio\ProjectSystem\VisualBasic\VS\Designers\VisualBasicProjectDesignerPage.cs" />
     <Compile Include="VisualStudio\ProjectSystem\VisualBasic\VS\Designers\Imaging\VisualBasicProjectImageProvider.cs" />
     <Compile Include="VisualStudio\ProjectSystem\VisualBasic\VS\Templating\VisualBasicItemTemplatesGuidProvider.cs" />
     <Compile Include="VisualStudio\ProjectSystem\VisualBasic\VS\Templating\VisualBasicItemTypeGuidProvider.cs" />
