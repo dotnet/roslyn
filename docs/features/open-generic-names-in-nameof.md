@@ -4,10 +4,40 @@ Allow Open Generic Names (i.e. ```Dictionary<,>```) to be used within a ```nameo
 #### Grammar changes  
 To implement this we first change the grammar in the following ways:
 
-named-entity:  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;simple-name  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;named-entity-target   .   identifier   type-argument-listopt  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+unbound-type-name  
+type-arguments:  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type-argument  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type-arguments   ,   type-argument  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+dim-separators_opt   
+
+typeof-expression:  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~~typeof   (   type   )~~  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~~typeof   (   unbound-type-name   )~~  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~~typeof ( void )~~  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;typeof   (   typeof-type   ) 
+
++typeof-type:  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+void  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+type
+
+~~unbound-type-name:~~  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~~identifier   generic-dimension-specifieropt~~  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~~identifier   ::   identifier   generic-dimension-specifieropt~~  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~~unbound-type-name   .   identifier   generic-dimension-specifieropt~~  
+
+~~generic-dimension-specifier:~~  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~~<   commasopt   >~~  
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~~commas:~~  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~~,~~  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~~commas   ,~~
+
+
+
+
+This grammar naturally precludes things like ```A<int,>```.  
+
+We would then have normative text saying something akin to "it is an error to produce this last type of type-arguments unless the root grammar production is 'named-entity'".  This means that it would be an error to have 
+
 
 Note: this is what we would need to effectively change on the grammar side.  We would have to explain in depth that, unlike typeof, you can refer to a member as the last name in the un "unbound-type-name".
 
