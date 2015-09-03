@@ -16,12 +16,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     internal abstract class AbstractTableEntriesSnapshot<TData> : ITableEntriesSnapshot
     {
         private readonly int _version;
-        private readonly ImmutableArray<TData> _items;
+        private readonly ImmutableArray<TableItem<TData>> _items;
         private ImmutableArray<ITrackingPoint> _trackingPoints;
 
         protected readonly Guid ProjectGuid;
 
-        protected AbstractTableEntriesSnapshot(int version, Guid projectGuid, ImmutableArray<TData> items, ImmutableArray<ITrackingPoint> trackingPoints)
+        protected AbstractTableEntriesSnapshot(int version, Guid projectGuid, ImmutableArray<TableItem<TData>> items, ImmutableArray<ITrackingPoint> trackingPoints)
         {
             _version = version;
             _items = items;
@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         public int IndexOf(int index, ITableEntriesSnapshot newerSnapshot)
         {
-            var item = GetItem(index);
+            var item = GetItem(index).Primary;
             if (item == null)
             {
                 return -1;
@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             // quick path - this will deal with a case where we update data without any actual change
             if (this.Count == ourSnapshot.Count)
             {
-                var newItem = ourSnapshot.GetItem(index);
+                var newItem = ourSnapshot.GetItem(index).Primary;
                 if (newItem != null && newItem.Equals(item))
                 {
                     return index;
@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             var bestMatch = Tuple.Create(-1, int.MaxValue);
             for (var i = 0; i < ourSnapshot.Count; i++)
             {
-                var newItem = ourSnapshot.GetItem(i);
+                var newItem = ourSnapshot.GetItem(i).Primary;
                 if (IsEquivalent(item, newItem))
                 {
                     return i;
@@ -101,11 +101,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             StopTracking();
         }
 
-        protected TData GetItem(int index)
+        protected TableItem<TData> GetItem(int index)
         {
             if (index < 0 || _items.Length <= index)
             {
-                return default(TData);
+                return default(TableItem<TData>);
             }
 
             return _items[index];

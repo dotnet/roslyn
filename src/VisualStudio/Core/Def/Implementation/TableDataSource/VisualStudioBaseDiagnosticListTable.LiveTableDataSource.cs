@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -18,7 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    internal abstract partial class VisualStudioBaseDiagnosticListTable : AbstractTable<DiagnosticsUpdatedArgs, DiagnosticData>
+    internal abstract partial class VisualStudioBaseDiagnosticListTable
     {
         protected class LiveTableDataSource : AbstractRoslynTableDataSource<DiagnosticData>
         {
@@ -26,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private readonly IDiagnosticService _diagnosticService;
             private readonly IServiceProvider _serviceProvider;
             private readonly Workspace _workspace;
-            private readonly OpenDocumentTracker _tracker;
+            private readonly OpenDocumentTracker<DiagnosticData> _tracker;
 
             public LiveTableDataSource(IServiceProvider serviceProvider, Workspace workspace, IDiagnosticService diagnosticService, string identifier) :
                 base(workspace)
@@ -35,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 _serviceProvider = serviceProvider;
                 _identifier = identifier;
 
-                _tracker = new OpenDocumentTracker(_workspace);
+                _tracker = new OpenDocumentTracker<DiagnosticData>(_workspace);
 
                 _diagnosticService = diagnosticService;
                 _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
@@ -45,6 +46,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public override string SourceTypeIdentifier => StandardTableDataSources.ErrorTableDataSource;
             public override string Identifier => _identifier;
             public override object GetItemKey(object data) => ((DiagnosticsUpdatedArgs)data).Id;
+
+            public override ImmutableArray<TableItem<DiagnosticData>> Deduplicate(IEnumerable<IList<TableItem<DiagnosticData>>> groupedItems)
+            {
+                return groupedItems.MergeDuplicatesOrderedBy(Order);
+            }
+
+            public override ITrackingPoint CreateTrackingPoint(DiagnosticData data, ITextSnapshot snapshot)
+            {
+                return snapshot.CreateTrackingPoint(data.DataLocation?.OriginalStartLine ?? 0, data.DataLocation?.OriginalStartColumn ?? 0);
+            }
 
             protected override object GetAggregationKey(object data)
             {
@@ -74,21 +85,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 OnDataAddedOrChanged(e);
             }
 
-            private static bool ShouldInclude(DiagnosticData diagnostic)
-            {
-                return diagnostic.Severity != DiagnosticSeverity.Hidden;
-            }
-
             public override AbstractTableEntriesSource<DiagnosticData> CreateTableEntrySource(object data)
             {
                 var item = (DiagnosticsUpdatedArgs)data;
                 return new TableEntriesSource(this, item.Workspace, item.ProjectId, item.DocumentId, item.Id);
             }
 
-            private ImmutableArray<DocumentId> GetRelatedDocumentIds(DiagnosticsUpdatedArgs data)
+            private static bool ShouldInclude(DiagnosticData diagnostic)
             {
-                var document = data.Solution.GetDocument(data.DocumentId);
-                return document.GetLinkedDocumentIds().Add(data.DocumentId);
+                return diagnostic.Severity != DiagnosticSeverity.Hidden;
+            }
+
+            private static IEnumerable<TableItem<DiagnosticData>> Order(IEnumerable<TableItem<DiagnosticData>> groupedItems)
+            {
+                // this should make order of result always deterministic. we only need these 6 values since data with all these same will merged to one.
+                return groupedItems.OrderBy(d => d.Primary.DataLocation?.OriginalStartLine ?? 0)
+                                   .ThenBy(d => d.Primary.DataLocation?.OriginalStartColumn ?? 0)
+                                   .ThenBy(d => d.Primary.Id)
+                                   .ThenBy(d => d.Primary.Message)
+                                   .ThenBy(d => d.Primary.DataLocation?.OriginalEndLine ?? 0)
+                                   .ThenBy(d => d.Primary.DataLocation?.OriginalEndColumn ?? 0);
             }
 
             private class TableEntriesSource : AbstractTableEntriesSource<DiagnosticData>
@@ -112,24 +128,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public override object Key => _id;
 
-                public override ImmutableArray<DiagnosticData> GetItems()
+                public override ImmutableArray<TableItem<DiagnosticData>> GetItems()
                 {
                     var provider = _source._diagnosticService;
                     var items = provider.GetDiagnostics(_workspace, _projectId, _documentId, _id, CancellationToken.None)
-                                        .Where(ShouldInclude);
+                                        .Where(ShouldInclude).Select(d => new TableItem<DiagnosticData>(d, GenerateDeduplicationKey));
 
                     return items.ToImmutableArrayOrEmpty();
                 }
 
-                public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<DiagnosticData> items)
+                public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TableItem<DiagnosticData>> items)
                 {
-                    return CreateTrackingPoints(_workspace, _documentId, items, (d, s) => CreateTrackingPoint(s,
-                        d.DataLocation?.OriginalStartLine ?? 0,
-                        d.DataLocation?.OriginalStartColumn ?? 0));
+                    return _workspace.CreateTrackingPoints(_documentId, items, _source.CreateTrackingPoint);
                 }
 
                 public override AbstractTableEntriesSnapshot<DiagnosticData> CreateSnapshot(
-                    int version, ImmutableArray<DiagnosticData> items, ImmutableArray<ITrackingPoint> trackingPoints)
+                    int version, ImmutableArray<TableItem<DiagnosticData>> items, ImmutableArray<ITrackingPoint> trackingPoints)
                 {
                     var snapshot = new TableEntriesSnapshot(this, version, items, trackingPoints);
 
@@ -142,13 +156,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return snapshot;
                 }
 
+                private int GenerateDeduplicationKey(DiagnosticData diagnostic)
+                {
+                    if (diagnostic.DataLocation == null)
+                    {
+                        return diagnostic.GetHashCode();
+                    }
+
+                    return Hash.Combine(diagnostic.DataLocation.OriginalStartColumn,
+                           Hash.Combine(diagnostic.DataLocation.OriginalStartLine,
+                           Hash.Combine(diagnostic.DataLocation.OriginalEndColumn,
+                           Hash.Combine(diagnostic.DataLocation.OriginalEndLine,
+                           Hash.Combine(diagnostic.Id.GetHashCode(), diagnostic.Message.GetHashCode())))));
+                }
+
                 private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<DiagnosticData>, IWpfTableEntriesSnapshot
                 {
                     private readonly TableEntriesSource _factorySource;
                     private FrameworkElement[] _descriptions;
 
                     public TableEntriesSnapshot(
-                        TableEntriesSource factorySource, int version, ImmutableArray<DiagnosticData> items, ImmutableArray<ITrackingPoint> trackingPoints) :
+                        TableEntriesSource factorySource, int version, ImmutableArray<TableItem<DiagnosticData>> items, ImmutableArray<ITrackingPoint> trackingPoints) :
                         base(version, GetProjectGuid(factorySource._workspace, factorySource._projectId), items, trackingPoints)
                     {
                         _factorySource = factorySource;
@@ -158,7 +186,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     {
                         // REVIEW: this method is too-chatty to make async, but otherwise, how one can implement it async?
                         //         also, what is cancellation mechanism?
-                        var item = GetItem(index);
+                        var data = GetItem(index);
+
+                        var item = data.Primary;
                         if (item == null)
                         {
                             content = null;
@@ -204,9 +234,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = item.DataLocation?.MappedStartColumn ?? 0;
                                 return true;
                             case StandardTableKeyNames.ProjectName:
+                                // TODO: need to change projectId from item
                                 content = GetProjectName(_factorySource._workspace, _factorySource._projectId);
                                 return content != null;
                             case StandardTableKeyNames.ProjectGuid:
+                                // TODO: need to change projectGuid from item
                                 content = ProjectGuid;
                                 return ProjectGuid != Guid.Empty;
                             default:
@@ -275,7 +307,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             return false;
                         }
 
-                        var item = GetItem(index);
+                        var item = GetItem(index).Primary;
                         if (item == null)
                         {
                             return false;
@@ -311,7 +343,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                     public bool CanCreateDetailsContent(int index)
                     {
-                        var item = GetItem(index);
+                        var item = GetItem(index).Primary;
                         if (item == null)
                         {
                             return false;
@@ -322,7 +354,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                     public bool TryCreateDetailsContent(int index, out FrameworkElement expandedContent)
                     {
-                        var item = GetItem(index);
+                        var item = GetItem(index).Primary;
                         if (item == null)
                         {
                             expandedContent = default(FrameworkElement);
@@ -335,7 +367,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                     public bool TryCreateDetailsStringContent(int index, out string content)
                     {
-                        var item = GetItem(index);
+                        var item = GetItem(index).Primary;
                         if (item == null)
                         {
                             content = default(string);

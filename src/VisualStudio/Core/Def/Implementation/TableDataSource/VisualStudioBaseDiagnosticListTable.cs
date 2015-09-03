@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    internal abstract partial class VisualStudioBaseDiagnosticListTable : AbstractTable<DiagnosticsUpdatedArgs, DiagnosticData>
+    internal abstract partial class VisualStudioBaseDiagnosticListTable : AbstractTable
     {
         private static readonly string[] s_columns = new string[]
         {

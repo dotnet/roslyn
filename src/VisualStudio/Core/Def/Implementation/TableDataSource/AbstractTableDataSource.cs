@@ -4,7 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Shell.TableManager;
+using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
@@ -16,14 +18,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private ImmutableArray<SubscriptionWithoutLock> _subscriptions;
         protected bool IsStable;
 
-        public AbstractTableDataSource()
+        public AbstractTableDataSource(Workspace workspace)
         {
             _gate = new object();
             _map = new Dictionary<object, TableEntriesFactory<TData>>();
             _subscriptions = ImmutableArray<SubscriptionWithoutLock>.Empty;
 
+            Workspace = workspace;
             IsStable = true;
         }
+
+        public Workspace Workspace { get; }
 
         public abstract string DisplayName { get; }
 
@@ -60,6 +65,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         public abstract object GetItemKey(object data);
         public abstract AbstractTableEntriesSource<TData> CreateTableEntrySource(object data);
+        public abstract ImmutableArray<TableItem<TData>> Deduplicate(IEnumerable<IList<TableItem<TData>>> duplicatedGroups);
+        public abstract ITrackingPoint CreateTrackingPoint(TData data, ITextSnapshot snapshot);
 
         protected abstract object GetAggregationKey(object data);
 

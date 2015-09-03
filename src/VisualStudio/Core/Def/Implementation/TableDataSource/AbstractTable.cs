@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    internal abstract class AbstractTable<TArgs, TData>
+    internal abstract class AbstractTable
     {
         private readonly Workspace _workspace;
         private readonly ITableManagerProvider _provider;

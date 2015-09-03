@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    internal class VisualStudioBaseTodoListTable : AbstractTable<TodoListEventArgs, TodoItem>
+    internal class VisualStudioBaseTodoListTable : AbstractTable
     {
         private static readonly string[] s_columns = new string[]
         {
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public override string DisplayName => ServicesVSResources.TodoTableSourceName;
             public override string SourceTypeIdentifier => StandardTableDataSources.CommentTableDataSource;
             public override string Identifier => _identifier;
-            public override object GetItemKey(object data) => ((TodoListEventArgs)data).Id;
+            public override object GetItemKey(object data) => ((TodoListEventArgs)data).DocumentId;
 
             protected override object GetAggregationKey(object data)
             {
@@ -91,6 +91,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return args.Id;
             }
 
+            public override ImmutableArray<TableItem<TodoItem>> Deduplicate(IEnumerable<IList<TableItem<TodoItem>>> groupedItems)
+            {
+                return groupedItems.MergeDuplicatesOrderedBy(Order);
+            }
+
+            public override ITrackingPoint CreateTrackingPoint(TodoItem data, ITextSnapshot snapshot)
+            {
+                return snapshot.CreateTrackingPoint(data.OriginalLine, data.OriginalColumn);
+            }
+
+            private static IEnumerable<TableItem<TodoItem>> Order(IEnumerable<TableItem<TodoItem>> groupedItems)
+            {
+                return groupedItems.OrderBy(d => d.Primary.OriginalLine)
+                                   .ThenBy(d => d.Primary.OriginalColumn);
+            }
 
             private void OnTodoListUpdated(object sender, TodoListEventArgs e)
             {
@@ -131,23 +146,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public override object Key => _documentId;
 
-                public override ImmutableArray<TodoItem> GetItems()
+                public override ImmutableArray<TableItem<TodoItem>> GetItems()
                 {
                     var provider = _source._todoListProvider;
 
                     // TODO: remove this wierd cast once we completely move off legacy task list. we, for now, need this since we share data
                     //       between old and new API.
-                    return provider.GetTodoItems(_workspace, _documentId, CancellationToken.None).Cast<TodoItem>().ToImmutableArray();
+                    return provider.GetTodoItems(_workspace, _documentId, CancellationToken.None)
+                                   .Select(i => new TableItem<TodoItem>(i, GenerateDeduplicationKey))
+                                   .ToImmutableArray();
                 }
 
-                public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TodoItem> items)
+                public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TableItem<TodoItem>> items)
                 {
-                    return CreateTrackingPoints(_workspace, _documentId, items, (d, s) => CreateTrackingPoint(s, d.OriginalLine, d.OriginalColumn));
+                    return _workspace.CreateTrackingPoints(_documentId, items, _source.CreateTrackingPoint);
                 }
 
-                public override AbstractTableEntriesSnapshot<TodoItem> CreateSnapshot(int version, ImmutableArray<TodoItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
+                public override AbstractTableEntriesSnapshot<TodoItem> CreateSnapshot(int version, ImmutableArray<TableItem<TodoItem>> items, ImmutableArray<ITrackingPoint> trackingPoints)
                 {
                     return new TableEntriesSnapshot(this, version, items, trackingPoints);
+                }
+
+                private int GenerateDeduplicationKey(TodoItem item)
+                {
+                    return Hash.Combine(item.OriginalColumn, item.OriginalLine);
                 }
 
                 private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<TodoItem>
@@ -155,7 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     private readonly TableEntriesSource _factorySource;
 
                     public TableEntriesSnapshot(
-                        TableEntriesSource factorySource, int version, ImmutableArray<TodoItem> items, ImmutableArray<ITrackingPoint> trackingPoints) :
+                        TableEntriesSource factorySource, int version, ImmutableArray<TableItem<TodoItem>> items, ImmutableArray<ITrackingPoint> trackingPoints) :
                         base(version, GetProjectGuid(factorySource._workspace, factorySource._documentId.ProjectId), items, trackingPoints)
                     {
                         _factorySource = factorySource;
@@ -165,7 +187,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     {
                         // REVIEW: this method is too-chatty to make async, but otherwise, how one can implement it async?
                         //         also, what is cancellation mechanism?
-                        var item = GetItem(index);
+                        var data = GetItem(index);
+
+                        var item = data.Primary;
                         if (item == null)
                         {
                             content = null;
@@ -190,9 +214,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = GetLineColumn(item).Character;
                                 return true;
                             case StandardTableKeyNames.ProjectName:
+                                // TODO: get project name from item
                                 content = GetProjectName(_factorySource._workspace, _factorySource._documentId.ProjectId);
                                 return content != null;
                             case StandardTableKeyNames.ProjectGuid:
+                                // TODO: get project guid from item
                                 content = ProjectGuid;
                                 return ProjectGuid != Guid.Empty;
                             case StandardTableKeyNames.TaskCategory:
@@ -217,7 +243,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                     public override bool TryNavigateTo(int index, bool previewTab)
                     {
-                        var item = GetItem(index);
+                        var item = GetItem(index).Primary;
                         if (item == null)
                         {
                             return false;

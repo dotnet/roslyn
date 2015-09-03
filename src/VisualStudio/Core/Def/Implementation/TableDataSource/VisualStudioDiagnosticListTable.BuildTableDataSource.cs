@@ -1,12 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
@@ -17,7 +20,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private readonly Workspace _workspace;
             private readonly ExternalErrorDiagnosticUpdateSource _buildErrorSource;
 
-            public BuildTableDataSource(Workspace workspace, ExternalErrorDiagnosticUpdateSource errorSource)
+            public BuildTableDataSource(Workspace workspace, ExternalErrorDiagnosticUpdateSource errorSource) :
+                base(workspace)
             {
                 _workspace = workspace;
                 _buildErrorSource = errorSource;
@@ -68,6 +72,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return new TableEntriesSource(this, _workspace);
             }
 
+            public override ImmutableArray<TableItem<DiagnosticData>> Deduplicate(IEnumerable<IList<TableItem<DiagnosticData>>> groupedItems)
+            {
+                return groupedItems.MergeDuplicatesOrderedBy(Order);
+            }
+
+            public override ITrackingPoint CreateTrackingPoint(DiagnosticData data, ITextSnapshot snapshot)
+            {
+                return Contract.FailWithReturn<ITrackingPoint>("Build doesn't support tracking point");
+            }
+
+            private static IEnumerable<TableItem<DiagnosticData>> Order(IEnumerable<TableItem<DiagnosticData>> groupedItems)
+            {
+                // this should make order of result always deterministic.
+                return groupedItems.OrderBy(d => d.Primary.ProjectId?.Id ?? Guid.Empty)
+                                   .ThenBy(d => d.Primary.DocumentId?.Id ?? Guid.Empty)
+                                   .ThenBy(d => d.Primary.DataLocation?.OriginalStartLine ?? 0)
+                                   .ThenBy(d => d.Primary.DataLocation?.OriginalStartColumn ?? 0)
+                                   .ThenBy(d => d.Primary.Id)
+                                   .ThenBy(d => d.Primary.Message)
+                                   .ThenBy(d => d.Primary.DataLocation?.OriginalEndLine ?? 0)
+                                   .ThenBy(d => d.Primary.DataLocation?.OriginalEndColumn ?? 0);
+            }
+
             private class TableEntriesSource : AbstractTableEntriesSource<DiagnosticData>
             {
                 private readonly BuildTableDataSource _source;
@@ -81,20 +108,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public override object Key => this;
 
-                public override ImmutableArray<DiagnosticData> GetItems()
+                public override ImmutableArray<TableItem<DiagnosticData>> GetItems()
                 {
-                    return _source._buildErrorSource.GetBuildErrors();
+                    var groupedItems = _source._buildErrorSource
+                                               .GetBuildErrors()
+                                               .Select(d => new TableItem<DiagnosticData>(d, GenerateDeduplicationKey))
+                                               .GroupBy(d => d.DeduplicationKey)
+                                               .Select(g => (IList<TableItem<DiagnosticData>>)g)
+                                               .ToImmutableArray();
+
+                    return _source.Deduplicate(groupedItems);
                 }
 
-                public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<DiagnosticData> items)
+                public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TableItem<DiagnosticData>> items)
                 {
                     return ImmutableArray<ITrackingPoint>.Empty;
                 }
 
                 public override AbstractTableEntriesSnapshot<DiagnosticData> CreateSnapshot(
-                    int version, ImmutableArray<DiagnosticData> items, ImmutableArray<ITrackingPoint> trackingPoints)
+                    int version, ImmutableArray<TableItem<DiagnosticData>> items, ImmutableArray<ITrackingPoint> trackingPoints)
                 {
                     return new TableEntriesSnapshot(this, version, items);
+                }
+
+                private int GenerateDeduplicationKey(DiagnosticData diagnostic)
+                {
+                    if (diagnostic.DataLocation == null ||
+                        diagnostic.DataLocation.OriginalFilePath == null)
+                    {
+                        return diagnostic.GetHashCode();
+                    }
+
+                    return Hash.Combine(diagnostic.DataLocation.OriginalStartColumn,
+                           Hash.Combine(diagnostic.DataLocation.OriginalStartLine,
+                           Hash.Combine(diagnostic.DataLocation.OriginalEndColumn,
+                           Hash.Combine(diagnostic.DataLocation.OriginalEndLine,
+                           Hash.Combine(diagnostic.DataLocation.OriginalFilePath,
+                           Hash.Combine(diagnostic.Id.GetHashCode(), diagnostic.Message.GetHashCode()))))));
                 }
 
                 private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<DiagnosticData>
@@ -102,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     private readonly TableEntriesSource _factorySource;
 
                     public TableEntriesSnapshot(
-                        TableEntriesSource factorySource, int version, ImmutableArray<DiagnosticData> items) :
+                        TableEntriesSource factorySource, int version, ImmutableArray<TableItem<DiagnosticData>> items) :
                         base(version, Guid.Empty, items, ImmutableArray<ITrackingPoint>.Empty)
                     {
                         _factorySource = factorySource;
@@ -112,7 +162,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     {
                         // REVIEW: this method is too-chatty to make async, but otherwise, how one can implement it async?
                         //         also, what is cancellation mechanism?
-                        var item = GetItem(index);
+                        var data = GetItem(index);
+
+                        var item = data.Primary;
                         if (item == null)
                         {
                             content = null;
@@ -158,9 +210,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = item.DataLocation?.MappedStartColumn ?? 0;
                                 return true;
                             case StandardTableKeyNames.ProjectName:
+                                // TODO: make it multiple projectId
                                 content = GetProjectName(_factorySource._workspace, item.ProjectId);
                                 return content != null;
                             case StandardTableKeyNames.ProjectGuid:
+                                // TODO: same here
                                 var guid = GetProjectGuid(_factorySource._workspace, item.ProjectId);
                                 content = guid;
                                 return guid != Guid.Empty;
@@ -172,7 +226,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                     public override bool TryNavigateTo(int index, bool previewTab)
                     {
-                        var item = GetItem(index);
+                        var item = GetItem(index).Primary;
                         if (item == null)
                         {
                             return false;

@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     internal abstract class AbstractRoslynTableDataSource<TData> : AbstractTableDataSource<TData>
     {
-        public AbstractRoslynTableDataSource(Workspace workspace)
+        public AbstractRoslynTableDataSource(Workspace workspace) : base(workspace)
         {
             ConnectToSolutionCrawlerService(workspace);
         }
