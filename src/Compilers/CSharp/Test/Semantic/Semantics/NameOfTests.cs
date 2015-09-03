@@ -1358,6 +1358,22 @@ class Test {
         }
 
         [Fact, WorkItem(4827, "https://github.com/dotnet/roslyn/issues/4827")]
+        public void NameofWithMultipleMemberAccess()
+        {
+            var source =
+@"
+class C<T> { public string Field = """"; }
+class Test {
+  void M(string s = nameof(C<>.Field.Length)) {
+  }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+                // (4,28): error CS0120: An object reference is required for the non-static field, method, or property 'C<>.Field'
+                //   void M(string s = nameof(C<>.Field.Length)) {
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C<>.Field").WithArguments("C<>.Field").WithLocation(4, 28));
+        }
+
+        [Fact, WorkItem(4827, "https://github.com/dotnet/roslyn/issues/4827")]
         public void NameofOpenGenericType_SemanticModel1()
         {
             var source =
