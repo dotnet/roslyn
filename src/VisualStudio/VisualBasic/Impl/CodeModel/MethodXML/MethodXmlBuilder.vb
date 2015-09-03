@@ -40,8 +40,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
                     success = TryGenerateCall(DirectCast(statement, CallStatementSyntax))
                 Case SyntaxKind.ExpressionStatement
                     success = TryGenerateExpressionStatement(DirectCast(statement, ExpressionStatementSyntax))
-                Case SyntaxKind.AddHandlerStatement
-                    success = TryGenerateAddHandlerStatement(DirectCast(statement, AddRemoveHandlerStatementSyntax))
+                Case SyntaxKind.AddHandlerStatement,
+                     SyntaxKind.RemoveHandlerStatement
+                    success = TryGenerateAddOrRemoveHandlerStatement(DirectCast(statement, AddRemoveHandlerStatementSyntax))
             End Select
 
             If Not success Then
@@ -114,20 +115,30 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
             End Using
         End Function
 
-        Private Function TryGenerateAddHandlerStatement(addHandlerStatement As AddRemoveHandlerStatementSyntax) As Boolean
+        Private Function TryGenerateAddOrRemoveHandlerStatement(addHandlerStatement As AddRemoveHandlerStatementSyntax) As Boolean
             ' AddHandler statements are represented as invocations of an event's add_* method.
+            ' RemoveHandler statements are represented as invocations of an event's remove_* method.
+
+            Dim eventExpression = addHandlerStatement.EventExpression
+            Dim eventSymbol = TryCast(SemanticModel.GetSymbolInfo(eventExpression).Symbol, IEventSymbol)
+
+            Dim eventAccessor As IMethodSymbol
+            If addHandlerStatement.Kind() = SyntaxKind.AddHandlerStatement Then
+                eventAccessor = eventSymbol?.AddMethod
+            ElseIf addHandlerStatement.Kind() = SyntaxKind.RemoveHandlerStatement
+                eventAccessor = eventSymbol?.RemoveMethod
+            Else
+                eventAccessor = Nothing
+            End If
+
+            If eventAccessor Is Nothing Then
+                Return False
+            End If
 
             Using ExpressionStatementTag(GetLineNumber(addHandlerStatement))
                 Using ExpressionTag()
                     Using MethodCallTag()
-                        Dim eventExpression = addHandlerStatement.EventExpression
-                        Dim eventSymbol = TryCast(SemanticModel.GetSymbolInfo(eventExpression).Symbol, IEventSymbol)
-
-                        If eventSymbol?.AddMethod Is Nothing Then
-                            Return False
-                        End If
-
-                        If Not TryGenerateExpression(eventExpression, eventSymbol.AddMethod, generateAttributes:=True) Then
+                        If Not TryGenerateExpression(eventExpression, eventAccessor, generateAttributes:=True) Then
                             Return False
                         End If
 
