@@ -90,6 +90,47 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
         }
 
         [Fact]
+        public void GetTagsOnBackgroundThread()
+        {
+            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(@"class C {}"))
+            {
+                Callback tagProducer = (span, cancellationToken) =>
+                {
+                    return new List<ITagSpan<TestTag>>() { new TagSpan<TestTag>(span, new TestTag()) };
+                };
+                var asyncListener = new TaggerOperationListener();
+
+                var notificationService = workspace.GetService<IForegroundNotificationService>();
+
+                var eventSource = CreateEventSource();
+                var taggerProvider = new TestTaggerProvider(
+                    tagProducer,
+                    eventSource,
+                    workspace,
+                    asyncListener,
+                    notificationService);
+
+                var document = workspace.Documents.First();
+                var textBuffer = document.TextBuffer;
+                var snapshot = textBuffer.CurrentSnapshot;
+                var tagger = taggerProvider.CreateTagger<TestTag>(textBuffer);
+
+                using (IDisposable disposable = (IDisposable)tagger)
+                {
+                    var snapshotSpans = snapshot.GetSnapshotSpanCollection();
+
+                    eventSource.SendUpdateEvent();
+                    asyncListener.CreateWaitTask().PumpingWait();
+
+                    var task = Task.Run(() => tagger.GetTags(snapshotSpans));
+
+                    var tags = task.Result;
+                    Assert.True(tags.IsEmpty());
+                }
+            }
+        }
+
+        [Fact]
         public void TestSynchronousOutlining()
         {
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile("class Program {\r\n\r\n}"))
