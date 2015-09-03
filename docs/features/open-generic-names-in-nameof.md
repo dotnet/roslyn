@@ -88,3 +88,5 @@ Syntactically, the language model will not change at all.  The parser/syntax-API
 Semantically the language model will change slightly.  Today, if you write ```nameof(List<>)``` and you attempt to get Symbol/Type info for ```List<>```, you will get the ```List<T>``` *original definition type* (along with diagnostics stating this is not allowed).   This will change moving forward.  Now, you will get a normal ```Unbound Generic Type```, with no diagnostics.  This is the same symbol  you get if you for ```List<>``` in ```typeof(List<>)```.  This unifies the symbolic information between ```nameof``` and ```typeof```, which i think is sensible.
 
 
+Also, "Unbound Types" will be slightly different than they are today.  Namely they will have inheritance.  This is so that we get consistent behavior between code like ```nameof(List<int>.Select)``` and ```nameof(List<>.Select)```.  If we didn't have inheritance for unbound types, then we would not thnk that ```List<>``` was an ```IEnumerable<>``` and we would not find this extension method suitable.
+
