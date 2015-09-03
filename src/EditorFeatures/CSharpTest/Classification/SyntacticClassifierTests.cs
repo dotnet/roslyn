@@ -3507,5 +3507,19 @@ catch (System.Exception) when (true)
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public void OutVar()
+        {
+            var code = @"
+F(out var);";
+            TestInMethod(code,
+                Identifier("F"),
+                Punctuation.OpenParen,
+                Keyword("out"),
+                Identifier("var"),
+                Punctuation.CloseParen,
+                Punctuation.Semicolon);
+        }
     }
 }

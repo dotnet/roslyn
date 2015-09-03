@@ -2388,8 +2388,6 @@ Microsoft.CodeAnalysis.VisualBasic.Syntax.YieldStatementSyntax.WithYieldKeyword(
 Microsoft.CodeAnalysis.VisualBasic.Syntax.YieldStatementSyntax.YieldKeyword() -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.VisualBasic.SyntaxExtensions
 Microsoft.CodeAnalysis.VisualBasic.SyntaxExtensions.Attributes(asClauseSyntax As Microsoft.CodeAnalysis.VisualBasic.Syntax.AsClauseSyntax) -> Microsoft.CodeAnalysis.SyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.AttributeListSyntax)
-Microsoft.CodeAnalysis.VisualBasic.SyntaxExtensions.NormalizeWhitespace(Of TNode)(node As TNode, useDefaultCasing As Boolean, indentation As String = "    ", elasticTrivia As Boolean = False) -> TNode
-Microsoft.CodeAnalysis.VisualBasic.SyntaxExtensions.NormalizeWhitespace(token As Microsoft.CodeAnalysis.SyntaxToken, indentation As String = "    ", elasticTrivia As Boolean = False) -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.VisualBasic.SyntaxExtensions.ToSyntaxTriviaList(sequence As System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.SyntaxTrivia)) -> Microsoft.CodeAnalysis.SyntaxTriviaList
 Microsoft.CodeAnalysis.VisualBasic.SyntaxExtensions.Type(asClauseSyntax As Microsoft.CodeAnalysis.VisualBasic.Syntax.AsClauseSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax
 Microsoft.CodeAnalysis.VisualBasic.SyntaxExtensions.Type(newExpressionSyntax As Microsoft.CodeAnalysis.VisualBasic.Syntax.NewExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax
@@ -3043,7 +3041,6 @@ Microsoft.CodeAnalysis.VisualBasic.TypedConstantExtensions
 Microsoft.CodeAnalysis.VisualBasic.TypedConstantExtensions.ToVisualBasicString(constant As Microsoft.CodeAnalysis.TypedConstant) -> String
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineArguments
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser
-Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser.New(isInteractive As Boolean = False) -> Void
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser.Parse(args As System.Collections.Generic.IEnumerable(Of String), baseDirectory As String, sdkDirectory As String, additionalReferenceDirectories As String = Nothing) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineArguments
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.AddReferences(ParamArray references As Microsoft.CodeAnalysis.MetadataReference()) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation

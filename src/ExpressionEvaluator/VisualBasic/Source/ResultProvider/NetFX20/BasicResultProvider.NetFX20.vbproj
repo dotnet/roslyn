@@ -65,7 +65,10 @@
     <Compile Include="$(IntermediateOutputPath)Syntax.xml.Generated.vb" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="My Project\" />
   </ItemGroup>
   <Import Project="..\BasicResultProvider.projitems" Label="Shared" />
   <ImportGroup Label="Targets">

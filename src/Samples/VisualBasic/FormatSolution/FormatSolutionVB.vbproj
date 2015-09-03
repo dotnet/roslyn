@@ -91,7 +91,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.vb" />
-    <None Include="packages.config" />
+    <None Include="project.json" />
     <None Include="TestSolutionForVB\CSharpProject\CSharpClass.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

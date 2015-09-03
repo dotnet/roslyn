@@ -162,7 +162,7 @@
     <StartArguments>/rootsuffix RoslynDev /log</StartArguments>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="project.json" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
@@ -180,41 +180,6 @@
     <Reference Include="Microsoft.VisualStudio.Shell.Immutable.10.0, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
     <Reference Include="Microsoft.VisualStudio.Shell.Immutable.11.0, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
     <Reference Include="System" />
-    <Reference Include="Esent.Interop">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\ManagedEsent.1.9.2.0\lib\net40\Esent.Interop.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Collections.Immutable">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-      <Private>True</Private>
-      <!-- Included in the VSIX because it makes our setup authoring (DevDivInsertionFiles) easier. -->
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </Reference>
-    <Reference Include="System.Reflection.Metadata">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
-      <!-- Included in the VSIX because it makes our setup authoring (DevDivInsertionFiles) easier. -->
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </Reference>
-    <Reference Include="System.Composition.Convention">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Convention.dll</HintPath>
-      <!-- Included in the VSIX because it makes our setup authoring (DevDivInsertionFiles) easier. -->
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </Reference>
-    <Reference Include="System.Composition.Hosting">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Hosting.dll</HintPath>
-      <!-- Included in the VSIX because it makes our setup authoring (DevDivInsertionFiles) easier. -->
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </Reference>
-    <Reference Include="System.Composition.TypedParts">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
-      <!-- Included in the VSIX because it makes our setup authoring (DevDivInsertionFiles) easier. -->
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyRedirects.cs" Condition="('$(AssemblyVersion)' == '42.42.42.42') or ('$(OfficialBuild)' == 'true')" />

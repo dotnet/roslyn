@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -15,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         public static bool ShouldHideAdvancedMembers(this Document document)
         {
-            var service = document.Project.Solution.Workspace.Services.GetService<IOptionService>();
-            return service.GetOption(CompletionOptions.HideAdvancedMembers, document.Project.Language);
+            return document.Project.Solution.Workspace.Options
+                .GetOption(CompletionOptions.HideAdvancedMembers, document.Project.Language);
         }
 
         public static async Task<Document> ReplaceNodeAsync<TNode>(this Document document, TNode oldNode, TNode newNode, CancellationToken cancellationToken) where TNode : SyntaxNode

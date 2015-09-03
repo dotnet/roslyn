@@ -1383,7 +1383,7 @@ class A
                 Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("A.Main()").WithLocation(4, 17));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void GetEntryPoint_Submission()
         {
             var source = @"1 + 1";
@@ -1402,7 +1402,7 @@ class A
             entryPoint.Diagnostics.Verify();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void GetEntryPoint_Submission_MainIgnored()
         {
             var source = @"
@@ -1926,7 +1926,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
             });
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void SubmissionCompilation_Errors()
         {
             var genericParameter = typeof(List<>).GetGenericArguments()[0];
@@ -1969,7 +1969,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.Equal(expectedHasValue, hasValue);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void SubmissionResultType()
         {
             var submission = CSharpCompilation.CreateSubmission("sub");
@@ -1992,7 +1992,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
         /// <summary>
         /// Previous submission has to have no errors.
         /// </summary>
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void PreviousSubmissionWithError()
         {
             var s0 = CreateSubmission("int a = \"x\";");

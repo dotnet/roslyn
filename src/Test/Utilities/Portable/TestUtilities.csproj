@@ -23,15 +23,11 @@
   <ItemGroup>
     <Reference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.CodeAnalysis.Test.Resources.Proprietary.1.1.0-beta1-20150824-02\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Reflection.Metadata, Version=$(SystemReflectionMetadataAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
+      <HintPath>$(NuGetPackageRoot)\Microsoft.CodeAnalysis.Test.Resources.Proprietary\1.1.0-beta1-20150824-02\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.DiaSymReader">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.DiaSymReader\1.0.5\lib\net45\Microsoft.DiaSymReader.dll</HintPath>
+      <HintPath>$(NuGetPackageRoot)\Microsoft.DiaSymReader\1.0.5\lib\net45\Microsoft.DiaSymReader.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup Label="Project References">

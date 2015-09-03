@@ -23618,5 +23618,60 @@ BC40012: event 'E2' implicitly declares 'remove_E2', which conflicts with a memb
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
+        <Fact>
+        Public Sub NoObsoleteDiagnosticsForProjectLevelImports_01()
+            Dim options = TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse({"GlobEnumsClass"}))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+<System.Serializable><System.Obsolete()> 
+Class GlobEnumsClass
+
+    Public Enum xEmailMsg
+        Option1
+        Option2
+    End Enum
+
+End Class
+
+Class Account
+    Property Status() As xEmailMsg
+End Class
+        ]]></file>
+    </compilation>, options)
+
+            CompileAndVerify(compilation).VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub NoObsoleteDiagnosticsForProjectLevelImports_02()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Imports GlobEnumsClass
+
+<System.Serializable><System.Obsolete()> 
+Class GlobEnumsClass
+
+    Public Enum xEmailMsg
+        Option1
+        Option2
+    End Enum
+
+End Class
+
+Class Account
+    Property Status() As xEmailMsg
+End Class
+        ]]></file>
+    </compilation>, TestOptions.ReleaseDll)
+
+            compilation.AssertTheseDiagnostics(<expected>
+BC40008: 'GlobEnumsClass' is obsolete.
+Imports GlobEnumsClass
+        ~~~~~~~~~~~~~~
+                                               </expected>)
+        End Sub
+
     End Class
 End Namespace

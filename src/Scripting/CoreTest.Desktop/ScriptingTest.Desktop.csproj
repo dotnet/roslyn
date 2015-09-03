@@ -51,17 +51,6 @@
       <Name>CSharpScripting</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup Label="Libraries">
-    <Reference Include="$(NuGetPackagesPath)\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="$(NuGetPackagesPath)\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="xunit">
-      <HintPath>$(NuGetPackagesPath)\xunit.1.9.2\lib\net20\xunit.dll</HintPath>
-    </Reference>
-  </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -73,6 +62,9 @@
   <ItemGroup>
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.CSharp.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.Desktop.UnitTests" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="project.json" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
