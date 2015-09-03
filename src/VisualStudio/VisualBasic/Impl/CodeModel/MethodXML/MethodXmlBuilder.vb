@@ -2,16 +2,18 @@
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Shared.Extensions
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.MethodXml
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXml
     Friend Class MethodXmlBuilder
         Inherits AbstractMethodXmlBuilder
+
+        Private Shared ReadOnly s_fullNameFormat As New SymbolDisplayFormat(
+            typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+            memberOptions:=SymbolDisplayMemberOptions.None)
 
         Private Sub New(symbol As IMethodSymbol, semanticModel As SemanticModel)
             MyBase.New(symbol, semanticModel)
@@ -38,6 +40,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
                     success = TryGenerateCall(DirectCast(statement, CallStatementSyntax))
                 Case SyntaxKind.ExpressionStatement
                     success = TryGenerateExpressionStatement(DirectCast(statement, ExpressionStatementSyntax))
+                Case SyntaxKind.AddHandlerStatement
+                    success = TryGenerateAddHandlerStatement(DirectCast(statement, AddRemoveHandlerStatementSyntax))
             End Select
 
             If Not success Then
@@ -110,13 +114,44 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
             End Using
         End Function
 
-        Private Function TryGenerateExpression(expression As ExpressionSyntax) As Boolean
-            Using ExpressionTag()
-                Return TryGenerateExpressionSansTag(expression)
+        Private Function TryGenerateAddHandlerStatement(addHandlerStatement As AddRemoveHandlerStatementSyntax) As Boolean
+            ' AddHandler statements are represented as invocations of an event's add_* method.
+
+            Using ExpressionStatementTag(GetLineNumber(addHandlerStatement))
+                Using ExpressionTag()
+                    Using MethodCallTag()
+                        Dim eventExpression = addHandlerStatement.EventExpression
+                        Dim eventSymbol = TryCast(SemanticModel.GetSymbolInfo(eventExpression).Symbol, IEventSymbol)
+
+                        If eventSymbol?.AddMethod Is Nothing Then
+                            Return False
+                        End If
+
+                        If Not TryGenerateExpression(eventExpression, eventSymbol.AddMethod, generateAttributes:=True) Then
+                            Return False
+                        End If
+
+                        GenerateType(eventSymbol.ContainingType, implicit:=True, fullyQualify:=True)
+
+                        Using ArgumentTag()
+                            If Not TryGenerateExpression(addHandlerStatement.DelegateExpression, generateAttributes:=True) Then
+                                Return False
+                            End If
+                        End Using
+
+                        Return True
+                    End Using
+                End Using
             End Using
         End Function
 
-        Private Function TryGenerateExpressionSansTag(expression As ExpressionSyntax) As Boolean
+        Private Function TryGenerateExpression(expression As ExpressionSyntax, Optional symbolOpt As ISymbol = Nothing, Optional generateAttributes As Boolean = False) As Boolean
+            Using ExpressionTag()
+                Return TryGenerateExpressionSansTag(expression, symbolOpt, generateAttributes)
+            End Using
+        End Function
+
+        Private Function TryGenerateExpressionSansTag(expression As ExpressionSyntax, Optional symbolOpt As ISymbol = Nothing, Optional generateAttributes As Boolean = False) As Boolean
             Select Case expression.Kind
                 Case SyntaxKind.CharacterLiteralExpression,
                      SyntaxKind.UnaryMinusExpression,
@@ -149,10 +184,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
                     Return TryGenerateNewClass(DirectCast(expression, ObjectCreationExpressionSyntax))
 
                 Case SyntaxKind.SimpleMemberAccessExpression
-                    Return TryGenerateNameRef(DirectCast(expression, MemberAccessExpressionSyntax))
+                    Return TryGenerateNameRef(DirectCast(expression, MemberAccessExpressionSyntax), symbolOpt, generateAttributes)
 
                 Case SyntaxKind.IdentifierName
-                    Return TryGenerateNameRef(DirectCast(expression, IdentifierNameSyntax))
+                    Return TryGenerateNameRef(DirectCast(expression, IdentifierNameSyntax), symbolOpt, generateAttributes)
 
                 Case SyntaxKind.InvocationExpression
                     Return TryGenerateMethodCall(DirectCast(expression, InvocationExpressionSyntax))
@@ -169,6 +204,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
                 Case SyntaxKind.MeExpression
                     GenerateThisReference()
                     Return True
+
+                Case SyntaxKind.AddressOfExpression
+                    Return TryGenerateAddressOfExpression(DirectCast(expression, UnaryExpressionSyntax))
             End Select
 
             Return False
@@ -278,16 +316,36 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
             Return kind
         End Function
 
-        Private Function TryGenerateNameRef(memberAccessExpression As MemberAccessExpressionSyntax) As Boolean
-            Dim symbol = SemanticModel.GetSymbolInfo(memberAccessExpression).Symbol
+        Private Shared Function GetFullNameText(symbol As ISymbol) As String
+            If symbol Is Nothing Then
+                Return Nothing
+            End If
 
-            ' No null check for 'symbol' here. If 'symbol' unknown, we'll
-            ' generate an "unknown" name ref.
+            If symbol.IsAccessor() Then
+                Return Nothing
+            End If
 
-            Dim kind As VariableKind = GetVariableKind(symbol)
+            Return symbol.ContainingSymbol.ToDisplayString(s_fullNameFormat) & "." & symbol.Name
+        End Function
 
-            Using NameRefTag(kind)
-                Dim leftHandSymbol = SemanticModel.GetSymbolInfo(memberAccessExpression.GetExpressionOfMemberAccessExpression()).Symbol
+        Private Function TryGenerateNameRef(
+            memberAccess As MemberAccessExpressionSyntax,
+            Optional symbolOpt As ISymbol = Nothing,
+            Optional generateAttributes As Boolean = False
+        ) As Boolean
+
+            symbolOpt = If(symbolOpt, SemanticModel.GetSymbolInfo(memberAccess).Symbol)
+
+            ' Note: There's no null check for 'symbolOpt' here. If 'symbolOpt' is Nothing, we'll generate an "unknown" name ref.
+            Dim varKind As VariableKind = GetVariableKind(symbolOpt)
+
+            Dim name = If(symbolOpt IsNot Nothing, symbolOpt.Name, memberAccess.Name.Identifier.ValueText)
+            Dim nameAttribute = If(generateAttributes, name, Nothing)
+            Dim fullNameAttribute = If(generateAttributes, GetFullNameText(symbolOpt), Nothing)
+
+            Using NameRefTag(varKind, nameAttribute, fullNameAttribute)
+
+                Dim leftHandSymbol = SemanticModel.GetSymbolInfo(memberAccess.GetExpressionOfMemberAccessExpression()).Symbol
                 If leftHandSymbol IsNot Nothing Then
                     If leftHandSymbol.Kind = SymbolKind.Alias Then
                         leftHandSymbol = DirectCast(leftHandSymbol, IAliasSymbol).Target
@@ -296,10 +354,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
                     ' This can occur if a module member is referenced without the module name. In that case,
                     ' we'll go ahead and try to use the module name name.
                     If leftHandSymbol.Kind = SymbolKind.Namespace AndAlso
-                       symbol.ContainingType IsNot Nothing AndAlso
-                       symbol.ContainingType.TypeKind = TypeKind.Module Then
+                       symbolOpt?.ContainingType?.TypeKind = TypeKind.Module Then
 
-                        leftHandSymbol = symbol.ContainingType
+                        leftHandSymbol = symbolOpt.ContainingType
                     End If
                 End If
 
@@ -311,49 +368,64 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
                             GenerateType(DirectCast(leftHandSymbol, ITypeSymbol))
                         End Using
                     End Using
-                ElseIf Not TryGenerateExpression(memberAccessExpression.GetExpressionOfMemberAccessExpression()) Then
+                ElseIf Not TryGenerateExpression(memberAccess.GetExpressionOfMemberAccessExpression(), generateAttributes:=generateAttributes) Then
                     Return False
                 End If
 
-                GenerateName(memberAccessExpression.Name.Identifier.ValueText)
+                If Not generateAttributes Then
+                    GenerateName(name)
+                End If
             End Using
 
             Return True
         End Function
 
-        Private Function TryGenerateNameRef(identifierName As IdentifierNameSyntax) As Boolean
-            Dim symbol = SemanticModel.GetSymbolInfo(identifierName).Symbol
+        Private Function TryGenerateNameRef(
+            identifierName As IdentifierNameSyntax,
+            Optional symbolOpt As ISymbol = Nothing,
+            Optional generateAttributes As Boolean = False
+        ) As Boolean
 
-            ' No null check for 'symbol' here. If 'symbol' unknown, we'll
-            ' generate an "unknown" name ref.
+            symbolOpt = If(symbolOpt, SemanticModel.GetSymbolInfo(identifierName).Symbol)
 
-            Dim varKind = GetVariableKind(symbol)
+            ' Note: There's no null check for 'symbolOpt' here. If 'symbolOpt' is Nothing, we'll generate an "unknown" name ref.
+            Dim varKind = GetVariableKind(symbolOpt)
 
-            Using NameRefTag(varKind)
-                If symbol IsNot Nothing AndAlso varKind <> VariableKind.Local Then
-                    ' This is a little tricky -- if our method symbol's containing type inherits from
-                    ' or is the same as the identifier symbol's containing type, we'll go ahead and
-                    ' generate a <ThisReference />. Otherwise, because this is an identifier, we assume
-                    ' that it is a Shared member or an imported type (for example, a Module) and generate
-                    ' an <Expression><Literal><Type/></Literal></Expression>
-                    If Me.Symbol.ContainingType.InheritsFromOrEquals(symbol.ContainingType) Then
-                        Using ExpressionTag()
-                            GenerateThisReference()
-                        End Using
-                    Else
-                        Using ExpressionTag()
-                            Using LiteralTag()
-                                GenerateType(symbol.ContainingType)
-                            End Using
-                        End Using
-                    End If
+            Dim name = If(symbolOpt IsNot Nothing, symbolOpt.Name, identifierName.Identifier.ValueText)
+            Dim nameAttribute = If(generateAttributes, name, Nothing)
+            Dim fullNameAttribute = If(generateAttributes, GetFullNameText(symbolOpt), Nothing)
+
+            Using NameRefTag(varKind, nameAttribute, fullNameAttribute)
+                If symbolOpt IsNot Nothing AndAlso varKind <> VariableKind.Local Then
+                    GenerateLastNameRef(symbolOpt)
                 End If
 
-                GenerateName(identifierName.ToString())
+                If Not generateAttributes Then
+                    GenerateName(name)
+                End If
             End Using
 
             Return True
         End Function
+
+        Private Sub GenerateLastNameRef(symbol As ISymbol)
+            ' This is a little tricky -- if our method symbol's containing type inherits from
+            ' or is the same as the identifier symbol's containing type, we'll go ahead and
+            ' generate a <ThisReference />. Otherwise, because this is an identifier, we assume
+            ' that it is a Shared member or an imported type (for example, a Module) and generate
+            ' an <Expression><Literal><Type/></Literal></Expression>
+            If Me.Symbol.ContainingType.InheritsFromOrEquals(symbol.ContainingType) Then
+                Using ExpressionTag()
+                    GenerateThisReference()
+                End Using
+            Else
+                Using ExpressionTag()
+                    Using LiteralTag()
+                        GenerateType(symbol.ContainingType)
+                    End Using
+                End Using
+            End If
+        End Sub
 
         Private Function TryGenerateMethodCall(invocationExpression As InvocationExpressionSyntax) As Boolean
             Using MethodCallTag()
@@ -558,8 +630,41 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
             Return True
         End Function
 
+        Private Function TryGenerateAddressOfExpression(expression As UnaryExpressionSyntax) As Boolean
+            Debug.Assert(expression.Kind() = SyntaxKind.AddressOfExpression)
+
+            Dim delegateExpression = expression.Operand
+
+            Dim delegateSymbol = TryCast(SemanticModel.GetSymbolInfo(delegateExpression).Symbol, IMethodSymbol)
+            If delegateSymbol Is Nothing Then
+                Return False
+            End If
+
+            Dim eventType = SemanticModel.GetTypeInfo(expression).Type
+            If eventType Is Nothing Then
+                Return False
+            End If
+
+            Using NewDelegateTag(delegateSymbol.Name)
+                GenerateType(eventType, implicit:=True, fullyQualify:=True)
+
+                If delegateExpression.Kind() = SyntaxKind.IdentifierName Then
+                    GenerateLastNameRef(delegateSymbol)
+                ElseIf delegateExpression.Kind() = SyntaxKind.SimpleMemberAccessExpression
+                    Dim memberAccess = DirectCast(delegateExpression, MemberAccessExpressionSyntax)
+                    If Not TryGenerateExpression(memberAccess.GetExpressionOfMemberAccessExpression(), generateAttributes:=True) Then
+                        Return False
+                    End If
+                End If
+
+                GenerateType(delegateSymbol.ContainingType, implicit:=True, fullyQualify:=True)
+
+                Return True
+            End Using
+        End Function
+
         Public Shared Function Generate(methodBlock As MethodBlockBaseSyntax, semanticModel As SemanticModel) As String
-            Dim symbol = DirectCast(semanticModel.GetDeclaredSymbol(methodBlock), IMethodSymbol)
+            Dim symbol = semanticModel.GetDeclaredSymbol(methodBlock)
             Dim builder = New MethodXmlBuilder(symbol, semanticModel)
 
             builder.GenerateStatementBlock(methodBlock.Statements)
