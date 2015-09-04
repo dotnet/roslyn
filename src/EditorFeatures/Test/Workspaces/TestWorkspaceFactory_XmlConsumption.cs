@@ -139,11 +139,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             for (int i = 1; i < submissions.Count; i++)
             {
+                if (submissions[i].CompilationOptions == null)
+                {
+                    continue;
+                }
+
                 for (int j = i - 1; j >= 0; j--)
                 {
                     if (submissions[j].CompilationOptions != null)
                     {
-                       workspace.OnProjectReferenceAdded(submissions[i].Id, new ProjectReference(submissions[j].Id));
+                        workspace.OnProjectReferenceAdded(submissions[i].Id, new ProjectReference(submissions[j].Id));
                         break;
                     }
                 }
