@@ -51,6 +51,27 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             End If
         End Function
 
+        Public Overrides Function VisitExpressionStatement(node As ExpressionStatementSyntax) As AbstractEndConstructResult
+            Dim invocationExpression = TryCast(node.Expression, InvocationExpressionSyntax)
+            If invocationExpression IsNot Nothing AndAlso
+                    invocationExpression.ArgumentList IsNot Nothing AndAlso
+                    invocationExpression.ArgumentList.OpenParenToken.IsMissing AndAlso
+                    invocationExpression.ArgumentList.CloseParenToken.IsMissing Then
+                Dim newArgumentList = invocationExpression.ArgumentList _
+                    .WithOpenParenToken(SyntaxFactory.Token(SyntaxKind.OpenParenToken, "(")) _
+                    .WithCloseParenToken(SyntaxFactory.Token(SyntaxKind.CloseParenToken, ")"))
+                Dim stringBuilder As New StringBuilder
+                stringBuilder.Append(newArgumentList.ToString())
+                stringBuilder.Append(_textView.Options.GetNewLineCharacter())
+                Dim newArgumentListString = stringBuilder.ToString()
+                Return New ReplaceSpanResult(
+                    New SnapshotSpan(_subjectBuffer.CurrentSnapshot, invocationExpression.ArgumentList.SpanStart, invocationExpression.ArgumentList.Span.Length),
+                        newArgumentListString, Nothing)
+            Else
+                Return Nothing
+            End If
+        End Function
+
         Public Overrides Function VisitForStatement(node As ForStatementSyntax) As AbstractEndConstructResult
             Return TryApplyOnForStatement(node)
         End Function
