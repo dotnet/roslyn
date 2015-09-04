@@ -4,6 +4,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
+Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 Imports Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
@@ -22,13 +23,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
         <ThreadStatic>
         Friend _exportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(
-            TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(MockDocumentNavigationServiceFactory), GetType(RenameWaiter)))
+            TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(
+                GetType(MockDocumentNavigationServiceFactory),
+                GetType(RenameWaiter),
+                GetType(InteractiveDocumentSupportsCodeFixService)))
 
         Friend ReadOnly Property ExportProvider As ExportProvider
             Get
                 If _exportProvider Is Nothing Then
                     _exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                        TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(MockDocumentNavigationServiceFactory), GetType(RenameWaiter)))
+                        TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(
+                            GetType(MockDocumentNavigationServiceFactory),
+                            GetType(RenameWaiter),
+                            GetType(InteractiveDocumentSupportsCodeFixService)))
                 End If
 
                 Return _exportProvider
@@ -101,9 +108,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Next
         End Sub
 
-        Public Function CreateWorkspaceWithWaiter(workspace As XElement) As TestWorkspace
+        Public Function CreateWorkspaceWithWaiter(workspace As XElement, Optional workspaceKind As String = Nothing) As TestWorkspace
             Dim testWorkspace = TestWorkspaceFactory.CreateWorkspace(
                 workspace,
+                workspaceKind:=workspaceKind,
                 exportProvider:=ExportProvider)
             testWorkspace.GetOpenDocumentIds().Select(Function(id) testWorkspace.GetTestDocument(id).GetTextView()).ToList()
             Return testWorkspace
