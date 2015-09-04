@@ -43,8 +43,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub AddArrayRank(symbol As IArrayTypeSymbol)
             Dim insertStars As Boolean = format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays)
             AddPunctuation(SyntaxKind.OpenParenToken)
-            If insertStars AndAlso symbol.Rank > 1 Then
-                AddPunctuation(SyntaxKind.AsteriskToken)
+            If symbol.Rank > 1 Then
+                If insertStars Then
+                    AddPunctuation(SyntaxKind.AsteriskToken)
+                End If
+            Else
+                Dim array = TryCast(symbol, ArrayTypeSymbol)
+
+                If array IsNot Nothing AndAlso Not array.IsSZArray Then
+                    ' Always add an asterisk in this case in order to distinguish between SZArray and MDArray.
+                    AddPunctuation(SyntaxKind.AsteriskToken)
+                End If
             End If
 
             Dim i As Integer = 0

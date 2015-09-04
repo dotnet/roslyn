@@ -484,7 +484,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             EmitExpression(arrayAccess.Expression, True)
             EmitExpressions(arrayAccess.Indices, True)
 
-            If arrayAccess.Indices.Length = 1 Then
+            If DirectCast(arrayAccess.Expression.Type, ArrayTypeSymbol).IsSZArray Then
                 Dim elementType = arrayAccess.Type
                 If elementType.IsEnumType() Then
                     elementType = (DirectCast(elementType, NamedTypeSymbol)).EnumUnderlyingType
@@ -1396,7 +1396,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             EmitExpressions(expression.Bounds, True)
 
-            If arrayType.Rank = 1 Then
+            If arrayType.IsSZArray Then
                 _builder.EmitOpCode(ILOpCode.Newarr)
                 EmitSymbolToken(arrayType.ElementType, expression.Syntax)
             Else
@@ -1912,7 +1912,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub EmitArrayElementStore(arrayType As ArrayTypeSymbol, syntaxNode As VisualBasicSyntaxNode)
-            If arrayType.Rank = 1 Then
+            If arrayType.IsSZArray Then
                 EmitVectorElementStore(arrayType, syntaxNode)
             Else
                 _builder.EmitArrayElementStore(_module.Translate(arrayType), syntaxNode, _diagnostics)

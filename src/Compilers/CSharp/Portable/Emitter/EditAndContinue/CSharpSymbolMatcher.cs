@@ -359,7 +359,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     return null;
                 }
                 var otherModifiers = VisitCustomModifiers(symbol.CustomModifiers);
-                return new ArrayTypeSymbol(_otherAssembly, otherElementType, otherModifiers, symbol.Rank);
+
+                if (symbol.IsSZArray)
+                {
+                    return ArrayTypeSymbol.CreateSZArray(_otherAssembly, otherElementType, otherModifiers);
+                }
+
+                return ArrayTypeSymbol.CreateMDArray(_otherAssembly, otherElementType, symbol.Rank, otherModifiers);
             }
 
             public override Symbol VisitEvent(EventSymbol symbol)
@@ -629,7 +635,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 Debug.Assert(type.CustomModifiers.IsEmpty);
                 Debug.Assert(other.CustomModifiers.IsEmpty);
 
-                return (type.Rank == other.Rank) &&
+                return type.HasSameShapeAs(other) &&
                     AreTypesEqual(type.ElementType, other.ElementType);
             }
 
@@ -817,7 +823,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 var translatedElementType = (TypeSymbol)this.Visit(symbol.ElementType);
                 var translatedModifiers = VisitCustomModifiers(symbol.CustomModifiers);
-                return new ArrayTypeSymbol(symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly, translatedElementType, translatedModifiers, symbol.Rank);
+
+                if (symbol.IsSZArray)
+                {
+                    return ArrayTypeSymbol.CreateSZArray(symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly, translatedElementType, translatedModifiers);
+                }
+
+                return ArrayTypeSymbol.CreateMDArray(symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly, translatedElementType, symbol.Rank, translatedModifiers);
             }
 
             public override Symbol VisitDynamicType(DynamicTypeSymbol symbol)

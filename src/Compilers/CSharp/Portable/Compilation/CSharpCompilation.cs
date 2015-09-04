@@ -1584,7 +1584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(elementType));
             }
 
-            return new ArrayTypeSymbol(this.Assembly, elementType, ImmutableArray<CustomModifier>.Empty, rank);
+            return ArrayTypeSymbol.CreateCSharpArray(this.Assembly, elementType, ImmutableArray<CustomModifier>.Empty, rank);
         }
 
         /// <summary>

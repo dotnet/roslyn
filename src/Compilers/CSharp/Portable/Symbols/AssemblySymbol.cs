@@ -591,7 +591,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 int rank = typeInfo.GetArrayRank();
-                return new ArrayTypeSymbol(this, symbol, ImmutableArray<CustomModifier>.Empty, rank);
+
+                return ArrayTypeSymbol.CreateCSharpArray(this, symbol, ImmutableArray<CustomModifier>.Empty, rank);
             }
             else if (typeInfo.IsPointer)
             {

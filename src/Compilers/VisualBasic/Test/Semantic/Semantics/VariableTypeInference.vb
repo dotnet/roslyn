@@ -109,7 +109,7 @@ BC32000: Local variable 'j' cannot be referred to before it is declared.
 BC36909: Cannot infer a data type for 'i' because the array dimensions do not match.
                     dim i(,) = new integer() {}
                         ~~~~
-BC30333: Value of type 'Integer()' cannot be converted to 'Object(*,*)' because 'Integer' is not a reference type.
+BC30414: Value of type 'Integer()' cannot be converted to 'Object(*,*)' because the array types have different numbers of dimensions.
                     dim i(,) = new integer() {}
                                ~~~~~~~~~~~~~~~~
     </errors>

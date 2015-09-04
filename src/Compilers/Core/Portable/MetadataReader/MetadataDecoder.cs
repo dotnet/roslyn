@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis
                         ppSig.TryReadCompressedInteger(out _);
                     }
 
-                    typeSymbol = GetArrayTypeSymbol(countOfDimensions, typeSymbol, modifiers);
+                    typeSymbol = GetMDArrayTypeSymbol(countOfDimensions, typeSymbol, modifiers);
                     break;
 
                 case SignatureTypeCode.SZArray:

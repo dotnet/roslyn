@@ -13,72 +13,60 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
     ''' An ArrayTypeSymbol represents an array type, such as Integer() or Object(,).
     ''' </summary>
-    Friend Class ArrayTypeSymbol
+    Friend MustInherit Class ArrayTypeSymbol
         Inherits TypeSymbol
         Implements IArrayTypeSymbol
 
-        Private ReadOnly _elementType As TypeSymbol
-        Private ReadOnly _rank As Integer
-        Private ReadOnly _customModifiers As ImmutableArray(Of CustomModifier)
-        Private ReadOnly _systemArray As NamedTypeSymbol ' The base class - System.Array
-        Private ReadOnly _interfaces As ImmutableArray(Of NamedTypeSymbol) ' Empty or IList(Of ElementType) and possibly IReadOnlyList(Of ElementType)
+        ''' <summary>
+        ''' Create a new ArrayTypeSymbol.
+        ''' </summary>
+        Friend Shared Function CreateVBArray(elementType As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), rank As Integer, compilation As VisualBasicCompilation) As ArrayTypeSymbol
+            Return CreateVBArray(elementType, customModifiers, rank, compilation.Assembly)
+        End Function
 
         ''' <summary>
         ''' Create a new ArrayTypeSymbol.
         ''' </summary>
-        Friend Sub New(elementType As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), rank As Integer, compilation As VisualBasicCompilation)
-            Me.New(elementType, customModifiers, rank, compilation.Assembly)
-        End Sub
-
-        ''' <summary>
-        ''' Create a new ArrayTypeSymbol.
-        ''' </summary>
-        Friend Sub New(elementType As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), rank As Integer, declaringAssembly As AssemblySymbol)
-            Me.New(elementType,
-                   customModifiers,
-                   rank,
-                   declaringAssembly.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Array),
-                   GetArrayInterfaces(elementType, rank, declaringAssembly))
-        End Sub
-
-        ''' <summary>
-        ''' Create a new ArrayTypeSymbol.
-        ''' </summary>
-        ''' <param name="elementType">The element type of this array type.</param>
-        ''' <param name="customModifiers"> The custom modifiers, if any</param>
-        ''' <param name="rank">The rank of this array type.</param>
-        ''' <param name="systemArray">Symbol for System.Array</param>
-        ''' <param name="interfaces">Symbols for the interfaces of this array. Should be IList(Of ElementType) and possibly IReadOnlyList(Of ElementType) or Nothing.</param>
-        Private Sub New(elementType As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), rank As Integer, systemArray As NamedTypeSymbol, interfaces As ImmutableArray(Of NamedTypeSymbol))
-            Debug.Assert(elementType IsNot Nothing)
-            Debug.Assert(systemArray IsNot Nothing)
-            Debug.Assert(rank >= 1)
-            Debug.Assert(interfaces.Length <= 2)
-            Debug.Assert(interfaces.Length = 0 OrElse rank = 1)
-
-            _elementType = elementType
-            _rank = rank
-            _systemArray = systemArray
-            _customModifiers = customModifiers.NullToEmpty()
-            _interfaces = interfaces
-        End Sub
-
-        Private Shared Function GetArrayInterfaces(elementType As TypeSymbol, rank As Integer, declaringAssembly As AssemblySymbol) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Shared Function CreateVBArray(elementType As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), rank As Integer, declaringAssembly As AssemblySymbol) As ArrayTypeSymbol
             If rank = 1 Then
-                ' There are cases where the platform does contain the interfaces.
-                ' So it is fine not to have them listed under the type
-                Dim iListOfT = declaringAssembly.GetSpecialType(SpecialType.System_Collections_Generic_IList_T)
-                Dim iReadOnlyListOfT = declaringAssembly.GetSpecialType(SpecialType.System_Collections_Generic_IReadOnlyList_T)
+                Return CreateSZArray(elementType, customModifiers, declaringAssembly)
+            End If
 
-                If iListOfT.IsErrorType() Then
-                    If Not iReadOnlyListOfT.IsErrorType() Then
-                        Return ImmutableArray.Create(iReadOnlyListOfT.Construct(elementType))
-                    End If
-                ElseIf iReadOnlyListOfT.IsErrorType() Then
-                    Return ImmutableArray.Create(iListOfT.Construct(elementType))
-                Else
-                    Return ImmutableArray.Create(iListOfT.Construct(elementType), iReadOnlyListOfT.Construct(elementType))
+            Return CreateMDArray(elementType, customModifiers, rank, declaringAssembly)
+        End Function
+
+        Friend Shared Function CreateMDArray(elementType As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), rank As Integer, declaringAssembly As AssemblySymbol) As ArrayTypeSymbol
+            Return New MDArray(elementType,
+                               customModifiers,
+                               rank,
+                               declaringAssembly.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Array))
+        End Function
+
+        Friend Shared Function CreateSZArray(elementType As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), compilation As VisualBasicCompilation) As ArrayTypeSymbol
+            Return CreateSZArray(elementType, customModifiers, compilation.Assembly)
+        End Function
+
+        Friend Shared Function CreateSZArray(elementType As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), declaringAssembly As AssemblySymbol) As ArrayTypeSymbol
+            Return New SZArray(elementType,
+                               customModifiers,
+                               declaringAssembly.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Array),
+                               GetSZArrayInterfaces(elementType, declaringAssembly))
+        End Function
+
+        Private Shared Function GetSZArrayInterfaces(elementType As TypeSymbol, declaringAssembly As AssemblySymbol) As ImmutableArray(Of NamedTypeSymbol)
+            ' There are cases where the platform does contain the interfaces.
+            ' So it is fine not to have them listed under the type
+            Dim iListOfT = declaringAssembly.GetSpecialType(SpecialType.System_Collections_Generic_IList_T)
+            Dim iReadOnlyListOfT = declaringAssembly.GetSpecialType(SpecialType.System_Collections_Generic_IReadOnlyList_T)
+
+            If iListOfT.IsErrorType() Then
+                If Not iReadOnlyListOfT.IsErrorType() Then
+                    Return ImmutableArray.Create(iReadOnlyListOfT.Construct(elementType))
                 End If
+            ElseIf iReadOnlyListOfT.IsErrorType() Then
+                Return ImmutableArray.Create(iListOfT.Construct(elementType))
+            Else
+                Return ImmutableArray.Create(iListOfT.Construct(elementType), iReadOnlyListOfT.Construct(elementType))
             End If
 
             Return ImmutableArray(Of NamedTypeSymbol).Empty
@@ -87,42 +75,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Returns the list of custom modifiers, if any, associated with the array.
         ''' </summary>
-        Public ReadOnly Property CustomModifiers As ImmutableArray(Of CustomModifier)
-            Get
-                Return _customModifiers
-            End Get
-        End Property
+        Public MustOverride ReadOnly Property CustomModifiers As ImmutableArray(Of CustomModifier)
 
         ''' <summary>
         ''' Returns the number of dimensions of this array. A regular single-dimensional array
         ''' has rank 1, a two-dimensional array has rank 2, etc.
         ''' </summary>
-        Public ReadOnly Property Rank As Integer
-            Get
-                Return _rank
-            End Get
-        End Property
+        Public MustOverride ReadOnly Property Rank As Integer
+
+        ''' <summary>
+        ''' Is this zero-based one-dimensional array, i.e. SZArray in CLR terms.
+        ''' </summary>
+        Friend MustOverride ReadOnly Property IsSZArray As Boolean
+
+        Friend Function HasSameShapeAs(other As ArrayTypeSymbol) As Boolean
+            Return Rank = other.Rank AndAlso IsSZArray = other.IsSZArray
+        End Function
 
         ''' <summary>
         ''' Returns the type of the elements that are stored in this array.
         ''' </summary>
-        Public ReadOnly Property ElementType As TypeSymbol
-            Get
-                Return _elementType
-            End Get
-        End Property
+        Public MustOverride ReadOnly Property ElementType As TypeSymbol
 
-        Friend Overrides ReadOnly Property BaseTypeNoUseSiteDiagnostics As NamedTypeSymbol
-            Get
-                Return _systemArray
-            End Get
-        End Property
-
-        Friend Overrides ReadOnly Property InterfacesNoUseSiteDiagnostics As ImmutableArray(Of NamedTypeSymbol)
-            Get
-                Return _interfaces
-            End Get
-        End Property
+        Friend MustOverride Overrides ReadOnly Property BaseTypeNoUseSiteDiagnostics As NamedTypeSymbol
 
         ''' <summary>
         ''' Returns true if this type is known to be a reference type. It is never the case
@@ -193,10 +168,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' returns an empty ImmutableArray. Never returns Nothing.</returns>
         Public Overrides Function GetTypeMembers(name As String, arity As Integer) As ImmutableArray(Of NamedTypeSymbol)
             Return ImmutableArray(Of NamedTypeSymbol).Empty
-        End Function
-
-        Private Function GetTypeModifier() As String
-            Return "(" & New String(","c, _rank - 1) & ")"
         End Function
 
         ''' <summary>
@@ -274,23 +245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' !!! Only code implementing construction of generic types is allowed to call this method !!!
         ''' !!! All other code should use Construct methods.                                        !!! 
         ''' </summary>
-        Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
-            ' Create a new array symbol with substitutions applied.
-            Dim oldElementType = New TypeWithModifiers(_elementType, _customModifiers)
-            Dim newElementType As TypeWithModifiers = oldElementType.InternalSubstituteTypeParameters(substitution)
-            If newElementType <> oldElementType Then
-                Dim newInterfaces As ImmutableArray(Of NamedTypeSymbol)
-                If _interfaces.Length > 0 Then
-                    newInterfaces = ImmutableArray.Create(Of NamedTypeSymbol)(DirectCast(_interfaces(0).InternalSubstituteTypeParameters(substitution).AsTypeSymbolOnly(), NamedTypeSymbol))
-                Else
-                    newInterfaces = ImmutableArray(Of NamedTypeSymbol).Empty
-                End If
-
-                Return New TypeWithModifiers(New ArrayTypeSymbol(newElementType.Type, newElementType.CustomModifiers, _rank, _systemArray, newInterfaces))
-            Else
-                Return New TypeWithModifiers(Me) ' substitution had no effect on the element type
-            End If
-        End Function
+        Friend MustOverride Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
 
         Public Overrides Function Equals(obj As Object) As Boolean
             If (Me Is obj) Then
@@ -299,7 +254,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim other = TryCast(obj, ArrayTypeSymbol)
 
-            If (other Is Nothing OrElse other.Rank <> Rank OrElse Not other.ElementType.Equals(ElementType)) Then
+            If (other Is Nothing OrElse Not other.HasSameShapeAs(Me) OrElse Not other.ElementType.Equals(ElementType)) Then
                 Return False
             End If
 
@@ -406,6 +361,140 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
 #End Region
+
+        Private MustInherit Class SZOrMDArray
+            Inherits ArrayTypeSymbol
+
+            Private ReadOnly _elementType As TypeSymbol
+            Private ReadOnly _customModifiers As ImmutableArray(Of CustomModifier)
+            Private ReadOnly _systemArray As NamedTypeSymbol ' The base class - System.Array
+
+            Sub New(elementType As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), systemArray As NamedTypeSymbol)
+                Debug.Assert(elementType IsNot Nothing)
+                Debug.Assert(systemArray IsNot Nothing)
+
+                _elementType = elementType
+                _systemArray = systemArray
+                _customModifiers = customModifiers.NullToEmpty()
+            End Sub
+
+            Public NotOverridable Overrides ReadOnly Property CustomModifiers As ImmutableArray(Of CustomModifier)
+                Get
+                    Return _customModifiers
+                End Get
+            End Property
+
+            Public NotOverridable Overrides ReadOnly Property ElementType As TypeSymbol
+                Get
+                    Return _elementType
+                End Get
+            End Property
+
+            Friend NotOverridable Overrides ReadOnly Property BaseTypeNoUseSiteDiagnostics As NamedTypeSymbol
+                Get
+                    Return _systemArray
+                End Get
+            End Property
+
+            ''' <summary>
+            ''' Substitute the given type substitution within this type, returning a new type. If the
+            ''' substitution had no effect, return Me. 
+            ''' !!! Only code implementing construction of generic types is allowed to call this method !!!
+            ''' !!! All other code should use Construct methods.                                        !!! 
+            ''' </summary>
+            Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
+                ' Create a new array symbol with substitutions applied.
+                Dim oldElementType = New TypeWithModifiers(_elementType, _customModifiers)
+                Dim newElementType As TypeWithModifiers = oldElementType.InternalSubstituteTypeParameters(substitution)
+                If newElementType <> oldElementType Then
+                    Dim newArray As ArrayTypeSymbol
+
+                    If Me.IsSZArray Then
+                        Dim newInterfaces As ImmutableArray(Of NamedTypeSymbol) = Me.InterfacesNoUseSiteDiagnostics
+                        If newInterfaces.Length > 0 Then
+                            newInterfaces = newInterfaces.SelectAsArray(Function([interface], map) DirectCast([interface].InternalSubstituteTypeParameters(map).AsTypeSymbolOnly(), NamedTypeSymbol), substitution)
+                        End If
+
+                        newArray = New SZArray(newElementType.Type, newElementType.CustomModifiers, _systemArray, newInterfaces)
+                    Else
+                        newArray = New MDArray(newElementType.Type, newElementType.CustomModifiers, Me.Rank, _systemArray)
+                    End If
+
+                    Return New TypeWithModifiers(newArray)
+                Else
+                    Return New TypeWithModifiers(Me) ' substitution had no effect on the element type
+                End If
+            End Function
+        End Class
+
+        ''' <summary>
+        ''' Represents SZARRAY - zero-based one-dimensional array 
+        ''' </summary>
+        Private NotInheritable Class SZArray
+            Inherits SZOrMDArray
+
+            Private ReadOnly _interfaces As ImmutableArray(Of NamedTypeSymbol) ' Empty or IList(Of ElementType) and possibly IReadOnlyList(Of ElementType)
+
+            Sub New(elementType As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), systemArray As NamedTypeSymbol, interfaces As ImmutableArray(Of NamedTypeSymbol))
+                MyBase.New(elementType, customModifiers, systemArray)
+
+                Debug.Assert(interfaces.Length <= 2)
+                _interfaces = interfaces
+            End Sub
+
+            Public Overrides ReadOnly Property Rank As Integer
+                Get
+                    Return 1
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property IsSZArray As Boolean
+                Get
+                    Return True
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property InterfacesNoUseSiteDiagnostics As ImmutableArray(Of NamedTypeSymbol)
+                Get
+                    Return _interfaces
+                End Get
+            End Property
+
+        End Class
+
+        ''' <summary>
+        ''' Represents MDARRAY - multi-dimensional array (possibly of rank 1)
+        ''' </summary>
+        Private NotInheritable Class MDArray
+            Inherits SZOrMDArray
+
+            Private ReadOnly _rank As Integer
+
+            Sub New(elementType As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), rank As Integer, systemArray As NamedTypeSymbol)
+                MyBase.New(elementType, customModifiers, systemArray)
+
+                Debug.Assert(rank >= 1)
+                _rank = rank
+            End Sub
+
+            Public Overrides ReadOnly Property Rank As Integer
+                Get
+                    Return _rank
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property IsSZArray As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property InterfacesNoUseSiteDiagnostics As ImmutableArray(Of NamedTypeSymbol)
+                Get
+                    Return ImmutableArray(Of NamedTypeSymbol).Empty
+                End Get
+            End Property
+        End Class
 
     End Class
 End Namespace
