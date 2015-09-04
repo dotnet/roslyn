@@ -2,7 +2,7 @@
   "locked": false,
   "version": 1,
   "targets": {
-    ".NETFramework,Version=v4.0": {
+    ".NETFramework,Version=v2.0": {
       "Microsoft.NetFX20/1.0.3": {
         "compile": {
           "lib/net20/mscorlib.dll": {}
@@ -30,6 +30,6 @@
     "": [
       "Microsoft.NetFX20 >= 1.0.3"
     ],
-    ".NETFramework,Version=v4.0": []
+    ".NETFramework,Version=v2.0": []
   }
 }

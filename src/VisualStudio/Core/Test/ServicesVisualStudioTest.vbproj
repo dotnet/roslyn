@@ -300,6 +300,7 @@
     <Compile Include="CodeModel\MethodXML\MethodXMLTests_VBInitializeComponent_TestContent.vb" />
     <Compile Include="CodeModel\MethodXML\MethodXMLTests_VBInvocations.vb" />
     <Compile Include="CodeModel\MethodXML\MethodXMLTests_VBLocalDeclarations.vb" />
+    <Compile Include="CodeModel\MethodXML\MethodXMLTests_VBStatements.vb" />
     <Compile Include="CodeModel\Mocks\MockTextManagerAdapter.vb" />
     <Compile Include="CodeModel\Mocks\MockTextPoint.vb" />
     <Compile Include="CodeModel\VisualBasic\CodeAccessorFunctionTests.vb" />
