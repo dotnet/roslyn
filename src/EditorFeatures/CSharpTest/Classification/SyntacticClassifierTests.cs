@@ -1000,6 +1000,68 @@ class Bar {
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public void ShebangAsFirstCommentInScript()
+        {
+            var code = @"#!/usr/bin/env scriptcs
+System.Console.WriteLine();";
+            var expected = new[]
+            {
+                Comment("#!/usr/bin/env scriptcs"),
+                Identifier("System"),
+                Operators.Dot,
+                Identifier("Console"),
+                Operators.Dot,
+                Identifier("WriteLine"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.Semicolon
+            };
+            Test(code, code, expected, Options.Script);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public void ShebangAsFirstCommentInNonScript()
+        {
+            var code = @"#!/usr/bin/env scriptcs
+System.Console.WriteLine();";
+            var expected = new[]
+            {
+                PPKeyword("#"),
+                PPText("!/usr/bin/env scriptcs"),
+                Identifier("System"),
+                Operators.Dot,
+                Identifier("Console"),
+                Operators.Dot,
+                Identifier("WriteLine"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.Semicolon
+            };
+            Test(code, code, expected, Options.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public void ShebangNotAsFirstCommentInScript()
+        {
+            var code = @" #!/usr/bin/env scriptcs
+System.Console.WriteLine();";
+            var expected = new[]
+            {
+                PPKeyword("#"),
+                PPText("!/usr/bin/env scriptcs"),
+                Identifier("System"),
+                Operators.Dot,
+                Identifier("Console"),
+                Operators.Dot,
+                Identifier("WriteLine"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.Semicolon
+            };
+            Test(code, code, expected, Options.Script);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void CommentAsMethodBodyContent()
         {
             var code = @"
