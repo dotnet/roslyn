@@ -326,10 +326,16 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// </summary>
         public static SnapshotSpan? GetVisibleLinesSpan(this ITextView textView, ITextBuffer subjectBuffer, int extraLines = 0)
         {
+            // If we're being called while the textview is actually in the middle of a layout, then 
+            // we can't proceed.  Much of the text view state is unsafe to access (and will throw).
+            if (textView.InLayout)
+            {
+                return null;
+            }
+
             // Determine the range of text that is visible in the view.  Then map this down to the
             // bufffer passed in.  From that, determine the start/end line for the buffer that is in
             // view.
-
             var visibleSpan = textView.TextViewLines.FormattedSpan;
             var visibleSpansInBuffer = textView.BufferGraph.MapDownToBuffer(visibleSpan, SpanTrackingMode.EdgeInclusive, subjectBuffer);
             if (visibleSpansInBuffer.Count == 0)
