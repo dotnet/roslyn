@@ -6,14 +6,14 @@ using Microsoft.VisualStudio.ProjectSystem.Utilities;
 
 namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
 {
-    // Opens the AppDesigner ("Property Pages") on by selecting the Open menu item on the AppDesigner folder
+    // Opens the Project Designer ("Property Pages") when selecting the Open menu item on the AppDesigner folder
     [ProjectCommand(CommandGroup.VisualStudioStandard97, VisualStudioStandard97CommandId.Open)]
-    [AppliesTo(ProjectCapability.AppDesigner)]
+    [AppliesTo(ProjectCapability.CSharpOrVisualBasic)]
     [OrderPrecedence(1000)] 
-    internal class OpenAppDesignerCommand : OpenAppDesignerCommandBase
+    internal class OpenProjectDesignerCommand : OpenProjectDesignerCommandBase
     {
         [ImportingConstructor]
-        public OpenAppDesignerCommand(IUnconfiguredProjectVsServices projectServices)
+        public OpenProjectDesignerCommand(IUnconfiguredProjectVsServices projectServices)
             : base(projectServices)
         {
         }

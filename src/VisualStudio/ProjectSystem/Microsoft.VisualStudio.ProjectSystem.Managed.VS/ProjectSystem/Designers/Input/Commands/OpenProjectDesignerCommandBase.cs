@@ -10,11 +10,11 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
 {
-    internal abstract class OpenAppDesignerCommandBase : SingleNodeProjectCommandBase
+    internal abstract class OpenProjectDesignerCommandBase : SingleNodeProjectCommandBase
     {
         private readonly IUnconfiguredProjectVsServices _projectServices;
 
-        public OpenAppDesignerCommandBase(IUnconfiguredProjectVsServices projectServices)
+        public OpenProjectDesignerCommandBase(IUnconfiguredProjectVsServices projectServices)
         {
             Requires.NotNull(projectServices, nameof(projectServices));
 
@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
 
         protected override Task<CommandStatusResult> GetCommandStatusAsync(IProjectTree node, bool focused, string commandText, CommandStatus progressiveStatus)
         {
-            // We assume that if the AppDesignerTreeModifier marked an AppDesignerFolder, that we support the Project Designer
+            // We assume that if the AppDesignerTreeModifier marked an AppDesignerFolder, that we must support the Project Designer
             if (node.Capabilities.Contains(ProjectTreeCapabilities.AppDesignerFolder))
             {
                 return GetCommandStatusResult.Handled(commandText, CommandStatus.Enabled);

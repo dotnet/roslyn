@@ -126,9 +126,9 @@
     <Compile Include="Input\CommandGroup.cs" />
     <Compile Include="Input\UIHierarchyWindowCommandId.cs" />
     <Compile Include="Input\VisualStudioStandard97CommandId.cs" />
-    <Compile Include="ProjectSystem\Designers\Input\Commands\OpenAppDesignerCommand.cs" />
-    <Compile Include="ProjectSystem\Designers\Input\Commands\OpenAppDesignerCommandBase.cs" />
-    <Compile Include="ProjectSystem\Designers\Input\Commands\OpenAppDesignerOnDefaultActionCommand.cs" />
+    <Compile Include="ProjectSystem\Designers\Input\Commands\OpenProjectDesignerCommand.cs" />
+    <Compile Include="ProjectSystem\Designers\Input\Commands\OpenProjectDesignerCommandBase.cs" />
+    <Compile Include="ProjectSystem\Designers\Input\Commands\OpenProjectDesignerOnDefaultActionCommand.cs" />
     <Compile Include="ProjectSystem\Designers\ProjectDesignerPageMetadata.cs" />
     <Compile Include="ProjectSystem\IAddItemTemplatesGuidProvider.cs" />
     <Compile Include="ProjectSystem\IItemTypeGuidProvider.cs" />
