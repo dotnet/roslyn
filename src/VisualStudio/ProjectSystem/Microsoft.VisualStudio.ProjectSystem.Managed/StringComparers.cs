@@ -5,6 +5,9 @@ using System.Collections.Generic;
 
 namespace Microsoft.VisualStudio
 {
+    /// <summary>
+    ///     Contains commonly used <see cref="IEqualityComparer{String}"/> instances.
+    /// </summary>
     internal static class StringComparers
     {
         public static IEqualityComparer<string> Paths
