@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             Assert.Equal(SpecialType.None, c107.SpecialType)
 
-            Dim arrayOfc107 = New ArrayTypeSymbol(c107, Nothing, 1, c1)
+            Dim arrayOfc107 = ArrayTypeSymbol.CreateVBArray(c107, Nothing, 1, c1)
 
             Assert.Equal(SpecialType.None, arrayOfc107.SpecialType)
 

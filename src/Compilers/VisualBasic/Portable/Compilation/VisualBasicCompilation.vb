@@ -1828,7 +1828,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException(NameOf(elementType))
             End If
 
-            Return New ArrayTypeSymbol(elementType, Nothing, rank, Me)
+            Return ArrayTypeSymbol.CreateVBArray(elementType, Nothing, rank, Me)
         End Function
 
 #End Region

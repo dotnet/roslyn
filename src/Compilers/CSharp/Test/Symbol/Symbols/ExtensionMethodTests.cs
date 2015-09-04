@@ -2463,7 +2463,7 @@ static class S
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
                 var intType = compilation.GetSpecialType(SpecialType.System_Int32);
                 var stringType = compilation.GetSpecialType(SpecialType.System_String);
-                var arrayType = new ArrayTypeSymbol(compilation.Assembly, stringType, ImmutableArray.Create<CustomModifier>(), 1);
+                var arrayType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, stringType, ImmutableArray.Create<CustomModifier>(), 1);
 
                 // Non-generic method.
                 var method = type.GetMember<MethodSymbol>("M1");

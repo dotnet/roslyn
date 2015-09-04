@@ -274,8 +274,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(Accessibility.NotApplicable, type2.DeclaredAccessibility);
             Assert.Equal(Accessibility.NotApplicable, type3.DeclaredAccessibility);
 
-            Assert.Equal(1, type2.Rank);
-            Assert.Equal(1, type3.Rank);
+            Assert.True(type2.IsSZArray);
+            Assert.True(type3.IsSZArray);
             Assert.Equal(TypeKind.Array, type2.TypeKind);
             Assert.Equal(TypeKind.Array, type3.TypeKind);
 

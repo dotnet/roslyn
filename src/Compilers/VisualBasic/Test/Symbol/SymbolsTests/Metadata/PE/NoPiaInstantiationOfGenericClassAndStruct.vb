@@ -415,7 +415,7 @@ End Structure
             Dim nestedType = localConsumerRefsAsm(1).GlobalNamespace.GetTypeMembers("NestedConstructs").[Single]()
             Dim localField = nestedType.GetMembers("field1").OfType(Of FieldSymbol)().[Single]()
             Assert.Equal(SymbolKind.ArrayType, localField.[Type].Kind)
-            Assert.IsType(Of ArrayTypeSymbol)(localField.[Type])
+            Assert.True(TypeOf localField.[Type] Is ArrayTypeSymbol)
         End Sub
 
         <Fact>

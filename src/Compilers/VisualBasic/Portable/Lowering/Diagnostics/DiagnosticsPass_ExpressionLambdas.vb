@@ -161,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function VisitArrayCreation(node As BoundArrayCreation) As BoundNode
             If Me.IsInExpressionLambda Then
-                If DirectCast(node.Type, ArrayTypeSymbol).Rank > 1 Then
+                If Not DirectCast(node.Type, ArrayTypeSymbol).IsSZArray Then
                     Dim initializer As BoundArrayInitialization = node.InitializerOpt
                     If initializer IsNot Nothing AndAlso Not initializer.Initializers.IsEmpty Then
                         GenerateDiagnostic(ERRID.ERR_ExprTreeNoMultiDimArrayCreation, node)

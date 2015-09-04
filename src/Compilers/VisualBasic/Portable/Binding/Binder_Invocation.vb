@@ -2340,7 +2340,7 @@ ProduceBoundNode:
                         ElseIf allowExpandedParamArrayForm Then
                             Dim arrayType = DirectCast(targetType, ArrayTypeSymbol)
 
-                            If arrayType.Rank <> 1 Then
+                            If Not arrayType.IsSZArray Then
                                 ' ERRID_ParamArrayWrongType
                                 ReportDiagnostic(diagnostics, diagnosticLocation, ERRID.ERR_ParamArrayWrongType)
                                 someArgumentsBad = True

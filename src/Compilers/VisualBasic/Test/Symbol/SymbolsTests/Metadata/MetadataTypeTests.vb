@@ -330,6 +330,7 @@ End Class
             Assert.Equal(Accessibility.NotApplicable, type3.DeclaredAccessibility)
 
             Assert.Equal(1, type2.Rank)
+            Assert.True(type2.IsSZArray)
             Assert.Equal(1, type3.Rank)
             Assert.Equal(TypeKind.Array, type2.TypeKind)
             Assert.Equal(TypeKind.Array, type3.TypeKind)

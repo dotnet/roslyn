@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundType = _bound.Typeof(arrayType.ElementType);
             if (node.InitializerOpt != null)
             {
-                if (arrayType.Rank == 1)
+                if (arrayType.IsSZArray)
                 {
                     return ExprFactory("NewArrayInit", boundType, Expressions(node.InitializerOpt.Initializers));
                 }

@@ -368,7 +368,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function CreateArrayType(elementType As TypeSymbol) As ArrayTypeSymbol
-            Return New ArrayTypeSymbol(elementType, ImmutableArray(Of CustomModifier).Empty, rank:=1, compilation:=Compilation)
+            Return ArrayTypeSymbol.CreateSZArray(elementType, ImmutableArray(Of CustomModifier).Empty, compilation:=Compilation)
         End Function
 
         Private Shared Function GetXmlnsXmlName(prefix As String) As XmlName

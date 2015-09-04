@@ -103,7 +103,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             IDeferredQuickInfoContent documentation,
             IList<SymbolDisplayPart> typeParameterMap,
             IList<SymbolDisplayPart> anonymousTypes,
-            IList<SymbolDisplayPart> usageText)
+            IList<SymbolDisplayPart> usageText,
+            IList<SymbolDisplayPart> exceptionText)
         {
             return new QuickInfoDisplayDeferredContent(
                 symbolGlyph: showSymbolGlyph ? CreateGlyphDeferredContent(symbol) : null,
@@ -112,7 +113,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 documentation: documentation,
                 typeParameterMap: CreateClassifiableDeferredContent(typeParameterMap),
                 anonymousTypes: CreateClassifiableDeferredContent(anonymousTypes),
-                usageText: CreateClassifiableDeferredContent(usageText));
+                usageText: CreateClassifiableDeferredContent(usageText),
+                exceptionText: CreateClassifiableDeferredContent(exceptionText));
         }
 
         private IDeferredQuickInfoContent CreateWarningGlyph()
@@ -126,7 +128,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             IDeferredQuickInfoContent documentation,
             IList<SymbolDisplayPart> typeParameterMap,
             IList<SymbolDisplayPart> anonymousTypes,
-            IList<SymbolDisplayPart> usageText)
+            IList<SymbolDisplayPart> usageText,
+            IList<SymbolDisplayPart> exceptionText)
         {
             return new QuickInfoDisplayDeferredContent(
                 symbolGlyph: new SymbolGlyphDeferredContent(glyph, _glyphService),
@@ -135,7 +138,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 documentation: documentation,
                 typeParameterMap: CreateClassifiableDeferredContent(typeParameterMap),
                 anonymousTypes: CreateClassifiableDeferredContent(anonymousTypes),
-                usageText: CreateClassifiableDeferredContent(usageText));
+                usageText: CreateClassifiableDeferredContent(usageText),
+                exceptionText: CreateClassifiableDeferredContent(exceptionText));
         }
 
         protected IDeferredQuickInfoContent CreateGlyphDeferredContent(ISymbol symbol)

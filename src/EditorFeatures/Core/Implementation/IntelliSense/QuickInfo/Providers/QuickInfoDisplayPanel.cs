@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         internal TextBlock TypeParameterMap { get; }
         internal TextBlock AnonymousTypes { get; }
         internal TextBlock UsageText { get; }
+        internal TextBlock ExceptionText { get; }
 
         public QuickInfoDisplayPanel(
             FrameworkElement symbolGlyph,
@@ -24,13 +25,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             FrameworkElement documentation,
             FrameworkElement typeParameterMap,
             FrameworkElement anonymousTypes,
-            FrameworkElement usageText)
+            FrameworkElement usageText,
+            FrameworkElement exceptionText)
         {
             this.MainDescription = (TextBlock)mainDescription;
             this.Documentation = (TextBlock)documentation;
             this.TypeParameterMap = (TextBlock)typeParameterMap;
             this.AnonymousTypes = (TextBlock)anonymousTypes;
             this.UsageText = (TextBlock)usageText;
+            this.ExceptionText = (TextBlock)exceptionText;
 
             this.Orientation = Orientation.Vertical;
 
@@ -90,6 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             this.Children.Add(usageText);
             this.Children.Add(typeParameterMap);
             this.Children.Add(anonymousTypes);
+            this.Children.Add(exceptionText);
         }
 
         public override string ToString()
@@ -120,6 +124,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             {
                 sb.AppendLine();
                 BuildStringFromInlineCollection(this.UsageText.Inlines, sb);
+            }
+
+            if (this.ExceptionText.Inlines.Count > 0)
+            {
+                sb.AppendLine();
+                BuildStringFromInlineCollection(this.ExceptionText.Inlines, sb);
             }
 
             return sb.ToString();
