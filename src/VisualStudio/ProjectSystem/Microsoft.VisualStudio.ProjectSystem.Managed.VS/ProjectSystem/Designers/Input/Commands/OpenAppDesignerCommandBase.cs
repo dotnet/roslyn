@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
             return GetCommandStatusResult.Unhandled;
         }
 
-        protected override Task<bool> TryHandleCommandAsync(IProjectTree node, bool focused, long commandExecuteOptions, IntPtr variantArgIn, IntPtr variantArgOut)
+        protected override async Task<bool> TryHandleCommandAsync(IProjectTree node, bool focused, long commandExecuteOptions, IntPtr variantArgIn, IntPtr variantArgOut)
         {
             if (node.Capabilities.Contains(ProjectTreeCapabilities.AppDesignerFolder))
             {
@@ -43,14 +43,16 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
                 if (hr.Failed)
                     throw hr.Exception;
 
+                await _projectServices.ThreadHandling.SwitchToUIThread();
+
                 hr = windowFrame.Show();
                 if (hr.Failed)
                     throw hr.Exception;
 
-                return TaskResult.True;
+                return true;
             }
 
-            return TaskResult.False;
+            return false;
         }
     }
 }

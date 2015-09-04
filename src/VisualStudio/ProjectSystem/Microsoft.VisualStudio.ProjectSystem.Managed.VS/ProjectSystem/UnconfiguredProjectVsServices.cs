@@ -17,13 +17,15 @@ namespace Microsoft.VisualStudio.ProjectSystem
         private readonly IProjectFeatures _features;
 
         [ImportingConstructor]
-        public UnconfiguredProjectVsServices(UnconfiguredProject unconfiguredProject, IProjectFeatures features)
+        public UnconfiguredProjectVsServices(UnconfiguredProject unconfiguredProject, IProjectFeatures features, IThreadHandling threadHandling)
         {
             Requires.NotNull(unconfiguredProject, nameof(unconfiguredProject));
             Requires.NotNull(features, nameof(features));
+            Requires.NotNull(threadHandling, nameof(threadHandling));
 
             _unconfiguredProject = unconfiguredProject;
-            _features = features;
+            Features = features;
+            ThreadHandling = threadHandling;
         }
 
         public IVsHierarchy Hierarchy
@@ -38,7 +40,12 @@ namespace Microsoft.VisualStudio.ProjectSystem
 
         public IProjectFeatures Features
         {
-            get { return _features; }
+            get;
+        }
+
+        public IThreadHandling ThreadHandling
+        {
+            get;
         }
     }
 }
