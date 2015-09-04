@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
                     ShadowCopy documentationFileCopy = null;
                     string xmlOriginalPath;
-                    if (TryFindXmlDocumentationFile(originalPath, out xmlOriginalPath))
+                    if (ReferencePathUtilities.TryFindXmlDocumentationFile(originalPath, out xmlOriginalPath))
                     {
                         // TODO (tomat): how do doc comments work for multi-module assembly?
                         var xmlCopyPath = Path.ChangeExtension(shadowCopyPath, ".xml");
@@ -492,45 +492,6 @@ namespace Microsoft.CodeAnalysis.Scripting
                     throw;
                 }
             }
-        }
-
-        private bool TryFindXmlDocumentationFile(string assemblyFilePath, out string xmlDocumentationFilePath)
-        {
-            xmlDocumentationFilePath = null;
-
-            // Look for the documentation xml in subdirectories based on the current 
-            // culture
-            // TODO: This logic is somewhat duplicated between here and 
-            // Roslyn.Utilities.FilePathUtilities.TryFindXmlDocumentationFile
-
-            string candidateFilePath = string.Empty;
-            string xmlFileName = Path.ChangeExtension(Path.GetFileName(assemblyFilePath), ".xml");
-            string originalDirectory = Path.GetDirectoryName(assemblyFilePath);
-
-            var culture = CultureInfo.CurrentCulture;
-            while (culture != CultureInfo.InvariantCulture)
-            {
-                candidateFilePath = Path.Combine(originalDirectory, culture.Name, xmlFileName);
-                if (File.Exists(candidateFilePath))
-                {
-                    xmlDocumentationFilePath = candidateFilePath;
-                    return true;
-                }
-
-                culture = culture.Parent;
-            }
-
-            // The documentation xml was not found in a subdirectory for the current culture, so 
-            // check the directory containing the assembly itself
-            candidateFilePath = Path.ChangeExtension(assemblyFilePath, ".xml");
-
-            if (File.Exists(candidateFilePath))
-            {
-                xmlDocumentationFilePath = candidateFilePath;
-                return true;
-            }
-
-            return false;
         }
 
         private AssemblyMetadata CreateAssemblyMetadata(FileStream manifestModuleCopyStream, string originalPath, string shadowCopyPath)
