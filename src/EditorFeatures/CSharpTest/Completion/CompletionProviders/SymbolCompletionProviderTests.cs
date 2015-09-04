@@ -8367,5 +8367,12 @@ class Class2
 }";
             VerifyItemExists(markup, "Property1");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void NoCompletionInShebangComments()
+        {
+            VerifyNoItemsExist("#!$$", sourceCodeKind: SourceCodeKind.Script);
+            VerifyNoItemsExist("#! S$$", sourceCodeKind: SourceCodeKind.Script, usePreviousCharAsTrigger: true);
+        }
     }
 }

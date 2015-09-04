@@ -114,6 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 return trivia.Kind() == SyntaxKind.EndOfLineTrivia
                     || trivia.Kind() == SyntaxKind.SingleLineCommentTrivia
+                    || trivia.Kind() == SyntaxKind.ShebangCommentTrivia
                     || trivia.IsDirective;
             }
 

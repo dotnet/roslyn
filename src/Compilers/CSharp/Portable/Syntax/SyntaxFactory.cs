@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -194,6 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EndOfLineTrivia:
                 case SyntaxKind.MultiLineCommentTrivia:
                 case SyntaxKind.SingleLineCommentTrivia:
+                case SyntaxKind.ShebangCommentTrivia:
                 case SyntaxKind.WhitespaceTrivia:
 
                     return new SyntaxTrivia(default(SyntaxToken), new Syntax.InternalSyntax.SyntaxTrivia(kind, text, null, null), 0, 0);
