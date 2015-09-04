@@ -51,23 +51,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return null;
             }
 
-            // If we were triggered by typing a character, then do a semantic check to make sure
-            // we're still applicable.  If not, then return immediately.
-            if (triggerInfo.TriggerReason == CompletionTriggerReason.TypeCharCommand)
-            {
-                var isSemanticTriggerCharacter = await IsSemanticTriggerCharacterAsync(document, position - 1, cancellationToken).ConfigureAwait(false);
-                if (!isSemanticTriggerCharacter)
-                {
-                    return null;
-                }
-            }
-
             return await GetItemsWorkerAsync(document, position, triggerInfo, cancellationToken).ConfigureAwait(false);
-        }
-
-        protected virtual Task<bool> IsSemanticTriggerCharacterAsync(Document document, int characterPosition, CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.True;
         }
 
         protected virtual Task<CompletionItem> GetBuilderAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)

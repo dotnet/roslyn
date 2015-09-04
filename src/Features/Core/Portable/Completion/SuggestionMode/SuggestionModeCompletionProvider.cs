@@ -16,7 +16,23 @@ namespace Microsoft.CodeAnalysis.Completion.SuggestionMode
 
         public override async Task ProduceCompletionListAsync(CompletionListContext context)
         {
-            var builder = await this.GetBuilderAsync(context.Document, context.Position, context.TriggerInfo, context.CancellationToken).ConfigureAwait(false);
+            var document = context.Document;
+            var position = context.Position;
+            var triggerInfo = context.TriggerInfo;
+            var options = context.Options;
+            var cancellationToken = context.CancellationToken;
+
+            CompletionItem builder;
+            if (options.GetOption(CompletionOptions.AlwaysShowBuilder))
+            {
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                builder = this.CreateEmptyBuilder(text, position);
+            }
+            else
+            {
+                builder = await this.GetBuilderAsync(document, position, triggerInfo, cancellationToken).ConfigureAwait(false);
+            }
+
             if (builder != null)
             {
                 context.RegisterBuilder(builder);

@@ -39,6 +39,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 .LastOrNullable();
         }
 
+        public static SyntaxTrivia? GetLastCommentOrWhitespace(this SyntaxTriviaList triviaList)
+        {
+            return triviaList
+                .Where(t => t.MatchesKind(SyntaxKind.SingleLineCommentTrivia, SyntaxKind.MultiLineCommentTrivia, SyntaxKind.WhitespaceTrivia))
+                .LastOrNullable();
+        }
+
         public static IEnumerable<SyntaxTrivia> SkipInitialWhitespace(this SyntaxTriviaList triviaList)
         {
             return triviaList.SkipWhile(t => t.Kind() == SyntaxKind.WhitespaceTrivia);

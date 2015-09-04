@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamedTypeSymbol booleanType = GetSpecialType(SpecialType.System_Boolean);
                 Debug.Assert((object)booleanType != null);
                 var transformFlags = DynamicTransformsEncoder.Encode(type, booleanType, customModifiersCount, refKindOpt);
-                var boolArray = new ArrayTypeSymbol(booleanType.ContainingAssembly, booleanType, customModifiers: ImmutableArray<CustomModifier>.Empty);
+                var boolArray = ArrayTypeSymbol.CreateSZArray(booleanType.ContainingAssembly, booleanType, customModifiers: ImmutableArray<CustomModifier>.Empty);
                 var arguments = ImmutableArray.Create<TypedConstant>(new TypedConstant(boolArray, transformFlags));
                 return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags, arguments);
             }
@@ -591,14 +591,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
             }
 
-            protected override TypeSymbol GetArrayElementType(TypeSymbol type)
+            protected override TypeSymbol GetMDArrayElementType(TypeSymbol type)
             {
                 if (type.Kind != SymbolKind.ArrayType)
                 {
                     return null;
                 }
                 ArrayTypeSymbol array = (ArrayTypeSymbol)type;
-                if (array.Rank < 2)
+                if (array.IsSZArray)
                 {
                     return null;
                 }
@@ -683,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
                 ArrayTypeSymbol array = (ArrayTypeSymbol)type;
-                if (array.Rank != 1)
+                if (!array.IsSZArray)
                 {
                     return null;
                 }
@@ -725,14 +725,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override bool MatchArrayRank(TypeSymbol type, int countOfDimensions)
             {
-                if (countOfDimensions == 1)
-                {
-                    return false;
-                }
                 if (type.Kind != SymbolKind.ArrayType)
                 {
                     return false;
                 }
+
                 ArrayTypeSymbol array = (ArrayTypeSymbol)type;
                 return (array.Rank == countOfDimensions);
             }

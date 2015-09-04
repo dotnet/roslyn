@@ -500,7 +500,7 @@ public class DrivedClass
             var localField = nestedType.GetMembers("field1").OfType<FieldSymbol>().Single();
 
             Assert.Equal(SymbolKind.ArrayType, localField.Type.Kind);
-            Assert.IsType<ArrayTypeSymbol>(localField.Type);
+            Assert.True(localField.Type is ArrayTypeSymbol);
         }
 
         [Fact]

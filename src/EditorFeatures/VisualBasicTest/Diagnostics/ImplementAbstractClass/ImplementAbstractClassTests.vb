@@ -197,5 +197,13 @@ End Class
 </Text>.Value.Replace(vbLf, vbCrLf),
 compareTokens:=False)
         End Sub
+
+        <WorkItem(2407, "https://github.com/dotnet/roslyn/issues/2407")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        Public Sub ImplementClassWithInaccessibleMembers()
+            Test(
+NewLines("Imports System \n Imports System.Globalization \n Class [|x|] \n Inherits EastAsianLunisolarCalendar \n End Class"),
+NewLines("Imports System \n Imports System.Globalization \n Class x \n Inherits EastAsianLunisolarCalendar \n Public Overrides ReadOnly Property Eras As Integer() \n Get \n Throw New NotImplementedException() \n End Get \n End Property \n Friend Overrides ReadOnly Property CalEraInfo As EraInfo() \n Get \n Throw New NotImplementedException() \n End Get \n End Property \n Friend Overrides ReadOnly Property MaxCalendarYear As Integer \n Get \n Throw New NotImplementedException() \n End Get \n End Property \n Friend Overrides ReadOnly Property MaxDate As Date \n Get \n Throw New NotImplementedException() \n End Get \n End Property \n Friend Overrides ReadOnly Property MinCalendarYear As Integer \n Get \n Throw New NotImplementedException() \n End Get \n End Property \n Friend Overrides ReadOnly Property MinDate As Date \n Get \n Throw New NotImplementedException() \n End Get \n End Property \n Public Overrides Function GetEra(time As Date) As Integer \n Throw New NotImplementedException() \n End Function \n Friend Overrides Function GetGregorianYear(year As Integer, era As Integer) As Integer \n Throw New NotImplementedException() \n End Function \n Friend Overrides Function GetYear(year As Integer, time As Date) As Integer \n Throw New NotImplementedException() \n End Function \n Friend Overrides Function GetYearInfo(LunarYear As Integer, Index As Integer) As Integer \n Throw New NotImplementedException() \n End Function \n End Class"))
+        End Sub
     End Class
 End Namespace

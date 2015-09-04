@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Recommendations
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
@@ -133,9 +134,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                 symbols = symbols.Where(Function(symbol) Not symbol.IsInaccessibleLocal(context.Position))
             End If
 
-            ' Hide backing fields and events
+            ' GitHub #4428: When the user is typing a predicate (eg. "Enumerable.Range(0,10).Select($$")
+            ' "Func(Of" tends to get in the way of typing "Function". Exclude System.Func from expression
+            ' contexts, except within GetType
+            If Not context.TargetToken.IsKind(SyntaxKind.OpenParenToken) OrElse
+               Not context.TargetToken.Parent.IsKind(SyntaxKind.GetTypeExpression) Then
 
+                symbols = symbols.Where(Function(s) Not IsSystemFunc(s))
+            End If
+
+            ' Hide backing fields and events
             Return symbols.Where(Function(s) FilterEventsAndGeneratedSymbols(Nothing, s))
+        End Function
+
+        Private Function IsSystemFunc(s As ISymbol) As Boolean
+            Dim namedTypeSymbol = TryCast(s, INamedTypeSymbol)
+            Return namedTypeSymbol IsNot Nothing AndAlso
+                    namedTypeSymbol.Name = "Func" AndAlso
+                    namedTypeSymbol.GetArity() > 0 AndAlso
+                    namedTypeSymbol.ContainingNamespace IsNot Nothing AndAlso
+                    namedTypeSymbol.ContainingNamespace.Name = "System" AndAlso
+                    namedTypeSymbol.ContainingNamespace.ContainingNamespace.IsGlobalNamespace
+
         End Function
 
         Private Function GetSymbolsForQualifiedNameSyntax(

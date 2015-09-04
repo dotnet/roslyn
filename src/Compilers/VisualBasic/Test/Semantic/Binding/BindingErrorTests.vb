@@ -14681,7 +14681,7 @@ BC32013: Option Strict On disallows operands of type Object for operator '='. Us
     </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
-BC30332: Value of type 'Integer()()' cannot be converted to 'Integer(*,*)' because 'Integer()' is not derived from 'Integer'.
+BC30414: Value of type 'Integer()()' cannot be converted to 'Integer(*,*)' because the array types have different numbers of dimensions.
                 Dim arr10 As Integer(,) = New Integer(9)(5) {} ' Invalid
                                           ~~~~~~~~~~~~~~~~~~~~
 BC32014: Bounds can be specified only for the top-level array when initializing an array of arrays.

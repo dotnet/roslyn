@@ -2339,7 +2339,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             'For one-dimensional arrays, if the target interface is IList(Of U) or ICollection(Of U) or IEnumerable(Of U),
             'look for any conversions that start with array covariance T()->U()
             'and then have a single array-generic conversion step U()->IList/ICollection/IEnumerable(Of U)
-            If array.Rank <> 1 Then
+            If Not array.IsSZArray Then
                 Return Nothing 'ConversionKind.NoConversion
             End If
 
@@ -2900,7 +2900,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim srcArray = DirectCast(source, ArrayTypeSymbol)
             Dim dstArray = DirectCast(destination, ArrayTypeSymbol)
 
-            If srcArray.Rank <> dstArray.Rank Then
+            If Not srcArray.HasSameShapeAs(dstArray) Then
                 Return Nothing 'ConversionKind.NoConversion
             End If
 
@@ -3455,7 +3455,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If shouldBeArray.Kind = SymbolKind.ArrayType Then
                 Dim array = DirectCast(shouldBeArray, ArrayTypeSymbol)
 
-                If array.Rank = 1 AndAlso array.ElementType.SpecialType = SpecialType.System_Char Then
+                If array.IsSZArray AndAlso array.ElementType.SpecialType = SpecialType.System_Char Then
                     If array Is source Then
                         Return ConversionKind.WideningString
                     Else
@@ -4317,8 +4317,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Create a new ArrayTypeSymbol.
         ''' </summary>
         Friend Sub New(arrayLiteral As BoundArrayLiteral)
-            MyBase.New(arrayLiteral.InferredType.ElementType, arrayLiteral.InferredType.CustomModifiers, arrayLiteral.InferredType.Rank, arrayLiteral.Binder.Compilation.Assembly)
-
             Me._arrayLiteral = arrayLiteral
         End Sub
 
@@ -4328,5 +4326,44 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property IsSZArray As Boolean
+            Get
+                Return _arrayLiteral.InferredType.IsSZArray
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property Rank As Integer
+            Get
+                Return _arrayLiteral.InferredType.Rank
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property InterfacesNoUseSiteDiagnostics As ImmutableArray(Of NamedTypeSymbol)
+            Get
+                Return _arrayLiteral.InferredType.InterfacesNoUseSiteDiagnostics
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property BaseTypeNoUseSiteDiagnostics As NamedTypeSymbol
+            Get
+                Return _arrayLiteral.InferredType.BaseTypeNoUseSiteDiagnostics
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property CustomModifiers As ImmutableArray(Of CustomModifier)
+            Get
+                Return _arrayLiteral.InferredType.CustomModifiers
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ElementType As TypeSymbol
+            Get
+                Return _arrayLiteral.InferredType.ElementType
+            End Get
+        End Property
+
+        Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
+            Throw ExceptionUtilities.Unreachable
+        End Function
     End Class
 End Namespace

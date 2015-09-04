@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -16,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public Document Document { get; }
         public int Position { get; }
         public CompletionTriggerInfo TriggerInfo { get; }
+        public OptionSet Options { get; }
         public CancellationToken CancellationToken { get; }
 
         public CompletionItem Builder => this._builder;
@@ -25,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Completion
             Document document,
             int position,
             CompletionTriggerInfo triggerInfo,
+            OptionSet options,
             CancellationToken cancellationToken)
         {
             if (document == null)
@@ -35,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Completion
             this.Document = document;
             this.Position = position;
             this.TriggerInfo = triggerInfo;
+            this.Options = options;
             this.CancellationToken = cancellationToken;
 
             this._itemsBuilder = ImmutableArray.CreateBuilder<CompletionItem>();

@@ -43,6 +43,7 @@ End Class
             Assert.Equal(TypeKind.Array, typeA.TypeKind)
             Dim arrayTypeA = DirectCast(typeA, ArrayTypeSymbol)
             Assert.Equal(1, arrayTypeA.Rank)
+            Assert.True(arrayTypeA.IsSZArray)
             Assert.Same(sourceMod.GetCorLibType(SpecialType.System_Int32), arrayTypeA.ElementType)
             Assert.Same(sourceMod.GetCorLibType(SpecialType.System_Array), arrayTypeA.BaseType)
 

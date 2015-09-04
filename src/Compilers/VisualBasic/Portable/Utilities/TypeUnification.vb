@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim at1 As ArrayTypeSymbol = DirectCast(t1.Type, ArrayTypeSymbol)
                     Dim at2 As ArrayTypeSymbol = DirectCast(t2.Type, ArrayTypeSymbol)
-                    If at1.Rank <> at2.Rank Then
+                    If Not at1.HasSameShapeAs(at2) Then
                         Return False
                     End If
 
