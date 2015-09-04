@@ -53,12 +53,6 @@
   <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == 'DNXCore' and '$(OS)' != 'Windows_NT'">
       <!-- Manually set assembly search paths so they don't get mangled later -->
       <AssemblySearchPaths Condition=" '$(AssemblySearchPaths)' == ''">
-          {CandidateAssemblyFiles};
-          $(ReferencePath);
-          {HintPathFromItem};
-          {TargetFrameworkDirectory};
-          {Registry:$(FrameworkRegistryBase),$(TargetFrameworkVersion),$(AssemblyFoldersSuffix)$(AssemblyFoldersExConditions)};
-          {GAC};
           {RawFileName};
           $(OutDir)
       </AssemblySearchPaths>
