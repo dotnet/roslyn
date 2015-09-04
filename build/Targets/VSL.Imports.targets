@@ -142,6 +142,30 @@
 
   <!-- ====================================================================================
 
+         Force-include our NuGet-consumed assets into VSIX projects
+
+         NOTE: this is a very specialized behavior we need for producing the Roslyn VSIXes.
+           It should not be copied into other projects without careful thought and
+           understanding of the VSSDK VSIX targets.
+
+       ==================================================================================== -->
+
+  <PropertyGroup>
+    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeNuGetResolvedAssets</GetVsixSourceItemsDependsOn>
+  </PropertyGroup>
+
+  <Target Name="IncludeNuGetResolvedAssets" DependsOnTargets="ResolveNuGetPackageAssets">
+    <ItemGroup Condition="'$(IncludeCopyLocalReferencesInVSIXContainer)' == 'true'">
+      <VSIXCopyLocalReferenceSourceItem Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' != ''">
+        <ForceIncludeInVsix>true</ForceIncludeInVsix>
+        <Private>true</Private>
+      </VSIXCopyLocalReferenceSourceItem>
+    </ItemGroup>
+  </Target>
+
+
+  <!-- ====================================================================================
+
          Generation of AssemblyVersion attributes from the BuildVersion property
 
        ==================================================================================== -->
