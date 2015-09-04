@@ -20,8 +20,8 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         protected static readonly Guid CSharpIntellisenseProvider = new Guid(0x7D842D0C, 0xFDD6, 0x4e3b, 0x9E, 0x21, 0x0C, 0x26, 0x3F, 0x4B, 0x6E, 0xC2);
 
         [ImportingConstructor]
-        public CSharpLanguageService(UnconfiguredProject unconfiguredProject)
-            : base(unconfiguredProject)
+        public CSharpLanguageService(IUnconfiguredProjectVsServices projectVsServices)
+            : base(projectVsServices)
         {
         }
 

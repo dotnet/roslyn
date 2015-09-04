@@ -23,9 +23,9 @@ using Task = System.Threading.Tasks.Task;
 namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
 {
     /// <summary>
-    /// Provides integration with the language services.
+    ///     Provides the base <see langword="abstract"/> for all services that integrate the language service with the project system.
     /// </summary>
-    public abstract class LanguageServiceBase :
+    internal abstract class LanguageServiceBase :
         IVsIntellisenseProjectHost,
         IDisposable,
         ICodeModelProvider,
@@ -65,11 +65,15 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         /// A map of the full paths to the projects referenced from this project,
         /// and their current state as being referenced via their intellisense project or their file output.
         /// </summary>
-        private ImmutableDictionary<string, ProjectReferenceState> projectReferenceFullPaths = ImmutableDictionary<string, ProjectReferenceState>.Empty.WithComparers(StringComparer.OrdinalIgnoreCase);
+        private ImmutableDictionary<string, ProjectReferenceState> _projectReferenceFullPaths = ImmutableDictionary<string, ProjectReferenceState>.Empty.WithComparers(StringComparer.OrdinalIgnoreCase);
 
-        protected LanguageServiceBase(UnconfiguredProject unconfiguredProject)
+        private readonly IUnconfiguredProjectVsServices _projectVsServices;
+
+        protected LanguageServiceBase(IUnconfiguredProjectVsServices projectVsServices)
         {
-            this.ProjectHierarchies = new OrderPrecedenceImportCollection<IVsHierarchy>(projectCapabilityCheckProvider: unconfiguredProject);
+            Requires.NotNull(projectVsServices, nameof(projectVsServices));
+
+            _projectVsServices = projectVsServices;
         }
 
         IVsIntellisenseProject IProjectWithIntellisense.IntellisenseProject
@@ -112,24 +116,6 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         private SVsServiceProvider ServiceProvider
         {
             get; set;
-        }
-
-        /// <summary>
-        /// Gets or sets IVsHierarchies.
-        /// </summary>
-        [ImportMany(ExportContractNames.VsTypes.IVsHierarchy)]
-        private OrderPrecedenceImportCollection<IVsHierarchy> ProjectHierarchies
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Gets or sets the project node as an IVsHierarchy.
-        /// </summary>
-        private Lazy<IVsHierarchy> ProjectHierarchy
-        {
-            get { return this.ProjectHierarchies.First(); }
         }
 
         /// <summary>
@@ -335,7 +321,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
                 switch (dwPropID)
                 {
                     case (uint)HOSTPROPID.HOSTPROPID_HIERARCHY:
-                        pvar = this.ProjectHierarchy.Value;
+                        pvar = _projectVsServices.Hierarchy;
                         break;
                     case (uint)HOSTPROPID.HOSTPROPID_PROJECTNAME:
                         pvar = this.UnconfiguredProject.FullPath;
@@ -399,7 +385,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         EnvDTE.FileCodeModel ICodeModelProvider.GetFileCodeModel(ProjectItem fileItem)
         {
             object result;
-            Marshal.ThrowExceptionForHR(this._intellisenseEngine.GetFileCodeModel(this.ProjectHierarchy.Value, fileItem, out result));
+            Marshal.ThrowExceptionForHR(this._intellisenseEngine.GetFileCodeModel(_projectVsServices.Hierarchy, fileItem, out result));
             return (EnvDTE.FileCodeModel)result;
         }
 
@@ -411,7 +397,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         async Task IProjectWithIntellisense.OnProjectAddedAsync(UnconfiguredProject unconfiguredProject, IVsIntellisenseProject intellisenseProject)
         {
             ProjectReferenceState state;
-            if (this.projectReferenceFullPaths.TryGetValue(unconfiguredProject.FullPath, out state))
+            if (this._projectReferenceFullPaths.TryGetValue(unconfiguredProject.FullPath, out state))
             {
                 await this.ThreadHandling.AsyncPump.SwitchToMainThreadAsync();
                 if (state.ResolvedPath != null)
@@ -430,7 +416,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         async Task IProjectWithIntellisense.OnProjectRemovedAsync(UnconfiguredProject unconfiguredProject, IVsIntellisenseProject intellisenseProject)
         {
             ProjectReferenceState state;
-            if (this.projectReferenceFullPaths.TryGetValue(unconfiguredProject.FullPath, out state))
+            if (this._projectReferenceFullPaths.TryGetValue(unconfiguredProject.FullPath, out state))
             {
                 await this.ThreadHandling.AsyncPump.SwitchToMainThreadAsync();
                 Marshal.ThrowExceptionForHR(this._intellisenseEngine.RemoveP2PReference(intellisenseProject));
@@ -508,23 +494,18 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         {
             this.ThreadHandling.VerifyOnUIThread();
 
-            object extObject;
-            IVsProject vsProject = this.ProjectHierarchy.Value as IVsProject;
+            int isFound = 0;
+            uint itemid = VSConstants.VSITEMID_NIL;
+            VSDOCUMENTPRIORITY[] priority = new VSDOCUMENTPRIORITY[1];
 
-            if (vsProject != null)
+            int hr = _projectVsServices.Project.IsDocumentInProject(mkDocument, out isFound, priority, out itemid);
+
+            if (ErrorHandler.Succeeded(hr) && (isFound != 0) && (itemid != VSConstants.VSITEMID_NIL))
             {
-                int isFound = 0;
-                uint itemid = VSConstants.VSITEMID_NIL;
-                VSDOCUMENTPRIORITY[] priority = new VSDOCUMENTPRIORITY[1];
-
-                int hr = vsProject.IsDocumentInProject(mkDocument, out isFound, priority, out itemid);
-
-                if (ErrorHandler.Succeeded(hr) && (isFound != 0) && (itemid != VSConstants.VSITEMID_NIL))
+                object extObject;
+                if (ErrorHandler.Succeeded(_projectVsServices.Hierarchy.GetProperty(itemid, (int)__VSHPROPID.VSHPROPID_ExtObject, out extObject)))
                 {
-                    if (ErrorHandler.Succeeded(this.ProjectHierarchy.Value.GetProperty(itemid, (int)__VSHPROPID.VSHPROPID_ExtObject, out extObject)))
-                    {
-                        return extObject as EnvDTE.ProjectItem;
-                    }
+                    return extObject as EnvDTE.ProjectItem;
                 }
             }
 
@@ -592,9 +573,9 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
                 {
                     string projectReferenceFullPath = this.UnconfiguredProject.MakeRooted(projectReferencePath);
                     ProjectReferenceState state;
-                    if (!this.projectReferenceFullPaths.TryGetValue(projectReferenceFullPath, out state))
+                    if (!this._projectReferenceFullPaths.TryGetValue(projectReferenceFullPath, out state))
                     {
-                        this.projectReferenceFullPaths = this.projectReferenceFullPaths.Add(projectReferenceFullPath, state = new ProjectReferenceState());
+                        this._projectReferenceFullPaths = this._projectReferenceFullPaths.Add(projectReferenceFullPath, state = new ProjectReferenceState());
                     }
 
                     IVsIntellisenseProject intellisenseProject;
@@ -613,7 +594,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
                 foreach (string projectReferencePath in projectReferences.Difference.RemovedItems)
                 {
                     string projectReferenceFullPath = this.UnconfiguredProject.MakeRooted(projectReferencePath);
-                    this.projectReferenceFullPaths = this.projectReferenceFullPaths.Remove(projectReferenceFullPath);
+                    this._projectReferenceFullPaths = this._projectReferenceFullPaths.Remove(projectReferenceFullPath);
 
                     IVsIntellisenseProject intellisenseProject;
                     if (this.LanguageServiceRegister.TryGetIntellisenseProject(projectReferencePath, out intellisenseProject))
@@ -622,7 +603,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
                     }
 
                     ProjectReferenceState state;
-                    if (this.projectReferenceFullPaths.TryGetValue(projectReferenceFullPath, out state))
+                    if (this._projectReferenceFullPaths.TryGetValue(projectReferenceFullPath, out state))
                     {
                         state.AsProjectReference = false;
                     }
@@ -659,9 +640,9 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
                             {
                                 string originalFullPath = this.UnconfiguredProject.MakeRooted(originalItemSpec);
                                 ProjectReferenceState state;
-                                if (!this.projectReferenceFullPaths.TryGetValue(originalFullPath, out state))
+                                if (!this._projectReferenceFullPaths.TryGetValue(originalFullPath, out state))
                                 {
-                                    this.projectReferenceFullPaths = this.projectReferenceFullPaths.Add(originalFullPath, state = new ProjectReferenceState());
+                                    this._projectReferenceFullPaths = this._projectReferenceFullPaths.Add(originalFullPath, state = new ProjectReferenceState());
                                 }
 
                                 state.ResolvedPath = resolvedReferencePath;
