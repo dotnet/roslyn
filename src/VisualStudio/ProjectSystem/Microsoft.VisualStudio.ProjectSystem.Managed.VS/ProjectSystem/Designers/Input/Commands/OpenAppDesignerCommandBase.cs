@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.ProjectSystem.Utilities;
 using Microsoft.VisualStudio.ProjectSystem.Utilities.Designers;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
 {
@@ -31,7 +32,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
             return GetCommandStatusResult.Unhandled;
         }
 
-        protected override async Task<bool> TryHandleCommandAsync(IProjectTree node, bool focused, long commandExecuteOptions, IntPtr variantArgIn, IntPtr variantArgOut)
+        protected override Task<bool> TryHandleCommandAsync(IProjectTree node, bool focused, long commandExecuteOptions, IntPtr variantArgIn, IntPtr variantArgOut)
         {
             if (node.Capabilities.Contains(ProjectTreeCapabilities.AppDesignerFolder))
             {
@@ -46,10 +47,10 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
                 if (hr.Failed)
                     throw hr.Exception;
 
-                return true;
+                return TaskResult.True;
             }
 
-            return false;
+            return TaskResult.False;
         }
     }
 }
