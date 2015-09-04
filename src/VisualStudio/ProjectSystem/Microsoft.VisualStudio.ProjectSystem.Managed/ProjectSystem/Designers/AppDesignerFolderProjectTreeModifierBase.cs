@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.VisualStudio.ProjectSystem.Designers.Imaging;
@@ -19,9 +20,19 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
                     ProjectTreeCapabilities.EmptyCapabilities.Add(ProjectTreeCapabilities.AppDesignerFolder)
                                                              .Add(ProjectTreeCapabilities.BubbleUp);
 
-        protected AppDesignerFolderProjectTreeModifierBase(IProjectImageProvider imageProvider)
+        private readonly IProjectFeatures _features;
+
+        protected AppDesignerFolderProjectTreeModifierBase(IProjectImageProvider imageProvider, IProjectFeatures features)
             : base(imageProvider)
         {
+            Requires.NotNull(features, nameof(features));
+
+            _features = features;
+        }
+
+        public override bool IsSupported
+        {
+            get { return _features.SupportsProjectDesigner; }
         }
 
         public override ImmutableHashSet<string> DefaultCapabilities

@@ -111,6 +111,8 @@
     <Compile Include="ProjectSystem\Designers\Input\SingeNodeProjectCommandBase.cs" />
     <Compile Include="ProjectSystem\Designers\Input\ProjectCommandBase.cs" />
     <Compile Include="ProjectSystem\Designers\Input\ProjectCommandAttribute.cs" />
+    <Compile Include="ProjectSystem\IProjectFeatures.cs" />
+    <Compile Include="ProjectSystem\IUnconfiguredProjectCommonServices.cs" />
     <Compile Include="ProjectSystem\ProjectCapability.cs" />
     <Compile Include="ProjectSystem\Designers\AppDesignerFolderProjectTreeModifierBase.cs" />
     <Compile Include="ProjectSystem\Designers\ProjectTreeExtensions.cs" />

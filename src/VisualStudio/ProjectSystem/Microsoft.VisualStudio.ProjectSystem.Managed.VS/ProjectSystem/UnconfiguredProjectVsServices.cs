@@ -14,13 +14,16 @@ namespace Microsoft.VisualStudio.ProjectSystem
     internal class UnconfiguredProjectVsServices : IUnconfiguredProjectVsServices
     {
         private readonly UnconfiguredProject _unconfiguredProject;
+        private readonly IProjectFeatures _features;
 
         [ImportingConstructor]
-        public UnconfiguredProjectVsServices(UnconfiguredProject unconfiguredProject)
+        public UnconfiguredProjectVsServices(UnconfiguredProject unconfiguredProject, IProjectFeatures features)
         {
             Requires.NotNull(unconfiguredProject, nameof(unconfiguredProject));
+            Requires.NotNull(features, nameof(features));
 
             _unconfiguredProject = unconfiguredProject;
+            _features = features;
         }
 
         public IVsHierarchy Hierarchy
@@ -31,6 +34,11 @@ namespace Microsoft.VisualStudio.ProjectSystem
         public IVsProject4 Project
         {
             get { return (IVsProject4)_unconfiguredProject.Services.HostObject; }
+        }
+
+        public IProjectFeatures Features
+        {
+            get { return _features; }
         }
     }
 }

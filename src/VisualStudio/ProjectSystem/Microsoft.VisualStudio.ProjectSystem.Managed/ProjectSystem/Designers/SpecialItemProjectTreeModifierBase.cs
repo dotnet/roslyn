@@ -30,6 +30,11 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
             get;
         }
 
+        public abstract bool IsSupported
+        {
+            get;
+        }
+
         public abstract bool IsExpandable
         {
             get;
@@ -37,6 +42,9 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
 
         public override sealed IProjectTree ApplyModifications(IProjectTree tree, IProjectTree previousTree, IProjectTreeProvider projectTreeProvider)
         {
+            if (!IsSupported)
+                return tree;
+
             if (!tree.IsProjectRoot())
                 return tree;
 
