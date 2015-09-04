@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.ProjectSystem.Utilities;
 namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
 {
     /// <summary>
-    /// Provides the CSharp CodeDomProvider.
+    ///     Provides the C# <see cref="CodeDomProvider"/> for use by designers and code generators.
     /// </summary>
     internal class CSharpCodeDomProvider
     {
@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         }
 
         [ExportVsProfferedProjectService(typeof(CodeDomProvider))]
-        [AppliesTo(ProjectCapabilities.CSharp)]
+        [AppliesTo(ProjectCapability.CSharp)]
         private CodeDomProvider CodeDomProviderService
         {
             get { return CodeDomProvider.CreateProvider("CSharp"); }

@@ -4,10 +4,10 @@ using System.CodeDom.Compiler;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 
-namespace Microsoft.VisualStudio.ProjectSystem
+namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
 {
     /// <summary>
-    /// Provides the VB CodeDomProvider.
+    ///     Provides the Visual Basic <see cref="CodeDomProvider"/> for use by designers and code generators.
     /// </summary>
     internal class VisualBasicCodeDomProvider
     {
@@ -16,9 +16,6 @@ namespace Microsoft.VisualStudio.ProjectSystem
         {
         }
 
-        /// <summary>
-        /// Gets the unconfigured project.
-        /// </summary>
         [Import]
         protected UnconfiguredProject UnconfiguredProject
         {
@@ -26,11 +23,8 @@ namespace Microsoft.VisualStudio.ProjectSystem
             private set;
         }
 
-        /// <summary>
-        /// Gets the CodeDomProvider.
-        /// </summary>
         [ExportVsProfferedProjectService(typeof(CodeDomProvider))]
-        [AppliesTo(ProjectCapabilities.VB)]
+        [AppliesTo(ProjectCapability.VisualBasic)]
         private CodeDomProvider CodeDomProviderService
         {
             get { return CodeDomProvider.CreateProvider("VB"); }
