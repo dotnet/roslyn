@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
                 if (hr.Failed)
                     throw hr.Exception;
 
-                await _projectServices.ThreadHandling.SwitchToUIThread();
+                await _projectServices.ThreadingPolicy.SwitchToUIThread();
 
                 hr = windowFrame.Show();
                 if (hr.Failed)

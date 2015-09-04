@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.ProjectSystem
         /// <summary>
         ///     Gets the <see cref="IThreadHandling"/> for the current <see cref="UnconfiguredProject"/>.
         /// </summary>
-        IThreadHandling ThreadHandling
+        IThreadHandling ThreadingPolicy
         {
             get;
         }

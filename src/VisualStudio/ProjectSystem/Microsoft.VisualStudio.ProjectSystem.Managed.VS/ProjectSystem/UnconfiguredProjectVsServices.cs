@@ -41,9 +41,9 @@ namespace Microsoft.VisualStudio.ProjectSystem
             get { return _commonServices.Features; }
         }
 
-        public IThreadHandling ThreadHandling
+        public IThreadHandling ThreadingPolicy
         {
-            get { return _commonServices.ThreadHandling; }
+            get { return _commonServices.ThreadingPolicy; }
         }
     }
 }

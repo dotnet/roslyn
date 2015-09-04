@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.ProjectSystem
             Requires.NotNull(threadHandling, nameof(threadHandling));
 
             Features = features;
-            ThreadHandling = threadHandling;
+            ThreadingPolicy = threadHandling;
         }
 
         public IProjectFeatures Features
@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.ProjectSystem
             get;
         }
 
-        public IThreadHandling ThreadHandling
+        public IThreadHandling ThreadingPolicy
         {
             get;
         }
