@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 {
     [ExportWorkspaceService(typeof(IDocumentSupportsSuggestionService), WorkspaceKind.Interactive), Shared]
-    internal sealed class VisualStudioDocumentSupportsCodeFixService : IDocumentSupportsSuggestionService
+    internal sealed class InteractiveDocumentSupportsCodeFixService : IDocumentSupportsSuggestionService
     {
         public bool SupportsCodeFixes(Document document)
         {

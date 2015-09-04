@@ -45,6 +45,35 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCommandDisabledInSubmission()
+            Using workspace = CreateWorkspaceWithWaiter(
+                <Workspace>
+                    <Submission Language="C#" CommonReferences="true">  
+                        object $$foo;  
+                    </Submission>
+                </Workspace>,
+                workspaceKind:=WorkspaceKind.Interactive)
+
+                Dim textView = workspace.Documents.Single().GetTextView()
+
+
+                Dim handler = CreateCommandHandler(workspace)
+                Dim delegatedToNext = False
+                Dim nextHandler =
+                    Function()
+                        delegatedToNext = True
+                        Return CommandState.Unavailable
+                    End Function
+
+
+                Dim state = handler.GetCommandState(New RenameCommandArgs(textView, textView.TextBuffer), nextHandler)
+                Assert.True(delegatedToNext)
+                Assert.False(state.IsAvailable)
+            End Using
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCommandWithSelectionDoesNotSelect()
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
