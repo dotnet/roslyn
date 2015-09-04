@@ -1,8 +1,4 @@
 {
-  "supports": {
-    "net46.app": { },
-    "dnxcore50.app": { }
-  },
   "dependencies": {
     "System.Collections": "4.0.10",
     "System.Diagnostics.Debug": "4.0.10",
