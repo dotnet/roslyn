@@ -8,30 +8,30 @@ using Microsoft.VisualStudio.ProjectSystem.VS;
 namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
 {
     /// <summary>
-    ///     Integrates the C# language service with the C# project system.
+    ///     Integrates the Visual Basic language service with the Visual Basic project system.
     /// </summary>
     [Export(typeof(ICodeModelProvider))]
-    [AppliesTo(ProjectCapability.CSharpLanguageService)]
-    internal class CSharpLanguageService : LanguageServiceBase
+    [AppliesTo(ProjectCapability.VisualBasicLanguageService)]
+    internal class VisualBasicLanguageServiceHost : LanguageServiceHostBase
     {
-        private static readonly Guid CSharpIntellisenseProvider = new Guid(0x7D842D0C, 0xFDD6, 0x4e3b, 0x9E, 0x21, 0x0C, 0x26, 0x3F, 0x4B, 0x6E, 0xC2);
+        private static readonly Guid VisualBasicIntelliSenseProvider = new Guid(0xA1B799FA, 0xB147, 0x4999, 0xA8, 0x6E, 0x1F, 0x37, 0x76, 0x5E, 0x6F, 0xB5);
 
         [ImportingConstructor]
-        public CSharpLanguageService(IUnconfiguredProjectVsServices projectVsServices)
+        public VisualBasicLanguageServiceHost(IUnconfiguredProjectVsServices projectVsServices)
             : base(projectVsServices)
         {
         }
 
         protected override Guid IntelliSenseProviderGuid
         {
-            get { return CSharpIntellisenseProvider; }
+            get { return VisualBasicIntelliSenseProvider; }
         }
 
         /// <summary>
         /// Invoked when the UnconfiguredProject is first loaded to initialize language services.
         /// </summary>
         [UnconfiguredProjectAutoLoad(afterInitialActiveConfigurationKnown: true)]
-        [AppliesTo(ProjectCapability.CSharpLanguageService)]
+        [AppliesTo(ProjectCapability.VisualBasicLanguageService)]
         private void Initialize()
         {
             var nowait = this.InitializeAsync();

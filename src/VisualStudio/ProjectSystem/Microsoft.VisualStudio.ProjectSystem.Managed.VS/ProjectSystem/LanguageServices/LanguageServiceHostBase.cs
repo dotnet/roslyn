@@ -23,9 +23,9 @@ using Task = System.Threading.Tasks.Task;
 namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
 {
     /// <summary>
-    ///     Provides the base <see langword="abstract"/> for all services that integrate the language service with the project system.
+    ///     Provides the base <see langword="abstract"/> for language service hosts that integrate the language service with the project system.
     /// </summary>
-    internal abstract class LanguageServiceBase :
+    internal abstract class LanguageServiceHostBase :
         IVsIntellisenseProjectHost,
         IDisposable,
         ICodeModelProvider,
@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
 
         private readonly IUnconfiguredProjectVsServices _projectVsServices;
 
-        protected LanguageServiceBase(IUnconfiguredProjectVsServices projectVsServices)
+        protected LanguageServiceHostBase(IUnconfiguredProjectVsServices projectVsServices)
         {
             Requires.NotNull(projectVsServices, nameof(projectVsServices));
 
