@@ -19,6 +19,75 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        // Input must be used no more than once in the result. If it is needed repeatedly store its value in a temp and use the temp.
+        BoundExpression TranslatePattern(BoundExpression input, BoundPattern pattern)
+        {
+            var syntax = _factory.Syntax = pattern.Syntax;
+            switch (pattern.Kind)
+            {
+                case BoundKind.DeclarationPattern:
+                    {
+                        var declPattern = (BoundDeclarationPattern)pattern;
+                        Debug.Assert(declPattern.LocalSymbol.Type == declPattern.DeclaredType.Type);
+                        if (declPattern.IsVar)
+                        {
+                            Debug.Assert(input.Type == declPattern.LocalSymbol.Type);
+                            var assignment = _factory.AssignmentExpression(_factory.Local(declPattern.LocalSymbol), input);
+                            var result = _factory.Literal(true);
+                            return _factory.Sequence(assignment, result);
+                        }
+
+                        return DeclPattern(syntax, input, declPattern.LocalSymbol);
+                    }
+
+                case BoundKind.PropertyPattern:
+                    {
+                        var pat = (BoundPropertyPattern)pattern;
+                        var temp = _factory.SynthesizedLocal(pat.Type);
+                        var matched = DeclPattern(syntax, input, temp);
+                        input = _factory.Local(temp);
+                        for (int i = 0; i < pat.Patterns.Length; i++)
+                        {
+                            var subProperty = pat.Properties[i];
+                            var subPattern = pat.Patterns[i];
+                            var subExpression =
+                                subProperty.Kind == SymbolKind.Field
+                                    ? (BoundExpression)_factory.Field(input, (FieldSymbol)subProperty)
+                                    : _factory.Call(input, ((PropertySymbol)subProperty).GetMethod);
+                            var partialMatch = this.TranslatePattern(subExpression, subPattern);
+                            matched = _factory.LogicalAnd(matched, partialMatch);
+                        }
+                        return _factory.Sequence(temp, matched);
+                    }
+
+                case BoundKind.WildcardPattern:
+                    return _factory.Literal(true);
+
+                case BoundKind.ConstantPattern:
+                    {
+                        var constantPattern = (BoundConstantPattern)pattern;
+                        return CompareWithConstant(input, constantPattern.BoundConstant);
+                    }
+
+                case BoundKind.RecursivePattern:
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
+            }
+        }
+
+        private BoundExpression CompareWithConstant(BoundExpression input, BoundExpression boundConstant)
+        {
+            // We currently use "exact" type semantics.
+            // TODO: We need to change this to be sensitive to conversions
+            // among integral types, so that the same value of different integral types are considered matching.
+            return _factory.StaticCall(
+                _factory.SpecialType(SpecialType.System_Object),
+                "Equals",
+                _factory.Convert(_factory.SpecialType(SpecialType.System_Object), input),
+                _factory.Convert(_factory.SpecialType(SpecialType.System_Object), boundConstant)
+                );
+        }
+
         BoundExpression DeclPattern(CSharpSyntaxNode syntax, BoundExpression input, LocalSymbol target)
         {
             var type = target.Type;
@@ -71,50 +140,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     return s;
                 // }
                 throw new NotImplementedException();
-            }
-        }
-
-        // input must be used no more than once in the result.
-        BoundExpression TranslatePattern(BoundExpression input, BoundPattern pattern)
-        {
-            var syntax = _factory.Syntax = pattern.Syntax;
-            switch(pattern.Kind)
-            {
-                case BoundKind.DeclarationPattern:
-                    {
-                        var declPattern = (BoundDeclarationPattern)pattern;
-                        Debug.Assert(declPattern.LocalSymbol.Type == declPattern.DeclaredType.Type);
-                        if (declPattern.IsVar)
-                        {
-                            Debug.Assert(input.Type == declPattern.LocalSymbol.Type);
-                            var assignment = _factory.AssignmentExpression(_factory.Local(declPattern.LocalSymbol), input);
-                            var result = _factory.Literal(true);
-                            return _factory.Sequence(assignment, result);
-                        }
-
-                        return DeclPattern(syntax, input, declPattern.LocalSymbol);
-                    }
-                case BoundKind.PropertyPattern:
-                    {
-                        var pat = (BoundPropertyPattern)pattern;
-                        var temp = _factory.SynthesizedLocal(pat.Type);
-                        var matched = DeclPattern(syntax, input, temp);
-                        input = _factory.Local(temp);
-                        for (int i = 0; i < pat.Patterns.Length; i++)
-                        {
-                            var subProperty = pat.Properties[i];
-                            var subPattern = pat.Patterns[i];
-                            var subExpression =
-                                subProperty.Kind == SymbolKind.Field
-                                    ? (BoundExpression)_factory.Field(input, (FieldSymbol)subProperty)
-                                    : _factory.Call(input, ((PropertySymbol)subProperty).GetMethod);
-                            var partialMatch = this.TranslatePattern(subExpression, subPattern);
-                            matched = _factory.LogicalAnd(matched, partialMatch);
-                        }
-                        return _factory.Sequence(temp, matched);
-                    }
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
             }
         }
     }

@@ -108,10 +108,12 @@ public class X
         {
             Console.WriteLine(""wrong"");
         }
+        Console.WriteLine(expr is Plus { Left is Plus { Left is Constant { Value is 1 }, Right is Plus { Left is Constant { Value is 2 }, Right is Constant { Value is 3 } } }, Right is Constant { Value is 6 } });
     }
 }";
             var expectedOutput =
-@"1 2 3 6";
+@"1 2 3 6
+True";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
