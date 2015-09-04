@@ -17,20 +17,48 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class LexicalTests
     {
         private readonly CSharpParseOptions _options;
+        private readonly CSharpParseOptions _binaryOptions;
+        private readonly CSharpParseOptions _underscoreOptions;
+        private readonly CSharpParseOptions _binaryUnderscoreOptions;
 
         public LexicalTests()
         {
             _options = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp3);
+            var binaryLiterals = new[] { new KeyValuePair<string, string>("binaryLiterals", "true") };
+            var digitSeparators = new[] { new KeyValuePair<string, string>("digitSeparators", "true") };
+            _binaryOptions = _options.WithFeatures(binaryLiterals);
+            _underscoreOptions = _options.WithFeatures(digitSeparators);
+            _binaryUnderscoreOptions = _options.WithFeatures(binaryLiterals.Concat(digitSeparators));
         }
 
-        private SyntaxToken Lex(string text)
+        private IEnumerable<SyntaxToken> Lex(string text, CSharpParseOptions options = null)
         {
-            return SyntaxFactory.ParseToken(text);
+            return SyntaxFactory.ParseTokens(text, options: options);
         }
 
-        private SyntaxToken LexToken(string text)
+        private SyntaxToken LexToken(string text, CSharpParseOptions options = null)
         {
-            return Lex(text);
+            SyntaxToken result = default(SyntaxToken);
+            foreach (var token in Lex(text, options))
+            {
+                if (result.Kind() == SyntaxKind.None)
+                {
+                    result = token;
+                }
+                else if (token.Kind() == SyntaxKind.EndOfFileToken)
+                {
+                    continue;
+                }
+                else
+                {
+                    Assert.True(false, "More than one token was lexed: " + token);
+                }
+            }
+            if (result.Kind() == SyntaxKind.None)
+            {
+                Assert.True(false, "No tokens were lexed");
+            }
+            return result;
         }
 
         private SyntaxToken DebuggerLex(string text)
@@ -671,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestStringLiteralWithNewLine()
         {
             var text = "\"literal\r\nwith new line\"";
-            var token = LexToken(text);
+            var token = Lex(text).First();
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
@@ -1075,7 +1103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = "a";
             var text = "'a\r'";
-            var token = LexToken(text);
+            var token = Lex(text).First();
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
@@ -1091,7 +1119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestCharacterLiteralThatsTooSmallWithNewline()
         {
             var text = "'\r'";
-            var token = LexToken(text);
+            var token = Lex(text).First();
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
@@ -1109,7 +1137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = "a";
             var text = "'ab\r'";
-            var token = LexToken(text);
+            var token = Lex(text).First();
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
@@ -1916,6 +1944,123 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
+        public void TestNumericBinaryLiteralWithoutFeatureFlag()
+        {
+            var text = "0b1";
+            var token = LexToken(text);
+
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_FeatureIsExperimental, errors[0].Code);
+            Assert.Equal(text, token.Text);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestNumericBinaryLiteralWithUnsignedAndLongSpecifier()
+        {
+            var value = 0x123ul;
+            var text = "0b100100011ul";
+            var token = LexToken(text, _binaryOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(0, errors.Length);
+            Assert.Equal(text, token.Text);
+            Assert.Equal(value, token.Value);
+
+            text = "0b100100011lu";
+            token = LexToken(text, _binaryOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            errors = token.Errors();
+            Assert.Equal(0, errors.Length);
+            Assert.Equal(text, token.Text);
+            Assert.Equal(value, token.Value);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestNumericBinaryLiteralWithUpperUnsignedAndLongSpecifier()
+        {
+            var value = 0x123Ul;
+            var text = "0b100100011Ul";
+            var token = LexToken(text, _binaryOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(0, errors.Length);
+            Assert.Equal(text, token.Text);
+            Assert.Equal(value, token.Value);
+
+            text = "0b100100011lU";
+            token = LexToken(text, _binaryOptions);
+            errors = token.Errors();
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            Assert.Equal(0, errors.Length);
+            Assert.Equal(text, token.Text);
+            Assert.Equal(value, token.Value);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestNumericBinaryLiteralWithUnsignedAndUpperLongSpecifier()
+        {
+            var value = 0x123uL;
+            var text = "0b100100011uL";
+            var token = LexToken(text, _binaryOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(0, errors.Length);
+            Assert.Equal(text, token.Text);
+            Assert.Equal(value, token.Value);
+
+            text = "0b100100011Lu";
+            token = LexToken(text, _binaryOptions);
+            errors = token.Errors();
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            Assert.Equal(0, errors.Length);
+            Assert.Equal(text, token.Text);
+            Assert.Equal(value, token.Value);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestNumericBinaryLiteralWithUpperUnsignedAndUpperLongSpecifier()
+        {
+            var value = 0x123UL;
+            var text = "0b100100011UL";
+            var token = LexToken(text, _binaryOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(0, errors.Length);
+            Assert.Equal(text, token.Text);
+            Assert.Equal(value, token.Value);
+
+            text = "0b100100011LU";
+            token = LexToken(text, _binaryOptions);
+            errors = token.Errors();
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            Assert.Equal(0, errors.Length);
+            Assert.Equal(text, token.Text);
+            Assert.Equal(value, token.Value);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
         public void TestNumericLiteralMaxInt32()
         {
             var text = Int32.MaxValue.ToString();
@@ -2213,11 +2358,395 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
+        public void TestNumericBinaryLiteral()
+        {
+            var value = 0x123;
+            var text = "0b100100011";
+            var token = LexToken(text, _binaryOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(0, errors.Length);
+            Assert.Equal(text, token.Text);
+            Assert.Equal(value, token.Value);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestNumericBinaryLiteralWithUnsignedSpecifier()
+        {
+            var value = 0x123u;
+            var text = "0b100100011u";
+            var token = LexToken(text, _binaryOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(0, errors.Length);
+            Assert.Equal(text, token.Text);
+            Assert.Equal(value, token.Value);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestNumericBinaryLiteralWithLongSpecifier()
+        {
+            var value = 0x123L;
+            var text = "0b100100011L";
+            var token = LexToken(text, _binaryOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(0, errors.Length);
+            Assert.Equal(text, token.Text);
+            Assert.Equal(value, token.Value);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestNumeric8DigitBinaryLiteral()
+        {
+            var value = 0xAA;
+            var text = "0b10101010";
+            var token = LexToken(text, _binaryOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(0, errors.Length);
+            Assert.Equal(text, token.Text);
+            Assert.Equal(value, token.Value);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestNumeric8DigitMaxBinaryLiteral()
+        {
+            var value = 0x7FFFFFFF;
+            var text = "0b1111111111111111111111111111111";
+            var token = LexToken(text, _binaryOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(0, errors.Length);
+            Assert.Equal(text, token.Text);
+            Assert.Equal(value, token.Value);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestNumeric8DigitMaxUnsignedBinaryLiteral()
+        {
+            var value = 0xFFFFFFFF;
+            var text = "0b11111111111111111111111111111111";
+            var token = LexToken(text, _binaryOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(0, errors.Length);
+            Assert.Equal(text, token.Text);
+            Assert.Equal(value, token.Value);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestNumeric8DigitMaxUnsignedBinaryLiteralWithUnsignedSpecifier()
+        {
+            var value = 0xFFFFFFFFu;
+            var text = "0b11111111111111111111111111111111u";
+            var token = LexToken(text, _binaryOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(0, errors.Length);
+            Assert.Equal(text, token.Text);
+            Assert.Equal(value, token.Value);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestNumeric16DigitMaxBinaryLiteral()
+        {
+            var value = 0x7FFFFFFFFFFFFFFF;
+            var text = "0b111111111111111111111111111111111111111111111111111111111111111";
+            var token = LexToken(text, _binaryOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(0, errors.Length);
+            Assert.Equal(text, token.Text);
+            Assert.Equal(value, token.Value);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestNumeric16DigitMaxUnsignedBinaryLiteral()
+        {
+            var value = 0xFFFFFFFFFFFFFFFF;
+            var text = "0b1111111111111111111111111111111111111111111111111111111111111111";
+            var token = LexToken(text, _binaryOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(0, errors.Length);
+            Assert.Equal(text, token.Text);
+            Assert.Equal(value, token.Value);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestNumericOverflowBinaryLiteral()
+        {
+            var text = "0b10000000000000000000000000000000000000000000000000000000000000000";
+            var token = LexToken(text, _binaryOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_IntOverflow, errors[0].Code);
+            Assert.Equal("error CS1021: Integral constant is too large", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
+            Assert.Equal(text, token.Text);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestNumericEmptyBinaryLiteral()
+        {
+            var text = "0b";
+            var token = LexToken(text, _binaryOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidNumber, errors[0].Code);
+            Assert.Equal("error CS1013: Invalid number", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
+            Assert.Equal(text, token.Text);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestNumericWithUnderscores()
+        {
+            var text = "1_000";
+            var token = LexToken(text, _underscoreOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            Assert.Equal(0, token.Errors().Length);
+            Assert.Equal(1000, token.Value);
+            Assert.Equal(text, token.Text);
+
+            text = "1___0_0___0";
+            token = LexToken(text, _underscoreOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            Assert.Equal(0, token.Errors().Length);
+            Assert.Equal(1000, token.Value);
+            Assert.Equal(text, token.Text);
+
+            text = "1_000.000_1";
+            token = LexToken(text, _underscoreOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            Assert.Equal(0, token.Errors().Length);
+            Assert.Equal(1000.0001, token.Value);
+            Assert.Equal(text, token.Text);
+
+            text = "1_01__0.0__10_1f";
+            token = LexToken(text, _underscoreOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            Assert.Equal(0, token.Errors().Length);
+            Assert.Equal(1010.0101f, token.Value);
+            Assert.Equal(text, token.Text);
+
+            text = "1_01__0.0__10_1e0_1";
+            token = LexToken(text, _underscoreOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            Assert.Equal(0, token.Errors().Length);
+            Assert.Equal(1010.0101e01, token.Value);
+            Assert.Equal(text, token.Text);
+
+            text = "0xA_A";
+            token = LexToken(text, _underscoreOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            Assert.Equal(0, token.Errors().Length);
+            Assert.Equal(0xAA, token.Value);
+            Assert.Equal(text, token.Text);
+
+            text = "0b1_1";
+            token = LexToken(text, _binaryUnderscoreOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            Assert.Equal(0, token.Errors().Length);
+            Assert.Equal(3, token.Value);
+            Assert.Equal(text, token.Text);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestNumericWithUnderscoresWithoutFeatureFlag()
+        {
+            var text = "1_000";
+            var token = LexToken(text);
+
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_FeatureIsExperimental, errors[0].Code);
+            Assert.Equal(text, token.Text);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestNumericWithBadUnderscores()
+        {
+            var text = "_1000";
+            var token = LexToken(text, _underscoreOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
+            Assert.Equal(0, token.Errors().Length);
+
+            text = "1000_";
+            token = LexToken(text, _underscoreOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidNumber, errors[0].Code);
+            Assert.Equal("error CS1013: Invalid number", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
+            Assert.Equal(text, token.Text);
+
+            text = "1000_.0";
+            token = LexToken(text, _underscoreOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidNumber, errors[0].Code);
+            Assert.Equal("error CS1013: Invalid number", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
+            Assert.Equal(text, token.Text);
+
+            // parses as Int32.Member, where Member is _0
+            // TODO: Check for that it does parse as a field access
+            // text = "1000._0";
+
+            text = "1000.0_";
+            token = LexToken(text, _underscoreOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidNumber, errors[0].Code);
+            Assert.Equal("error CS1013: Invalid number", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
+            Assert.Equal(text, token.Text);
+
+            text = "1000.0_e1";
+            token = LexToken(text, _underscoreOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidNumber, errors[0].Code);
+            Assert.Equal("error CS1013: Invalid number", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
+            Assert.Equal(text, token.Text);
+
+            text = "1000.0e_1";
+            token = LexToken(text, _underscoreOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidNumber, errors[0].Code);
+            Assert.Equal("error CS1013: Invalid number", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
+            Assert.Equal(text, token.Text);
+
+            text = "1000.0e1_";
+            token = LexToken(text, _underscoreOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidNumber, errors[0].Code);
+            Assert.Equal("error CS1013: Invalid number", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
+            Assert.Equal(text, token.Text);
+
+            text = "0x_A";
+            token = LexToken(text, _underscoreOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidNumber, errors[0].Code);
+            Assert.Equal("error CS1013: Invalid number", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
+            Assert.Equal(text, token.Text);
+
+            text = "0xA_";
+            token = LexToken(text, _underscoreOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidNumber, errors[0].Code);
+            Assert.Equal("error CS1013: Invalid number", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
+            Assert.Equal(text, token.Text);
+
+            text = "0b_1";
+            token = LexToken(text, _binaryUnderscoreOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidNumber, errors[0].Code);
+            Assert.Equal("error CS1013: Invalid number", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
+            Assert.Equal(text, token.Text);
+
+            text = "0b1_";
+            token = LexToken(text, _binaryUnderscoreOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidNumber, errors[0].Code);
+            Assert.Equal("error CS1013: Invalid number", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
+            Assert.Equal(text, token.Text);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
         public void TestNumericWithTrailingDot()
         {
             var value = 3;
             var text = "3.";
-            var token = LexToken(text);
+            var token = Lex(text).First();
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
@@ -2319,7 +2848,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestDebuggerObjectAddressIdentifiers()
         {
-            var token = LexToken("@0x0");
+            var token = Lex("@0x0").First();
             Assert.Equal(SyntaxKind.BadToken, token.Kind());
             VerifyError(token, ErrorCode.ERR_ExpectedVerbatimLiteral);
             Assert.Equal("@", token.Text);
@@ -2355,7 +2884,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("@", token.Text);
             Assert.Equal("@", token.Value);
 
-            token = LexToken("@0b1c2d3e4f");
+            token = Lex("@0b1c2d3e4f").First();
             Assert.Equal(SyntaxKind.BadToken, token.Kind());
             VerifyError(token, ErrorCode.ERR_ExpectedVerbatimLiteral);
             Assert.Equal("@", token.Text);
