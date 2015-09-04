@@ -466,21 +466,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
             }
         }
 
-        protected void GenerateType(ITypeSymbol type, bool? @implicit = null, bool fullyQualify = false)
+        protected void GenerateType(ITypeSymbol type, bool? @implicit = null, bool assemblyQualify = false)
         {
             if (type.TypeKind == TypeKind.Array)
             {
                 var arrayType = (IArrayTypeSymbol)type;
                 using (var tag = ArrayTypeTag(arrayType.Rank))
                 {
-                    GenerateType(arrayType.ElementType, @implicit, fullyQualify);
+                    GenerateType(arrayType.ElementType, @implicit, assemblyQualify);
                 }
             }
             else
             {
                 using (TypeTag(@implicit))
                 {
-                    var typeName = fullyQualify
+                    var typeName = assemblyQualify
                         ? GetTypeName(type) + ", " + type.ContainingAssembly.ToDisplayString()
                         : GetTypeName(type);
 

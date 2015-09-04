@@ -142,7 +142,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
                             Return False
                         End If
 
-                        GenerateType(eventSymbol.ContainingType, implicit:=True, fullyQualify:=True)
+                        GenerateType(eventSymbol.ContainingType, implicit:=True, assemblyQualify:=True)
 
                         Using ArgumentTag()
                             If Not TryGenerateExpression(addHandlerStatement.DelegateExpression, generateAttributes:=True) Then
@@ -657,7 +657,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
             End If
 
             Using NewDelegateTag(delegateSymbol.Name)
-                GenerateType(eventType, implicit:=True, fullyQualify:=True)
+                GenerateType(eventType, implicit:=True, assemblyQualify:=True)
 
                 If delegateExpression.Kind() = SyntaxKind.IdentifierName Then
                     GenerateLastNameRef(delegateSymbol)
@@ -668,7 +668,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
                     End If
                 End If
 
-                GenerateType(delegateSymbol.ContainingType, implicit:=True, fullyQualify:=True)
+                GenerateType(delegateSymbol.ContainingType, implicit:=True, assemblyQualify:=True)
 
                 Return True
             End Using
