@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft
+namespace Microsoft.VisualStudio
 {
     internal static class StringComparers
     {
