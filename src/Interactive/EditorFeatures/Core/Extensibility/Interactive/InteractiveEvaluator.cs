@@ -2,7 +2,6 @@
 
 extern alias WORKSPACES;
 
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -29,7 +28,6 @@ using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Roslyn.Utilities;
 using DesktopMetadataReferenceResolver = WORKSPACES::Microsoft.CodeAnalysis.Scripting.DesktopMetadataReferenceResolver;
 using GacFileResolver = WORKSPACES::Microsoft.CodeAnalysis.Scripting.GacFileResolver;
-using NuGetPackageResolver = WORKSPACES::Microsoft.CodeAnalysis.Scripting.NuGetPackageResolver;
 
 namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
@@ -248,9 +246,13 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         private static MetadataFileReferenceResolver CreateFileResolver(ImmutableArray<string> referencePaths, string baseDirectory)
         {
+            var userProfilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            var packagesDirectory = (userProfilePath == null) ?
+                null :
+                PathUtilities.CombineAbsoluteAndRelativePaths(userProfilePath, PathUtilities.CombinePossiblyRelativeAndRelativePaths(".nuget", "packages"));
             return new DesktopMetadataReferenceResolver(
                 new RelativePathReferenceResolver(referencePaths, baseDirectory),
-                NuGetPackageResolver.Instance,
+                string.IsNullOrEmpty(packagesDirectory) ? null : new NuGetPackageResolverImpl(packagesDirectory),
                 new GacFileResolver(
                     architectures: GacFileResolver.Default.Architectures,  // TODO (tomat)
                     preferredCulture: System.Globalization.CultureInfo.CurrentCulture)); // TODO (tomat)
