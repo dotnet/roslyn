@@ -4459,6 +4459,181 @@ class C
 
             Test(input, expected)
         End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4037, "https://github.com/dotnet/roslyn/issues/4037")>
+        Public Sub CSharp_DoNotRemove_NecessaryCastOfEnumFromInInterpolation()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+
+class Sample 
+{
+    public enum State: ushort
+    {
+        None = 0x00,
+        State1 = 1 << 0,
+    }
+
+    public static void Main() 
+    {
+        State alarmState = State.State1;
+
+        string str = $"State: {alarmState} [{{|Simplify:(ushort)alarmState|}:X4}]";
+
+        Console.WriteLine(str);
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+
+class Sample 
+{
+    public enum State: ushort
+    {
+        None = 0x00,
+        State1 = 1 << 0,
+    }
+
+    public static void Main() 
+    {
+        State alarmState = State.State1;
+
+        string str = $"State: {alarmState} [{(ushort)alarmState:X4}]";
+
+        Console.WriteLine(str);
+    }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4037, "https://github.com/dotnet/roslyn/issues/4037")>
+        Public Sub CSharp_DoNotRemove_NecessaryCastOfEnumAndToString()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+
+class Sample 
+{
+    public enum State: ushort
+    {
+        None = 0x00,
+        State1 = 1 << 0,
+    }
+
+    public static void Main() 
+    {
+        State alarmState = State.State1;
+
+        string str = ({|Simplify:(ushort)alarmState|}).ToString("X4");
+
+        Console.WriteLine(str);
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+
+class Sample 
+{
+    public enum State: ushort
+    {
+        None = 0x00,
+        State1 = 1 << 0,
+    }
+
+    public static void Main() 
+    {
+        State alarmState = State.State1;
+
+        string str = ((ushort)alarmState).ToString("X4");
+
+        Console.WriteLine(str);
+    }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4037, "https://github.com/dotnet/roslyn/issues/4037")>
+        Public Sub CSharp_DoNotRemove_NecessaryCastOfEnum()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+
+class Sample 
+{
+    public enum State: ushort
+    {
+        None = 0x00,
+        State1 = 1 << 0,
+    }
+
+    public static void Main() 
+    {
+        State alarmState = State.State1;
+
+        ushort val = {|Simplify:(ushort)alarmState|};
+
+        Console.WriteLine(val);
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+
+class Sample 
+{
+    public enum State: ushort
+    {
+        None = 0x00,
+        State1 = 1 << 0,
+    }
+
+    public static void Main() 
+    {
+        State alarmState = State.State1;
+
+        ushort val = (ushort)alarmState;
+
+        Console.WriteLine(val);
+    }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
 #End Region
 
 #Region "Visual Basic tests"
@@ -7471,6 +7646,7 @@ End Class
 
             Test(input, expected)
         End Sub
+
 #End Region
 
     End Class
