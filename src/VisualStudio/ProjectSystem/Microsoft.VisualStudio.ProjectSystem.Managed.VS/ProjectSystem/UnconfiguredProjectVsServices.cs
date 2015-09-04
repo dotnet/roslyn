@@ -8,24 +8,22 @@ namespace Microsoft.VisualStudio.ProjectSystem
 {
     /// <summary>
     ///     Provides an implementation of <see cref="IUnconfiguredProjectVsServices"/> that delegates onto 
-    ///     it's <see cref="IUnconfiguredProjectServices.HostObject"/>.
+    ///     it's <see cref="IUnconfiguredProjectServices.HostObject"/> and underlying <see cref="IUnconfiguredProjectCommonServices"/>.
     /// </summary>
     [Export(typeof(IUnconfiguredProjectVsServices))]
     internal class UnconfiguredProjectVsServices : IUnconfiguredProjectVsServices
     {
         private readonly UnconfiguredProject _unconfiguredProject;
-        private readonly IProjectFeatures _features;
+        private readonly IUnconfiguredProjectCommonServices _commonServices;
 
         [ImportingConstructor]
-        public UnconfiguredProjectVsServices(UnconfiguredProject unconfiguredProject, IProjectFeatures features, IThreadHandling threadHandling)
+        public UnconfiguredProjectVsServices(UnconfiguredProject unconfiguredProject, IUnconfiguredProjectCommonServices commonServices)
         {
             Requires.NotNull(unconfiguredProject, nameof(unconfiguredProject));
-            Requires.NotNull(features, nameof(features));
-            Requires.NotNull(threadHandling, nameof(threadHandling));
+            Requires.NotNull(commonServices, nameof(commonServices));
 
             _unconfiguredProject = unconfiguredProject;
-            Features = features;
-            ThreadHandling = threadHandling;
+            _commonServices = commonServices;
         }
 
         public IVsHierarchy Hierarchy
@@ -40,12 +38,12 @@ namespace Microsoft.VisualStudio.ProjectSystem
 
         public IProjectFeatures Features
         {
-            get;
+            get { return _commonServices.Features; }
         }
 
         public IThreadHandling ThreadHandling
         {
-            get;
+            get { return _commonServices.ThreadHandling; }
         }
     }
 }
