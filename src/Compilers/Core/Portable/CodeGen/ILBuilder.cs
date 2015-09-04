@@ -814,7 +814,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                     if (_optimizations == OptimizationLevel.Release)
                     {
-                        branchesOptimized |= current.OptimizeBranches(ref delta);
+                       branchesOptimized |= current.OptimizeBranches(ref delta);
                     }
 
                     current.ShortenBranches(ref delta);
