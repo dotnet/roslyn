@@ -10,18 +10,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Friend Shared ReadOnly Instance As New SymbolFactory()
 
-        Friend Overrides Function GetArrayTypeSymbol(moduleSymbol As PEModuleSymbol, rank As Integer, elementType As TypeSymbol, customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol))) As TypeSymbol
+        Friend Overrides Function GetMDArrayTypeSymbol(moduleSymbol As PEModuleSymbol, rank As Integer, elementType As TypeSymbol, customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol))) As TypeSymbol
             If TypeOf elementType Is UnsupportedMetadataTypeSymbol Then
                 Return elementType
             End If
 
-            If rank = 1 Then
-                ' We do not support multi-dimensional arrays of rank 1, cannot distinguish
-                ' them from SZARRAY.
-                Return New UnsupportedMetadataTypeSymbol()
-            End If
-
-            Return New ArrayTypeSymbol(
+            Return ArrayTypeSymbol.CreateMDArray(
                             elementType,
                             VisualBasicCustomModifier.Convert(customModifiers),
                             rank, moduleSymbol.ContainingAssembly)
@@ -57,10 +51,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Return elementType
             End If
 
-            Return New ArrayTypeSymbol(
+            Return ArrayTypeSymbol.CreateSZArray(
                             elementType,
                             VisualBasicCustomModifier.Convert(customModifiers),
-                            1,
                             moduleSymbol.ContainingAssembly)
         End Function
 

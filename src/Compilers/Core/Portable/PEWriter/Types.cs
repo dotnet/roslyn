@@ -32,7 +32,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// This type of array is a single dimensional array with zero lower bound for index values.
         /// </summary>
-        bool IsVector
+        bool IsSZArray
         {
             get;
             // ^ ensures result ==> Rank == 1;

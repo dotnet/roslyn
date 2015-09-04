@@ -21,9 +21,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Function
 
-        Private ReadOnly Property IArrayTypeReferenceIsVector As Boolean Implements Cci.IArrayTypeReference.IsVector
+        Private ReadOnly Property IArrayTypeReferenceIsSZArray As Boolean Implements Cci.IArrayTypeReference.IsSZArray
             Get
-                Return Me.Rank = 1
+                Return Me.IsSZArray
             End Get
         End Property
 

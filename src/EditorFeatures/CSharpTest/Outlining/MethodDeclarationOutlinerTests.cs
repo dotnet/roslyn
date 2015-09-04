@@ -46,6 +46,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public void TestMethodWithTrailingSpaces()
+        {
+            var tree = ParseLines("class C",
+                                        "{",
+                                        "  public string Foo()    ",
+                                        "  {",
+                                        "  }",
+                                        "}");
+
+            var typeDecl = tree.DigToFirstTypeDeclaration();
+            var methodDecl = typeDecl.DigToFirstNodeOfType<MethodDeclarationSyntax>();
+
+            var actualRegion = GetRegion(methodDecl);
+            var expectedRegion = new OutliningSpan(
+                TextSpan.FromBounds(37, 47),
+                TextSpan.FromBounds(14, 47),
+                CSharpOutliningHelpers.Ellipsis,
+                autoCollapse: true);
+
+            AssertRegion(expectedRegion, actualRegion);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestMethodWithLeadingComments()
         {
             var tree = ParseLines("class C",
