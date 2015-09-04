@@ -12,15 +12,12 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
     internal abstract class OpenAppDesignerCommandBase : SingleNodeProjectCommandBase
     {
         private readonly IUnconfiguredProjectVsServices _projectServices;
-        private readonly IThreadHandling _threadHandling;
 
-        public OpenAppDesignerCommandBase(IUnconfiguredProjectVsServices projectServices, IThreadHandling threadHandling)
+        public OpenAppDesignerCommandBase(IUnconfiguredProjectVsServices projectServices)
         {
             Requires.NotNull(projectServices, nameof(projectServices));
-            Requires.NotNull(threadHandling, nameof(threadHandling));
 
             _projectServices = projectServices;
-            _threadHandling = threadHandling;
         }
 
         protected override Task<CommandStatusResult> GetCommandStatusAsync(IProjectTree node, bool focused, string commandText, CommandStatus progressiveStatus)
@@ -38,8 +35,6 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
         {
             if (node.Capabilities.Contains(ProjectTreeCapabilities.AppDesignerFolder))
             {
-                await _threadHandling.SwitchToUIThread();
-
                 Guid projectDesignerGuid = _projectServices.Hierarchy.GetGuidProperty(VsHierarchyPropID.ProjectDesignerEditor);
 
                 IVsWindowFrame windowFrame;

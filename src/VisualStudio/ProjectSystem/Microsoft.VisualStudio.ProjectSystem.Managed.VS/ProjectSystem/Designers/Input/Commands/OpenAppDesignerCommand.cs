@@ -13,8 +13,8 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
     internal class OpenAppDesignerCommand : OpenAppDesignerCommandBase
     {
         [ImportingConstructor]
-        public OpenAppDesignerCommand(IUnconfiguredProjectVsServices projectServices, IThreadHandling threadHandling)
-            : base(projectServices, threadHandling)
+        public OpenAppDesignerCommand(IUnconfiguredProjectVsServices projectServices)
+            : base(projectServices)
         {
         }
     }
