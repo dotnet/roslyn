@@ -19,9 +19,19 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
                     ProjectTreeCapabilities.EmptyCapabilities.Add(ProjectTreeCapabilities.AppDesignerFolder)
                                                              .Add(ProjectTreeCapabilities.BubbleUp);
 
-        protected AppDesignerFolderProjectTreeModifierBase(IProjectImageProvider imageProvider)
+        private readonly IProjectFeatures _features;
+
+        protected AppDesignerFolderProjectTreeModifierBase(IProjectImageProvider imageProvider, IProjectFeatures features)
             : base(imageProvider)
         {
+            Requires.NotNull(features, nameof(features));
+
+            _features = features;
+        }
+
+        public override bool IsSupported
+        {
+            get { return _features.SupportsProjectDesigner; }
         }
 
         public override ImmutableHashSet<string> DefaultCapabilities

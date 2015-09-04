@@ -9,8 +9,8 @@
     <ProjectTypeGuids>{82b43b9b-a64c-4715-b499-d71e9ca2bd60};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <ProjectGuid>{9FBD7EF2-9449-486D-9FDD-FA56160AA8BB}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Microsoft.VisualStudio.ProjectSystem.Managed.Setup</RootNamespace>
-    <AssemblyName>Microsoft.VisualStudio.ProjectSystem.Managed.Setup</AssemblyName>
+    <RootNamespace>Microsoft.VisualStudio</RootNamespace>
+    <AssemblyName>ProjectSystem</AssemblyName>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>

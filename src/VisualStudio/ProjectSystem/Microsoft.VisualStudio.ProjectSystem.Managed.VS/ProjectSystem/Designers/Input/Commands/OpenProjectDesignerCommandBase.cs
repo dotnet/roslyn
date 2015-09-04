@@ -9,42 +9,40 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
 {
-    internal abstract class OpenAppDesignerCommandBase : SingleNodeProjectCommandBase
+    internal abstract class OpenProjectDesignerCommandBase : SingleNodeProjectCommandBase
     {
         private readonly IUnconfiguredProjectVsServices _projectServices;
-        private readonly IThreadHandling _threadHandling;
 
-        public OpenAppDesignerCommandBase(IUnconfiguredProjectVsServices projectServices, IThreadHandling threadHandling)
+        public OpenProjectDesignerCommandBase(IUnconfiguredProjectVsServices projectServices)
         {
             Requires.NotNull(projectServices, nameof(projectServices));
-            Requires.NotNull(threadHandling, nameof(threadHandling));
 
             _projectServices = projectServices;
-            _threadHandling = threadHandling;
         }
 
-        protected override async Task<CommandStatusResult> GetCommandStatusAsync(IProjectTree node, bool focused, string commandText, CommandStatus progressiveStatus)
+        protected override Task<CommandStatusResult> GetCommandStatusAsync(IProjectTree node, bool focused, string commandText, CommandStatus progressiveStatus)
         {
-            if (node.Capabilities.Contains(ProjectTreeCapabilities.AppDesignerFolder) && await GetSupportsAppDesignerAsync())
+            // We assume that if the AppDesignerTreeModifier marked an AppDesignerFolder, that we must support the Project Designer
+            if (node.Capabilities.Contains(ProjectTreeCapabilities.AppDesignerFolder))
             {
-                return new CommandStatusResult(true, commandText, CommandStatus.Enabled | CommandStatus.Supported);
+                return GetCommandStatusResult.Handled(commandText, CommandStatus.Enabled);
             }
 
-            return CommandStatusResult.Unhandled;
+            return GetCommandStatusResult.Unhandled;
         }
 
         protected override async Task<bool> TryHandleCommandAsync(IProjectTree node, bool focused, long commandExecuteOptions, IntPtr variantArgIn, IntPtr variantArgOut)
         {
-            if (node.Capabilities.Contains(ProjectTreeCapabilities.AppDesignerFolder) && await GetSupportsAppDesignerAsync())
+            if (node.Capabilities.Contains(ProjectTreeCapabilities.AppDesignerFolder))
             {
-                await _threadHandling.SwitchToUIThread();
-
                 Guid projectDesignerGuid = _projectServices.Hierarchy.GetGuidProperty(VsHierarchyPropID.ProjectDesignerEditor);
 
                 IVsWindowFrame windowFrame;
                 HResult hr = _projectServices.Project.OpenItemWithSpecific(VSConstants.VSITEMID_ROOT, 0, ref projectDesignerGuid, "", VSConstants.LOGVIEWID_Primary, (IntPtr)(-1), out windowFrame);
                 if (hr.Failed)
                     throw hr.Exception;
+
+                await _projectServices.ThreadingPolicy.SwitchToUIThread();
 
                 hr = windowFrame.Show();
                 if (hr.Failed)
@@ -54,13 +52,6 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
             }
 
             return false;
-        }
-
-        public async Task<bool> GetSupportsAppDesignerAsync()
-        {
-            await _threadHandling.SwitchToUIThread();
-
-            return _projectServices.Hierarchy.GetProperty(VsHierarchyPropID.SupportsProjectDesigner, defaultValue: false);
         }
     }
 }
