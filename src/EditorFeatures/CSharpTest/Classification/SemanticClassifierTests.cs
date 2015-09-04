@@ -1409,7 +1409,7 @@ class C
                 var textView = workspace.ExportProvider.GetExportedValue<ITextEditorFactoryService>().CreateTextView(extraBuffer);
 
                 var waiter = new Waiter();
-                var provider = new SemanticClassificationTaggerProvider(
+                var provider = new SemanticClassificationViewTaggerProvider(
                     workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
                     workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
                     workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
