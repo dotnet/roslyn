@@ -11,6 +11,8 @@ namespace Microsoft.VisualStudio.ProjectSystem
     {
         public const string CSharp = ProjectCapabilities.CSharp;
         public const string VisualBasic = ProjectCapabilities.VB;
+        public const string VisualBasicLanguageService = ProjectCapabilities.VB + " & " + ProjectCapabilities.LanguageService;
+        public const string CSharpLanguageService = ProjectCapabilities.CSharp + " & " + ProjectCapabilities.LanguageService;
         public const string CSharpOrVisualBasic = ProjectCapabilities.CSharp + " | " + ProjectCapabilities.VB;
         public const string AppDesigner = CSharpOrVisualBasic;  // TODO: Create a capability for this
     }

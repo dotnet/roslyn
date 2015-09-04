@@ -8,16 +8,13 @@ using Microsoft.VisualStudio.ProjectSystem.VS;
 namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
 {
     /// <summary>
-    /// Provides integration with the VB language service.
+    ///     Integrates the Visual Basic language service with the Visual Basic project system.
     /// </summary>
-    [AppliesTo(ProjectCapabilities.VB + " & " + ProjectCapabilities.LanguageService)]
     [Export(typeof(ICodeModelProvider))]
+    [AppliesTo(ProjectCapability.VisualBasicLanguageService)]
     internal class VisualBasicLanguageService : LanguageServiceBase
     {
-        /// <summary>
-        /// The VB.NET language service provider.
-        /// </summary>
-        protected static readonly Guid VBIntellisenseProvider = new Guid(0xA1B799FA, 0xB147, 0x4999, 0xA8, 0x6E, 0x1F, 0x37, 0x76, 0x5E, 0x6F, 0xB5);
+        private static readonly Guid VisualBasicIntelliSenseProvider = new Guid(0xA1B799FA, 0xB147, 0x4999, 0xA8, 0x6E, 0x1F, 0x37, 0x76, 0x5E, 0x6F, 0xB5);
 
         [ImportingConstructor]
         public VisualBasicLanguageService(IUnconfiguredProjectVsServices projectVsServices)
@@ -25,19 +22,16 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         {
         }
 
-        /// <summary>
-        /// Gets the GUID of the Intellisense provider to create.
-        /// </summary>
-        protected override Guid ProviderGuid
+        protected override Guid IntelliSenseProviderGuid
         {
-            get { return VBIntellisenseProvider; }
+            get { return VisualBasicIntelliSenseProvider; }
         }
 
         /// <summary>
         /// Invoked when the UnconfiguredProject is first loaded to initialize language services.
         /// </summary>
         [UnconfiguredProjectAutoLoad(afterInitialActiveConfigurationKnown: true)]
-        [AppliesTo(ProjectCapabilities.VB + " & " + ProjectCapabilities.LanguageService)]
+        [AppliesTo(ProjectCapability.VisualBasicLanguageService)]
         private void Initialize()
         {
             var nowait = this.InitializeAsync();

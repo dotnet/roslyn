@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         /// <summary>
         /// Gets the GUID of the Intellisense provider to create.
         /// </summary>
-        protected abstract Guid ProviderGuid
+        protected abstract Guid IntelliSenseProviderGuid
         {
             get;
         }
@@ -235,7 +235,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
                         try
                         {
                             Marshal.ThrowExceptionForHR(registry.CreateInstance(
-                                this.ProviderGuid,
+                                this.IntelliSenseProviderGuid,
                                 null,
                                 typeof(IVsIntellisenseProject).GUID,
                                 (uint)CLSCTX.CLSCTX_INPROC_SERVER,

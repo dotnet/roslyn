@@ -8,16 +8,13 @@ using Microsoft.VisualStudio.ProjectSystem.VS;
 namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
 {
     /// <summary>
-    /// Provides integration with the C# language service.
+    ///     Integrates the C# language service with the C# project system.
     /// </summary>
-    [AppliesTo(ProjectCapabilities.CSharp + " & " + ProjectCapabilities.LanguageService)]
     [Export(typeof(ICodeModelProvider))]
+    [AppliesTo(ProjectCapability.CSharpLanguageService)]
     internal class CSharpLanguageService : LanguageServiceBase
     {
-        /// <summary>
-        /// The C# language service provider.
-        /// </summary>
-        protected static readonly Guid CSharpIntellisenseProvider = new Guid(0x7D842D0C, 0xFDD6, 0x4e3b, 0x9E, 0x21, 0x0C, 0x26, 0x3F, 0x4B, 0x6E, 0xC2);
+        private static readonly Guid CSharpIntellisenseProvider = new Guid(0x7D842D0C, 0xFDD6, 0x4e3b, 0x9E, 0x21, 0x0C, 0x26, 0x3F, 0x4B, 0x6E, 0xC2);
 
         [ImportingConstructor]
         public CSharpLanguageService(IUnconfiguredProjectVsServices projectVsServices)
@@ -25,10 +22,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         {
         }
 
-        /// <summary>
-        /// Gets the GUID of the Intellisense provider to create.
-        /// </summary>
-        protected override Guid ProviderGuid
+        protected override Guid IntelliSenseProviderGuid
         {
             get { return CSharpIntellisenseProvider; }
         }
@@ -37,7 +31,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         /// Invoked when the UnconfiguredProject is first loaded to initialize language services.
         /// </summary>
         [UnconfiguredProjectAutoLoad(afterInitialActiveConfigurationKnown: true)]
-        [AppliesTo(ProjectCapabilities.CSharp + " & " + ProjectCapabilities.LanguageService)]
+        [AppliesTo(ProjectCapability.CSharpLanguageService)]
         private void Initialize()
         {
             var nowait = this.InitializeAsync();
