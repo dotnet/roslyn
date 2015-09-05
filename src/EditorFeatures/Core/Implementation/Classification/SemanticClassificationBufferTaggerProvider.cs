@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     /// IAccurateTagger scenarios.  Namely: Copy/Paste and Printing.  We use an 'Accurate' buffer
     /// tagger since these features need to get classification tags for the entire file.
     /// 
-    /// i.e. if you're printing, you want semantic classification, even for code that's not in view.
+    /// i.e. if you're printing, you want semantic classification even for code that's not in view.
     /// The same applies to copy/pasting.
     /// </summary>
     [Export(typeof(ITaggerProvider))]
