@@ -83,7 +83,7 @@ False
   // Code size      189 (0xbd)
   .maxstack  2
   .locals init (bool V_0, //v1
-  bool V_1) //v2
+                bool V_1) //v2
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
   IL_0002:  ldc.i4.0
@@ -105,7 +105,7 @@ False
   IL_002e:  ldc.i4.0
   IL_002f:  call       ""void System.Console.WriteLine(bool)""
   IL_0034:  ldloc.0
-  IL_0035:  dup
+  IL_0035:  ldloc.0
   IL_0036:  and
   IL_0037:  call       ""void System.Console.WriteLine(bool)""
   IL_003c:  ldloc.0
@@ -117,7 +117,7 @@ False
   IL_0046:  and
   IL_0047:  call       ""void System.Console.WriteLine(bool)""
   IL_004c:  ldloc.1
-  IL_004d:  dup
+  IL_004d:  ldloc.1
   IL_004e:  and
   IL_004f:  call       ""void System.Console.WriteLine(bool)""
   IL_0054:  ldc.i4.s   76
@@ -235,7 +235,7 @@ False
   // Code size      189 (0xbd)
   .maxstack  2
   .locals init (bool V_0, //v1
-  bool V_1) //v2
+                bool V_1) //v2
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
   IL_0002:  ldc.i4.0
@@ -257,7 +257,7 @@ False
   IL_002e:  ldc.i4.0
   IL_002f:  call       ""void System.Console.WriteLine(bool)""
   IL_0034:  ldloc.0
-  IL_0035:  dup
+  IL_0035:  ldloc.0
   IL_0036:  or
   IL_0037:  call       ""void System.Console.WriteLine(bool)""
   IL_003c:  ldloc.0
@@ -269,7 +269,7 @@ False
   IL_0046:  or
   IL_0047:  call       ""void System.Console.WriteLine(bool)""
   IL_004c:  ldloc.1
-  IL_004d:  dup
+  IL_004d:  ldloc.1
   IL_004e:  or
   IL_004f:  call       ""void System.Console.WriteLine(bool)""
   IL_0054:  ldc.i4.s   76
