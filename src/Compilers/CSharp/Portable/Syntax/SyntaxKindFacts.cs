@@ -87,6 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DisableKeyword:
                 case SyntaxKind.RestoreKeyword:
                 case SyntaxKind.ReferenceKeyword:
+                case SyntaxKind.LoadKeyword:
                     return true;
                 default:
                     return false;
@@ -193,6 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterpolatedVerbatimStringStartToken:
                 case SyntaxKind.InterpolatedStringTextToken:
                 case SyntaxKind.InterpolatedStringEndToken:
+                case SyntaxKind.LoadKeyword:
                     return true;
                 default:
                     return false;
@@ -1020,6 +1022,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.RestoreKeyword;
                 case "r":
                     return SyntaxKind.ReferenceKeyword;
+                case "load":
+                    return SyntaxKind.LoadKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1496,6 +1500,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "restore";
                 case SyntaxKind.ReferenceKeyword:
                     return "r";
+                case SyntaxKind.LoadKeyword:
+                    return "load";
 
                 // contextual keywords
                 case SyntaxKind.YieldKeyword:

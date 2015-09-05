@@ -54,11 +54,6 @@
     <Compile Include="CSharpObjectFormatter.cs" />
     <Compile Include="CSharpScript.cs" />
     <Compile Include="CSharpScriptCompiler.cs" />
-    <Compile Include="CSharpScriptingResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>CSharpScriptingResources.resx</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Emit.UnitTests" />
@@ -66,12 +61,6 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Emit.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="CSharpScriptingResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>CSharpScriptingResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />

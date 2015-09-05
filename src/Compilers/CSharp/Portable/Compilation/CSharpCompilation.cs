@@ -12,6 +12,7 @@ using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -44,9 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static readonly ParallelOptions DefaultParallelOptions = new ParallelOptions();
 
         private readonly CSharpCompilationOptions _options;
-        private readonly ImmutableArray<SyntaxTree> _syntaxTrees; // In ordinal order.
-        private readonly ImmutableDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> _rootNamespaces;
-        private readonly DeclarationTable _declarationTable;
         private readonly Lazy<Imports> _globalImports;
         private readonly Lazy<AliasSymbol> _globalNamespaceAlias;  // alias symbol used to resolve "global::".
         private readonly Lazy<ImplicitNamedTypeSymbol> _scriptClass;
@@ -100,6 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// We do so by creating a new reference manager for such compilation. 
         /// </summary>
         private ReferenceManager _referenceManager;
+
+        private readonly SyntaxAndDeclarationManager _syntaxAndDeclarations;
 
         /// <summary>
         /// Contains the main method of this assembly, if there is one.
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Create(
                 assemblyName,
                 options ?? s_defaultOptions,
-                (syntaxTrees != null) ? syntaxTrees.Cast<SyntaxTree>() : null,
+                syntaxTrees,
                 references,
                 previousSubmission: null,
                 returnType: null,
@@ -250,16 +250,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 assemblyName,
                 options,
                 validatedReferences,
-                ImmutableArray<SyntaxTree>.Empty,
-                ImmutableDictionary.Create<SyntaxTree, int>(ReferenceEqualityComparer.Instance),
-                ImmutableDictionary.Create<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>>(),
-                DeclarationTable.Empty,
                 previousSubmission,
                 returnType,
                 hostObjectType,
                 isSubmission,
                 referenceManager: null,
-                reuseReferenceManager: false);
+                reuseReferenceManager: false,
+                syntaxAndDeclarations: new SyntaxAndDeclarationManager(
+                    ImmutableArray<SyntaxTree>.Empty,
+                    options.ScriptClassName,
+                    options.SourceReferenceResolver,
+                    CSharp.MessageProvider.Instance,
+                    isSubmission,
+                    state: null));
 
             if (syntaxTrees != null)
             {
@@ -274,35 +277,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             string assemblyName,
             CSharpCompilationOptions options,
             ImmutableArray<MetadataReference> references,
-            ImmutableArray<SyntaxTree> syntaxTrees,
-            ImmutableDictionary<SyntaxTree, int> syntaxTreeOrdinalMap,
-            ImmutableDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> rootNamespaces,
-            DeclarationTable declarationTable,
             CSharpCompilation previousSubmission,
             Type submissionReturnType,
             Type hostObjectType,
             bool isSubmission,
             ReferenceManager referenceManager,
             bool reuseReferenceManager,
+            SyntaxAndDeclarationManager syntaxAndDeclarations,
             AsyncQueue<CompilationEvent> eventQueue = null)
-            : base(assemblyName, references, submissionReturnType, hostObjectType, isSubmission, syntaxTreeOrdinalMap, eventQueue)
+            : base(assemblyName, references, SyntaxTreeCommonFeatures(syntaxAndDeclarations.ExternalSyntaxTrees), submissionReturnType, hostObjectType, isSubmission, eventQueue)
         {
             _wellKnownMemberSignatureComparer = new WellKnownMembersSignatureComparer(this);
             _options = options;
-            _syntaxTrees = syntaxTrees;
-
-            _rootNamespaces = rootNamespaces;
-            _declarationTable = declarationTable;
-
-            Debug.Assert(syntaxTrees.All(tree => syntaxTrees[syntaxTreeOrdinalMap[tree]] == tree));
-            Debug.Assert(syntaxTrees.SetEquals(rootNamespaces.Keys.AsImmutable(), EqualityComparer<SyntaxTree>.Default));
 
             this.builtInOperators = new BuiltInOperators(this);
             _scriptClass = new Lazy<ImplicitNamedTypeSymbol>(BindScriptClass);
             _globalImports = new Lazy<Imports>(BindGlobalUsings);
             _globalNamespaceAlias = new Lazy<AliasSymbol>(CreateGlobalNamespaceAlias);
             _anonymousTypeManager = new AnonymousTypeManager(this);
-            this.LanguageVersion = CommonLanguageVersion(syntaxTrees);
+            this.LanguageVersion = CommonLanguageVersion(syntaxAndDeclarations.ExternalSyntaxTrees);
 
             if (isSubmission)
             {
@@ -324,9 +317,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _referenceManager = new ReferenceManager(
                     MakeSourceAssemblySimpleName(),
-                    options.AssemblyIdentityComparer,
-                    (referenceManager != null) ? referenceManager.ObservedMetadata : null);
+                    this.Options.AssemblyIdentityComparer,
+                    observedMetadata: referenceManager?.ObservedMetadata);
             }
+
+            _syntaxAndDeclarations = syntaxAndDeclarations;
 
             Debug.Assert((object)_lazyAssemblySymbol == null);
             if (EventQueue != null) EventQueue.Enqueue(new CompilationStartedEvent(this));
@@ -363,7 +358,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result ?? CSharpParseOptions.Default.LanguageVersion;
         }
 
-
         /// <summary>
         /// Create a duplicate of this compilation with different symbol instances.
         /// </summary>
@@ -373,39 +367,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.AssemblyName,
                 _options,
                 this.ExternalReferences,
-                this.SyntaxTrees,
-                this.syntaxTreeOrdinalMap,
-                _rootNamespaces,
-                _declarationTable,
                 _previousSubmission,
                 this.SubmissionReturnType,
                 this.HostObjectType,
                 this.IsSubmission,
                 _referenceManager,
-                reuseReferenceManager: true);
+                reuseReferenceManager: true,
+                syntaxAndDeclarations: _syntaxAndDeclarations);
         }
 
-        private CSharpCompilation UpdateSyntaxTrees(
-            ImmutableArray<SyntaxTree> syntaxTrees,
-            ImmutableDictionary<SyntaxTree, int> syntaxTreeOrdinalMap,
-            ImmutableDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> rootNamespaces,
-            DeclarationTable declarationTable,
-            bool referenceDirectivesChanged)
+        private CSharpCompilation Update(
+            ReferenceManager referenceManager,
+            bool reuseReferenceManager,
+            SyntaxAndDeclarationManager syntaxAndDeclarations)
         {
             return new CSharpCompilation(
                 this.AssemblyName,
                 _options,
                 this.ExternalReferences,
-                syntaxTrees,
-                syntaxTreeOrdinalMap,
-                rootNamespaces,
-                declarationTable,
                 _previousSubmission,
                 this.SubmissionReturnType,
                 this.HostObjectType,
                 this.IsSubmission,
-                _referenceManager,
-                reuseReferenceManager: !referenceDirectivesChanged);
+                referenceManager,
+                reuseReferenceManager,
+                syntaxAndDeclarations);
         }
 
         /// <summary>
@@ -423,16 +409,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 assemblyName,
                 _options,
                 this.ExternalReferences,
-                this.SyntaxTrees,
-                this.syntaxTreeOrdinalMap,
-                _rootNamespaces,
-                _declarationTable,
                 _previousSubmission,
                 this.SubmissionReturnType,
                 this.HostObjectType,
                 this.IsSubmission,
                 _referenceManager,
-                reuseReferenceManager: assemblyName == this.AssemblyName);
+                reuseReferenceManager: assemblyName == this.AssemblyName,
+                syntaxAndDeclarations: _syntaxAndDeclarations);
         }
 
         /// <summary>
@@ -455,16 +438,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.AssemblyName,
                 _options,
                 ValidateReferences<CSharpCompilationReference>(references),
-                this.SyntaxTrees,
-                this.syntaxTreeOrdinalMap,
-                _rootNamespaces,
-                _declarationTable,
                 _previousSubmission,
                 this.SubmissionReturnType,
                 this.HostObjectType,
                 this.IsSubmission,
                 referenceManager: null,
-                reuseReferenceManager: false);
+                reuseReferenceManager: false,
+                syntaxAndDeclarations: _syntaxAndDeclarations);
         }
 
         /// <summary>
@@ -480,23 +460,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public CSharpCompilation WithOptions(CSharpCompilationOptions options)
         {
-            // Checks to see if the new options support reusing the reference manager
-            bool reuseReferenceManager = this.Options.CanReuseCompilationReferenceManager(options);
+            var oldOptions = this.Options;
+            bool reuseReferenceManager = oldOptions.CanReuseCompilationReferenceManager(options);
+            bool reuseSyntaxAndDeclarationManager = oldOptions.ScriptClassName == options.ScriptClassName &&
+                oldOptions.SourceReferenceResolver == options.SourceReferenceResolver;
 
             return new CSharpCompilation(
                 this.AssemblyName,
                 options,
                 this.ExternalReferences,
-                _syntaxTrees,
-                this.syntaxTreeOrdinalMap,
-                _rootNamespaces,
-                _declarationTable,
                 _previousSubmission,
                 this.SubmissionReturnType,
                 this.HostObjectType,
                 this.IsSubmission,
                 _referenceManager,
-                reuseReferenceManager);
+                reuseReferenceManager,
+                reuseSyntaxAndDeclarationManager ?
+                    _syntaxAndDeclarations :
+                    new SyntaxAndDeclarationManager(
+                        _syntaxAndDeclarations.ExternalSyntaxTrees,
+                        options.ScriptClassName,
+                        options.SourceReferenceResolver,
+                        _syntaxAndDeclarations.MessageProvider,
+                        _syntaxAndDeclarations.IsSubmission,
+                        state: null));
         }
 
         /// <summary>
@@ -506,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!this.IsSubmission)
             {
-                throw new NotSupportedException("Can't have a previousSubmission when not a submission");
+                throw new InvalidOperationException(CSharpResources.CannotHavePreviousSubmission);
             }
 
             // Reference binding doesn't depend on previous submission so we can reuse it.
@@ -515,16 +502,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.AssemblyName,
                 _options,
                 this.ExternalReferences,
-                this.SyntaxTrees,
-                this.syntaxTreeOrdinalMap,
-                _rootNamespaces,
-                _declarationTable,
                 newPreviousSubmission,
                 this.SubmissionReturnType,
                 this.HostObjectType,
                 this.IsSubmission,
                 _referenceManager,
-                reuseReferenceManager: true);
+                reuseReferenceManager: true,
+                syntaxAndDeclarations: _syntaxAndDeclarations);
         }
 
         /// <summary>
@@ -536,16 +520,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.AssemblyName,
                 _options,
                 this.ExternalReferences,
-                this.SyntaxTrees,
-                this.syntaxTreeOrdinalMap,
-                _rootNamespaces,
-                _declarationTable,
                 _previousSubmission,
                 this.SubmissionReturnType,
                 this.HostObjectType,
                 this.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager: true,
+                syntaxAndDeclarations: _syntaxAndDeclarations,
                 eventQueue: eventQueue);
         }
 
@@ -584,8 +565,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             hasValue = false;
 
-            // submission can be empty or comprise of a script file
-            SyntaxTree tree = SyntaxTrees.SingleOrDefault();
+            // A submission may be empty or comprised of a single script file.
+            var tree = _syntaxAndDeclarations.ExternalSyntaxTrees.SingleOrDefault();
             if (tree == null || tree.Options.Kind != SourceCodeKind.Interactive)
             {
                 return GetSpecialType(SpecialType.System_Void);
@@ -619,7 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public new ImmutableArray<SyntaxTree> SyntaxTrees
         {
-            get { return _syntaxTrees; }
+            get { return _syntaxAndDeclarations.GetLazyState().SyntaxTrees; }
         }
 
         /// <summary>
@@ -628,7 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public new bool ContainsSyntaxTree(SyntaxTree syntaxTree)
         {
             var cstree = syntaxTree as SyntaxTree;
-            return cstree != null && _rootNamespaces.ContainsKey((cstree));
+            return cstree != null && _syntaxAndDeclarations.GetLazyState().RootNamespaces.ContainsKey(cstree);
         }
 
         /// <summary>
@@ -654,76 +635,52 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this;
             }
 
-            // We're using a try-finally for this builder because there's a test that 
-            // specifically checks for one or more of the argument exceptions below
-            // and we don't want to see console spew (even though we don't generally
-            // care about pool "leaks" in exceptional cases).  Alternatively, we
-            // could create a new ArrayBuilder.
-            var builder = ArrayBuilder<SyntaxTree>.GetInstance();
-            try
+            // This HashSet is needed so that we don't allow adding the same tree twice
+            // with a single call to AddSyntaxTrees.  Rather than using a separate HashSet,
+            // ReplaceSyntaxTrees can just check against ExternalSyntaxTrees, because we
+            // only allow replacing a single tree at a time.
+            var externalSyntaxTrees = PooledHashSet<SyntaxTree>.GetInstance();
+            var syntaxAndDeclarations = _syntaxAndDeclarations;
+            externalSyntaxTrees.AddAll(syntaxAndDeclarations.ExternalSyntaxTrees);
+            bool reuseReferenceManager = true;
+            int i = 0;
+            foreach (var tree in trees.Cast<CSharpSyntaxTree>())
             {
-                builder.AddRange(this.SyntaxTrees);
-
-                bool referenceDirectivesChanged = false;
-                var oldTreeCount = this.SyntaxTrees.Length;
-                var ordinalMap = this.syntaxTreeOrdinalMap;
-                var declMap = _rootNamespaces;
-                var declTable = _declarationTable;
-                int i = 0;
-                foreach (var tree in trees.Cast<CSharpSyntaxTree>())
+                if (tree == null)
                 {
-                    if (tree == null)
-                    {
-                        throw new ArgumentNullException("trees[" + i + "]");
-                    }
-
-                    if (!tree.HasCompilationUnitRoot)
-                    {
-                        throw new ArgumentException(String.Format(CSharpResources.TreeMustHaveARootNodeWith, i));
-                    }
-
-                    if (declMap.ContainsKey(tree))
-                    {
-                        throw new ArgumentException(CSharpResources.SyntaxTreeAlreadyPresent, String.Format(CSharpResources.Trees0, i));
-                    }
-
-                    if (IsSubmission && tree.Options.Kind == SourceCodeKind.Regular)
-                    {
-                        throw new ArgumentException(CSharpResources.SubmissionCanOnlyInclude, String.Format(CSharpResources.Trees0, i));
-                    }
-
-                    AddSyntaxTreeToDeclarationMapAndTable(tree, _options, IsSubmission, ref declMap, ref declTable, ref referenceDirectivesChanged);
-                    builder.Add(tree);
-                    ordinalMap = ordinalMap.Add(tree, oldTreeCount + i);
-
-                    i++;
+                    throw new ArgumentNullException($"{nameof(trees)}[{i}]");
                 }
 
-                if (IsSubmission && declMap.Count > 1)
+                if (!tree.HasCompilationUnitRoot)
                 {
-                    throw new ArgumentException(CSharpResources.SubmissionCanHaveAtMostOne, "trees");
+                    throw new ArgumentException(CSharpResources.TreeMustHaveARootNodeWith, $"{nameof(trees)}[{i}]");
                 }
 
-                return UpdateSyntaxTrees(builder.ToImmutable(), ordinalMap, declMap, declTable, referenceDirectivesChanged);
-            }
-            finally
-            {
-                builder.Free();
-            }
-        }
+                if (externalSyntaxTrees.Contains(tree))
+                {
+                    throw new ArgumentException(CSharpResources.SyntaxTreeAlreadyPresent, $"{nameof(trees)}[{i}]");
+                }
 
-        private static void AddSyntaxTreeToDeclarationMapAndTable(
-            SyntaxTree tree,
-            CSharpCompilationOptions options,
-            bool isSubmission,
-            ref ImmutableDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> declMap,
-            ref DeclarationTable declTable,
-            ref bool referenceDirectivesChanged)
-        {
-            var lazyRoot = new Lazy<RootSingleNamespaceDeclaration>(() => DeclarationTreeBuilder.ForTree(tree, options.ScriptClassName ?? "", isSubmission));
-            declMap = declMap.Add(tree, lazyRoot); // Callers are responsible for checking for existing entries.
-            declTable = declTable.AddRootDeclaration(lazyRoot);
-            referenceDirectivesChanged = referenceDirectivesChanged || tree.HasReferenceDirectives();
+                if (this.IsSubmission && tree.Options.Kind == SourceCodeKind.Regular)
+                {
+                    throw new ArgumentException(CSharpResources.SubmissionCanOnlyInclude, $"{nameof(trees)}[{i}]");
+                }
+
+                externalSyntaxTrees.Add(tree);
+                reuseReferenceManager &= !tree.HasReferenceOrLoadDirectives;
+
+                i++;
+            }
+            externalSyntaxTrees.Free();
+
+            if (this.IsSubmission && i > 1)
+            {
+                throw new ArgumentException(CSharpResources.SubmissionCanHaveAtMostOne, nameof(trees));
+            }
+
+            syntaxAndDeclarations = syntaxAndDeclarations.AddSyntaxTrees(trees);
+
+            return Update(_referenceManager, reuseReferenceManager, syntaxAndDeclarations);
         }
 
         /// <summary>
@@ -751,51 +708,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this;
             }
 
-            bool referenceDirectivesChanged = false;
-            var removeSet = new HashSet<SyntaxTree>();
-            var declMap = _rootNamespaces;
-            var declTable = _declarationTable;
+            var removeSet = PooledHashSet<SyntaxTree>.GetInstance();
+            // This HashSet is needed so that we don't allow adding the same tree twice
+            // with a single call to AddSyntaxTrees.  Rather than using a separate HashSet,
+            // ReplaceSyntaxTrees can just check against ExternalSyntaxTrees, because we
+            // only allow replacing a single tree at a time.
+            var externalSyntaxTrees = PooledHashSet<SyntaxTree>.GetInstance();
+            var syntaxAndDeclarations = _syntaxAndDeclarations;
+            externalSyntaxTrees.AddAll(syntaxAndDeclarations.ExternalSyntaxTrees);
+            bool reuseReferenceManager = true;
+            int i = 0;
             foreach (var tree in trees.Cast<CSharpSyntaxTree>())
             {
-                RemoveSyntaxTreeFromDeclarationMapAndTable(tree, ref declMap, ref declTable, ref referenceDirectivesChanged);
-                removeSet.Add(tree);
-            }
-
-            Debug.Assert(!removeSet.IsEmpty());
-
-            // We're going to have to revise the ordinals of all
-            // trees after the first one removed, so just build
-            // a new map.
-            var ordinalMap = ImmutableDictionary.Create<SyntaxTree, int>();
-            var builder = ArrayBuilder<SyntaxTree>.GetInstance();
-            int i = 0;
-            foreach (var tree in this.SyntaxTrees)
-            {
-                if (!removeSet.Contains(tree))
+                if (!externalSyntaxTrees.Contains(tree))
                 {
-                    builder.Add(tree);
-                    ordinalMap = ordinalMap.Add(tree, i++);
+                    // Check to make sure this is not a #load'ed tree.
+                    var loadedSyntaxTreeMap = syntaxAndDeclarations.GetLazyState().LoadedSyntaxTreeMap;
+                    if (SyntaxAndDeclarationManager.IsLoadedSyntaxTree(tree, loadedSyntaxTreeMap))
+                    {
+                        throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeFromLoadNoRemoveReplace, tree), $"{nameof(trees)}[{i}]");
+                    }
+
+                    throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeNotFoundTo, tree), $"{nameof(trees)}[{i}]");
                 }
+
+                removeSet.Add(tree);
+                reuseReferenceManager &= !tree.HasReferenceOrLoadDirectives;
+
+                i++;
             }
+            externalSyntaxTrees.Free();
 
-            return UpdateSyntaxTrees(builder.ToImmutableAndFree(), ordinalMap, declMap, declTable, referenceDirectivesChanged);
-        }
+            syntaxAndDeclarations = syntaxAndDeclarations.RemoveSyntaxTrees(removeSet);
+            removeSet.Free();
 
-        private static void RemoveSyntaxTreeFromDeclarationMapAndTable(
-            SyntaxTree tree,
-            ref ImmutableDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> declMap,
-            ref DeclarationTable declTable,
-            ref bool referenceDirectivesChanged)
-        {
-            Lazy<RootSingleNamespaceDeclaration> lazyRoot;
-            if (!declMap.TryGetValue(tree, out lazyRoot))
-            {
-                throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeNotFoundTo, tree), "trees");
-            }
-
-            declTable = declTable.RemoveRootDeclaration(lazyRoot);
-            declMap = declMap.Remove(tree);
-            referenceDirectivesChanged = referenceDirectivesChanged || tree.HasReferenceDirectives();
+            return Update(_referenceManager, reuseReferenceManager, syntaxAndDeclarations);
         }
 
         /// <summary>
@@ -804,12 +751,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public new CSharpCompilation RemoveAllSyntaxTrees()
         {
-            return UpdateSyntaxTrees(
-                ImmutableArray<SyntaxTree>.Empty,
-                ImmutableDictionary.Create<SyntaxTree, int>(),
-                ImmutableDictionary.Create<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>>(),
-                DeclarationTable.Empty,
-                referenceDirectivesChanged: _declarationTable.ReferenceDirectives.Any());
+            var syntaxAndDeclarations = _syntaxAndDeclarations;
+            return Update(
+                _referenceManager,
+                reuseReferenceManager: !syntaxAndDeclarations.MayHaveReferenceDirectives(),
+                syntaxAndDeclarations: syntaxAndDeclarations.WithExternalSyntaxTrees(ImmutableArray<SyntaxTree>.Empty));
         }
 
         /// <summary>
@@ -837,38 +783,41 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!newTree.HasCompilationUnitRoot)
             {
-                throw new ArgumentException(CSharpResources.TreeMustHaveARootNodeWith, "newTree");
+                throw new ArgumentException(CSharpResources.TreeMustHaveARootNodeWith, nameof(newTree));
             }
 
-            var declMap = _rootNamespaces;
+            var syntaxAndDeclarations = _syntaxAndDeclarations;
+            var externalSyntaxTrees = syntaxAndDeclarations.ExternalSyntaxTrees;
+            if (!externalSyntaxTrees.Contains(oldTree))
+            {
+                // Check to see if this is a #load'ed tree.
+                var loadedSyntaxTreeMap = syntaxAndDeclarations.GetLazyState().LoadedSyntaxTreeMap;
+                if (SyntaxAndDeclarationManager.IsLoadedSyntaxTree(oldTree, loadedSyntaxTreeMap))
+                {
+                    throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeFromLoadNoRemoveReplace, oldTree), nameof(oldTree));
+                }
 
-            if (declMap.ContainsKey(newTree))
+                throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeNotFoundTo, oldTree), nameof(oldTree));
+            }
+
+            if (externalSyntaxTrees.Contains(newTree))
             {
                 throw new ArgumentException(CSharpResources.SyntaxTreeAlreadyPresent, nameof(newTree));
             }
 
-            var declTable = _declarationTable;
-            bool referenceDirectivesChanged = false;
-
             // TODO(tomat): Consider comparing #r's of the old and the new tree. If they are exactly the same we could still reuse.
             // This could be a perf win when editing a script file in the IDE. The services create a new compilation every keystroke 
             // that replaces the tree with a new one.
+            var reuseReferenceManager = !oldTree.HasReferenceOrLoadDirectives() && !newTree.HasReferenceOrLoadDirectives();
+            syntaxAndDeclarations = syntaxAndDeclarations.ReplaceSyntaxTree(oldTree, newTree);
 
-            RemoveSyntaxTreeFromDeclarationMapAndTable(oldTree, ref declMap, ref declTable, ref referenceDirectivesChanged);
-            AddSyntaxTreeToDeclarationMapAndTable(newTree, _options, this.IsSubmission, ref declMap, ref declTable, ref referenceDirectivesChanged);
+            return Update(_referenceManager, reuseReferenceManager, syntaxAndDeclarations);
+        }
 
-            var ordinalMap = this.syntaxTreeOrdinalMap;
-
-            Debug.Assert(ordinalMap.ContainsKey(oldTree)); // Checked by RemoveSyntaxTreeFromDeclarationMapAndTable
-            var oldOrdinal = ordinalMap[oldTree];
-
-            var newArray = this.SyntaxTrees.SetItem(oldOrdinal, newTree);
-
-            // CONSIDER: should this be an operation on ImmutableDictionary?
-            ordinalMap = ordinalMap.Remove(oldTree);
-            ordinalMap = ordinalMap.SetItem(newTree, oldOrdinal);
-
-            return UpdateSyntaxTrees(newArray, ordinalMap, declMap, declTable, referenceDirectivesChanged);
+        internal override int GetSyntaxTreeOrdinal(SyntaxTree tree)
+        {
+            Debug.Assert(this.ContainsSyntaxTree(tree));
+            return _syntaxAndDeclarations.GetLazyState().OrdinalMap[tree];
         }
 
         #endregion
@@ -963,7 +912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal override IEnumerable<ReferenceDirective> ReferenceDirectives
         {
-            get { return _declarationTable.ReferenceDirectives; }
+            get { return this.Declarations.ReferenceDirectives; }
         }
 
         /// <summary>
@@ -1614,9 +1563,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(syntaxTree));
             }
 
-            if (!this.SyntaxTrees.Contains((SyntaxTree)syntaxTree))
+            if (!_syntaxAndDeclarations.GetLazyState().RootNamespaces.ContainsKey(syntaxTree))
             {
-                throw new ArgumentException("tree");
+                throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeNotFoundTo, syntaxTree), nameof(syntaxTree));
             }
 
             return new SyntaxTreeSemanticModel(this, (SyntaxTree)syntaxTree, ignoreAccessibility);
@@ -1637,7 +1586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var binderFactories = _binderFactories;
             if (binderFactories == null)
             {
-                binderFactories = new WeakReference<BinderFactory>[_syntaxTrees.Length];
+                binderFactories = new WeakReference<BinderFactory>[this.SyntaxTrees.Length];
                 binderFactories = Interlocked.CompareExchange(ref _binderFactories, binderFactories, null) ?? binderFactories;
             }
 
@@ -1702,11 +1651,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // empty compilation:
             if ((object)ScriptClass == null)
             {
-                Debug.Assert(SyntaxTrees.Length == 0);
+                Debug.Assert(_syntaxAndDeclarations.ExternalSyntaxTrees.Length == 0);
                 return null;
             }
 
-            return GetBinderFactory(SyntaxTrees.Single()).GetInteractiveUsingsBinder();
+            return GetBinderFactory(_syntaxAndDeclarations.ExternalSyntaxTrees.Single()).GetInteractiveUsingsBinder();
         }
 
         private Imports BindGlobalUsings()
@@ -1730,7 +1679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_lazyCompilationUnitCompletedTrees.Add(tree))
                 {
                     completedCompilationUnit = true;
-                    if (_lazyCompilationUnitCompletedTrees.Count == SyntaxTrees.Length)
+                    if (_lazyCompilationUnitCompletedTrees.Count == this.SyntaxTrees.Length)
                     {
                         completedCompilation = true;
                     }
@@ -1783,7 +1732,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    foreach (var tree in SyntaxTrees)
+                    foreach (var tree in this.SyntaxTrees)
                     {
                         CompleteTree(tree);
                     }
@@ -1845,7 +1794,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override CommonMessageProvider MessageProvider
         {
-            get { return CSharp.MessageProvider.Instance; }
+            get { return _syntaxAndDeclarations.MessageProvider; }
         }
 
         /// <summary>
@@ -1897,7 +1846,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _declarationTable;
+                return _syntaxAndDeclarations.GetLazyState().DeclarationTable;
             }
         }
 
@@ -1942,19 +1891,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (stage == CompilationStage.Parse || (stage > CompilationStage.Parse && includeEarlierStages))
             {
+                var syntaxTrees = this.SyntaxTrees;
                 if (this.Options.ConcurrentBuild)
                 {
                     var parallelOptions = cancellationToken.CanBeCanceled
                                         ? new ParallelOptions() { CancellationToken = cancellationToken }
                                         : DefaultParallelOptions;
 
-                    Parallel.For(0, this.SyntaxTrees.Length, parallelOptions,
-                        UICultureUtilities.WithCurrentUICulture<int>(i => builder.AddRange(this.SyntaxTrees[i].GetDiagnostics(cancellationToken))));
+                    Parallel.For(0, syntaxTrees.Length, parallelOptions,
+                        UICultureUtilities.WithCurrentUICulture<int>(i =>
+                        {
+                            var syntaxTree = syntaxTrees[i];
+                            AppendLoadDirectiveDiagnostics(builder, _syntaxAndDeclarations, syntaxTree);
+                            builder.AddRange(syntaxTree.GetDiagnostics(cancellationToken));
+                        }));
                 }
                 else
                 {
-                    foreach (var syntaxTree in this.SyntaxTrees)
+                    foreach (var syntaxTree in syntaxTrees)
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        AppendLoadDirectiveDiagnostics(builder, _syntaxAndDeclarations, syntaxTree);
+
                         cancellationToken.ThrowIfCancellationRequested();
                         builder.AddRange(syntaxTree.GetDiagnostics(cancellationToken));
                     }
@@ -1989,6 +1947,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = DiagnosticBag.GetInstance();
             FilterAndAppendAndFreeDiagnostics(result, ref builder);
             return result.ToReadOnlyAndFree<Diagnostic>();
+        }
+
+        private static void AppendLoadDirectiveDiagnostics(DiagnosticBag builder, SyntaxAndDeclarationManager syntaxAndDeclarations, SyntaxTree syntaxTree, Func<IEnumerable<Diagnostic>, IEnumerable<Diagnostic>> locationFilterOpt = null)
+        {
+            ImmutableArray<LoadDirective> loadDirectives;
+            if (syntaxAndDeclarations.GetLazyState().LoadDirectiveMap.TryGetValue(syntaxTree, out loadDirectives))
+            {
+                Debug.Assert(!loadDirectives.IsEmpty);
+                foreach (var directive in loadDirectives)
+                {
+                    IEnumerable<Diagnostic> diagnostics = directive.Diagnostics;
+                    if (locationFilterOpt != null)
+                    {
+                        diagnostics = locationFilterOpt(diagnostics);
+                    }
+                    builder.AddRange(diagnostics);
+                }
+            }
         }
 
         // Do the steps in compilation to get the method body diagnostics, but don't actually generate
@@ -2172,6 +2148,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = DiagnosticBag.GetInstance();
             if (stage == CompilationStage.Parse || (stage > CompilationStage.Parse && includeEarlierStages))
             {
+                AppendLoadDirectiveDiagnostics(builder, _syntaxAndDeclarations, syntaxTree,
+                    diagnostics => FilterDiagnosticsByLocation(diagnostics, syntaxTree, filterSpanWithinTree));
+
                 var syntaxDiagnostics = syntaxTree.GetDiagnostics();
                 syntaxDiagnostics = FilterDiagnosticsByLocation(syntaxDiagnostics, syntaxTree, filterSpanWithinTree);
                 builder.AddRange(syntaxDiagnostics);
@@ -2240,7 +2219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region Emit
 
         internal override byte LinkerMajorVersion => 0x30;
-        
+
         internal override bool IsDelaySigned
         {
             get { return SourceAssembly.IsDelaySigned; }
@@ -2410,9 +2389,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         // TODO: consider unifying with VB
         private bool StartSourceChecksumCalculation(PEModuleBuilder moduleBeingBuilt, DiagnosticBag diagnostics)
         {
+            var syntaxTrees = this.SyntaxTrees;
+
             // Check that all syntax trees are debuggable:
             bool allTreesDebuggable = true;
-            foreach (var tree in _syntaxTrees)
+            foreach (var tree in syntaxTrees)
             {
                 if (!string.IsNullOrEmpty(tree.FilePath) && tree.GetText().Encoding == null)
                 {
@@ -2427,7 +2408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Add debug documents for all trees with distinct paths.
-            foreach (var tree in _syntaxTrees)
+            foreach (var tree in syntaxTrees)
             {
                 if (!string.IsNullOrEmpty(tree.FilePath))
                 {
@@ -2445,7 +2426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Add debug documents for all pragmas. 
             // If there are clashes with already processed directives, report warnings.
             // If there are clashes with debug documents that came from actual trees, ignore the pragma.
-            foreach (var tree in _syntaxTrees)
+            foreach (var tree in syntaxTrees)
             {
                 AddDebugSourceDocumentsForChecksumDirectives(moduleBeingBuilt, tree, diagnostics);
             }
@@ -2656,7 +2637,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override bool HasCodeToEmit()
         {
-            foreach (var syntaxTree in SyntaxTrees)
+            foreach (var syntaxTree in this.SyntaxTrees)
             {
                 var unit = syntaxTree.GetCompilationUnitRoot();
                 if (unit.Members.Count > 0)
@@ -2722,34 +2703,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override Compilation CommonAddSyntaxTrees(IEnumerable<SyntaxTree> trees)
         {
-            var array = trees as SyntaxTree[];
-            if (array != null)
-            {
-                return this.AddSyntaxTrees(array);
-            }
-
-            if (trees == null)
-            {
-                throw new ArgumentNullException(nameof(trees));
-            }
-
-            return this.AddSyntaxTrees(trees.Cast<SyntaxTree>());
+            return this.AddSyntaxTrees(trees);
         }
 
         protected override Compilation CommonRemoveSyntaxTrees(IEnumerable<SyntaxTree> trees)
         {
-            var array = trees as SyntaxTree[];
-            if (array != null)
-            {
-                return this.RemoveSyntaxTrees(array);
-            }
-
-            if (trees == null)
-            {
-                throw new ArgumentNullException(nameof(trees));
-            }
-
-            return this.RemoveSyntaxTrees(trees.Cast<SyntaxTree>());
+            return this.RemoveSyntaxTrees(trees);
         }
 
         protected override Compilation CommonRemoveAllSyntaxTrees()
@@ -2879,7 +2838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException(CSharpResources.NoNoneSearchCriteria, nameof(filter));
             }
 
-            return _declarationTable.ContainsName(predicate, filter, cancellationToken);
+            return this.Declarations.ContainsName(predicate, filter, cancellationToken);
         }
 
         /// <summary>
@@ -2946,7 +2905,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = new HashSet<ISymbol>();
                 var spine = new List<MergedNamespaceOrTypeDeclaration>();
 
-                AppendSymbolsWithName(spine, _compilation._declarationTable.MergedRoot, predicate, filter, result, cancellationToken);
+                AppendSymbolsWithName(spine, _compilation.Declarations.MergedRoot, predicate, filter, result, cancellationToken);
 
                 return result;
             }

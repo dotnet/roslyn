@@ -25,6 +25,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return firstToken.GetDirectives<ReferenceDirectiveTriviaSyntax>(filter);
         }
 
+        /// <summary>
+        /// Returns #load directives specified in the compilation.
+        /// </summary>
+        public IList<LoadDirectiveTriviaSyntax> GetLoadDirectives()
+        {
+            // #load directives are always on the first token of the compilation unit.
+            var firstToken = (SyntaxNodeOrToken)this.GetFirstToken(includeZeroWidth: true);
+            return firstToken.GetDirectives<LoadDirectiveTriviaSyntax>(filter: null);
+        }
+
         internal Syntax.InternalSyntax.DirectiveStack GetConditionalDirectivesStack()
         {
             IEnumerable<DirectiveTriviaSyntax> directives = this.GetDirectives(filter: IsActiveConditionalDirective);
