@@ -3,353 +3,64 @@
   "version": 1,
   "targets": {
     ".NETFramework,Version=v4.5.2": {
-      "System.Collections/4.0.0-beta-23024": {
+      "System.Collections.Immutable/1.1.36": {
         "compile": {
-          "ref/net45/_._": {}
+          "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
         },
         "runtime": {
-          "lib/net45/_._": {}
+          "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
         }
       },
-      "System.Collections.Immutable/1.1.37-beta-23024": {
+      "System.Reflection.Metadata/1.1.0-alpha-00014": {
         "dependencies": {
-          "System.Runtime": "[4.0.0-beta-23024, )",
-          "System.Resources.ResourceManager": "[4.0.0-beta-23024, )",
-          "System.Diagnostics.Debug": "[4.0.0-beta-23024, )",
-          "System.Collections": "[4.0.0-beta-23024, )",
-          "System.Linq": "[4.0.0-beta-23024, )",
-          "System.Runtime.Extensions": "[4.0.0-beta-23024, )",
-          "System.Globalization": "[4.0.0-beta-23024, )",
-          "System.Threading": "[4.0.0-beta-23024, )"
-        },
-        "compile": {
-          "lib/dotnet/System.Collections.Immutable.dll": {}
-        },
-        "runtime": {
-          "lib/dotnet/System.Collections.Immutable.dll": {}
-        }
-      },
-      "System.Diagnostics.Debug/4.0.0-beta-23024": {
-        "compile": {
-          "ref/net45/_._": {}
-        },
-        "runtime": {
-          "lib/net45/_._": {}
-        }
-      },
-      "System.Globalization/4.0.0-beta-23024": {
-        "compile": {
-          "ref/net45/_._": {}
-        },
-        "runtime": {
-          "lib/net45/_._": {}
-        }
-      },
-      "System.Linq/4.0.0-beta-23024": {
-        "compile": {
-          "ref/net45/_._": {}
-        },
-        "runtime": {
-          "lib/net45/_._": {}
-        }
-      },
-      "System.Reflection.Metadata/1.1.0-alpha-00012": {
-        "dependencies": {
-          "System.Collections.Immutable": "[1.1.37-beta-23024, )"
+          "System.Collections.Immutable": "[1.1.36, )"
         },
         "compile": {
           "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         },
         "runtime": {
           "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
-        }
-      },
-      "System.Resources.ResourceManager/4.0.0-beta-23024": {
-        "compile": {
-          "ref/net45/_._": {}
-        },
-        "runtime": {
-          "lib/net45/_._": {}
-        }
-      },
-      "System.Runtime/4.0.0-beta-23024": {
-        "compile": {
-          "ref/net45/_._": {}
-        },
-        "runtime": {
-          "lib/net45/_._": {}
-        }
-      },
-      "System.Runtime.Extensions/4.0.0-beta-23024": {
-        "compile": {
-          "ref/net45/_._": {}
-        },
-        "runtime": {
-          "lib/net45/_._": {}
-        }
-      },
-      "System.Threading/4.0.0-beta-23024": {
-        "compile": {
-          "ref/net45/_._": {}
-        },
-        "runtime": {
-          "lib/net45/_._": {}
         }
       }
     },
     ".NETFramework,Version=v4.5.2/win-anycpu": {
-      "System.Collections/4.0.0-beta-23024": {
+      "System.Collections.Immutable/1.1.36": {
         "compile": {
-          "ref/net45/_._": {}
+          "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
         },
         "runtime": {
-          "lib/net45/_._": {}
+          "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
         }
       },
-      "System.Collections.Immutable/1.1.37-beta-23024": {
+      "System.Reflection.Metadata/1.1.0-alpha-00014": {
         "dependencies": {
-          "System.Runtime": "[4.0.0-beta-23024, )",
-          "System.Resources.ResourceManager": "[4.0.0-beta-23024, )",
-          "System.Diagnostics.Debug": "[4.0.0-beta-23024, )",
-          "System.Collections": "[4.0.0-beta-23024, )",
-          "System.Linq": "[4.0.0-beta-23024, )",
-          "System.Runtime.Extensions": "[4.0.0-beta-23024, )",
-          "System.Globalization": "[4.0.0-beta-23024, )",
-          "System.Threading": "[4.0.0-beta-23024, )"
-        },
-        "compile": {
-          "lib/dotnet/System.Collections.Immutable.dll": {}
-        },
-        "runtime": {
-          "lib/dotnet/System.Collections.Immutable.dll": {}
-        }
-      },
-      "System.Diagnostics.Debug/4.0.0-beta-23024": {
-        "compile": {
-          "ref/net45/_._": {}
-        },
-        "runtime": {
-          "lib/net45/_._": {}
-        }
-      },
-      "System.Globalization/4.0.0-beta-23024": {
-        "compile": {
-          "ref/net45/_._": {}
-        },
-        "runtime": {
-          "lib/net45/_._": {}
-        }
-      },
-      "System.Linq/4.0.0-beta-23024": {
-        "compile": {
-          "ref/net45/_._": {}
-        },
-        "runtime": {
-          "lib/net45/_._": {}
-        }
-      },
-      "System.Reflection.Metadata/1.1.0-alpha-00012": {
-        "dependencies": {
-          "System.Collections.Immutable": "[1.1.37-beta-23024, )"
+          "System.Collections.Immutable": "[1.1.36, )"
         },
         "compile": {
           "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         },
         "runtime": {
           "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
-        }
-      },
-      "System.Resources.ResourceManager/4.0.0-beta-23024": {
-        "compile": {
-          "ref/net45/_._": {}
-        },
-        "runtime": {
-          "lib/net45/_._": {}
-        }
-      },
-      "System.Runtime/4.0.0-beta-23024": {
-        "compile": {
-          "ref/net45/_._": {}
-        },
-        "runtime": {
-          "lib/net45/_._": {}
-        }
-      },
-      "System.Runtime.Extensions/4.0.0-beta-23024": {
-        "compile": {
-          "ref/net45/_._": {}
-        },
-        "runtime": {
-          "lib/net45/_._": {}
-        }
-      },
-      "System.Threading/4.0.0-beta-23024": {
-        "compile": {
-          "ref/net45/_._": {}
-        },
-        "runtime": {
-          "lib/net45/_._": {}
         }
       }
     }
   },
   "libraries": {
-    "System.Collections/4.0.0-beta-23024": {
-      "sha512": "Dje1rzsdhe1tufpP3R7BmTz6tqG/P+uIHjiBomfLGNinXHgaWinHkcitc7DbOKZ3AcVBr3uEMN8viXrezTPxig==",
-      "type": "Package",
-      "files": [
-        "_rels/.rels",
-        "System.Collections.nuspec",
-        "License.rtf",
-        "ref/dotnet/System.Collections.dll",
-        "ref/netcore50/System.Collections.dll",
-        "ref/net45/_._",
-        "lib/net45/_._",
-        "ref/win8/_._",
-        "lib/win8/_._",
-        "ref/dotnet/zh-hant/System.Collections.xml",
-        "ref/netcore50/zh-hant/System.Collections.xml",
-        "ref/dotnet/de/System.Collections.xml",
-        "ref/netcore50/de/System.Collections.xml",
-        "ref/dotnet/System.Collections.xml",
-        "ref/netcore50/System.Collections.xml",
-        "ref/dotnet/fr/System.Collections.xml",
-        "ref/netcore50/fr/System.Collections.xml",
-        "ref/dotnet/it/System.Collections.xml",
-        "ref/netcore50/it/System.Collections.xml",
-        "ref/dotnet/ja/System.Collections.xml",
-        "ref/netcore50/ja/System.Collections.xml",
-        "ref/dotnet/ko/System.Collections.xml",
-        "ref/netcore50/ko/System.Collections.xml",
-        "ref/dotnet/ru/System.Collections.xml",
-        "ref/netcore50/ru/System.Collections.xml",
-        "ref/dotnet/zh-hans/System.Collections.xml",
-        "ref/netcore50/zh-hans/System.Collections.xml",
-        "ref/dotnet/es/System.Collections.xml",
-        "ref/netcore50/es/System.Collections.xml",
-        "package/services/metadata/core-properties/f8fdc44b96b0496ea445528f279988b1.psmdcp",
-        "[Content_Types].xml"
-      ]
-    },
-    "System.Collections.Immutable/1.1.37-beta-23024": {
-      "sha512": "LlrYTV/111WG+YZfayStrj8gmxMAALgAKhKMVPutGO7C1gauYuW5FVaHE+QjwIfeqavB2jtoJVVspEndJM+UxQ==",
+    "System.Collections.Immutable/1.1.36": {
+      "sha512": "MOlivTIeAIQPPMUPWIIoMCvZczjFRLYUWSYwqi1szu8QPyeIbsaPeI+hpXe1DzTxNwnRnmfYaoToi6kXIfSPNg==",
       "type": "Package",
       "files": [
         "_rels/.rels",
         "System.Collections.Immutable.nuspec",
-        "lib/dotnet/System.Collections.Immutable.dll",
-        "lib/dotnet/System.Collections.Immutable.xml",
+        "License-Stable.rtf",
         "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll",
         "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.xml",
-        "package/services/metadata/core-properties/3af183db51cd486294097e35dbc2606a.psmdcp",
+        "package/services/metadata/core-properties/c8b7b781850445db852bd2d848380ca6.psmdcp",
         "[Content_Types].xml"
       ]
     },
-    "System.Diagnostics.Debug/4.0.0-beta-23024": {
-      "sha512": "PtlEckI5H5eQaFDk/Pji9RU+gNAdh4S1f2mOVjjADmqUfxpce4qybCVKeOgtuUMik2FwqKwBk0QDvC6AUTwDeg==",
-      "type": "Package",
-      "files": [
-        "_rels/.rels",
-        "System.Diagnostics.Debug.nuspec",
-        "License.rtf",
-        "ref/dotnet/System.Diagnostics.Debug.dll",
-        "ref/netcore50/System.Diagnostics.Debug.dll",
-        "ref/net45/_._",
-        "lib/net45/_._",
-        "ref/win8/_._",
-        "lib/win8/_._",
-        "ref/dotnet/zh-hant/System.Diagnostics.Debug.xml",
-        "ref/netcore50/zh-hant/System.Diagnostics.Debug.xml",
-        "ref/dotnet/de/System.Diagnostics.Debug.xml",
-        "ref/netcore50/de/System.Diagnostics.Debug.xml",
-        "ref/dotnet/System.Diagnostics.Debug.xml",
-        "ref/netcore50/System.Diagnostics.Debug.xml",
-        "ref/dotnet/fr/System.Diagnostics.Debug.xml",
-        "ref/netcore50/fr/System.Diagnostics.Debug.xml",
-        "ref/dotnet/it/System.Diagnostics.Debug.xml",
-        "ref/netcore50/it/System.Diagnostics.Debug.xml",
-        "ref/dotnet/ja/System.Diagnostics.Debug.xml",
-        "ref/netcore50/ja/System.Diagnostics.Debug.xml",
-        "ref/dotnet/ko/System.Diagnostics.Debug.xml",
-        "ref/netcore50/ko/System.Diagnostics.Debug.xml",
-        "ref/dotnet/ru/System.Diagnostics.Debug.xml",
-        "ref/netcore50/ru/System.Diagnostics.Debug.xml",
-        "ref/dotnet/zh-hans/System.Diagnostics.Debug.xml",
-        "ref/netcore50/zh-hans/System.Diagnostics.Debug.xml",
-        "ref/dotnet/es/System.Diagnostics.Debug.xml",
-        "ref/netcore50/es/System.Diagnostics.Debug.xml",
-        "package/services/metadata/core-properties/3cff4c5de25f4bc3bc7f13dbb8bbb9fa.psmdcp",
-        "[Content_Types].xml"
-      ]
-    },
-    "System.Globalization/4.0.0-beta-23024": {
-      "sha512": "spLUZdsogiGRrw0J/WPrayNmvrKO9luR3SewdrW6Khw2Jc3K5dVTlF75d7oRHAQ7zELn37/Pvb66ASFuJg835g==",
-      "type": "Package",
-      "files": [
-        "_rels/.rels",
-        "System.Globalization.nuspec",
-        "License.rtf",
-        "ref/dotnet/System.Globalization.dll",
-        "ref/netcore50/System.Globalization.dll",
-        "ref/net45/_._",
-        "lib/net45/_._",
-        "ref/win8/_._",
-        "lib/win8/_._",
-        "ref/dotnet/zh-hant/System.Globalization.xml",
-        "ref/netcore50/zh-hant/System.Globalization.xml",
-        "ref/dotnet/de/System.Globalization.xml",
-        "ref/netcore50/de/System.Globalization.xml",
-        "ref/dotnet/System.Globalization.xml",
-        "ref/netcore50/System.Globalization.xml",
-        "ref/dotnet/fr/System.Globalization.xml",
-        "ref/netcore50/fr/System.Globalization.xml",
-        "ref/dotnet/it/System.Globalization.xml",
-        "ref/netcore50/it/System.Globalization.xml",
-        "ref/dotnet/ja/System.Globalization.xml",
-        "ref/netcore50/ja/System.Globalization.xml",
-        "ref/dotnet/ko/System.Globalization.xml",
-        "ref/netcore50/ko/System.Globalization.xml",
-        "ref/dotnet/ru/System.Globalization.xml",
-        "ref/netcore50/ru/System.Globalization.xml",
-        "ref/dotnet/zh-hans/System.Globalization.xml",
-        "ref/netcore50/zh-hans/System.Globalization.xml",
-        "ref/dotnet/es/System.Globalization.xml",
-        "ref/netcore50/es/System.Globalization.xml",
-        "package/services/metadata/core-properties/3f755bbd73c64318af293d574d369076.psmdcp",
-        "[Content_Types].xml"
-      ]
-    },
-    "System.Linq/4.0.0-beta-23024": {
-      "sha512": "hVGW083n8Lf5J0uFrDqbbeZODqcpqlTls42aVbJXkELEBfRFOYdC3elpPEw/gtlLsBIUFfYJgq+a/7Mqv/i//g==",
-      "type": "Package",
-      "files": [
-        "_rels/.rels",
-        "System.Linq.nuspec",
-        "lib/dotnet/System.Linq.dll",
-        "lib/net45/_._",
-        "lib/win8/_._",
-        "lib/netcore50/System.Linq.dll",
-        "ref/dotnet/System.Linq.dll",
-        "ref/dotnet/System.Linq.xml",
-        "ref/dotnet/zh-hant/System.Linq.xml",
-        "ref/dotnet/de/System.Linq.xml",
-        "ref/dotnet/fr/System.Linq.xml",
-        "ref/dotnet/it/System.Linq.xml",
-        "ref/dotnet/ja/System.Linq.xml",
-        "ref/dotnet/ko/System.Linq.xml",
-        "ref/dotnet/ru/System.Linq.xml",
-        "ref/dotnet/zh-hans/System.Linq.xml",
-        "ref/dotnet/es/System.Linq.xml",
-        "ref/net45/_._",
-        "ref/win8/_._",
-        "ref/netcore50/System.Linq.dll",
-        "ref/netcore50/System.Linq.xml",
-        "package/services/metadata/core-properties/52f9f1da66114ce8954c2d7b85f7f439.psmdcp",
-        "[Content_Types].xml"
-      ]
-    },
-    "System.Reflection.Metadata/1.1.0-alpha-00012": {
-      "sha512": "kKZXpKet/6BNEihGTeCm5oM8rS3w4VHX+JqG0c++Tu3CFF0dDSfh2n6dX52PbLX8mqZ8k1sSbG2p2hbAoRZ0qg==",
+    "System.Reflection.Metadata/1.1.0-alpha-00014": {
+      "sha512": "rVeIWjVoLQS0aNrGdzndZReskyfxu4EfO9BKqT5GJt0YfGtlsHB1aDPnjl4jIBDTr+WJC9YsnZg8S5sKT1X42g==",
       "type": "Package",
       "files": [
         "_rels/.rels",
@@ -357,155 +68,14 @@
         "lib/portable-net45+win8/System.Reflection.Metadata.dll",
         "lib/portable-net45+win8/System.Reflection.Metadata.pdb",
         "lib/portable-net45+win8/System.Reflection.Metadata.xml",
-        "package/services/metadata/core-properties/b7a6b5852c5d410d860abd6018cbc785.psmdcp",
-        "[Content_Types].xml"
-      ]
-    },
-    "System.Resources.ResourceManager/4.0.0-beta-23024": {
-      "sha512": "xIiopNepii+eLPHo3lak0jmJK2EhQa/Su33Kjpin3t2/ZrFB2m8NoJF/LMV7wpsz2k7rr74RsG1+/m8pZprx+w==",
-      "type": "Package",
-      "files": [
-        "_rels/.rels",
-        "System.Resources.ResourceManager.nuspec",
-        "lib/netcore50/System.Resources.ResourceManager.dll",
-        "lib/DNXCore50/System.Resources.ResourceManager.dll",
-        "lib/net45/_._",
-        "lib/win8/_._",
-        "ref/dotnet/System.Resources.ResourceManager.dll",
-        "ref/dotnet/System.Resources.ResourceManager.xml",
-        "ref/dotnet/zh-hant/System.Resources.ResourceManager.xml",
-        "ref/dotnet/de/System.Resources.ResourceManager.xml",
-        "ref/dotnet/fr/System.Resources.ResourceManager.xml",
-        "ref/dotnet/it/System.Resources.ResourceManager.xml",
-        "ref/dotnet/ja/System.Resources.ResourceManager.xml",
-        "ref/dotnet/ko/System.Resources.ResourceManager.xml",
-        "ref/dotnet/ru/System.Resources.ResourceManager.xml",
-        "ref/dotnet/zh-hans/System.Resources.ResourceManager.xml",
-        "ref/dotnet/es/System.Resources.ResourceManager.xml",
-        "runtimes/win8-aot/lib/netcore50/System.Resources.ResourceManager.dll",
-        "ref/net45/_._",
-        "ref/win8/_._",
-        "ref/netcore50/System.Resources.ResourceManager.dll",
-        "ref/netcore50/System.Resources.ResourceManager.xml",
-        "package/services/metadata/core-properties/3f3800ca816644efbb425189131ed5ef.psmdcp",
-        "[Content_Types].xml"
-      ]
-    },
-    "System.Runtime/4.0.0-beta-23024": {
-      "sha512": "zWH289I6aN6uxfgJiUZ8T91Ql9VZFjKKC9g0gNfvYmHHuLNJFmICTXwcrL13Gsdfhkxl+Hz4Tm78U+VkdAJttg==",
-      "type": "Package",
-      "files": [
-        "_rels/.rels",
-        "System.Runtime.nuspec",
-        "License.rtf",
-        "ref/dotnet/System.Runtime.dll",
-        "ref/netcore50/System.Runtime.dll",
-        "ref/net45/_._",
-        "lib/net45/_._",
-        "ref/win8/_._",
-        "lib/win8/_._",
-        "ref/dotnet/zh-hant/System.Runtime.xml",
-        "ref/netcore50/zh-hant/System.Runtime.xml",
-        "ref/dotnet/de/System.Runtime.xml",
-        "ref/netcore50/de/System.Runtime.xml",
-        "ref/dotnet/System.Runtime.xml",
-        "ref/netcore50/System.Runtime.xml",
-        "ref/dotnet/fr/System.Runtime.xml",
-        "ref/netcore50/fr/System.Runtime.xml",
-        "ref/dotnet/it/System.Runtime.xml",
-        "ref/netcore50/it/System.Runtime.xml",
-        "ref/dotnet/ja/System.Runtime.xml",
-        "ref/netcore50/ja/System.Runtime.xml",
-        "ref/dotnet/ko/System.Runtime.xml",
-        "ref/netcore50/ko/System.Runtime.xml",
-        "ref/dotnet/ru/System.Runtime.xml",
-        "ref/netcore50/ru/System.Runtime.xml",
-        "ref/dotnet/zh-hans/System.Runtime.xml",
-        "ref/netcore50/zh-hans/System.Runtime.xml",
-        "ref/dotnet/es/System.Runtime.xml",
-        "ref/netcore50/es/System.Runtime.xml",
-        "package/services/metadata/core-properties/d97a4d4f06e847c48c0dd35e369fe602.psmdcp",
-        "[Content_Types].xml"
-      ]
-    },
-    "System.Runtime.Extensions/4.0.0-beta-23024": {
-      "sha512": "QgI05kzutOwGHN+smux8+OTw/FFnsmhYJNgQIaimrNlnoko/khos0M2NnTQRfY2dQLteCsN64rtzbfo0FsnnRg==",
-      "type": "Package",
-      "files": [
-        "_rels/.rels",
-        "System.Runtime.Extensions.nuspec",
-        "License.rtf",
-        "ref/dotnet/System.Runtime.Extensions.dll",
-        "ref/netcore50/System.Runtime.Extensions.dll",
-        "ref/net45/_._",
-        "lib/net45/_._",
-        "ref/win8/_._",
-        "lib/win8/_._",
-        "ref/dotnet/zh-hant/System.Runtime.Extensions.xml",
-        "ref/netcore50/zh-hant/System.Runtime.Extensions.xml",
-        "ref/dotnet/de/System.Runtime.Extensions.xml",
-        "ref/netcore50/de/System.Runtime.Extensions.xml",
-        "ref/dotnet/System.Runtime.Extensions.xml",
-        "ref/netcore50/System.Runtime.Extensions.xml",
-        "ref/dotnet/fr/System.Runtime.Extensions.xml",
-        "ref/netcore50/fr/System.Runtime.Extensions.xml",
-        "ref/dotnet/it/System.Runtime.Extensions.xml",
-        "ref/netcore50/it/System.Runtime.Extensions.xml",
-        "ref/dotnet/ja/System.Runtime.Extensions.xml",
-        "ref/netcore50/ja/System.Runtime.Extensions.xml",
-        "ref/dotnet/ko/System.Runtime.Extensions.xml",
-        "ref/netcore50/ko/System.Runtime.Extensions.xml",
-        "ref/dotnet/ru/System.Runtime.Extensions.xml",
-        "ref/netcore50/ru/System.Runtime.Extensions.xml",
-        "ref/dotnet/zh-hans/System.Runtime.Extensions.xml",
-        "ref/netcore50/zh-hans/System.Runtime.Extensions.xml",
-        "ref/dotnet/es/System.Runtime.Extensions.xml",
-        "ref/netcore50/es/System.Runtime.Extensions.xml",
-        "package/services/metadata/core-properties/f6d03e24e5f542e69c1f3b0c6449fbb7.psmdcp",
-        "[Content_Types].xml"
-      ]
-    },
-    "System.Threading/4.0.0-beta-23024": {
-      "sha512": "d8tInqC0ux1JH918eIoffKi9+Wc0AkxUrhUDbQkLgNz8V7uBbu5WUaDJaTblAwgwwG50GzefXCweZP5NcVd0Lw==",
-      "type": "Package",
-      "files": [
-        "_rels/.rels",
-        "System.Threading.nuspec",
-        "License.rtf",
-        "ref/dotnet/System.Threading.dll",
-        "ref/netcore50/System.Threading.dll",
-        "ref/net45/_._",
-        "lib/net45/_._",
-        "ref/win8/_._",
-        "lib/win8/_._",
-        "ref/dotnet/zh-hant/System.Threading.xml",
-        "ref/netcore50/zh-hant/System.Threading.xml",
-        "ref/dotnet/de/System.Threading.xml",
-        "ref/netcore50/de/System.Threading.xml",
-        "ref/dotnet/System.Threading.xml",
-        "ref/netcore50/System.Threading.xml",
-        "ref/dotnet/fr/System.Threading.xml",
-        "ref/netcore50/fr/System.Threading.xml",
-        "ref/dotnet/it/System.Threading.xml",
-        "ref/netcore50/it/System.Threading.xml",
-        "ref/dotnet/ja/System.Threading.xml",
-        "ref/netcore50/ja/System.Threading.xml",
-        "ref/dotnet/ko/System.Threading.xml",
-        "ref/netcore50/ko/System.Threading.xml",
-        "ref/dotnet/ru/System.Threading.xml",
-        "ref/netcore50/ru/System.Threading.xml",
-        "ref/dotnet/zh-hans/System.Threading.xml",
-        "ref/netcore50/zh-hans/System.Threading.xml",
-        "ref/dotnet/es/System.Threading.xml",
-        "ref/netcore50/es/System.Threading.xml",
-        "package/services/metadata/core-properties/b0086b61dede4d03ba08257c89972d93.psmdcp",
+        "package/services/metadata/core-properties/a48ecf967b1540bba8edfe9af3a99ea5.psmdcp",
         "[Content_Types].xml"
       ]
     }
   },
   "projectFileDependencyGroups": {
     "": [
-      "System.Reflection.Metadata >= 1.1.0-alpha-00012"
+      "System.Reflection.Metadata >= 1.1.0-alpha-00014"
     ],
     ".NETFramework,Version=v4.5.2": []
   }
