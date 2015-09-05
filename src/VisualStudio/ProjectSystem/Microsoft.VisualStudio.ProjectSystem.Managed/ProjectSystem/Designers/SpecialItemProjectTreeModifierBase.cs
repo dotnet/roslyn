@@ -30,11 +30,17 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
             get;
         }
 
+        /// <summary>
+        ///     Gets a value indicating whether the special item is supported in this project.
+        /// </summary>
         public abstract bool IsSupported
         {
             get;
         }
 
+        /// <summary>
+        ///     Gets a value indicating whether the special item is expandable if it has children.
+        /// </summary>
         public abstract bool IsExpandable
         {
             get;
@@ -69,6 +75,10 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
             return item.Root;
         }
 
+        /// <summary>
+        ///     Finds the <see cref="IProjectTree"/> that represents the candidate of the special item in the tree, or <see langword="null"/> 
+        ///     if not found or has already been found.
+        /// </summary>
         protected abstract IProjectTree FindCandidateSpecialItem(IProjectTree projectRoot);
 
         private IProjectTree HideAllChildren(IProjectTree tree)
