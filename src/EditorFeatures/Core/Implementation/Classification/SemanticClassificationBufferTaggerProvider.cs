@@ -42,10 +42,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             _asyncListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.Classification);
         }
 
-        public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
+        public IAccurateTagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
             this.AssertIsForeground();
-            return new Tagger(this, buffer) as ITagger<T>;
+            return new Tagger(this, buffer) as IAccurateTagger<T>;
+        }
+
+        ITagger<T> ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)
+        {
+            return CreateTagger<T>(buffer);
         }
     }
 }

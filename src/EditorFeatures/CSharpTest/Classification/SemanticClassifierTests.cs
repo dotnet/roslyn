@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -1426,6 +1427,39 @@ class C
                     }
 
                     waiter.CreateWaitTask().PumpingWait();
+                }
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public void TestGetTagsOnBufferTagger()
+        {
+            // don't crash
+            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile("class C { C c; }"))
+            {
+                var document = workspace.Documents.First();
+
+                var waiter = new Waiter();
+                var provider = new SemanticClassificationBufferTaggerProvider(
+                    workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
+                    workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
+                    workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
+                    SpecializedCollections.SingletonEnumerable(
+                        new Lazy<IAsynchronousOperationListener, FeatureMetadata>(
+                        () => waiter, new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", FeatureAttribute.Classification } }))));
+
+                var tagger = provider.CreateTagger<IClassificationTag>(document.TextBuffer);
+                using (var disposable = (IDisposable)tagger)
+                {
+                    waiter.CreateWaitTask().PumpingWait();
+
+                    var tags = tagger.GetTags(document.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection());
+                    var allTags = tagger.GetAllTags(document.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection(), CancellationToken.None);
+
+                    Assert.Empty(tags);
+                    Assert.NotEmpty(allTags);
+
+                    Assert.Equal(allTags.Count(), 1);
                 }
             }
         }
