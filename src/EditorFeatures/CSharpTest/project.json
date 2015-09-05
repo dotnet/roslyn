@@ -2,8 +2,7 @@
   "dependencies": {
     "Microsoft.CodeAnalysis.Test.Resources.Proprietary": "1.1.0-beta1-20150824-02",
     "Moq": "4.2.1402.2112",
-    "System.Diagnostics.Process": "4.0.0-beta-23123",
-    "xunit": "1.9.2"
+    "System.Diagnostics.Process": "4.0.0-beta-23123"
   },
   "frameworks": {
     "net46": {}
