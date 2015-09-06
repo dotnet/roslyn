@@ -141,6 +141,16 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         }
 
         [Fact]
+        public void TestPreviousWithPattern_NoMatch()
+        {
+            AddEntries("123", "12", "1");
+
+            Test(
+                new Step(() => _history.GetPrevious("4"), null),
+                new Step(() => _history.GetPrevious("4"), null));
+        }
+
+        [Fact]
         public void TestPreviousWithPattern_PatternMaintained()
         {
             AddEntries("123", "12", "1");
@@ -171,6 +181,21 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
                 new Step(() => _history.GetPrevious("1"), "1b"), // Skip over non-matching entry.
                 new Step(() => _history.GetPrevious("2"), "2a"), // Skip over non-matching entry.
                 new Step(() => _history.GetPrevious("2"), null));
+        }
+
+        [Fact]
+        public void TestNextWithPattern_NoMatch()
+        {
+            AddEntries("start", "1", "12", "123");
+
+            Test(
+                new Step(() => _history.GetPrevious(null), "123"),
+                new Step(() => _history.GetPrevious(null), "12"),
+                new Step(() => _history.GetPrevious(null), "1"),
+                new Step(() => _history.GetPrevious(null), "start"),
+
+                new Step(() => _history.GetNext("4"), null),
+                new Step(() => _history.GetNext("4"), null));
         }
 
         [Fact]
@@ -222,22 +247,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
                 new Step(() => _history.GetNext("2"), null));
         }
 
-        private void Test(params Step[] steps)
-        {
-            int i = 0;
-            foreach (var step in steps)
-            {
-                var actualEntry = step.Func();
-                var expected = step.ExpectedText;
-                var actual = actualEntry?.Text;
-                if (expected != actual)
-                {
-                    Assert.False(true, $"Step {i}: expected '{expected ?? "null"}', but found '{actual ?? "null"}'");
-                }
-                i++;
-            }
-        }
-
         private void AddEntries(params string[] entries)
         {
             var oldLength = BufferLength;
@@ -259,6 +268,31 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _buffer.Insert(snapshot.Length, Environment.NewLine);
         }
 
+        private int BufferLength => _buffer.CurrentSnapshot.Length;
+
+        private IEnumerable<string> HistoryEntries => GetHistoryEntries(_history);
+
+        private static IEnumerable<string> GetHistoryEntries(History history)
+        {
+            return history.Items.Select(e => e.Text);
+        }
+
+        private void Test(params Step[] steps)
+        {
+            int i = 0;
+            foreach (var step in steps)
+            {
+                var actualEntry = step.Func();
+                var expected = step.ExpectedText;
+                var actual = actualEntry?.Text;
+                if (expected != actual)
+                {
+                    Assert.False(true, $"Step {i}: expected '{expected ?? "null"}', but found '{actual ?? "null"}'");
+                }
+                i++;
+            }
+        }
+
         private struct Step
         {
             public readonly Func<History.Entry> Func;
@@ -269,15 +303,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
                 Func = func;
                 ExpectedText = expectedText;
             }
-        }
-
-        private int BufferLength => _buffer.CurrentSnapshot.Length;
-
-        private IEnumerable<string> HistoryEntries => GetHistoryEntries(_history);
-
-        private static IEnumerable<string> GetHistoryEntries(History history)
-        {
-            return history.Items.Select(e => e.Text);
         }
     }
 }

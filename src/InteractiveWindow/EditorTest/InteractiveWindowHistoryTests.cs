@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -42,6 +43,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             }
         }
 
+        private void InsertAndExecuteInputs(params string[] inputs)
+        {
+            foreach (var input in inputs)
+            {
+                InsertAndExecuteInput(input);
+            }
+        }
+
         private void InsertAndExecuteInput(string input)
         {
             Window.InsertCode(input);
@@ -52,6 +61,34 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         private void ExecuteInput()
         {
             ((InteractiveWindow)Window).ExecuteInputAsync().PumpingWait();
+        }
+
+        private void Test(params Step[] steps)
+        {
+            int i = 0;
+            foreach (var step in steps)
+            {
+                step.Action();
+                var actual = GetTextFromCurrentLanguageBuffer();
+                var expected = step.ExpectedText;
+                if (expected != actual)
+                {
+                    Assert.False(true, $"Step {i}: expected '{expected ?? "null"}', but found '{actual ?? "null"}'");
+                }
+                i++;
+            }
+        }
+
+        private struct Step
+        {
+            public readonly Action Action;
+            public readonly string ExpectedText;
+
+            public Step(Action action, string expectedText)
+            {
+                Action = action;
+                ExpectedText = expectedText;
+            }
         }
 
         #endregion Helpers
@@ -276,6 +313,266 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Assert.Equal(resetCommand1, GetTextFromCurrentLanguageBuffer());
             Window.Operations.HistoryPrevious();
             Assert.Equal(resetCommand1, GetTextFromCurrentLanguageBuffer());
+        }
+
+        [Fact]
+        public void TestHistoryPrevious()
+        {
+            InsertAndExecuteInputs("1", "2", "3");
+
+            Test(
+                new Step(() => Window.Operations.HistoryPrevious(), "3"),
+                new Step(() => Window.Operations.HistoryPrevious(), "2"),
+                new Step(() => Window.Operations.HistoryPrevious(), "1"),
+                new Step(() => Window.Operations.HistoryPrevious(), "1"),
+                new Step(() => Window.Operations.HistoryPrevious(), "1"));
+        }
+
+        [Fact]
+        public void TestHistoryNext()
+        {
+            InsertAndExecuteInputs("1", "2", "3");
+
+            SetActiveCode("4");
+
+            Test(
+                new Step(() => Window.Operations.HistoryNext(), "4"),
+                new Step(() => Window.Operations.HistoryNext(), "4"),
+                new Step(() => Window.Operations.HistoryPrevious(), "3"),
+                new Step(() => Window.Operations.HistoryPrevious(), "2"),
+                new Step(() => Window.Operations.HistoryPrevious(), "1"),
+                new Step(() => Window.Operations.HistoryPrevious(), "1"),
+                new Step(() => Window.Operations.HistoryNext(), "2"),
+                new Step(() => Window.Operations.HistoryNext(), "3"),
+                new Step(() => Window.Operations.HistoryNext(), "4"),
+                new Step(() => Window.Operations.HistoryNext(), "4"));
+        }
+
+        [Fact]
+        public void TestHistoryPreviousWithPattern_NoMatch()
+        {
+            InsertAndExecuteInputs("123", "12", "1");
+
+            Test(
+                new Step(() => Window.Operations.HistoryPrevious("4"), ""),
+                new Step(() => Window.Operations.HistoryPrevious("4"), ""));
+        }
+
+        [Fact]
+        public void TestHistoryPreviousWithPattern_PatternMaintained()
+        {
+            InsertAndExecuteInputs("123", "12", "1");
+
+            Test(
+                new Step(() => Window.Operations.HistoryPrevious("12"), "12"), // Skip over non-matching entry.
+                new Step(() => Window.Operations.HistoryPrevious("12"), "123"),
+                new Step(() => Window.Operations.HistoryPrevious("12"), "123"));
+        }
+
+        [Fact]
+        public void TestHistoryPreviousWithPattern_PatternDropped()
+        {
+            InsertAndExecuteInputs("1", "2", "3");
+
+            Test(
+                new Step(() => Window.Operations.HistoryPrevious("2"), "2"), // Skip over non-matching entry.
+                new Step(() => Window.Operations.HistoryPrevious(null), "1"), // Pattern isn't passed, so return to normal iteration.
+                new Step(() => Window.Operations.HistoryPrevious(null), "1"));
+        }
+
+        [Fact]
+        public void TestHistoryPreviousWithPattern_PatternChanged()
+        {
+            InsertAndExecuteInputs("10", "20", "15", "25");
+
+            Test(
+                new Step(() => Window.Operations.HistoryPrevious("1"), "15"), // Skip over non-matching entry.
+                new Step(() => Window.Operations.HistoryPrevious("2"), "20"), // Skip over non-matching entry.
+                new Step(() => Window.Operations.HistoryPrevious("2"), "20"));
+        }
+
+        [Fact]
+        public void TestHistoryNextWithPattern_NoMatch()
+        {
+            InsertAndExecuteInputs("start", "1", "12", "123");
+            SetActiveCode("end");
+
+            Test(
+                new Step(() => Window.Operations.HistoryPrevious(), "123"),
+                new Step(() => Window.Operations.HistoryPrevious(), "12"),
+                new Step(() => Window.Operations.HistoryPrevious(), "1"),
+                new Step(() => Window.Operations.HistoryPrevious(), "start"),
+
+                new Step(() => Window.Operations.HistoryNext("4"), "end"),
+                new Step(() => Window.Operations.HistoryNext("4"), "end"));
+        }
+
+        [Fact]
+        public void TestHistoryNextWithPattern_PatternMaintained()
+        {
+            InsertAndExecuteInputs("start", "1", "12", "123");
+            SetActiveCode("end");
+
+            Test(
+                new Step(() => Window.Operations.HistoryPrevious(), "123"),
+                new Step(() => Window.Operations.HistoryPrevious(), "12"),
+                new Step(() => Window.Operations.HistoryPrevious(), "1"),
+                new Step(() => Window.Operations.HistoryPrevious(), "start"),
+
+                new Step(() => Window.Operations.HistoryNext("12"), "12"), // Skip over non-matching entry.
+                new Step(() => Window.Operations.HistoryNext("12"), "123"),
+                new Step(() => Window.Operations.HistoryNext("12"), "end"));
+        }
+
+        [Fact]
+        public void TestHistoryNextWithPattern_PatternDropped()
+        {
+            InsertAndExecuteInputs("start", "3", "2", "1");
+            SetActiveCode("end");
+
+            Test(
+                new Step(() => Window.Operations.HistoryPrevious(), "1"),
+                new Step(() => Window.Operations.HistoryPrevious(), "2"),
+                new Step(() => Window.Operations.HistoryPrevious(), "3"),
+                new Step(() => Window.Operations.HistoryPrevious(), "start"),
+
+                new Step(() => Window.Operations.HistoryNext("2"), "2"), // Skip over non-matching entry.
+                new Step(() => Window.Operations.HistoryNext(null), "1"), // Pattern isn't passed, so return to normal iteration.
+                new Step(() => Window.Operations.HistoryNext(null), "end"));
+        }
+
+        [Fact]
+        public void TestHistoryNextWithPattern_PatternChanged()
+        {
+            InsertAndExecuteInputs("start", "25", "15", "20", "10");
+            SetActiveCode("end");
+
+            Test(
+                new Step(() => Window.Operations.HistoryPrevious(), "10"),
+                new Step(() => Window.Operations.HistoryPrevious(), "20"),
+                new Step(() => Window.Operations.HistoryPrevious(), "15"),
+                new Step(() => Window.Operations.HistoryPrevious(), "25"),
+                new Step(() => Window.Operations.HistoryPrevious(), "start"),
+
+                new Step(() => Window.Operations.HistoryNext("1"), "15"), // Skip over non-matching entry.
+                new Step(() => Window.Operations.HistoryNext("2"), "20"), // Skip over non-matching entry.
+                new Step(() => Window.Operations.HistoryNext("2"), "end"));
+        }
+
+        [Fact]
+        public void TestHistorySearchPrevious()
+        {
+            InsertAndExecuteInputs("123", "12", "1");
+
+            // Default search string is empty.
+            Test(
+                new Step(() => Window.Operations.HistorySearchPrevious(), "1"), // Pattern is captured before this step.
+                new Step(() => Window.Operations.HistorySearchPrevious(), "12"),
+                new Step(() => Window.Operations.HistorySearchPrevious(), "123"),
+                new Step(() => Window.Operations.HistorySearchPrevious(), "123"));
+        }
+
+        [Fact]
+        public void TestHistorySearchPreviousWithPattern()
+        {
+            InsertAndExecuteInputs("123", "12", "1");
+            SetActiveCode("12");
+
+            Test(
+                new Step(() => Window.Operations.HistorySearchPrevious(), "12"), // Pattern is captured before this step.
+                new Step(() => Window.Operations.HistorySearchPrevious(), "123"),
+                new Step(() => Window.Operations.HistorySearchPrevious(), "123"));
+        }
+
+        [Fact]
+        public void TestHistorySearchNextWithPattern()
+        {
+            InsertAndExecuteInputs("12", "123", "12", "1");
+            SetActiveCode("end");
+
+            Test(
+                new Step(() => Window.Operations.HistoryPrevious(), "1"),
+                new Step(() => Window.Operations.HistoryPrevious(), "12"),
+                new Step(() => Window.Operations.HistoryPrevious(), "123"),
+                new Step(() => Window.Operations.HistoryPrevious(), "12"),
+
+                new Step(() => Window.Operations.HistorySearchNext(), "123"), // Pattern is captured before this step.
+                new Step(() => Window.Operations.HistorySearchNext(), "12"),
+                new Step(() => Window.Operations.HistorySearchNext(), "end"));
+        }
+
+        [Fact]
+        public void TestHistoryPreviousAndSearchPrevious()
+        {
+            InsertAndExecuteInputs("200", "100", "30", "20", "10", "2", "1");
+
+            Test(
+                new Step(() => Window.Operations.HistoryPrevious(), "1"),
+                new Step(() => Window.Operations.HistorySearchPrevious(), "10"), // Pattern is captured before this step.
+                new Step(() => Window.Operations.HistoryPrevious(), "20"), // NB: Doesn't match pattern.
+                new Step(() => Window.Operations.HistorySearchPrevious(), "100"), // NB: Reuses existing pattern.
+                new Step(() => Window.Operations.HistorySearchPrevious(), "100"),
+                new Step(() => Window.Operations.HistoryPrevious(), "200"),
+                new Step(() => Window.Operations.HistorySearchPrevious(), "200")); // No-op results in non-matching history entry after SearchPrevious.
+        }
+
+        [Fact]
+        public void TestHistoryPreviousAndSearchPrevious_ExplicitPattern()
+        {
+            InsertAndExecuteInputs("200", "100", "30", "20", "10", "2", "1");
+
+            Test(
+                new Step(() => Window.Operations.HistoryPrevious(), "1"),
+                new Step(() => Window.Operations.HistorySearchPrevious(), "10"), // Pattern is captured before this step.
+                new Step(() => Window.Operations.HistoryPrevious("2"), "20"), // NB: Doesn't match pattern.
+                new Step(() => Window.Operations.HistorySearchPrevious(), "100"), // NB: Reuses existing pattern.
+                new Step(() => Window.Operations.HistorySearchPrevious(), "100"),
+                new Step(() => Window.Operations.HistoryPrevious("2"), "200"),
+                new Step(() => Window.Operations.HistorySearchPrevious(), "200")); // No-op results in non-matching history entry after SearchPrevious.
+        }
+
+        [Fact]
+        public void TestHistoryNextAndSearchNext()
+        {
+            InsertAndExecuteInputs("1", "2", "10", "20", "30", "100", "200");
+            SetActiveCode("4");
+
+            Test(
+                new Step(() => Window.Operations.HistoryPrevious(), "200"),
+                new Step(() => Window.Operations.HistoryPrevious(), "100"),
+                new Step(() => Window.Operations.HistoryPrevious(), "30"),
+                new Step(() => Window.Operations.HistoryPrevious(), "20"),
+                new Step(() => Window.Operations.HistoryPrevious(), "10"),
+                new Step(() => Window.Operations.HistoryPrevious(), "2"),
+                new Step(() => Window.Operations.HistoryPrevious(), "1"),
+
+                new Step(() => Window.Operations.HistorySearchNext(), "10"), // Pattern is captured before this step.
+                new Step(() => Window.Operations.HistoryNext(), "20"), // NB: Doesn't match pattern.
+                new Step(() => Window.Operations.HistorySearchNext(), "100"), // NB: Reuses existing pattern.
+                new Step(() => Window.Operations.HistorySearchNext(), "4"), // Restoring input results in non-matching history entry after SearchNext.
+                new Step(() => Window.Operations.HistoryNext(), "4"));
+        }
+
+        [Fact]
+        public void TestHistoryNextAndSearchNext_ExplicitPattern()
+        {
+            InsertAndExecuteInputs("1", "2", "10", "20", "30", "100", "200");
+            SetActiveCode("4");
+
+            Test(
+                new Step(() => Window.Operations.HistoryPrevious(), "200"),
+                new Step(() => Window.Operations.HistoryPrevious(), "100"),
+                new Step(() => Window.Operations.HistoryPrevious(), "30"),
+                new Step(() => Window.Operations.HistoryPrevious(), "20"),
+                new Step(() => Window.Operations.HistoryPrevious(), "10"),
+                new Step(() => Window.Operations.HistoryPrevious(), "2"),
+                new Step(() => Window.Operations.HistoryPrevious(), "1"),
+
+                new Step(() => Window.Operations.HistorySearchNext(), "10"), // Pattern is captured before this step.
+                new Step(() => Window.Operations.HistoryNext("2"), "20"), // NB: Doesn't match pattern.
+                new Step(() => Window.Operations.HistorySearchNext(), "100"), // NB: Reuses existing pattern.
+                new Step(() => Window.Operations.HistorySearchNext(), "4"), // Restoring input results in non-matching history entry after SearchNext.
+                new Step(() => Window.Operations.HistoryNext("2"), "4"));
         }
     }
 }
