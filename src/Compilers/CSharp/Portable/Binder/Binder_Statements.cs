@@ -483,8 +483,78 @@ namespace Microsoft.CodeAnalysis.CSharp
                     boundDeclarations[i++] = BindVariableDeclaration(kind, isVar, variableDeclaratorSyntax, typeSyntax, declType, alias, diagnostics);
                 }
 
-                return new BoundMultipleLocalDeclarations(node, boundDeclarations.AsImmutableOrNull());
+                var hasErrors = CheckMultipleVarDeclaration(node, variableList, isVar, boundDeclarations, diagnostics);
+
+                return new BoundMultipleLocalDeclarations(node, boundDeclarations.AsImmutableOrNull(), hasErrors);
             }
+        }
+
+        // Returns 'true' if any errors are produced.
+        public bool CheckMultipleVarDeclaration(
+            CSharpSyntaxNode declarationNode,
+            SeparatedSyntaxList<VariableDeclaratorSyntax> declarators,
+            bool isVar,
+            BoundLocalDeclaration[] boundDeclarations,
+            DiagnosticBag diagnostics)
+        {
+            if (isVar && boundDeclarations.Length > 1 && !declarationNode.HasErrors)
+            {
+                foreach (var decl in boundDeclarations)
+                {
+                    if (decl.HasAnyErrors)
+                    {
+                        // Don't bother checking if we ran into any errors already.
+                        return false;
+                    }
+                }
+                
+                return CheckMultipleVarDeclaration(this.Compilation, declarationNode, declarators, 
+                    boundDeclarations.Select(d => d.LocalSymbol.Type).ToArray(), diagnostics);
+            }
+
+            return false;
+        }
+
+
+        // Returns 'true' if any errors are produced.
+        public static bool CheckMultipleVarDeclaration(
+            CSharpCompilation compilation,
+            CSharpSyntaxNode declarationNode,
+            SeparatedSyntaxList<VariableDeclaratorSyntax> declarators,
+            TypeSymbol[] types,
+            DiagnosticBag diagnostics)
+        {
+            Debug.Assert(declarators.Count > 1);
+            Debug.Assert(types.Length == declarators.Count);
+
+            // If this is a var declaration, then all types inferred must be identical.
+            var firstDeclarationType = types[0];
+
+            if (!firstDeclarationType.IsErrorType())
+            {
+                for (var i = 1; i < types.Length; i++)
+                {
+                    var siblingDeclarationType = types[i];
+
+                    if (!siblingDeclarationType.IsErrorType())
+                    {
+                        if (!firstDeclarationType.Equals(siblingDeclarationType))
+                        {
+                            // Report an error on the names of the locals that have different types.
+                            var distinguisher = new SymbolDistinguisher(compilation, firstDeclarationType, siblingDeclarationType);
+                            Error(diagnostics,
+                                new CSDiagnosticInfo(ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclaratorSameType,
+                                    new object[] { distinguisher.First, distinguisher.Second },
+                                    ImmutableArray<Symbol>.Empty,
+                                    ImmutableArray.Create(declarators[i].Identifier.GetLocation())),
+                                declarators[0].Identifier.GetLocation());
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
 
         private TypeSymbol BindVariableType(CSharpSyntaxNode declarationNode, DiagnosticBag diagnostics, TypeSyntax typeSyntax, ref bool isConst, out bool isVar, out AliasSymbol alias)
@@ -508,27 +578,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, declarationNode);
                     // Keep processing it as a non-const local.
                     isConst = false;
-                }
-
-                // In the dev10 compiler the error recovery semantics for the illegal case
-                // "var x = 10, y = 123.4;" are somewhat undesirable.
-                //
-                // First off, this is an error because a straw poll of language designers and
-                // users showed that there was no consensus on whether the above should mean
-                // "double x = 10, y = 123.4;", taking the best type available and substituting
-                // that for "var", or treating it as "var x = 10; var y = 123.4;" -- since there
-                // was no consensus we decided to simply make it illegal. 
-                //
-                // In dev10 for error recovery in the IDE we do an odd thing -- we simply take
-                // the type of the first variable and use it. So that is "int x = 10, y = 123.4;".
-                // 
-                // This seems less than ideal. In the error recovery scenario it probably makes
-                // more sense to treat that as "var x = 10; var y = 123.4;" and do each inference
-                // separately.
-
-                if (declarationNode.Kind() == SyntaxKind.LocalDeclarationStatement && ((LocalDeclarationStatementSyntax)declarationNode).Declaration.Variables.Count > 1 && !declarationNode.HasErrors)
-                {
-                    Error(diagnostics, ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator, declarationNode);
                 }
             }
             else
@@ -2661,14 +2710,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             int count = variables.Count;
             Debug.Assert(count > 0);
 
-            if (isVar && count > 1)
-            {
-                // There are a number of ways in which a var decl can be illegal, but in these 
-                // cases we should report an error and then keep right on going with the inference.
-
-                Error(diagnostics, ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator, nodeOpt);
-            }
-
             var declarationArray = new BoundLocalDeclaration[count];
 
             for (int i = 0; i < count; i++)
@@ -2679,11 +2720,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declarationArray[i] = declaration;
             }
 
+            var hasErrors = CheckMultipleVarDeclaration(nodeOpt, variables, isVar, declarationArray, diagnostics);
+
             declarations = declarationArray.AsImmutableOrNull();
 
             return (count == 1) ?
                 (BoundStatement)declarations[0] :
-                new BoundMultipleLocalDeclarations(nodeOpt, declarations);
+                new BoundMultipleLocalDeclarations(nodeOpt, declarations, hasErrors);
         }
 
         internal BoundStatement BindStatementExpressionList(SeparatedSyntaxList<ExpressionSyntax> statements, DiagnosticBag diagnostics)

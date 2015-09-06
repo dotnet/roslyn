@@ -4661,6 +4661,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Implicitly-typed variables must all have the same type. Types &apos;{0}&apos; and &apos;{1}&apos; are not the same.
+        /// </summary>
+        internal static string ERR_ImplicitlyTypedVariableMultipleDeclaratorSameType {
+            get {
+                return ResourceManager.GetString("ERR_ImplicitlyTypedVariableMultipleDeclaratorSameType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Implicitly-typed variables must be initialized.
         /// </summary>
         internal static string ERR_ImplicitlyTypedVariableWithNoInitializer {

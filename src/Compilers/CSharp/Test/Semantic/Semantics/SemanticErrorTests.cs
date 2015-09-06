@@ -11123,7 +11123,7 @@ var a; // CS0818
         }
 
         [Fact]
-        public void CS0819ERR_ImplicitlyTypedVariableMultipleDeclarator_Locals()
+        public void ImplicitlyTypedVariableMultipleDeclarator_Locals_SameType()
         {
             var text = @"
 class A
@@ -11142,19 +11142,141 @@ class A
             // so we have extra errors here.
 
             DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text, new[] {
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator, Line = 6, Column = 9 },
                     new ErrorDescription { Code = (int)ErrorCode.WRN_UnreferencedVarAssg, Line = 6, Column = 13, IsWarning = true },
                     new ErrorDescription { Code = (int)ErrorCode.WRN_UnreferencedVarAssg, Line = 6, Column = 20, IsWarning = true }});
         }
 
         [Fact]
-        public void CS0819ERR_ImplicitlyTypedVariableMultipleDeclarator_Fields()
+        public void ERR_ImplicitlyTypedVariableMultipleDeclaratorSameType_Locals_DifferentType_1()
+        {
+            var text = @"
+class A
+{
+    public static int Main()
+    {
+        var a = 3, b = 2.0;
+        return -1;
+    }
+}
+";
+
+            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text, new[] {
+                    new ErrorDescription { Code = (int)ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclaratorSameType, Line = 6, Column = 13 },
+                    new ErrorDescription { Code = (int)ErrorCode.WRN_UnreferencedVarAssg, Line = 6, Column = 13, IsWarning = true },
+                    new ErrorDescription { Code = (int)ErrorCode.WRN_UnreferencedVarAssg, Line = 6, Column = 20, IsWarning = true }});
+        }
+
+        [Fact]
+        public void ERR_ImplicitlyTypedVariableMultipleDeclaratorSameType_Locals_DifferentType_2()
+        {
+            var text = @"
+class A
+{
+    public static int Main()
+    {
+        var a = """", b = null;
+        return -1;
+    }
+}
+";
+
+            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text, new[] {
+                    new ErrorDescription { Code = (int)ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, Line = 6, Column = 21 },
+                    new ErrorDescription { Code = (int)ErrorCode.WRN_UnreferencedVarAssg, Line = 6, Column = 13, IsWarning = true },
+                    new ErrorDescription { Code = (int)ErrorCode.WRN_UnreferencedVarAssg, Line = 6, Column = 21, IsWarning = true }});
+        }
+
+        [Fact]
+        public void ERR_ImplicitlyTypedVariableMultipleDeclaratorSameType_Locals_DifferentType_3()
+        {
+            var text = @"
+class A
+{
+    public static int Main()
+    {
+        var a = (System.Action)null, b = () => {};
+        return -1;
+    }
+}
+";
+
+            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text, new[] {
+                    new ErrorDescription { Code = (int)ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, Line = 6, Column = 38 },
+                    new ErrorDescription { Code = (int)ErrorCode.WRN_UnreferencedVarAssg, Line = 6, Column = 13, IsWarning = true }});
+        }
+
+        [Fact]
+        public void ERR_ImplicitlyTypedVariableMultipleDeclaratorSameType_Locals_DifferentType_4()
+        {
+            var text = @"
+class A
+{
+    public static int Main()
+    {
+        var a = (System.Action<int>)null, b = Main;
+        return -1;
+    }
+}
+";
+
+            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text, new[] {
+                    new ErrorDescription { Code = (int)ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, Line = 6, Column = 43 },
+                    new ErrorDescription { Code = (int)ErrorCode.WRN_UnreferencedVarAssg, Line = 6, Column = 13, IsWarning = true }});
+        }
+
+        [Fact]
+        public void ImplicitlyTypedVariableMultipleDeclarator_InitializedDeclaratorUsedInLaterDeclarator_1()
+        {
+            var text = @"
+class A
+{
+    public static int Main()
+    {
+        var a = 3, b = a;
+        return -1;
+    }
+}
+";
+
+            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text, new ErrorDescription[0]);
+        }
+
+        [Fact]
+        public void ImplicitlyTypedVariableMultipleDeclarator_InitializedDeclaratorUsedInLaterDeclarator_2()
+        {
+            var text = @"
+class A
+{
+    public static int Main()
+    {
+        var a = 3, b = Foo(out a);
+        return -1;
+    }
+
+    static T Foo<T>(out T p) { p = default(T); return default(T); }
+}
+";
+
+            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text, new ErrorDescription[0]);
+        }
+
+        [Fact]
+        public void ImplicitlyTypedVariableCanHaveMultipleDeclaratorOfSameType_Fields_()
+        {
+            CreateCompilationWithMscorlib(@"
+var foo = 0, bar = 1;
+", parseOptions: TestOptions.Script).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CS2044ERR_ImplicitlyTypedVariableMultipleDeclaratorDifferentTypes_Fields()
         {
             CreateCompilationWithMscorlib(@"
 var foo = 4, bar = 4.5;
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
-                // (2,1): error CS0819: Implicitly-typed fields cannot have multiple declarators
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator, "var"));
+                // (2,5): error CS2044: Implicitly-typed variables must all have the same type. Types 'int' and 'double' are not the same
+                // var foo = 4, bar = 4.5;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclaratorSameType, "foo").WithArguments("int", "double").WithLocation(2, 5));
         }
 
         [Fact]

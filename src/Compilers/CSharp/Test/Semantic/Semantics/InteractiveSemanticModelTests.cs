@@ -174,13 +174,14 @@ int i = 2;
             // Get the bind info for the text identified within the commented <bind> </bind> tags
             var semanticInfo = GetBindInfoForTest(testSrc);
 
-            Assert.Equal("var", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, semanticInfo.Type.TypeKind);
-            Assert.Equal("var", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal("System.Int32", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
+            Assert.Equal("System.Int32", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Null(semanticInfo.Symbol);
+            Assert.NotNull(semanticInfo.Symbol);
+            Assert.Equal("System.Int32", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 

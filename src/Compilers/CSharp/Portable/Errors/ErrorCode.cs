@@ -1057,7 +1057,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidOutputName = 2041,
         ERR_InvalidDebugInformationFormat = 2042,
         ERR_LegacyObjectIdSyntax = 2043,
-        // unused 2044-2999
+        ERR_ImplicitlyTypedVariableMultipleDeclaratorSameType = 2044,
+        // unused 2045-2999
+
         WRN_CLS_NoVarArgs = 3000,
         WRN_CLS_BadArgType = 3001, // Requires SymbolDistinguisher.
         WRN_CLS_BadReturnType = 3002,

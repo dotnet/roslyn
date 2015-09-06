@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static BaseFieldDeclarationSyntax GetFieldDeclaration(CSharpSyntaxNode declarator)
+        internal static BaseFieldDeclarationSyntax GetFieldDeclaration(CSharpSyntaxNode declarator)
         {
             return (BaseFieldDeclarationSyntax)declarator.Parent.Parent;
         }
@@ -167,6 +167,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
+        public bool IsVar
+        {
+            get
+            {
+                var fieldDeclaration = GetFieldDeclaration(VariableDeclaratorNode);
+                if (fieldDeclaration.Declaration.Type.IsVar)
+                {
+                    bool isVar;
+
+                    var binder = GetDeclarationTypeBinder();
+                    TypeSymbol declType = binder.BindType(fieldDeclaration.Declaration.Type, new DiagnosticBag(), out isVar);
+                    return isVar;
+                }
+
+                return false;
+            }
+        }
+
         internal sealed override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             Debug.Assert(fieldsBeingBound != null);
@@ -208,10 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                var binderFactory = compilation.GetBinderFactory(SyntaxTree);
-                var binder = binderFactory.GetBinder(typeSyntax);
-
-                binder = binder.WithContainingMemberOrLambda(this);
+                var binder = GetDeclarationTypeBinder();
                 if (!ContainingType.IsScriptClass)
                 {
                     type = binder.BindType(typeSyntax, diagnosticsForFirstDeclarator);
@@ -238,10 +253,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             diagnostics.Add(ErrorCode.ERR_RecursivelyTypedVariable, this.ErrorLocation, this);
                             type = null;
-                        }
-                        else if (fieldSyntax.Declaration.Variables.Count > 1)
-                        {
-                            diagnosticsForFirstDeclarator.Add(ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator, typeSyntax.Location);
                         }
                         else
                         {
@@ -310,6 +321,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             diagnostics.Free();
             diagnosticsForFirstDeclarator.Free();
             return _lazyType;
+        }
+
+        private Binder GetDeclarationTypeBinder()
+        {
+            var binder = this.DeclaringCompilation.GetBinderFactory(SyntaxTree).GetBinder(
+                GetFieldDeclaration(VariableDeclaratorNode).Declaration.Type);
+
+            return binder.WithContainingMemberOrLambda(this);
         }
 
         internal bool FieldTypeInferred(ConsList<FieldSymbol> fieldsBeingBound)
