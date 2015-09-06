@@ -29,7 +29,10 @@ int x = 0; double y = 1.0;
 Because of this large split in opinions, we decided to disallow this completely.  
 
 However, this is a very restrictive state to have ended up in.  We can relax things a bit, without worrying about the above case being a problem.  This is possible by allowing multiple variable declarations, but with the restriction that all of them have the same type.  Because of this restriction, the above case would still be disallowed as 'x' would have the type 'int' and 'y' would have the type 'double'.  
-
+  
+With this change, all existing allowed cases are still allowed.  Some existing disallowed cases are still disallowed.  But some very reasonable existing-disallowed cases are now allowed.  These cases would have no confusion associated with them.  So allowing them seems beneficial.  
+  
+  
 To accomplish this, we change the language specification like so:
 
 > In the context of a local variable declaration, the identifier var acts as a contextual keyword (§2.4.3).When the local-variable-type is specified as var and no type named var is in scope, the declaration is an implicitly typed local variable declaration, whose type is inferred from the type of the associated initializer expression. Implicitly typed local variable declarations are subject to the following restrictions:  
