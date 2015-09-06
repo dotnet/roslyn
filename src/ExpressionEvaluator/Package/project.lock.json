@@ -35,6 +35,14 @@
           "lib/net45/Microsoft.DiaSymReader.dll": {}
         }
       },
+      "Microsoft.NetFX20/1.0.3": {
+        "compile": {
+          "lib/net20/mscorlib.dll": {}
+        },
+        "runtime": {
+          "lib/net20/mscorlib.dll": {}
+        }
+      },
       "System.Collections/4.0.10": {
         "compile": {
           "ref/net46/_._": {}
@@ -152,6 +160,17 @@
         "lib/net20/Microsoft.DiaSymReader.dll",
         "lib/net20/Microsoft.DiaSymReader.xml",
         "package/services/metadata/core-properties/08003dc206aa4abfa0c6f00c3f91c002.psmdcp",
+        "[Content_Types].xml"
+      ]
+    },
+    "Microsoft.NetFX20/1.0.3": {
+      "sha512": "7hPxu4q65ap1yiAuniskpMIJyTwviBIRItCYXozm/6Ikt03Uw3NNQNNzf7mjOEYYi9CG9VIv1KYwBGEa3FWAcg==",
+      "type": "Package",
+      "files": [
+        "_rels/.rels",
+        "Microsoft.NetFX20.nuspec",
+        "lib/net20/mscorlib.dll",
+        "package/services/metadata/core-properties/92df590a790045efaea1dc300f16b60b.psmdcp",
         "[Content_Types].xml"
       ]
     },

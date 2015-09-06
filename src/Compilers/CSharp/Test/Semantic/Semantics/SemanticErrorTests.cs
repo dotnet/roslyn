@@ -11167,6 +11167,42 @@ class A
         }
 
         [Fact]
+        public void ImplicitlyTypedVariableMultipleDeclarator_InitializedDeclaratorUsedInLaterDeclarator_1()
+        {
+            var text = @"
+class A
+{
+    public static int Main()
+    {
+        var a = 3, b = a;
+        return -1;
+    }
+}
+";
+
+            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text, new ErrorDescription[0]);
+        }
+
+        [Fact]
+        public void ImplicitlyTypedVariableMultipleDeclarator_InitializedDeclaratorUsedInLaterDeclarator_2()
+        {
+            var text = @"
+class A
+{
+    public static int Main()
+    {
+        var a = 3, b = Foo(out a);
+        return -1;
+    }
+
+    static T Foo<T>(out T p) { p = default(T); return default(T); }
+}
+";
+
+            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text, new ErrorDescription[0]);
+        }
+
+        [Fact]
         public void CS0819ERR_ImplicitlyTypedVariableMultipleDeclarator_Fields()
         {
             CreateCompilationWithMscorlib(@"
