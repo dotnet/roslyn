@@ -11259,6 +11259,26 @@ class A
         }
 
         [Fact]
+        public void ImplicitlyTypedConstLocal1()
+        {
+            var text = @"
+class A
+{
+    public static void Main()
+    {
+        const var x = 0; 
+        x = 1;
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         x = 1;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "x").WithLocation(7, 9));
+        }
+
+        [Fact]
         public void ImplicitlyTypedScriptVariableCanBeConst()
         {
             CreateCompilationWithMscorlib(@"
