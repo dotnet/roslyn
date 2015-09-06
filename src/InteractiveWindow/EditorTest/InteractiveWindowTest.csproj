@@ -82,6 +82,7 @@
     <Compile Include="InteractiveWindowEditorsFactoryService.cs" />
     <Compile Include="InteractiveWindowTestHost.cs" />
     <Compile Include="HistoryTests.cs" />
+    <Compile Include="InteractiveWindowHistoryTests.cs" />
     <Compile Include="InteractiveWindowTests.cs" />
     <Compile Include="TestContentTypeDefinition.cs" />
     <Compile Include="TestInteractiveEngine.cs" />
