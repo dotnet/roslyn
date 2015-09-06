@@ -28,7 +28,7 @@
     <ProjectReference Include="..\..\InteractiveWindow\Editor\InteractiveWindow.csproj">
       <Project>{01E9BD68-0339-4A13-B42F-A3CA84D164F3}</Project>
       <Name>InteractiveWindow</Name>
-  </ProjectReference>
+    </ProjectReference>
     <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
       <Project>{76c6f005-c89d-4348-bb4a-391898dbeb52}</Project>
       <Name>TestUtilities.Desktop</Name>
@@ -81,6 +81,7 @@
     </Compile>
     <Compile Include="InteractiveWindowEditorsFactoryService.cs" />
     <Compile Include="InteractiveWindowTestHost.cs" />
+    <Compile Include="HistoryTests.cs" />
     <Compile Include="InteractiveWindowTests.cs" />
     <Compile Include="TestContentTypeDefinition.cs" />
     <Compile Include="TestInteractiveEngine.cs" />

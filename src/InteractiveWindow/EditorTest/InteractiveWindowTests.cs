@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Projection;
 using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -73,11 +71,16 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             }
         }
 
-        private void InsertInputExecuteAndWaitToFinish(string input)
+        private void InsertAndExecuteInput(string input)
         {
             Window.InsertCode(input);
             Assert.Equal(input, GetTextFromCurrentLanguageBuffer());
-            Task.Run(() => Window.Operations.ExecuteInput()).PumpingWait();
+            ExecuteInput();
+        }
+
+        private void ExecuteInput()
+        {
+            ((InteractiveWindow)Window).ExecuteInputAsync().PumpingWait();
         }
 
 
@@ -418,7 +421,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         {
             Task.Run(() => Window.Operations.ResetAsync()).PumpingWait();
         }
-
+        
         [Fact]
         public void CallExecuteInputOnNonUIThread()
         {
@@ -494,7 +497,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         public void CheckHistoryPrevious()
         {
             const string inputString = "1 ";
-            InsertInputExecuteAndWaitToFinish(inputString);
+            InsertAndExecuteInput(inputString);
             Window.Operations.HistoryPrevious();
             Assert.Equal(inputString, GetTextFromCurrentLanguageBuffer());
         }
@@ -505,8 +508,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             //submit, submit, up, up, up
             const string inputString1 = "1 ";
             const string inputString2 = "2 ";
-            InsertInputExecuteAndWaitToFinish(inputString1);
-            InsertInputExecuteAndWaitToFinish(inputString2);
+            InsertAndExecuteInput(inputString1);
+            InsertAndExecuteInput(inputString2);
 
             Window.Operations.HistoryPrevious();
             Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
@@ -525,9 +528,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             const string inputString2 = "2 ";
             const string inputString3 = "3 ";
 
-            InsertInputExecuteAndWaitToFinish(inputString1);
-            InsertInputExecuteAndWaitToFinish(inputString2);
-            InsertInputExecuteAndWaitToFinish(inputString3);
+            InsertAndExecuteInput(inputString1);
+            InsertAndExecuteInput(inputString2);
+            InsertAndExecuteInput(inputString3);
 
             Window.Operations.HistoryPrevious();
             Assert.Equal(inputString3, GetTextFromCurrentLanguageBuffer());
@@ -535,7 +538,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Window.Operations.HistoryPrevious();
             Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
 
-            Task.Run(() => Window.Operations.ExecuteInput()).PumpingWait();
+            ExecuteInput();
 
             //history navigation should start from the last history pointer
             Window.Operations.HistoryPrevious();
@@ -557,8 +560,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             const string inputString2 = "2 ";
             const string inputString3 = "3 ";
 
-            InsertInputExecuteAndWaitToFinish(inputString1);
-            InsertInputExecuteAndWaitToFinish(inputString2);
+            InsertAndExecuteInput(inputString1);
+            InsertAndExecuteInput(inputString2);
 
             Window.Operations.HistoryPrevious();
             Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
@@ -568,7 +571,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
             SetActiveCode(inputString3);
             Assert.Equal(inputString3, GetTextFromCurrentLanguageBuffer());
-            Task.Run(() => Window.Operations.ExecuteInput()).PumpingWait();
+            ExecuteInput();
 
             //History pointer should be reset. Previous should now bring up last entry
             Window.Operations.HistoryPrevious();
@@ -591,8 +594,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             const string inputString1 = "1 ";
             const string inputString2 = "2 ";
             const string empty = "";
-            InsertInputExecuteAndWaitToFinish(inputString1);
-            InsertInputExecuteAndWaitToFinish(inputString2);
+            InsertAndExecuteInput(inputString1);
+            InsertAndExecuteInput(inputString2);
 
             //Next should do nothing as history pointer is uninitialized and there is
             //no next entry. Bufer should be empty
@@ -621,9 +624,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             const string inputString2 = "2 ";
             const string inputString3 = "3 ";
 
-            InsertInputExecuteAndWaitToFinish(inputString1);
-            InsertInputExecuteAndWaitToFinish(inputString2);
-            InsertInputExecuteAndWaitToFinish(inputString3);
+            InsertAndExecuteInput(inputString1);
+            InsertAndExecuteInput(inputString2);
+            InsertAndExecuteInput(inputString3);
 
             Window.Operations.HistoryPrevious();
             Assert.Equal(inputString3, GetTextFromCurrentLanguageBuffer());
@@ -632,7 +635,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
 
             //submit inputString2 again. Should be added at the end of history
-            Task.Run(() => Window.Operations.ExecuteInput()).PumpingWait();
+            ExecuteInput();
 
             //history navigation should start from the last history pointer
             Window.Operations.HistoryNext();
@@ -656,8 +659,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             const string inputString3 = "3 ";
             const string empty = "";
 
-            InsertInputExecuteAndWaitToFinish(inputString1);
-            InsertInputExecuteAndWaitToFinish(inputString2);
+            InsertAndExecuteInput(inputString1);
+            InsertAndExecuteInput(inputString2);
 
             Window.Operations.HistoryPrevious();
             Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
@@ -667,7 +670,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
             SetActiveCode(inputString3);
             Assert.Equal(inputString3, GetTextFromCurrentLanguageBuffer());
-            Task.Run(() => Window.Operations.ExecuteInput()).PumpingWait();
+            ExecuteInput();
 
             //History pointer should be reset. next should do nothing
             Window.Operations.HistoryNext();
@@ -685,8 +688,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             const string inputString2 = "2 ";
             const string uncommittedInput = "uncommittedInput";
 
-            InsertInputExecuteAndWaitToFinish(inputString1);
-            InsertInputExecuteAndWaitToFinish(inputString2);
+            InsertAndExecuteInput(inputString1);
+            InsertAndExecuteInput(inputString2);
             //Add uncommitted input
             SetActiveCode(uncommittedInput);
             //Navigate history. This should save uncommitted input
@@ -702,8 +705,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         {
             const string resetCommand1 = "#reset";
             const string resetCommand2 = "#reset  ";
-            InsertInputExecuteAndWaitToFinish(resetCommand1);
-            InsertInputExecuteAndWaitToFinish(resetCommand2);
+            InsertAndExecuteInput(resetCommand1);
+            InsertAndExecuteInput(resetCommand2);
             Window.Operations.HistoryPrevious();
             Assert.Equal(resetCommand2, GetTextFromCurrentLanguageBuffer());
             Window.Operations.HistoryPrevious();
