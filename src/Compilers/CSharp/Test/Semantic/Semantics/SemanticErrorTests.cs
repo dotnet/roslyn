@@ -11279,6 +11279,22 @@ class A
         }
 
         [Fact]
+        public void ImplicitlyTypedConstField1()
+        {
+            var text = @"
+class A
+{
+    const var x = 0;
+}";
+
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+                // (4,11): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                //     const var x = 0;
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(4, 11));
+        }
+
+        [Fact]
         public void ImplicitlyTypedScriptVariableCanBeConst()
         {
             CreateCompilationWithMscorlib(@"
