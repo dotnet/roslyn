@@ -2302,8 +2302,9 @@ class C
             var tree = Parse(text);
             var comp = CreateCompilationWithMscorlib(tree);
             comp.VerifyDiagnostics(
-                // (8,16): error CS0819: Implicitly-typed variables cannot have multiple declarators
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator, @"var a = new StreamWriter(""""), b = new StreamReader("""")/*</bind>*/;"));
+                // (8,23): error CS2044: Implicitly-typed variables must all have the same type. Types 'System.IO.StreamWriter' and 'System.IO.StreamReader' are not the same
+                //         /*<bind>*/var a = new StreamWriter(""), b = new StreamReader("")/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclaratorSameType, "a").WithArguments("System.IO.StreamWriter", "System.IO.StreamReader").WithLocation(8, 23));
 
             var model = comp.GetSemanticModel(tree);
 

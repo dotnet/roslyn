@@ -11123,7 +11123,7 @@ var a; // CS0818
         }
 
         [Fact]
-        public void CS0819ERR_ImplicitlyTypedVariableMultipleDeclarator_Locals()
+        public void ImplicitlyTypedVariableMultipleDeclarator_Locals_SameType()
         {
             var text = @"
 class A
@@ -11142,7 +11142,26 @@ class A
             // so we have extra errors here.
 
             DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text, new[] {
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator, Line = 6, Column = 9 },
+                    new ErrorDescription { Code = (int)ErrorCode.WRN_UnreferencedVarAssg, Line = 6, Column = 13, IsWarning = true },
+                    new ErrorDescription { Code = (int)ErrorCode.WRN_UnreferencedVarAssg, Line = 6, Column = 20, IsWarning = true }});
+        }
+
+        [Fact]
+        public void ERR_ImplicitlyTypedVariableMultipleDeclaratorSameType_Locals_DifferentType()
+        {
+            var text = @"
+class A
+{
+    public static int Main()
+    {
+        var a = 3, b = 2.0;
+        return -1;
+    }
+}
+";
+
+            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text, new[] {
+                    new ErrorDescription { Code = (int)ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclaratorSameType, Line = 6, Column = 13 },
                     new ErrorDescription { Code = (int)ErrorCode.WRN_UnreferencedVarAssg, Line = 6, Column = 13, IsWarning = true },
                     new ErrorDescription { Code = (int)ErrorCode.WRN_UnreferencedVarAssg, Line = 6, Column = 20, IsWarning = true }});
         }

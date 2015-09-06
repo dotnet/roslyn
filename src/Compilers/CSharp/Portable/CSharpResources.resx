@@ -2075,6 +2075,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_ImplicitlyTypedVariableMultipleDeclarator" xml:space="preserve">
     <value>Implicitly-typed variables cannot have multiple declarators</value>
   </data>
+  <data name="ERR_ImplicitlyTypedVariableMultipleDeclaratorSameType" xml:space="preserve">
+    <value>Implicitly-typed variables must all have the same type. Types '{0}' and '{1}' are not the same</value>
+  </data>
   <data name="ERR_ImplicitlyTypedVariableAssignedArrayInitializer" xml:space="preserve">
     <value>Cannot initialize an implicitly-typed variable with an array initializer</value>
   </data>
