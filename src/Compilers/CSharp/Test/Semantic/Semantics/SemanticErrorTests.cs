@@ -11213,7 +11213,30 @@ class A
         }
 
         [Fact]
-        public void CS0822ERR_ImplicitlyTypedLocalCannotBeConst()
+        public void ConstNullAdd()
+        {
+            var text = @"
+class A
+{
+    public static void Main()
+    {
+        const int x = 0; // CS0822.cs
+        const int? y = (int?)null + x;
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+                // (7,15): error CS0283: The type 'int?' cannot be declared const
+                //         const int? y = (int?)null + x;
+                Diagnostic(ErrorCode.ERR_BadConstType, "int?").WithArguments("int?").WithLocation(7, 15),
+                // (7,24): warning CS0458: The result of the expression is always 'null' of type 'int?'
+                //         const int? y = (int?)null + x;
+                Diagnostic(ErrorCode.WRN_AlwaysNull, "(int?)null + x").WithArguments("int?").WithLocation(7, 24));
+        }
+
+        [Fact]
+        public void ImplicitlyTypedLocalCanBeConst()
         {
             var text = @"
 class A
@@ -11224,34 +11247,23 @@ class A
         const var y = (int?)null + x;
     }
 }";
-            // In the dev10 compiler, the second line reports both that "const var" is illegal 
-            // and that the initializer must be a valid constant. This seems a bit odd, so
-            // in Roslyn we just report the first error. Let the user sort out whether they
-            // meant it to be a constant or a variable, and then we can tell them if its a
-            // bad constant.
 
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-// (7,23): warning CS0458: The result of the expression is always 'null' of type 'int?'
-//         const var y = (int?)null + x;
-Diagnostic(ErrorCode.WRN_AlwaysNull, "(int?)null + x").WithArguments("int?"),
-// (6,9): error CS0822: Implicitly-typed variables cannot be constant
-//         const var x = 0; // CS0822.cs
-Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "const var x = 0;"),
-// (7,9): error CS0822: Implicitly-typed variables cannot be constant
-//         const var y = (int?)null + x;
-Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "const var y = (int?)null + x;")
-                );
+                // (7,23): error CS0133: The expression being assigned to 'y' must be constant
+                //         const var y = (int?)null + x;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int?)null + x").WithArguments("y").WithLocation(7, 23),
+                // (7,23): warning CS0458: The result of the expression is always 'null' of type 'int?'
+                //         const var y = (int?)null + x;
+                Diagnostic(ErrorCode.WRN_AlwaysNull, "(int?)null + x").WithArguments("int?").WithLocation(7, 23));
         }
 
         [Fact]
-        public void CS0822ERR_ImplicitlyTypedVariableCannotBeConst_Fields()
+        public void ImplicitlyTypedScriptVariableCanBeConst()
         {
             CreateCompilationWithMscorlib(@"
 const var x = 0; // CS0822.cs
-", parseOptions: TestOptions.Script).VerifyDiagnostics(
-                // (2,7): error CS0822: Implicitly-typed variables cannot be constant
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "var"));
+", parseOptions: TestOptions.Script).VerifyDiagnostics();
         }
 
         [Fact]
