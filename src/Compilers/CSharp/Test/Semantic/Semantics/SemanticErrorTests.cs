@@ -11147,7 +11147,7 @@ class A
         }
 
         [Fact]
-        public void ERR_ImplicitlyTypedVariableMultipleDeclaratorSameType_Locals_DifferentType()
+        public void ERR_ImplicitlyTypedVariableMultipleDeclaratorSameType_Locals_DifferentType_1()
         {
             var text = @"
 class A
@@ -11164,6 +11164,64 @@ class A
                     new ErrorDescription { Code = (int)ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclaratorSameType, Line = 6, Column = 13 },
                     new ErrorDescription { Code = (int)ErrorCode.WRN_UnreferencedVarAssg, Line = 6, Column = 13, IsWarning = true },
                     new ErrorDescription { Code = (int)ErrorCode.WRN_UnreferencedVarAssg, Line = 6, Column = 20, IsWarning = true }});
+        }
+
+        [Fact]
+        public void ERR_ImplicitlyTypedVariableMultipleDeclaratorSameType_Locals_DifferentType_2()
+        {
+            var text = @"
+class A
+{
+    public static int Main()
+    {
+        var a = """", b = null;
+        return -1;
+    }
+}
+";
+
+            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text, new[] {
+                    new ErrorDescription { Code = (int)ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, Line = 6, Column = 21 },
+                    new ErrorDescription { Code = (int)ErrorCode.WRN_UnreferencedVarAssg, Line = 6, Column = 13, IsWarning = true },
+                    new ErrorDescription { Code = (int)ErrorCode.WRN_UnreferencedVarAssg, Line = 6, Column = 21, IsWarning = true }});
+        }
+
+        [Fact]
+        public void ERR_ImplicitlyTypedVariableMultipleDeclaratorSameType_Locals_DifferentType_3()
+        {
+            var text = @"
+class A
+{
+    public static int Main()
+    {
+        var a = (System.Action)null, b = () => {};
+        return -1;
+    }
+}
+";
+
+            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text, new[] {
+                    new ErrorDescription { Code = (int)ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, Line = 6, Column = 38 },
+                    new ErrorDescription { Code = (int)ErrorCode.WRN_UnreferencedVarAssg, Line = 6, Column = 13, IsWarning = true }});
+        }
+
+        [Fact]
+        public void ERR_ImplicitlyTypedVariableMultipleDeclaratorSameType_Locals_DifferentType_4()
+        {
+            var text = @"
+class A
+{
+    public static int Main()
+    {
+        var a = (System.Action<int>)null, b = Main;
+        return -1;
+    }
+}
+";
+
+            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text, new[] {
+                    new ErrorDescription { Code = (int)ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, Line = 6, Column = 43 },
+                    new ErrorDescription { Code = (int)ErrorCode.WRN_UnreferencedVarAssg, Line = 6, Column = 13, IsWarning = true }});
         }
 
         [Fact]
