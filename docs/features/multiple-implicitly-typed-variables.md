@@ -71,4 +71,9 @@ None
   
   
 #### Language Model changes
-Node (except for less errors than before).
+None (except for less errors than before).
+
+
+#### Notes:
+As before, implicitly typed class fields are not allowed.  Nothing changes here with multiple vars.  
+However, implicitly typed script fields *are* allowed.  As such, we allow multiple implicitly typed vars in script code.
