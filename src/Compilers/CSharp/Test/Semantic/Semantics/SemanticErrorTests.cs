@@ -11261,13 +11261,22 @@ class A
         }
 
         [Fact]
-        public void CS0819ERR_ImplicitlyTypedVariableMultipleDeclarator_Fields()
+        public void ImplicitlyTypedVariableCanHaveMultipleDeclaratorOfSameType_Fields_()
+        {
+            CreateCompilationWithMscorlib(@"
+var foo = 0, bar = 1;
+", parseOptions: TestOptions.Script).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CS2044ERR_ImplicitlyTypedVariableMultipleDeclaratorDifferentTypes_Fields()
         {
             CreateCompilationWithMscorlib(@"
 var foo = 4, bar = 4.5;
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
-                // (2,1): error CS0819: Implicitly-typed fields cannot have multiple declarators
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator, "var"));
+                // (2,5): error CS2044: Implicitly-typed variables must all have the same type. Types 'int' and 'double' are not the same
+                // var foo = 4, bar = 4.5;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclaratorSameType, "foo").WithArguments("int", "double").WithLocation(2, 5));
         }
 
         [Fact]

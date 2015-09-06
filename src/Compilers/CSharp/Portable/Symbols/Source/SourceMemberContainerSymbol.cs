@@ -1317,6 +1317,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckSequentialOnPartialType(diagnostics);
             CheckForProtectedInStaticClass(diagnostics);
             CheckForUnmatchedOperators(diagnostics);
+            CheckImplicitlyTypedFields(diagnostics);
+        }
+
+        private void CheckImplicitlyTypedFields(DiagnosticBag diagnostics)
+        {
+            // Only do this for script classes.  In non-script-classes implicitly typed fields 
+            // aren't even allowed.
+            if (this.IsScriptClass)
+            {
+                foreach (var member in this.GetMembers())
+                {
+                    var field = member as SourceMemberFieldSymbol;
+                    if (field != null && field.IsVar)
+                    {
+                        // When we hit the first declarator of an implicitly typed field, check if 
+                        // all declarators have the same type.
+                        var fieldDeclaration = SourceMemberFieldSymbol.GetFieldDeclaration(field.VariableDeclaratorNode);
+                        var declarators = fieldDeclaration.Declaration.Variables;
+
+                        // Only bother if this actually has multiple declarators.
+                        if (declarators.Count > 1 && declarators[0] == field.VariableDeclaratorNode)
+                        {
+                            var types = declarators.Select(d => GetMembers(d.Identifier.ValueText).OfType<SourceMemberFieldSymbol>().Single(
+                                s => s.VariableDeclaratorNode == d).Type).ToArray();
+                            Binder.CheckMultipleVarDeclaration(this.DeclaringCompilation, fieldDeclaration, declarators, types, diagnostics);
+                        }
+                    }
+                }
+            }
         }
 
         private void CheckMemberNamesDistinctFromType(DiagnosticBag diagnostics)

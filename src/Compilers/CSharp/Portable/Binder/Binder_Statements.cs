@@ -490,40 +490,65 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Returns 'true' if any errors are produced.
-        private bool CheckMultipleVarDeclaration(
-            CSharpSyntaxNode declaratioNode,
+        public bool CheckMultipleVarDeclaration(
+            CSharpSyntaxNode declarationNode,
             SeparatedSyntaxList<VariableDeclaratorSyntax> declarators,
             bool isVar,
             BoundLocalDeclaration[] boundDeclarations,
             DiagnosticBag diagnostics)
         {
-            if (isVar && boundDeclarations.Length > 1 && !declaratioNode.HasErrors)
+            if (isVar && boundDeclarations.Length > 1 && !declarationNode.HasErrors)
             {
-                // If this is a var declaration, then all types inferred must be identical.
-                var firstBoundDeclaration = boundDeclarations[0];
-                var firstDeclarationType = firstBoundDeclaration.LocalSymbol.Type;
-
-                if (!firstBoundDeclaration.HasAnyErrors && !firstDeclarationType.IsErrorType())
+                foreach (var decl in boundDeclarations)
                 {
-                    for (var i = 1; i < boundDeclarations.Length; i++)
+                    if (decl.HasAnyErrors)
                     {
-                        var siblingDeclaration = boundDeclarations[1];
-                        var siblingDeclarationType = siblingDeclaration.LocalSymbol.Type;
+                        // Don't bother checking if we ran into any errors already.
+                        return false;
+                    }
+                }
+                
+                return CheckMultipleVarDeclaration(this.Compilation, declarationNode, declarators, 
+                    boundDeclarations.Select(d => d.LocalSymbol.Type).ToArray(), diagnostics);
+            }
 
-                        if (!siblingDeclaration.HasAnyErrors && !siblingDeclarationType.IsErrorType())
+            return false;
+        }
+
+
+        // Returns 'true' if any errors are produced.
+        public static bool CheckMultipleVarDeclaration(
+            CSharpCompilation compilation,
+            CSharpSyntaxNode declarationNode,
+            SeparatedSyntaxList<VariableDeclaratorSyntax> declarators,
+            TypeSymbol[] types,
+            DiagnosticBag diagnostics)
+        {
+            Debug.Assert(declarators.Count > 1);
+            Debug.Assert(types.Length == declarators.Count);
+
+            // If this is a var declaration, then all types inferred must be identical.
+            var firstDeclarationType = types[0];
+
+            if (!firstDeclarationType.IsErrorType())
+            {
+                for (var i = 1; i < types.Length; i++)
+                {
+                    var siblingDeclarationType = types[i];
+
+                    if (!siblingDeclarationType.IsErrorType())
+                    {
+                        if (!firstDeclarationType.Equals(siblingDeclarationType))
                         {
-                            if (!firstDeclarationType.Equals(siblingDeclarationType))
-                            {
-                                // Report an error on the names of the locals that have different types.
-                                var distinguisher = new SymbolDistinguisher(this.Compilation, firstDeclarationType, siblingDeclarationType);
-                                Error(diagnostics,
-                                    new CSDiagnosticInfo(ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclaratorSameType, 
-                                        new object[] { distinguisher.First, distinguisher.Second },
-                                        ImmutableArray<Symbol>.Empty, 
-                                        ImmutableArray.Create(declarators[i].Identifier.GetLocation())),
-                                    declarators[0].Identifier.GetLocation());
-                                return true;
-                            }
+                            // Report an error on the names of the locals that have different types.
+                            var distinguisher = new SymbolDistinguisher(compilation, firstDeclarationType, siblingDeclarationType);
+                            Error(diagnostics,
+                                new CSDiagnosticInfo(ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclaratorSameType,
+                                    new object[] { distinguisher.First, distinguisher.Second },
+                                    ImmutableArray<Symbol>.Empty,
+                                    ImmutableArray.Create(declarators[i].Identifier.GetLocation())),
+                                declarators[0].Identifier.GetLocation());
+                            return true;
                         }
                     }
                 }
