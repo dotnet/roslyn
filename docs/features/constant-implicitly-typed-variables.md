@@ -13,3 +13,7 @@ local-constant-declaration:
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+const   local-variable-type   constant-declarators  
 
 > +The type of a local implicitly typed constant declaration a  must follow the same rules as those of an implicitly typed declaration (§8.5.1).
+
+#### Notes:
+Constant class fields still cannot be implicitly typed.
+The only supported syntax is ```const var x = ...```,  there is no shorthand ```const x = ...``` form.  
