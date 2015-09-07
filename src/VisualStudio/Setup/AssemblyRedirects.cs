@@ -173,12 +173,12 @@ using Microsoft.VisualStudio.Shell;
 internal class Constants
 {
     public const string OldVersionLowerBound = "0.7.0.0";
-    public const string OldVersionUpperBound = "1.1.0.0";
-
+    public const string OldVersionUpperBound = "2.0.0.0";
+    
 #if OFFICIAL_BUILD
     // If this is an official build we want to generate binding
     // redirects from our old versions to the release version 
-    public const string NewVersion = "1.1.0.0";
+    public const string NewVersion = "2.0.0.0";
 #else
     // Non-official builds get redirects to local 42.42.42.42,
     // which will only be built locally

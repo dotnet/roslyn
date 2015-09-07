@@ -1936,5 +1936,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_GlobalNamespace
         FEATURE_NullPropagatingOperator
         FEATURE_NameOfExpressions
+        FEATURE_DigitSeparators
+        FEATURE_BinaryLiterals
     End Enum
 End Namespace
