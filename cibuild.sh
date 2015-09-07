@@ -58,7 +58,7 @@ done
 
 restore_nuget()
 {
-    local package_name="nuget.5.zip"
+    local package_name="nuget.6.zip"
     local target=~/.nuget
     echo "Installing NuGet Packages"
     if [ -d $target ]; then
