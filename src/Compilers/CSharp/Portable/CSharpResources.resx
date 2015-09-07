@@ -4161,14 +4161,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="CantReferenceCompilationOf" xml:space="preserve">
     <value>Can't reference compilation of type '{0}' from {1} compilation.</value>
   </data>
-  <data name="TreesMustHaveRootNode" xml:space="preserve">
-    <value>trees[{0}] must have root node with SyntaxKind.CompilationUnit.</value>
-  </data>
   <data name="SyntaxTreeAlreadyPresent" xml:space="preserve">
     <value>Syntax tree already present</value>
-  </data>
-  <data name="Trees0" xml:space="preserve">
-    <value>trees[{0}]</value>
   </data>
   <data name="SubmissionCanOnlyInclude" xml:space="preserve">
     <value>Submission can only include script code.</value>
@@ -4646,5 +4640,21 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_DebugEntryPointNotSourceMethodDefinition" xml:space="preserve">
     <value>Debug entry point must be a definition of a method declared in the current compilation.</value>
+  </data>
+  <data name="ERR_LoadDirectiveOnlyAllowedInScripts" xml:space="preserve">
+    <value>#load is only allowed in scripts</value>
+  </data>
+  <data name="ERR_PPLoadFollowsToken" xml:space="preserve">
+    <value>Cannot use #load after first token in file</value>
+  </data>
+  <data name="CouldNotFindFile" xml:space="preserve">
+    <value>Could not find file.</value>
+    <comment>File path referenced in source (#load) could not be resolved.</comment>
+  </data>
+  <data name="CannotHavePreviousSubmission" xml:space="preserve">
+    <value>Cannot have a previousSubmission when not a submission.</value>
+  </data>
+  <data name="SyntaxTreeFromLoadNoRemoveReplace" xml:space="preserve">
+    <value>SyntaxTree '{0}' resulted from a #load directive and cannot be removed or replaced directly.</value>
   </data>
 </root>

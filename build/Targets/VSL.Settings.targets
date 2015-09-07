@@ -173,6 +173,7 @@
     <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>
     <NoStdLib>true</NoStdLib>
     <FrameworkPathOverride>$(NuGetPackageRoot)\Microsoft.NetFX20\1.0.3\lib\net20</FrameworkPathOverride>
+    <NuGetTargetMoniker>.NETFramework,Version=v2.0</NuGetTargetMoniker>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(ProjectLanguage)' == 'CSharp' AND '$(TargetNetFX20)' == 'true'">

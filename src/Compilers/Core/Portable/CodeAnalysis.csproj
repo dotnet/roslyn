@@ -51,6 +51,7 @@
     <Compile Include="AssemblyUtilities.cs" />
     <Compile Include="Binding\AbstractLookupSymbolsInfo.cs" />
     <Compile Include="CaseInsensitiveComparison.cs" />
+    <Compile Include="DiagnosticAnalyzer\AnalyzerDriver.CompilationData.cs" />
     <Compile Include="UnicodeCharacterUtilities.cs" />
     <Compile Include="CodeAnalysisResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -134,6 +135,8 @@
     <Compile Include="CommandLine\ErrorLogger.WellKnownStrings.cs" />
     <Compile Include="CommandLine\TouchedFileLogger.cs" />
     <Compile Include="Compilation.EmitStreamProvider.cs" />
+    <Compile Include="Compilation\LoadDirective.cs" />
+    <Compile Include="Compilation\CommonSyntaxAndDeclarationManager.cs" />
     <Compile Include="Compilation\SymbolFilter.cs" />
     <Compile Include="CompilerPathUtilities.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisResult.cs" />

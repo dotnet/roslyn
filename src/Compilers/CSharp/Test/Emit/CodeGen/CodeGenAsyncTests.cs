@@ -3463,5 +3463,175 @@ System.Console.WriteLine(x);";
                 // static int x = await System.Threading.Tasks.Task.FromResult(1);
                 Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsync, "await System.Threading.Tasks.Task.FromResult(1)").WithLocation(1, 16));
         }
+
+        [Fact, WorkItem(4839, "https://github.com/dotnet/roslyn/issues/4839")]
+        public void SwitchOnAwaitedValueAsync()
+        {
+            var source = @"
+using System.Threading.Tasks;
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        M(0).Wait();
+    }
+
+    static async Task M(int input)
+    {
+        var value = 1; 
+        switch (value)
+        {
+            case 0:
+                return;
+            case 1:
+                return;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp);
+            CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe));
+        }
+
+        [Fact, WorkItem(4839, "https://github.com/dotnet/roslyn/issues/4839")]
+        public void SwitchOnAwaitedValue()
+        {
+            var source = @"
+using System.Threading.Tasks;
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        M(0);
+    }
+
+    static void M(int input)
+    {
+        try
+        {
+            var value = 1;
+            switch (value)
+            {
+                case 1:
+                    return;
+                case 2:
+                    return;
+            }
+        }
+        catch (Exception)
+        {
+
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp).
+                VerifyIL("Program.M(int)",
+                @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  .locals init (int V_0) //value
+  .try
+  {
+    IL_0000:  ldc.i4.1
+    IL_0001:  stloc.0
+    IL_0002:  ldloc.0
+    IL_0003:  ldc.i4.1
+    IL_0004:  beq.s      IL_000a
+    IL_0006:  ldloc.0
+    IL_0007:  ldc.i4.2
+    IL_0008:  pop
+    IL_0009:  pop
+    IL_000a:  leave.s    IL_000f
+  }
+  catch System.Exception
+  {
+    IL_000c:  pop
+    IL_000d:  leave.s    IL_000f
+  }
+  IL_000f:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(4839, "https://github.com/dotnet/roslyn/issues/4839")]
+        public void SwitchOnAwaitedValueString()
+        {
+            var source = @"
+using System.Threading.Tasks;
+using System;
+
+class Program
+    {
+        static void Main()
+        {
+            M(0).Wait();
+        }
+
+        static async Task M(int input)
+        {
+            var value = ""q""; 
+            switch (value)
+            {
+                case ""a"":
+                    return;
+                case ""b"":
+                    return;
+            }
+        }
+    }
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp);
+            CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe));
+        }
+
+        [Fact, WorkItem(4838, "https://github.com/dotnet/roslyn/issues/4838")]
+        public void SwitchOnAwaitedValueInLoop()
+        {
+            var source = @"
+using System.Threading.Tasks;
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        M(0).Wait();
+    }
+
+    static async Task M(int input)
+    {
+        for (;;)
+        {
+            var value = await Task.FromResult(input);
+            switch (value)
+            {
+                case 0:
+                    return;
+                case 3:
+                    return;
+                case 4:
+                    continue;
+                case 100:
+                    return;
+                default:
+                    throw new ArgumentOutOfRangeException(""Unknown value: "" + value);
+            }
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp);
+            CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe));
+        }
     }
 }

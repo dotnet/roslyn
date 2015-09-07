@@ -814,8 +814,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return SyntaxReferences;
+                // PERF: Declaring references are cached for compilations with event queue.
+                return this.DeclaringCompilation?.EventQueue != null ? GetCachedDeclaringReferences() : this.SyntaxReferences;
             }
+        }
+
+        private ImmutableArray<SyntaxReference> GetCachedDeclaringReferences()
+        {
+            ImmutableArray<SyntaxReference> declaringReferences;
+            if (!Diagnostics.AnalyzerDriver.TryGetCachedDeclaringReferences(this, this.DeclaringCompilation, out declaringReferences))
+            {
+                declaringReferences = this.SyntaxReferences;
+                Diagnostics.AnalyzerDriver.CacheDeclaringReferences(this, this.DeclaringCompilation, declaringReferences);
+            }
+
+            return declaringReferences;
         }
 
         #endregion

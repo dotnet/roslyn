@@ -160,7 +160,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                         // targetMemberNode could be a declaration node with multiple decls (e.g. field declaration defining multiple variables).
                         // Let us compute all the declarations intersecting the span.
-                        var decls = analyzerDriverService.GetDeclarationsInSpan(semanticModel, span, true, cancellationToken);
+                        var decls = new List<DeclarationInfo>();
+                        analyzerDriverService.ComputeDeclarationsInSpan(semanticModel, span, true, decls, cancellationToken);
                         if (decls.Any())
                         {
                             var containedDecls = decls.Where(d => span.Contains(d.DeclaredNode.Span));
