@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// A much less efficient implementation would be CustomModifierCount() == 0.
         /// CONSIDER: Could share a backing method with CustomModifierCount.
         /// </remarks>
-        public static bool HasCustomModifiers(this TypeSymbol type)
+        public static bool HasCustomModifiers(this TypeSymbol type, bool flagNonDefaultArraySizesOrLowerBounds)
         {
             if ((object)type == null)
             {
@@ -98,12 +98,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.ArrayType:
                     {
                         var array = (ArrayTypeSymbol)type;
-                        return array.CustomModifiers.Any() || array.ElementType.HasCustomModifiers();
+                        return array.CustomModifiers.Any() || array.ElementType.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds) || 
+                               (flagNonDefaultArraySizesOrLowerBounds && !array.HasDefaultSizesAndLowerBounds);
                     }
                 case SymbolKind.PointerType:
                     {
                         var pointer = (PointerTypeSymbol)type;
-                        return pointer.CustomModifiers.Any() || pointer.PointedAtType.HasCustomModifiers();
+                        return pointer.CustomModifiers.Any() || pointer.PointedAtType.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds);
                     }
                 case SymbolKind.ErrorType:
                 case SymbolKind.NamedType:
@@ -124,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                                 foreach (TypeSymbol typeArg in typeArgs)
                                 {
-                                    if (typeArg.HasCustomModifiers())
+                                    if (typeArg.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds))
                                     {
                                         return true;
                                     }

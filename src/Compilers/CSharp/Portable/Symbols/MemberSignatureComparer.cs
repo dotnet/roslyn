@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // the runtime compares custom modifiers using (effectively) SequenceEqual
             return considerCustomModifiers ?
                 returnType1.Equals(returnType2, ignoreDynamic: true) :
-                returnType1.Type.Equals(returnType2.Type, ignoreCustomModifiers: true, ignoreDynamic: true);
+                returnType1.Type.Equals(returnType2.Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true);
         }
 
         private static TypeMap GetTypeMap(Symbol member)
@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return false;
                     }
                 }
-                else if (!type1.Type.Equals(type2.Type, ignoreCustomModifiers: true, ignoreDynamic: true))
+                else if (!type1.Type.Equals(type2.Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
                 {
                     return false;
                 }

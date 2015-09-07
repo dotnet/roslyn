@@ -32,14 +32,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return CreateSZArray(elementType, customModifiers, declaringAssembly)
             End If
 
-            Return CreateMDArray(elementType, customModifiers, rank, declaringAssembly)
+            Return CreateMDArray(elementType, customModifiers, rank, Nothing, Nothing, declaringAssembly)
         End Function
 
-        Friend Shared Function CreateMDArray(elementType As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), rank As Integer, declaringAssembly As AssemblySymbol) As ArrayTypeSymbol
-            Return New MDArray(elementType,
+        Friend Shared Function CreateMDArray(
+            elementType As TypeSymbol,
+            customModifiers As ImmutableArray(Of CustomModifier),
+            rank As Integer,
+            sizes As ImmutableArray(Of Integer),
+            lowerBounds As ImmutableArray(Of Integer),
+            declaringAssembly As AssemblySymbol
+        ) As ArrayTypeSymbol
+            Dim systemArray = declaringAssembly.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Array)
+
+            ' Optimize for most common case - no sizes and all dimensions are zero lower bound.
+            If sizes.IsDefaultOrEmpty AndAlso lowerBounds.IsDefault Then
+                Return New MDArray(elementType,
                                customModifiers,
                                rank,
-                               declaringAssembly.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Array))
+                               systemArray)
+            End If
+
+            Return New MDArrayWithSizesAndBounds(elementType,
+                                                 customModifiers,
+                                                 rank,
+                                                 sizes,
+                                                 lowerBounds,
+                                                 systemArray)
         End Function
 
         Friend Shared Function CreateSZArray(elementType As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), compilation As VisualBasicCompilation) As ArrayTypeSymbol
@@ -91,6 +110,53 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Function HasSameShapeAs(other As ArrayTypeSymbol) As Boolean
             Return Rank = other.Rank AndAlso IsSZArray = other.IsSZArray
         End Function
+
+        ''' <summary>
+        ''' Specified sizes for dimensions, by position. The length can be less than <see cref="Rank"/>,
+        ''' meaning that some trailing dimensions don't have the size specified.
+        ''' The most common case is none of the dimensions have the size specified - an empty array is returned.
+        ''' </summary>
+        Friend Overridable ReadOnly Property Sizes As ImmutableArray(Of Integer)
+            Get
+                Return ImmutableArray(Of Integer).Empty
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Specified lower bounds for dimensions, by position. The length can be less than <see cref="Rank"/>,
+        ''' meaning that some trailing dimensions don't have the lower bound specified.
+        ''' The most common case is all dimensions are zero bound - a null array is returned in this case.
+        ''' </summary>
+        Friend Overridable ReadOnly Property LowerBounds As ImmutableArray(Of Integer)
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Note, <see cref="Rank"/> eqality should be checked separately!!!
+        ''' </summary>
+        Friend Function HasSameSizesAndLowerBoundsAs(other As ArrayTypeSymbol) As Boolean
+            If Me.Sizes.SequenceEqual(other.Sizes) Then
+                Dim thisLowerBounds = Me.LowerBounds
+
+                If thisLowerBounds.IsDefault Then
+                    Return other.LowerBounds.IsDefault
+                End If
+
+                Dim otherLowerBounds = other.LowerBounds
+
+                Return Not otherLowerBounds.IsDefault AndAlso thisLowerBounds.SequenceEqual(otherLowerBounds)
+            End If
+
+            Return False
+        End Function
+
+        ''' <summary>
+        ''' Normally VB arrays have default sizes and lower bounds - sizes are not specified and all dimensions are zero bound.
+        ''' This property should return false for any deviations.
+        ''' </summary>
+        Friend MustOverride ReadOnly Property HasDefaultSizesAndLowerBounds As Boolean
 
         ''' <summary>
         ''' Returns the type of the elements that are stored in this array.
@@ -274,7 +340,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             Next
 
-            Return True
+            ' Make sure bounds are the same.
+            Return HasSameSizesAndLowerBoundsAs(other)
         End Function
 
         Public Overrides Function GetHashCode() As Integer
@@ -416,8 +483,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         End If
 
                         newArray = New SZArray(newElementType.Type, newElementType.CustomModifiers, _systemArray, newInterfaces)
-                    Else
+
+                    ElseIf Me.HasDefaultSizesAndLowerBounds
                         newArray = New MDArray(newElementType.Type, newElementType.CustomModifiers, Me.Rank, _systemArray)
+
+                    Else
+                        newArray = New MDArrayWithSizesAndBounds(newElementType.Type, newElementType.CustomModifiers, Me.Rank, Me.Sizes, Me.LowerBounds, _systemArray)
                     End If
 
                     Return New TypeWithModifiers(newArray)
@@ -460,12 +531,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
+            Friend Overrides ReadOnly Property HasDefaultSizesAndLowerBounds As Boolean
+                Get
+                    Return True
+                End Get
+            End Property
         End Class
 
         ''' <summary>
         ''' Represents MDARRAY - multi-dimensional array (possibly of rank 1)
         ''' </summary>
-        Private NotInheritable Class MDArray
+        Private Class MDArray
             Inherits SZOrMDArray
 
             Private ReadOnly _rank As Integer
@@ -477,21 +553,68 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 _rank = rank
             End Sub
 
-            Public Overrides ReadOnly Property Rank As Integer
+            Public NotOverridable Overrides ReadOnly Property Rank As Integer
                 Get
                     Return _rank
                 End Get
             End Property
 
-            Friend Overrides ReadOnly Property IsSZArray As Boolean
+            Friend NotOverridable Overrides ReadOnly Property IsSZArray As Boolean
                 Get
                     Return False
                 End Get
             End Property
 
-            Friend Overrides ReadOnly Property InterfacesNoUseSiteDiagnostics As ImmutableArray(Of NamedTypeSymbol)
+            Friend NotOverridable Overrides ReadOnly Property InterfacesNoUseSiteDiagnostics As ImmutableArray(Of NamedTypeSymbol)
                 Get
                     Return ImmutableArray(Of NamedTypeSymbol).Empty
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property HasDefaultSizesAndLowerBounds As Boolean
+                Get
+                    Return True
+                End Get
+            End Property
+        End Class
+
+        Private NotInheritable Class MDArrayWithSizesAndBounds
+            Inherits MDArray
+
+            Private ReadOnly _sizes As ImmutableArray(Of Integer)
+            Private ReadOnly _lowerBounds As ImmutableArray(Of Integer)
+
+            Sub New(
+                elementType As TypeSymbol,
+                customModifiers As ImmutableArray(Of CustomModifier),
+                rank As Integer,
+                sizes As ImmutableArray(Of Integer),
+                lowerBounds As ImmutableArray(Of Integer),
+                systemArray As NamedTypeSymbol
+            )
+                MyBase.New(elementType, customModifiers, rank, systemArray)
+
+                Debug.Assert(Not sizes.IsDefaultOrEmpty OrElse Not lowerBounds.IsDefault)
+                Debug.Assert(lowerBounds.IsDefaultOrEmpty OrElse (Not lowerBounds.IsEmpty AndAlso (lowerBounds.Length <> rank OrElse Not lowerBounds.All(Function(b) b = 0))))
+                _sizes = sizes.NullToEmpty()
+                _lowerBounds = lowerBounds
+            End Sub
+
+            Friend Overrides ReadOnly Property Sizes As ImmutableArray(Of Integer)
+                Get
+                    Return _sizes
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property LowerBounds As ImmutableArray(Of Integer)
+                Get
+                    Return _lowerBounds
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property HasDefaultSizesAndLowerBounds As Boolean
+                Get
+                    Return False
                 End Get
             End Property
         End Class
