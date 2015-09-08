@@ -167,14 +167,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Trivia nodes represents parts of the program text that are not parts of the
-        /// syntactic grammar, such as spaces, newlines, comments, preprocessors
+        /// Trivia nodes represent parts of the program text that are not parts of the
+        /// syntactic grammar, such as spaces, newlines, comments, preprocessor
         /// directives, and disabled code.
         /// </summary>
         /// <param name="kind">
-        /// A <cref c="SyntaxKind"/> representing the specific kind of SyntaxTrivia. One of
-        /// WhitespaceTrivia, EndOfLineTrivia, CommentTrivia,
-        /// DocumentationCommentExteriorTrivia, DisabledTextTrivia.
+        /// A <see cref="SyntaxKind"/> representing the specific kind of <see cref="SyntaxTrivia"/>. One of
+        /// <see cref="SyntaxKind.WhitespaceTrivia"/>, <see cref="SyntaxKind.EndOfLineTrivia"/>,
+        /// <see cref="SyntaxKind.SingleLineCommentTrivia"/>, <see cref="SyntaxKind.MultiLineCommentTrivia"/>,
+        /// <see cref="SyntaxKind.DocumentationCommentExteriorTrivia"/>, <see cref="SyntaxKind.DisabledTextTrivia"/>,
+        /// <see cref="SyntaxKind.ShebangCommentTrivia"/>
         /// </param>
         /// <param name="text">
         /// The actual text of this token.
