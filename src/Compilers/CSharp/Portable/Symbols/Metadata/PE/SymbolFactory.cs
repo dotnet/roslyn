@@ -11,14 +11,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     {
         internal static readonly SymbolFactory Instance = new SymbolFactory();
 
-        internal override TypeSymbol GetMDArrayTypeSymbol(PEModuleSymbol moduleSymbol, int rank, TypeSymbol elementType, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
+        internal override TypeSymbol GetMDArrayTypeSymbol(PEModuleSymbol moduleSymbol, int rank, TypeSymbol elementType, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers,
+                                                          ImmutableArray<int> sizes, ImmutableArray<int> lowerBounds)
         {
             if (elementType is UnsupportedMetadataTypeSymbol)
             {
                 return elementType;
             }
 
-            return ArrayTypeSymbol.CreateMDArray(moduleSymbol.ContainingAssembly, elementType, rank, CSharpCustomModifier.Convert(customModifiers));
+            return ArrayTypeSymbol.CreateMDArray(moduleSymbol.ContainingAssembly, elementType, rank, sizes, lowerBounds, CSharpCustomModifier.Convert(customModifiers));
         }
 
         internal override TypeSymbol GetByRefReturnTypeSymbol(PEModuleSymbol moduleSymbol, TypeSymbol referencedType, ushort countOfCustomModifiersPrecedingByRef)

@@ -6,4 +6,7 @@
   "frameworks": {
     "net46": { }
   },
+  "runtimes": {
+    "win-anycpu": { }
+  }
 }

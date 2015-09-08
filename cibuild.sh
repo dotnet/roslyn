@@ -14,7 +14,7 @@ XUNIT_VERSION=2.0.0-alpha-build2576
 BUILD_CONFIGURATION=Debug
 OS_NAME=$(uname -s)
 USE_CACHE=true
-MONO_ARGS='--runtime=v4.0.30319 --gc=boehm --debug=mdb-optimizations --attach=disable'
+MONO_ARGS='--debug=mdb-optimizations --attach=disable'
 
 # There are some stability issues that are causing Jenkins builds to fail at an 
 # unacceptable rate.  To temporarily work around that we are going to retry the 
@@ -58,8 +58,8 @@ done
 
 restore_nuget()
 {
-    local package_name="nuget.6.zip"
-    local target=~/.nuget
+    local package_name="nuget.7.zip"
+    local target="/tmp/$package_name"
     echo "Installing NuGet Packages"
     if [ -d $target ]; then
         if [ "$USE_CACHE" = "true" ]; then
@@ -68,12 +68,12 @@ restore_nuget()
         fi
     fi
 
-    pushd ~/
+    pushd /tmp/
 
-    rm -r $target 2>/dev/null
+    rm -r ~/.nuget 2>/dev/null
     rm $package_name 2>/dev/null
     curl -O https://dotnetci.blob.core.windows.net/roslyn/$package_name
-    unzip $package_name>/dev/null
+    unzip $package_name -d ~/ 1> /dev/null
     if [ $? -ne 0 ]; then
         echo "Unable to download NuGet packages"
         exit 1
@@ -90,9 +90,8 @@ run_msbuild()
     
     for i in `seq 1 $RETRY_COUNT`
     do
-        o=$(mono $MONO_ARGS ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe /v:m /p:SignAssembly=false /p:DebugSymbols=false "$@")
+        mono $MONO_ARGS ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe /v:m /p:SignAssembly=false /p:DebugSymbols=false "$@"
         if [ $? -eq 0 ]; then
-            echo "$o"
             is_good=true
             break
         fi
@@ -101,7 +100,6 @@ run_msbuild()
     done
 
     if [ "$is_good" != "true" ]; then
-        echo "$o"
         echo Build failed
         exit 1
     fi
@@ -218,9 +216,9 @@ set_mono_path()
     fi
 
     if [ "$OS_NAME" = "Darwin" ]; then
-        MONO_TOOLSET_NAME=mono.mac.2
+        MONO_TOOLSET_NAME=mono.mac.3
     elif [ "$OS_NAME" = "Linux" ]; then
-        MONO_TOOLSET_NAME=mono.linux.2
+        MONO_TOOLSET_NAME=mono.linux.3
     else
         echo "Error: Unsupported OS $OS_NAME"
         exit 1
