@@ -49,7 +49,7 @@
     </When>
   </Choose>
 
-  <!-- Work around mono bug -->
+  <!-- Work around mono + msbuild bug https://github.com/Microsoft/msbuild/issues/191 -->
   <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == 'DNXCore' and '$(OS)' != 'Windows_NT'">
       <!-- Manually set assembly search paths so they don't get mangled later -->
       <AssemblySearchPaths Condition=" '$(AssemblySearchPaths)' == ''">
