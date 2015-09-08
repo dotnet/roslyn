@@ -44,46 +44,44 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
         {
             var locations = diagnostic.AdditionalLocations;
             var propertyLocation = locations[0];
-            var fieldOrVarLocation = locations[1];
+            var declaratorLocation = locations[1];
 
-            var fieldTree = fieldOrVarLocation.SourceTree;
-            var fieldDocument = context.Document.Project.GetDocument(fieldTree);
-            var fieldTreeRoot = await fieldDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var declaratorTree = declaratorLocation.SourceTree;
+            var declaratorDocument = context.Document.Project.GetDocument(declaratorTree);
+            var declaratorTreeRoot = await declaratorDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var propertyTree = propertyLocation.SourceTree;
             var propertyDocument = context.Document.Project.GetDocument(propertyTree);
             var propertyTreeRoot = await propertyDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var solution = fieldDocument.Project.Solution;
+            var solution = declaratorDocument.Project.Solution;
 
-            var fieldOrVar = fieldTreeRoot.FindNode(fieldOrVarLocation.SourceSpan);
-            var fieldDeclaration = fieldOrVar.FirstAncestorOrSelf<FieldDeclarationSyntax>();
+            var declarator = declaratorTreeRoot.FindNode(declaratorLocation.SourceSpan);
+            var fieldDeclaration = (FieldDeclarationSyntax)declarator.Parent.Parent;
 
-            var nodeToRemove = fieldDeclaration.Declaration.Variables.Count > 1
-                ? fieldOrVar.FirstAncestorOrSelf<VariableDeclaratorSyntax>()
-                : (SyntaxNode)fieldDeclaration;
+            var nodeToRemove = fieldDeclaration.Declaration.Variables.Count > 1 ? declarator : (SyntaxNode)fieldDeclaration;
 
             var propertyDeclaration = propertyTreeRoot.FindNode(propertyLocation.SourceSpan).FirstAncestorOrSelf<PropertyDeclarationSyntax>();
             var updatedProperty = UpdateProperty(propertyDeclaration);
 
             const SyntaxRemoveOptions options = SyntaxRemoveOptions.KeepUnbalancedDirectives | SyntaxRemoveOptions.AddElasticMarker;
-            if (fieldDocument == propertyDocument)
+            if (declaratorDocument == propertyDocument)
             {
                 // Same file.  Have to do this in a slightly complicated fashion.
-                var editor = new SyntaxEditor(fieldTreeRoot, fieldDocument.Project.Solution.Workspace);
+                var editor = new SyntaxEditor(declaratorTreeRoot, declaratorDocument.Project.Solution.Workspace);
                 editor.RemoveNode(nodeToRemove, options);
                 editor.ReplaceNode(propertyDeclaration, updatedProperty);
 
                 return solution.WithDocumentSyntaxRoot(
-                    fieldDocument.Id, editor.GetChangedRoot());
+                    declaratorDocument.Id, editor.GetChangedRoot());
             }
             else
             {
                 // In different files.  Just update both files.
-                var newFieldTreeRoot = fieldTreeRoot.RemoveNode(nodeToRemove, options);
+                var newFieldTreeRoot = declaratorTreeRoot.RemoveNode(nodeToRemove, options);
                 var newPropertyTreeRoot = propertyTreeRoot.ReplaceNode(propertyDeclaration, updatedProperty);
 
-                var updatedSolution = solution.WithDocumentSyntaxRoot(fieldDocument.Id, newFieldTreeRoot);
+                var updatedSolution = solution.WithDocumentSyntaxRoot(declaratorDocument.Id, newFieldTreeRoot);
                 updatedSolution = updatedSolution.WithDocumentSyntaxRoot(propertyDocument.Id, newPropertyTreeRoot);
 
                 return updatedSolution;

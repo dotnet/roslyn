@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             }
 
             // Looks like a viable property/field to convert into an auto property.
-            analysisResults.Add(new AnalysisResult(property, getterField, propertyDeclaration, fieldDeclaration, variableDeclarator,
+            analysisResults.Add(new AnalysisResult(property, getterField, propertyDeclaration, variableDeclarator,
                 property.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
         }
 
@@ -302,8 +302,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
         private void Process(AnalysisResult result, CompilationAnalysisContext compilationContext)
         {
             var propertyDeclaration = result.PropertyDeclaration;
-            var fieldDeclaration = result.FieldDeclaration;
             var variableDeclarator = result.VariableDeclarator;
+            var fieldDeclaration = (FieldDeclarationSyntax)variableDeclarator.Parent.Parent;
 
             var fadeLocation = fieldDeclaration.Declaration.Variables.Count == 1
                 ? fieldDeclaration
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             // Now add diagnostics to both the field and the property saying we can convert it to 
             // an auto property.  For each diagnostic store both location so we can easily retrieve
             // them when performing the code fix.
-            IEnumerable<Location> additionalLocations = new Location[] { propertyDeclaration.GetLocation(), fadeLocation.GetLocation() };
+            IEnumerable<Location> additionalLocations = new Location[] { propertyDeclaration.GetLocation(), variableDeclarator.GetLocation() };
 
             var diagnostic2 = Diagnostic.Create(Descriptor, propertyDeclaration.GetLocation(), additionalLocations, properties);
             compilationContext.ReportDiagnostic(diagnostic2);
@@ -333,7 +333,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
         public readonly IPropertySymbol Property;
         public readonly IFieldSymbol Field;
         public readonly PropertyDeclarationSyntax PropertyDeclaration;
-        public readonly FieldDeclarationSyntax FieldDeclaration;
         public readonly VariableDeclaratorSyntax VariableDeclarator;
         public readonly string SymbolEquivalenceKey;
 
@@ -341,14 +340,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             IPropertySymbol property,
             IFieldSymbol field,
             PropertyDeclarationSyntax propertyDeclaration,
-            FieldDeclarationSyntax fieldDeclaration,
             VariableDeclaratorSyntax variableDeclarator,
             string symbolEquivalenceKey)
         {
             Property = property;
             Field = field;
             PropertyDeclaration = propertyDeclaration;
-            FieldDeclaration = fieldDeclaration;
             VariableDeclarator = variableDeclarator;
             SymbolEquivalenceKey = symbolEquivalenceKey;
         }

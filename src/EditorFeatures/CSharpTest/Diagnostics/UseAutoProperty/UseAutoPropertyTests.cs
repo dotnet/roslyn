@@ -21,10 +21,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestSingleGetter()
+        public void TestSingleGetter1()
         {
             Test(
 @"class Class { [|int i|]; int P { get { return i; } } }",
+@"class Class { int P { get; } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public void TestSingleGetter2()
+        {
+            Test(
+@"class Class { int i; [|int P { get { return i; } }|] }",
 @"class Class { int P { get; } }");
         }
 
@@ -159,6 +167,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
             Test(
 @"partial class Class { [|int i|]; } partial class Class { int P { get { return i; } } }",
 @"partial class Class { } partial class Class { int P { get; } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public void TestNotWithFieldWithAttirbute()
+        {
+            TestMissing(
+@"class Class { [|[A]int i|]; int P { get { return i; } } }");
         }
     }
 }
