@@ -25,6 +25,10 @@
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
+      <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
+      <Name>Workspaces.Desktop</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj">
       <Project>{21B239D0-D144-430F-A394-C066D58EE267}</Project>
       <Name>CSharpWorkspace</Name>

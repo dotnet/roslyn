@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
                        Path.Combine(responseFileDirectory, s_interactiveResponseFile),
                        initialWorkingDirectory,
                        GetType(InteractiveHostEntryPoint).Assembly.Location,
-                       GetType(VisualBasicRepl))
+                       GetType(VisualBasicReplServiceProvider))
         End Sub
 
         Protected Overrides ReadOnly Property LanguageName As String

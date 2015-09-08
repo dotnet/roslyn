@@ -92,7 +92,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Interactive\VisualBasicInteractiveEvaluator.vb" />
-    <Compile Include="Interactive\VisualBasicRepl.vb" />
+    <Compile Include="Interactive\VisualBasicReplServiceProvider.vb" />
     <Compile Include="VBInteractiveEditorResources.Designer.vb">
       <DependentUpon>VBInteractiveEditorResources.resx</DependentUpon>
       <AutoGen>True</AutoGen>

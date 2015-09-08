@@ -85,14 +85,14 @@
     <Compile Include="Interactive\Core\InteractiveHost.InitializedRemoteService.cs" />
     <Compile Include="Interactive\Core\InteractiveHost.Service.cs" />
     <Compile Include="Interactive\Core\InteractiveLanguageNames.cs" />
-    <Compile Include="Interactive\Core\IRepl.cs" />
+    <Compile Include="Interactive\Core\ReplServiceProvider.cs" />
     <Compile Include="Interactive\Core\InteractiveHost.RemoteAsyncOperation.cs" />
     <Compile Include="Interactive\Core\ProcessExtensions.cs" />
     <Compile Include="Interactive\Core\RemoteExecutionResult.cs" />
     <Compile Include="Interactive\Core\InteractiveHost.RemoteService.cs" />
-    <Compile Include="Interactive\Core\SearchPaths.cs" />
+    <Compile Include="Interactive\Core\HostObject\SearchPaths.cs" />
     <Compile Include="Interactive\Core\SerializableAssemblyLoadResult.cs" />
-    <Compile Include="Interactive\Core\SynchronizedVersionedList.cs" />
+    <Compile Include="Interactive\Core\HostObject\SynchronizedVersionedList.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Interactive\Core\InteractiveHost.LazyRemoteService.cs" />
