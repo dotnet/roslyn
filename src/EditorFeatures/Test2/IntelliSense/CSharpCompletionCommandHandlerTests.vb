@@ -3,10 +3,17 @@
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.Differencing
+Imports Microsoft.VisualStudio.Text.Editor
+Imports Microsoft.VisualStudio.Text.Operations
+Imports Microsoft.VisualStudio.Text.Projection
+Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Public Class CSharpCompletionCommandHandlerTests
@@ -1505,6 +1512,45 @@ $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.T
                 state.AssertMatchesTextStartingAtLine(6, "doodle;")
                 state.SendUndo()
                 state.AssertMatchesTextStartingAtLine(6, "doo;")
+            End Using
+        End Sub
+
+        <WorkItem(588, "https://github.com/dotnet/roslyn/issues/588")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub DiffView()
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+class C
+{
+    void foo(int x)
+    {$$
+        /********/
+        int doodle;
+        }
+}]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+
+                Dim differenceBufferService = state.GetExportedValue(Of IDifferenceBufferFactoryService)
+                Dim textBufferFactoryService = state.GetExportedValue(Of ITextBufferFactoryService)()
+                Dim contentTypeService = state.GetExportedValue(Of IContentTypeRegistryService)()
+                Dim contentType = contentTypeService.GetContentType(ContentTypeNames.CSharpContentType)
+                Dim textViewFactory = state.GetExportedValue(Of ITextEditorFactoryService)()
+                Dim editorOperationsFactory = state.GetExportedValue(Of IEditorOperationsFactoryService)()
+
+                Dim otherBuffer = textBufferFactoryService.CreateTextBuffer("text", contentType)
+                Dim otherExposedSpan = otherBuffer.CurrentSnapshot.CreateTrackingSpan(0, 4, SpanTrackingMode.EdgeExclusive, TrackingFidelityMode.Forward)
+
+                Dim subjectBufferExposedSpan = state.SubjectBuffer.CurrentSnapshot.CreateTrackingSpan(0, state.SubjectBuffer.CurrentSnapshot.Length, SpanTrackingMode.EdgeExclusive, TrackingFidelityMode.Forward)
+
+                Dim projectionBufferFactory = state.GetExportedValue(Of IProjectionBufferFactoryService)()
+                Dim projection = projectionBufferFactory.CreateProjectionBuffer(Nothing, New Object() {otherExposedSpan, subjectBufferExposedSpan}.ToList(), ProjectionBufferOptions.None)
+
+                Dim view = textViewFactory.CreateTextView(projection)
+                view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, 0))
+
+                Dim editorOperations = editorOperationsFactory.GetEditorOperations(view)
+                state.CompletionCommandHandler.ExecuteCommand(New DeleteKeyCommandArgs(view, state.SubjectBuffer), Sub() editorOperations.Delete())
+
+                state.AssertNoCompletionSession()
             End Using
         End Sub
     End Class
