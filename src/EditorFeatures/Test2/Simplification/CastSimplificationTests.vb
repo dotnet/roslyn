@@ -7646,7 +7646,165 @@ End Class
 
             Test(input, expected)
         End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4037, "https://github.com/dotnet/roslyn/issues/4037")>
+        Public Sub VisualBasic_DoNotRemove_NecessaryCastOfEnumFromInInterpolation()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Module Module1
 
+    Enum State As UShort
+        None = 0
+        State1 = 1 << 0
+    End Enum
+
+    Sub Main()
+        Dim alarmState = State.State1
+
+        Dim str = $"State: {alarmState} [{{|Simplify:CUShort(alarmState)|}:x4}]"
+
+        Console.WriteLine(str)
+    End Sub
+
+End Module
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Module Module1
+
+    Enum State As UShort
+        None = 0
+        State1 = 1 << 0
+    End Enum
+
+    Sub Main()
+        Dim alarmState = State.State1
+
+        Dim str = $"State: {alarmState} [{CUShort(alarmState):x4}]"
+
+        Console.WriteLine(str)
+    End Sub
+
+End Module
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4037, "https://github.com/dotnet/roslyn/issues/4037")>
+        Public Sub VisualBasic_DoNotRemove_NecessaryCastOfEnumAndToString()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Module Module1
+
+    Enum State As UShort
+        None = 0
+        State1 = 1 << 0
+    End Enum
+
+    Sub Main()
+        Dim alarmState = State.State1
+
+        Dim str = {|Simplify:CUShort(alarmState)|}.ToString("X4")
+
+        Console.WriteLine(str)
+    End Sub
+
+End Module
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Module Module1
+
+    Enum State As UShort
+        None = 0
+        State1 = 1 << 0
+    End Enum
+
+    Sub Main()
+        Dim alarmState = State.State1
+
+        Dim str = CUShort(alarmState).ToString("X4")
+
+        Console.WriteLine(str)
+    End Sub
+
+End Module
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4037, "https://github.com/dotnet/roslyn/issues/4037")>
+        Public Sub VisualBasic_Remove_UnnecessaryCastOfEnum()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Option Strict On
+
+Module Module1
+
+    Enum State As UShort
+        None = 0
+        State1 = 1 << 0
+    End Enum
+
+    Sub Main()
+        Dim alarmState = State.State1
+
+        Dim val As UShort = {|Simplify:CUShort(alarmState)|}
+
+        Console.WriteLine(val)
+    End Sub
+
+End Module
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Option Strict On
+
+Module Module1
+
+    Enum State As UShort
+        None = 0
+        State1 = 1 << 0
+    End Enum
+
+    Sub Main()
+        Dim alarmState = State.State1
+
+        Dim val As UShort = alarmState
+
+        Console.WriteLine(val)
+    End Sub
+
+End Module
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
 #End Region
 
     End Class

@@ -332,6 +332,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 Dim originalExpression = DirectCast(currentOriginalNode, ConditionalAccessExpressionSyntax)
                 Dim newExpression = DirectCast(currentReplacedNode, ConditionalAccessExpressionSyntax)
                 Return ReplacementBreaksConditionalAccessExpression(originalExpression, newExpression)
+            ElseIf currentOriginalNode.Kind = SyntaxKind.Interpolation Then
+                Dim orignalInterpolation = DirectCast(currentOriginalNode, InterpolationSyntax)
+                Dim newInterpolation = DirectCast(currentReplacedNode, InterpolationSyntax)
+                Return ReplacementBreaksInterpolation(orignalInterpolation, newInterpolation)
             ElseIf currentOriginalNode.Kind = SyntaxKind.VariableDeclarator Then
                 ' Heuristic: If replacing the node will result in changing the type of a local variable
                 ' that is type-inferred, we won't remove it. It's possible to do this analysis, but it's
@@ -475,10 +479,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         End Function
 
         Private Function ReplacementBreaksConditionalAccessExpression(conditionalAccessExpression As ConditionalAccessExpressionSyntax, newConditionalAccessExpression As ConditionalAccessExpressionSyntax) As Boolean
-            Return Not SymbolsAreCompatible(conditionalAccessExpression, newConditionalAccessExpression) OrElse
+            Return _
+                Not SymbolsAreCompatible(conditionalAccessExpression, newConditionalAccessExpression) OrElse
                 Not TypesAreCompatible(conditionalAccessExpression, newConditionalAccessExpression) OrElse
                 Not SymbolsAreCompatible(conditionalAccessExpression.WhenNotNull, newConditionalAccessExpression.WhenNotNull) OrElse
                 Not TypesAreCompatible(conditionalAccessExpression.WhenNotNull, newConditionalAccessExpression.WhenNotNull)
+        End Function
+
+        Private Function ReplacementBreaksInterpolation(interpolation As InterpolationSyntax, newInterpolation As InterpolationSyntax) As Boolean
+            Return Not TypesAreCompatible(interpolation.Expression, newInterpolation.Expression)
         End Function
 
         Protected Overrides Function GetForEachStatementExpression(forEachStatement As ForEachStatementSyntax) As ExpressionSyntax
