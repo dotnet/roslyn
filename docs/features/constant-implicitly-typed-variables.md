@@ -17,4 +17,4 @@ local-constant-declaration:
 #### Notes:
 Constant class fields still cannot be implicitly typed.  
 Constant script fields *can* be implicitly typed.  
-The only supported syntax is ```const var x = ...```,  there is no shorthand ```const x = ...``` form.  
+The only supported syntax is ```const var x = ...```,  there is no shorthand ```const x = ...``` form.  Should we allow ```const x = ...``` thought?
