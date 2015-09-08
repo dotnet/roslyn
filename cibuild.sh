@@ -58,8 +58,8 @@ done
 
 restore_nuget()
 {
-    local package_name="nuget.6.zip"
-    local target=~/.nuget
+    local package_name="nuget.7.zip"
+    local target="/tmp/$package_name"
     echo "Installing NuGet Packages"
     if [ -d $target ]; then
         if [ "$USE_CACHE" = "true" ]; then
@@ -68,12 +68,12 @@ restore_nuget()
         fi
     fi
 
-    pushd ~/
+    pushd /tmp/
 
-    rm -r $target 2>/dev/null
+    rm -r ~/.nuget 2>/dev/null
     rm $package_name 2>/dev/null
     curl -O https://dotnetci.blob.core.windows.net/roslyn/$package_name
-    unzip $package_name>/dev/null
+    unzip $package_name -d ~/ 1> /dev/null
     if [ $? -ne 0 ]; then
         echo "Unable to download NuGet packages"
         exit 1
