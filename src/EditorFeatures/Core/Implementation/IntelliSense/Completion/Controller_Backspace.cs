@@ -66,12 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var triggerInfo = CompletionTriggerInfo.CreateBackspaceTriggerInfo(deletedChar);
                 var completionService = this.GetCompletionService();
 
-                // The caret may no longer be mappable into our subject buffer.
-                var caret = textView.GetCaretPoint(SubjectBuffer);
-                if (caret.HasValue)
-                {
-                    this.StartNewModelComputation(completionService, triggerInfo, filterItems: false);
-                }
+                this.StartNewModelComputation(completionService, triggerInfo, filterItems: false);
 
                 return;
             }
