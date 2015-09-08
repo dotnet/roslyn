@@ -126,4 +126,7 @@
   <data name="Properties" xml:space="preserve">
     <value>Properties</value>
   </data>
+  <data name="UseAutoProperty" xml:space="preserve">
+    <value>Use auto property</value>
+  </data>
 </root>

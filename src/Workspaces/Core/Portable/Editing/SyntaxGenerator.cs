@@ -1052,7 +1052,15 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public virtual SyntaxNode RemoveNode(SyntaxNode root, SyntaxNode node)
         {
-            return root.RemoveNode(node, DefaultRemoveOptions);
+            return RemoveNode(root, node, DefaultRemoveOptions);
+        }
+
+        /// <summary>
+        /// Removes the node from the sub tree starting at the root.
+        /// </summary>
+        public virtual SyntaxNode RemoveNode(SyntaxNode root, SyntaxNode node, SyntaxRemoveOptions options)
+        {
+            return root.RemoveNode(node, options);
         }
 
         /// <summary>
