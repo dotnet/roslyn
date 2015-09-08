@@ -583,7 +583,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                     Return ArrayTypeSymbol.CreateSZArray(newElement, newModifiers, RetargetingAssembly)
                 End If
 
-                Return ArrayTypeSymbol.CreateMDArray(newElement, newModifiers, type.Rank, RetargetingAssembly)
+                Return ArrayTypeSymbol.CreateMDArray(newElement, newModifiers, type.Rank, type.Sizes, type.LowerBounds, RetargetingAssembly)
             End Function
 
             Friend Function RetargetModifiers(oldModifiers As ImmutableArray(Of CustomModifier), ByRef modifiersHaveChanged As Boolean) As ImmutableArray(Of CustomModifier)
