@@ -4217,27 +4217,6 @@ class Test
                 expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(531047, "DevDiv")]
-        public void NullIsRegression()
-        {
-            string source =
-@"using System;
-using System.Linq.Expressions;
-class Test
-{
-    public static void Main()
-    {
-        Expression<Func<bool>> expr = () => null is Test;
-        Console.WriteLine(expr.Dump());
-    }
-}";
-            string expectedOutput = "TypeIs(Constant(null Type:System.Object) TypeOperand:Test Type:System.Boolean)";
-            CompileAndVerify(
-                new[] { source, ExpressionTestLibrary },
-                new[] { ExpressionAssemblyRef },
-                expectedOutput: expectedOutput);
-        }
-
         [WorkItem(546601, "DevDiv")]
         [Fact]
         public void NewArrayInitInAsAndIs()
@@ -4266,6 +4245,28 @@ class Test
 TypeAs(Constant(null Type:System.Object) Type:Test)
 TypeAs(Parameter(t Type:Test) Type:System.Object)";
 
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(531047, "DevDiv")]
+        [Fact, WorkItem(531047, "DevDiv")]
+        public void NullIsRegression()
+        {
+            string source =
+@"using System;
+using System.Linq.Expressions;
+class Test
+{
+    public static void Main()
+    {
+        Expression<Func<bool>> expr = () => null is Test;
+        Console.WriteLine(expr.Dump());
+    }
+}";
+            string expectedOutput = "TypeIs(Constant(null Type:System.Object) TypeOperand:Test Type:System.Boolean)";
             CompileAndVerify(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
