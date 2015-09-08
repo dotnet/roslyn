@@ -232,9 +232,6 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 return solution;
             }
 
-            var locationsToIgnore = SpecializedCollections.EmptySet<TextSpan>();
-            var optionSet = document.Project.Solution.Workspace.Options;
-
             if (field.IsReadOnly)
             {
                 // Inside the constructor we want to rename references the field to the final field name.
@@ -251,9 +248,8 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 }
 
                 // Outside the constructor we want to rename references to the field to final property name.
-                solution = await Renamer.RenameSymbolAsync(solution, field, generatedPropertyName, solution.Workspace.Options,
+                return await Renamer.RenameSymbolAsync(solution, field, generatedPropertyName, solution.Workspace.Options,
                     location => !constructorSyntaxes.Any(c => c.Span.IntersectsWith(location.SourceSpan)), cancellationToken).ConfigureAwait(false);
-                return solution;
             }
             else
             {
