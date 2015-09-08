@@ -34,6 +34,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
     [Guid(Guids.InteractiveToolWindowIdString)]
     internal sealed class VsInteractiveWindow : ToolWindowPane, IVsFindTarget, IOleCommandTarget, IVsInteractiveWindow
     {
+        // Keep in sync with Microsoft.VisualStudio.Editor.Implementation.EnableFindOptionDefinition.OptionName.
+        private const string EnableFindOptionName = "Enable Autonomous Find";
+
         private readonly IComponentModel _componentModel;
         private readonly IVsEditorAdaptersFactoryService _editorAdapters;
 
@@ -93,7 +96,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
             _window = _componentModel.GetService<IInteractiveWindowFactoryService>().CreateWindow(_evaluator);
             _window.SubmissionBufferAdded += SubmissionBufferAdded;
             _textViewHost = _window.GetTextViewHost();
-            var viewAdapter = _editorAdapters.GetViewAdapter(_textViewHost.TextView);
+            var textView = _textViewHost.TextView;
+            textView.Options.SetOptionValue(EnableFindOptionName, true);
+            var viewAdapter = _editorAdapters.GetViewAdapter(textView);
             _findTarget = viewAdapter as IVsFindTarget;
             _commandTarget = viewAdapter as IOleCommandTarget;
         }
