@@ -68,6 +68,7 @@
     <Compile Include="Compilation\GetSemanticInfoTests.cs" />
     <Compile Include="Compilation\GetUnusedImportDirectivesTests.cs" />
     <Compile Include="Compilation\IndexedProperties_BindingTests.cs" />
+    <Compile Include="Compilation\LoadDirectiveTests.cs" />
     <Compile Include="Compilation\QueryClauseInfoTests.cs" />
     <Compile Include="Compilation\ReferenceManagerTests.cs" />
     <Compile Include="Compilation\SemanticModelAPITests.cs" />

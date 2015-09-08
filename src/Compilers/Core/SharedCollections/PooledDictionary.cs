@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
@@ -15,6 +16,13 @@ namespace Microsoft.CodeAnalysis.Collections
         private PooledDictionary(ObjectPool<PooledDictionary<K, V>> pool)
         {
             _pool = pool;
+        }
+
+        public ImmutableDictionary<K, V> ToImmutableDictionaryAndFree()
+        {
+            var result = this.ToImmutableDictionary();
+            this.Free();
+            return result;
         }
 
         public void Free()

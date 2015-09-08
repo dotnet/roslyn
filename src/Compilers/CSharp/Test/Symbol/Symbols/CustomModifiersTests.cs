@@ -187,7 +187,7 @@ class CL3
             var withoutModifiers = withModifiers.OriginalDefinition.Construct(withModifiers.TypeArguments);
             Assert.True(withModifiers.HasTypeArgumentsCustomModifiers);
             Assert.False(withoutModifiers.HasTypeArgumentsCustomModifiers);
-            Assert.True(withoutModifiers.Equals(withModifiers, ignoreCustomModifiers:true));
+            Assert.True(withoutModifiers.Equals(withModifiers, ignoreCustomModifiersAndArraySizesAndLowerBounds:true));
             Assert.NotEqual(withoutModifiers, withModifiers);
 
             CompileAndVerify(compilation, expectedOutput: "Overriden");
@@ -799,11 +799,11 @@ class Module1
 
             Assert.True(base1.HasTypeArgumentsCustomModifiers);
             Assert.True(base2.HasTypeArgumentsCustomModifiers);
-            Assert.True(base1.Equals(base2, ignoreCustomModifiers:true));
+            Assert.True(base1.Equals(base2, ignoreCustomModifiersAndArraySizesAndLowerBounds:true));
             Assert.NotEqual(base1, base2);
 
             Assert.True(base3.HasTypeArgumentsCustomModifiers);
-            Assert.True(base1.Equals(base3, ignoreCustomModifiers: true));
+            Assert.True(base1.Equals(base3, ignoreCustomModifiersAndArraySizesAndLowerBounds: true));
             Assert.Equal(base1, base3);
             Assert.NotSame(base1, base3);
         }

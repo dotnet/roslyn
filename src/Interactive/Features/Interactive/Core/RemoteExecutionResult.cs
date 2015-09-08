@@ -24,23 +24,16 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// </summary>
         public readonly string NewWorkingDirectory;
 
-        /// <summary>
-        /// Resolved path if applicable. Used by ExecuteFile.
-        /// </summary>
-        public readonly string ResolvedPath;
-
         public RemoteExecutionResult(
             bool success,
             string[] newSourcePaths = null,
             string[] newReferencePaths = null,
-            string newWorkingDirectory = null,
-            string resolvedPath = null)
+            string newWorkingDirectory = null)
         {
             this.Success = success;
             this.NewSourcePaths = newSourcePaths;
             this.NewReferencePaths = newReferencePaths;
             this.NewWorkingDirectory = newWorkingDirectory;
-            this.ResolvedPath = resolvedPath;
         }
     }
 }

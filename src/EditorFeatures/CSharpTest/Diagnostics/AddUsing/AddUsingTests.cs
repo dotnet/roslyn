@@ -2120,6 +2120,22 @@ namespace A.C
         }
 
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestAddUsingOrdinalUppercase()
+        {
+            Test(
+@"namespace A { class A { static void Main ( string [ ] args ) { var b = new [|B|] ( ) ; } } } namespace lowercase { class b { } } namespace Uppercase { class B { } } ",
+@"using Uppercase ; namespace A { class A { static void Main ( string [ ] args ) { var b = new B ( ) ; } } } namespace lowercase { class b { } } namespace Uppercase { class B { } } ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestAddUsingOrdinalLowercase()
+        {
+            Test(
+@"namespace A { class A { static void Main ( string [ ] args ) { var a = new [|b|] ( ) ; } } } namespace lowercase { class b { } } namespace Uppercase { class B { } } ",
+@"using lowercase ; namespace A { class A { static void Main ( string [ ] args ) { var a = new b ( ) ; } } } namespace lowercase { class b { } } namespace Uppercase { class B { } } ");
+        }
+
         public partial class AddUsingTestsWithAddImportDiagnosticProvider : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
         {
             internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)

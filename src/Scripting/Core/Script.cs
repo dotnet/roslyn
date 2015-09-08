@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         private ScriptBuilder _lazyBuilder;
         private Compilation _lazyCompilation;
-        
+
         internal Script(ScriptCompiler compiler, string code, ScriptOptions options, Type globalsType, ScriptBuilder builder, Script previous)
         {
             Compiler = compiler;
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <param name="globalsType">The type that defines members that can be accessed by the script.</param>
         public Script WithGlobalsType(Type globalsType) => this.WithGlobalsTypeInternal(globalsType);
         internal abstract Script WithGlobalsTypeInternal(Type globalsType);
-        
+
         /// <summary>
         /// Continues the script with given code snippet.
         /// </summary>
@@ -215,14 +215,14 @@ namespace Microsoft.CodeAnalysis.Scripting
             references = references.Add(corLib);
 
             if (this.GlobalsType != null)
-            {
+        {
                 var globalsTypeAssembly = MetadataReference.CreateFromAssemblyInternal(this.GlobalsType.GetTypeInfo().Assembly);
                 references = references.Add(globalsTypeAssembly);
             }
 
             return references;
-        }
-    }
+            }
+            }
 
     public sealed class Script<T> : Script
     {
@@ -248,19 +248,19 @@ namespace Microsoft.CodeAnalysis.Scripting
             if (code == null)
             {
                 code = "";
-            }
+                }
 
             return (code == this.Code) ?
                 this :
                 new Script<T>(this.Compiler, code, this.Options, this.GlobalsType, this.LazyBuilder, this.Previous);
-        }
+                }
 
         public new Script<T> WithGlobalsType(Type globalsType)
-        {
+                {
             return (globalsType == this.GlobalsType) ?
                 this :
                 new Script<T>(this.Compiler, this.Code, this.Options, globalsType, this.LazyBuilder, this.Previous);
-        }
+                    }
 
         internal override Script WithOptionsInternal(ScriptOptions options) => WithOptions(options);
         internal override Script WithCodeInternal(string code) => WithCode(code);
@@ -268,10 +268,10 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         /// <exception cref="CompilationErrorException">Compilation has errors.</exception>
         internal override void CommonBuild(CancellationToken cancellationToken)
-        {
+                        {
             GetPrecedingExecutors(cancellationToken);
             GetExecutor(cancellationToken);
-        }
+                        }
 
         internal override Func<object[], Task> CommonGetExecutor(CancellationToken cancellationToken)
             => GetExecutor(cancellationToken);
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 var preceding = TryGetPrecedingExecutors(null, cancellationToken);
                 Debug.Assert(!preceding.IsDefault);
                 InterlockedOperations.Initialize(ref _lazyPrecedingExecutors, preceding);
-            }
+        }
 
             return _lazyPrecedingExecutors;
         }
@@ -314,32 +314,32 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             Script script = Previous;
             if (script == lastExecutedScriptInChainOpt)
-            {
+        {
                 return ImmutableArray<Func<object[], Task>>.Empty;
-            }
+        }
 
             var scriptsReversed = ArrayBuilder<Script>.GetInstance();
 
             while (script != null && script != lastExecutedScriptInChainOpt)
-            {
+        {
                 scriptsReversed.Add(script);
                 script = script.Previous;
-            }
+        }
 
             if (lastExecutedScriptInChainOpt != null && script != lastExecutedScriptInChainOpt)
-            {
+        {
                 scriptsReversed.Free();
                 return default(ImmutableArray<Func<object[], Task>>);
-            }
+        }
 
             var executors = ArrayBuilder<Func<object[], Task>>.GetInstance(scriptsReversed.Count);
 
             // We need to build executors in the order in which they are chained,
             // so that assemblies created for the submissions are loaded in the correct order.
             for (int i = scriptsReversed.Count - 1; i >= 0; i--)
-            {
+        {
                 executors.Add(scriptsReversed[i].CommonGetExecutor(cancellationToken));
-            }
+        }
 
             return executors.ToImmutableAndFree();
         }
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             var currentExecutor = GetExecutor(cancellationToken);
 
             return RunSubmissionsAsync(executionState, precedingExecutors, currentExecutor, cancellationToken);
-        }
+            }
 
         /// <summary>
         /// Creates a delegate that will run this script from the beginning when invoked.
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// The delegate doesn't hold on this script or its compilation.
         /// </remarks>
         public ScriptRunner<T> CreateDelegate(CancellationToken cancellationToken = default(CancellationToken))
-        {
+            {
             var precedingExecutors = GetPrecedingExecutors(cancellationToken);
             var currentExecutor = GetExecutor(cancellationToken);
             var globalsType = GlobalsType;
@@ -411,26 +411,26 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <exception cref="ArgumentNullException"><paramref name="previousState"/> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="previousState"/> is not a previous execution state of this script.</exception>
         public new Task<ScriptState<T>> ContinueAsync(ScriptState previousState, CancellationToken cancellationToken = default(CancellationToken))
-        {
+            {
             // The following validation and executor contruction may throw;
             // do so synchronously so that the exception is not wrapped in the task.
 
             if (previousState == null)
-            {
+                    {
                 throw new ArgumentNullException(nameof(previousState));
-            }
+                    }
 
             if (previousState.Script == this)
-            {
+                    {
                 // this state is already the output of running this script.
                 return Task.FromResult((ScriptState<T>)previousState);
-            }
+                    }
 
             var precedingExecutors = TryGetPrecedingExecutors(previousState.Script, cancellationToken);
             if (precedingExecutors.IsDefault)
-            {
+                    {
                 throw new ArgumentException(ScriptingResources.StartingStateIncompatible, nameof(previousState));
-            }
+                    }
 
             var currentExecutor = GetExecutor(cancellationToken);
             ScriptExecutionState newExecutionState = previousState.ExecutionState.FreezeAndClone();
@@ -447,22 +447,22 @@ namespace Microsoft.CodeAnalysis.Scripting
         private static void ValidateGlobals(object globals, Type globalsType)
         {
             if (globalsType != null)
-            {
+        {
                 if (globals == null)
-                {
+            {
                     throw new ArgumentException(ScriptingResources.ScriptRequiresGlobalVariables, nameof(globals));
-                }
+        }
 
                 var runtimeType = globals.GetType().GetTypeInfo();
                 var globalsTypeInfo = globalsType.GetTypeInfo();
 
                 if (!globalsTypeInfo.IsAssignableFrom(runtimeType))
-                {
+        {
                     throw new ArgumentException(string.Format(ScriptingResources.GlobalsNotAssignable, runtimeType, globalsTypeInfo), nameof(globals));
                 }
-            }
+        }
             else if (globals != null)
-            {
+                    {
                 throw new ArgumentException(ScriptingResources.GlobalVariablesWithoutGlobalType, nameof(globals));
             }
         }

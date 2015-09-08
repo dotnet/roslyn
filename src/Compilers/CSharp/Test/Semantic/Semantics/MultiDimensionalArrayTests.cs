@@ -734,5 +734,691 @@ System.Double
                 );
         }
 
+        [WorkItem(4954, "https://github.com/dotnet/roslyn/issues/4954")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void SizesAndLowerBounds_01()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit Test
+       extends [mscorlib]System.Object
+{
+    .method public hidebysig specialname rtspecialname 
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000:  ldarg.0
+      IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+      IL_0006:  ret
+    } // end of method Test1::.ctor
+
+    .method public hidebysig newslot virtual 
+            instance float64[,] Test1() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test1""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[...,] Test2() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test2""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[...,...] Test3() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test3""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[5,] Test4() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test4""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[5,...] Test5() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test5""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[5,5] Test6() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test6""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[5,2...] Test7() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test7""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[5,2...8] Test8() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test8""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[1...5,] Test9() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test9""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[1...5,...] Test10() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test10""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[1...5,5] Test11() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test11""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[1...5,2...] Test12() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test12""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[1...5,2...8] Test13() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test13""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[1...,] Test14() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test14""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[1...,...] Test15() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test15""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[1...,2...] Test16() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test16""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+} // end of class Test
+";
+
+            var source =
+@"class C : Test
+{
+    static void Main()
+    {
+        double[,] a;
+
+        var t = new Test();
+        a = t.Test1();
+        a = t.Test2();
+        a = t.Test3();
+        a = t.Test4();
+        a = t.Test5();
+        a = t.Test6();
+        a = t.Test7();
+        a = t.Test8();
+        a = t.Test9();
+        a = t.Test10();
+        a = t.Test11();
+        a = t.Test12();
+        a = t.Test13();
+        a = t.Test14();
+        a = t.Test15();
+        a = t.Test16();
+
+        t = new C();
+        a = t.Test1();
+        a = t.Test2();
+        a = t.Test3();
+        a = t.Test4();
+        a = t.Test5();
+        a = t.Test6();
+        a = t.Test7();
+        a = t.Test8();
+        a = t.Test9();
+        a = t.Test10();
+        a = t.Test11();
+        a = t.Test12();
+        a = t.Test13();
+        a = t.Test14();
+        a = t.Test15();
+        a = t.Test16();
+    }
+
+    public override double[,] Test1()
+    {
+        System.Console.WriteLine(""Overriden 1"");
+        return null;
+    }
+    public override double[,] Test2()
+    {
+        System.Console.WriteLine(""Overriden 2"");
+        return null;
+    }
+    public override double[,] Test3()
+    {
+        System.Console.WriteLine(""Overriden 3"");
+        return null;
+    }
+    public override double[,] Test4()
+    {
+        System.Console.WriteLine(""Overriden 4"");
+        return null;
+    }
+    public override double[,] Test5()
+    {
+        System.Console.WriteLine(""Overriden 5"");
+        return null;
+    }
+    public override double[,] Test6()
+    {
+        System.Console.WriteLine(""Overriden 6"");
+        return null;
+    }
+    public override double[,] Test7()
+    {
+        System.Console.WriteLine(""Overriden 7"");
+        return null;
+    }
+    public override double[,] Test8()
+    {
+        System.Console.WriteLine(""Overriden 8"");
+        return null;
+    }
+    public override double[,] Test9()
+    {
+        System.Console.WriteLine(""Overriden 9"");
+        return null;
+    }
+    public override double[,] Test10()
+    {
+        System.Console.WriteLine(""Overriden 10"");
+        return null;
+    }
+    public override double[,] Test11()
+    {
+        System.Console.WriteLine(""Overriden 11"");
+        return null;
+    }
+    public override double[,] Test12()
+    {
+        System.Console.WriteLine(""Overriden 12"");
+        return null;
+    }
+    public override double[,] Test13()
+    {
+        System.Console.WriteLine(""Overriden 13"");
+        return null;
+    }
+    public override double[,] Test14()
+    {
+        System.Console.WriteLine(""Overriden 14"");
+        return null;
+    }
+    public override double[,] Test15()
+    {
+        System.Console.WriteLine(""Overriden 15"");
+        return null;
+    }
+    public override double[,] Test16()
+    {
+        System.Console.WriteLine(""Overriden 16"");
+        return null;
+    }
+}
+";
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput:
+@"Test1
+Test2
+Test3
+Test4
+Test5
+Test6
+Test7
+Test8
+Test9
+Test10
+Test11
+Test12
+Test13
+Test14
+Test15
+Test16
+Overriden 1
+Overriden 2
+Overriden 3
+Overriden 4
+Overriden 5
+Overriden 6
+Overriden 7
+Overriden 8
+Overriden 9
+Overriden 10
+Overriden 11
+Overriden 12
+Overriden 13
+Overriden 14
+Overriden 15
+Overriden 16
+");
+        }
+
+        [WorkItem(4954, "https://github.com/dotnet/roslyn/issues/4954")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void SizesAndLowerBounds_02()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit Test
+       extends [mscorlib]System.Object
+{
+    .method public hidebysig specialname rtspecialname 
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000:  ldarg.0
+      IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+      IL_0006:  ret
+    } // end of method Test1::.ctor
+
+    .method public hidebysig newslot virtual 
+            instance void Test1(float64[,] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test1""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test2(float64[...,] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test2""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test3(float64[...,...] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test3""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test4(float64[5,] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test4""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test5(float64[5,...] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test5""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test6(float64[5,5] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test6""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test7(float64[5,2...] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test7""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test8(float64[5,2...8] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test8""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test9(float64[1...5,] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test9""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test10(float64[1...5,...] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test10""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test11(float64[1...5,5] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test11""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test12(float64[1...5,2...] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test12""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test13(float64[1...5,2...8] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test13""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test14(float64[1...,] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test14""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test15(float64[1...,...] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test15""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test16(float64[1...,2...] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test16""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+} // end of class Test
+";
+
+            var source =
+@"class C : Test
+{
+    static void Main()
+    {
+        double[,] a = new double [,] {};
+
+        var t = new Test();
+        t.Test1(a);
+        t.Test2(a);
+        t.Test3(a);
+        t.Test4(a);
+        t.Test5(a);
+        t.Test6(a);
+        t.Test7(a);
+        t.Test8(a);
+        t.Test9(a);
+        t.Test10(a);
+        t.Test11(a);
+        t.Test12(a);
+        t.Test13(a);
+        t.Test14(a);
+        t.Test15(a);
+        t.Test16(a);
+
+        t = new C();
+        t.Test1(a);
+        t.Test2(a);
+        t.Test3(a);
+        t.Test4(a);
+        t.Test5(a);
+        t.Test6(a);
+        t.Test7(a);
+        t.Test8(a);
+        t.Test9(a);
+        t.Test10(a);
+        t.Test11(a);
+        t.Test12(a);
+        t.Test13(a);
+        t.Test14(a);
+        t.Test15(a);
+        t.Test16(a);
+    }
+
+    public override void Test1(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 1"");
+    }
+    public override void Test2(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 2"");
+    }
+    public override void Test3(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 3"");
+    }
+    public override void Test4(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 4"");
+    }
+    public override void Test5(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 5"");
+    }
+    public override void Test6(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 6"");
+    }
+    public override void Test7(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 7"");
+    }
+    public override void Test8(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 8"");
+    }
+    public override void Test9(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 9"");
+    }
+    public override void Test10(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 10"");
+    }
+    public override void Test11(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 11"");
+    }
+    public override void Test12(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 12"");
+    }
+    public override void Test13(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 13"");
+    }
+    public override void Test14(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 14"");
+    }
+    public override void Test15(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 15"");
+    }
+    public override void Test16(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 16"");
+    }
+}
+";
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput:
+@"Test1
+Test2
+Test3
+Test4
+Test5
+Test6
+Test7
+Test8
+Test9
+Test10
+Test11
+Test12
+Test13
+Test14
+Test15
+Test16
+Overriden 1
+Overriden 2
+Overriden 3
+Overriden 4
+Overriden 5
+Overriden 6
+Overriden 7
+Overriden 8
+Overriden 9
+Overriden 10
+Overriden 11
+Overriden 12
+Overriden 13
+Overriden 14
+Overriden 15
+Overriden 16
+");
+        }
+
     }
 }
