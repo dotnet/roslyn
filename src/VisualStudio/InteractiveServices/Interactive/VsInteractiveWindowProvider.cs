@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.VisualStudio.Editor.Interactive;
+using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.InteractiveWindow.Shell;
 using Microsoft.VisualStudio.Shell;
@@ -82,15 +83,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             var vsWindow = _vsInteractiveWindowFactory.Create(Id, instanceId, Title, evaluator, 0);
             vsWindow.SetLanguage(LanguageServiceGuid, evaluator.ContentType);
 
+            var window = vsWindow.InteractiveWindow;
+
             // the tool window now owns the engine:
-            vsWindow.InteractiveWindow.TextView.Closed += new EventHandler((_, __) => 
+            window.TextView.Closed += new EventHandler((_, __) => 
             {
                 LogSession(LogMessage.Window, LogMessage.Close);
                 evaluator.Dispose();
             });
             // vsWindow.AutoSaveOptions = true;
 
-            var window = vsWindow.InteractiveWindow;
+            window.TextView.Options.SetOptionValue(InteractiveWindowOptions.SmartUpDown, true);
 
             // fire and forget:
             window.InitializeAsync();
