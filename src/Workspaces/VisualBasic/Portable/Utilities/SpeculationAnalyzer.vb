@@ -332,10 +332,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 Dim originalExpression = DirectCast(currentOriginalNode, ConditionalAccessExpressionSyntax)
                 Dim newExpression = DirectCast(currentReplacedNode, ConditionalAccessExpressionSyntax)
                 Return ReplacementBreaksConditionalAccessExpression(originalExpression, newExpression)
-            ElseIf currentOriginalNode.Kind = SyntaxKind.Interpolation Then
-                Dim orignalInterpolation = DirectCast(currentOriginalNode, InterpolationSyntax)
-                Dim newInterpolation = DirectCast(currentReplacedNode, InterpolationSyntax)
-                Return ReplacementBreaksInterpolation(orignalInterpolation, newInterpolation)
             ElseIf currentOriginalNode.Kind = SyntaxKind.VariableDeclarator Then
                 ' Heuristic: If replacing the node will result in changing the type of a local variable
                 ' that is type-inferred, we won't remove it. It's possible to do this analysis, but it's
@@ -349,8 +345,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
                 Return False
             ElseIf currentOriginalNode.Kind = SyntaxKind.CollectionInitializer Then
-                Return previousOriginalNode IsNot Nothing AndAlso
+                Return _
+                    previousOriginalNode IsNot Nothing AndAlso
                     ReplacementBreaksCollectionInitializerAddMethod(DirectCast(previousOriginalNode, ExpressionSyntax), DirectCast(previousReplacedNode, ExpressionSyntax))
+            ElseIf currentOriginalNode.Kind = SyntaxKind.Interpolation Then
+                Dim orignalInterpolation = DirectCast(currentOriginalNode, InterpolationSyntax)
+                Dim newInterpolation = DirectCast(currentReplacedNode, InterpolationSyntax)
+
+                Return ReplacementBreaksInterpolation(orignalInterpolation, newInterpolation)
             Else
                 Dim originalCollectionRangeVariableSyntax = TryCast(currentOriginalNode, CollectionRangeVariableSyntax)
                 If originalCollectionRangeVariableSyntax IsNot Nothing Then

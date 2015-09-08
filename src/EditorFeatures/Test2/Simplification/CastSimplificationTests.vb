@@ -4634,6 +4634,120 @@ class Sample
             Test(input, expected)
         End Sub
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4037, "https://github.com/dotnet/roslyn/issues/4037")>
+        Public Sub CSharp_Remove_UnnecessaryCastOfUShort()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    void M() 
+    {
+        ushort x = 400;
+        var s = $"Hello {{|Simplify:(object)x|}:x4}";
+        System.Console.WriteLine(s);
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+class C
+{
+    void M() 
+    {
+        ushort x = 400;
+        var s = $"Hello {x:x4}";
+        System.Console.WriteLine(s);
+    }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4037, "https://github.com/dotnet/roslyn/issues/4037")>
+        Public Sub CSharp_Remove_UnnecessaryCastOfDateTime1()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    void M() 
+    {
+        var d = new System.DateTime(2015, 9, 8);
+        var s = $"Hello {{|Simplify:(object)d|}:yyyy-MM-dd}";
+        System.Console.WriteLine(s);
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+class C
+{
+    void M() 
+    {
+        var d = new System.DateTime(2015, 9, 8);
+        var s = $"Hello {d:yyyy-MM-dd}";
+        System.Console.WriteLine(s);
+    }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4037, "https://github.com/dotnet/roslyn/issues/4037")>
+        Public Sub CSharp_Remove_UnnecessaryCastOfDateTime2()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    void M() 
+    {
+        var d = new System.DateTime(2015, 9, 8);
+        var s = $"Hello {({|Simplify:(object)d|}):yyyy-MM-dd}";
+        System.Console.WriteLine(s);
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+class C
+{
+    void M() 
+    {
+        var d = new System.DateTime(2015, 9, 8);
+        var s = $"Hello {(d):yyyy-MM-dd}";
+        System.Console.WriteLine(s);
+    }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
 #End Region
 
 #Region "Visual Basic tests"
@@ -7805,6 +7919,109 @@ End Module
 
             Test(input, expected)
         End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4037, "https://github.com/dotnet/roslyn/issues/4037")>
+        Public Sub VisualBasic_Remove_UnnecessaryCastOfUShort()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Class C
+    Sub M()
+        Dim x As UShort = 400
+        Dim s = $"Hello {{|Simplify:CObj(x)|}:x4}"
+        Console.WriteLine(s)
+    End Sub
+End Class
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Class C
+    Sub M()
+        Dim x As UShort = 400
+        Dim s = $"Hello {x:x4}"
+        Console.WriteLine(s)
+    End Sub
+End Class
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4037, "https://github.com/dotnet/roslyn/issues/4037")>
+        Public Sub VisualBasic_Remove_UnnecessaryCastOfDateTime1()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Class C
+    Sub M()
+        Dim d As DateTime = #2015-09-08#
+        Dim s = $"Hello {{|Simplify:CObj(d)|}:yyyy-MM-dd}"
+        Console.WriteLine(s)
+    End Sub
+End Class
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Class C
+    Sub M()
+        Dim d As DateTime = #2015-09-08#
+        Dim s = $"Hello {d:yyyy-MM-dd}"
+        Console.WriteLine(s)
+    End Sub
+End Class
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4037, "https://github.com/dotnet/roslyn/issues/4037")>
+        Public Sub VisualBasic_Remove_UnnecessaryCastOfDateTime2()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Class C
+    Sub M()
+        Dim d As DateTime = #2015-09-08#
+        Dim s = $"Hello {({|Simplify:CObj(d)|}):yyyy-MM-dd}"
+        Console.WriteLine(s)
+    End Sub
+End Class
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Class C
+    Sub M()
+        Dim d As DateTime = #2015-09-08#
+        Dim s = $"Hello {(d):yyyy-MM-dd}"
+        Console.WriteLine(s)
+    End Sub
+End Class
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
 #End Region
 
     End Class
