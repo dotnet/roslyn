@@ -4159,6 +4159,48 @@ class Test
         var r1 = f(default(T));
         Expression<Func<T, int>> e = x => x.M() + x.P + x.P;
         var r2 = e.Compile()(default(T));
+        Console.WriteLine(r1!=r2 ? ""pass"" : ""fail"");
+    }
+    static void Main()
+    {
+        Test1<S>();
+    }
+}";
+
+            string expectedOutput = @"pass";
+
+            CompileAndVerify(
+                new[] { source },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(530529, "DevDiv")]
+        [Fact]
+        public void BoxTypeParameter1()
+        {
+            string source =
+@"using System;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Collections.Generic;
+interface I
+{
+    int P();
+}
+struct S : I
+{
+    int _p;
+    public int P() => _p++;
+}
+class Test
+{
+    public static void Test1<T>() where T : I
+    {
+        Func<T, int> f = x => x.P() + x.P();
+        var r1 = f(default(T));
+        Expression<Func<T, int>> e = x => x.P() + x.P();
+        var r2 = e.Compile()(default(T));
         Console.WriteLine(r1==r2 ? ""pass"" : ""fail"");
     }
     static void Main()
@@ -4171,6 +4213,27 @@ class Test
 
             CompileAndVerify(
                 new[] { source },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(531047, "DevDiv")]
+        public void NullIsRegression()
+        {
+            string source =
+@"using System;
+using System.Linq.Expressions;
+class Test
+{
+    public static void Main()
+    {
+        Expression<Func<bool>> expr = () => null is Test;
+        Console.WriteLine(expr.Dump());
+    }
+}";
+            string expectedOutput = "TypeIs(Constant(null Type:System.Object) TypeOperand:Test Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
         }
@@ -4209,22 +4272,43 @@ TypeAs(Parameter(t Type:Test) Type:System.Object)";
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(531047, "DevDiv")]
-        [Fact, WorkItem(531047, "DevDiv")]
-        public void NullIsRegression()
+        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/4471")]
+        public void GenericPropertyReceiverCast()
         {
             string source =
 @"using System;
 using System.Linq.Expressions;
 class Test
 {
+    public interface IDeletedID
+    {
+        int DeletedID { get; }
+    }
+
+    public class C1 : IDeletedID
+    {
+        int IDeletedID.DeletedID
+        {
+            get
+            {
+                return 1;
+            }
+        }
+    }
+
     public static void Main()
     {
-        Expression<Func<bool>> expr = () => null is Test;
+        Test1(new C1());
+    }
+
+    public static void Test1<T>(T x) where T: IDeletedID
+    {
+        Expression<Func<bool>> expr = () => x.DeletedID == 1;
         Console.WriteLine(expr.Dump());
     }
+
 }";
-            string expectedOutput = "TypeIs(Constant(null Type:System.Object) TypeOperand:Test Type:System.Boolean)";
+            string expectedOutput = "Equal(MemberAccess(Convert(MemberAccess(Constant(Test+<>c__DisplayClass3_0`1[Test+C1] Type:Test+<>c__DisplayClass3_0`1[Test+C1]).x Type:Test+C1) Type:Test+IDeletedID).DeletedID Type:System.Int32) Constant(1 Type:System.Int32) Type:System.Boolean)";
             CompileAndVerify(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
