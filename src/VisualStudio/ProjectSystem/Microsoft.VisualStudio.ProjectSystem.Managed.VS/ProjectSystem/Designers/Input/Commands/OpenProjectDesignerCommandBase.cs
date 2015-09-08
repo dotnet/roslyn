@@ -42,11 +42,15 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
                 if (hr.Failed)
                     throw hr.Exception;
 
-                await _projectServices.ThreadingPolicy.SwitchToUIThread();
+                if (windowFrame != null)
+                {   // VS editor
 
-                hr = windowFrame.Show();
-                if (hr.Failed)
-                    throw hr.Exception;
+                    await _projectServices.ThreadingPolicy.SwitchToUIThread();
+
+                    hr = windowFrame.Show();
+                    if (hr.Failed)
+                        throw hr.Exception;
+                }
 
                 return true;
             }
