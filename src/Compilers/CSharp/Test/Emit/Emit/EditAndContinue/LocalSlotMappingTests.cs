@@ -2722,7 +2722,7 @@ class C
             var v0 = CompileAndVerify(compilation0);
             v0.VerifyIL("C.<>c.<M>b__1_0()", @"
 {
-  // Code size       36 (0x24)
+  // Code size       34 (0x22)
   .maxstack  2
   .locals init (object V_0,
                 bool V_1)
@@ -2750,8 +2750,7 @@ class C
     IL_001f:  nop
     IL_0020:  endfinally
   }
-  IL_0021:  br.s       IL_0023
-  IL_0023:  ret
+  IL_0021:  ret
 }");
 
 #if TODO // identify the lambda in a semantic edit

@@ -99,6 +99,8 @@
     <Compile Include="Completion\CompletionProviders\XmlDocCommentCompletion\XmlDocCommentCompletionItemRules.cs" />
     <Compile Include="Completion\CompletionProviders\XmlDocCommentCompletion\XmlDocCommentCompletionProvider.cs" />
     <Compile Include="Completion\FileSystem\GlobalAssemblyCacheCompletionHelper.cs" />
+    <Compile Include="Completion\FileSystem\LoadDirectiveCompletionProvider.cs" />
+    <Compile Include="Completion\FileSystem\LoadDirectiveCompletionProvider.ItemRules.cs" />
     <Compile Include="Completion\FileSystem\ReferenceDirectiveCompletionProvider.cs" />
     <Compile Include="Completion\FileSystem\ReferenceDirectiveCompletionProvider.ItemRules.cs" />
     <Compile Include="ContentType\ContentTypeDefinitions.cs" />

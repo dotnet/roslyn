@@ -31,8 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we don't analyze synthesized void methods.
                 if (method.IsImplicitlyDeclared || Analyze(compilation, method, block, diagnostics))
                 {
-                    var sourceMethod = method as SourceMethodSymbol;
-                    block = AppendImplicitReturn(block, method, ((object)sourceMethod != null) ? sourceMethod.BodySyntax as BlockSyntax : null);
+                    block = AppendImplicitReturn(block, method, (CSharpSyntaxNode)(method as SourceMethodSymbol)?.BodySyntax);
                 }
             }
             else if (!method.IsScriptInitializer && Analyze(compilation, method, block, diagnostics))
@@ -56,42 +55,41 @@ namespace Microsoft.CodeAnalysis.CSharp
         // insert the implicit "return" statement at the end of the method body
         // Normally, we wouldn't bother attaching syntax trees to compiler-generated nodes, but these
         // ones are going to have sequence points.
-        internal static BoundBlock AppendImplicitReturn(BoundStatement node, MethodSymbol method, CSharpSyntaxNode syntax = null)
+        internal static BoundBlock AppendImplicitReturn(BoundBlock body, MethodSymbol method, CSharpSyntaxNode syntax = null)
         {
+            Debug.Assert(body != null);
             Debug.Assert(method != null);
 
             if (syntax == null)
             {
-                syntax = node.Syntax;
+                syntax = body.Syntax;
             }
+
+            Debug.Assert(body.WasCompilerGenerated || syntax.IsKind(SyntaxKind.Block) || syntax.IsKind(SyntaxKind.ArrowExpressionClause));
 
             BoundStatement ret = method.IsIterator
                 ? (BoundStatement)BoundYieldBreakStatement.Synthesized(syntax)
                 : BoundReturnStatement.Synthesized(syntax, null);
 
-            if (syntax.Kind() == SyntaxKind.Block)
+            // Implicitly added return for async method does not need sequence points since lowering would add one.
+            if (syntax.IsKind(SyntaxKind.Block) && !method.IsAsync)
             {
-                // Implicitly added return for async method does not need sequence points since lowering would add one.
-                if (!method.IsAsync)
-                {
-                    var blockSyntax = (BlockSyntax)syntax;
+                var blockSyntax = (BlockSyntax)syntax;
 
-                    ret = new BoundSequencePointWithSpan(
-                        blockSyntax,
-                        ret,
-                        blockSyntax.CloseBraceToken.Span)
-                    { WasCompilerGenerated = true };
-                }
+                ret = new BoundSequencePointWithSpan(
+                    blockSyntax,
+                    ret,
+                    blockSyntax.CloseBraceToken.Span)
+                { WasCompilerGenerated = true };
             }
 
-            switch (node.Kind)
+            switch (body.Kind)
             {
                 case BoundKind.Block:
-                    var block = (BoundBlock)node;
-                    return block.Update(block.Locals, block.Statements.Add(ret));
+                    return body.Update(body.Locals, body.Statements.Add(ret));
 
                 default:
-                    return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create(ret, node));
+                    return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create(ret, body));
             }
         }
 

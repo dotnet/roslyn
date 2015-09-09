@@ -7,8 +7,10 @@ set BuildConfiguration=Debug
 :ParseArguments
 if "%1" == "" goto :DoneParsing
 if /I "%1" == "/?" call :Usage && exit /b 1
-if /I "%1" == "/debug" set BuildConfiguration=Debug&&shift&& goto :ParseArguments
-if /I "%1" == "/release" set BuildConfiguration=Release&&shift&& goto :ParseArguments
+if /I "%1" == "/debug" set BuildConfiguration=Debug && shift && goto :ParseArguments
+if /I "%1" == "/release" set BuildConfiguration=Release && shift && goto :ParseArguments
+if /I "%1" == "/test32" set Test64=false && shift && goto :ParseArguments
+if /I "%1" == "/test64" set Test64=true && shift && goto :ParseArguments
 call :Usage && exit /b 1
 :DoneParsing
 
@@ -24,15 +26,7 @@ move Binaries\%BuildConfiguration%\* %RoslynRoot%\Binaries\Bootstrap
 msbuild /v:m /t:Clean build/Toolset.sln /p:Configuration=%BuildConfiguration%
 taskkill /F /IM vbcscompiler.exe
 
-msbuild /v:m /m /p:BootstrapBuildPath=%RoslynRoot%\Binaries\Bootstrap BuildAndTest.proj /p:Configuration=%BuildConfiguration%
-if ERRORLEVEL 1 (
-    taskkill /F /IM vbcscompiler.exe
-    echo Build failed
-    exit /b 1
-)
-
-nuget.exe restore -verbosity quiet src/Samples/Samples.sln
-msbuild /v:m /m /p:BootstrapBuildPath=%RoslynRoot%\Binaries\Bootstrap src/Samples/Samples.sln /p:Configuration=%BuildConfiguration%
+msbuild /v:m /m /p:BootstrapBuildPath=%RoslynRoot%\Binaries\Bootstrap BuildAndTest.proj /p:Configuration=%BuildConfiguration% /p:Test64=%Test64%
 if ERRORLEVEL 1 (
     taskkill /F /IM vbcscompiler.exe
     echo Build failed
@@ -51,4 +45,6 @@ exit /b 0
 @echo Usage: cibuild.cmd [/debug^|/release]
 @echo   /debug 	Perform debug build.  This is the default.
 @echo   /release Perform release build
+@echo   /test32 Run unit tests in the 32-bit runner.  This is the default.
+@echo   /test64 Run units tests in the 64-bit runner.
 @goto :eof
