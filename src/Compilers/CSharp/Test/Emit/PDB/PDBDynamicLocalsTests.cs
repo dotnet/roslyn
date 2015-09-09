@@ -994,10 +994,10 @@ class Test
       <sequencePoints>
         <entry offset=""0x0"" startLine=""10"" startColumn=""32"" endLine=""10"" endColumn=""33"" />
         <entry offset=""0x1"" startLine=""10"" startColumn=""46"" endLine=""10"" endColumn=""54"" />
-        <entry offset=""0x5"" startLine=""10"" startColumn=""55"" endLine=""10"" endColumn=""56"" />
+        <entry offset=""0x3"" startLine=""10"" startColumn=""55"" endLine=""10"" endColumn=""56"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x6"">
-        <local name=""d5"" il_index=""0"" il_start=""0x0"" il_end=""0x6"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x4"">
+        <local name=""d5"" il_index=""0"" il_start=""0x0"" il_end=""0x4"" attributes=""0"" />
       </scope>
     </method>
     <method containingType=""Test+&lt;&gt;c"" name=""&lt;Main&gt;b__2_2"" parameterNames=""d6"">
