@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 
 namespace Microsoft.CodeAnalysis.Scripting.CSharp
 {
@@ -17,10 +18,11 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
         /// <param name="code">The source code of the script.</param>
         /// <param name="options">The script options.</param>
         /// <param name="globalsType">Type of global object.</param>
+        /// <param name="assemblyLoader">Custom  assembly loader.</param>
         /// <typeparam name="T">The return type of the script</typeparam>
-        public static Script<T> Create<T>(string code, ScriptOptions options = null, Type globalsType = null)
+        public static Script<T> Create<T>(string code, ScriptOptions options = null, Type globalsType = null, InteractiveAssemblyLoader assemblyLoader = null)
         {
-            return new Script<T>(CSharpScriptCompiler.Instance, code, options, globalsType, null, null);
+            return Script.CreateInitialScript<T>(CSharpScriptCompiler.Instance, code, options, globalsType, assemblyLoader);
         }
 
         /// <summary>

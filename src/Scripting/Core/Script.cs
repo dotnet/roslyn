@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
@@ -21,24 +22,28 @@ namespace Microsoft.CodeAnalysis.Scripting
     public abstract class Script
     {
         internal readonly ScriptCompiler Compiler;
+        internal readonly ScriptBuilder Builder;
 
-        private ScriptBuilder _lazyBuilder;
         private Compilation _lazyCompilation;
 
-        internal Script(ScriptCompiler compiler, string code, ScriptOptions options, Type globalsType, ScriptBuilder builder, Script previous)
+        internal Script(ScriptCompiler compiler, ScriptBuilder builder, string code, ScriptOptions options, Type globalsTypeOpt, Script previousOpt)
         {
+            Debug.Assert(code != null);
+            Debug.Assert(options != null);
+            Debug.Assert(compiler != null);
+            Debug.Assert(builder != null);
+
             Compiler = compiler;
-            Code = code ?? "";
-            Options = options ?? ScriptOptions.Default;
-            GlobalsType = globalsType;
-            Previous = previous;
+            Builder = builder;
+            Previous = previousOpt;
+            Code = code;
+            Options = options;
+            GlobalsType = globalsTypeOpt;
+        }
 
-            if (Previous != null && builder != null && Previous._lazyBuilder != builder)
-            {
-                throw new ArgumentException("Incompatible script builder.");
-            }
-
-            _lazyBuilder = builder;
+        internal static Script<T> CreateInitialScript<T>(ScriptCompiler compiler, string codeOpt, ScriptOptions optionsOpt, Type globalsTypeOpt, InteractiveAssemblyLoader assemblyLoaderOpt)
+        {
+            return new Script<T>(compiler, new ScriptBuilder(assemblyLoaderOpt ?? new InteractiveAssemblyLoader()), codeOpt ?? "", optionsOpt ?? ScriptOptions.Default, globalsTypeOpt, previousOpt: null);
         }
 
         /// <summary>
@@ -69,34 +74,6 @@ namespace Microsoft.CodeAnalysis.Scripting
         public abstract Type ReturnType { get; }
 
         /// <summary>
-        /// The <see cref="ScriptBuilder"/> that will be used to build the script before running.
-        /// </summary>
-        internal ScriptBuilder Builder
-        {
-            get
-            {
-                if (_lazyBuilder == null)
-                {
-                    ScriptBuilder tmp;
-                    if (Previous != null)
-                    {
-                        tmp = Previous.Builder;
-                    }
-                    else
-                    {
-                        tmp = new ScriptBuilder();
-                    }
-
-                    Interlocked.CompareExchange(ref _lazyBuilder, tmp, null);
-                }
-
-                return _lazyBuilder;
-            }
-        }
-
-        internal ScriptBuilder LazyBuilder => _lazyBuilder;
-
-        /// <summary>
         /// Creates a new version of this script with the specified options.
         /// </summary>
         public Script WithOptions(ScriptOptions options) => WithOptionsInternal(options);
@@ -114,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// The members of this type can be accessed by the script as global variables.
         /// </summary>
         /// <param name="globalsType">The type that defines members that can be accessed by the script.</param>
-        public Script WithGlobalsType(Type globalsType) => this.WithGlobalsTypeInternal(globalsType);
+        public Script WithGlobalsType(Type globalsType) => WithGlobalsTypeInternal(globalsType);
         internal abstract Script WithGlobalsTypeInternal(Type globalsType);
 
         /// <summary>
@@ -127,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// Continues the script with given code snippet.
         /// </summary>
         public Script<TResult> ContinueWith<TResult>(string code, ScriptOptions options = null) => 
-            new Script<TResult>(this.Compiler, code, options ?? Options, GlobalsType, _lazyBuilder, this);
+            new Script<TResult>(Compiler, Builder, code ?? "", options ?? Options, GlobalsType, this);
 
         /// <summary>
         /// Get's the <see cref="Compilation"/> that represents the semantics of the script.
@@ -200,9 +177,9 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         internal ImmutableArray<MetadataReference> GetReferencesForCompilation()
         {
-            var references = this.Options.References;
+            var references = Options.References;
 
-            var previous = this.Previous;
+            var previous = Previous;
             if (previous != null)
             {
                 // TODO (tomat): RESOLVED? bound imports should be reused from previous submission instead of passing 
@@ -214,23 +191,23 @@ namespace Microsoft.CodeAnalysis.Scripting
             var corLib = MetadataReference.CreateFromAssemblyInternal(typeof(object).GetTypeInfo().Assembly);
             references = references.Add(corLib);
 
-            if (this.GlobalsType != null)
-        {
-                var globalsTypeAssembly = MetadataReference.CreateFromAssemblyInternal(this.GlobalsType.GetTypeInfo().Assembly);
+            if (GlobalsType != null)
+            {
+                var globalsTypeAssembly = MetadataReference.CreateFromAssemblyInternal(GlobalsType.GetTypeInfo().Assembly);
                 references = references.Add(globalsTypeAssembly);
             }
 
             return references;
-            }
-            }
+        }
+    }
 
     public sealed class Script<T> : Script
     {
         private ImmutableArray<Func<object[], Task>> _lazyPrecedingExecutors;
         private Func<object[], Task<T>> _lazyExecutor;
 
-        internal Script(ScriptCompiler compiler, string code, ScriptOptions options, Type globalsType, ScriptBuilder builder, Script previous)
-            : base(compiler, code, options, globalsType, builder, previous)
+        internal Script(ScriptCompiler compiler, ScriptBuilder builder, string code, ScriptOptions options, Type globalsTypeOpt, Script previousOpt)
+            : base(compiler, builder, code, options, globalsTypeOpt, previousOpt)
         {
         }
 
@@ -238,29 +215,19 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         public new Script<T> WithOptions(ScriptOptions options)
         {
-            return (options == this.Options) ?
-                this :
-                new Script<T>(this.Compiler, this.Code, options, this.GlobalsType, this.LazyBuilder, this.Previous);
+            return (options == Options) ? this : new Script<T>(Compiler, Builder, Code, options, GlobalsType, Previous);
         }
 
         public new Script<T> WithCode(string code)
         {
-            if (code == null)
-            {
-                code = "";
-                }
-
-            return (code == this.Code) ?
-                this :
-                new Script<T>(this.Compiler, code, this.Options, this.GlobalsType, this.LazyBuilder, this.Previous);
-                }
+            code = code ?? "";
+            return (code == Code) ? this : new Script<T>(Compiler, Builder, code, Options, GlobalsType, Previous);
+        }
 
         public new Script<T> WithGlobalsType(Type globalsType)
-                {
-            return (globalsType == this.GlobalsType) ?
-                this :
-                new Script<T>(this.Compiler, this.Code, this.Options, globalsType, this.LazyBuilder, this.Previous);
-                    }
+        {
+            return (globalsType == GlobalsType) ? this : new Script<T>(Compiler, Builder, Code, Options, globalsType, Previous);
+        }
 
         internal override Script WithOptionsInternal(ScriptOptions options) => WithOptions(options);
         internal override Script WithCodeInternal(string code) => WithCode(code);

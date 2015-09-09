@@ -9,12 +9,12 @@ using System.IO;
 using System.Linq;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Scripting
+namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
     /// <summary>
     /// Implements shadow-copying metadata file cache.
     /// </summary>
-    internal sealed class MetadataShadowCopyProvider : MetadataFileReferenceProvider, IDisposable
+    public sealed class MetadataShadowCopyProvider : IDisposable
     {
         /// <summary>
         /// Specialize <see cref="PortableExecutableReference"/> with path being the original path of the copy.
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         /// <exception cref="ArgumentNullException"><paramref name="fullPath"/> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="fullPath"/> is not an absolute path.</exception>
-        public override PortableExecutableReference GetReference(string fullPath, MetadataReferenceProperties properties = default(MetadataReferenceProperties))
+        public PortableExecutableReference GetReference(string fullPath, MetadataReferenceProperties properties = default(MetadataReferenceProperties))
         {
             RequireAbsolutePath(fullPath, nameof(fullPath));
             return new ShadowCopyReference(this, fullPath, properties);

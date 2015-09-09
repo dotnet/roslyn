@@ -19,6 +19,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Interactive
@@ -46,8 +47,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             // the search paths - updated from the hostObject
             private ImmutableArray<string> _sourceSearchPaths;
 
-            private ObjectFormatter _objectFormatter;
-            private IRepl _repl;
+            private ReplServiceProvider _replServiceProvider;
             private InteractiveHostObject _hostObject;
             private ObjectFormattingOptions _formattingOptions;
 
@@ -126,12 +126,11 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return null;
             }
 
-            public void Initialize(Type replType)
+            public void Initialize(Type replServiceProviderType)
             {
-                Contract.ThrowIfNull(replType);
+                Contract.ThrowIfNull(replServiceProviderType);
 
-                _repl = (IRepl)Activator.CreateInstance(replType);
-                _objectFormatter = _repl.CreateObjectFormatter();
+                _replServiceProvider = (ReplServiceProvider)Activator.CreateInstance(replServiceProviderType);
 
                 _hostObject = new InteractiveHostObject();
 
@@ -139,6 +138,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     .WithSearchPaths(DefaultReferenceSearchPaths)
                     .WithBaseDirectory(Directory.GetCurrentDirectory())
                     .AddReferences(_hostObject.GetType().Assembly);
+
                 _sourceSearchPaths = DefaultSourceSearchPaths;
 
                 _hostObject.ReferencePaths.AddRange(options.SearchPaths);
@@ -448,11 +448,11 @@ namespace Microsoft.CodeAnalysis.Interactive
                             {
                                 if (resultType != null && resultType.SpecialType == SpecialType.System_Void)
                                 {
-                                    Console.Out.WriteLine(_objectFormatter.VoidDisplayString);
+                                    Console.Out.WriteLine(_replServiceProvider.ObjectFormatter.VoidDisplayString);
                                 }
                                 else
                                 {
-                                    Console.Out.WriteLine(_objectFormatter.FormatObject(executeResult.Value, _formattingOptions));
+                                    Console.Out.WriteLine(_replServiceProvider.ObjectFormatter.FormatObject(executeResult.Value, _formattingOptions));
                                 }
                             }
                         }
@@ -572,13 +572,13 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     if (!isRestarting)
                     {
-                        Console.Out.WriteLine(_repl.GetLogo());
+                        Console.Out.WriteLine(_replServiceProvider.Logo);
                     }
 
                     if (File.Exists(initializationFileOpt))
                     {
                         Console.Out.WriteLine(string.Format(FeaturesResources.LoadingContextFrom, Path.GetFileName(initializationFileOpt)));
-                        var parser = _repl.GetCommandLineParser();
+                        var parser = _replServiceProvider.CommandLineParser;
 
                         // The base directory for relative paths is the directory that contains the .rsp file.
                         // Note that .rsp files included by this .rsp file will share the base directory (Dev10 behavior of csc/vbc).
@@ -738,7 +738,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return result;
             }
 
-            private Script<object> Compile(Script previousScript, string text, string path, ref ScriptOptions options)
+            private Script<object> Compile(Script previousScript, string code, string path, ref ScriptOptions options)
             {
                 Script script;
 
@@ -746,11 +746,11 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 if (previousScript != null)
                 {
-                    script = previousScript.ContinueWith(text, scriptOptions);
+                    script = previousScript.ContinueWith(code, scriptOptions);
                 }
                 else
                 {
-                    script = _repl.CreateScript(text).WithOptions(scriptOptions).WithGlobalsType(_hostObject.GetType());
+                    script = _replServiceProvider.CreateScript<object>(code, scriptOptions, _hostObject.GetType(), _assemblyLoader);
                 }
 
                 // force build so exception is thrown now if errors are found.
@@ -922,7 +922,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 displayedDiagnostics.Sort((d1, d2) => d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start);
 
-                var formatter = _repl.GetDiagnosticFormatter();
+                var formatter = _replServiceProvider.DiagnosticFormatter;
 
                 foreach (var diagnostic in displayedDiagnostics)
                 {

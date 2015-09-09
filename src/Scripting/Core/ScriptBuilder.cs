@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -9,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Scripting
@@ -46,10 +48,12 @@ namespace Microsoft.CodeAnalysis.Scripting
             s_globalAssemblyNamePrefix = "\u211B*" + Guid.NewGuid().ToString() + "-";
         }
 
-        public ScriptBuilder()
+        public ScriptBuilder(InteractiveAssemblyLoader assemblyLoader)
         {
+            Debug.Assert(assemblyLoader != null);
+
             _assemblyNamePrefix = s_globalAssemblyNamePrefix + "#" + Interlocked.Increment(ref s_engineIdDispenser).ToString();
-            _assemblyLoader = new InteractiveAssemblyLoader();
+            _assemblyLoader = assemblyLoader;
         }
 
         public int GenerateSubmissionId(out string assemblyName, out string typeName)
