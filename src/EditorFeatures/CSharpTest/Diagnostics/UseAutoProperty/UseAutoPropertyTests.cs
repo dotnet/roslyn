@@ -175,5 +175,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
             TestMissing(
 @"class Class { [|[A]int i|]; int P { get { return i; } } }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public void TestUpdateReferences()
+        {
+            Test(
+@"class Class { [|int i|]; int P { get { return i; } } public Class() { i = 1; } }",
+@"class Class { int P { get; } public Class() { P = 1; } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public void TestUpdateReferencesConflictResolution()
+        {
+            Test(
+@"class Class { [|int i|]; int P { get { return i; } } public Class(int P) { i = 1; } }",
+@"class Class { int P { get; } public Class(int P) { this.P = 1; } }");
+        }
     }
 }

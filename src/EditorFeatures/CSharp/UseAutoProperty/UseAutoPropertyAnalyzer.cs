@@ -278,6 +278,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             }
 
             field = (IFieldSymbol)symbolInfo.Symbol;
+            if (field.DeclaringSyntaxReferences.Length > 1)
+            {
+                return false;
+            }
+
             return true;
         }
 

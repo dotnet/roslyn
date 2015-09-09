@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +18,14 @@ namespace Microsoft.CodeAnalysis.Rename
             return RenameSymbolAsync(solution, symbol, newName, optionSet, filter: null, cancellationToken: cancellationToken);
         }
 
-        internal static async Task<Solution> RenameSymbolAsync(Solution solution, ISymbol symbol, string newName, OptionSet optionSet, Func<Location, bool> filter, CancellationToken cancellationToken)
+        internal static async Task<Solution> RenameSymbolAsync(
+            Solution solution,
+            ISymbol symbol,
+            string newName,
+            OptionSet optionSet,
+            Func<Location, bool> filter,
+            Func<IEnumerable<ISymbol>, bool?> hasConflict = null,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             if (solution == null)
             {
@@ -46,7 +54,8 @@ namespace Microsoft.CodeAnalysis.Rename
                     renameLocationSet.ReferencedSymbols, renameLocationSet.ImplicitLocations);
             }
 
-            var conflictResolution = await ConflictResolver.ResolveConflictsAsync(renameLocationSet, symbol.Name, newName, optionSet, cancellationToken).ConfigureAwait(false);
+            var conflictResolution = await ConflictResolver.ResolveConflictsAsync(
+                renameLocationSet, symbol.Name, newName, optionSet, hasConflict, cancellationToken).ConfigureAwait(false);
 
             return conflictResolution.NewSolution;
         }
