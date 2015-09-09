@@ -2,6 +2,7 @@
 
 Imports System.Threading
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Scripting.Hosting
 
 Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
 
@@ -12,8 +13,8 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
         ''' <summary>
         ''' Create a new Visual Basic script.
         ''' </summary>
-        Public Function Create(Of T)(code As String, Optional options As ScriptOptions = Nothing, Optional globalsType As Type = Nothing) As Script(Of T)
-            Return New Script(Of T)(VisualBasicScriptCompiler.Instance, code, options, globalsType, Nothing, Nothing)
+        Public Function Create(Of T)(code As String, Optional options As ScriptOptions = Nothing, Optional globalsType As Type = Nothing, Optional assemblyLoader As InteractiveAssemblyLoader = Nothing) As Script(Of T)
+            Return Script.CreateInitialScript(Of T)(VisualBasicScriptCompiler.Instance, code, options, globalsType, assemblyLoader)
         End Function
 
         ''' <summary>

@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Scripting
+namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
     /// <summary>
     /// Implements an assembly loader for interactive compiler and REPL.
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Scripting
     /// The class is thread-safe.
     /// </para>
     /// </remarks>
-    internal sealed class InteractiveAssemblyLoader
+    public sealed class InteractiveAssemblyLoader
     {
         private class LoadedAssembly
         {
@@ -82,14 +82,13 @@ namespace Microsoft.CodeAnalysis.Scripting
             }
         }
 
-        [SuppressMessage("Performance", "RS0008", Justification = "Equality not actually implemented")]
-        private struct AssemblyAndLocation
+        private struct AssemblyAndLocation : IEquatable<AssemblyAndLocation>
         {
-            public readonly Assembly Assembly;
-            public readonly string Location;
-            public readonly bool GlobalAssemblyCache;
+            public Assembly Assembly { get; }
+            public string Location { get; }
+            public bool GlobalAssemblyCache { get; }
 
-            public AssemblyAndLocation(Assembly assembly, string location, bool fromGac)
+            internal AssemblyAndLocation(Assembly assembly, string location, bool fromGac)
             {
                 Debug.Assert(assembly != null && location != null);
 
@@ -100,27 +99,22 @@ namespace Microsoft.CodeAnalysis.Scripting
 
             public bool IsDefault => Assembly == null;
 
-            public override int GetHashCode()
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
+            public bool Equals(AssemblyAndLocation other) =>
+                Assembly == other.Assembly && Location == other.Location && GlobalAssemblyCache == other.GlobalAssemblyCache;
 
-            public override bool Equals(object obj)
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
+            public override int GetHashCode() => 
+                Hash.Combine(Assembly, Hash.Combine(Location, Hash.Combine(GlobalAssemblyCache, 0)));
 
-            public override string ToString()
-            {
-                return Assembly + " @ " + (GlobalAssemblyCache ? "<GAC>" : Location);
-            }
+            public override bool Equals(object obj) =>
+                obj is AssemblyAndLocation && Equals((AssemblyAndLocation)obj);
+
+            public override string ToString() => 
+                Assembly + " @ " + (GlobalAssemblyCache ? "<GAC>" : Location);
         }
 
         public InteractiveAssemblyLoader(MetadataShadowCopyProvider shadowCopyProvider = null)
         {
             _shadowCopyProvider = shadowCopyProvider;
-
-            Assembly mscorlib = typeof(object).GetTypeInfo().Assembly;
 
             _assembliesLoadedFromLocationByFullPath = new Dictionary<string, AssemblyAndLocation>();
             _assembliesLoadedFromLocation = new Dictionary<Assembly, LoadedAssembly>();
@@ -130,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             CorLightup.Desktop.AddAssemblyResolveHandler(AssemblyResolve);
         }
 
-        public Assembly Load(Stream peStream, Stream pdbStream)
+        internal Assembly Load(Stream peStream, Stream pdbStream)
         {
             byte[] peImage = new byte[peStream.Length];
             peStream.Read(peImage, 0, peImage.Length);
@@ -150,6 +144,40 @@ namespace Microsoft.CodeAnalysis.Scripting
             var location = CorLightup.Desktop.GetAssemblyLocation(assembly);
             var fromGac = CorLightup.Desktop.IsAssemblyFromGlobalAssemblyCache(assembly);
             return new AssemblyAndLocation(assembly, location, fromGac);
+        }
+
+        private AssemblyAndLocation LoadAssemblyImpl(string reference)
+        {
+            MetadataShadowCopy copy = null;
+            try
+            {
+                if (_shadowCopyProvider != null)
+                {
+                    // All modules of the assembly has to be copied at once to keep the metadata consistent.
+                    // This API copies the xml doc file and keeps the memory-maps of the metadata.
+                    // We don't need that here but presumably the provider is shared with the compilation API that needs both.
+                    // Ideally the CLR would expose API to load Assembly given a byte* and not create their own memory-map.
+                    copy = _shadowCopyProvider.GetMetadataShadowCopy(reference, MetadataImageKind.Assembly);
+                }
+
+                var result = LoadAssembly((copy != null) ? copy.PrimaryModule.FullPath : reference);
+
+                if (_shadowCopyProvider != null && result.GlobalAssemblyCache)
+                {
+                    _shadowCopyProvider.SuppressShadowCopy(reference);
+                }
+
+                return result;
+            }
+            finally
+            {
+                // copy holds on the file handle, we need to keep the handle 
+                // open until the file is locked by the CLR assembly loader:
+                if (copy != null)
+                {
+                    copy.DisposeFileHandles();
+                }
+            }
         }
 
         /// <summary>
@@ -295,34 +323,15 @@ namespace Microsoft.CodeAnalysis.Scripting
             }
         }
 
-        private AssemblyAndLocation ShadowCopyAndLoad(string reference)
+        private AssemblyAndLocation Load(string reference)
         {
-            MetadataShadowCopy copy = null;
             try
             {
-                if (_shadowCopyProvider != null)
-                {
-                    // All modules of the assembly has to be copied at once to keep the metadata consistent.
-                    // This API copies the xml doc file and keeps the memory-maps of the metadata.
-                    // We don't need that here but presumably the provider is shared with the compilation API that needs both.
-                    // Ideally the CLR would expose API to load Assembly given a byte* and not create their own memory-map.
-                    copy = _shadowCopyProvider.GetMetadataShadowCopy(reference, MetadataImageKind.Assembly);
-                }
-
-                return LoadAssembly((copy != null) ? copy.PrimaryModule.FullPath : reference);
+                return LoadAssemblyImpl(reference);
             }
             catch (FileNotFoundException)
             {
                 return default(AssemblyAndLocation);
-            }
-            finally
-            {
-                // copy holds on the file handle, we need to keep the handle 
-                // open until the file is locked by the CLR assembly loader:
-                if (copy != null)
-                {
-                    copy.DisposeFileHandles();
-                }
             }
         }
 
@@ -448,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         private AssemblyAndLocation ShadowCopyAndLoadAndAddEntry(string originalPath, out AssemblyLoadResult result, bool explicitLoad)
         {
-            AssemblyAndLocation assemblyAndLocation = ShadowCopyAndLoad(originalPath);
+            AssemblyAndLocation assemblyAndLocation = Load(originalPath);
             if (assemblyAndLocation.IsDefault)
             {
                 result = default(AssemblyLoadResult);
@@ -490,11 +499,6 @@ namespace Microsoft.CodeAnalysis.Scripting
                 }
 
                 RegisterLoadedAssemblySimpleNameNoLock(assemblyAndLocation.Assembly);
-            }
-
-            if (_shadowCopyProvider != null && assemblyAndLocation.GlobalAssemblyCache)
-            {
-                _shadowCopyProvider.SuppressShadowCopy(originalPath);
             }
 
             return assemblyAndLocation;

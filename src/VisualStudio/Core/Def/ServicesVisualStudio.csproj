@@ -649,7 +649,6 @@
     <Compile Include="Implementation\Utilities\VsDebugName.cs" />
     <Compile Include="Implementation\Utilities\VsEnumBSTR.cs" />
     <Compile Include="Implementation\Utilities\VsEnumDebugName.cs" />
-    <Compile Include="Implementation\Utilities\VsHierarchyExtensions.cs" />
     <Compile Include="Implementation\Venus\AbstractContainedLanguage.cs" />
     <Compile Include="Implementation\Venus\CodeBlockEnumerator.cs" />
     <Compile Include="Implementation\Venus\ContainedDocument.cs" />

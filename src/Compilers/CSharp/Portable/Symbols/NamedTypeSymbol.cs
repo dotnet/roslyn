@@ -632,7 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Compares this type to another type.
         /// </summary>
-        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiers = false, bool ignoreDynamic = false)
+        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds = false, bool ignoreDynamic = false)
         {
             if (ReferenceEquals(this, t2)) return true;
             if ((object)t2 == null) return false;
@@ -665,15 +665,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // The checks above are supposed to handle the vast majority of cases.
             // More complicated cases are handled in a special helper to make the common case scenario simple/fast
-            return EqualsComplicatedCases(other, ignoreCustomModifiers, ignoreDynamic);
+            return EqualsComplicatedCases(other, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic);
         }
 
         /// <summary>
         /// Helper for more complicated cases of Equals like when we have generic instantiations or types nested within them.
         /// </summary>
-        private bool EqualsComplicatedCases(NamedTypeSymbol other, bool ignoreCustomModifiers, bool ignoreDynamic)
+        private bool EqualsComplicatedCases(NamedTypeSymbol other, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
         {
-            if ((object)this.ContainingType != null && !this.ContainingType.Equals(other.ContainingType, ignoreCustomModifiers, ignoreDynamic))
+            if ((object)this.ContainingType != null && !this.ContainingType.Equals(other.ContainingType, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic))
             {
                 return false;
             }
@@ -698,7 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool hasTypeArgumentsCustomModifiers = this.HasTypeArgumentsCustomModifiers;
 
-            if (!ignoreCustomModifiers && hasTypeArgumentsCustomModifiers != other.HasTypeArgumentsCustomModifiers)
+            if (!ignoreCustomModifiersAndArraySizesAndLowerBounds && hasTypeArgumentsCustomModifiers != other.HasTypeArgumentsCustomModifiers)
             {
                 return false;
             }
@@ -712,10 +712,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int i = 0; i < count; i++)
             {
-                if (!typeArguments[i].Equals(otherTypeArguments[i], ignoreCustomModifiers, ignoreDynamic)) return false;
+                if (!typeArguments[i].Equals(otherTypeArguments[i], ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic)) return false;
             }
 
-            if (!ignoreCustomModifiers && hasTypeArgumentsCustomModifiers)
+            if (!ignoreCustomModifiersAndArraySizesAndLowerBounds && hasTypeArgumentsCustomModifiers)
             {
                 Debug.Assert(other.HasTypeArgumentsCustomModifiers);
                 var modifiers = this.TypeArgumentsCustomModifiers;

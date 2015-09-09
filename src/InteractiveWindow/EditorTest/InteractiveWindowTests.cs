@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Projection;
 using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -55,31 +53,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             snapshotMock.Setup(m => m.GetText(It.IsAny<Span>())).Returns<Span>(span => content.Substring(span.Start, span.Length));
             return snapshotMock.Object;
         }
-
-        private string GetTextFromCurrentLanguageBuffer()
-        {
-            return Window.CurrentLanguageBuffer.CurrentSnapshot.GetText();
-        }
-
-        /// <summary>
-        /// Sets the active code to the specified text w/o executing it.
-        /// </summary>
-        private void SetActiveCode(string text)
-        {
-            using (var edit = Window.CurrentLanguageBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, editTag: null))
-            {
-                edit.Replace(new Span(0, Window.CurrentLanguageBuffer.CurrentSnapshot.Length), text);
-                edit.Apply();
-            }
-        }
-
-        private void InsertInputExecuteAndWaitToFinish(string input)
-        {
-            Window.InsertCode(input);
-            Assert.Equal(input, GetTextFromCurrentLanguageBuffer());
-            Task.Run(() => Window.Operations.ExecuteInput()).PumpingWait();
-        }
-
 
         #endregion
 
@@ -418,7 +391,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         {
             Task.Run(() => Window.Operations.ResetAsync()).PumpingWait();
         }
-
+        
         [Fact]
         public void CallExecuteInputOnNonUIThread()
         {
@@ -488,228 +461,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Window.TextView.Caret.Position.VirtualBufferPosition.GetLineAndColumn(out actualLine, out actualColumn);
             Assert.Equal(expectedLine, actualLine.LineNumber);
             Assert.Equal(expectedColumn, actualColumn);
-        }
-
-        [Fact]
-        public void CheckHistoryPrevious()
-        {
-            const string inputString = "1 ";
-            InsertInputExecuteAndWaitToFinish(inputString);
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString, GetTextFromCurrentLanguageBuffer());
-        }
-
-        [Fact]
-        public void CheckHistoryPreviousNotCircular()
-        {
-            //submit, submit, up, up, up
-            const string inputString1 = "1 ";
-            const string inputString2 = "2 ";
-            InsertInputExecuteAndWaitToFinish(inputString1);
-            InsertInputExecuteAndWaitToFinish(inputString2);
-
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString1, GetTextFromCurrentLanguageBuffer());
-            //this up should not be circular
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString1, GetTextFromCurrentLanguageBuffer());
-        }
-
-        [Fact]
-        public void CheckHistoryPreviousAfterSubmittingEntryFromHistory()
-        {
-            //submit, submit, submit, up, up, submit, up, up, up
-            const string inputString1 = "1 ";
-            const string inputString2 = "2 ";
-            const string inputString3 = "3 ";
-
-            InsertInputExecuteAndWaitToFinish(inputString1);
-            InsertInputExecuteAndWaitToFinish(inputString2);
-            InsertInputExecuteAndWaitToFinish(inputString3);
-
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString3, GetTextFromCurrentLanguageBuffer());
-
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
-
-            Task.Run(() => Window.Operations.ExecuteInput()).PumpingWait();
-
-            //history navigation should start from the last history pointer
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
-
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString1, GetTextFromCurrentLanguageBuffer());
-
-            //has reached the top, no change
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString1, GetTextFromCurrentLanguageBuffer());
-        }
-
-        [Fact]
-        public void CheckHistoryPreviousAfterSubmittingNewEntryWhileNavigatingHistory()
-        {
-            //submit, submit, up, up, submit new, up, up, up
-            const string inputString1 = "1 ";
-            const string inputString2 = "2 ";
-            const string inputString3 = "3 ";
-
-            InsertInputExecuteAndWaitToFinish(inputString1);
-            InsertInputExecuteAndWaitToFinish(inputString2);
-
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
-
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString1, GetTextFromCurrentLanguageBuffer());
-
-            SetActiveCode(inputString3);
-            Assert.Equal(inputString3, GetTextFromCurrentLanguageBuffer());
-            Task.Run(() => Window.Operations.ExecuteInput()).PumpingWait();
-
-            //History pointer should be reset. Previous should now bring up last entry
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString3, GetTextFromCurrentLanguageBuffer());
-
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
-
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString1, GetTextFromCurrentLanguageBuffer());
-
-            //has reached the top, no change
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString1, GetTextFromCurrentLanguageBuffer());
-        }
-
-        public void CheckHistoryNextNotCircular()
-        {
-            //submit, submit, down, up, down, down
-            const string inputString1 = "1 ";
-            const string inputString2 = "2 ";
-            const string empty = "";
-            InsertInputExecuteAndWaitToFinish(inputString1);
-            InsertInputExecuteAndWaitToFinish(inputString2);
-
-            //Next should do nothing as history pointer is uninitialized and there is
-            //no next entry. Bufer should be empty
-            Window.Operations.HistoryNext();
-            Assert.Equal(empty, GetTextFromCurrentLanguageBuffer());
-
-            //Go back once entry
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
-
-            //Go fwd one entry - should do nothing as history pointer is at last entry
-            //buffer should have same value as before
-            Window.Operations.HistoryNext();
-            Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
-
-            //Next should again do nothing as it is the last item, bufer should have the same value
-            Window.Operations.HistoryNext();
-            Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
-        }
-
-        [Fact]
-        public void CheckHistoryNextAfterSubmittingEntryFromHistory()
-        {
-            //submit, submit, submit, up, up, submit, down, down, down
-            const string inputString1 = "1 ";
-            const string inputString2 = "2 ";
-            const string inputString3 = "3 ";
-
-            InsertInputExecuteAndWaitToFinish(inputString1);
-            InsertInputExecuteAndWaitToFinish(inputString2);
-            InsertInputExecuteAndWaitToFinish(inputString3);
-
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString3, GetTextFromCurrentLanguageBuffer());
-
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
-
-            //submit inputString2 again. Should be added at the end of history
-            Task.Run(() => Window.Operations.ExecuteInput()).PumpingWait();
-
-            //history navigation should start from the last history pointer
-            Window.Operations.HistoryNext();
-            Assert.Equal(inputString3, GetTextFromCurrentLanguageBuffer());
-
-            //This next should take us to the InputString2 which was resubmitted
-            Window.Operations.HistoryNext();
-            Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
-
-            //has reached the top, no change
-            Window.Operations.HistoryNext();
-            Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
-        }
-
-        [Fact]
-        public void CheckHistoryNextAfterSubmittingNewEntryWhileNavigatingHistory()
-        {
-            //submit, submit, up, up, submit new, down, up
-            const string inputString1 = "1 ";
-            const string inputString2 = "2 ";
-            const string inputString3 = "3 ";
-            const string empty = "";
-
-            InsertInputExecuteAndWaitToFinish(inputString1);
-            InsertInputExecuteAndWaitToFinish(inputString2);
-
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
-
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString1, GetTextFromCurrentLanguageBuffer());
-
-            SetActiveCode(inputString3);
-            Assert.Equal(inputString3, GetTextFromCurrentLanguageBuffer());
-            Task.Run(() => Window.Operations.ExecuteInput()).PumpingWait();
-
-            //History pointer should be reset. next should do nothing
-            Window.Operations.HistoryNext();
-            Assert.Equal(empty, GetTextFromCurrentLanguageBuffer());
-
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString3, GetTextFromCurrentLanguageBuffer());
-        }
-
-        [Fact]
-        public void CheckUncommittedInputAfterNavigatingHistory()
-        {
-            //submit, submit, up, up, submit new, down, up
-            const string inputString1 = "1 ";
-            const string inputString2 = "2 ";
-            const string uncommittedInput = "uncommittedInput";
-
-            InsertInputExecuteAndWaitToFinish(inputString1);
-            InsertInputExecuteAndWaitToFinish(inputString2);
-            //Add uncommitted input
-            SetActiveCode(uncommittedInput);
-            //Navigate history. This should save uncommitted input
-            Window.Operations.HistoryPrevious();
-            //Navigate to next item at the end of history.
-            //This should bring back uncommitted input
-            Window.Operations.HistoryNext();
-            Assert.Equal(uncommittedInput, GetTextFromCurrentLanguageBuffer());
-        }
-
-        [Fact]
-        public void CheckHistoryPreviousAfterReset()
-        {
-            const string resetCommand1 = "#reset";
-            const string resetCommand2 = "#reset  ";
-            InsertInputExecuteAndWaitToFinish(resetCommand1);
-            InsertInputExecuteAndWaitToFinish(resetCommand2);
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(resetCommand2, GetTextFromCurrentLanguageBuffer());
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(resetCommand1, GetTextFromCurrentLanguageBuffer());
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(resetCommand1, GetTextFromCurrentLanguageBuffer());
         }
 
         [Fact]
