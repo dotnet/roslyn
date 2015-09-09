@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             }
 
             var syntaxReference = declarations[0];
-            var propertyDeclaration = declarations[0].GetSyntax(symbolContext.CancellationToken) as PropertyDeclarationSyntax;
+            var propertyDeclaration = syntaxReference.GetSyntax(symbolContext.CancellationToken) as PropertyDeclarationSyntax;
             if (propertyDeclaration == null)
             {
                 return;
@@ -203,22 +203,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             //
             //      set { field = value; } or
             //      set { this.field = value; }
-
-            if (setAccessor.Body != null &&
-                setAccessor.Body.Statements.Count == 1)
+            var firstStatement = setAccessor.Body?.Statements.SingleOrDefault();
+            if (firstStatement?.Kind() == SyntaxKind.ExpressionStatement)
             {
-                var firstStatement = setAccessor.Body.Statements[0];
-                if (firstStatement.Kind() == SyntaxKind.ExpressionStatement)
+                var expressionStatement = (ExpressionStatementSyntax)firstStatement;
+                if (expressionStatement.Expression.Kind() == SyntaxKind.SimpleAssignmentExpression)
                 {
-                    var expressionStatement = (ExpressionStatementSyntax)firstStatement;
-                    if (expressionStatement.Expression.Kind() == SyntaxKind.SimpleAssignmentExpression)
+                    var assignmentExpression = (AssignmentExpressionSyntax)expressionStatement.Expression;
+                    if (assignmentExpression.Right.Kind() == SyntaxKind.IdentifierName &&
+                        ((IdentifierNameSyntax)assignmentExpression.Right).Identifier.ValueText == "value")
                     {
-                        var assignmentExpression = (AssignmentExpressionSyntax)expressionStatement.Expression;
-                        if (assignmentExpression.Right.Kind() == SyntaxKind.IdentifierName &&
-                            ((IdentifierNameSyntax)assignmentExpression.Right).Identifier.ValueText == "value")
-                        {
-                            return CheckFieldAccessExpression(semanticModel, containingType, assignmentExpression.Left, ref setterField);
-                        }
+                        return CheckFieldAccessExpression(semanticModel, containingType, assignmentExpression.Left, ref setterField);
                     }
                 }
             }
