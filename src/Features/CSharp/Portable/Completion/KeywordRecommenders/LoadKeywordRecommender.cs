@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -6,10 +6,10 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
-    internal class DefineKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    internal class LoadKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
     {
-        public DefineKeywordRecommender()
-            : base(SyntaxKind.DefineKeyword, isValidInPreprocessorContext: true)
+        public LoadKeywordRecommender()
+            : base(SyntaxKind.LoadKeyword, isValidInPreprocessorContext: true)
         {
         }
 
@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             var syntaxTree = context.SyntaxTree;
             return
                 context.IsPreProcessorKeywordContext &&
+                syntaxTree.IsInteractiveOrScript() &&
                 syntaxTree.IsBeforeFirstToken(position, cancellationToken);
         }
     }

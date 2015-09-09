@@ -5,9 +5,9 @@ using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.FileS
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
+namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
 {
-    internal partial class LoadCommandCompletionProvider
+    internal partial class LoadDirectiveCompletionProvider
     {
         private class ItemRules : CompletionItemRules
         {
