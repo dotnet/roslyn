@@ -666,7 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             switch (kind)
             {
                 case SyntaxKind.SingleLineCommentTrivia:
-                case SyntaxKind.ShebangCommentTrivia:
+                case SyntaxKind.ShebangTrivia:
                     return true;
                 case SyntaxKind.MultiLineCommentTrivia:
                     return !isTrailingTrivia;

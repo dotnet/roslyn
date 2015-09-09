@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <see cref="SyntaxKind.WhitespaceTrivia"/>, <see cref="SyntaxKind.EndOfLineTrivia"/>,
         /// <see cref="SyntaxKind.SingleLineCommentTrivia"/>, <see cref="SyntaxKind.MultiLineCommentTrivia"/>,
         /// <see cref="SyntaxKind.DocumentationCommentExteriorTrivia"/>, <see cref="SyntaxKind.DisabledTextTrivia"/>,
-        /// <see cref="SyntaxKind.ShebangCommentTrivia"/>
+        /// <see cref="SyntaxKind.ShebangTrivia"/>
         /// </param>
         /// <param name="text">
         /// The actual text of this token.
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EndOfLineTrivia:
                 case SyntaxKind.MultiLineCommentTrivia:
                 case SyntaxKind.SingleLineCommentTrivia:
-                case SyntaxKind.ShebangCommentTrivia:
+                case SyntaxKind.ShebangTrivia:
                 case SyntaxKind.WhitespaceTrivia:
 
                     return new SyntaxTrivia(default(SyntaxToken), new Syntax.InternalSyntax.SyntaxTrivia(kind, text, null, null), 0, 0);

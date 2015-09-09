@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.WhitespaceTrivia:
                 case SyntaxKind.SingleLineCommentTrivia:
                 case SyntaxKind.MultiLineCommentTrivia:
-                case SyntaxKind.ShebangCommentTrivia:
+                case SyntaxKind.ShebangTrivia:
                 case SyntaxKind.SingleLineDocumentationCommentTrivia:
                 case SyntaxKind.MultiLineDocumentationCommentTrivia:
                 case SyntaxKind.DisabledTextTrivia:

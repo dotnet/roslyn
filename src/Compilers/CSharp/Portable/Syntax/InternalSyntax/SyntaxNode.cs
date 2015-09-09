@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             return this.Kind == SyntaxKind.EndOfLineTrivia
                 || this.Kind == SyntaxKind.SingleLineCommentTrivia
-                || this.Kind == SyntaxKind.ShebangCommentTrivia;
+                || this.Kind == SyntaxKind.ShebangTrivia;
         }
 
         // Use conditional weak table so we always return same identity for structured trivia
