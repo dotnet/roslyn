@@ -67,16 +67,16 @@
     <Compile Include="..\..\Workspaces\Core\Desktop\Utilities\ReferencePathUtilities.cs">
       <Link>ReferencePathUtilities.cs</Link>
     </Compile>
-    <Compile Include="AssemblyLoadResult.cs" />
+    <Compile Include="AssemblyLoader\AssemblyLoadResult.cs" />
     <Compile Include="DesktopMetadataReferenceResolver.cs" />
-    <Compile Include="InteractiveAssemblyLoader.cs" />
-    <Compile Include="MetadataShadowCopy.cs" />
-    <Compile Include="MetadataShadowCopyProvider.cs" />
+    <Compile Include="AssemblyLoader\InteractiveAssemblyLoader.cs" />
+    <Compile Include="AssemblyLoader\MetadataShadowCopy.cs" />
+    <Compile Include="AssemblyLoader\MetadataShadowCopyProvider.cs" />
+    <Compile Include="AssemblyLoader\ShadowCopy.cs" />
     <Compile Include="NuGetPackageResolver.cs" />
     <Compile Include="ScriptCompilerUtil.cs" />
     <Compile Include="ScriptCompiler.cs" />
     <Compile Include="ScriptRunner.cs" />
-    <Compile Include="ShadowCopy.cs" />
     <Compile Include="ObjectFormatter.cs" />
     <Compile Include="ObjectFormatter.Formatter.cs" />
     <Compile Include="Script.cs" />
@@ -100,9 +100,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.Desktop" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.CSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.VisualBasic" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveFeatures" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveEditorFeatures" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="csi" />
     <InternalsVisibleTo Include="vbi" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />

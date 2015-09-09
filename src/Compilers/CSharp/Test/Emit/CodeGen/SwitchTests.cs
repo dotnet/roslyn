@@ -6647,6 +6647,156 @@ class Program {
             );
         }
 
+        [WorkItem(4701, "https://github.com/dotnet/roslyn/issues/4701")]
+        [Fact]
+        public void Regress4701()
+        {
+            var text = @"
+using System;
+
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        private void SwtchTest()
+        {
+            int? i;
+
+            i = 1;
+            switch (i)
+            {
+                case null:
+                    Console.WriteLine(""In Null case"");
+                    i = 1;
+                    break;
+                default:
+                    Console.WriteLine(""In DEFAULT case"");
+                    i = i + 2;
+                    break;
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        var p = new Program();
+        p.SwtchTest();
+    }
+}
+}
+
+";
+            var compVerifier = CompileAndVerify(text, expectedOutput: "In DEFAULT case");
+            compVerifier.VerifyIL("ConsoleApplication1.Program.SwtchTest",
+@"
+{
+  // Code size       96 (0x60)
+  .maxstack  2
+  .locals init (int? V_0, //i
+                int V_1,
+                int? V_2,
+                int? V_3)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  call       ""int?..ctor(int)""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       ""bool int?.HasValue.get""
+  IL_000f:  brfalse.s  IL_001b
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""int int?.GetValueOrDefault()""
+  IL_0018:  stloc.1
+  IL_0019:  br.s       IL_002e
+  IL_001b:  ldstr      ""In Null case""
+  IL_0020:  call       ""void System.Console.WriteLine(string)""
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  ldc.i4.1
+  IL_0028:  call       ""int?..ctor(int)""
+  IL_002d:  ret
+  IL_002e:  ldstr      ""In DEFAULT case""
+  IL_0033:  call       ""void System.Console.WriteLine(string)""
+  IL_0038:  ldloc.0
+  IL_0039:  stloc.2
+  IL_003a:  ldc.i4.2
+  IL_003b:  stloc.1
+  IL_003c:  ldloca.s   V_2
+  IL_003e:  call       ""bool int?.HasValue.get""
+  IL_0043:  brtrue.s   IL_0050
+  IL_0045:  ldloca.s   V_3
+  IL_0047:  initobj    ""int?""
+  IL_004d:  ldloc.3
+  IL_004e:  br.s       IL_005e
+  IL_0050:  ldloca.s   V_2
+  IL_0052:  call       ""int int?.GetValueOrDefault()""
+  IL_0057:  ldloc.1
+  IL_0058:  add
+  IL_0059:  newobj     ""int?..ctor(int)""
+  IL_005e:  stloc.0
+  IL_005f:  ret
+}
+"
+            );
+        }
+
+        [WorkItem(4701, "https://github.com/dotnet/roslyn/issues/4701")]
+        [Fact]
+        public void Regress4701a()
+        {
+            var text = @"
+using System;
+
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        private void SwtchTest()
+        {
+            string i = null;
+
+            i = ""1"";
+            switch (i)
+            {
+                case null:
+                    Console.WriteLine(""In Null case"");
+                    break;
+                default:
+                    Console.WriteLine(""In DEFAULT case"");
+                    break;
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        var p = new Program();
+        p.SwtchTest();
+    }
+}
+}
+
+";
+            var compVerifier = CompileAndVerify(text, expectedOutput: "In DEFAULT case");
+            compVerifier.VerifyIL("ConsoleApplication1.Program.SwtchTest",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  1
+  .locals init (string V_0) //i
+  IL_0000:  ldnull
+  IL_0001:  stloc.0
+  IL_0002:  ldstr      ""1""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldstr      ""In Null case""
+  IL_0010:  call       ""void System.Console.WriteLine(string)""
+  IL_0015:  ret
+  IL_0016:  ldstr      ""In DEFAULT case""
+  IL_001b:  call       ""void System.Console.WriteLine(string)""
+  IL_0020:  ret
+}
+"
+            );
+        }
+
+
         #endregion
     }
 }

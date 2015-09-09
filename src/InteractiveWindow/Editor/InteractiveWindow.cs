@@ -258,6 +258,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             UIThread(uiOnly => uiOnly.ExecuteInputAsync());
         }
 
+        /// <remarks>
+        /// Test hook.
+        /// </remarks>
+        internal Task ExecuteInputAsync()
+        {
+            return UIThread(uiOnly => uiOnly.ExecuteInputAsync());
+        }
+
         /// <summary>
         /// Appends text to the output buffer and updates projection buffer to include it.
         /// WARNING: this has to be the only method that writes to the output buffer so that 

@@ -3521,5 +3521,27 @@ F(out var);";
                 Punctuation.CloseParen,
                 Punctuation.Semicolon);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public void ReferenceDirective()
+        {
+            var code = @"
+#r ""file.dll""";
+            Test(code,
+                PPKeyword("#"),
+                PPKeyword("r"),
+                String("\"file.dll\""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public void LoadDirective()
+        {
+            var code = @"
+#load ""file.csx""";
+            Test(code,
+                PPKeyword("#"),
+                PPKeyword("load"),
+                String("\"file.csx\""));
+        }
     }
 }

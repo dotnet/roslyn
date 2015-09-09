@@ -19138,6 +19138,48 @@ class C
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
+
+        [Fact]
+        public void AbstractInScript()
+        {
+            var source =
+@"internal abstract void M();
+internal abstract object P { get; }
+internal abstract event System.EventHandler E;";
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (1,24): error CS0513: 'M()' is abstract but it is contained in non-abstract class 'Script'
+                // internal abstract void M();
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M").WithArguments("M()", "Script").WithLocation(1, 24),
+                // (2,30): error CS0513: 'P.get' is abstract but it is contained in non-abstract class 'Script'
+                // internal abstract object P { get; }
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("P.get", "Script").WithLocation(2, 30),
+                // (3,45): error CS0513: 'E' is abstract but it is contained in non-abstract class 'Script'
+                // internal abstract event System.EventHandler E;
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "E").WithArguments("E", "Script").WithLocation(3, 45));
+        }
+
+        [WorkItem(529225)]
+        [Fact]
+        public void AbstractInSubmission()
+        {
+            var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
+            var source =
+@"internal abstract void M();
+internal abstract object P { get; }
+internal abstract event System.EventHandler E;";
+            var submission = CSharpCompilation.CreateSubmission("s0.dll", SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Interactive), new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef });
+            submission.VerifyDiagnostics(
+                // (1,24): error CS0513: 'M()' is abstract but it is contained in non-abstract class 'Script'
+                // internal abstract void M();
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M").WithArguments("M()", "Script").WithLocation(1, 24),
+                // (2,30): error CS0513: 'P.get' is abstract but it is contained in non-abstract class 'Script'
+                // internal abstract object P { get; }
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("P.get", "Script").WithLocation(2, 30),
+                // (3,45): error CS0513: 'E' is abstract but it is contained in non-abstract class 'Script'
+                // internal abstract event System.EventHandler E;
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "E").WithArguments("E", "Script").WithLocation(3, 45));
+        }
     }
 }
 
