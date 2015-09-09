@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -10,6 +11,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Roslyn.Utilities;
 using Resources = Microsoft.CodeAnalysis.CSharp.CSharpFeaturesResources;
+using Microsoft.CodeAnalysis.LanguageServices;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
 {
@@ -26,17 +29,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
         /// </summary>
         private const string CS4016 = "CS4016";
 
-        public override ImmutableArray<string> FixableDiagnosticIds
-        {
-            get { return ImmutableArray.Create(CS4014, CS4016); }
-        }
+        /// <summary>
+        /// cannot implicitly convert from 'X' to 'Y'.
+        /// </summary>
+        private const string CS0029 = "CS0029";
 
-        protected override string GetDescription(Diagnostic diagnostic, SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
-        {
-            return Resources.InsertAwait;
-        }
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0029, CS4014, CS4016);
 
-        protected override Task<SyntaxNode> GetNewRoot(SyntaxNode root, SyntaxNode oldNode, SemanticModel semanticModel, Diagnostic diagnostic, Document document, CancellationToken cancellationToken)
+
+        protected override string GetDescription(Diagnostic diagnostic, SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken) => Resources.InsertAwait;
+
+        protected override Task<SyntaxNode> GetNewRoot(
+            SyntaxNode root,
+            SyntaxNode oldNode,
+            SemanticModel semanticModel,
+            Diagnostic diagnostic,
+            Document document,
+            CancellationToken cancellationToken)
         {
             var expression = oldNode as ExpressionSyntax;
 
@@ -49,13 +58,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                     }
 
                     return Task.FromResult(root.ReplaceNode(oldNode, ConvertToAwaitExpression(expression)));
+
                 case CS4016:
-                    if (expression == null)
+                    if (!DoesExpressionReturnTask(expression, semanticModel))
                     {
                         return SpecializedTasks.Default<SyntaxNode>();
                     }
 
-                    if (!IsCorrectReturnType(expression, semanticModel))
+                    return Task.FromResult(root.ReplaceNode(oldNode, ConvertToAwaitExpression(expression)));
+
+                case CS0029:
+                    if (!DoesExpressionReturnGenricTaskWhoseArgumentsMatchLeftSide(expression, semanticModel, document.Project, cancellationToken))
                     {
                         return SpecializedTasks.Default<SyntaxNode>();
                     }
@@ -66,17 +79,81 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             }
         }
 
-        private bool IsCorrectReturnType(ExpressionSyntax expression, SemanticModel semanticModel)
+
+
+        private static bool DoesExpressionReturnTask(ExpressionSyntax expression, SemanticModel semanticModel)
         {
+            if (expression == null)
+            {
+                return false;
+            }
+
             INamedTypeSymbol taskType = null;
             INamedTypeSymbol returnType = null;
-            return TryGetTypes(expression, semanticModel, out taskType, out returnType) &&
+            return TryGetTaskAndExpressionTypes(expression, semanticModel, out taskType, out returnType) &&
             semanticModel.Compilation.ClassifyConversion(taskType, returnType).Exists;
+        }
+
+        private static bool DoesExpressionReturnGenricTaskWhoseArgumentsMatchLeftSide(ExpressionSyntax expression, SemanticModel semanticModel, Project project, CancellationToken cancellationToken)
+        {
+            if (expression == null)
+            {
+                return false;
+            }
+
+            if (!IsInAsyncFunction(expression))
+            {
+                return false;
+            }
+
+            INamedTypeSymbol taskType = null;
+            INamedTypeSymbol rightSideType = null;
+            if (!TryGetTaskAndExpressionTypes(expression, semanticModel, out taskType, out rightSideType))
+            {
+                return false;
+            }
+
+            var compilation = semanticModel.Compilation;
+            if (!compilation.ClassifyConversion(taskType, rightSideType).Exists)
+            {
+                return false;
+            }
+
+            if(!rightSideType.IsGenericType)
+            {
+                return false;
+            }
+
+            var typeArguments = rightSideType.TypeArguments;
+            var typeInferer = project.LanguageServices.GetService<ITypeInferenceService>();
+            var inferredTypes = typeInferer.InferTypes(semanticModel, expression, cancellationToken);
+            return typeArguments.Any(ta => inferredTypes.Any(it => compilation.ClassifyConversion(it, ta).Exists));
+        }
+
+        private static bool IsInAsyncFunction(ExpressionSyntax expression)
+        {
+            foreach (var node in expression.Ancestors())
+            {
+                switch (node.Kind())
+                {
+                    case SyntaxKind.ParenthesizedLambdaExpression:
+                    case SyntaxKind.SimpleLambdaExpression:
+                    case SyntaxKind.AnonymousMethodExpression:
+                        return (node as AnonymousFunctionExpressionSyntax)?.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword;
+                    case SyntaxKind.MethodDeclaration:
+                        return (node as MethodDeclarationSyntax)?.Modifiers.Any(SyntaxKind.AsyncKeyword) == true;
+                    default:
+                        continue;
+                }
+            }
+
+            return false;
         }
 
         private static ExpressionSyntax ConvertToAwaitExpression(ExpressionSyntax expression)
         {
             return SyntaxFactory.AwaitExpression(expression)
+                                .WithTriviaFrom(expression)
                                 .WithAdditionalAnnotations(Formatter.Annotation);
         }
     }

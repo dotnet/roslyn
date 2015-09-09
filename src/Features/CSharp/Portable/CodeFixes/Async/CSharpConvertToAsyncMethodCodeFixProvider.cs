@@ -89,8 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
         {
             return methodDeclaration.WithReturnType(
                 SyntaxFactory.ParseTypeName("Task")
-                    .WithLeadingTrivia(methodDeclaration.ReturnType.GetLeadingTrivia())
-                    .WithTrailingTrivia(methodDeclaration.ReturnType.GetTrailingTrivia()));
+                    .WithTriviaFrom(methodDeclaration));
         }
     }
 }
