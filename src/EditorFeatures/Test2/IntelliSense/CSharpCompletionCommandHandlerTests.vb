@@ -1515,9 +1515,22 @@ $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.T
             End Using
         End Sub
 
-        <WorkItem(588, "https://github.com/dotnet/roslyn/issues/588")>
+        <WorkItem(4978, "https://github.com/dotnet/roslyn/issues/4978")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub DiffView()
+        Public Sub SessionNotStartedWhenCaretNotMappableIntoSubjectBuffer()
+            ' In inline diff view, typing delete next to a "deletion",
+            ' can cause our CommandChain to be called with a subjectbuffer
+            ' and TextView such that the textView's caret can't be mapped
+            ' into our subject buffer. 
+            '
+            ' To test this, we create a projection buffer with 2 source 
+            ' spans: one of "text" content type and one based on a C#
+            ' buffer. We create a TextView with that projection as 
+            ' its buffer, setting the caret such that it maps only
+            ' into the "text" buffer. We then call the completion
+            ' command handlers with commandargs based on that TextView
+            ' but with the C# buffer as the SubjectBuffer.
+
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
 class C
@@ -1529,7 +1542,6 @@ class C
         }
 }]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
 
-                Dim differenceBufferService = state.GetExportedValue(Of IDifferenceBufferFactoryService)
                 Dim textBufferFactoryService = state.GetExportedValue(Of ITextBufferFactoryService)()
                 Dim contentTypeService = state.GetExportedValue(Of IContentTypeRegistryService)()
                 Dim contentType = contentTypeService.GetContentType(ContentTypeNames.CSharpContentType)
