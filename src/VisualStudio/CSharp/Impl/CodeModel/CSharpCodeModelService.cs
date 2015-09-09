@@ -1180,8 +1180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             for (int i = triviaList.Count - 1; i >= 0; i--)
             {
                 var trivia = triviaList[i];
-                if (trivia.Kind() == SyntaxKind.SingleLineCommentTrivia ||
-                    trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
+                if (trivia.IsRegularComment())
                 {
                     commentList.Add(trivia);
                 }
@@ -1210,8 +1209,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             var textBuilder = new StringBuilder();
             foreach (var trivia in commentList)
             {
-                if (trivia.Kind() == SyntaxKind.SingleLineCommentTrivia ||
-                    trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
+                if (trivia.IsRegularComment())
                 {
                     textBuilder.AppendLine(trivia.GetCommentText());
                 }

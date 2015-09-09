@@ -175,9 +175,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var endOfLine = Match(SyntaxKind.EndOfLineTrivia, "\\n");
             var singleBlankLine = Matcher.Sequence(whitespace, endOfLine);
 
+            var shebangComment = Match(SyntaxKind.ShebangTrivia, "#!");
             var singleLineComment = Match(SyntaxKind.SingleLineCommentTrivia, "//");
             var multiLineComment = Match(SyntaxKind.MultiLineCommentTrivia, "/**/");
-            var anyCommentMatcher = Matcher.Choice(singleLineComment, multiLineComment);
+            var anyCommentMatcher = Matcher.Choice(shebangComment, singleLineComment, multiLineComment);
 
             var commentLine = Matcher.Sequence(whitespace, anyCommentMatcher, whitespace, endOfLine);
 
