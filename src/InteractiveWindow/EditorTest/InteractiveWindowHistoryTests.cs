@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -12,11 +11,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
     {
         #region Helpers
 
-        private InteractiveWindowTestHost _testHost;
+        private readonly InteractiveWindowTestHost _testHost;
+        private readonly IInteractiveWindow _window;
+        private readonly IInteractiveWindowOperations _operations;
 
         public InteractiveWindowHistoryTests()
         {
             _testHost = new InteractiveWindowTestHost();
+            _window = _testHost.Window;
+            _operations = _window.Operations;
         }
 
         void IDisposable.Dispose()
@@ -24,21 +27,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _testHost.Dispose();
         }
 
-        private IInteractiveWindow Window => _testHost.Window;
-
-        private string GetTextFromCurrentLanguageBuffer()
-        {
-            return Window.CurrentLanguageBuffer.CurrentSnapshot.GetText();
-        }
-
         /// <summary>
         /// Sets the active code to the specified text w/o executing it.
         /// </summary>
         private void SetActiveCode(string text)
         {
-            using (var edit = Window.CurrentLanguageBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, editTag: null))
+            using (var edit = _window.CurrentLanguageBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, editTag: null))
             {
-                edit.Replace(new Span(0, Window.CurrentLanguageBuffer.CurrentSnapshot.Length), text);
+                edit.Replace(new Span(0, _window.CurrentLanguageBuffer.CurrentSnapshot.Length), text);
                 edit.Apply();
             }
         }
@@ -53,42 +49,19 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
         private void InsertAndExecuteInput(string input)
         {
-            Window.InsertCode(input);
-            Assert.Equal(input, GetTextFromCurrentLanguageBuffer());
+            _window.InsertCode(input);
+            AssertCurrentSubmission(input);
             ExecuteInput();
         }
 
         private void ExecuteInput()
         {
-            ((InteractiveWindow)Window).ExecuteInputAsync().PumpingWait();
+            ((InteractiveWindow)_window).ExecuteInputAsync().PumpingWait();
         }
 
-        private void Test(params Step[] steps)
+        private void AssertCurrentSubmission(string expected)
         {
-            int i = 0;
-            foreach (var step in steps)
-            {
-                step.Action();
-                var actual = GetTextFromCurrentLanguageBuffer();
-                var expected = step.ExpectedText;
-                if (expected != actual)
-                {
-                    Assert.False(true, $"Step {i}: expected '{expected ?? "null"}', but found '{actual ?? "null"}'");
-                }
-                i++;
-            }
-        }
-
-        private struct Step
-        {
-            public readonly Action Action;
-            public readonly string ExpectedText;
-
-            public Step(Action action, string expectedText)
-            {
-                Action = action;
-                ExpectedText = expectedText;
-            }
+            Assert.Equal(expected, _window.CurrentLanguageBuffer.CurrentSnapshot.GetText());
         }
 
         #endregion Helpers
@@ -98,8 +71,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         {
             const string inputString = "1 ";
             InsertAndExecuteInput(inputString);
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString, GetTextFromCurrentLanguageBuffer());
+            _operations.HistoryPrevious();
+            AssertCurrentSubmission(inputString);
         }
 
         [Fact]
@@ -111,13 +84,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             InsertAndExecuteInput(inputString1);
             InsertAndExecuteInput(inputString2);
 
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString1, GetTextFromCurrentLanguageBuffer());
+            _operations.HistoryPrevious();
+            AssertCurrentSubmission(inputString2);
+            _operations.HistoryPrevious();
+            AssertCurrentSubmission(inputString1);
             //this up should not be circular
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString1, GetTextFromCurrentLanguageBuffer());
+            _operations.HistoryPrevious();
+            AssertCurrentSubmission(inputString1);
         }
 
         [Fact]
@@ -132,24 +105,24 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             InsertAndExecuteInput(inputString2);
             InsertAndExecuteInput(inputString3);
 
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString3, GetTextFromCurrentLanguageBuffer());
+            _operations.HistoryPrevious();
+            AssertCurrentSubmission(inputString3);
 
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
+            _operations.HistoryPrevious();
+            AssertCurrentSubmission(inputString2);
 
             ExecuteInput();
 
             //history navigation should start from the last history pointer
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
+            _operations.HistoryPrevious();
+            AssertCurrentSubmission(inputString2);
 
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString1, GetTextFromCurrentLanguageBuffer());
+            _operations.HistoryPrevious();
+            AssertCurrentSubmission(inputString1);
 
             //has reached the top, no change
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString1, GetTextFromCurrentLanguageBuffer());
+            _operations.HistoryPrevious();
+            AssertCurrentSubmission(inputString1);
         }
 
         [Fact]
@@ -163,29 +136,29 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             InsertAndExecuteInput(inputString1);
             InsertAndExecuteInput(inputString2);
 
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
+            _operations.HistoryPrevious();
+            AssertCurrentSubmission(inputString2);
 
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString1, GetTextFromCurrentLanguageBuffer());
+            _operations.HistoryPrevious();
+            AssertCurrentSubmission(inputString1);
 
             SetActiveCode(inputString3);
-            Assert.Equal(inputString3, GetTextFromCurrentLanguageBuffer());
+            AssertCurrentSubmission(inputString3);
             ExecuteInput();
 
             //History pointer should be reset. Previous should now bring up last entry
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString3, GetTextFromCurrentLanguageBuffer());
+            _operations.HistoryPrevious();
+            AssertCurrentSubmission(inputString3);
 
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
+            _operations.HistoryPrevious();
+            AssertCurrentSubmission(inputString2);
 
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString1, GetTextFromCurrentLanguageBuffer());
+            _operations.HistoryPrevious();
+            AssertCurrentSubmission(inputString1);
 
             //has reached the top, no change
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString1, GetTextFromCurrentLanguageBuffer());
+            _operations.HistoryPrevious();
+            AssertCurrentSubmission(inputString1);
         }
 
         public void CheckHistoryNextNotCircular()
@@ -198,22 +171,22 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             InsertAndExecuteInput(inputString2);
 
             //Next should do nothing as history pointer is uninitialized and there is
-            //no next entry. Bufer should be empty
-            Window.Operations.HistoryNext();
-            Assert.Equal(empty, GetTextFromCurrentLanguageBuffer());
+            //no next entry. Buffer should be empty
+            _operations.HistoryNext();
+            AssertCurrentSubmission(empty);
 
             //Go back once entry
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
+            _operations.HistoryPrevious();
+            AssertCurrentSubmission(inputString2);
 
             //Go fwd one entry - should do nothing as history pointer is at last entry
             //buffer should have same value as before
-            Window.Operations.HistoryNext();
-            Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
+            _operations.HistoryNext();
+            AssertCurrentSubmission(inputString2);
 
             //Next should again do nothing as it is the last item, bufer should have the same value
-            Window.Operations.HistoryNext();
-            Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
+            _operations.HistoryNext();
+            AssertCurrentSubmission(inputString2);
         }
 
         [Fact]
@@ -228,26 +201,26 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             InsertAndExecuteInput(inputString2);
             InsertAndExecuteInput(inputString3);
 
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString3, GetTextFromCurrentLanguageBuffer());
+            _operations.HistoryPrevious();
+            AssertCurrentSubmission(inputString3);
 
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
+            _operations.HistoryPrevious();
+            AssertCurrentSubmission(inputString2);
 
             //submit inputString2 again. Should be added at the end of history
             ExecuteInput();
 
             //history navigation should start from the last history pointer
-            Window.Operations.HistoryNext();
-            Assert.Equal(inputString3, GetTextFromCurrentLanguageBuffer());
+            _operations.HistoryNext();
+            AssertCurrentSubmission(inputString3);
 
             //This next should take us to the InputString2 which was resubmitted
-            Window.Operations.HistoryNext();
-            Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
+            _operations.HistoryNext();
+            AssertCurrentSubmission(inputString2);
 
             //has reached the top, no change
-            Window.Operations.HistoryNext();
-            Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
+            _operations.HistoryNext();
+            AssertCurrentSubmission(inputString2);
         }
 
         [Fact]
@@ -262,22 +235,22 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             InsertAndExecuteInput(inputString1);
             InsertAndExecuteInput(inputString2);
 
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString2, GetTextFromCurrentLanguageBuffer());
+            _operations.HistoryPrevious();
+            AssertCurrentSubmission(inputString2);
 
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString1, GetTextFromCurrentLanguageBuffer());
+            _operations.HistoryPrevious();
+            AssertCurrentSubmission(inputString1);
 
             SetActiveCode(inputString3);
-            Assert.Equal(inputString3, GetTextFromCurrentLanguageBuffer());
+            AssertCurrentSubmission(inputString3);
             ExecuteInput();
 
             //History pointer should be reset. next should do nothing
-            Window.Operations.HistoryNext();
-            Assert.Equal(empty, GetTextFromCurrentLanguageBuffer());
+            _operations.HistoryNext();
+            AssertCurrentSubmission(empty);
 
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString3, GetTextFromCurrentLanguageBuffer());
+            _operations.HistoryPrevious();
+            AssertCurrentSubmission(inputString3);
         }
 
         [Fact]
@@ -293,11 +266,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             //Add uncommitted input
             SetActiveCode(uncommittedInput);
             //Navigate history. This should save uncommitted input
-            Window.Operations.HistoryPrevious();
+            _operations.HistoryPrevious();
             //Navigate to next item at the end of history.
             //This should bring back uncommitted input
-            Window.Operations.HistoryNext();
-            Assert.Equal(uncommittedInput, GetTextFromCurrentLanguageBuffer());
+            _operations.HistoryNext();
+            AssertCurrentSubmission(uncommittedInput);
         }
 
         [Fact]
@@ -307,12 +280,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             const string resetCommand2 = "#reset  ";
             InsertAndExecuteInput(resetCommand1);
             InsertAndExecuteInput(resetCommand2);
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(resetCommand2, GetTextFromCurrentLanguageBuffer());
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(resetCommand1, GetTextFromCurrentLanguageBuffer());
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(resetCommand1, GetTextFromCurrentLanguageBuffer());
+            _operations.HistoryPrevious();  AssertCurrentSubmission(resetCommand2);
+            _operations.HistoryPrevious();  AssertCurrentSubmission(resetCommand1);
+            _operations.HistoryPrevious();  AssertCurrentSubmission(resetCommand1);
         }
 
         [Fact]
@@ -320,12 +290,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         {
             InsertAndExecuteInputs("1", "2", "3");
 
-            Test(
-                new Step(() => Window.Operations.HistoryPrevious(), "3"),
-                new Step(() => Window.Operations.HistoryPrevious(), "2"),
-                new Step(() => Window.Operations.HistoryPrevious(), "1"),
-                new Step(() => Window.Operations.HistoryPrevious(), "1"),
-                new Step(() => Window.Operations.HistoryPrevious(), "1"));
+            _operations.HistoryPrevious();  AssertCurrentSubmission("3");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("2");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("1");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("1");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("1");
         }
 
         [Fact]
@@ -335,17 +304,16 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
             SetActiveCode("4");
 
-            Test(
-                new Step(() => Window.Operations.HistoryNext(), "4"),
-                new Step(() => Window.Operations.HistoryNext(), "4"),
-                new Step(() => Window.Operations.HistoryPrevious(), "3"),
-                new Step(() => Window.Operations.HistoryPrevious(), "2"),
-                new Step(() => Window.Operations.HistoryPrevious(), "1"),
-                new Step(() => Window.Operations.HistoryPrevious(), "1"),
-                new Step(() => Window.Operations.HistoryNext(), "2"),
-                new Step(() => Window.Operations.HistoryNext(), "3"),
-                new Step(() => Window.Operations.HistoryNext(), "4"),
-                new Step(() => Window.Operations.HistoryNext(), "4"));
+            _operations.HistoryNext();      AssertCurrentSubmission("4");
+            _operations.HistoryNext();      AssertCurrentSubmission("4");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("3");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("2");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("1");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("1");
+            _operations.HistoryNext();      AssertCurrentSubmission("2");
+            _operations.HistoryNext();      AssertCurrentSubmission("3");
+            _operations.HistoryNext();      AssertCurrentSubmission("4");
+            _operations.HistoryNext();      AssertCurrentSubmission("4");
         }
 
         [Fact]
@@ -353,9 +321,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         {
             InsertAndExecuteInputs("123", "12", "1");
 
-            Test(
-                new Step(() => Window.Operations.HistoryPrevious("4"), ""),
-                new Step(() => Window.Operations.HistoryPrevious("4"), ""));
+            _operations.HistoryPrevious("4");   AssertCurrentSubmission("");
+            _operations.HistoryPrevious("4");   AssertCurrentSubmission("");
         }
 
         [Fact]
@@ -363,10 +330,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         {
             InsertAndExecuteInputs("123", "12", "1");
 
-            Test(
-                new Step(() => Window.Operations.HistoryPrevious("12"), "12"), // Skip over non-matching entry.
-                new Step(() => Window.Operations.HistoryPrevious("12"), "123"),
-                new Step(() => Window.Operations.HistoryPrevious("12"), "123"));
+            _operations.HistoryPrevious("12");  AssertCurrentSubmission("12"); // Skip over non-matching entry.
+            _operations.HistoryPrevious("12");  AssertCurrentSubmission("123");
+            _operations.HistoryPrevious("12");  AssertCurrentSubmission("123");
         }
 
         [Fact]
@@ -374,10 +340,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         {
             InsertAndExecuteInputs("1", "2", "3");
 
-            Test(
-                new Step(() => Window.Operations.HistoryPrevious("2"), "2"), // Skip over non-matching entry.
-                new Step(() => Window.Operations.HistoryPrevious(null), "1"), // Pattern isn't passed, so return to normal iteration.
-                new Step(() => Window.Operations.HistoryPrevious(null), "1"));
+            _operations.HistoryPrevious("2");   AssertCurrentSubmission("2"); // Skip over non-matching entry.
+            _operations.HistoryPrevious(null);  AssertCurrentSubmission("1"); // Pattern isn't passed, so return to normal iteration.
+            _operations.HistoryPrevious(null);  AssertCurrentSubmission("1");
         }
 
         [Fact]
@@ -385,10 +350,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         {
             InsertAndExecuteInputs("10", "20", "15", "25");
 
-            Test(
-                new Step(() => Window.Operations.HistoryPrevious("1"), "15"), // Skip over non-matching entry.
-                new Step(() => Window.Operations.HistoryPrevious("2"), "20"), // Skip over non-matching entry.
-                new Step(() => Window.Operations.HistoryPrevious("2"), "20"));
+            _operations.HistoryPrevious("1");   AssertCurrentSubmission("15"); // Skip over non-matching entry.
+            _operations.HistoryPrevious("2");   AssertCurrentSubmission("20"); // Skip over non-matching entry.
+            _operations.HistoryPrevious("2");   AssertCurrentSubmission("20");
         }
 
         [Fact]
@@ -397,14 +361,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             InsertAndExecuteInputs("start", "1", "12", "123");
             SetActiveCode("end");
 
-            Test(
-                new Step(() => Window.Operations.HistoryPrevious(), "123"),
-                new Step(() => Window.Operations.HistoryPrevious(), "12"),
-                new Step(() => Window.Operations.HistoryPrevious(), "1"),
-                new Step(() => Window.Operations.HistoryPrevious(), "start"),
+            _operations.HistoryPrevious();  AssertCurrentSubmission("123");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("12");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("1");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("start");
 
-                new Step(() => Window.Operations.HistoryNext("4"), "end"),
-                new Step(() => Window.Operations.HistoryNext("4"), "end"));
+            _operations.HistoryNext("4");   AssertCurrentSubmission("end");
+            _operations.HistoryNext("4");   AssertCurrentSubmission("end");
         }
 
         [Fact]
@@ -413,15 +376,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             InsertAndExecuteInputs("start", "1", "12", "123");
             SetActiveCode("end");
 
-            Test(
-                new Step(() => Window.Operations.HistoryPrevious(), "123"),
-                new Step(() => Window.Operations.HistoryPrevious(), "12"),
-                new Step(() => Window.Operations.HistoryPrevious(), "1"),
-                new Step(() => Window.Operations.HistoryPrevious(), "start"),
+            _operations.HistoryPrevious();  AssertCurrentSubmission("123");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("12");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("1");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("start");
 
-                new Step(() => Window.Operations.HistoryNext("12"), "12"), // Skip over non-matching entry.
-                new Step(() => Window.Operations.HistoryNext("12"), "123"),
-                new Step(() => Window.Operations.HistoryNext("12"), "end"));
+            _operations.HistoryNext("12");  AssertCurrentSubmission("12"); // Skip over non-matching entry.
+            _operations.HistoryNext("12");  AssertCurrentSubmission("123");
+            _operations.HistoryNext("12");  AssertCurrentSubmission("end");
         }
 
         [Fact]
@@ -430,15 +392,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             InsertAndExecuteInputs("start", "3", "2", "1");
             SetActiveCode("end");
 
-            Test(
-                new Step(() => Window.Operations.HistoryPrevious(), "1"),
-                new Step(() => Window.Operations.HistoryPrevious(), "2"),
-                new Step(() => Window.Operations.HistoryPrevious(), "3"),
-                new Step(() => Window.Operations.HistoryPrevious(), "start"),
+            _operations.HistoryPrevious();  AssertCurrentSubmission("1");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("2");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("3");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("start");
 
-                new Step(() => Window.Operations.HistoryNext("2"), "2"), // Skip over non-matching entry.
-                new Step(() => Window.Operations.HistoryNext(null), "1"), // Pattern isn't passed, so return to normal iteration.
-                new Step(() => Window.Operations.HistoryNext(null), "end"));
+            _operations.HistoryNext("2");   AssertCurrentSubmission("2"); // Skip over non-matching entry.
+            _operations.HistoryNext(null);  AssertCurrentSubmission("1"); // Pattern isn't passed, so return to normal iteration.
+            _operations.HistoryNext(null);  AssertCurrentSubmission("end");
         }
 
         [Fact]
@@ -447,16 +408,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             InsertAndExecuteInputs("start", "25", "15", "20", "10");
             SetActiveCode("end");
 
-            Test(
-                new Step(() => Window.Operations.HistoryPrevious(), "10"),
-                new Step(() => Window.Operations.HistoryPrevious(), "20"),
-                new Step(() => Window.Operations.HistoryPrevious(), "15"),
-                new Step(() => Window.Operations.HistoryPrevious(), "25"),
-                new Step(() => Window.Operations.HistoryPrevious(), "start"),
+            _operations.HistoryPrevious();  AssertCurrentSubmission("10");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("20");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("15");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("25");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("start");
 
-                new Step(() => Window.Operations.HistoryNext("1"), "15"), // Skip over non-matching entry.
-                new Step(() => Window.Operations.HistoryNext("2"), "20"), // Skip over non-matching entry.
-                new Step(() => Window.Operations.HistoryNext("2"), "end"));
+            _operations.HistoryNext("1");   AssertCurrentSubmission("15"); // Skip over non-matching entry.
+            _operations.HistoryNext("2");   AssertCurrentSubmission("20"); // Skip over non-matching entry.
+            _operations.HistoryNext("2");   AssertCurrentSubmission("end");
         }
 
         [Fact]
@@ -465,11 +425,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             InsertAndExecuteInputs("123", "12", "1");
 
             // Default search string is empty.
-            Test(
-                new Step(() => Window.Operations.HistorySearchPrevious(), "1"), // Pattern is captured before this step.
-                new Step(() => Window.Operations.HistorySearchPrevious(), "12"),
-                new Step(() => Window.Operations.HistorySearchPrevious(), "123"),
-                new Step(() => Window.Operations.HistorySearchPrevious(), "123"));
+            _operations.HistorySearchPrevious();    AssertCurrentSubmission("1"); // Pattern is captured before this step.
+            _operations.HistorySearchPrevious();    AssertCurrentSubmission("12");
+            _operations.HistorySearchPrevious();    AssertCurrentSubmission("123");
+            _operations.HistorySearchPrevious();    AssertCurrentSubmission("123");
         }
 
         [Fact]
@@ -478,10 +437,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             InsertAndExecuteInputs("123", "12", "1");
             SetActiveCode("12");
 
-            Test(
-                new Step(() => Window.Operations.HistorySearchPrevious(), "12"), // Pattern is captured before this step.
-                new Step(() => Window.Operations.HistorySearchPrevious(), "123"),
-                new Step(() => Window.Operations.HistorySearchPrevious(), "123"));
+            _operations.HistorySearchPrevious();    AssertCurrentSubmission("12"); // Pattern is captured before this step.
+            _operations.HistorySearchPrevious();    AssertCurrentSubmission("123");
+            _operations.HistorySearchPrevious();    AssertCurrentSubmission("123");
         }
 
         [Fact]
@@ -490,15 +448,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             InsertAndExecuteInputs("12", "123", "12", "1");
             SetActiveCode("end");
 
-            Test(
-                new Step(() => Window.Operations.HistoryPrevious(), "1"),
-                new Step(() => Window.Operations.HistoryPrevious(), "12"),
-                new Step(() => Window.Operations.HistoryPrevious(), "123"),
-                new Step(() => Window.Operations.HistoryPrevious(), "12"),
+            _operations.HistoryPrevious();  AssertCurrentSubmission("1");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("12");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("123");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("12");
 
-                new Step(() => Window.Operations.HistorySearchNext(), "123"), // Pattern is captured before this step.
-                new Step(() => Window.Operations.HistorySearchNext(), "12"),
-                new Step(() => Window.Operations.HistorySearchNext(), "end"));
+            _operations.HistorySearchNext();    AssertCurrentSubmission("123"); // Pattern is captured before this step.
+            _operations.HistorySearchNext();    AssertCurrentSubmission("12");
+            _operations.HistorySearchNext();    AssertCurrentSubmission("end");
         }
 
         [Fact]
@@ -506,14 +463,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         {
             InsertAndExecuteInputs("200", "100", "30", "20", "10", "2", "1");
 
-            Test(
-                new Step(() => Window.Operations.HistoryPrevious(), "1"),
-                new Step(() => Window.Operations.HistorySearchPrevious(), "10"), // Pattern is captured before this step.
-                new Step(() => Window.Operations.HistoryPrevious(), "20"), // NB: Doesn't match pattern.
-                new Step(() => Window.Operations.HistorySearchPrevious(), "100"), // NB: Reuses existing pattern.
-                new Step(() => Window.Operations.HistorySearchPrevious(), "100"),
-                new Step(() => Window.Operations.HistoryPrevious(), "200"),
-                new Step(() => Window.Operations.HistorySearchPrevious(), "200")); // No-op results in non-matching history entry after SearchPrevious.
+            _operations.HistoryPrevious();          AssertCurrentSubmission("1");
+            _operations.HistorySearchPrevious();    AssertCurrentSubmission("10"); // Pattern is captured before this step.
+            _operations.HistoryPrevious();          AssertCurrentSubmission("20"); // NB: Doesn't match pattern.
+            _operations.HistorySearchPrevious();    AssertCurrentSubmission("100"); // NB: Reuses existing pattern.
+            _operations.HistorySearchPrevious();    AssertCurrentSubmission("100");
+            _operations.HistoryPrevious();          AssertCurrentSubmission("200");
+            _operations.HistorySearchPrevious();    AssertCurrentSubmission("200"); // No-op results in non-matching history entry after SearchPrevious.
         }
 
         [Fact]
@@ -521,14 +477,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         {
             InsertAndExecuteInputs("200", "100", "30", "20", "10", "2", "1");
 
-            Test(
-                new Step(() => Window.Operations.HistoryPrevious(), "1"),
-                new Step(() => Window.Operations.HistorySearchPrevious(), "10"), // Pattern is captured before this step.
-                new Step(() => Window.Operations.HistoryPrevious("2"), "20"), // NB: Doesn't match pattern.
-                new Step(() => Window.Operations.HistorySearchPrevious(), "100"), // NB: Reuses existing pattern.
-                new Step(() => Window.Operations.HistorySearchPrevious(), "100"),
-                new Step(() => Window.Operations.HistoryPrevious("2"), "200"),
-                new Step(() => Window.Operations.HistorySearchPrevious(), "200")); // No-op results in non-matching history entry after SearchPrevious.
+            _operations.HistoryPrevious();          AssertCurrentSubmission("1");
+            _operations.HistorySearchPrevious();    AssertCurrentSubmission("10"); // Pattern is captured before this step.
+            _operations.HistoryPrevious("2");       AssertCurrentSubmission("20"); // NB: Doesn't match pattern.
+            _operations.HistorySearchPrevious();    AssertCurrentSubmission("100"); // NB: Reuses existing pattern.
+            _operations.HistorySearchPrevious();    AssertCurrentSubmission("100");
+            _operations.HistoryPrevious("2");       AssertCurrentSubmission("200");
+            _operations.HistorySearchPrevious();    AssertCurrentSubmission("200"); // No-op results in non-matching history entry after SearchPrevious.
         }
 
         [Fact]
@@ -537,20 +492,19 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             InsertAndExecuteInputs("1", "2", "10", "20", "30", "100", "200");
             SetActiveCode("4");
 
-            Test(
-                new Step(() => Window.Operations.HistoryPrevious(), "200"),
-                new Step(() => Window.Operations.HistoryPrevious(), "100"),
-                new Step(() => Window.Operations.HistoryPrevious(), "30"),
-                new Step(() => Window.Operations.HistoryPrevious(), "20"),
-                new Step(() => Window.Operations.HistoryPrevious(), "10"),
-                new Step(() => Window.Operations.HistoryPrevious(), "2"),
-                new Step(() => Window.Operations.HistoryPrevious(), "1"),
+            _operations.HistoryPrevious();  AssertCurrentSubmission("200");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("100");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("30");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("20");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("10");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("2");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("1");
 
-                new Step(() => Window.Operations.HistorySearchNext(), "10"), // Pattern is captured before this step.
-                new Step(() => Window.Operations.HistoryNext(), "20"), // NB: Doesn't match pattern.
-                new Step(() => Window.Operations.HistorySearchNext(), "100"), // NB: Reuses existing pattern.
-                new Step(() => Window.Operations.HistorySearchNext(), "4"), // Restoring input results in non-matching history entry after SearchNext.
-                new Step(() => Window.Operations.HistoryNext(), "4"));
+            _operations.HistorySearchNext();    AssertCurrentSubmission("10"); // Pattern is captured before this step.
+            _operations.HistoryNext();          AssertCurrentSubmission("20"); // NB: Doesn't match pattern.
+            _operations.HistorySearchNext();    AssertCurrentSubmission("100"); // NB: Reuses existing pattern.
+            _operations.HistorySearchNext();    AssertCurrentSubmission("4"); // Restoring input results in non-matching history entry after SearchNext.
+            _operations.HistoryNext();          AssertCurrentSubmission("4");
         }
 
         [Fact]
@@ -559,20 +513,19 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             InsertAndExecuteInputs("1", "2", "10", "20", "30", "100", "200");
             SetActiveCode("4");
 
-            Test(
-                new Step(() => Window.Operations.HistoryPrevious(), "200"),
-                new Step(() => Window.Operations.HistoryPrevious(), "100"),
-                new Step(() => Window.Operations.HistoryPrevious(), "30"),
-                new Step(() => Window.Operations.HistoryPrevious(), "20"),
-                new Step(() => Window.Operations.HistoryPrevious(), "10"),
-                new Step(() => Window.Operations.HistoryPrevious(), "2"),
-                new Step(() => Window.Operations.HistoryPrevious(), "1"),
+            _operations.HistoryPrevious();  AssertCurrentSubmission("200");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("100");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("30");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("20");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("10");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("2");
+            _operations.HistoryPrevious();  AssertCurrentSubmission("1");
 
-                new Step(() => Window.Operations.HistorySearchNext(), "10"), // Pattern is captured before this step.
-                new Step(() => Window.Operations.HistoryNext("2"), "20"), // NB: Doesn't match pattern.
-                new Step(() => Window.Operations.HistorySearchNext(), "100"), // NB: Reuses existing pattern.
-                new Step(() => Window.Operations.HistorySearchNext(), "4"), // Restoring input results in non-matching history entry after SearchNext.
-                new Step(() => Window.Operations.HistoryNext("2"), "4"));
+            _operations.HistorySearchNext();    AssertCurrentSubmission("10"); // Pattern is captured before this step.
+            _operations.HistoryNext("2");       AssertCurrentSubmission("20"); // NB: Doesn't match pattern.
+            _operations.HistorySearchNext();    AssertCurrentSubmission("100"); // NB: Reuses existing pattern.
+            _operations.HistorySearchNext();    AssertCurrentSubmission("4"); // Restoring input results in non-matching history entry after SearchNext.
+            _operations.HistoryNext("2");       AssertCurrentSubmission("4");
         }
     }
 }
