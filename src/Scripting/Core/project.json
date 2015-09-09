@@ -1,7 +1,12 @@
 ﻿{
+  "supports": {
+    "net46.app": {},
+    "dnxcore50.app": {}
+  },
   "dependencies": {
-    "System.Collections.Immutable": "1.1.36",
+    "Microsoft.NETCore.Portable.Compatibility": "1.0.0",
     "System.Collections": "4.0.10",
+    "System.Collections.Immutable": "1.1.36",
     "System.Diagnostics.Debug": "4.0.10",
     "System.Diagnostics.Tools": "4.0.0",
     "System.Globalization": "4.0.10",
