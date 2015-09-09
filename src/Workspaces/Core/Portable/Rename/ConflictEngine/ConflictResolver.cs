@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A conflict resolution containing the new solution.</returns>
         public static Task<ConflictResolution> ResolveConflictsAsync(
-            RenameLocationSet renameLocationSet,
+            RenameLocations renameLocationSet,
             string originalText,
             string replacementText,
             OptionSet optionSet,

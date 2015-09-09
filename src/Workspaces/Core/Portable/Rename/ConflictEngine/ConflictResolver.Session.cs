@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         private class Session
         {
             // Set of All Locations that will be renamed (does not include non-reference locations that need to be checked for conflicts)
-            private readonly RenameLocationSet _renameLocationSet;
+            private readonly RenameLocations _renameLocationSet;
 
             // Rename Symbol's Source Location
             private readonly Location _renameSymbolDeclarationLocation;
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             private bool _documentOfRenameSymbolHasBeenRenamed;
 
             public Session(
-                RenameLocationSet renameLocationSet,
+                RenameLocations renameLocationSet,
                 Location renameSymbolDeclarationLocation,
                 string originalText,
                 string replacementText,

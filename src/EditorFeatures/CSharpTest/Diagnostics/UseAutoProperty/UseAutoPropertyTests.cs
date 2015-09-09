@@ -191,5 +191,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 @"class Class { [|int i|]; int P { get { return i; } } public Class(int P) { i = 1; } }",
 @"class Class { int P { get; } public Class(int P) { this.P = 1; } }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public void TestWriteInConstructor()
+        {
+            Test(
+@"class Class { [|int i|]; int P { get { return i; } } public Class() { i = 1; } }",
+@"class Class { int P { get; } public Class() { P = 1; } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public void TestWriteInNotInConstructor1()
+        {
+            Test(
+@"class Class { [|int i|]; int P { get { return i; } } public Foo() { i = 1; } }",
+@"class Class { int P { get; set; } public Foo() { P = 1; } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public void TestWriteInNotInConstructor2()
+        {
+            Test(
+@"class Class { [|int i|]; public int P { get { return i; } } public Foo() { i = 1; } }",
+@"class Class { public int P { get; private set; } public Foo() { P = 1; } }");
+        }
     }
 }

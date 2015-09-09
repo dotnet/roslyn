@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     {
         private class InlineRenameLocationSet : IInlineRenameLocationSet
         {
-            private readonly RenameLocationSet _renameLocationSet;
+            private readonly RenameLocations _renameLocationSet;
             private readonly SymbolInlineRenameInfo _renameInfo;
 
             public IList<InlineRenameLocation> Locations { get; }
 
-            public InlineRenameLocationSet(SymbolInlineRenameInfo renameInfo, RenameLocationSet renameLocationSet)
+            public InlineRenameLocationSet(SymbolInlineRenameInfo renameInfo, RenameLocations renameLocationSet)
             {
                 _renameInfo = renameInfo;
                 _renameLocationSet = renameLocationSet;

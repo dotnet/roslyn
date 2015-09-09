@@ -36,7 +36,15 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public static SyntaxGenerator GetGenerator(Document document)
         {
-            return document.Project.LanguageServices.GetService<SyntaxGenerator>();
+            return GetGenerator(document.Project);
+        }
+
+        /// <summary>
+        /// Gets the <see cref="SyntaxGenerator"/> for the language corresponding to the project.
+        /// </summary>
+        public static SyntaxGenerator GetGenerator(Project project)
+        {
+            return project.LanguageServices.GetService<SyntaxGenerator>();
         }
 
         #region Declarations

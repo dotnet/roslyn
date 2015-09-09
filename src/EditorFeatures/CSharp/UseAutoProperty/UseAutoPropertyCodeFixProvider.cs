@@ -60,13 +60,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             var propertySymbol = (IPropertySymbol)propertySemanticModel.GetDeclaredSymbol(property);
 
             Debug.Assert(fieldDocument.Project == propertyDocument.Project);
-            var compilation = await fieldDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var project = fieldDocument.Project;
+            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            // First, rename all usages of the field to point at the property.  Except don't actually 
-            // rename the field itself.  We want to be able to find it again post rename.
             var solution = context.Document.Project.Solution;
-            var updatedSolution = await Renamer.RenameSymbolAsync(solution,
-                fieldSymbol, propertySymbol.Name, solution.Workspace.Options,
+            var fieldLocations = await Renamer.GetRenameLocationsAsync(solution, fieldSymbol, solution.Workspace.Options, cancellationToken).ConfigureAwait(false);
+
+            // First, create the updated property we want to replace the old property with
+            var updatedProperty = UpdateProperty(project, fieldSymbol, propertySymbol, property, fieldLocations, cancellationToken);
+
+            // Now, rename all usages of the field to point at the property.  Except don't actually 
+            // rename the field itself.  We want to be able to find it again post rename.
+            var updatedSolution = await Renamer.RenameAsync(fieldLocations, propertySymbol.Name,
                 location => !location.SourceSpan.IntersectsWith(declaratorLocation.SourceSpan),
                 symbols => HasConflict(symbols, propertySymbol, compilation, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
@@ -89,8 +94,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
 
             var fieldDeclaration = (FieldDeclarationSyntax)declarator.Parent.Parent;
             var nodeToRemove = fieldDeclaration.Declaration.Variables.Count > 1 ? declarator : (SyntaxNode)fieldDeclaration;
-
-            var updatedProperty = UpdateProperty(property);
 
             const SyntaxRemoveOptions options = SyntaxRemoveOptions.KeepUnbalancedDirectives | SyntaxRemoveOptions.AddElasticMarker;
             if (fieldDocument == propertyDocument)
@@ -149,9 +152,86 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             return null;
         }
 
-        private PropertyDeclarationSyntax UpdateProperty(PropertyDeclarationSyntax propertyDeclaration)
+        private PropertyDeclarationSyntax UpdateProperty(
+            Project project, IFieldSymbol fieldSymbol, IPropertySymbol propertySymbol, PropertyDeclarationSyntax propertyDeclaration,
+            RenameLocations fieldRenameLocations, CancellationToken cancellationToken)
         {
-            return propertyDeclaration.WithAccessorList(UpdateAccessorList(propertyDeclaration.AccessorList));
+            var updatedProperty = propertyDeclaration.WithAccessorList(UpdateAccessorList(propertyDeclaration.AccessorList));
+
+            // We may need to add a setter if the field is written to outside of the constructor
+            // of it's class.
+            if (AddSetterIfNecessary(fieldSymbol, propertyDeclaration, fieldRenameLocations, cancellationToken))
+            {
+                var accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
+                               .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+                var generator = SyntaxGenerator.GetGenerator(project);
+
+                if (fieldSymbol.DeclaredAccessibility != propertySymbol.DeclaredAccessibility)
+                {
+                    accessor = (AccessorDeclarationSyntax)generator.WithAccessibility(accessor, fieldSymbol.DeclaredAccessibility);
+                }
+
+                updatedProperty = updatedProperty.AddAccessorListAccessors(accessor);
+            }
+
+            return updatedProperty;
+        }
+
+        private bool AddSetterIfNecessary(
+            IFieldSymbol fieldSymbol,
+            PropertyDeclarationSyntax propertyDeclaration,
+            RenameLocations fieldRenameLocations,
+            CancellationToken cancellationToken)
+        {
+            if (propertyDeclaration.AccessorList.Accessors.Any(SyntaxKind.SetAccessorDeclaration))
+            {
+                // No need to add an setter if we already have one.
+                return false;
+            }
+
+            // If the original field was written to outside of a constructor (or the property 
+            // we're converting), then we'll need to add a setter to the property we're creating.
+            var containingTypeNodes = fieldSymbol.ContainingType.DeclaringSyntaxReferences.Select(s => s.GetSyntax(cancellationToken)).ToImmutableArray();
+
+            return fieldRenameLocations.Locations.Any(loc => NeedsSetter(loc, containingTypeNodes, propertyDeclaration, cancellationToken));
+        }
+
+        private bool NeedsSetter(
+            RenameLocation location,
+            ImmutableArray<SyntaxNode> containingTypeNodes,
+            PropertyDeclarationSyntax propertyDeclaration,
+            CancellationToken cancellationToken)
+        {
+            if (!location.IsWrittenTo)
+            {
+                // We don't need a setter if we're not writing to this field.
+                return false;
+            }
+
+            var node = location.Location.FindToken(cancellationToken).Parent;
+            while (node != null)
+            {
+                if (node == propertyDeclaration)
+                {
+                    // We don't need a setter if we're a reference in the property we're replacing.
+                    return false;
+                }
+
+                if (node.IsKind(SyntaxKind.ConstructorDeclaration))
+                {
+                    // If we're written to in a constructor in the field's class, we don't need
+                    // a setter.
+                    if (containingTypeNodes.Contains(node.Parent))
+                    {
+                        return false;
+                    }
+                }
+
+                node = node.Parent;
+            }
+
+            // We do need a setter
+            return true;
         }
 
         private AccessorListSyntax UpdateAccessorList(AccessorListSyntax accessorList)
