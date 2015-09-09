@@ -30,11 +30,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                var equivalenceKey = diagnostic.Properties[nameof(AnalysisResult.SymbolEquivalenceKey)];
+                var equivalenceKey = diagnostic.Properties["SymbolEquivalenceKey"];
 
                 context.RegisterCodeFix(
                     new UseAutoPropertyCodeAction(
-                        CSharpEditorResources.UseAutoProperty,
+                        FeaturesResources.UseAutoProperty,
                         c => ProcessResult(context, diagnostic, c),
                         equivalenceKey),
                     diagnostic);
