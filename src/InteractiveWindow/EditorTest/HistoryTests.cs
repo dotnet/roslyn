@@ -114,12 +114,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         {
             AddEntries("1", "2", "3");
 
-            Test(
-                new Step(() => _history.GetPrevious(null), "3"),
-                new Step(() => _history.GetPrevious(null), "2"),
-                new Step(() => _history.GetPrevious(null), "1"),
-                new Step(() => _history.GetPrevious(null), null),
-                new Step(() => _history.GetPrevious(null), null));
+            CheckHistoryText(_history.GetPrevious(null), "3");
+            CheckHistoryText(_history.GetPrevious(null), "2");
+            CheckHistoryText(_history.GetPrevious(null), "1");
+            CheckHistoryText(_history.GetPrevious(null), null);
+            CheckHistoryText(_history.GetPrevious(null), null);
         }
 
         [Fact]
@@ -127,17 +126,16 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         {
             AddEntries("1", "2", "3");
 
-            Test(
-                new Step(() => _history.GetNext(null), null),
-                new Step(() => _history.GetNext(null), null),
-                new Step(() => _history.GetPrevious(null), "3"),
-                new Step(() => _history.GetPrevious(null), "2"),
-                new Step(() => _history.GetPrevious(null), "1"),
-                new Step(() => _history.GetPrevious(null), null),
-                new Step(() => _history.GetNext(null), "2"),
-                new Step(() => _history.GetNext(null), "3"),
-                new Step(() => _history.GetNext(null), null),
-                new Step(() => _history.GetNext(null), null));
+            CheckHistoryText(_history.GetNext(null), null);
+            CheckHistoryText(_history.GetNext(null), null);
+            CheckHistoryText(_history.GetPrevious(null), "3");
+            CheckHistoryText(_history.GetPrevious(null), "2");
+            CheckHistoryText(_history.GetPrevious(null), "1");
+            CheckHistoryText(_history.GetPrevious(null), null);
+            CheckHistoryText(_history.GetNext(null), "2");
+            CheckHistoryText(_history.GetNext(null), "3");
+            CheckHistoryText(_history.GetNext(null), null);
+            CheckHistoryText(_history.GetNext(null), null);
         }
 
         [Fact]
@@ -145,9 +143,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         {
             AddEntries("123", "12", "1");
 
-            Test(
-                new Step(() => _history.GetPrevious("4"), null),
-                new Step(() => _history.GetPrevious("4"), null));
+            CheckHistoryText(_history.GetPrevious("4"), null);
+            CheckHistoryText(_history.GetPrevious("4"), null);
         }
 
         [Fact]
@@ -155,10 +152,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         {
             AddEntries("123", "12", "1");
 
-            Test(
-                new Step(() => _history.GetPrevious("12"), "12"), // Skip over non-matching entry.
-                new Step(() => _history.GetPrevious("12"), "123"),
-                new Step(() => _history.GetPrevious("12"), null));
+            CheckHistoryText(_history.GetPrevious("12"), "12"); // Skip over non-matching entry.
+            CheckHistoryText(_history.GetPrevious("12"), "123");
+            CheckHistoryText(_history.GetPrevious("12"), null);
         }
 
         [Fact]
@@ -166,10 +162,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         {
             AddEntries("1", "2", "3");
 
-            Test(
-                new Step(() => _history.GetPrevious("2"), "2"), // Skip over non-matching entry.
-                new Step(() => _history.GetPrevious(null), "1"), // Pattern isn't passed, so return to normal iteration.
-                new Step(() => _history.GetPrevious(null), null));
+            CheckHistoryText(_history.GetPrevious("2"), "2"); // Skip over non-matching entry.
+            CheckHistoryText(_history.GetPrevious(null), "1"); // Pattern isn't passed, so return to normal iteration.
+            CheckHistoryText(_history.GetPrevious(null), null);
         }
 
         [Fact]
@@ -177,10 +172,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         {
             AddEntries("1a", "2a", "1b", "2b");
 
-            Test(
-                new Step(() => _history.GetPrevious("1"), "1b"), // Skip over non-matching entry.
-                new Step(() => _history.GetPrevious("2"), "2a"), // Skip over non-matching entry.
-                new Step(() => _history.GetPrevious("2"), null));
+            CheckHistoryText(_history.GetPrevious("1"), "1b"); // Skip over non-matching entry.
+            CheckHistoryText(_history.GetPrevious("2"), "2a"); // Skip over non-matching entry.
+            CheckHistoryText(_history.GetPrevious("2"), null);
         }
 
         [Fact]
@@ -188,14 +182,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         {
             AddEntries("start", "1", "12", "123");
 
-            Test(
-                new Step(() => _history.GetPrevious(null), "123"),
-                new Step(() => _history.GetPrevious(null), "12"),
-                new Step(() => _history.GetPrevious(null), "1"),
-                new Step(() => _history.GetPrevious(null), "start"),
+            CheckHistoryText(_history.GetPrevious(null), "123");
+            CheckHistoryText(_history.GetPrevious(null), "12");
+            CheckHistoryText(_history.GetPrevious(null), "1");
+            CheckHistoryText(_history.GetPrevious(null), "start");
 
-                new Step(() => _history.GetNext("4"), null),
-                new Step(() => _history.GetNext("4"), null));
+            CheckHistoryText(_history.GetNext("4"), null);
+            CheckHistoryText(_history.GetNext("4"), null);
         }
 
         [Fact]
@@ -203,15 +196,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         {
             AddEntries("start", "1", "12", "123");
 
-            Test(
-                new Step(() => _history.GetPrevious(null), "123"),
-                new Step(() => _history.GetPrevious(null), "12"),
-                new Step(() => _history.GetPrevious(null), "1"),
-                new Step(() => _history.GetPrevious(null), "start"),
+            CheckHistoryText(_history.GetPrevious(null), "123");
+            CheckHistoryText(_history.GetPrevious(null), "12");
+            CheckHistoryText(_history.GetPrevious(null), "1");
+            CheckHistoryText(_history.GetPrevious(null), "start");
 
-                new Step(() => _history.GetNext("12"), "12"), // Skip over non-matching entry.
-                new Step(() => _history.GetNext("12"), "123"),
-                new Step(() => _history.GetNext("12"), null));
+            CheckHistoryText(_history.GetNext("12"), "12"); // Skip over non-matching entry.
+            CheckHistoryText(_history.GetNext("12"), "123");
+            CheckHistoryText(_history.GetNext("12"), null);
         }
 
         [Fact]
@@ -219,15 +211,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         {
             AddEntries("start", "3", "2", "1");
 
-            Test(
-                new Step(() => _history.GetPrevious(null), "1"),
-                new Step(() => _history.GetPrevious(null), "2"),
-                new Step(() => _history.GetPrevious(null), "3"),
-                new Step(() => _history.GetPrevious(null), "start"),
+            CheckHistoryText(_history.GetPrevious(null), "1");
+            CheckHistoryText(_history.GetPrevious(null), "2");
+            CheckHistoryText(_history.GetPrevious(null), "3");
+            CheckHistoryText(_history.GetPrevious(null), "start");
 
-                new Step(() => _history.GetNext("2"), "2"), // Skip over non-matching entry.
-                new Step(() => _history.GetNext(null), "1"), // Pattern isn't passed, so return to normal iteration.
-                new Step(() => _history.GetNext(null), null));
+            CheckHistoryText(_history.GetNext("2"), "2"); // Skip over non-matching entry.
+            CheckHistoryText(_history.GetNext(null), "1"); // Pattern isn't passed, so return to normal iteration.
+            CheckHistoryText(_history.GetNext(null), null);
         }
 
         [Fact]
@@ -235,16 +226,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         {
             AddEntries("start", "2b", "1b", "2a", "1a");
 
-            Test(
-                new Step(() => _history.GetPrevious(null), "1a"),
-                new Step(() => _history.GetPrevious(null), "2a"),
-                new Step(() => _history.GetPrevious(null), "1b"),
-                new Step(() => _history.GetPrevious(null), "2b"),
-                new Step(() => _history.GetPrevious(null), "start"),
+            CheckHistoryText(_history.GetPrevious(null), "1a");
+            CheckHistoryText(_history.GetPrevious(null), "2a");
+            CheckHistoryText(_history.GetPrevious(null), "1b");
+            CheckHistoryText(_history.GetPrevious(null), "2b");
+            CheckHistoryText(_history.GetPrevious(null), "start");
 
-                new Step(() => _history.GetNext("1"), "1b"), // Skip over non-matching entry.
-                new Step(() => _history.GetNext("2"), "2a"), // Skip over non-matching entry.
-                new Step(() => _history.GetNext("2"), null));
+            CheckHistoryText(_history.GetNext("1"), "1b"); // Skip over non-matching entry.
+            CheckHistoryText(_history.GetNext("2"), "2a"); // Skip over non-matching entry.
+            CheckHistoryText(_history.GetNext("2"), null);
         }
 
         private void AddEntries(params string[] entries)
@@ -277,32 +267,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             return history.Items.Select(e => e.Text);
         }
 
-        private void Test(params Step[] steps)
+        private void CheckHistoryText(History.Entry actualEntry, string expectedText)
         {
-            int i = 0;
-            foreach (var step in steps)
-            {
-                var actualEntry = step.Func();
-                var expected = step.ExpectedText;
-                var actual = actualEntry?.Text;
-                if (expected != actual)
-                {
-                    Assert.False(true, $"Step {i}: expected '{expected ?? "null"}', but found '{actual ?? "null"}'");
-                }
-                i++;
-            }
-        }
-
-        private struct Step
-        {
-            public readonly Func<History.Entry> Func;
-            public readonly string ExpectedText;
-
-            public Step(Func<History.Entry> func, string expectedText)
-            {
-                Func = func;
-                ExpectedText = expectedText;
-            }
+            Assert.Equal(expectedText, actualEntry?.Text);
         }
     }
 }
