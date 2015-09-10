@@ -14,11 +14,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
         Private ReadOnly semanticFacts As New VisualBasicSemanticFactsService()
 
         Protected Overrides Function SupportsReadOnlyProperties(compilation As Compilation) As Boolean
-            Return True
+            Return DirectCast(compilation, VisualBasicCompilation).LanguageVersion >= LanguageVersion.VisualBasic14
         End Function
 
         Protected Overrides Function SupportsPropertyInitializer(compilation As Compilation) As Boolean
-            Return True
+            Return DirectCast(compilation, VisualBasicCompilation).LanguageVersion >= LanguageVersion.VisualBasic10
         End Function
 
         Protected Overrides Sub RegisterIneligibleFieldsAction(context As CompilationStartAnalysisContext, ineligibleFields As ConcurrentBag(Of IFieldSymbol))

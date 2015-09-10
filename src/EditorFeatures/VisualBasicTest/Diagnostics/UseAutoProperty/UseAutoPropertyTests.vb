@@ -46,6 +46,27 @@ NewLines("class Class1 \n readonly property P as integer = 1 \n end class"))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        Public Sub TestInitializer_VB9()
+            TestMissing(
+NewLines("class Class1 \n dim [|i|] as Integer = 1 \n readonly property P as integer \n get \n return i \n end get \n end property \n end class"),
+            VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic9))
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        Public Sub TestReadOnlyField()
+            Test(
+NewLines("class Class1 \n [|readonly dim i as integer|] \n property P as integer \n get \n return i \n end get \n end property \n end class"),
+NewLines("class Class1 \n ReadOnly property P as integer \n end class"))
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        Public Sub TestReadOnlyField_VB12()
+            TestMissing(
+NewLines("class Class1 \n [|readonly dim i as integer|] \n property P as integer \n get \n return i \n end get \n end property \n end class"),
+            VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Sub TestDifferentValueName()
             Test(
 NewLines("class Class1 \n [|dim i as integer|] \n property P as Integer \n get \n return i \n end get \n set(v as integer) \n i = v \n end set \n end property \n end class"),
