@@ -10,10 +10,14 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
+    /// <summary>
+    /// Base implementation of ITableDataSource
+    /// </summary>
     internal abstract class AbstractTableDataSource<TData> : ITableDataSource
     {
         private readonly object _gate;
         private readonly Dictionary<object, TableEntriesFactory<TData>> _map;
+        private readonly Dictionary<object, object> _aggregateKeyMap;
 
         private ImmutableArray<SubscriptionWithoutLock> _subscriptions;
         protected bool IsStable;
@@ -22,6 +26,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             _gate = new object();
             _map = new Dictionary<object, TableEntriesFactory<TData>>();
+            _aggregateKeyMap = new Dictionary<object, object>();
+
             _subscriptions = ImmutableArray<SubscriptionWithoutLock>.Empty;
 
             Workspace = workspace;
@@ -63,11 +69,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        public abstract object GetItemKey(object data);
-        public abstract AbstractTableEntriesSource<TData> CreateTableEntrySource(object data);
         public abstract ImmutableArray<TableItem<TData>> Deduplicate(IEnumerable<IList<TableItem<TData>>> duplicatedGroups);
         public abstract ITrackingPoint CreateTrackingPoint(TData data, ITextSnapshot snapshot);
+        public abstract AbstractTableEntriesSnapshot<TData> CreateSnapshot(AbstractTableEntriesSource<TData> source, int version, ImmutableArray<TableItem<TData>> items, ImmutableArray<ITrackingPoint> trackingPoints);
 
+        /// <summary>
+        /// Get unique ID per given data such as DiagnosticUpdatedArgs or TodoUpdatedArgs.
+        /// Data contains multiple items belong to one logical chunk. and the Id represents this particular 
+        /// chunk of the data
+        /// </summary>
+        public abstract object GetItemKey(object data);
+
+        /// <summary>
+        /// Create TableEntriesSource for the given data.
+        /// </summary>
+        public abstract AbstractTableEntriesSource<TData> CreateTableEntriesSource(object data);
+
+        /// <summary>
+        /// Get unique ID for given data that will be used to find data whose items needed to be merged together.
+        /// 
+        /// for example, for linked files, data that belong to same physical file will be gathered and items that belong to
+        /// those data will be de-duplicated.
+        /// </summary>
         protected abstract object GetAggregationKey(object data);
 
         protected void OnDataAddedOrChanged(object data)
@@ -81,38 +104,60 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             lock (_gate)
             {
                 snapshot = _subscriptions;
-                GetOrCreateFactory(data, out factory, out newFactory);
+                GetOrCreateFactory_NoLock(data, out factory, out newFactory);
 
                 factory.OnDataAddedOrChanged(data);
-            }
 
-            for (var i = 0; i < snapshot.Length; i++)
-            {
-                snapshot[i].AddOrUpdate(factory, newFactory);
+                for (var i = 0; i < snapshot.Length; i++)
+                {
+                    snapshot[i].AddOrUpdate(factory, newFactory);
+                }
             }
         }
 
         protected void OnDataRemoved(object data)
         {
+            lock (_gate)
+            {
+                OnDataRemoved_NoLock(data);
+
+                RemoveAggregateKey_NoLock(data);
+            }
+        }
+
+        private void OnDataRemoved_NoLock(object data)
+        {
             ImmutableArray<SubscriptionWithoutLock> snapshot;
             TableEntriesFactory<TData> factory;
 
-            var key = GetAggregationKey(data);
-            lock (_gate)
+            var key = TryGetAggregateKey_NoLock(data);
+            if (key == null)
             {
-                snapshot = _subscriptions;
-                if (!_map.TryGetValue(key, out factory))
+                // never created before.
+                return;
+            }
+
+            snapshot = _subscriptions;
+            if (!_map.TryGetValue(key, out factory))
+            {
+                // never reported about this before
+                return;
+            }
+
+            // remove this particular item from map
+            if (!factory.OnDataRemoved(data))
+            {
+                // let error list know that factory has changed.
+                for (var i = 0; i < snapshot.Length; i++)
                 {
-                    // never reported about this before
-                    return;
+                    snapshot[i].AddOrUpdate(factory, false);
                 }
 
-                // remove it from map
-                if (factory.OnDataRemoved(data))
-                {
-                    _map.Remove(key);
-                }
+                return;
             }
+
+            // everything belong to the factory has removed. remove the factory
+            _map.Remove(key);
 
             // let table manager know that we want to clear the entries
             for (var i = 0; i < snapshot.Length; i++)
@@ -121,17 +166,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        private void GetOrCreateFactory(object data, out TableEntriesFactory<TData> factory, out bool newFactory)
+        private void GetOrCreateFactory_NoLock(object data, out TableEntriesFactory<TData> factory, out bool newFactory)
         {
-            var key = GetAggregationKey(data);
-
             newFactory = false;
+
+            var key = GetAggregationKey(data);
             if (_map.TryGetValue(key, out factory))
             {
                 return;
             }
 
-            var source = CreateTableEntrySource(data);
+            var source = CreateTableEntriesSource(data);
             factory = new TableEntriesFactory<TData>(this, source);
 
             _map.Add(key, factory);
@@ -174,6 +219,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     snapshot[i].AddOrUpdate(factory, newFactory: false);
                 }
             }
+        }
+
+        public object GetOrCreateAggregationKey_NoLock(object data, Func<object, object> aggregateKeyCreator)
+        {
+            object aggregateKey;
+            var key = GetItemKey(data);
+            if (_aggregateKeyMap.TryGetValue(key, out aggregateKey))
+            {
+                return aggregateKey;
+            }
+
+            aggregateKey = aggregateKeyCreator(data);
+            _aggregateKeyMap.Add(key, aggregateKey);
+
+            return aggregateKey;
+        }
+
+        private object TryGetAggregateKey_NoLock(object data)
+        {
+            object aggregateKey;
+            var key = GetItemKey(data);
+            if (_aggregateKeyMap.TryGetValue(key, out aggregateKey))
+            {
+                return aggregateKey;
+            }
+
+            return null;
+        }
+
+        private void RemoveAggregateKey_NoLock(object data)
+        {
+            _aggregateKeyMap.Remove(GetItemKey(data));
         }
 
         IDisposable ITableDataSource.Subscribe(ITableDataSink sink)

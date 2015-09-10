@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.EngineV1;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -57,9 +58,45 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return snapshot.CreateTrackingPoint(data.DataLocation?.OriginalStartLine ?? 0, data.DataLocation?.OriginalStartColumn ?? 0);
             }
 
+            public override AbstractTableEntriesSnapshot<DiagnosticData> CreateSnapshot(
+                AbstractTableEntriesSource<DiagnosticData> source,
+                int version,
+                ImmutableArray<TableItem<DiagnosticData>> items,
+                ImmutableArray<ITrackingPoint> trackingPoints)
+            {
+                var diagnosticSource = (DiagnosticTableEntriesSource)source;
+                var snapshot = new TableEntriesSnapshot(diagnosticSource, version, items, trackingPoints);
+
+                if (diagnosticSource.SupportSpanTracking && !trackingPoints.IsDefaultOrEmpty)
+                {
+                    // track the open document so that we can throw away tracking points on document close properly
+                    _tracker.TrackOpenDocument(diagnosticSource.TrackingDocumentId, diagnosticSource.Key, snapshot);
+                }
+
+                return snapshot;
+            }
+
             protected override object GetAggregationKey(object data)
             {
-                return ((DiagnosticsUpdatedArgs)data).Id;
+                return GetOrCreateAggregationKey_NoLock(data, CreateAggregationKey);
+            }
+
+            private object CreateAggregationKey(object data)
+            {
+                var args = (DiagnosticsUpdatedArgs)data;
+                if (args.DocumentId == null || args.Solution == null)
+                {
+                    return args.Id;
+                }
+
+                var argumentKey = args.Id as DiagnosticIncrementalAnalyzer.ArgumentKey;
+                if (argumentKey == null)
+                {
+                    return args.Id;
+                }
+
+                var documents = args.Solution.GetRelatedDocumentIds(args.DocumentId);
+                return ValueTuple.Create(documents, argumentKey.Analyzer, argumentKey.StateType);
             }
 
             private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
@@ -85,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 OnDataAddedOrChanged(e);
             }
 
-            public override AbstractTableEntriesSource<DiagnosticData> CreateTableEntrySource(object data)
+            public override AbstractTableEntriesSource<DiagnosticData> CreateTableEntriesSource(object data)
             {
                 var item = (DiagnosticsUpdatedArgs)data;
                 return new TableEntriesSource(this, item.Workspace, item.ProjectId, item.DocumentId, item.Id);
@@ -107,7 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                    .ThenBy(d => d.Primary.DataLocation?.OriginalEndColumn ?? 0);
             }
 
-            private class TableEntriesSource : AbstractTableEntriesSource<DiagnosticData>
+            private class TableEntriesSource : DiagnosticTableEntriesSource
             {
                 private readonly LiveTableDataSource _source;
                 private readonly Workspace _workspace;
@@ -127,6 +164,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
 
                 public override object Key => _id;
+                public override string BuildTool => _buildTool;
+                public override bool SupportSpanTracking => _documentId != null;
+                public override DocumentId TrackingDocumentId => _documentId;
 
                 public override ImmutableArray<TableItem<DiagnosticData>> GetItems()
                 {
@@ -142,20 +182,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return _workspace.CreateTrackingPoints(_documentId, items, _source.CreateTrackingPoint);
                 }
 
-                public override AbstractTableEntriesSnapshot<DiagnosticData> CreateSnapshot(
-                    int version, ImmutableArray<TableItem<DiagnosticData>> items, ImmutableArray<ITrackingPoint> trackingPoints)
-                {
-                    var snapshot = new TableEntriesSnapshot(this, version, items, trackingPoints);
-
-                    if (_documentId != null && !trackingPoints.IsDefaultOrEmpty)
-                    {
-                        // track the open document so that we can throw away tracking points on document close properly
-                        _source._tracker.TrackOpenDocument(_documentId, _id, snapshot);
-                    }
-
-                    return snapshot;
-                }
-
                 private int GenerateDeduplicationKey(DiagnosticData diagnostic)
                 {
                     if (diagnostic.DataLocation == null)
@@ -169,138 +195,122 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                            Hash.Combine(diagnostic.DataLocation.OriginalEndLine,
                            Hash.Combine(diagnostic.Id.GetHashCode(), diagnostic.Message.GetHashCode())))));
                 }
+            }
 
-                private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<DiagnosticData>, IWpfTableEntriesSnapshot
+            private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<DiagnosticData>, IWpfTableEntriesSnapshot
+            {
+                private readonly DiagnosticTableEntriesSource _source;
+                private FrameworkElement[] _descriptions;
+
+                public TableEntriesSnapshot(
+                    DiagnosticTableEntriesSource source, int version, ImmutableArray<TableItem<DiagnosticData>> items, ImmutableArray<ITrackingPoint> trackingPoints) :
+                    base(version, items, trackingPoints)
                 {
-                    private readonly TableEntriesSource _factorySource;
-                    private FrameworkElement[] _descriptions;
+                    _source = source;
+                }
 
-                    public TableEntriesSnapshot(
-                        TableEntriesSource factorySource, int version, ImmutableArray<TableItem<DiagnosticData>> items, ImmutableArray<ITrackingPoint> trackingPoints) :
-                        base(version, GetProjectGuid(factorySource._workspace, factorySource._projectId), items, trackingPoints)
+                public override bool TryGetValue(int index, string columnName, out object content)
+                {
+                    // REVIEW: this method is too-chatty to make async, but otherwise, how one can implement it async?
+                    //         also, what is cancellation mechanism?
+                    var item = GetItem(index);
+
+                    var data = item.Primary;
+                    if (data == null)
                     {
-                        _factorySource = factorySource;
+                        content = null;
+                        return false;
                     }
 
-                    public override bool TryGetValue(int index, string columnName, out object content)
+                    switch (columnName)
                     {
-                        // REVIEW: this method is too-chatty to make async, but otherwise, how one can implement it async?
-                        //         also, what is cancellation mechanism?
-                        var data = GetItem(index);
-
-                        var item = data.Primary;
-                        if (item == null)
-                        {
+                        case StandardTableKeyNames.ErrorRank:
+                            content = GetErrorRank(data);
+                            return true;
+                        case StandardTableKeyNames.ErrorSeverity:
+                            content = GetErrorCategory(data.Severity);
+                            return true;
+                        case StandardTableKeyNames.ErrorCode:
+                            content = data.Id;
+                            return true;
+                        case StandardTableKeyNames.ErrorCodeToolTip:
+                            content = GetHelpLinkToolTipText(data);
+                            return content != null;
+                        case StandardTableKeyNames.HelpLink:
+                            content = GetHelpLink(data);
+                            return content != null;
+                        case StandardTableKeyNames.ErrorCategory:
+                            content = data.Category;
+                            return true;
+                        case StandardTableKeyNames.ErrorSource:
+                            content = GetErrorSource(_source.BuildTool);
+                            return true;
+                        case StandardTableKeyNames.BuildTool:
+                            content = GetBuildTool(_source.BuildTool);
+                            return content != null;
+                        case StandardTableKeyNames.Text:
+                            content = data.Message;
+                            return true;
+                        case StandardTableKeyNames.DocumentName:
+                            content = GetFileName(data.DataLocation?.OriginalFilePath, data.DataLocation?.MappedFilePath);
+                            return true;
+                        case StandardTableKeyNames.Line:
+                            content = data.DataLocation?.MappedStartLine ?? 0;
+                            return true;
+                        case StandardTableKeyNames.Column:
+                            content = data.DataLocation?.MappedStartColumn ?? 0;
+                            return true;
+                        case StandardTableKeyNames.ProjectName:
+                            content = item.ProjectName;
+                            return content != null;
+                        case ProjectNames:
+                            content = item.ProjectNames;
+                            return ((string[])content).Length > 0;
+                        case StandardTableKeyNames.ProjectGuid:
+                            content = item.ProjectGuid;
+                            return (Guid)content != Guid.Empty;
+                        case ProjectGuids:
+                            content = item.ProjectGuids;
+                            return ((Guid[])content).Length > 0;
+                        default:
                             content = null;
                             return false;
-                        }
+                    }
+                }
 
-                        switch (columnName)
-                        {
-                            case StandardTableKeyNames.ErrorRank:
-                                content = GetErrorRank(item);
-                                return true;
-                            case StandardTableKeyNames.ErrorSeverity:
-                                content = GetErrorCategory(item.Severity);
-                                return true;
-                            case StandardTableKeyNames.ErrorCode:
-                                content = item.Id;
-                                return true;
-                            case StandardTableKeyNames.ErrorCodeToolTip:
-                                content = GetHelpLinkToolTipText(item);
-                                return content != null;
-                            case StandardTableKeyNames.HelpLink:
-                                content = GetHelpLink(item);
-                                return content != null;
-                            case StandardTableKeyNames.ErrorCategory:
-                                content = item.Category;
-                                return true;
-                            case StandardTableKeyNames.ErrorSource:
-                                content = GetErrorSource(_factorySource._buildTool);
-                                return true;
-                            case StandardTableKeyNames.BuildTool:
-                                content = GetBuildTool(_factorySource._buildTool);
-                                return content != null;
-                            case StandardTableKeyNames.Text:
-                                content = item.Message;
-                                return true;
-                            case StandardTableKeyNames.DocumentName:
-                                content = GetFileName(item.DataLocation?.OriginalFilePath, item.DataLocation?.MappedFilePath);
-                                return true;
-                            case StandardTableKeyNames.Line:
-                                content = item.DataLocation?.MappedStartLine ?? 0;
-                                return true;
-                            case StandardTableKeyNames.Column:
-                                content = item.DataLocation?.MappedStartColumn ?? 0;
-                                return true;
-                            case StandardTableKeyNames.ProjectName:
-                                // TODO: need to change projectId from item
-                                content = GetProjectName(_factorySource._workspace, _factorySource._projectId);
-                                return content != null;
-                            case StandardTableKeyNames.ProjectGuid:
-                                // TODO: need to change projectGuid from item
-                                content = ProjectGuid;
-                                return ProjectGuid != Guid.Empty;
-                            default:
-                                content = null;
-                                return false;
-                        }
+                private string GetBuildTool(string buildTool)
+                {
+                    // for build tool, regardless where error is coming from ("build" or "live"), 
+                    // we show "compiler" to users.
+                    if (buildTool == PredefinedBuildTools.Live)
+                    {
+                        return PredefinedBuildTools.Build;
                     }
 
-                    private string GetBuildTool(string buildTool)
-                    {
-                        // for build tool, regardless where error is coming from ("build" or "live"), 
-                        // we show "compiler" to users.
-                        if (buildTool == PredefinedBuildTools.Live)
-                        {
-                            return PredefinedBuildTools.Build;
-                        }
+                    return _source.BuildTool;
+                }
 
-                        return _factorySource._buildTool;
+                private ErrorSource GetErrorSource(string buildTool)
+                {
+                    if (buildTool == PredefinedBuildTools.Build)
+                    {
+                        return ErrorSource.Build;
                     }
 
-                    private ErrorSource GetErrorSource(string buildTool)
-                    {
-                        if (buildTool == PredefinedBuildTools.Build)
-                        {
-                            return ErrorSource.Build;
-                        }
+                    return ErrorSource.Other;
+                }
 
-                        return ErrorSource.Other;
+                private ErrorRank GetErrorRank(DiagnosticData item)
+                {
+                    string value;
+                    if (!item.Properties.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, out value))
+                    {
+                        return ErrorRank.Other;
                     }
 
-                    private ErrorRank GetErrorRank(DiagnosticData item)
+                    switch (value)
                     {
-                        string value;
-                        if (!item.Properties.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, out value))
-                        {
-                            return ErrorRank.Other;
-                        }
-
-                        switch (value)
-                        {
-                            case WellKnownDiagnosticTags.Build:
-                                // any error from build is highest priority
-                                return ErrorRank.Lexical;
-                            case nameof(ErrorRank.Lexical):
-                                return ErrorRank.Lexical;
-                            case nameof(ErrorRank.Syntactic):
-                                return ErrorRank.Syntactic;
-                            case nameof(ErrorRank.Declaration):
-                                return ErrorRank.Declaration;
-                            case nameof(ErrorRank.Semantic):
-                                return ErrorRank.Semantic;
-                            case nameof(ErrorRank.Emit):
-                                return ErrorRank.Emit;
-                            case nameof(ErrorRank.PostBuild):
-                                return ErrorRank.PostBuild;
-                            default:
-                                return ErrorRank.Other;
-                        }
-                    }
-
-                    public override bool TryNavigateTo(int index, bool previewTab)
-                    {
+<<<<<<< HEAD
                         // this item is not navigatable
                         if (_factorySource._documentId == null)
                         {
@@ -325,126 +335,169 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 =======
                         return TryNavigateTo(_factorySource._workspace, _factorySource._documentId, item.OriginalStartLine, item.OriginalStartColumn, previewTab);
 >>>>>>> 8e58be7... introduced tableEntrySource which takes part of responsibility of TableEntryFactory
+=======
+                        case WellKnownDiagnosticTags.Build:
+                            // any error from build is highest priority
+                            return ErrorRank.Lexical;
+                        case nameof(ErrorRank.Lexical):
+                            return ErrorRank.Lexical;
+                        case nameof(ErrorRank.Syntactic):
+                            return ErrorRank.Syntactic;
+                        case nameof(ErrorRank.Declaration):
+                            return ErrorRank.Declaration;
+                        case nameof(ErrorRank.Semantic):
+                            return ErrorRank.Semantic;
+                        case nameof(ErrorRank.Emit):
+                            return ErrorRank.Emit;
+                        case nameof(ErrorRank.PostBuild):
+                            return ErrorRank.PostBuild;
+                        default:
+                            return ErrorRank.Other;
+>>>>>>> b24d6bf... added support for snapshot creation
                     }
-
-                    protected override bool IsEquivalent(DiagnosticData item1, DiagnosticData item2)
-                    {
-                        // everything same except location
-                        return item1.Id == item2.Id &&
-                               item1.ProjectId == item2.ProjectId &&
-                               item1.DocumentId == item2.DocumentId &&
-                               item1.Category == item2.Category &&
-                               item1.Severity == item2.Severity &&
-                               item1.WarningLevel == item2.WarningLevel &&
-                               item1.Message == item2.Message;
-                    }
-
-                    #region IWpfTableEntriesSnapshot
-
-                    public bool CanCreateDetailsContent(int index)
-                    {
-                        var item = GetItem(index).Primary;
-                        if (item == null)
-                        {
-                            return false;
-                        }
-
-                        return !string.IsNullOrWhiteSpace(item.Description);
-                    }
-
-                    public bool TryCreateDetailsContent(int index, out FrameworkElement expandedContent)
-                    {
-                        var item = GetItem(index).Primary;
-                        if (item == null)
-                        {
-                            expandedContent = default(FrameworkElement);
-                            return false;
-                        }
-
-                        expandedContent = GetOrCreateTextBlock(ref _descriptions, this.Count, index, item, i => GetDescriptionTextBlock(i));
-                        return true;
-                    }
-
-                    public bool TryCreateDetailsStringContent(int index, out string content)
-                    {
-                        var item = GetItem(index).Primary;
-                        if (item == null)
-                        {
-                            content = default(string);
-                            return false;
-                        }
-
-                        if (string.IsNullOrWhiteSpace(item.Description))
-                        {
-                            content = default(string);
-                            return false;
-                        }
-
-                        content = item.Description;
-                        return true;
-                    }
-
-                    private static FrameworkElement GetDescriptionTextBlock(DiagnosticData item)
-                    {
-                        return new TextBlock()
-                        {
-                            Background = null,
-                            Padding = new Thickness(10, 6, 10, 8),
-                            TextWrapping = TextWrapping.Wrap,
-                            Text = item.Description
-                        };
-                    }
-
-                    private static FrameworkElement GetOrCreateTextBlock(
-                        ref FrameworkElement[] caches, int count, int index, DiagnosticData item, Func<DiagnosticData, FrameworkElement> elementCreator)
-                    {
-                        if (caches == null)
-                        {
-                            caches = new FrameworkElement[count];
-                        }
-
-                        if (caches[index] == null)
-                        {
-                            caches[index] = elementCreator(item);
-                        }
-
-                        return caches[index];
-                    }
-
-                    // unused ones                    
-                    public bool TryCreateColumnContent(int index, string columnName, bool singleColumnView, out FrameworkElement content)
-                    {
-                        content = default(FrameworkElement);
-                        return false;
-                    }
-
-                    public bool TryCreateImageContent(int index, string columnName, bool singleColumnView, out ImageMoniker content)
-                    {
-                        content = default(ImageMoniker);
-                        return false;
-                    }
-
-                    public bool TryCreateStringContent(int index, string columnName, bool truncatedText, bool singleColumnView, out string content)
-                    {
-                        content = default(string);
-                        return false;
-                    }
-
-                    public bool TryCreateToolTip(int index, string columnName, out object toolTip)
-                    {
-                        toolTip = default(object);
-                        return false;
-                    }
-
-                    // remove this once we moved to new drop
-                    public bool TryCreateStringContent(int index, string columnName, bool singleColumnView, out string content)
-                    {
-                        content = default(string);
-                        return false;
-                    }
-
-                    #endregion
                 }
+
+                public override bool TryNavigateTo(int index, bool previewTab)
+                {
+                    var item = GetItem(index).Primary;
+                    if (item == null)
+                    {
+                        return false;
+                    }
+
+                    // this item is not navigatable
+                    if (item.DocumentId == null)
+                    {
+                        return false;
+                    }
+
+                    var trackingLinePosition = GetTrackingLineColumn(item.Workspace, item.DocumentId, index);
+                    if (trackingLinePosition != LinePosition.Zero)
+                    {
+                        return TryNavigateTo(item.Workspace, item.DocumentId, trackingLinePosition.Line, trackingLinePosition.Character, previewTab);
+                    }
+
+                    return TryNavigateTo(item.Workspace, item.DocumentId,
+                                         item.DataLocation?.OriginalStartLine ?? 0, item.DataLocation?.OriginalStartColumn ?? 0, previewTab);
+                }
+
+                protected override bool IsEquivalent(DiagnosticData item1, DiagnosticData item2)
+                {
+                    // everything same except location
+                    return item1.Id == item2.Id &&
+                           item1.ProjectId == item2.ProjectId &&
+                           item1.DocumentId == item2.DocumentId &&
+                           item1.Category == item2.Category &&
+                           item1.Severity == item2.Severity &&
+                           item1.WarningLevel == item2.WarningLevel &&
+                           item1.Message == item2.Message;
+                }
+
+                #region IWpfTableEntriesSnapshot
+
+                public bool CanCreateDetailsContent(int index)
+                {
+                    var item = GetItem(index).Primary;
+                    if (item == null)
+                    {
+                        return false;
+                    }
+
+                    return !string.IsNullOrWhiteSpace(item.Description);
+                }
+
+                public bool TryCreateDetailsContent(int index, out FrameworkElement expandedContent)
+                {
+                    var item = GetItem(index).Primary;
+                    if (item == null)
+                    {
+                        expandedContent = default(FrameworkElement);
+                        return false;
+                    }
+
+                    expandedContent = GetOrCreateTextBlock(ref _descriptions, this.Count, index, item, i => GetDescriptionTextBlock(i));
+                    return true;
+                }
+
+                public bool TryCreateDetailsStringContent(int index, out string content)
+                {
+                    var item = GetItem(index).Primary;
+                    if (item == null)
+                    {
+                        content = default(string);
+                        return false;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(item.Description))
+                    {
+                        content = default(string);
+                        return false;
+                    }
+
+                    content = item.Description;
+                    return true;
+                }
+
+                private static FrameworkElement GetDescriptionTextBlock(DiagnosticData item)
+                {
+                    return new TextBlock()
+                    {
+                        Background = null,
+                        Padding = new Thickness(10, 6, 10, 8),
+                        TextWrapping = TextWrapping.Wrap,
+                        Text = item.Description
+                    };
+                }
+
+                private static FrameworkElement GetOrCreateTextBlock(
+                    ref FrameworkElement[] caches, int count, int index, DiagnosticData item, Func<DiagnosticData, FrameworkElement> elementCreator)
+                {
+                    if (caches == null)
+                    {
+                        caches = new FrameworkElement[count];
+                    }
+
+                    if (caches[index] == null)
+                    {
+                        caches[index] = elementCreator(item);
+                    }
+
+                    return caches[index];
+                }
+
+                // unused ones                    
+                public bool TryCreateColumnContent(int index, string columnName, bool singleColumnView, out FrameworkElement content)
+                {
+                    content = default(FrameworkElement);
+                    return false;
+                }
+
+                public bool TryCreateImageContent(int index, string columnName, bool singleColumnView, out ImageMoniker content)
+                {
+                    content = default(ImageMoniker);
+                    return false;
+                }
+
+                public bool TryCreateStringContent(int index, string columnName, bool truncatedText, bool singleColumnView, out string content)
+                {
+                    content = default(string);
+                    return false;
+                }
+
+                public bool TryCreateToolTip(int index, string columnName, out object toolTip)
+                {
+                    toolTip = default(object);
+                    return false;
+                }
+
+                // remove this once we moved to new drop
+                public bool TryCreateStringContent(int index, string columnName, bool singleColumnView, out string content)
+                {
+                    content = default(string);
+                    return false;
+                }
+
+                #endregion
             }
         }
     }

@@ -7,6 +7,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
+    /// <summary>
+    /// Base implementation of new platform table. this knows how to create various ITableDataSource and connect
+    /// them to ITableManagerProvider
+    /// </summary>
     internal abstract class AbstractTable
     {
         private readonly Workspace _workspace;

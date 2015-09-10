@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             // Make things to be deterministic. 
             // * There must be at least 1 item in the list
             // * If code reached here, there must be document id
-            var first = duplicatedItems.OrderBy(d => GetDocumentId(d).ProjectId.Id).First();
+            var first = duplicatedItems.OrderBy(i => GetDocumentId(i.Primary).ProjectId.Id).First();
             var documentIds = ImmutableHashSet.CreateRange(duplicatedItems.Select(i => GetDocumentId(i.Primary)));
 
             return new TableItem<T>(first.Primary, first.DeduplicationKey, documentIds);
@@ -136,6 +136,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             Contract.ThrowIfNull(todo);
 
             return todo.DocumentId;
+        }
+
+        public static Workspace GetWorkspace<T>(T item)
+        {
+            // item must be either one of diagnostic data and todo item
+            var diagnostic = item as DiagnosticData;
+            if (diagnostic != null)
+            {
+                return diagnostic.Workspace;
+            }
+
+            var todo = item as TodoItem;
+            Contract.ThrowIfNull(todo);
+
+            return todo.Workspace;
         }
     }
 }

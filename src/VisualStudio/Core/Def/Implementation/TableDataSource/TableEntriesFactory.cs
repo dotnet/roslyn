@@ -130,8 +130,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private readonly EntriesSourceCollections _sources;
             private readonly AbstractTableDataSource<TData> _tableSource;
 
-            private readonly AbstractTableEntriesSnapshot<TData> _lastSnapshot;
-
             public AggregatedEntriesSource(AbstractTableDataSource<TData> tableSource, AbstractTableEntriesSource<TData> primary)
             {
                 _tableSource = tableSource;
@@ -184,48 +182,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             {
                 if (_sources.Primary != null)
                 {
-                    return _sources.Primary.CreateSnapshot(version, items, trackingPoints);
+                    return _tableSource.CreateSnapshot(_sources.Primary, version, items, trackingPoints);
                 }
 
-                return new AggregatedSnapshot(version, items, trackingPoints);
+                return _tableSource.CreateSnapshot(_sources.GetSources().First(), version, items, trackingPoints);
             }
 
-            private class AggregatedSnapshot : AbstractTableEntriesSnapshot<TData>
-            {
-                private readonly int version;
-                private readonly ImmutableArray<TableItem<TData>> items;
-                private readonly ImmutableArray<ITrackingPoint> trackingPoints;
-
-                public AggregatedSnapshot(int version, ImmutableArray<TableItem<TData>> items, ImmutableArray<ITrackingPoint> trackingPoints) :
-                    base(version, Guid.Empty, items, trackingPoints)
-                {
-                    this.version = version;
-                    this.items = items;
-                    this.trackingPoints = trackingPoints;
-                }
-
-                public override bool TryGetValue(int index, string columnName, out object content)
-                {
-                    throw new NotImplementedException();
-                }
-
-                public override bool TryNavigateTo(int index, bool previewTab)
-                {
-                    throw new NotImplementedException();
-                }
-
-                protected override bool IsEquivalent(TData item1, TData item2)
-                {
-                    throw new NotImplementedException();
-                }
-            }
-
-            private struct EntriesSourceCollections
+            private class EntriesSourceCollections
             {
                 private AbstractTableEntriesSource<TData> _primary;
                 private Dictionary<object, AbstractTableEntriesSource<TData>> _sources;
 
-                public EntriesSourceCollections(AbstractTableEntriesSource<TData> primary) : this()
+                public EntriesSourceCollections(AbstractTableEntriesSource<TData> primary)
                 {
                     _primary = primary;
                 }
@@ -241,7 +209,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                         if (_sources.Count == 1)
                         {
-                            return _sources[0];
+                            return _sources.Values.First();
                         }
 
                         return null;
@@ -267,7 +235,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 public void OnDataAddedOrChanged(object data, AbstractTableDataSource<TData> tableSource)
                 {
                     var key = tableSource.GetItemKey(data);
-                    if (_primary != null && _primary.Key == key)
+                    if (_primary != null && _primary.Key.Equals(key))
                     {
                         return;
                     }
@@ -282,14 +250,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                     EnsureSources();
 
-                    var source = tableSource.CreateTableEntrySource(data);
+                    var source = tableSource.CreateTableEntriesSource(data);
                     _sources.Add(source.Key, source);
                 }
 
                 public bool OnDataRemoved(object data, AbstractTableDataSource<TData> tableSource)
                 {
                     var key = tableSource.GetItemKey(data);
-                    if (_primary != null && _primary.Key == key)
+                    if (_primary != null && _primary.Key.Equals(key))
                     {
                         return true;
                     }

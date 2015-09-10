@@ -6,6 +6,9 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
+    /// <summary>
+    /// A version of ITableDataSource who knows how to connect them to Roslyn solution crawler for live information.
+    /// </summary>
     internal abstract class AbstractRoslynTableDataSource<TData> : AbstractTableDataSource<TData>
     {
         public AbstractRoslynTableDataSource(Workspace workspace) : base(workspace)
