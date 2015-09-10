@@ -72,13 +72,11 @@ restore_nuget()
 
     rm $package_name 2>/dev/null
     curl -O https://dotnetci.blob.core.windows.net/roslyn/$package_name
-    unzip -foq $package_name -d ~/
+    unzip -uoq $package_name -d ~/
     if [ $? -ne 0 ]; then
         echo "Unable to download NuGet packages"
         exit 1
     fi
-
-    rm $package_name 2>/dev/null
 
     popd
 }
