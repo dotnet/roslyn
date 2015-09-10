@@ -209,6 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.WhitespaceTrivia:
                 case SyntaxKind.SingleLineCommentTrivia:
                 case SyntaxKind.MultiLineCommentTrivia:
+                case SyntaxKind.ShebangTrivia:
                 case SyntaxKind.SingleLineDocumentationCommentTrivia:
                 case SyntaxKind.MultiLineDocumentationCommentTrivia:
                 case SyntaxKind.DisabledTextTrivia:
@@ -237,6 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.PragmaWarningDirectiveTrivia:
                 case SyntaxKind.PragmaChecksumDirectiveTrivia:
                 case SyntaxKind.ReferenceDirectiveTrivia:
+                case SyntaxKind.LoadDirectiveTrivia:
                 case SyntaxKind.BadDirectiveTrivia:
                     return true;
                 default:

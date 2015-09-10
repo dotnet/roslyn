@@ -345,8 +345,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
                 Return False
             ElseIf currentOriginalNode.Kind = SyntaxKind.CollectionInitializer Then
-                Return previousOriginalNode IsNot Nothing AndAlso
+                Return _
+                    previousOriginalNode IsNot Nothing AndAlso
                     ReplacementBreaksCollectionInitializerAddMethod(DirectCast(previousOriginalNode, ExpressionSyntax), DirectCast(previousReplacedNode, ExpressionSyntax))
+            ElseIf currentOriginalNode.Kind = SyntaxKind.Interpolation Then
+                Dim orignalInterpolation = DirectCast(currentOriginalNode, InterpolationSyntax)
+                Dim newInterpolation = DirectCast(currentReplacedNode, InterpolationSyntax)
+
+                Return ReplacementBreaksInterpolation(orignalInterpolation, newInterpolation)
             Else
                 Dim originalCollectionRangeVariableSyntax = TryCast(currentOriginalNode, CollectionRangeVariableSyntax)
                 If originalCollectionRangeVariableSyntax IsNot Nothing Then
@@ -475,10 +481,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         End Function
 
         Private Function ReplacementBreaksConditionalAccessExpression(conditionalAccessExpression As ConditionalAccessExpressionSyntax, newConditionalAccessExpression As ConditionalAccessExpressionSyntax) As Boolean
-            Return Not SymbolsAreCompatible(conditionalAccessExpression, newConditionalAccessExpression) OrElse
+            Return _
+                Not SymbolsAreCompatible(conditionalAccessExpression, newConditionalAccessExpression) OrElse
                 Not TypesAreCompatible(conditionalAccessExpression, newConditionalAccessExpression) OrElse
                 Not SymbolsAreCompatible(conditionalAccessExpression.WhenNotNull, newConditionalAccessExpression.WhenNotNull) OrElse
                 Not TypesAreCompatible(conditionalAccessExpression.WhenNotNull, newConditionalAccessExpression.WhenNotNull)
+        End Function
+
+        Private Function ReplacementBreaksInterpolation(interpolation As InterpolationSyntax, newInterpolation As InterpolationSyntax) As Boolean
+            Return Not TypesAreCompatible(interpolation.Expression, newInterpolation.Expression)
         End Function
 
         Protected Overrides Function GetForEachStatementExpression(forEachStatement As ForEachStatementSyntax) As ExpressionSyntax

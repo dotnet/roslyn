@@ -236,18 +236,22 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 
         private static readonly string[] s_shortcutDescriptions = new[]
         {
-"Enter                Evaluate the current input if it appears to be complete.",
-"Ctrl-Enter           If the caret is in current pending input submission, evaluate the entire submission.",
-"                     If the caret is in a previous input block, copy that input text to the end of the buffer.",
-"Shift-Enter          If the caret is in the current pending input submission, insert a new line.",
-"Escape               If the caret is in the current pending input submission, delete the entire submission.",
-"Alt-UpArrow          Paste previous input at end of buffer, rotate through history.",
-"Alt-DownArrow        Paste next input at end of buffer, rotate through history.",
-"UpArrow              Normal editor buffer navigation.",
-"DownArrow            Normal editor buffer navigation.",
+"Enter                If the current submission appears to be complete, evaluate it.  Otherwise, insert a new line.",
+"Ctrl-Enter           Within the current submission, evaluate the current submission.",
+"                     Within a previous submission, append the previous submission to the current submission.",
+"Shift-Enter          Insert a new line.",
+"Escape               Clear the current submission.",
+"Alt-UpArrow          Replace the current submission with a previous submission.",
+"Alt-DownArrow        Replace the current submission with a subsequent submission (after having previously navigated backwards).",
+"Ctrl-Alt-UpArrow     Replace the current submission with a previous submission beginning with the same text.",
+"Ctrl-Alt-DownArrow   Replace the current submission with a subsequent submission beginning with the same text (after having previously navigated backwards).",
+"UpArrow              At the end of the current submission, replace the current submission with a previous submission.",
+"                     Elsewhere, move the cursor up one line.",
+"DownArrow            At the end of the current submission, replace the current submission with a subsequent submission (after having previously navigated backwards).",
+"                     Elsewhere, move the cursor down one line.",
 "Ctrl-K, Ctrl-Enter   Paste the selection at the end of interactive buffer, leave caret at the end of input.",
 "Ctrl-E, Ctrl-Enter   Paste and execute the selection before any pending input in the interactive buffer.",
-"Ctrl-A               Alternatively select the input block containing the caret, or whole buffer.",
+"Ctrl-A               First press, select the submission containing the cursor.  Second press, select all text in the window.",
         };
 
         public void DisplayHelp()

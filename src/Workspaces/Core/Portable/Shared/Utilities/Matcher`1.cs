@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
@@ -29,9 +28,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return Sequence(matcher, Repeat(matcher));
         }
 
-        internal static Matcher<T> Choice(Matcher<T> matcher1, Matcher<T> matcher2)
+        internal static Matcher<T> Choice(params Matcher<T>[] matchers)
         {
-            return new ChoiceMatcher(matcher1, matcher2);
+            return new ChoiceMatcher(matchers);
         }
 
         internal static Matcher<T> Sequence(params Matcher<T>[] matchers)

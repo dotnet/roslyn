@@ -634,7 +634,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private bool CanHandleReturnLabel(BoundReturnStatement boundReturnStatement)
         {
             return boundReturnStatement.WasCompilerGenerated &&
-                    (boundReturnStatement.Syntax.Kind() == SyntaxKind.Block || (((object)_method != null) && _method.IsImplicitConstructor)) &&
+                    (boundReturnStatement.Syntax.IsKind(SyntaxKind.Block) || _method?.IsImplicitConstructor == true) &&
                     !_builder.InExceptionHandler;
         }
 

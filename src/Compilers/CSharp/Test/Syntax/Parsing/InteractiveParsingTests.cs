@@ -8446,7 +8446,7 @@ p class A
             Assert.Empty(root.ChildNodes());
             var eof = root.EndOfFileToken;
             Assert.Equal(SyntaxKind.EndOfFileToken, eof.Kind());
-            Assert.Equal(SyntaxKind.ShebangCommentTrivia, eof.GetLeadingTrivia().Single().Kind());
+            Assert.Equal(SyntaxKind.ShebangTrivia, eof.GetLeadingTrivia().Single().Kind());
 
             tree = ParseAndValidate("#! /usr/bin/env scriptcs\r\n ", TestOptions.Script);
             root = tree.GetCompilationUnitRoot();
@@ -8456,7 +8456,7 @@ p class A
             Assert.Equal(SyntaxKind.EndOfFileToken, eof.Kind());
             var leading = eof.GetLeadingTrivia().ToArray();
             Assert.Equal(3, leading.Length);
-            Assert.Equal(SyntaxKind.ShebangCommentTrivia, leading[0].Kind());
+            Assert.Equal(SyntaxKind.ShebangTrivia, leading[0].Kind());
             Assert.Equal(SyntaxKind.EndOfLineTrivia, leading[1].Kind());
             Assert.Equal(SyntaxKind.WhitespaceTrivia, leading[2].Kind());
 
@@ -8469,7 +8469,7 @@ Console.WriteLine(""Hi!"");", TestOptions.Script);
             Assert.Equal(SyntaxKind.GlobalStatement, statement.Kind());
             leading = statement.GetLeadingTrivia().ToArray();
             Assert.Equal(2, leading.Length);
-            Assert.Equal(SyntaxKind.ShebangCommentTrivia, leading[0].Kind());
+            Assert.Equal(SyntaxKind.ShebangTrivia, leading[0].Kind());
             Assert.Equal(SyntaxKind.EndOfLineTrivia, leading[1].Kind());
         }
 

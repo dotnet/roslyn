@@ -3,15 +3,15 @@
 using System;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
     /// <summary>
     /// Represents a shadow copy of a single file.
     /// </summary>
     public sealed class ShadowCopy
     {
-        private readonly string _originalPath;
-        private readonly string _fullPath;
+        public string OriginalPath { get; }
+        public string FullPath { get; }
 
         // Keeps the file locked until it's closed.
         // We need to hold on the stream to prevent it from closing the underlying file handle. The stream should not be used for reading the file content.
@@ -25,18 +25,8 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(fullPath != null);
 
             _stream = stream;
-            _originalPath = originalPath;
-            _fullPath = fullPath;
-        }
-
-        public string FullPath
-        {
-            get { return _fullPath; }
-        }
-
-        public string OriginalPath
-        {
-            get { return _originalPath; }
+            OriginalPath = originalPath;
+            FullPath = fullPath;
         }
 
         // keep this internal so that users can't delete files that the provider manages
