@@ -11,30 +11,17 @@ namespace RunTests
 {
     public sealed class ProcessOutput
     {
-        private readonly int _exitCode;
-        private readonly IList<string> _outputLines;
-        private readonly IList<string> _errorLines;
+        public int ExitCode { get; }
 
-        public int ExitCode
-        {
-            get { return _exitCode; }
-        }
+        public IList<string> OutputLines { get; }
 
-        public IList<string> OutputLines
-        {
-            get { return _outputLines; }
-        }
-
-        public IList<string> ErrorLines
-        {
-            get { return _errorLines; }
-        }
+        public IList<string> ErrorLines { get; }
 
         public ProcessOutput(int exitCode, IList<string> outputLines, IList<string> errorLines)
         {
-            _exitCode = exitCode;
-            _outputLines = outputLines;
-            _errorLines = errorLines;
+            ExitCode = exitCode;
+            OutputLines = outputLines;
+            ErrorLines = errorLines;
         }
     }
 

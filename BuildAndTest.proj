@@ -11,6 +11,7 @@
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <RunTestArgs Condition="'$(ManualTest)' == ''">$(RunTestArgs) -xml</RunTestArgs>
     <RunTestArgs Condition="'$(Test64)' == 'true'">$(RunTestArgs) -test64</RunTestArgs>
+    <CoreIncludePattern Condition="'$(CoreIncludePattern)' == ''">*.Core.UnitTests.dll</CoreIncludePattern>
     <IncludePattern Condition="'$(IncludePattern)' == ''">*.UnitTests*.dll</IncludePattern>
     <OutputDirectory>Binaries\$(Configuration)</OutputDirectory>
     <NuGetPackageRoot>$(UserProfile)\.nuget\packages</NuGetPackageRoot>
@@ -65,10 +66,24 @@
           UseHardlinksIfPossible="true" />
 
     <ItemGroup>
-      <TestAssemblies Include="$(OutputDirectory)\**\$(IncludePattern)" />
+      <Xunit2TestAssemblies Include="$(OutputDirectory)\$(CoreIncludePattern)" />
+      <DesktopTestAssemblies Include="$(OutputDirectory)\$(IncludePattern)" Exclude="@(Xunit2TestAssemblies)" />
+      <CoreTestAssemblies Include="$(OutputDirectory)\core-clr\$(CoreIncludePattern)" />
     </ItemGroup>
 
-    <Exec Command="$(OutputDirectory)\RunTests.exe $(NuGetPackageRoot)\xunit.runners\2.0.0-alpha-build2576\tools $(RunTestArgs) @(TestAssemblies, ' ')" />
+    <PropertyGroup>
+        <XunitRunnerArchString Condition="'$(Test64)' != 'true'">.x86</XunitRunnerArchString>
+        <Xunit2Runner>$(NuGetPackageRoot)\xunit.runner.console\2.1.0\tools\xunit.console$(XunitRunnerArchString).exe</Xunit2Runner>
+    </PropertyGroup>
+
+    <Exec Command="$(Xunit2Runner) @(Xunit2TestAssemblies, ' ') -noshadow -xml TestResults.xml" />
+
+    <!-- Disabled due to failures
+    <Exec Command="$(OutputDirectory)\CoreClrTestRuntime\CoreRun.exe $(OutputDirectory)\core-clr\xunit.console.netcore.exe @(CoreTestAssemblies, ' ') -xml TestResults.xml" />
+    -->
+
+    <Exec Command="$(OutputDirectory)\RunTests.exe $(NuGetPackageRoot)\xunit.runners\2.0.0-alpha-build2576\tools $(RunTestArgs) @(DesktopTestAssemblies, ' ')" />
+
 
   </Target>
 

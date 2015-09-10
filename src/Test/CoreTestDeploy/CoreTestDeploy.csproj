@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
+  <PropertyGroup>
+    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <PlatformTarget>x64</PlatformTarget>
+    <ProjectGuid>{95282F16-B9A6-47F5-ADEA-47FD4533570B}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <OutDir>$(OutDir)core-clr\</OutDir>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CoreTestRunner</RootNamespace>
+    <AssemblyName>CoreTestRunner</AssemblyName>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkIdentifier>DNXCore</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <NoStdLib>true</NoStdLib>
+    <CopyNuGetImplementations>true</CopyNuGetImplementations>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Class1.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Scripting\CoreTest\ScriptingTest.csproj">
+      <Project>{2dae4406-7a89-4b5f-95c3-bc5472ce47ce}</Project>
+      <Name>ScriptingTest</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Scripting\CSharpTest\CSharpScriptingTest.csproj">
+      <Project>{2dae4406-7a89-4b5f-95c3-bc5422ce47ce}</Project>
+      <Name>CSharpScriptingTest</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Scripting\VisualBasicTest\BasicScriptingTest.vbproj">
+      <Project>{abc7262e-1053-49f3-b846-e3091bb92e8c}</Project>
+      <Name>BasicScriptingTest</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+</Project>

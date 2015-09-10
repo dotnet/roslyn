@@ -5,6 +5,9 @@
   },
   "dependencies": {
     "Microsoft.NETCore.Portable.Compatibility": "1.0.0",
+    "xunit": "2.1.0",
+    "xunit.abstractions": "2.0.0",
+    "xunit.console.netcore": "1.0.2-prerelease-00101",
   },
   "frameworks": {
     "dotnet": {

@@ -1,0 +1,17 @@
+﻿{
+  "dependencies": {
+    "Microsoft.NETCore.Platforms": "1.0.1-beta-23321",
+    "Microsoft.NETCore.Runtime.CoreCLR": "1.0.1-beta-23321",
+    "Microsoft.NETCore.TestHost": "1.0.0-beta-23321",
+    "System.Linq.Expressions": "4.0.11-beta-23321",
+    "System.Runtime": "4.0.21-beta-23321",
+  },
+  "frameworks": {
+    "dnxcore50": {
+      "imports": "portable-net452"
+    }
+  },
+  "runtimes": {
+    "win7-x64": { }
+  }
+}
