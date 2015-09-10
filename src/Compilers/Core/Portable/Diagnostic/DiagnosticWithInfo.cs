@@ -2,11 +2,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
-using System.Globalization;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -18,13 +16,15 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly DiagnosticInfo _info;
         private readonly Location _location;
+        private readonly bool _hasSourceSuppression;
 
-        internal DiagnosticWithInfo(DiagnosticInfo info, Location location)
+        internal DiagnosticWithInfo(DiagnosticInfo info, Location location, bool hasSourceSuppression = false)
         {
             Debug.Assert(info != null);
             Debug.Assert(location != null);
             _info = info;
             _location = location;
+            _hasSourceSuppression = hasSourceSuppression;
         }
 
         public override Location Location
@@ -83,6 +83,11 @@ namespace Microsoft.CodeAnalysis
         {
             // All compiler errors and warnings are enabled by default.
             get { return true; }
+        }
+
+        public override bool HasSourceSuppression
+        {
+            get { return _hasSourceSuppression; }
         }
 
         public sealed override int WarningLevel
@@ -188,7 +193,7 @@ namespace Microsoft.CodeAnalysis
 
             if (location != _location)
             {
-                return new DiagnosticWithInfo(_info, location);
+                return new DiagnosticWithInfo(_info, location, _hasSourceSuppression);
             }
 
             return this;
@@ -198,7 +203,17 @@ namespace Microsoft.CodeAnalysis
         {
             if (this.Severity != severity)
             {
-                return new DiagnosticWithInfo(this.Info.GetInstanceWithSeverity(severity), _location);
+                return new DiagnosticWithInfo(this.Info.GetInstanceWithSeverity(severity), _location, _hasSourceSuppression);
+            }
+
+            return this;
+        }
+
+        internal override Diagnostic WithHasSourceSuppression(bool hasSourceSuppression)
+        {
+            if (this.HasSourceSuppression != hasSourceSuppression)
+            {
+                return new DiagnosticWithInfo(this.Info, _location, hasSourceSuppression);
             }
 
             return this;

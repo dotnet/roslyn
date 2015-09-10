@@ -276,9 +276,6 @@
   <data name="ChangeToYieldReturn" xml:space="preserve">
     <value>Replace return with yield return</value>
   </data>
-  <data name="SuppressWithPragma" xml:space="preserve">
-    <value>with #pragma directive</value>
-  </data>
   <data name="ExplicitConversionDisplayText" xml:space="preserve">
     <value>Generate explicit conversion operator in '{0}'</value>
   </data>

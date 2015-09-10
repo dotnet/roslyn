@@ -814,11 +814,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var filteredDiagnostic = compilation.Options.FilterDiagnostic(diagnostic);
             if (filteredDiagnostic != null)
             {
-                var suppressMessageState = GetCachedCompilationData(compilation).SuppressMessageAttributeState;
-                if (suppressMessageState.IsDiagnosticSuppressed(filteredDiagnostic, symbolOpt: symbolOpt))
-                {
-                    return null;
-                }
+                filteredDiagnostic = SuppressMessageAttributeState.ApplySourceSuppressions(filteredDiagnostic, compilation, symbolOpt);
             }
 
             return filteredDiagnostic;
@@ -896,7 +892,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static readonly ObjectPool<DeclarationAnalysisData> s_declarationAnalysisDataPool = new ObjectPool<DeclarationAnalysisData>(() => new DeclarationAnalysisData());
 
-        /// <summary>
+            /// <summary>
         /// Create an analyzer driver.
         /// </summary>
         /// <param name="analyzers">The set of analyzers to include in the analysis</param>

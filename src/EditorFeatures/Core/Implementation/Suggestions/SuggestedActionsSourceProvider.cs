@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -215,17 +216,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var fixes = fixCollection.Fixes;
                     var fixCount = fixes.Length;
 
+                    Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet = codeAction =>
+                                CodeFixSuggestedAction.GetFixAllSuggestedActionSet(codeAction, fixCount, fixCollection.FixAllContext,
+                                    workspace, _subjectBuffer, _owner._editHandler);
+
                     foreach (var fix in fixes)
                     {
                         // Suppression fixes are handled below.
                         if (!(fix.Action is SuppressionCodeAction))
                         {
-                            var fixAllSuggestedActionSet =
-                                CodeFixSuggestedAction.GetFixAllSuggestedActionSet(fix.Action, fixCount, fixCollection.FixAllContext,
-                                    workspace, _subjectBuffer, _owner._editHandler);
 
                             var suggestedAction = new CodeFixSuggestedAction(workspace, _subjectBuffer, _owner._editHandler,
-                                fix, fixCollection.Provider, fixAllSuggestedActionSet);
+                                fix, fixCollection.Provider, getFixAllSuggestedActionSet(fix.Action));
 
                             AddFix(fix, suggestedAction, map, order);
                         }
@@ -239,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                             if (fix.Action is SuppressionCodeAction)
                             {
                                 var suggestedAction = new SuppressionSuggestedAction(workspace, _subjectBuffer, _owner._editHandler,
-                                    fix, fixCollection.Provider);
+                                    fix, fixCollection.Provider, getFixAllSuggestedActionSet);
 
                                 AddFix(fix, suggestedAction, map, order);
                             }

@@ -1856,7 +1856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public override ImmutableArray<Diagnostic> GetParseDiagnostics(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return GetDiagnostics(CompilationStage.Parse, false, cancellationToken);
+            return GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, includeDiagnosticsWithSourceSuppression: false, cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -1865,7 +1865,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public override ImmutableArray<Diagnostic> GetDeclarationDiagnostics(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return GetDiagnostics(CompilationStage.Declare, false, cancellationToken);
+            return GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, includeDiagnosticsWithSourceSuppression: false, cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -1873,7 +1873,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public override ImmutableArray<Diagnostic> GetMethodBodyDiagnostics(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return GetDiagnostics(CompilationStage.Compile, false, cancellationToken);
+            return GetDiagnostics(CompilationStage.Compile, includeEarlierStages: false, includeDiagnosticsWithSourceSuppression: false, cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -1882,10 +1882,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public override ImmutableArray<Diagnostic> GetDiagnostics(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return GetDiagnostics(DefaultDiagnosticsStage, true, cancellationToken);
+            return GetDiagnostics(DefaultDiagnosticsStage, includeEarlierStages: true, includeDiagnosticsWithSourceSuppression: false, cancellationToken: cancellationToken);
         }
 
-        internal ImmutableArray<Diagnostic> GetDiagnostics(CompilationStage stage, bool includeEarlierStages, CancellationToken cancellationToken)
+        internal override ImmutableArray<Diagnostic> GetDiagnostics(CompilationStage stage, bool includeEarlierStages, bool includeDiagnosticsWithSourceSuppression, CancellationToken cancellationToken)
         {
             var builder = DiagnosticBag.GetInstance();
 
@@ -1945,7 +1945,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Before returning diagnostics, we filter warnings
             // to honor the compiler options (e.g., /nowarn, /warnaserror and /warn) and the pragmas.
             var result = DiagnosticBag.GetInstance();
-            FilterAndAppendAndFreeDiagnostics(result, ref builder);
+            FilterAndAppendAndFreeDiagnostics(result, ref builder, includeDiagnosticsWithSourceSuppression);
             return result.ToReadOnlyAndFree<Diagnostic>();
         }
 
@@ -2039,9 +2039,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 'incoming' is freed.
         /// </summary>
         /// <returns>True when there is no error or warning treated as an error.</returns>
-        internal override bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, ref DiagnosticBag incoming)
+        internal override bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, ref DiagnosticBag incoming, bool includeDiagnosticsWithSourceSuppression = false)
         {
-            bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution());
+            bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution(), includeDiagnosticsWithSourceSuppression);
             incoming.Free();
             incoming = null;
             return result;
@@ -2051,14 +2051,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Filter out warnings based on the compiler options (/nowarn, /warn and /warnaserror) and the pragma warning directives.
         /// </summary>
         /// <returns>True when there is no error.</returns>
-        private bool FilterAndAppendDiagnostics(DiagnosticBag accumulator, IEnumerable<Diagnostic> incoming)
+        private bool FilterAndAppendDiagnostics(DiagnosticBag accumulator, IEnumerable<Diagnostic> incoming, bool includeDiagnosticsWithSourceSuppression = false)
         {
             bool hasError = false;
 
             foreach (Diagnostic d in incoming)
             {
                 var filtered = _options.FilterDiagnostic(d);
-                if (filtered == null)
+                if (filtered == null ||
+                    (!includeDiagnosticsWithSourceSuppression && filtered.HasSourceSuppression))
                 {
                     continue;
                 }
@@ -2072,8 +2073,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return !hasError;
         }
-
-
 
         private ImmutableArray<Diagnostic> GetSourceDeclarationDiagnostics(SyntaxTree syntaxTree = null, TextSpan? filterSpanWithinTree = null, Func<IEnumerable<Diagnostic>, SyntaxTree, TextSpan?, IEnumerable<Diagnostic>> locationFilterOpt = null, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -2136,12 +2135,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal ImmutableArray<Diagnostic> GetDiagnosticsForSyntaxTree(
+        internal override ImmutableArray<Diagnostic> GetDiagnosticsForSyntaxTree(
             CompilationStage stage,
             SyntaxTree syntaxTree,
             TextSpan? filterSpanWithinTree,
             bool includeEarlierStages,
-            CancellationToken cancellationToken = default(CancellationToken))
+            bool includeDiagnosticsWithSourceSuppression,
+            CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -2186,7 +2186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Before returning diagnostics, we filter warnings
             // to honor the compiler options (/nowarn, /warnaserror and /warn) and the pragmas.
             var result = DiagnosticBag.GetInstance();
-            FilterAndAppendAndFreeDiagnostics(result, ref builder);
+            FilterAndAppendAndFreeDiagnostics(result, ref builder, includeDiagnosticsWithSourceSuppression);
             return result.ToReadOnlyAndFree<Diagnostic>();
         }
 
@@ -2299,7 +2299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // The diagnostics should include syntax and declaration errors. We insert these before calling Emitter.Emit, so that the emitter
             // does not attempt to emit if there are declaration errors (but we do insert all errors from method body binding...)
-            bool hasDeclarationErrors = !FilterAndAppendDiagnostics(diagnostics, GetDiagnostics(CompilationStage.Declare, true, cancellationToken));
+            bool hasDeclarationErrors = !FilterAndAppendDiagnostics(diagnostics, GetDiagnostics(CompilationStage.Declare, true, false, cancellationToken));
 
             // TODO (tomat): NoPIA:
             // EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(this)

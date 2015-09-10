@@ -845,15 +845,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to with #pragma directive.
-        /// </summary>
-        internal static string SuppressWithPragma {
-            get {
-                return ResourceManager.GetString("SuppressWithPragma", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The selected code is inside an unsafe context..
         /// </summary>
         internal static string TheSelectedCodeIsInsideAnUnsafeContext {

@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis
                     //System.Diagnostics.Debug.Assert(diag.Severity != DiagnosticSeverity.Error);
                     continue;
                 }
-                else if (diag.Severity == DiagnosticSeverity.Hidden)
+                else if (diag.Severity == DiagnosticSeverity.Hidden || diag.HasSourceSuppression)
                 {
                     // Not reported from the command-line compiler.
                     continue;

@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Symbols;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -889,15 +890,30 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract ImmutableArray<Diagnostic> GetParseDiagnostics(CancellationToken cancellationToken = default(CancellationToken));
 
+        internal ImmutableArray<Diagnostic> GetParseDiagnosticsIncludingSuppressions(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, includeDiagnosticsWithSourceSuppression: true, cancellationToken: cancellationToken);
+        }
+
         /// <summary>
         /// Gets the diagnostics produced during symbol declaration.
         /// </summary>
         public abstract ImmutableArray<Diagnostic> GetDeclarationDiagnostics(CancellationToken cancellationToken = default(CancellationToken));
 
+        internal ImmutableArray<Diagnostic> GetDeclarationDiagnosticsIncludingSuppressions(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, includeDiagnosticsWithSourceSuppression: true, cancellationToken: cancellationToken);
+        }
+
         /// <summary>
         /// Gets the diagnostics produced during the analysis of method bodies and field initializers.
         /// </summary>
         public abstract ImmutableArray<Diagnostic> GetMethodBodyDiagnostics(CancellationToken cancellationToken = default(CancellationToken));
+
+        internal ImmutableArray<Diagnostic> GetMethodBodyDiagnosticsIncludingSuppressions(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return GetDiagnostics(CompilationStage.Compile, includeEarlierStages: false, includeDiagnosticsWithSourceSuppression: true, cancellationToken: cancellationToken);
+        }
 
         /// <summary>
         /// Gets all the diagnostics for the compilation, including syntax, declaration, and
@@ -906,12 +922,32 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract ImmutableArray<Diagnostic> GetDiagnostics(CancellationToken cancellationToken = default(CancellationToken));
 
+        internal ImmutableArray<Diagnostic> GetDiagnosticsIncludingSuppressions(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return GetDiagnostics(DefaultDiagnosticsStage, includeEarlierStages: true, includeDiagnosticsWithSourceSuppression: true, cancellationToken: cancellationToken);
+        }
+
+        internal abstract ImmutableArray<Diagnostic> GetDiagnostics(
+            CompilationStage stage,
+            bool includeEarlierStages,
+            bool includeDiagnosticsWithSourceSuppression,
+            CancellationToken cancellationToken);
+
+        internal abstract ImmutableArray<Diagnostic> GetDiagnosticsForSyntaxTree(
+            CompilationStage stage,
+            SyntaxTree syntaxTree,
+            TextSpan? filterSpanWithinTree,
+            bool includeEarlierStages,
+            bool includeDiagnosticsWithSourceSuppression,
+            CancellationToken cancellationToken);
+
         internal abstract CommonMessageProvider MessageProvider { get; }
 
         /// <param name="accumulator">Bag to which filtered diagnostics will be added.</param>
         /// <param name="incoming">Diagnostics to be filtered.</param>
+        /// <param name="includeDiagnosticsWithSourceSuppression">Flag indicating whether diagnostcs with <see cref="Diagnostic.HasSourceSuppression"/> should be retained or not.</param>
         /// <returns>True if there were no errors or warnings-as-errors.</returns>
-        internal abstract bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, ref DiagnosticBag incoming);
+        internal abstract bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, ref DiagnosticBag incoming, bool includeDiagnosticsWithSourceSuppression = false);
 
         #endregion
 

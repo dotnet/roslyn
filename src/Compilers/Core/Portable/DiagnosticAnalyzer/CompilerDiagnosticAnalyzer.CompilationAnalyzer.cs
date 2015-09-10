@@ -30,22 +30,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
             {
                 var semanticModel = _compilation.GetSemanticModel(context.Tree);
-                var diagnostics = semanticModel.GetSyntaxDiagnostics(cancellationToken: context.CancellationToken);
+                var diagnostics = semanticModel.GetSyntaxDiagnosticsIncludingSuppressions(cancellationToken: context.CancellationToken);
                 ReportDiagnostics(diagnostics, context.ReportDiagnostic, IsSourceLocation, s_syntactic);
             }
 
             public static void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
             {
-                var declDiagnostics = context.SemanticModel.GetDeclarationDiagnostics(cancellationToken: context.CancellationToken);
+                var declDiagnostics = context.SemanticModel.GetDeclarationDiagnosticsIncludingSuppressions(cancellationToken: context.CancellationToken);
                 ReportDiagnostics(declDiagnostics, context.ReportDiagnostic, IsSourceLocation, s_declaration);
 
-                var bodyDiagnostics = context.SemanticModel.GetMethodBodyDiagnostics(cancellationToken: context.CancellationToken);
+                var bodyDiagnostics = context.SemanticModel.GetMethodBodyDiagnosticsIncludingSuppressions(cancellationToken: context.CancellationToken);
                 ReportDiagnostics(bodyDiagnostics, context.ReportDiagnostic, IsSourceLocation);
             }
 
             public static void AnalyzeCompilation(CompilationAnalysisContext context)
             {
-                var diagnostics = context.Compilation.GetDeclarationDiagnostics(cancellationToken: context.CancellationToken);
+                var diagnostics = context.Compilation.GetDeclarationDiagnosticsIncludingSuppressions(cancellationToken: context.CancellationToken);
                 ReportDiagnostics(diagnostics, context.ReportDiagnostic, location => !IsSourceLocation(location), s_declaration);
             }
 
@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 public override int WarningLevel => _original.WarningLevel;
                 public override Location Location => _original.Location;
                 public override IReadOnlyList<Location> AdditionalLocations => _original.AdditionalLocations;
+                public override bool HasSourceSuppression => _original.HasSourceSuppression;
                 public override ImmutableDictionary<string, string> Properties => _properties;
 
                 public override string GetMessage(IFormatProvider formatProvider = null)
@@ -121,6 +122,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 internal override Diagnostic WithSeverity(DiagnosticSeverity severity)
                 {
                     return new CompilerDiagnostic(_original.WithSeverity(severity), _properties);
+                }
+
+                internal override Diagnostic WithHasSourceSuppression(bool hasSourceSuppression)
+                {
+                    return new CompilerDiagnostic(_original.WithHasSourceSuppression(hasSourceSuppression), _properties);
                 }
             }
         }

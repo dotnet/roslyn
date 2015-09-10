@@ -17,14 +17,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly object _gate = new object();
         private readonly Dictionary<DiagnosticAnalyzer, TimeSpan> _analyzerExecutionTimeOpt;
+        private readonly bool _reportDiagnosticsWithSourceSuppression;
 
         private Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, List<Diagnostic>>> _localSemanticDiagnosticsOpt = null;
         private Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, List<Diagnostic>>> _localSyntaxDiagnosticsOpt = null;
         private Dictionary<DiagnosticAnalyzer, List<Diagnostic>> _nonLocalDiagnosticsOpt = null;
         
-        public AnalysisResult(bool logAnalyzerExecutionTime, ImmutableArray<DiagnosticAnalyzer> analyzers)
+        public AnalysisResult(bool logAnalyzerExecutionTime, ImmutableArray<DiagnosticAnalyzer> analyzers, bool reportDiagnosticsWithSourceSuppression)
         {
             _analyzerExecutionTimeOpt = logAnalyzerExecutionTime ? CreateAnalyzerExecutionTimeMap(analyzers) : null;
+            _reportDiagnosticsWithSourceSuppression = reportDiagnosticsWithSourceSuppression;
         }
 
         private static Dictionary<DiagnosticAnalyzer, TimeSpan> CreateAnalyzerExecutionTimeMap(ImmutableArray<DiagnosticAnalyzer> analyzers)
@@ -141,22 +143,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (!analysisScope.IsTreeAnalysis)
                 {
-                    AddAllLocalDiagnostics_NoLock(_localSyntaxDiagnosticsOpt, analysisScope, builder);
-                    AddAllLocalDiagnostics_NoLock(_localSemanticDiagnosticsOpt, analysisScope, builder);
+                    AddAllLocalDiagnostics_NoLock(_localSyntaxDiagnosticsOpt, analysisScope, _reportDiagnosticsWithSourceSuppression, builder);
+                    AddAllLocalDiagnostics_NoLock(_localSemanticDiagnosticsOpt, analysisScope, _reportDiagnosticsWithSourceSuppression, builder);
                 }
                 else if (analysisScope.IsSyntaxOnlyTreeAnalysis)
                 {
-                    AddLocalDiagnosticsForPartialAnalysis_NoLock(_localSyntaxDiagnosticsOpt, analysisScope, builder);
+                    AddLocalDiagnosticsForPartialAnalysis_NoLock(_localSyntaxDiagnosticsOpt, analysisScope, _reportDiagnosticsWithSourceSuppression, builder);
                 }
                 else
                 {
-                    AddLocalDiagnosticsForPartialAnalysis_NoLock(_localSemanticDiagnosticsOpt, analysisScope, builder);
+                    AddLocalDiagnosticsForPartialAnalysis_NoLock(_localSemanticDiagnosticsOpt, analysisScope, _reportDiagnosticsWithSourceSuppression, builder);
                 }
             }
 
             if (getNonLocalDiagnostics && _nonLocalDiagnosticsOpt != null)
             {
-                AddDiagnostics_NoLock(_nonLocalDiagnosticsOpt, analysisScope, builder);
+                AddDiagnostics_NoLock(_nonLocalDiagnosticsOpt, analysisScope, _reportDiagnosticsWithSourceSuppression, builder);
             }
 
             return builder.ToImmutableArray();
@@ -165,13 +167,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static void AddAllLocalDiagnostics_NoLock(
             Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, List<Diagnostic>>> localDiagnostics,
             AnalysisScope analysisScope,
+            bool reportDiagnosticsWithSourceSuppression,
             ImmutableArray<Diagnostic>.Builder builder)
         {
             if (localDiagnostics != null)
             {
                 foreach (var localDiagsByTree in localDiagnostics.Values)
                 {
-                    AddDiagnostics_NoLock(localDiagsByTree, analysisScope, builder);
+                    AddDiagnostics_NoLock(localDiagsByTree, analysisScope, reportDiagnosticsWithSourceSuppression, builder);
                 }
             }
         }
@@ -179,18 +182,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static void AddLocalDiagnosticsForPartialAnalysis_NoLock(
             Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, List<Diagnostic>>> localDiagnostics,
             AnalysisScope analysisScope,
+            bool reportDiagnosticsWithSourceSuppression,
             ImmutableArray<Diagnostic>.Builder builder)
         {
             Dictionary<DiagnosticAnalyzer, List<Diagnostic>> diagnosticsForTree;
             if (localDiagnostics != null && localDiagnostics.TryGetValue(analysisScope.FilterTreeOpt, out diagnosticsForTree))
             {
-                AddDiagnostics_NoLock(diagnosticsForTree, analysisScope, builder);
+                AddDiagnostics_NoLock(diagnosticsForTree, analysisScope, reportDiagnosticsWithSourceSuppression, builder);
             }
         }
 
         private static void AddDiagnostics_NoLock(
             Dictionary<DiagnosticAnalyzer, List<Diagnostic>> diagnostics,
             AnalysisScope analysisScope,
+            bool reportDiagnosticsWithSourceSuppression,
             ImmutableArray<Diagnostic>.Builder builder)
         {
             Debug.Assert(diagnostics != null);
@@ -200,7 +205,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 List<Diagnostic> diagnosticsByAnalyzer;
                 if (diagnostics.TryGetValue(analyzer, out diagnosticsByAnalyzer))
                 {
-                    builder.AddRange(diagnosticsByAnalyzer);
+                    if (!reportDiagnosticsWithSourceSuppression)
+                    {
+                        foreach (var diagnostic in diagnosticsByAnalyzer)
+                        {
+                            if (!diagnostic.HasSourceSuppression)
+                            {
+                                builder.Add(diagnostic);
+                            }
+                        }                        
+                    }
+                    else
+                    {
+                        builder.AddRange(diagnosticsByAnalyzer);
+                    }
                 }
             }
         }
