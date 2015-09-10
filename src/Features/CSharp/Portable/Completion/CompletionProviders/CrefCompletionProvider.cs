@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -16,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal partial class CrefCompletionProvider : AbstractCompletionProvider
+    internal partial class CrefCompletionProvider : CompletionListProvider
     {
         public static readonly SymbolDisplayFormat CrefFormat =
             new SymbolDisplayFormat(
@@ -35,24 +34,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
 
-        protected override Task<bool> IsExclusiveAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        public override async Task ProduceCompletionListAsync(CompletionListContext context)
         {
-            return SpecializedTasks.True;
-        }
+            var document = context.Document;
+            var position = context.Position;
+            var cancellationToken = context.CancellationToken;
 
-        protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTriggerInfo triggerInfo, System.Threading.CancellationToken cancellationToken)
-        {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             if (!tree.IsEntirelyWithinCrefSyntax(position, cancellationToken))
             {
-                return null;
+                return;
             }
 
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
             token = token.GetPreviousTokenIfTouchingWord(position);
             if (token.Kind() == SyntaxKind.None)
             {
-                return null;
+                return;
             }
 
             var result = SpecializedCollections.EmptyEnumerable<ISymbol>();
@@ -93,8 +91,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
             }
 
-            return await CreateItemsAsync(document.Project.Solution.Workspace, semanticModel,
-                position, result, token, cancellationToken).ConfigureAwait(false);
+            var items = await CreateItemsAsync(document.Project.Solution.Workspace, semanticModel, position, result, token, cancellationToken).ConfigureAwait(false);
+
+            if (items.Any())
+            {
+                context.MakeExclusive(true);
+                context.AddItems(items);
+            }
         }
 
         private bool IsSignatureContext(SyntaxToken token)
