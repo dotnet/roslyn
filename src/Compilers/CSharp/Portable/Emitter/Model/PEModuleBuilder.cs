@@ -1032,6 +1032,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
+        internal override Cci.IMethodReference Translate(MethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration)
+        {
+            return Translate(symbol, null, diagnostics, null, needDeclaration);
+        }
+
         internal Cci.IMethodReference Translate(
             MethodSymbol methodSymbol,
             CSharpSyntaxNode syntaxNodeOpt,

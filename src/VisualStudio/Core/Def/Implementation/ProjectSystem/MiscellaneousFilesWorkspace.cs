@@ -350,6 +350,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return _hostProjects.Values;
         }
 
+        void IVisualStudioHostProjectContainer.NotifyNonDocumentOpenedForProject(IVisualStudioHostProject project)
+        {
+            // Since the MiscellaneousFilesWorkspace doesn't do anything lazily, this is a no-op
+        }
+
         private class LanguageInformation
         {
             public LanguageInformation(string languageName, string scriptExtension, ParseOptions parseOptions)
@@ -359,9 +364,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this.ParseOptions = parseOptions;
             }
 
-            public string LanguageName { get; private set; }
-            public string ScriptExtension { get; private set; }
-            public ParseOptions ParseOptions { get; private set; }
+            public string LanguageName { get; }
+            public string ScriptExtension { get; }
+            public ParseOptions ParseOptions { get; }
         }
     }
 }

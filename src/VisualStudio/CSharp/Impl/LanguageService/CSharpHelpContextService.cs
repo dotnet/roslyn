@@ -8,11 +8,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.F1Help;
 using Roslyn.Utilities;
@@ -77,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return "#region";
             }
 
-            if (trivia.MatchesKind(SyntaxKind.MultiLineDocumentationCommentTrivia, SyntaxKind.SingleLineDocumentationCommentTrivia, SyntaxKind.SingleLineCommentTrivia, SyntaxKind.MultiLineCommentTrivia))
+            if (trivia.IsRegularOrDocComment())
             {
                 // just find the first "word" that intersects with our position
                 var text = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -321,7 +319,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
             if (symbol.GetTypeArguments().Any())
             {
-                return string.Format("{0}`{1}", displayString, symbol.GetTypeArguments().Count());
+                return string.Format("{0}`{1}", displayString, symbol.GetTypeArguments().Length);
             }
 
             return displayString;
@@ -349,7 +347,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
             if (symbol.GetTypeArguments().Any())
             {
-                return string.Format("{0}.{1}``{2}", containingType, name, symbol.GetTypeArguments().Count());
+                return string.Format("{0}.{1}``{2}", containingType, name, symbol.GetTypeArguments().Length);
             }
 
             return string.Format("{0}.{1}", containingType, name);

@@ -7,7 +7,9 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -32,11 +34,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             int position)
         {
             var view = new Mock<ITextView>();
-            var producer = new BraceHighlightingTagProducer(
-                workspace.GetService<IBraceMatchingService>());
+            var producer = new BraceHighlightingViewTaggerProvider(
+                workspace.GetService<IBraceMatchingService>(),
+                workspace.GetService<IForegroundNotificationService>(),
+                AggregateAsynchronousOperationListener.EmptyListeners);
 
-            var document = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault();
-            return producer.ProduceTagsAsync(document, buffer.CurrentSnapshot, position, CancellationToken.None).Result;
+            var context = new TaggerContext<BraceHighlightTag>(
+                buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault(),
+                buffer.CurrentSnapshot, new SnapshotPoint(buffer.CurrentSnapshot, position));
+            producer.ProduceTagsAsync_ForTestingPurposesOnly(context).Wait();
+
+            return context.tagSpans;
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]

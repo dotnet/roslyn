@@ -155,12 +155,12 @@ struct S<T> where T : struct
             var typeParamType = structType.TypeParameters.Single();
 
             var pointerType = new PointerTypeSymbol(typeParamType, customModifiers); // NOTE: We're constructing this manually, since it's illegal.
-            var arrayType = new ArrayTypeSymbol(comp.Assembly, typeParamType, customModifiers); // This is legal, but we're already manually constructing types.
+            var arrayType = ArrayTypeSymbol.CreateCSharpArray(comp.Assembly, typeParamType, customModifiers); // This is legal, but we're already manually constructing types.
 
-            var typeMap = new TypeMap(ImmutableArray.Create(typeParamType), ImmutableArray.Create<TypeSymbol>(intType));
+            var typeMap = new TypeMap(ImmutableArray.Create(typeParamType), ImmutableArray.Create(new TypeWithModifiers(intType)));
 
-            var substitutedPointerType = (PointerTypeSymbol)typeMap.SubstituteType(pointerType);
-            var substitutedArrayType = (ArrayTypeSymbol)typeMap.SubstituteType(arrayType);
+            var substitutedPointerType = (PointerTypeSymbol)typeMap.SubstituteType(pointerType).AsTypeSymbolOnly();
+            var substitutedArrayType = (ArrayTypeSymbol)typeMap.SubstituteType(arrayType).AsTypeSymbolOnly();
 
             // The map changed the types.
             Assert.Equal(intType, substitutedPointerType.PointedAtType);

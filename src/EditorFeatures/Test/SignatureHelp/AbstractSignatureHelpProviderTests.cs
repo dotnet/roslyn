@@ -41,7 +41,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
         /// <param name="usePreviousCharAsTrigger">If true, uses the last character before $$ to trigger sighelp.
         /// If false, invokes sighelp explicitly at the cursor location.</param>
         /// <param name="sourceCodeKind">The sourcecodekind to run this test on. If null, runs on both regular and script sources.</param>
-        protected virtual void Test(string markup, IEnumerable<SignatureHelpTestItem> expectedOrderedItemsOrNull = null, bool usePreviousCharAsTrigger = false, SourceCodeKind? sourceCodeKind = null, bool experimental = false)
+        protected virtual void Test(
+            string markup,
+            IEnumerable<SignatureHelpTestItem> expectedOrderedItemsOrNull = null,
+            bool usePreviousCharAsTrigger = false,
+            SourceCodeKind? sourceCodeKind = null,
+            bool experimental = false)
         {
             if (sourceCodeKind.HasValue)
             {

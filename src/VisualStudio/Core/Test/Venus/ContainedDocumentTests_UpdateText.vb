@@ -385,7 +385,7 @@ b
         ''' <summary>
         ''' The point of this test is that when we get a request to replace the entire contents of
         ''' the file, we want to make sure to NOT replace where the boundaries between the projected
-        ''' spans are.  In expression scenarios (Razor inline "@" expressions, and &lt;%= or %lt;%:
+        ''' spans are.  In expression scenarios (Razor inline "@" expressions, and &lt;%= or &lt;%:
         ''' nuggets for aspx files, they end up generating code like:
         '''     #line "Foo.aspx", 3
         '''         __o = |expr|;

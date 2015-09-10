@@ -3,6 +3,7 @@
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Roslyn.Test.Utilities
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests

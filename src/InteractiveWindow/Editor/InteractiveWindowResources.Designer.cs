@@ -79,11 +79,29 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An internal error has occurred in the Interactive window.  Please restart Visual Studio..
+        /// </summary>
+        internal static string InternalError {
+            get {
+                return ResourceManager.GetString("InternalError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The command of type &apos;{0}&apos; has no command names..
         /// </summary>
         internal static string MissingCommandName {
             get {
                 return ResourceManager.GetString("MissingCommandName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The interactive window has not yet been initialized..
+        /// </summary>
+        internal static string NotInitialized {
+            get {
+                return ResourceManager.GetString("NotInitialized", resourceCulture);
             }
         }
         

@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 // This must be a generic instantiation (i.e. constructed type).
 
                 NamedTypeSymbol genericType = type;
-                var oldArguments = ArrayBuilder<TypeSymbol>.GetInstance();
+                var oldArguments = ArrayBuilder<TypeWithModifiers>.GetInstance();
                 int startOfNonInterfaceArguments = int.MaxValue;
 
                 // Collect generic arguments for the type and its containers.
@@ -468,24 +468,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         startOfNonInterfaceArguments = oldArguments.Count;
                     }
 
-                    if (genericType.Arity > 0)
+                    int arity = genericType.Arity;
+
+                    if (arity > 0)
                     {
-                        oldArguments.AddRange(genericType.TypeArgumentsNoUseSiteDiagnostics);
+                        var args = genericType.TypeArgumentsNoUseSiteDiagnostics;
+
+                        if (genericType.HasTypeArgumentsCustomModifiers)
+                        {
+                            var modifiers = genericType.TypeArgumentsCustomModifiers;
+
+                            for (int i = 0; i < arity; i++)
+                            {
+                                oldArguments.Add(new TypeWithModifiers(args[i], modifiers[i]));
+                            }
+                        }
+                        else
+                        {
+                            for (int i = 0; i < arity; i++)
+                            {
+                                oldArguments.Add(new TypeWithModifiers(args[i]));
+                            }
+                        }
                     }
 
                     genericType = genericType.ContainingType;
                 }
 
+                bool anythingRetargeted = !originalDefinition.Equals(newDefinition);
+
                 // retarget the arguments
-                var newArguments = ArrayBuilder<TypeSymbol>.GetInstance(oldArguments.Count);
+                var newArguments = ArrayBuilder<TypeWithModifiers>.GetInstance(oldArguments.Count);
 
                 foreach (var arg in oldArguments)
                 {
-                    newArguments.Add((TypeSymbol)arg.Accept(this, RetargetOptions.RetargetPrimitiveTypesByTypeCode)); // generic instantiation is a signature
-                }
+                    bool modifiersHaveChanged;
 
-                // See if definition or any of the arguments were retargeted
-                bool anythingRetargeted = !originalDefinition.Equals(newDefinition) || !oldArguments.SequenceEqual(newArguments);
+                    var newArg = new TypeWithModifiers((TypeSymbol)arg.Type.Accept(this, RetargetOptions.RetargetPrimitiveTypesByTypeCode), // generic instantiation is a signature
+                                                       RetargetModifiers(arg.CustomModifiers, out modifiersHaveChanged));
+
+                    if (!anythingRetargeted && (modifiersHaveChanged || newArg.Type != arg.Type))
+                    {
+                        anythingRetargeted = true;
+                    }
+
+                    newArguments.Add(newArg);
+                }
 
                 // See if it is or its enclosing type is a non-interface closed over NoPia local types. 
                 bool noPiaIllegalGenericInstantiation = IsNoPiaIllegalGenericInstantiation(oldArguments, newArguments, startOfNonInterfaceArguments);
@@ -534,7 +562,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 return constructedType;
             }
 
-            private bool IsNoPiaIllegalGenericInstantiation(ArrayBuilder<TypeSymbol> oldArguments, ArrayBuilder<TypeSymbol> newArguments, int startOfNonInterfaceArguments)
+            private bool IsNoPiaIllegalGenericInstantiation(ArrayBuilder<TypeWithModifiers> oldArguments, ArrayBuilder<TypeWithModifiers> newArguments, int startOfNonInterfaceArguments)
             {
                 // TODO: Do we need to check constraints on type parameters as well?
 
@@ -542,7 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 {
                     for (int i = startOfNonInterfaceArguments; i < oldArguments.Count; i++)
                     {
-                        if (IsOrClosedOverAnExplicitLocalType(oldArguments[i]))
+                        if (IsOrClosedOverAnExplicitLocalType(oldArguments[i].Type))
                         {
                             return true;
                         }
@@ -555,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 {
                     for (int i = startOfNonInterfaceArguments; i < oldArguments.Count; i++)
                     {
-                        if (MetadataDecoder.IsOrClosedOverATypeFromAssemblies(oldArguments[i], assembliesToEmbedTypesFrom))
+                        if (MetadataDecoder.IsOrClosedOverATypeFromAssemblies(oldArguments[i].Type, assembliesToEmbedTypesFrom))
                         {
                             return true;
                         }
@@ -568,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 {
                     for (int i = startOfNonInterfaceArguments; i < newArguments.Count; i++)
                     {
-                        if (MetadataDecoder.IsOrClosedOverATypeFromAssemblies(newArguments[i], linkedAssemblies))
+                        if (MetadataDecoder.IsOrClosedOverATypeFromAssemblies(newArguments[i].Type, linkedAssemblies))
                         {
                             return true;
                         }
@@ -648,7 +676,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     return type;
                 }
 
-                return new ArrayTypeSymbol(this.RetargetingAssembly, newElement, newModifiers, type.Rank);
+                if (type.IsSZArray)
+                {
+                    return ArrayTypeSymbol.CreateSZArray(this.RetargetingAssembly, newElement, newModifiers);
+                }
+
+                return ArrayTypeSymbol.CreateMDArray(this.RetargetingAssembly, newElement, type.Rank, type.Sizes, type.LowerBounds, newModifiers);
             }
 
             internal ImmutableArray<CustomModifier> RetargetModifiers(ImmutableArray<CustomModifier> oldModifiers, out bool modifiersHaveChanged)

@@ -28,7 +28,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
 
         Protected Overrides Sub NextAction(editorOperation As IEditorOperations, nextAction As Action)
             ' let the next action run
-
             nextAction()
         End Sub
 

@@ -1,6 +1,11 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.ExtractMethod
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.VisualStudio.Text.Operations
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
@@ -3356,6 +3361,45 @@ Namespace N
 End Namespace"
 
                 TestExtractMethod(code, expected)
+            End Sub
+
+            <Fact>
+            <Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Trait(Traits.Feature, Traits.Features.Interactive)>
+            Public Sub ExtractMethodCommandDisabledInSubmission()
+                Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsCodeFixService)))
+
+                Using workspace = TestWorkspaceFactory.CreateWorkspace(
+                <Workspace>
+                    <Submission Language="Visual Basic" CommonReferences="true">  
+                        GetType(String).$$Name
+                    </Submission>
+                </Workspace>,
+                workspaceKind:=WorkspaceKind.Interactive,
+                exportProvider:=exportProvider)
+
+                    ' Force initialization.
+                    workspace.GetOpenDocumentIds().Select(Function(id) workspace.GetTestDocument(id).GetTextView()).ToList()
+
+                    Dim textView = workspace.Documents.Single().GetTextView()
+
+                    Dim handler = New ExtractMethodCommandHandler(
+                        workspace.GetService(Of ITextBufferUndoManagerProvider)(),
+                        workspace.GetService(Of IEditorOperationsFactoryService)(),
+                        workspace.GetService(Of IInlineRenameService)(),
+                        workspace.GetService(Of Host.IWaitIndicator)())
+                    Dim delegatedToNext = False
+                    Dim nextHandler =
+                    Function()
+                        delegatedToNext = True
+                        Return CommandState.Unavailable
+                    End Function
+
+                    Dim state = handler.GetCommandState(New Commands.ExtractMethodCommandArgs(textView, textView.TextBuffer), nextHandler)
+                    Assert.True(delegatedToNext)
+                    Assert.False(state.IsAvailable)
+                End Using
             End Sub
 
         End Class

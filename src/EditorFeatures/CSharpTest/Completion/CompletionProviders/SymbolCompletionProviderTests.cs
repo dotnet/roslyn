@@ -6914,40 +6914,6 @@ class C
             VerifyItemInLinkedFiles(markup, "Do", expectedDescription);
         }
 
-        [WorkItem(1063403)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void WarningForSymbolsOfDifferingKind()
-        {
-            var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""ONE"">
-        <Document FilePath=""CurrentDocument.cs""><![CDATA[
-class C
-{
-#if ONE
-    void Do(int x){}
-#endif
-#if TWO
-    int Do;
-#endif
-
-    void Shared()
-    {
-        $$
-    }
-
-}
-]]>
-        </Document>
-    </Project>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" PreprocessorSymbols=""TWO"">
-        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
-    </Project>
-</Workspace>";
-
-            var expectedDescription = $"void C.Do(int x) (+ 1 {FeaturesResources.Overload})\r\n\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}";
-            VerifyItemInLinkedFiles(markup, "Do", expectedDescription);
-        }
-
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void MethodOverloadDifferencesIgnored_ExtensionMethod()
         {
@@ -7078,6 +7044,68 @@ public class Methods2
 
             var expectedDescription = $"void Methods1.Do(string x)";
             VerifyItemInLinkedFiles(markup, "Do", expectedDescription);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void SharedProjectFieldAndPropertiesTreatedAsIdentical()
+        {
+            var markup = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""ONE"">
+        <Document FilePath=""CurrentDocument.cs""><![CDATA[
+class C
+{
+#if ONE
+    public int x;
+#endif
+#if TWO
+    public int x {get; set;}
+#endif
+    void foo()
+    {
+        x$$
+    }
+}
+]]>
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" PreprocessorSymbols=""TWO"">
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
+    </Project>
+</Workspace>";
+
+            var expectedDescription = $"(field) int C.x";
+            VerifyItemInLinkedFiles(markup, "x", expectedDescription);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void SharedProjectFieldAndPropertiesTreatedAsIdentical2()
+        {
+            var markup = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""ONE"">
+        <Document FilePath=""CurrentDocument.cs""><![CDATA[
+class C
+{
+#if TWO
+    public int x;
+#endif
+#if ONE
+    public int x {get; set;}
+#endif
+    void foo()
+    {
+        x$$
+    }
+}
+]]>
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" PreprocessorSymbols=""TWO"">
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
+    </Project>
+</Workspace>";
+
+            var expectedDescription = "int C.x { get; set; }";
+            VerifyItemInLinkedFiles(markup, "x", expectedDescription);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -8321,6 +8349,30 @@ class C
 }
 ";
             VerifyNoItemsExist(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void CompletionInIncompletePropertyDeclaration()
+        {
+            var markup = @"
+class Class1
+{
+    public string Property1 { get; set; }
+}
+
+class Class2
+{
+    public string Property { get { return this.Source.$$
+    public Class1 Source { get; set; }
+}";
+            VerifyItemExists(markup, "Property1");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void NoCompletionInShebangComments()
+        {
+            VerifyNoItemsExist("#!$$", sourceCodeKind: SourceCodeKind.Script);
+            VerifyNoItemsExist("#! S$$", sourceCodeKind: SourceCodeKind.Script, usePreviousCharAsTrigger: true);
         }
     }
 }

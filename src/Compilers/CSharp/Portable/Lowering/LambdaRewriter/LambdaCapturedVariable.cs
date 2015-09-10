@@ -86,11 +86,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         typeArguments = ImmutableArray.Create(typeArguments, 0, lambdaFrame.Arity);
                     }
-                    return lambdaFrame.ConstructIfGeneric(typeArguments);
+                    return lambdaFrame.ConstructIfGeneric(typeArguments.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers));
                 }
             }
 
-            return frame.TypeMap.SubstituteType((object)local != null ? local.Type : ((ParameterSymbol)variable).Type);
+            return frame.TypeMap.SubstituteType((object)local != null ? local.Type : ((ParameterSymbol)variable).Type).Type;
         }
 
         internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)

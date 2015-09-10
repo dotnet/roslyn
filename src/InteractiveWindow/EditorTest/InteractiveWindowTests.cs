@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.Text;
 using Moq;
@@ -25,20 +26,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _testHost = new InteractiveWindowTestHost(_states.Add);
         }
 
-        public void Dispose()
+        void IDisposable.Dispose()
         {
             _testHost.Dispose();
         }
 
-        public IInteractiveWindow Window
-        {
-            get
-            {
-                return _testHost.Window;
-            }
-        }
+        private IInteractiveWindow Window => _testHost.Window;
 
-        public static IEnumerable<IInteractiveWindowCommand> MockCommands(params string[] commandNames)
+        private static IEnumerable<IInteractiveWindowCommand> MockCommands(params string[] commandNames)
         {
             foreach (var name in commandNames)
             {
@@ -48,7 +43,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             }
         }
 
-        public static ITextSnapshot MockSnapshot(string content)
+        private static ITextSnapshot MockSnapshot(string content)
         {
             var snapshotMock = new Mock<ITextSnapshot>();
             snapshotMock.Setup(m => m[It.IsAny<int>()]).Returns<int>(index => content[index]);
@@ -185,6 +180,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
                 InteractiveWindow.State.Initializing,
                 InteractiveWindow.State.WaitingForInput,
                 InteractiveWindow.State.Resetting,
+                InteractiveWindow.State.WaitingForInput,
             });
         }
 
@@ -244,7 +240,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         [Fact]
         public void CallInsertCodeOnNonUIThread()
         {
-            // TODO (https://github.com/dotnet/roslyn/issues/3984): InsertCode is a no-op unless standard input is being collected.
             Task.Run(() => Window.InsertCode("1")).PumpingWait();
         }
 
@@ -288,7 +283,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         [Fact]
         public void CallBackspaceOnNonUIThread()
         {
-            Window.Operations.BreakLine(); // Something to backspace.
+            Window.InsertCode("1"); // Something to backspace.
             Task.Run(() => Window.Operations.Backspace()).PumpingWait();
         }
 
@@ -308,7 +303,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         [Fact]
         public void CallClearViewOnNonUIThread()
         {
-            Window.Operations.BreakLine(); // Something to clear.
+            Window.InsertCode("1"); // Something to clear.
             Task.Run(() => Window.Operations.ClearView()).PumpingWait();
         }
 
@@ -357,7 +352,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         [Fact]
         public void CallSelectAllOnNonUIThread()
         {
-            Window.Operations.BreakLine(); // Something to select.
+            Window.InsertCode("1"); // Something to select.
             Task.Run(() => Window.Operations.SelectAll()).PumpingWait();
         }
 
@@ -396,7 +391,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         {
             Task.Run(() => Window.Operations.ResetAsync()).PumpingWait();
         }
-
+        
         [Fact]
         public void CallExecuteInputOnNonUIThread()
         {
@@ -407,6 +402,399 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         public void CallCancelOnNonUIThread()
         {
             Task.Run(() => Window.Operations.Cancel()).PumpingWait();
+        }
+
+        [WorkItem(4235, "https://github.com/dotnet/roslyn/issues/4235")]
+        [Fact]
+        public void TestIndentation1()
+        {
+            TestIndentation(indentSize: 1);
+        }
+
+        [WorkItem(4235, "https://github.com/dotnet/roslyn/issues/4235")]
+        [Fact]
+        public void TestIndentation2()
+        {
+            TestIndentation(indentSize: 2);
+        }
+
+        [WorkItem(4235, "https://github.com/dotnet/roslyn/issues/4235")]
+        [Fact]
+        public void TestIndentation3()
+        {
+            TestIndentation(indentSize: 3);
+        }
+
+        [WorkItem(4235, "https://github.com/dotnet/roslyn/issues/4235")]
+        [Fact]
+        public void TestIndentation4()
+        {
+            TestIndentation(indentSize: 4);
+        }
+
+        private void TestIndentation(int indentSize)
+        {
+            const int promptWidth = 2;
+
+            _testHost.ExportProvider.GetExport<TestSmartIndentProvider>().Value.SmartIndent = new TestSmartIndent(
+                promptWidth,
+                promptWidth + indentSize,
+                promptWidth
+            );
+
+            AssertCaretVirtualPosition(0, promptWidth);
+            Window.InsertCode("{");
+            AssertCaretVirtualPosition(0, promptWidth + 1);
+            Window.Operations.BreakLine();
+            AssertCaretVirtualPosition(1, promptWidth + indentSize);
+            Window.InsertCode("Console.WriteLine();");
+            Window.Operations.BreakLine();
+            AssertCaretVirtualPosition(2, promptWidth);
+            Window.InsertCode("}");
+            AssertCaretVirtualPosition(2, promptWidth + 1);
+        }
+
+        private void AssertCaretVirtualPosition(int expectedLine, int expectedColumn)
+        {
+            ITextSnapshotLine actualLine;
+            int actualColumn;
+            Window.TextView.Caret.Position.VirtualBufferPosition.GetLineAndColumn(out actualLine, out actualColumn);
+            Assert.Equal(expectedLine, actualLine.LineNumber);
+            Assert.Equal(expectedColumn, actualColumn);
+        }
+
+        [Fact]
+        public void ResetCommandArgumentParsing_Success()
+        {
+            bool initialize;
+            Assert.True(ResetCommand.TryParseArguments("", out initialize));
+            Assert.True(initialize);
+
+            Assert.True(ResetCommand.TryParseArguments(" ", out initialize));
+            Assert.True(initialize);
+
+            Assert.True(ResetCommand.TryParseArguments("\r\n", out initialize));
+            Assert.True(initialize);
+
+            Assert.True(ResetCommand.TryParseArguments("noconfig", out initialize));
+            Assert.False(initialize);
+
+            Assert.True(ResetCommand.TryParseArguments(" noconfig ", out initialize));
+            Assert.False(initialize);
+
+            Assert.True(ResetCommand.TryParseArguments("\r\nnoconfig\r\n", out initialize));
+            Assert.False(initialize);
+        }
+
+        [Fact]
+        public void ResetCommandArgumentParsing_Failure()
+        {
+            bool initialize;
+            Assert.False(ResetCommand.TryParseArguments("a", out initialize));
+            Assert.False(ResetCommand.TryParseArguments("noconfi", out initialize));
+            Assert.False(ResetCommand.TryParseArguments("noconfig1", out initialize));
+            Assert.False(ResetCommand.TryParseArguments("noconfig 1", out initialize));
+            Assert.False(ResetCommand.TryParseArguments("1 noconfig", out initialize));
+            Assert.False(ResetCommand.TryParseArguments("noconfig\r\na", out initialize));
+            Assert.False(ResetCommand.TryParseArguments("nOcOnfIg", out initialize));
+        }
+
+        [Fact]
+        public void ResetCommandNoConfigClassification()
+        {
+            Assert.Empty(ResetCommand.GetNoConfigPositions(""));
+            Assert.Empty(ResetCommand.GetNoConfigPositions("a"));
+            Assert.Empty(ResetCommand.GetNoConfigPositions("noconfi"));
+            Assert.Empty(ResetCommand.GetNoConfigPositions("noconfig1"));
+            Assert.Empty(ResetCommand.GetNoConfigPositions("1noconfig"));
+            Assert.Empty(ResetCommand.GetNoConfigPositions("1noconfig1"));
+            Assert.Empty(ResetCommand.GetNoConfigPositions("nOcOnfIg"));
+
+            Assert.Equal(new[] { 0 }, ResetCommand.GetNoConfigPositions("noconfig"));
+            Assert.Equal(new[] { 0 }, ResetCommand.GetNoConfigPositions("noconfig "));
+            Assert.Equal(new[] { 1 }, ResetCommand.GetNoConfigPositions(" noconfig"));
+            Assert.Equal(new[] { 1 }, ResetCommand.GetNoConfigPositions(" noconfig "));
+            Assert.Equal(new[] { 2 }, ResetCommand.GetNoConfigPositions("\r\nnoconfig"));
+            Assert.Equal(new[] { 0 }, ResetCommand.GetNoConfigPositions("noconfig\r\n"));
+            Assert.Equal(new[] { 2 }, ResetCommand.GetNoConfigPositions("\r\nnoconfig\r\n"));
+            Assert.Equal(new[] { 6 }, ResetCommand.GetNoConfigPositions("error noconfig"));
+
+            Assert.Equal(new[] { 0, 9 }, ResetCommand.GetNoConfigPositions("noconfig noconfig"));
+            Assert.Equal(new[] { 0, 15 }, ResetCommand.GetNoConfigPositions("noconfig error noconfig"));
+        }
+
+        [WorkItem(4755, "https://github.com/dotnet/roslyn/issues/4755")]
+        [Fact]
+        public void ReformatBraces()
+        {
+            var buffer = Window.CurrentLanguageBuffer;
+            var snapshot = buffer.CurrentSnapshot;
+            Assert.Equal(0, snapshot.Length);
+
+            // Text before reformatting.
+            snapshot = ApplyChanges(
+                buffer,
+                new TextChange(0, 0, "{ {\r\n } }"));
+
+            // Text after reformatting.
+            Assert.Equal(9, snapshot.Length);
+            snapshot = ApplyChanges(
+                buffer,
+                new TextChange(1, 1, "\r\n    "),
+                new TextChange(5, 1, "    "),
+                new TextChange(7, 1, "\r\n"));
+
+            // Text from language buffer.
+            var actualText = snapshot.GetText();
+            Assert.Equal("{\r\n    {\r\n    }\r\n}", actualText);
+
+            // Text including prompts.
+            buffer = Window.TextView.TextBuffer;
+            snapshot = buffer.CurrentSnapshot;
+            actualText = snapshot.GetText();
+            Assert.Equal("> {\r\n>     {\r\n>     }\r\n> }", actualText);
+
+            // Prompts should be read-only.
+            var regions = buffer.GetReadOnlyExtents(new Span(0, snapshot.Length));
+            AssertEx.SetEqual(regions,
+                new Span(0, 2),
+                new Span(5, 2),
+                new Span(14, 2),
+                new Span(23, 2));
+        }
+
+        [Fact]
+        public void CopyWithinInput()
+        {
+            Clipboard.Clear();
+
+            Window.InsertCode("1 + 2");
+            Window.Operations.SelectAll();
+            Window.Operations.Copy();
+            VerifyClipboardData("1 + 2");
+
+            // Shrink the selection.
+            var selection = Window.TextView.Selection;
+            var span = selection.SelectedSpans[0];
+            selection.Select(new SnapshotSpan(span.Snapshot, span.Start + 1, span.Length - 2), isReversed: false);
+
+            Window.Operations.Copy();
+            VerifyClipboardData(" + ");
+        }
+
+        [Fact]
+        public void CopyInputAndOutput()
+        {
+            Clipboard.Clear();
+
+            Submit(
+@"foreach (var o in new[] { 1, 2, 3 })
+System.Console.WriteLine();",
+@"1
+2
+3
+");
+            var caret = Window.TextView.Caret;
+            caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+            Window.Operations.SelectAll();
+            Window.Operations.SelectAll();
+            Window.Operations.Copy();
+            VerifyClipboardData(@"foreach (var o in new[] { 1, 2, 3 })
+System.Console.WriteLine();
+1
+2
+3
+",
+@"> foreach (var o in new[] \{ 1, 2, 3 \})\par > System.Console.WriteLine();\par 1\par 2\par 3\par > ");
+
+            // Shrink the selection.
+            var selection = Window.TextView.Selection;
+            var span = selection.SelectedSpans[0];
+            selection.Select(new SnapshotSpan(span.Snapshot, span.Start + 3, span.Length - 6), isReversed: false);
+
+            Window.Operations.Copy();
+            VerifyClipboardData(@"oreach (var o in new[] { 1, 2, 3 })
+System.Console.WriteLine();
+1
+2
+3",
+@"oreach (var o in new[] \{ 1, 2, 3 \})\par > System.Console.WriteLine();\par 1\par 2\par 3");
+        }
+
+        [Fact]
+        public void CutWithinInput()
+        {
+            Clipboard.Clear();
+
+            Window.InsertCode("foreach (var o in new[] { 1, 2, 3 })");
+            Window.Operations.BreakLine();
+            Window.InsertCode("System.Console.WriteLine();");
+            Window.Operations.BreakLine();
+
+            var caret = Window.TextView.Caret;
+            caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+            Window.Operations.SelectAll();
+            // Shrink the selection.
+            var selection = Window.TextView.Selection;
+            var span = selection.SelectedSpans[0];
+            selection.Select(new SnapshotSpan(span.Snapshot, span.Start + 3, span.Length - 6), isReversed: false);
+
+            Window.Operations.Cut();
+            VerifyClipboardData(
+@"each (var o in new[] { 1, 2, 3 })
+System.Console.WriteLine()",
+                expectedRtf: null);
+        }
+
+        [Fact]
+        public void CutInputAndOutput()
+        {
+            Clipboard.Clear();
+
+            Submit(
+@"foreach (var o in new[] { 1, 2, 3 })
+System.Console.WriteLine();",
+@"1
+2
+3
+");
+            var caret = Window.TextView.Caret;
+            caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+            Window.Operations.SelectAll();
+            Window.Operations.SelectAll();
+            Window.Operations.Cut();
+            VerifyClipboardData(null);
+        }
+
+        /// <summary>
+        /// When there is no selection, copy
+        /// should copy the current line.
+        /// </summary>
+        [Fact]
+        public void CopyNoSelection()
+        {
+            Submit(
+@"s +
+
+ t",
+@" 1
+
+2 ");
+            CopyNoSelectionAndVerify(0, 7, "s +\r\n", @"> s +\par ");
+            CopyNoSelectionAndVerify(7, 11, "\r\n", @"> \par ");
+            CopyNoSelectionAndVerify(11, 17, " t\r\n", @">  t\par ");
+            CopyNoSelectionAndVerify(17, 21, " 1\r\n", @" 1\par ");
+            CopyNoSelectionAndVerify(21, 23, "\r\n", @"\par ");
+            CopyNoSelectionAndVerify(23, 28, "2 ", "2 > ");
+        }
+
+        private void CopyNoSelectionAndVerify(int start, int end, string expectedText, string expectedRtf)
+        {
+            var caret = Window.TextView.Caret;
+            var snapshot = Window.TextView.TextBuffer.CurrentSnapshot;
+            for (int i = start; i < end; i++)
+            {
+                Clipboard.Clear();
+                caret.MoveTo(new SnapshotPoint(snapshot, i));
+                Window.Operations.Copy();
+                VerifyClipboardData(expectedText, expectedRtf);
+            }
+        }
+
+        [Fact]
+        public void CancelMultiLineInput()
+        {
+            ApplyChanges(
+                Window.CurrentLanguageBuffer,
+                new TextChange(0, 0, "{\r\n    {\r\n    }\r\n}"));
+
+            // Text including prompts.
+            var buffer = Window.TextView.TextBuffer;
+            var snapshot = buffer.CurrentSnapshot;
+            Assert.Equal("> {\r\n>     {\r\n>     }\r\n> }", snapshot.GetText());
+
+            Task.Run(() => Window.Operations.Cancel()).PumpingWait();
+
+            // Text after cancel.
+            snapshot = buffer.CurrentSnapshot;
+            Assert.Equal("> ", snapshot.GetText());
+        }
+
+        private void Submit(string submission, string output)
+        {
+            Task.Run(() => Window.SubmitAsync(new[] { submission })).PumpingWait();
+            // TestInteractiveEngine.ExecuteCodeAsync() simply returns
+            // success rather than executing the submission, so add the
+            // expected output to the output buffer.
+            var buffer = Window.OutputBuffer;
+            using (var edit = buffer.CreateEdit())
+            {
+                edit.Replace(buffer.CurrentSnapshot.Length, 0, output);
+                edit.Apply();
+            }
+        }
+
+        private static void VerifyClipboardData(string expectedText)
+        {
+            VerifyClipboardData(expectedText, expectedText);
+        }
+
+        private static void VerifyClipboardData(string expectedText, string expectedRtf)
+        {
+            var data = Clipboard.GetDataObject();
+            Assert.Equal(expectedText, data.GetData(DataFormats.StringFormat));
+            Assert.Equal(expectedText, data.GetData(DataFormats.Text));
+            Assert.Equal(expectedText, data.GetData(DataFormats.UnicodeText));
+            var actualRtf = (string)data.GetData(DataFormats.Rtf);
+            if (expectedRtf == null)
+            {
+                Assert.Null(actualRtf);
+            }
+            else
+            {
+                Assert.True(actualRtf.StartsWith(@"{\rtf"));
+                Assert.True(actualRtf.EndsWith(expectedRtf + "}"));
+            }
+        }
+
+        private struct TextChange
+        {
+            internal readonly int Start;
+            internal readonly int Length;
+            internal readonly string Text;
+
+            internal TextChange(int start, int length, string text)
+            {
+                Start = start;
+                Length = length;
+                Text = text;
+            }
+        }
+
+        private static ITextSnapshot ApplyChanges(ITextBuffer buffer, params TextChange[] changes)
+        {
+            using (var edit = buffer.CreateEdit())
+            {
+                foreach (var change in changes)
+                {
+                    edit.Replace(change.Start, change.Length, change.Text);
+                }
+                return edit.Apply();
+            }
+        }
+    }
+
+    internal static class OperationsExtensions
+    {
+        internal static void Copy(this IInteractiveWindowOperations operations)
+        {
+            ((IInteractiveWindowOperations2)operations).Copy();
         }
     }
 }

@@ -69,7 +69,7 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="project.json" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />

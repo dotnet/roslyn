@@ -103,6 +103,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return ImmutableArray<TypeSymbol>.Empty; }
             }
 
+            internal override bool HasTypeArgumentsCustomModifiers
+            {
+                get
+                {
+                    return false;
+                }
+            }
+
+            internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
+            {
+                get
+                {
+                    return ImmutableArray<ImmutableArray<CustomModifier>>.Empty;
+                }
+            }
+
             public override ImmutableArray<Symbol> GetMembers(string name)
             {
                 var symbols = _nameToSymbols[name];
@@ -323,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }
 
-            internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiers, bool ignoreDynamic)
+            internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
             {
                 if (ReferenceEquals(this, t2))
                 {
@@ -331,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var other = t2 as AnonymousTypePublicSymbol;
-                return (object)other != null && this.TypeDescriptor.Equals(other.TypeDescriptor, ignoreCustomModifiers, ignoreDynamic);
+                return (object)other != null && this.TypeDescriptor.Equals(other.TypeDescriptor, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic);
             }
 
             public override int GetHashCode()

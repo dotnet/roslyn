@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
             var commandLineArguments = commandLineParser.Parse(commandLineArgs, projectDirectory, isInteractive: false, sdkDirectory: RuntimeEnvironment.GetRuntimeDirectory());
 
             // TODO (tomat): to match csc.exe/vbc.exe we should use CommonCommandLineCompiler.ExistingReferencesResolver to deal with #r's
-            var referenceResolver = new MetadataFileReferenceResolver(commandLineArguments.ReferencePaths, commandLineArguments.BaseDirectory);
+            var referenceResolver = new RelativePathReferenceResolver(commandLineArguments.ReferencePaths, commandLineArguments.BaseDirectory);
             var referenceProvider = tmpWorkspace.Services.GetRequiredService<IMetadataService>().GetProvider();
             var analyzerLoader = tmpWorkspace.Services.GetRequiredService<IAnalyzerService>().GetLoader();
             var xmlFileResolver = new XmlFileResolver(commandLineArguments.BaseDirectory);

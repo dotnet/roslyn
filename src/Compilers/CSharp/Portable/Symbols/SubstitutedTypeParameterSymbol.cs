@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<TypeSymbol> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
         {
-            return _map.SubstituteTypes(_substitutedFrom.GetConstraintTypes(inProgress)).WhereAsArray(s_isNotObjectFunc).Distinct();
+            return _map.SubstituteTypesWithoutModifiers(_substitutedFrom.GetConstraintTypes(inProgress)).WhereAsArray(s_isNotObjectFunc).Distinct();
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override TypeSymbol GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress)
         {
-            return _map.SubstituteType(_substitutedFrom.GetDeducedBaseType(inProgress));
+            return _map.SubstituteType(_substitutedFrom.GetDeducedBaseType(inProgress)).AsTypeSymbolOnly();
         }
 
         private static readonly Func<TypeSymbol, bool> s_isNotObjectFunc = type => type.SpecialType != SpecialType.System_Object;

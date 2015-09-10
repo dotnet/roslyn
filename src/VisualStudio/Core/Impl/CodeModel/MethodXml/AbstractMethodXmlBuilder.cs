@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -34,6 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
         private const string NameRefElementName = "NameRef";
         private const string NewArrayElementName = "NewArray";
         private const string NewClassElementName = "NewClass";
+        private const string NewDelegateElementName = "NewDelegate";
         private const string NullElementName = "Null";
         private const string NumberElementName = "Number";
         private const string ParenthesesElementName = "Parentheses";
@@ -43,7 +43,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
         private const string TypeElementName = "Type";
 
         private const string BinaryOperatorAttributeName = "binaryoperator";
+        private const string FullNameAttributeName = "fullname";
+        private const string ImplicitAttributeName = "implicit";
         private const string LineAttributeName = "line";
+        private const string NameAttributeName = "name";
         private const string RankAttributeName = "rank";
         private const string TypeAttributeName = "type";
         private const string VariableKindAttributeName = "variablekind";
@@ -183,9 +186,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
             return new AttributeInfo(BinaryOperatorAttributeName, GetBinaryOperatorKindText(kind));
         }
 
+        private AttributeInfo FullNameAttribute(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return AttributeInfo.Empty;
+            }
+
+            return new AttributeInfo(FullNameAttributeName, name);
+        }
+
+        private AttributeInfo ImplicitAttribute(bool? @implicit)
+        {
+            if (@implicit == null)
+            {
+                return AttributeInfo.Empty;
+            }
+
+            return new AttributeInfo(ImplicitAttributeName, @implicit.Value ? "yes" : "no");
+        }
+
         private AttributeInfo LineNumberAttribute(int lineNumber)
         {
             return new AttributeInfo(LineAttributeName, lineNumber.ToString());
+        }
+
+        private AttributeInfo NameAttribute(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return AttributeInfo.Empty;
+            }
+
+            return new AttributeInfo(NameAttributeName, name);
         }
 
         private AttributeInfo RankAttribute(int rank)
@@ -308,9 +341,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
             return Tag(NameElementName);
         }
 
-        protected IDisposable NameRefTag(VariableKind kind)
+        protected IDisposable NameRefTag(VariableKind kind, string name = null, string fullName = null)
         {
-            return Tag(NameRefElementName, VariableKindAttribute(kind));
+            return Tag(NameRefElementName, VariableKindAttribute(kind), NameAttribute(name), FullNameAttribute(fullName));
         }
 
         protected IDisposable NewArrayTag()
@@ -321,6 +354,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
         protected IDisposable NewClassTag()
         {
             return Tag(NewClassElementName);
+        }
+
+        protected IDisposable NewDelegateTag(string name)
+        {
+            return Tag(NewDelegateElementName, NameAttribute(name));
         }
 
         protected void NullTag()
@@ -353,9 +391,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
             AppendLeafTag(ThisReferenceElementName);
         }
 
-        protected IDisposable TypeTag()
+        protected IDisposable TypeTag(bool? @implicit = null)
         {
-            return Tag(TypeElementName);
+            return Tag(TypeElementName, ImplicitAttribute(@implicit));
         }
 
         protected void LineBreak()
@@ -428,21 +466,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
             }
         }
 
-        protected void GenerateType(ITypeSymbol type)
+        protected void GenerateType(ITypeSymbol type, bool? @implicit = null, bool assemblyQualify = false)
         {
             if (type.TypeKind == TypeKind.Array)
             {
                 var arrayType = (IArrayTypeSymbol)type;
                 using (var tag = ArrayTypeTag(arrayType.Rank))
                 {
-                    GenerateType(arrayType.ElementType);
+                    GenerateType(arrayType.ElementType, @implicit, assemblyQualify);
                 }
             }
             else
             {
-                using (TypeTag())
+                using (TypeTag(@implicit))
                 {
-                    EncodedText(GetTypeName(type));
+                    var typeName = assemblyQualify
+                        ? GetTypeName(type) + ", " + type.ContainingAssembly.ToDisplayString()
+                        : GetTypeName(type);
+
+                    EncodedText(typeName);
                 }
             }
         }
@@ -464,8 +506,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
         {
             using (NumberTag(GetTypeName(type)))
             {
-                // TODO(DustinCa): Add more unit tests to ensure that floats are correct.
-                EncodedText(Convert.ToString(value, CultureInfo.InvariantCulture));
+                if (value is double)
+                {
+                    // Note: use G17 for doubles to ensure that we roundtrip properly on 64-bit
+                    EncodedText(((double)value).ToString("G17", CultureInfo.InvariantCulture));
+                }
+                else if (value is float)
+                {
+                    EncodedText(((float)value).ToString("R", CultureInfo.InvariantCulture));
+                }
+                else
+                {
+                    EncodedText(Convert.ToString(value, CultureInfo.InvariantCulture));
+                }
             }
         }
 

@@ -857,6 +857,7 @@
     <Compile Include="Symbols\TypeSubstitution.vb" />
     <Compile Include="Symbols\TypeSymbol.vb" />
     <Compile Include="Symbols\TypeSymbolExtensions.vb" />
+    <Compile Include="Symbols\TypeWithModifiers.vb" />
     <Compile Include="Symbols\UnboundGenericType.vb" />
     <Compile Include="Symbols\UnsupportedMetadataTypeSymbol.vb" />
     <Compile Include="Symbols\WellKnownMembers.vb" />
@@ -976,7 +977,8 @@
     <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Enumerator.vb" />
     <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.vb" />
     <Compile Include="Compilation\ModuleCompilationState.vb" />
-    <PublicAPI Include="PublicAPI.txt" />
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
     <Content Include="Symbols\SymbolsAndNoPia.docx" />
     <ErrorCode Include="Errors\Errors.vb" />
     <SyntaxDefinition Include="Syntax\Syntax.xml">
@@ -1002,9 +1004,13 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.VisualBasic.ExpressionCompiler.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.ExpressionCompiler.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
+    <InternalsVisibleToTest Include="Roslyn.Test.Utilities.FX45" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
@@ -1013,20 +1019,10 @@
     <Folder Include="My Project\" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="System.Collections.Immutable, Version=$(SystemCollectionsImmutableAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Reflection.Metadata, Version=$(SystemReflectionMetadataAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="..\BasicCodeAnalysisRules.ruleset">
       <SubType>Designer</SubType>
     </None>
-    <None Include="packages.config" />
+    <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems" Label="Shared" />
   <ImportGroup Label="Targets">

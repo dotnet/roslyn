@@ -36,11 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        bool Cci.IParameterTypeInformation.HasByRefBeforeCustomModifiers
+        ushort Cci.IParameterTypeInformation.CountOfCustomModifiersPrecedingByRef
         {
             get
             {
-                return _underlyingParameter.HasByRefBeforeCustomModifiers;
+                return _underlyingParameter.CountOfCustomModifiersPrecedingByRef;
             }
         }
 
@@ -86,9 +86,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get { return _isByRef; }
         }
 
-        bool Cci.IParameterTypeInformation.HasByRefBeforeCustomModifiers
+        ushort Cci.IParameterTypeInformation.CountOfCustomModifiersPrecedingByRef
         {
-            get { return false; }
+            get { return 0; }
         }
 
         Cci.ITypeReference Cci.IParameterTypeInformation.GetType(EmitContext context)

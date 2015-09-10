@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Recommendations
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
@@ -133,9 +134,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                 symbols = symbols.Where(Function(symbol) Not symbol.IsInaccessibleLocal(context.Position))
             End If
 
-            ' Hide backing fields and events
+            ' GitHub #4428: When the user is typing a predicate (eg. "Enumerable.Range(0,10).Select($$")
+            ' "Func(Of" tends to get in the way of typing "Function". Exclude System.Func from expression
+            ' contexts, except within GetType
+            If Not context.TargetToken.IsKind(SyntaxKind.OpenParenToken) OrElse
+               Not context.TargetToken.Parent.IsKind(SyntaxKind.GetTypeExpression) Then
 
+                symbols = symbols.Where(Function(s) Not IsSystemFunc(s))
+            End If
+
+            ' Hide backing fields and events
             Return symbols.Where(Function(s) FilterEventsAndGeneratedSymbols(Nothing, s))
+        End Function
+
+        Private Function IsSystemFunc(s As ISymbol) As Boolean
+            Dim namedTypeSymbol = TryCast(s, INamedTypeSymbol)
+            Return namedTypeSymbol IsNot Nothing AndAlso
+                    namedTypeSymbol.Name = "Func" AndAlso
+                    namedTypeSymbol.GetArity() > 0 AndAlso
+                    namedTypeSymbol.ContainingNamespace IsNot Nothing AndAlso
+                    namedTypeSymbol.ContainingNamespace.Name = "System" AndAlso
+                    namedTypeSymbol.ContainingNamespace.ContainingNamespace.IsGlobalNamespace
+
         End Function
 
         Private Function GetSymbolsForQualifiedNameSyntax(
@@ -183,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             End If
 
             Dim leftHandTypeInfo = context.SemanticModel.GetTypeInfo(leftExpression, cancellationToken)
-            Dim lifeHandSymbolInfo = context.SemanticModel.GetSymbolInfo(leftExpression, cancellationToken)
+            Dim leftHandSymbolInfo = context.SemanticModel.GetSymbolInfo(leftExpression, cancellationToken)
 
             Dim excludeInstance = False
             Dim excludeShared = True ' do not show shared members by default
@@ -191,16 +211,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             Dim inNameOfExpression = node.IsParentKind(SyntaxKind.NameOfExpression)
 
             Dim container = DirectCast(leftHandTypeInfo.Type, INamespaceOrTypeSymbol)
-            If leftHandTypeInfo.Type.IsErrorType AndAlso lifeHandSymbolInfo.Symbol IsNot Nothing Then
+            If leftHandTypeInfo.Type.IsErrorType AndAlso leftHandSymbolInfo.Symbol IsNot Nothing Then
                 ' TODO remove this when 531549 which causes leftHandTypeInfo to be an error type is fixed
-                container = lifeHandSymbolInfo.Symbol.GetSymbolType()
+                container = leftHandSymbolInfo.Symbol.GetSymbolType()
             End If
 
             Dim couldBeMergedNamespace = False
 
-            If lifeHandSymbolInfo.Symbol IsNot Nothing Then
+            If leftHandSymbolInfo.Symbol IsNot Nothing Then
 
-                Dim firstSymbol = lifeHandSymbolInfo.Symbol
+                Dim firstSymbol = leftHandSymbolInfo.Symbol
 
                 Select Case firstSymbol.Kind
                     Case SymbolKind.TypeParameter
@@ -231,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                 ' Check for color color
                 Dim speculativeTypeBinding = context.SemanticModel.GetSpeculativeTypeInfo(context.Position, leftExpression, SpeculativeBindingOption.BindAsTypeOrNamespace)
                 Dim speculativeAliasBinding = context.SemanticModel.GetSpeculativeAliasInfo(context.Position, leftExpression, SpeculativeBindingOption.BindAsTypeOrNamespace)
-                If speculativeAliasBinding Is Nothing AndAlso firstSymbol.GetSymbolType() Is speculativeTypeBinding.Type Then
+                If TypeOf leftHandSymbolInfo.Symbol IsNot INamespaceOrTypeSymbol AndAlso speculativeAliasBinding Is Nothing AndAlso firstSymbol.GetSymbolType() Is speculativeTypeBinding.Type Then
                     excludeShared = False
                     excludeInstance = False
                 End If
@@ -245,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                 End If
 
             Else
-                couldBeMergedNamespace = ContainsNamespaceCandidateSymbols(lifeHandSymbolInfo)
+                couldBeMergedNamespace = ContainsNamespaceCandidateSymbols(leftHandSymbolInfo)
             End If
 
             If container Is Nothing AndAlso Not couldBeMergedNamespace Then
@@ -266,14 +286,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
 
             ' No completion on types/namespace after conditional access
             If leftExpression.Parent.IsKind(SyntaxKind.ConditionalAccessExpression) AndAlso
-                (couldBeMergedNamespace OrElse lifeHandSymbolInfo.GetBestOrAllSymbols().FirstOrDefault().MatchesKind(SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Alias)) Then
+                (couldBeMergedNamespace OrElse leftHandSymbolInfo.GetBestOrAllSymbols().FirstOrDefault().MatchesKind(SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Alias)) Then
                 Return SpecializedCollections.EmptyCollection(Of ISymbol)()
             End If
 
             Dim position = node.SpanStart
             Dim symbols As IEnumerable(Of ISymbol)
             If couldBeMergedNamespace Then
-                symbols = lifeHandSymbolInfo.CandidateSymbols _
+                symbols = leftHandSymbolInfo.CandidateSymbols _
                     .OfType(Of INamespaceSymbol) _
                     .SelectMany(Function(n) LookupSymbolsInContainer(n, context.SemanticModel, position, excludeInstance))
             Else
@@ -299,8 +319,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             End If
 
             ' If the left expression is My.MyForms, we should filter out all non-property symbols
-            If lifeHandSymbolInfo.Symbol IsNot Nothing AndAlso
-               lifeHandSymbolInfo.Symbol.IsMyFormsProperty(context.SemanticModel.Compilation) Then
+            If leftHandSymbolInfo.Symbol IsNot Nothing AndAlso
+               leftHandSymbolInfo.Symbol.IsMyFormsProperty(context.SemanticModel.Compilation) Then
 
                 symbols = symbols.Where(Function(s) s.Kind = SymbolKind.Property)
             End If
@@ -310,6 +330,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
 
             ' Filter events and generated members
             symbols = symbols.Where(Function(s) FilterEventsAndGeneratedSymbols(node, s))
+
+            ' Never show the enum backing field
+            symbols = symbols.Where(Function(s) s.Kind <> SymbolKind.Field OrElse Not s.ContainingType.IsEnumType() OrElse s.Name <> WellKnownMemberNames.EnumBackingFieldName)
 
             Return symbols
         End Function

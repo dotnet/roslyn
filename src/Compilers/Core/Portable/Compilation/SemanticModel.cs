@@ -826,13 +826,14 @@ namespace Microsoft.CodeAnalysis
         /// <param name="span">Span to get declarations.</param>
         /// <param name="getSymbol">Flag indicating whether <see cref="DeclarationInfo.DeclaredSymbol"/> should be computed for the returned declaration infos.
         /// If false, then <see cref="DeclarationInfo.DeclaredSymbol"/> is always null.</param>
+        /// <param name="builder">Builder to add declarations.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        internal abstract ImmutableArray<DeclarationInfo> GetDeclarationsInSpan(TextSpan span, bool getSymbol, CancellationToken cancellationToken);
+        internal abstract void ComputeDeclarationsInSpan(TextSpan span, bool getSymbol, List<DeclarationInfo> builder, CancellationToken cancellationToken);
 
         /// <summary>
         /// Takes a node and returns a set of declarations that overlap the node's span.
         /// </summary>
-        internal abstract ImmutableArray<DeclarationInfo> GetDeclarationsInNode(SyntaxNode node, bool getSymbol, CancellationToken cancellationToken, int? levelsToCompute = null);
+        internal abstract void ComputeDeclarationsInNode(SyntaxNode node, bool getSymbol, List<DeclarationInfo> builder, CancellationToken cancellationToken, int? levelsToCompute = null);
 
         /// <summary>
         /// Takes a Symbol and syntax for one of its declaring syntax reference and returns the topmost syntax node to be used by syntax analyzer.

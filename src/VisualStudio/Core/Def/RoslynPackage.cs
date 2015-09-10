@@ -143,7 +143,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             this.ComponentModel.GetService<VisualStudioDiagnosticListTable>();
             this.ComponentModel.GetService<VisualStudioTodoListTable>();
 
-            this.ComponentModel.GetService<VisualStudioTodoTaskList>();
             this.ComponentModel.GetService<HACK_ThemeColorFixer>();
             this.ComponentModel.GetExtensions<IReferencedSymbolsPresenter>();
             this.ComponentModel.GetExtensions<INavigableItemsPresenter>();

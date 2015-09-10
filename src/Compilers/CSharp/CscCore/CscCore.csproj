@@ -1,13 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003"
-         TreatAsLocalProperty="RestorePackages">
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
     <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProjectGuid>{E3CD2895-76A8-4D11-A316-EA67CB5EA42C}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.CommandLine</RootNamespace>
@@ -19,7 +18,9 @@
     <OutDir>$(OutDir)core-clr\</OutDir>
     <RestorePackages>true</RestorePackages>
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
-    <TargetCoreClr>true</TargetCoreClr>
+    <TargetFrameworkIdentifier>DNXCore</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <NoStdLib>true</NoStdLib>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Core\Portable\CodeAnalysis.csproj">
@@ -31,22 +32,25 @@
       <Name>CSharpCodeAnalysis</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <NoWarn>1591</NoWarn>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <NoWarn>1591</NoWarn>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System.Collections.Immutable">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Reflection.Metadata">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
-    </Reference>
-  </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Core\MSBuildTask\BuildClient.cs">
       <Link>BuildClient.cs</Link>
@@ -84,7 +88,4 @@
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>
-  <Target Name="CopyExtraFiles" AfterTargets="Build">
-    <Copy SourceFiles="@(None)" DestinationFolder="$(OutDir)" Condition="'%(Extension)' == '.dll'" />
-  </Target>
 </Project>

@@ -534,12 +534,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 AssemblyIdentityComparer.ComparisonResult.Equivalent,
                 unificationApplied: true);
 
-            // TODO (bug 1090947):
-            //TestMatch(
-            //    "System.Numerics.Vectors, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
-            //    "System.Numerics.Vectors, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
-            //    AssemblyIdentityComparer.ComparisonResult.Equivalent,
-            //    unificationApplied: true);
+            TestMatch(
+                "System.Numerics.Vectors, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+                "System.Numerics.Vectors, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+                AssemblyIdentityComparer.ComparisonResult.Equivalent,
+                unificationApplied: true);
 
             // greater version than FW version (4.0)
             TestMatch(
@@ -552,11 +551,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "System.Runtime.Handles, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
                 AssemblyIdentityComparer.ComparisonResult.NotEquivalent);
 
-            // TODO (bug 1090947):
-            //TestMatch(
-            //    "System.Numerics.Vectors, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
-            //    "System.Numerics.Vectors, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
-            //    AssemblyIdentityComparer.ComparisonResult.NotEquivalent);
+            TestMatch(
+                "System.Numerics.Vectors, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+                "System.Numerics.Vectors, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+                AssemblyIdentityComparer.ComparisonResult.NotEquivalent);
 
             // works correctly for names with CLR invalid characters:
             foreach (var c in AssemblyIdentityTests.ClrInvalidCharacters)

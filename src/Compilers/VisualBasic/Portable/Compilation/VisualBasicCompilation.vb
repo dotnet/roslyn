@@ -80,6 +80,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private ReadOnly _syntaxTrees As ImmutableArray(Of SyntaxTree)
 
+        Private ReadOnly _syntaxTreeOrdinalMap As ImmutableDictionary(Of SyntaxTree, Integer)
+
         ''' <summary>
         ''' The syntax trees of this compilation plus all 'hidden' trees 
         ''' added to the compilation by compiler, e.g. Vb Core Runtime.
@@ -411,7 +413,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             reuseReferenceManager As Boolean,
             Optional eventQueue As AsyncQueue(Of CompilationEvent) = Nothing
         )
-            MyBase.New(assemblyName, references, submissionReturnType, hostObjectType, isSubmission, syntaxTreeOrdinalMap, eventQueue)
+            MyBase.New(assemblyName, references, SyntaxTreeCommonFeatures(syntaxTrees), submissionReturnType, hostObjectType, isSubmission, eventQueue)
 
             Debug.Assert(rootNamespaces IsNot Nothing)
             Debug.Assert(declarationTable IsNot Nothing)
@@ -421,6 +423,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             _options = options
             _syntaxTrees = syntaxTrees
+            _syntaxTreeOrdinalMap = syntaxTreeOrdinalMap
             _rootNamespaces = rootNamespaces
             _embeddedTrees = embeddedTrees
             _declarationTable = declarationTable
@@ -451,6 +454,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
+        Friend Overrides Sub ValidateDebugEntryPoint(debugEntryPoint As IMethodSymbol, diagnostics As DiagnosticBag)
+            Debug.Assert(debugEntryPoint IsNot Nothing)
+
+            ' Debug entry point has to be a method definition from this compilation.
+            Dim methodSymbol = TryCast(debugEntryPoint, MethodSymbol)
+            If methodSymbol?.DeclaringCompilation IsNot Me OrElse Not methodSymbol.IsDefinition Then
+                diagnostics.Add(ERRID.ERR_DebugEntryPointNotSourceMethodDefinition, Location.None)
+            End If
+        End Sub
+
         Private Function CommonLanguageVersion(syntaxTrees As ImmutableArray(Of SyntaxTree)) As LanguageVersion
             ' We don't check m_Options.ParseOptions.LanguageVersion for consistency, because
             ' it isn't consistent in practice.  In fact sometimes m_Options.ParseOptions is Nothing.
@@ -460,7 +473,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If result Is Nothing Then
                     result = version
                 ElseIf result <> version Then
-                    Throw New ArgumentException("inconsistent language versions", NameOf(syntaxTrees))
+                    Throw New ArgumentException(CodeAnalysisResources.InconsistentLanguageVersions, NameOf(syntaxTrees))
                 End If
             Next
 
@@ -476,7 +489,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _options,
                 Me.ExternalReferences,
                 _syntaxTrees,
-                Me.syntaxTreeOrdinalMap,
+                _syntaxTreeOrdinalMap,
                 _rootNamespaces,
                 _embeddedTrees,
                 _declarationTable,
@@ -528,7 +541,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.Options,
                 Me.ExternalReferences,
                 _syntaxTrees,
-                Me.syntaxTreeOrdinalMap,
+                _syntaxTreeOrdinalMap,
                 _rootNamespaces,
                 _embeddedTrees,
                 _declarationTable,
@@ -569,7 +582,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.Options,
                 ValidateReferences(Of VisualBasicCompilationReference)(newReferences),
                 _syntaxTrees,
-                Me.syntaxTreeOrdinalMap,
+                _syntaxTreeOrdinalMap,
                 _rootNamespaces,
                 embeddedTrees,
                 declTable,
@@ -622,7 +635,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 newOptions,
                 Me.ExternalReferences,
                 _syntaxTrees,
-                Me.syntaxTreeOrdinalMap,
+                _syntaxTreeOrdinalMap,
                 declMap,
                 embeddedTrees,
                 declTable,
@@ -650,7 +663,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.Options,
                 Me.ExternalReferences,
                 _syntaxTrees,
-                Me.syntaxTreeOrdinalMap,
+                _syntaxTreeOrdinalMap,
                 _rootNamespaces,
                 _embeddedTrees,
                 _declarationTable,
@@ -671,7 +684,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.Options,
                 Me.ExternalReferences,
                 _syntaxTrees,
-                Me.syntaxTreeOrdinalMap,
+                _syntaxTreeOrdinalMap,
                 _rootNamespaces,
                 _embeddedTrees,
                 _declarationTable,
@@ -835,7 +848,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim referenceDirectivesChanged = False
                 Dim oldTreeCount = _syntaxTrees.Length
 
-                Dim ordinalMap = Me.syntaxTreeOrdinalMap
+                Dim ordinalMap = _syntaxTreeOrdinalMap
                 Dim declMap = _rootNamespaces
                 Dim declTable = _declarationTable
                 Dim i = 0
@@ -1010,7 +1023,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             RemoveSyntaxTreeFromDeclarationMapAndTable(vbOldTree, declMap, declTable, referenceDirectivesChanged)
             AddSyntaxTreeToDeclarationMapAndTable(vbNewTree, _options, Me.IsSubmission, declMap, declTable, referenceDirectivesChanged)
 
-            Dim ordinalMap = Me.syntaxTreeOrdinalMap
+            Dim ordinalMap = _syntaxTreeOrdinalMap
 
             Debug.Assert(ordinalMap.ContainsKey(oldTree)) ' Checked by RemoveSyntaxTreeFromDeclarationMapAndTable
             Dim oldOrdinal = ordinalMap(oldTree)
@@ -1147,6 +1160,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Overrides Function CompareSourceLocations(first As Location, second As Location) As Integer
             Return LexicalSortKey.Compare(first, second, Me)
+        End Function
+
+        Friend Overrides Function GetSyntaxTreeOrdinal(tree As SyntaxTree) As Integer
+            Debug.Assert(Me.ContainsSyntaxTree(tree))
+            Return _syntaxTreeOrdinalMap(tree)
         End Function
 
 #End Region
@@ -1818,7 +1836,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException(NameOf(elementType))
             End If
 
-            Return New ArrayTypeSymbol(elementType, Nothing, rank, Me)
+            Return ArrayTypeSymbol.CreateVBArray(elementType, Nothing, rank, Me)
         End Function
 
 #End Region
@@ -2073,9 +2091,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Not hasError
         End Function
 
-        Friend Overrides Function AnalyzerForLanguage(analyzers As ImmutableArray(Of DiagnosticAnalyzer), analyzerManager As AnalyzerManager, cancellationToken As CancellationToken) As AnalyzerDriver
+        Friend Overrides Function AnalyzerForLanguage(analyzers As ImmutableArray(Of DiagnosticAnalyzer), analyzerManager As AnalyzerManager) As AnalyzerDriver
             Dim getKind As Func(Of SyntaxNode, SyntaxKind) = Function(node As SyntaxNode) node.Kind
-            Return New AnalyzerDriver(Of SyntaxKind)(analyzers, getKind, analyzerManager, cancellationToken)
+            Return New AnalyzerDriver(Of SyntaxKind)(analyzers, getKind, analyzerManager)
         End Function
 
 #End Region
@@ -2123,6 +2141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides Function CreateModuleBuilder(
             emitOptions As EmitOptions,
+            debugEntryPoint As IMethodSymbol,
             manifestResources As IEnumerable(Of ResourceDescription),
             testData As CompilationTestData,
             diagnostics As DiagnosticBag,
@@ -2130,6 +2149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return CreateModuleBuilder(
                 emitOptions,
+                debugEntryPoint,
                 manifestResources,
                 testData,
                 diagnostics,
@@ -2139,6 +2159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overloads Function CreateModuleBuilder(
             emitOptions As EmitOptions,
+            debugEntryPoint As IMethodSymbol,
             manifestResources As IEnumerable(Of ResourceDescription),
             testData As CompilationTestData,
             diagnostics As DiagnosticBag,
@@ -2175,6 +2196,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         moduleSerializationProperties,
                         manifestResources,
                         additionalTypes)
+            End If
+
+            If debugEntryPoint IsNot Nothing Then
+                moduleBeingBuilt.SetDebugEntryPoint(DirectCast(debugEntryPoint, MethodSymbol), diagnostics)
             End If
 
             If testData IsNot Nothing Then

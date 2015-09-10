@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitArrayCreation(BoundArrayCreation node)
         {
             var arrayType = (ArrayTypeSymbol)node.Type;
-            if (_inExpressionLambda && node.InitializerOpt != null && arrayType.Rank != 1)
+            if (_inExpressionLambda && node.InitializerOpt != null && !arrayType.IsSZArray)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsMultiDimensionalArrayInitializer, node);
             }
@@ -540,6 +540,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CheckReceiverIfField(node.ReceiverOpt);
             return base.VisitMethodGroup(node);
+        }
+
+        public override BoundNode VisitNameOfOperator(BoundNameOfOperator node)
+        {
+            // The nameof(...) operator collapses to a constant in an expression tree,
+            // so it does not matter what is recursively within it.
+            return node;
         }
 
         public override BoundNode VisitNullCoalescingOperator(BoundNullCoalescingOperator node)

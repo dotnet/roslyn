@@ -1,0 +1,33 @@
+*REMOVED*static Microsoft.CodeAnalysis.CSharp.SyntaxExtensions.NormalizeWhitespace(this Microsoft.CodeAnalysis.SyntaxToken token, string indentation = "    ", bool elasticTrivia = false) -> Microsoft.CodeAnalysis.SyntaxToken
+*REMOVED*static Microsoft.CodeAnalysis.CSharp.SyntaxExtensions.NormalizeWhitespace(this Microsoft.CodeAnalysis.SyntaxTriviaList list, string indentation = "    ", bool elasticTrivia = false) -> Microsoft.CodeAnalysis.SyntaxTriviaList
+Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.WithKind(Microsoft.CodeAnalysis.SourceCodeKind kind) -> Microsoft.CodeAnalysis.CSharp.CSharpParseOptions
+Microsoft.CodeAnalysis.CSharp.Syntax.CompilationUnitSyntax.GetLoadDirectives() -> System.Collections.Generic.IList<Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax>
+Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax.File.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax.LoadKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken hashToken, Microsoft.CodeAnalysis.SyntaxToken loadKeyword, Microsoft.CodeAnalysis.SyntaxToken file, Microsoft.CodeAnalysis.SyntaxToken endOfDirectiveToken, bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax.WithEndOfDirectiveToken(Microsoft.CodeAnalysis.SyntaxToken endOfDirectiveToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax.WithFile(Microsoft.CodeAnalysis.SyntaxToken file) -> Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax.WithHashToken(Microsoft.CodeAnalysis.SyntaxToken hashToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax.WithIsActive(bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax.WithLoadKeyword(Microsoft.CodeAnalysis.SyntaxToken loadKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.LoadDirectiveTrivia = 8923 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.LoadKeyword = 8485 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.ShebangTrivia = 8922 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+override Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.CommonWithKind(Microsoft.CodeAnalysis.SourceCodeKind kind) -> Microsoft.CodeAnalysis.ParseOptions
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitLoadDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
+override Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax.EndOfDirectiveToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+override Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax.HashToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+override Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax.IsActive.get -> bool
+static Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser.Interactive.get -> Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser
+static Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CreateSubmission(string assemblyName, Microsoft.CodeAnalysis.SyntaxTree syntaxTree = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> references = null, Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions options = null, Microsoft.CodeAnalysis.Compilation previousSubmission = null, System.Type returnType = null, System.Type hostObjectType = null) -> Microsoft.CodeAnalysis.CSharp.CSharpCompilation
+static Microsoft.CodeAnalysis.CSharp.SyntaxExtensions.NormalizeWhitespace(this Microsoft.CodeAnalysis.SyntaxToken token, string indentation = "    ", string eol = "\r\n", bool elasticTrivia = false) -> Microsoft.CodeAnalysis.SyntaxToken
+static Microsoft.CodeAnalysis.CSharp.SyntaxExtensions.NormalizeWhitespace(this Microsoft.CodeAnalysis.SyntaxToken token, string indentation, bool elasticTrivia) -> Microsoft.CodeAnalysis.SyntaxToken
+static Microsoft.CodeAnalysis.CSharp.SyntaxExtensions.NormalizeWhitespace(this Microsoft.CodeAnalysis.SyntaxTriviaList list, string indentation = "    ", string eol = "\r\n", bool elasticTrivia = false) -> Microsoft.CodeAnalysis.SyntaxTriviaList
+static Microsoft.CodeAnalysis.CSharp.SyntaxExtensions.NormalizeWhitespace(this Microsoft.CodeAnalysis.SyntaxTriviaList list, string indentation, bool elasticTrivia) -> Microsoft.CodeAnalysis.SyntaxTriviaList
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.LoadDirectiveTrivia(Microsoft.CodeAnalysis.SyntaxToken file, bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.LoadDirectiveTrivia(Microsoft.CodeAnalysis.SyntaxToken hashToken, Microsoft.CodeAnalysis.SyntaxToken loadKeyword, Microsoft.CodeAnalysis.SyntaxToken file, Microsoft.CodeAnalysis.SyntaxToken endOfDirectiveToken, bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitLoadDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitLoadDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax node) -> TResult

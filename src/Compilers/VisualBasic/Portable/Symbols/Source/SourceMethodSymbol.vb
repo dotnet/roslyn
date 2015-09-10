@@ -1471,7 +1471,7 @@ lReportErrorOnTwoTokens:
                     Dim isExtensionMethod As Boolean = False
 
                     If Not (Me.MethodKind <> MethodKind.Ordinary AndAlso Me.MethodKind <> MethodKind.DeclareMethod) AndAlso
-                        m_containingType.TypeKind = TYPEKIND.Module AndAlso
+                        m_containingType.AllowsExtensionMethods() AndAlso
                         Me.ParameterCount <> 0 Then
 
                         Debug.Assert(Me.IsShared)
@@ -1569,7 +1569,7 @@ lReportErrorOnTwoTokens:
                 If Me.MethodKind <> MethodKind.Ordinary AndAlso Me.MethodKind <> MethodKind.DeclareMethod Then
                     arguments.Diagnostics.Add(ERRID.ERR_ExtensionOnlyAllowedOnModuleSubOrFunction, arguments.AttributeSyntaxOpt.GetLocation())
 
-                ElseIf m_containingType.TypeKind <> TYPEKIND.Module Then
+                ElseIf Not m_containingType.AllowsExtensionMethods() Then
                     arguments.Diagnostics.Add(ERRID.ERR_ExtensionMethodNotInModule, arguments.AttributeSyntaxOpt.GetLocation())
 
                 ElseIf Me.ParameterCount = 0 Then
@@ -2066,7 +2066,7 @@ lReportErrorOnTwoTokens:
                     Dim fakeParamsBuilder = ArrayBuilder(Of ParameterSymbol).GetInstance(params.Length)
                     For Each param As ParameterSymbol In params
                         fakeParamsBuilder.Add(New SignatureOnlyParameterSymbol(
-                                                param.Type.InternalSubstituteTypeParameters(replaceMethodTypeParametersWithFakeTypeParameters),
+                                                param.Type.InternalSubstituteTypeParameters(replaceMethodTypeParametersWithFakeTypeParameters).AsTypeSymbolOnly(),
                                                 ImmutableArray(Of CustomModifier).Empty,
                                                 defaultConstantValue:=Nothing,
                                                 isParamArray:=False,
@@ -2080,7 +2080,7 @@ lReportErrorOnTwoTokens:
                                                                             Me.CallingConvention,
                                                                             fakeTypeParameters,
                                                                             fakeParamsBuilder.ToImmutableAndFree(),
-                                                                            retType.InternalSubstituteTypeParameters(replaceMethodTypeParametersWithFakeTypeParameters),
+                                                                            retType.InternalSubstituteTypeParameters(replaceMethodTypeParametersWithFakeTypeParameters).AsTypeSymbolOnly(),
                                                                             ImmutableArray(Of CustomModifier).Empty,
                                                                             ImmutableArray(Of MethodSymbol).Empty,
                                                                             isOverrides:=True))

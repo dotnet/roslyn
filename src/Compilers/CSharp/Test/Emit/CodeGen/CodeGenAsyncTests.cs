@@ -1916,7 +1916,7 @@ class Driver
             CompileAndVerify(source, "0");
         }
 
-        [Fact(Skip = "1089468")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/4300")]
         public void Return07_2()
         {
             var source = @"
@@ -3401,32 +3401,49 @@ class Program
         }
 
         [Fact]
-        public void AwaitInScript()
+        public void AwaitInScriptExpression()
         {
             var source =
-@"int x = await System.Threading.Tasks.Task.Run(() => 1);
-System.Console.WriteLine(x);";
+@"System.Console.WriteLine(await System.Threading.Tasks.Task.FromResult(1));";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
-            compilation.VerifyDiagnostics(
-                // (1,9): error CS1992: The 'await' operator can only be used when contained within a method or lambda expression marked with the 'async' modifier
-                // int x = await System.Threading.Tasks.Task.Run(() => 1);
-                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsync, "await System.Threading.Tasks.Task.Run(() => 1)").WithLocation(1, 9));
+            compilation.VerifyDiagnostics();
         }
 
         [Fact]
-        public void AwaitInInteractive()
+        public void AwaitInScriptDeclaration()
+        {
+            var source =
+@"int x = await System.Threading.Tasks.Task.Run(() => 2);
+System.Console.WriteLine(x);";
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AwaitInInteractiveExpression()
         {
             var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
             var source0 =
 @"static async System.Threading.Tasks.Task<int> F()
 {
-    return await System.Threading.Tasks.Task.FromResult(2);
+    return await System.Threading.Tasks.Task.FromResult(3);
 }";
             var source1 =
 @"await F()";
             var s0 = CSharpCompilation.CreateSubmission("s0.dll", SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Interactive), references);
             var s1 = CSharpCompilation.CreateSubmission("s1.dll", SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.Interactive), references, previousSubmission: s0);
             s1.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AwaitInInteractiveDeclaration()
+        {
+            var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
+            var source0 =
+@"int x = await System.Threading.Tasks.Task.Run(() => 4);
+System.Console.WriteLine(x);";
+            var s0 = CSharpCompilation.CreateSubmission("s0.dll", SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Interactive), references);
+            s0.VerifyDiagnostics();
         }
 
         /// <summary>
@@ -3445,6 +3462,176 @@ System.Console.WriteLine(x);";
                 // (1,16): error CS1992: The 'await' operator can only be used when contained within a method or lambda expression marked with the 'async' modifier
                 // static int x = await System.Threading.Tasks.Task.FromResult(1);
                 Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsync, "await System.Threading.Tasks.Task.FromResult(1)").WithLocation(1, 16));
+        }
+
+        [Fact, WorkItem(4839, "https://github.com/dotnet/roslyn/issues/4839")]
+        public void SwitchOnAwaitedValueAsync()
+        {
+            var source = @"
+using System.Threading.Tasks;
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        M(0).Wait();
+    }
+
+    static async Task M(int input)
+    {
+        var value = 1; 
+        switch (value)
+        {
+            case 0:
+                return;
+            case 1:
+                return;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp);
+            CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe));
+        }
+
+        [Fact, WorkItem(4839, "https://github.com/dotnet/roslyn/issues/4839")]
+        public void SwitchOnAwaitedValue()
+        {
+            var source = @"
+using System.Threading.Tasks;
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        M(0);
+    }
+
+    static void M(int input)
+    {
+        try
+        {
+            var value = 1;
+            switch (value)
+            {
+                case 1:
+                    return;
+                case 2:
+                    return;
+            }
+        }
+        catch (Exception)
+        {
+
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp).
+                VerifyIL("Program.M(int)",
+                @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  .locals init (int V_0) //value
+  .try
+  {
+    IL_0000:  ldc.i4.1
+    IL_0001:  stloc.0
+    IL_0002:  ldloc.0
+    IL_0003:  ldc.i4.1
+    IL_0004:  beq.s      IL_000a
+    IL_0006:  ldloc.0
+    IL_0007:  ldc.i4.2
+    IL_0008:  pop
+    IL_0009:  pop
+    IL_000a:  leave.s    IL_000f
+  }
+  catch System.Exception
+  {
+    IL_000c:  pop
+    IL_000d:  leave.s    IL_000f
+  }
+  IL_000f:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(4839, "https://github.com/dotnet/roslyn/issues/4839")]
+        public void SwitchOnAwaitedValueString()
+        {
+            var source = @"
+using System.Threading.Tasks;
+using System;
+
+class Program
+    {
+        static void Main()
+        {
+            M(0).Wait();
+        }
+
+        static async Task M(int input)
+        {
+            var value = ""q""; 
+            switch (value)
+            {
+                case ""a"":
+                    return;
+                case ""b"":
+                    return;
+            }
+        }
+    }
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp);
+            CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe));
+        }
+
+        [Fact, WorkItem(4838, "https://github.com/dotnet/roslyn/issues/4838")]
+        public void SwitchOnAwaitedValueInLoop()
+        {
+            var source = @"
+using System.Threading.Tasks;
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        M(0).Wait();
+    }
+
+    static async Task M(int input)
+    {
+        for (;;)
+        {
+            var value = await Task.FromResult(input);
+            switch (value)
+            {
+                case 0:
+                    return;
+                case 3:
+                    return;
+                case 4:
+                    continue;
+                case 100:
+                    return;
+                default:
+                    throw new ArgumentOutOfRangeException(""Unknown value: "" + value);
+            }
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp);
+            CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe));
         }
     }
 }

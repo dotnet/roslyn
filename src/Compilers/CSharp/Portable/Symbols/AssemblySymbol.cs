@@ -591,7 +591,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 int rank = typeInfo.GetArrayRank();
-                return new ArrayTypeSymbol(this, symbol, ImmutableArray<CustomModifier>.Empty, rank);
+
+                return ArrayTypeSymbol.CreateCSharpArray(this, symbol, ImmutableArray<CustomModifier>.Empty, rank);
             }
             else if (typeInfo.IsPointer)
             {
@@ -691,7 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return symbol;
             }
 
-            TypeSymbol[] typeArgumentSymbols = new TypeSymbol[symbol.TypeArgumentsNoUseSiteDiagnostics.Length];
+            var typeArgumentSymbols = new TypeWithModifiers[symbol.TypeArgumentsNoUseSiteDiagnostics.Length];
             for (int i = 0; i < typeArgumentSymbols.Length; i++)
             {
                 var argSymbol = GetTypeByReflectionType(typeArguments[currentTypeArgument++], includeReferences);
@@ -699,7 +700,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return null;
                 }
-                typeArgumentSymbols[i] = argSymbol;
+                typeArgumentSymbols[i] = new TypeWithModifiers(argSymbol);
             }
 
             return symbol.ConstructIfGeneric(typeArgumentSymbols.AsImmutableOrNull());

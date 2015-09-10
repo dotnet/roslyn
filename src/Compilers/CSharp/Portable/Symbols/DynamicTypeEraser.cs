@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public TypeSymbol EraseDynamic(TypeSymbol type)
         {
-            return SubstituteType(type);
+            return SubstituteType(type).AsTypeSymbolOnly();
         }
 
         protected override TypeSymbol SubstituteDynamicType()

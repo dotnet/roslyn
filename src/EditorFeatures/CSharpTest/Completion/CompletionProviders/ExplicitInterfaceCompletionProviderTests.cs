@@ -87,7 +87,7 @@ interface IFoo
 
 class Bar : IFoo
 {
-     void IFoo.Foo
+     void IFoo.Foo(
 }";
 
             VerifyProviderCommit(markup, "Foo()", expected, '(', "");

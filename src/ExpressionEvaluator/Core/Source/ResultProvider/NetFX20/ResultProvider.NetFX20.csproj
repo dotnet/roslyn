@@ -104,7 +104,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\ResultProvider.projitems" Label="Shared" />
   <ImportGroup Label="Targets">

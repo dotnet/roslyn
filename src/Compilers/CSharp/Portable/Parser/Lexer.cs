@@ -1764,7 +1764,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             else if (_identLen > 0 && ch > 127 && SyntaxFacts.IsIdentifierPartCharacter(ch))
                             {
                                 //// BUG 424819 : Handle identifier chars > 0xFFFF via surrogate pairs
-                                if (SyntaxFacts.IsFormattingChar(ch))
+                                if (UnicodeCharacterUtilities.IsFormattingChar(ch))
                                 {
                                     if (isEscaped)
                                     {
@@ -2052,7 +2052,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             else if (_identLen > 0 && consumedChar > 127 && SyntaxFacts.IsIdentifierPartCharacter(consumedChar))
                             {
                                 //// BUG 424819 : Handle identifier chars > 0xFFFF via surrogate pairs
-                                if (SyntaxFacts.IsFormattingChar(consumedChar))
+                                if (UnicodeCharacterUtilities.IsFormattingChar(consumedChar))
                                 {
                                     continue; // Ignore formatting characters
                                 }
@@ -2265,7 +2265,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case '#':
                         if (_allowPreprocessorDirectives)
                         {
-                            this.LexDirectiveAndExcludedTrivia(afterFirstToken, isTrailing || !onlyWhitespaceOnLine, ref triviaList);
+                            if (_options.Kind == SourceCodeKind.Script && TextWindow.Position == 0 && TextWindow.PeekChar(1) == '!')
+                            {
+                                // #! single line comment
+                                this.AddTrivia(this.LexSingleLineComment(), ref triviaList);
+                            }
+                            else
+                            {
+                                this.LexDirectiveAndExcludedTrivia(afterFirstToken, isTrailing || !onlyWhitespaceOnLine, ref triviaList);
+                            }
+
                             break;
                         }
                         else
@@ -2787,9 +2796,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (TextWindow.PeekChar(1) == '/')
                     {
                         // normal single line comment
-                        this.ScanToEndOfLine();
-                        var text = TextWindow.GetText(false);
-                        trivia = SyntaxFactory.Comment(text);
+                        trivia = LexSingleLineComment();
                     }
 
                     break;
@@ -2819,6 +2826,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             return trivia;
+        }
+
+        private CSharpSyntaxNode LexSingleLineComment()
+        {
+            this.ScanToEndOfLine();
+            var text = TextWindow.GetText(false);
+            return SyntaxFactory.Comment(text);
         }
 
         private CSharpSyntaxNode LexXmlDocComment(XmlDocCommentStyle style)

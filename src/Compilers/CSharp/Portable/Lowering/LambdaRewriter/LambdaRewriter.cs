@@ -302,20 +302,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (captured.Kind != SymbolKind.Method)
                 {
-                    var hoistedField = LambdaCapturedVariable.Create(frame, captured, ref _synthesizedFieldNameIdDispenser);
-                    proxies.Add(captured, new CapturedToFrameSymbolReplacement(hoistedField, isReusable: false));
-                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, hoistedField);
+                var hoistedField = LambdaCapturedVariable.Create(frame, captured, ref _synthesizedFieldNameIdDispenser);
+                proxies.Add(captured, new CapturedToFrameSymbolReplacement(hoistedField, isReusable: false));
+                CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, hoistedField);
 
-                    if (hoistedField.Type.IsRestrictedType())
+                if (hoistedField.Type.IsRestrictedType())
+                {
+                    foreach (CSharpSyntaxNode syntax in kvp.Value)
                     {
-                        foreach (CSharpSyntaxNode syntax in kvp.Value)
-                        {
-                            // CS4013: Instance of type '{0}' cannot be used inside an anonymous function, query expression, iterator block or async method
-                            this.Diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, hoistedField.Type);
-                        }
+                        // CS4013: Instance of type '{0}' cannot be used inside an anonymous function, query expression, iterator block or async method
+                        this.Diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, hoistedField.Type);
                     }
                 }
             }
+        }
         }
 
         private LambdaFrame GetFrameForScope(BoundNode scope, ArrayBuilder<ClosureDebugInfo> closureDebugInfo)
@@ -342,11 +342,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(this.ContainingType, frame);
                 if (frame.Constructor != null)
                 {
-                    CompilationState.AddSynthesizedMethod(
-                        frame.Constructor,
-                        FlowAnalysisPass.AppendImplicitReturn(MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
-                        frame.Constructor));
-                }
+                CompilationState.AddSynthesizedMethod(
+                    frame.Constructor,
+                    FlowAnalysisPass.AppendImplicitReturn(
+                        MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
+                    frame.Constructor));
+            }
             }
 
             return frame;
@@ -393,7 +394,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // add its ctor (note Constructor can be null if TypeKind.Struct is passed in to LambdaFrame.ctor, but Class is passed in above)
                     CompilationState.AddSynthesizedMethod(
                         frame.Constructor,
-                        FlowAnalysisPass.AppendImplicitReturn(MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
+                        FlowAnalysisPass.AppendImplicitReturn(
+                            MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
                         frame.Constructor));
 
                     // associate the frame with the first lambda that caused it to exist. 
@@ -498,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>The translated statement, as returned from F</returns>
         private T IntroduceFrame<T>(BoundNode node, LambdaFrame frame, Func<ArrayBuilder<BoundExpression>, ArrayBuilder<LocalSymbol>, T> F)
         {
-            var frameTypeParameters = ImmutableArray.Create(StaticCast<TypeSymbol>.From(_currentTypeParameters), 0, frame.Arity);
+            var frameTypeParameters = ImmutableArray.Create(StaticCast<TypeSymbol>.From(_currentTypeParameters).Select(TypeMap.TypeSymbolAsTypeWithModifiers), 0, frame.Arity);
             NamedTypeSymbol frameType = frame.ConstructIfGeneric(frameTypeParameters);
 
             Debug.Assert(frame.ScopeSyntaxOpt != null);
@@ -518,11 +520,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                MethodSymbol constructor = frame.Constructor.AsMember(frameType);
-                Debug.Assert(frameType == constructor.ContainingType);
+            MethodSymbol constructor = frame.Constructor.AsMember(frameType);
+            Debug.Assert(frameType == constructor.ContainingType);
                 newFrame = new BoundObjectCreationExpression(
-                    syntax: syntax,
-                    constructor: constructor);
+                syntax: syntax,
+                constructor: constructor);
             }
 
             prologue.Add(new BoundAssignmentOperator(syntax,
@@ -1226,7 +1228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 found = true;
                                 break;
-                            }
+            }
                         }
                         if (found)
                         {
@@ -1247,17 +1249,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
                 }
                 else
-                {
-                    closureKind = ClosureKind.General;
+            {
+                closureKind = ClosureKind.General;
                     translatedLambdaContainer = containerAsFrame;
-                    closureOrdinal = containerAsFrame.ClosureOrdinal;
-                }
+                closureOrdinal = containerAsFrame.ClosureOrdinal;
+            }
             }
             else if (_analysis.CapturedVariablesByLambda[node.Symbol].Count == 0)
             {
                 if (_analysis.MethodsConvertedToDelegates.Contains(node.Symbol))
-                {
-                    translatedLambdaContainer = containerAsFrame = GetStaticFrame(Diagnostics, node);
+            {
+                translatedLambdaContainer = containerAsFrame = GetStaticFrame(Diagnostics, node);
                     closureKind = ClosureKind.Singleton;
                     closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
                 }
@@ -1265,9 +1267,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     containerAsFrame = null;
                     translatedLambdaContainer = _topLevelMethod.ContainingType;
-                    closureKind = ClosureKind.Static;
-                    closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
-                }
+                closureKind = ClosureKind.Static;
+                closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
+            }
                 structClosures = default(ImmutableArray<TypeSymbol>);
             }
             else
@@ -1340,10 +1342,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             _addedStatements = oldAddedStatements;
 
             return synthesizedMethod;
-        }
+            }
 
         private BoundNode RewriteLambdaConversion(BoundLambda node)
-        {
+            {
             var wasInExpressionLambda = _inExpressionLambda;
             _inExpressionLambda = _inExpressionLambda || node.Type.IsExpressionTree();
 
@@ -1417,7 +1419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Since the cache variable will be in a container with possibly alpha-rewritten generic parameters, we need to
                         // substitute the original type according to the type map for that container. That substituted type may be
                         // different from the local variable `type`, which has the node's type substituted for the current container.
-                        var cacheVariableType = containerAsFrame.TypeMap.SubstituteType(node.Type);
+                        var cacheVariableType = containerAsFrame.TypeMap.SubstituteType(node.Type).Type;
 
                         var cacheVariableName = GeneratedNames.MakeLambdaCacheFieldName(
                             // If we are generating the field into a display class created exclusively for the lambda the lambdaOrdinal itself is unique already, 

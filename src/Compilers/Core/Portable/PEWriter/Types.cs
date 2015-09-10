@@ -32,7 +32,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// This type of array is a single dimensional array with zero lower bound for index values.
         /// </summary>
-        bool IsVector
+        bool IsSZArray
         {
             get;
             // ^ ensures result ==> Rank == 1;
@@ -107,13 +107,9 @@ namespace Microsoft.Cci
         /// <summary>
         /// The CLI spec says that custom modifiers must precede the ByRef type code in the encoding of a parameter.
         /// Unfortunately, the managed C++ compiler emits them in the reverse order.  In order to avoid breaking
-        /// interop scenarios, we need to support such signatures.  When this flag is set, we need to reverse the
-        /// emit order.
+        /// interop scenarios, we need to support such signatures. 
         /// </summary>
-        /// <remarks>
-        /// We support before (correct) and after (incorrect, but works), but not in between.
-        /// </remarks>
-        bool HasByRefBeforeCustomModifiers { get; }
+        ushort CountOfCustomModifiersPrecedingByRef { get; }
 
         /// <summary>
         /// The type of argument value that corresponds to this parameter.

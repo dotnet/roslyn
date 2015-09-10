@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -712,7 +713,7 @@ using System.Linq.Expressions;
 
 Expression",
 parseOptions: GetScriptOptions(),
-compilationOptions: TestOptions.ReleaseDll.WithMetadataReferenceResolver(new AssemblyReferenceResolver(new MetadataFileReferenceResolver(Array.Empty<string>(), null), MetadataFileReferenceProvider.Default)),
+compilationOptions: TestOptions.ReleaseDll.WithMetadataReferenceResolver(new AssemblyReferenceResolver(MetadataFileReferenceResolver.Default, MetadataFileReferenceProvider.Default)),
 compareTokens: false);
         }
 
@@ -2004,6 +2005,135 @@ namespace A.C
             Test(
 @"using System . Linq ; class C { static void Main ( string [ ] args ) { var a = new int ? ( ) ; int ? i = a ? [|. All|] ( ) ; } } namespace X { static class E { public static int ? All ( this int ? o ) => 0 ; } } ",
 @"using System . Linq ; using X ; class C { static void Main ( string [ ] args ) { var a = new int ? ( ) ; int ? i = a ? . All ( ) ; } } namespace X { static class E { public static int ? All ( this int ? o ) => 0 ; } } ");
+        }
+
+        [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestNestedNamespaceSimplified()
+        {
+            Test(
+@"namespace Microsoft . MyApp { using Win32 ; class Program { static void Main ( string [ ] args ) { [|SafeRegistryHandle|] h ; } } } ",
+@"namespace Microsoft . MyApp { using Win32 ; using Win32 . SafeHandles ; class Program { static void Main ( string [ ] args ) { SafeRegistryHandle h ; } } } ");
+        }
+
+        [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestNestedNamespaceSimplified2()
+        {
+            Test(
+@"namespace Microsoft . MyApp { using Zin32 ; class Program { static void Main ( string [ ] args ) { [|SafeRegistryHandle|] h ; } } } ",
+@"namespace Microsoft . MyApp { using Win32 . SafeHandles ; using Zin32 ; class Program { static void Main ( string [ ] args ) { SafeRegistryHandle h ; } } } ");
+        }
+
+        [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestNestedNamespaceSimplified3()
+        {
+            Test(
+@"namespace Microsoft . MyApp { using System ; using Win32 ; class Program { static void Main ( string [ ] args ) { [|SafeRegistryHandle|] h ; } } } ",
+@"namespace Microsoft . MyApp { using System ; using Win32 ; using Win32 . SafeHandles ; class Program { static void Main ( string [ ] args ) { SafeRegistryHandle h ; } } } ");
+        }
+
+        [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestNestedNamespaceSimplified4()
+        {
+            Test(
+@"namespace Microsoft . MyApp { using System ; using Zin32 ; class Program { static void Main ( string [ ] args ) { [|SafeRegistryHandle|] h ; } } } ",
+@"namespace Microsoft . MyApp { using System ; using Win32 . SafeHandles ; using Zin32 ; class Program { static void Main ( string [ ] args ) { SafeRegistryHandle h ; } } } ");
+        }
+
+        [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestNestedNamespaceSimplified5()
+        {
+            Test(
+@"namespace Microsoft.MyApp
+{
+#if true
+    using Win32;
+#else
+    using System;
+#endif
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            [|SafeRegistryHandle|] h;
+        }
+    }
+}",
+@"namespace Microsoft.MyApp
+{
+#if true
+    using Win32;
+    using Win32.SafeHandles;
+#else
+    using System;
+#endif
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            SafeRegistryHandle h;
+        }
+    }
+}");
+        }
+
+        [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestNestedNamespaceSimplified6()
+        {
+            Test(
+@"namespace Microsoft.MyApp
+{
+    using System;
+#if false
+    using Win32;
+#endif
+    using Win32;
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            [|SafeRegistryHandle|] h;
+        }
+    }
+}",
+@"namespace Microsoft.MyApp
+{
+    using System;
+#if false
+    using Win32;
+#endif
+    using Win32;
+    using Win32.SafeHandles;
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            SafeRegistryHandle h;
+        }
+    }
+}");
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestAddUsingOrdinalUppercase()
+        {
+            Test(
+@"namespace A { class A { static void Main ( string [ ] args ) { var b = new [|B|] ( ) ; } } } namespace lowercase { class b { } } namespace Uppercase { class B { } } ",
+@"using Uppercase ; namespace A { class A { static void Main ( string [ ] args ) { var b = new B ( ) ; } } } namespace lowercase { class b { } } namespace Uppercase { class B { } } ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestAddUsingOrdinalLowercase()
+        {
+            Test(
+@"namespace A { class A { static void Main ( string [ ] args ) { var a = new [|b|] ( ) ; } } } namespace lowercase { class b { } } namespace Uppercase { class B { } } ",
+@"using lowercase ; namespace A { class A { static void Main ( string [ ] args ) { var a = new b ( ) ; } } } namespace lowercase { class b { } } namespace Uppercase { class B { } } ");
         }
 
         public partial class AddUsingTestsWithAddImportDiagnosticProvider : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest

@@ -44,14 +44,14 @@
     <ProjectReference Include="..\CSharp\Repl\CSharpVisualStudioRepl.csproj">
       <Project>{737ff62c-f068-4317-84d0-bfb210c17a4e}</Project>
       <Name>CSharpVisualStudioRepl</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;PkgDefProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;PkgDefProjectOutputGroup;ContentFilesProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\VisualBasic\Repl\BasicVisualStudioRepl.vbproj">
       <Project>{b4a38526-5f15-4ca8-b5e9-0ba04e547023}</Project>
       <Name>BasicVisualStudioRepl</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;PkgDefProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;PkgDefProjectOutputGroup;ContentFilesProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
@@ -81,7 +81,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
   </PropertyGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="project.json" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
@@ -94,10 +94,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="CSharpPackageRegistration.pkgdef">
+    <Content Include="CSharpInteractivePackageRegistration.pkgdef">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="VisualBasicPackageRegistration.pkgdef">
+    <Content Include="VisualBasicInteractivePackageRegistration.pkgdef">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
   </ItemGroup>

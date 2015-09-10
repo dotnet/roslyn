@@ -1,0 +1,9 @@
+{
+  "dependencies": { },
+  "frameworks": {
+    "net452": {}
+  },
+  "runtimes": {
+    "win-anycpu": {}
+  }
+}

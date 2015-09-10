@@ -106,6 +106,12 @@ namespace RunTests
             Console.WriteLine("================");
         }
 
+        private static readonly string[] UpgradedTests = new string[] {
+            "Microsoft.DiaSymReader.PortablePdb.UnitTests.dll",
+            "Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests.dll",
+            "Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests.dll"
+        };
+
         private async Task<TestResult> RunTest(string assemblyPath, CancellationToken cancellationToken)
         {
             var assemblyName = Path.GetFileName(assemblyPath);
@@ -118,10 +124,12 @@ namespace RunTests
             builder.AppendFormat(@" -{0} ""{1}""", _useHtml ? "html" : "xml", resultsPath);
             builder.Append(" -noshadow");
 
-            var errorOutput = string.Empty;
+            var errorOutput = new StringBuilder();
             var start = DateTime.UtcNow;
+
+            var xunitPath = UpgradedTests.Contains(assemblyName) ? Path.Combine($"{Path.GetDirectoryName(_xunitConsolePath)}", @"..\..\..\xunit.runner.console\2.1.0-beta4-build3109\tools", $"{Path.GetFileName(_xunitConsolePath)}") : _xunitConsolePath;
             var processOutput = await ProcessRunner.RunProcessAsync(
-                _xunitConsolePath,
+                xunitPath,
                 builder.ToString(),
                 lowPriority: false,
                 displayWindow: false,
@@ -155,13 +163,19 @@ namespace RunTests
                     File.Delete(resultsPath);
                 }
 
-                errorOutput = processOutput.ErrorLines.Any()
-                    ? processOutput.ErrorLines.Aggregate((x, y) => x + Environment.NewLine + y)
-                    : string.Format("xunit produced no error output but had exit code {0}", processOutput.ExitCode);
+                errorOutput.AppendLine($"Command: {_xunitConsolePath} {builder}");
 
-                errorOutput = string.Format("Command: {0} {1}", _xunitConsolePath, builder.ToString())
-                    + Environment.NewLine
-                    + errorOutput;
+                if (processOutput.ErrorLines.Any())
+                {
+                    foreach (var line in processOutput.ErrorLines)
+                    {
+                        errorOutput.AppendLine(line);
+                    }
+                }
+                else
+                {
+                    errorOutput.AppendLine($"xunit produced no error output but had exit code {processOutput.ExitCode}");
+                }
 
                 // If the results are html, use Process.Start to open in the browser.
 
@@ -171,7 +185,7 @@ namespace RunTests
                 }
             }
 
-            return new TestResult(processOutput.ExitCode == 0, assemblyName, span, errorOutput);
+            return new TestResult(processOutput.ExitCode == 0, assemblyName, span, errorOutput.ToString());
         }
 
         private static void DeleteFile(string filePath)

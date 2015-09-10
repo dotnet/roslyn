@@ -16,6 +16,7 @@
     <RestorePackages>true</RestorePackages>
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>
@@ -23,6 +24,7 @@
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.InteractiveWindow.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.VsInteractiveWindow" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
@@ -87,7 +89,14 @@
     <Compile Include="IInteractiveWindowFactoryService.cs" />
     <Compile Include="Commands\InteractiveCommandsFactory.cs" />
     <Compile Include="IInteractiveWindowOperations.cs" />
-    <Compile Include="InteractiveWindow_UIThread.cs" />
+    <Compile Include="IInteractiveWindowOperations2.cs" />
+    <Compile Include="InteractiveWindow.SpanRangeEdit.cs" />
+    <Compile Include="ProjectionBufferExtensions.cs" />
+    <Compile Include="InteractiveWindow.PendingSubmission.cs" />
+    <Compile Include="InteractiveWindow.ReplSpanKind.cs" />
+    <Compile Include="InteractiveWindow.EditResolver.cs" />
+    <Compile Include="InteractiveWindow.State.cs" />
+    <Compile Include="InteractiveWindow.UIThreadOnly.cs" />
     <Compile Include="PredefinedInteractiveContentTypes.cs" />
     <Compile Include="InteractiveContentTypeDefinitions.cs" />
     <Compile Include="InteractiveWindow.cs" />
@@ -107,15 +116,39 @@
     <Compile Include="Output\SortedSpans.cs" />
     <Compile Include="Output\ZoomableInlineAdornment.cs" />
     <Compile Include="PredefinedInteractiveTextViewRoles.cs" />
-    <Compile Include="PromptLineMapping.cs" />
-    <Compile Include="ReplInput.cs" />
-    <Compile Include="ReplSpanKind.cs" />
     <Compile Include="SmartIndent\InteractiveSmartIndenter.cs" />
     <Compile Include="SmartIndent\InteractiveSmartIndenterProvider.cs" />
     <Compile Include="SmartUpDownOption.cs" />
     <Compile Include="SubmissionBufferAddedEventArgs.cs" />
     <Compile Include="Utils\Contract.cs" />
     <Compile Include="Utils\EditorExtensions.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
+      <Link>InternalUtilities\ExceptionUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FailFast.cs">
+      <Link>InternalUtilities\FailFast.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FatalError.cs">
+      <Link>InternalUtilities\FatalError.cs</Link>
+    </Compile>
+    <Compile Include="..\..\VisualStudio\Core\Def\Implementation\Watson\ErrorReportSettings.cs">
+      <Link>InternalUtilities\ErrorReportSettings.cs</Link>
+    </Compile>
+    <Compile Include="..\..\VisualStudio\Core\Def\Implementation\Watson\ExceptionInfo.cs">
+      <Link>InternalUtilities\ExceptionInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\VisualStudio\Core\Def\Implementation\Watson\NativeWin32Stubs.cs">
+      <Link>InternalUtilities\NativeWin32Stubs.cs</Link>
+    </Compile>
+    <Compile Include="..\..\VisualStudio\Core\Def\Implementation\Watson\Watson.cs">
+      <Link>InternalUtilities\Watson.cs</Link>
+    </Compile>
+    <Compile Include="..\..\VisualStudio\Core\Def\Implementation\Watson\WatsonErrorReport.cs">
+      <Link>InternalUtilities\WatsonErrorReport.cs</Link>
+    </Compile>
+    <Compile Include="..\..\VisualStudio\Core\Def\Implementation\Watson\WatsonReporter.cs">
+      <Link>InternalUtilities\WatsonReporter.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="InteractiveWindowResources.resx">
@@ -124,7 +157,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="project.json" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />

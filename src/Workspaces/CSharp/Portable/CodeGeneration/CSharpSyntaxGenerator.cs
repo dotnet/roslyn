@@ -372,6 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return PreserveTrivia(declaration, d =>
             {
                 d = AsImplementation(d, Accessibility.NotApplicable);
+                d = WithoutConstraints(d);
 
                 if (interfaceMemberName != null)
                 {
@@ -380,6 +381,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                 return WithInterfaceSpecifier(d, SyntaxFactory.ExplicitInterfaceSpecifier((NameSyntax)interfaceTypeName));
             });
+        }
+
+        private SyntaxNode WithoutConstraints(SyntaxNode declaration)
+        {
+            if (declaration.IsKind(SyntaxKind.MethodDeclaration))
+            { 
+                var method = (MethodDeclarationSyntax)declaration;
+                if (method.ConstraintClauses.Count > 0)
+                {
+                    return this.RemoveNodes(method, method.ConstraintClauses);
+                }
+            }
+
+            return declaration;
         }
 
         private ExplicitInterfaceSpecifierSyntax GetInterfaceSpecifier(SyntaxNode declaration)
@@ -2259,16 +2274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var isolated = AsIsolatedDeclaration(declaration);
 
-            var result = PreserveTrivia(isolated, editor);
-
-            if (result == isolated)
-            {
-                return isolated;
-            }
-            else
-            {
-                return result;
-            }
+            return PreserveTrivia(isolated, editor);
         }
 
         private SyntaxNode AsIsolatedDeclaration(SyntaxNode declaration)
@@ -2424,7 +2430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (currentList == null)
             {
                 currentList = (declaration.IsKind(SyntaxKind.IndexerDeclaration))
-                    ? (BaseParameterListSyntax)SyntaxFactory.BracketedParameterList()
+                    ? SyntaxFactory.BracketedParameterList()
                     : (BaseParameterListSyntax)SyntaxFactory.ParameterList();
             }
 
@@ -2484,7 +2490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     var roList = AsReadOnlyList(list.Parameters);
                     if (roList.Count == 1 && IsSimpleLambdaParameter(roList[0]))
                     {
-                        return lambda.WithParameter((ParameterSyntax)roList[0]);
+                        return lambda.WithParameter(roList[0]);
                     }
                     else
                     {
@@ -2982,31 +2988,38 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return this.RemoveNode(root, declaration);
             }
 
-            var newFullDecl = this.AsIsolatedDeclaration(newDeclaration);
-            var fullDecl = this.GetFullDeclaration(declaration);
-
-            // special handling for replacing at location of sub-declaration
-            if (fullDecl != declaration)
+            if (root.Span.Contains(declaration.Span))
             {
-                // try to replace inline if possible
-                if (fullDecl.IsKind(newFullDecl.Kind()) && GetDeclarationCount(newFullDecl) == 1)
+                var newFullDecl = this.AsIsolatedDeclaration(newDeclaration);
+                var fullDecl = this.GetFullDeclaration(declaration);
+
+                // special handling for replacing at location of sub-declaration
+                if (fullDecl != declaration)
                 {
-                    var newSubDecl = this.GetSubDeclarations(newFullDecl)[0];
-                    if (AreInlineReplaceableSubDeclarations(declaration, newSubDecl))
+                    // try to replace inline if possible
+                    if (fullDecl.IsKind(newFullDecl.Kind()) && GetDeclarationCount(newFullDecl) == 1)
                     {
-                        return base.ReplaceNode(root, declaration, newSubDecl);
+                        var newSubDecl = this.GetSubDeclarations(newFullDecl)[0];
+                        if (AreInlineReplaceableSubDeclarations(declaration, newSubDecl))
+                        {
+                            return base.ReplaceNode(root, declaration, newSubDecl);
+                        }
                     }
+
+                    // replace sub declaration by splitting full declaration and inserting between
+                    var index = IndexOf(this.GetSubDeclarations(fullDecl), declaration);
+
+                    // replace declaration with multiple declarations
+                    return ReplaceRange(root, fullDecl, this.SplitAndReplace(fullDecl, index, new[] { newDeclaration }));
                 }
 
-                // replace sub declaration by splitting full declaration and inserting between
-                var index = IndexOf(this.GetSubDeclarations(fullDecl), declaration);
-
-                // replace declaration with multiple declarations
-                return ReplaceRange(root, fullDecl, this.SplitAndReplace(fullDecl, index, new[] { newDeclaration }));
+                // attempt normal replace
+                return base.ReplaceNode(root, declaration, newFullDecl);
             }
-
-            // attempt normal replace
-            return base.ReplaceNode(root, declaration, newFullDecl);
+            else
+            {
+                return base.ReplaceNode(root, declaration, newDeclaration);
+            }
         }
 
         // returns true if one sub-declaration can be replaced inline with another sub-declaration
@@ -3107,7 +3120,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode InsertNodesBefore(SyntaxNode root, SyntaxNode declaration, IEnumerable<SyntaxNode> newDeclarations)
         {
-            return Isolate(root.TrackNodes(declaration), r => InsertNodesBeforeInternal(r, r.GetCurrentNode(declaration), newDeclarations));
+            if (root.Span.Contains(declaration.Span))
+            {
+                return Isolate(root.TrackNodes(declaration), r => InsertNodesBeforeInternal(r, r.GetCurrentNode(declaration), newDeclarations));
+            }
+            else
+            {
+                return base.InsertNodesBefore(root, declaration, newDeclarations);
+            }
         }
 
         private SyntaxNode InsertNodesBeforeInternal(SyntaxNode root, SyntaxNode declaration, IEnumerable<SyntaxNode> newDeclarations)
@@ -3133,7 +3153,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode InsertNodesAfter(SyntaxNode root, SyntaxNode declaration, IEnumerable<SyntaxNode> newDeclarations)
         {
-            return Isolate(root.TrackNodes(declaration), r => InsertNodesAfterInternal(r, r.GetCurrentNode(declaration), newDeclarations));
+            if (root.Span.Contains(declaration.Span))
+            {
+                return Isolate(root.TrackNodes(declaration), r => InsertNodesAfterInternal(r, r.GetCurrentNode(declaration), newDeclarations));
+            }
+            else
+            {
+                return base.InsertNodesAfter(root, declaration, newDeclarations);
+            }
         }
 
         private SyntaxNode InsertNodesAfterInternal(SyntaxNode root, SyntaxNode declaration, IEnumerable<SyntaxNode> newDeclarations)
@@ -3191,9 +3218,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        public override SyntaxNode RemoveNode(SyntaxNode root, SyntaxNode declaration)
+        public override SyntaxNode RemoveNode(SyntaxNode root, SyntaxNode node)
         {
-            return this.Isolate(root.TrackNodes(declaration), r => RemoveNodeInternal(r, r.GetCurrentNode(declaration)));
+            if (root.Span.Contains(node.Span))
+            {
+                // node exists within normal span of the root (not in trivia)
+                return this.Isolate(root.TrackNodes(node), r => RemoveNodeInternal(r, r.GetCurrentNode(node)));
+            }
+            else
+            {
+                return RemoveNodeInternal(root, node);
+            }
         }
 
         private SyntaxNode RemoveNodeInternal(SyntaxNode root, SyntaxNode declaration)

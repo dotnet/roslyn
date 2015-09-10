@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Interactive
     /// </remarks>
     internal sealed partial class InteractiveHost : MarshalByRefObject
     {
-        private readonly Type _replType;
+        private readonly Type _replServiceProviderType;
         private readonly string _hostPath;
         private readonly string _initialWorkingDirectory;
 
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         internal event Action<InteractiveHostOptions> ProcessStarting;
 
         public InteractiveHost(
-            Type replType,
+            Type replServiceProviderType,
             string hostPath,
             string workingDirectory,
             int millisecondsTimeout = 5000)
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             _millisecondsTimeout = millisecondsTimeout;
             _output = TextWriter.Null;
             _errorOutput = TextWriter.Null;
-            _replType = replType;
+            _replServiceProviderType = replServiceProviderType;
             _hostPath = hostPath;
             _initialWorkingDirectory = workingDirectory;
 
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    newService.Initialize(_replType);
+                    newService.Initialize(_replServiceProviderType);
                 }
                 catch (RemotingException) when (!CheckAlive(newProcess))
                 {
@@ -460,8 +460,8 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// </summary>
         /// <param name="code">The code to execute.</param>
         /// <remarks>
-        /// This method is thread safe. References can be added and source code executed in parallel. 
-        /// The operations are serialized to UI thread in the remote process in first come first served order.
+        /// This method is thread safe but operations are sent to the remote process
+        /// asynchronously so tasks should be executed serially if order is important.
         /// </remarks>
         public Task<RemoteExecutionResult> ExecuteAsync(string code)
         {
@@ -475,7 +475,8 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// <param name="path">The file to execute.</param>
         /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
         /// <remarks>
-        /// This method is thread safe. All session operations are serialized to UI thread in the remote process in first come first served order.
+        /// This method is thread safe but operations are sent to the remote process
+        /// asynchronously so tasks should be executed serially if order is important.
         /// </remarks>
         public Task<RemoteExecutionResult> ExecuteFileAsync(string path)
         {
@@ -492,7 +493,8 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// </summary>
         /// <param name="reference">The reference to add.</param>
         /// <remarks>
-        /// This method is thread safe. All session operations are serialized to UI thread in the remote process in first come first served order.
+        /// This method is thread safe but operations are sent to the remote process
+        /// asynchronously so tasks should be executed serially if order is important.
         /// </remarks>
         public Task<bool> AddReferenceAsync(string reference)
         {

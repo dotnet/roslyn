@@ -206,6 +206,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
+            ' A casts to object can always be removed from an expression inside of an interpolation, since it'll be converted to object
+            ' in order to call string.Format(...) anyway.
+            If castType?.SpecialType = SpecialType.System_Object AndAlso
+                _castNode.WalkUpParentheses().IsParentKind(SyntaxKind.Interpolation) Then
+                Return True
+            End If
+
             ' If removing the cast will result in a change in semantics of any of the parenting nodes, we won't remove it.
             ' We do this even for identity casts in case removing that cast might affect type inference.
             If speculationAnalyzer.ReplacementChangesSemantics() Then

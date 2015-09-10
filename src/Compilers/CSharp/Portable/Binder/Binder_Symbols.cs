@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         for (int i = node.RankSpecifiers.Count - 1; i >= 0; i--)
                         {
                             var a = node.RankSpecifiers[i];
-                            type = new ArrayTypeSymbol(this.Compilation.Assembly, type, ImmutableArray<CustomModifier>.Empty, a.Rank);
+                            type = ArrayTypeSymbol.CreateCSharpArray(this.Compilation.Assembly, type, ImmutableArray<CustomModifier>.Empty, a.Rank);
                         }
 
                         return type;
@@ -703,7 +703,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         UnboundArgumentErrorTypeSymbol.CreateTypeArguments(
                             unconstructedType.TypeParameters,
                             node.Arity,
-                            errorInfo: null));
+                            errorInfo: null), 
+                        unbound:false);
                 }
                 else
                 {

@@ -22,8 +22,6 @@ class Program
     {
         yield break;
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
             var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.DebugDll);
@@ -35,28 +33,19 @@ class Program
         <forwardIterator name=""&lt;Foo&gt;d__0"" />
       </customDebugInfo>
     </method>
-    <method containingType=""Program"" name=""F"">
+    <method containingType=""Program+&lt;Foo&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
         </using>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""9"" startColumn=""21"" endLine=""9"" endColumn=""22"" document=""0"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""23"" endLine=""9"" endColumn=""24"" document=""0"" />
-      </sequencePoints>
-    </method>
-    <method containingType=""Program+&lt;Foo&gt;d__0"" name=""MoveNext"">
-      <customDebugInfo>
-        <forward declaringType=""Program"" methodName=""F"" />
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x17"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x18"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0x17"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" />
+        <entry offset=""0x18"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""21"" />
       </sequencePoints>
     </method>
   </methods>
@@ -74,8 +63,6 @@ class Program
     {
         yield break;
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
 
@@ -88,28 +75,19 @@ class Program
         <forwardIterator name=""&lt;Foo&gt;d__0"" />
       </customDebugInfo>
     </method>
-    <method containingType=""Program"" name=""F"">
+    <method containingType=""Program+&lt;Foo&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
         </using>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""9"" startColumn=""21"" endLine=""9"" endColumn=""22"" document=""0"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""23"" endLine=""9"" endColumn=""24"" document=""0"" />
-      </sequencePoints>
-    </method>
-    <method containingType=""Program+&lt;Foo&gt;d__0"" name=""MoveNext"">
-      <customDebugInfo>
-        <forward declaringType=""Program"" methodName=""F"" />
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x17"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x18"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0x17"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" />
+        <entry offset=""0x18"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""21"" />
       </sequencePoints>
     </method>
   </methods>
@@ -127,8 +105,6 @@ class Program
     {
         yield return 1; //hidden sequence point after this.
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
 
@@ -141,30 +117,21 @@ class Program
         <forwardIterator name=""&lt;Foo&gt;d__0"" />
       </customDebugInfo>
     </method>
-    <method containingType=""Program"" name=""F"">
+    <method containingType=""Program+&lt;Foo&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
         </using>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""9"" startColumn=""21"" endLine=""9"" endColumn=""22"" document=""0"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""23"" endLine=""9"" endColumn=""24"" document=""0"" />
-      </sequencePoints>
-    </method>
-    <method containingType=""Program+&lt;Foo&gt;d__0"" name=""MoveNext"">
-      <customDebugInfo>
-        <forward declaringType=""Program"" methodName=""F"" />
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x1f"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x20"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""24"" document=""0"" />
-        <entry offset=""0x30"" hidden=""true"" document=""0"" />
-        <entry offset=""0x37"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0x1f"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" />
+        <entry offset=""0x20"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""24"" />
+        <entry offset=""0x30"" hidden=""true"" />
+        <entry offset=""0x37"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
       </sequencePoints>
     </method>
   </methods>
@@ -189,8 +156,6 @@ class Program
         }
         yield break;
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
             var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.ReleaseDll);
@@ -202,37 +167,29 @@ class Program
         <forwardIterator name=""&lt;IEI&gt;d__0"" />
       </customDebugInfo>
     </method>
-    <method containingType=""Program"" name=""F"">
+    <method containingType=""Program+&lt;IEI&gt;d__0`1"" name=""MoveNext"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
         </using>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""17"" startColumn=""23"" endLine=""17"" endColumn=""24"" document=""0"" />
-      </sequencePoints>
-    </method>
-    <method containingType=""Program+&lt;IEI&gt;d__0`1"" name=""MoveNext"">
-      <customDebugInfo>
-        <forward declaringType=""Program"" methodName=""F"" />
         <hoistedLocalScopes>
           <slot startOffset=""0x2a"" endOffset=""0xb3"" />
           <slot startOffset=""0x6e"" endOffset=""0xb1"" />
         </hoistedLocalScopes>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x2a"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""20"" document=""0"" />
-        <entry offset=""0x36"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""24"" document=""0"" />
-        <entry offset=""0x4b"" hidden=""true"" document=""0"" />
-        <entry offset=""0x52"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""24"" document=""0"" />
-        <entry offset=""0x67"" hidden=""true"" document=""0"" />
-        <entry offset=""0x6e"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""24"" document=""0"" />
-        <entry offset=""0x7a"" startLine=""11"" startColumn=""13"" endLine=""11"" endColumn=""28"" document=""0"" />
-        <entry offset=""0x8f"" hidden=""true"" document=""0"" />
-        <entry offset=""0x96"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""28"" document=""0"" />
-        <entry offset=""0xab"" hidden=""true"" document=""0"" />
-        <entry offset=""0xb2"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0x2a"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""20"" />
+        <entry offset=""0x36"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""24"" />
+        <entry offset=""0x4b"" hidden=""true"" />
+        <entry offset=""0x52"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""24"" />
+        <entry offset=""0x67"" hidden=""true"" />
+        <entry offset=""0x6e"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""24"" />
+        <entry offset=""0x7a"" startLine=""11"" startColumn=""13"" endLine=""11"" endColumn=""28"" />
+        <entry offset=""0x8f"" hidden=""true"" />
+        <entry offset=""0x96"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""28"" />
+        <entry offset=""0xab"" hidden=""true"" />
+        <entry offset=""0xb2"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""21"" />
       </sequencePoints>
     </method>
   </methods>
@@ -257,8 +214,6 @@ class Program
         }
         yield break;
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
             var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.DebugDll);
@@ -274,20 +229,11 @@ class Program
         </encLocalSlotMap>
       </customDebugInfo>
     </method>
-    <method containingType=""Program"" name=""F"">
+    <method containingType=""Program+&lt;IEI&gt;d__0`1"" name=""MoveNext"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
         </using>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""17"" startColumn=""21"" endLine=""17"" endColumn=""22"" document=""0"" />
-        <entry offset=""0x1"" startLine=""17"" startColumn=""23"" endLine=""17"" endColumn=""24"" document=""0"" />
-      </sequencePoints>
-    </method>
-    <method containingType=""Program+&lt;IEI&gt;d__0`1"" name=""MoveNext"">
-      <customDebugInfo>
-        <forward declaringType=""Program"" methodName=""F"" />
         <hoistedLocalScopes>
           <slot startOffset=""0x39"" endOffset=""0xc5"" />
           <slot startOffset=""0x7e"" endOffset=""0xc3"" />
@@ -297,21 +243,21 @@ class Program
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x39"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x3a"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""20"" document=""0"" />
-        <entry offset=""0x46"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""24"" document=""0"" />
-        <entry offset=""0x5b"" hidden=""true"" document=""0"" />
-        <entry offset=""0x62"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""24"" document=""0"" />
-        <entry offset=""0x77"" hidden=""true"" document=""0"" />
-        <entry offset=""0x7e"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""0"" />
-        <entry offset=""0x7f"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""24"" document=""0"" />
-        <entry offset=""0x8b"" startLine=""11"" startColumn=""13"" endLine=""11"" endColumn=""28"" document=""0"" />
-        <entry offset=""0xa0"" hidden=""true"" document=""0"" />
-        <entry offset=""0xa7"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""28"" document=""0"" />
-        <entry offset=""0xbc"" hidden=""true"" document=""0"" />
-        <entry offset=""0xc3"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""0"" />
-        <entry offset=""0xc4"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0x39"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" />
+        <entry offset=""0x3a"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""20"" />
+        <entry offset=""0x46"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""24"" />
+        <entry offset=""0x5b"" hidden=""true"" />
+        <entry offset=""0x62"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""24"" />
+        <entry offset=""0x77"" hidden=""true"" />
+        <entry offset=""0x7e"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
+        <entry offset=""0x7f"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""24"" />
+        <entry offset=""0x8b"" startLine=""11"" startColumn=""13"" endLine=""11"" endColumn=""28"" />
+        <entry offset=""0xa0"" hidden=""true"" />
+        <entry offset=""0xa7"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""28"" />
+        <entry offset=""0xbc"" hidden=""true"" />
+        <entry offset=""0xc3"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
+        <entry offset=""0xc4"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""21"" />
       </sequencePoints>
     </method>
   </methods>
@@ -339,8 +285,6 @@ class Test<T>
         }
         yield return val;
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }";
             var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
@@ -356,24 +300,11 @@ class Test<T>
         </encLocalSlotMap>
       </customDebugInfo>
     </method>
-    <method containingType=""Test`1"" name=""F"">
+    <method containingType=""Test`1+&lt;M&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""2"" />
         </using>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""19"" startColumn=""21"" endLine=""19"" endColumn=""22"" document=""0"" />
-        <entry offset=""0x1"" startLine=""19"" startColumn=""23"" endLine=""19"" endColumn=""24"" document=""0"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x2"">
-        <namespace name=""System"" />
-        <namespace name=""System.Collections.Generic"" />
-      </scope>
-    </method>
-    <method containingType=""Test`1+&lt;M&gt;d__0"" name=""MoveNext"">
-      <customDebugInfo>
-        <forward declaringType=""Test`1"" methodName=""F"" />
         <hoistedLocalScopes>
           <slot startOffset=""0x32"" endOffset=""0xe1"" />
           <slot startOffset=""0x0"" endOffset=""0x0"" />
@@ -385,24 +316,28 @@ class Test<T>
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x32"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x33"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""28"" document=""0"" />
-        <entry offset=""0x3f"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""16"" document=""0"" />
-        <entry offset=""0x40"" startLine=""11"" startColumn=""28"" endLine=""11"" endColumn=""33"" document=""0"" />
-        <entry offset=""0x59"" hidden=""true"" document=""0"" />
-        <entry offset=""0x5b"" startLine=""11"" startColumn=""18"" endLine=""11"" endColumn=""24"" document=""0"" />
-        <entry offset=""0x6c"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""10"" document=""0"" />
-        <entry offset=""0x6d"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""24"" document=""0"" />
-        <entry offset=""0x79"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""30"" document=""0"" />
-        <entry offset=""0x90"" hidden=""true"" document=""0"" />
-        <entry offset=""0x98"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" document=""0"" />
-        <entry offset=""0xa5"" startLine=""11"" startColumn=""25"" endLine=""11"" endColumn=""27"" document=""0"" />
-        <entry offset=""0xc0"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""26"" document=""0"" />
-        <entry offset=""0xd7"" hidden=""true"" document=""0"" />
-        <entry offset=""0xde"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" document=""0"" />
-        <entry offset=""0xe2"" hidden=""true"" document=""0"" />
+        <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0x32"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" />
+        <entry offset=""0x33"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""28"" />
+        <entry offset=""0x3f"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""16"" />
+        <entry offset=""0x40"" startLine=""11"" startColumn=""28"" endLine=""11"" endColumn=""33"" />
+        <entry offset=""0x59"" hidden=""true"" />
+        <entry offset=""0x5b"" startLine=""11"" startColumn=""18"" endLine=""11"" endColumn=""24"" />
+        <entry offset=""0x6c"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""10"" />
+        <entry offset=""0x6d"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""24"" />
+        <entry offset=""0x79"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""30"" />
+        <entry offset=""0x90"" hidden=""true"" />
+        <entry offset=""0x98"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" />
+        <entry offset=""0xa5"" startLine=""11"" startColumn=""25"" endLine=""11"" endColumn=""27"" />
+        <entry offset=""0xc0"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""26"" />
+        <entry offset=""0xd7"" hidden=""true"" />
+        <entry offset=""0xde"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" />
+        <entry offset=""0xe2"" hidden=""true"" />
       </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0xec"">
+        <namespace name=""System"" />
+        <namespace name=""System.Collections.Generic"" />
+      </scope>
     </method>
   </methods>
 </symbols>");
@@ -458,13 +393,13 @@ class C
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""21"" startColumn=""27"" endLine=""21"" endColumn=""38"" document=""0"" />
-        <entry offset=""0x10"" hidden=""true"" document=""0"" />
-        <entry offset=""0x12"" startLine=""21"" startColumn=""18"" endLine=""21"" endColumn=""23"" document=""0"" />
-        <entry offset=""0x18"" startLine=""23"" startColumn=""13"" endLine=""23"" endColumn=""41"" document=""0"" />
-        <entry offset=""0x1d"" startLine=""21"" startColumn=""24"" endLine=""21"" endColumn=""26"" document=""0"" />
-        <entry offset=""0x27"" hidden=""true"" document=""0"" />
-        <entry offset=""0x31"" startLine=""25"" startColumn=""5"" endLine=""25"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" startLine=""21"" startColumn=""27"" endLine=""21"" endColumn=""38"" />
+        <entry offset=""0x10"" hidden=""true"" />
+        <entry offset=""0x12"" startLine=""21"" startColumn=""18"" endLine=""21"" endColumn=""23"" />
+        <entry offset=""0x18"" startLine=""23"" startColumn=""13"" endLine=""23"" endColumn=""41"" />
+        <entry offset=""0x1d"" startLine=""21"" startColumn=""24"" endLine=""21"" endColumn=""26"" />
+        <entry offset=""0x27"" hidden=""true"" />
+        <entry offset=""0x31"" startLine=""25"" startColumn=""5"" endLine=""25"" endColumn=""6"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x32"">
         <namespace name=""System.Collections.Generic"" />
@@ -475,14 +410,14 @@ class C
         <forward declaringType=""C"" methodName=""Main"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x26"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""25"" document=""0"" />
-        <entry offset=""0x3f"" hidden=""true"" document=""0"" />
-        <entry offset=""0x46"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""25"" document=""0"" />
-        <entry offset=""0x60"" hidden=""true"" document=""0"" />
-        <entry offset=""0x67"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""29"" document=""0"" />
-        <entry offset=""0x80"" hidden=""true"" document=""0"" />
-        <entry offset=""0x87"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0x26"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""25"" />
+        <entry offset=""0x3f"" hidden=""true"" />
+        <entry offset=""0x46"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""25"" />
+        <entry offset=""0x60"" hidden=""true"" />
+        <entry offset=""0x67"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""29"" />
+        <entry offset=""0x80"" hidden=""true"" />
+        <entry offset=""0x87"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""21"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x89"">
         <scope startOffset=""0x26"" endOffset=""0x89"">
@@ -567,9 +502,9 @@ public class Test
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""32"" document=""0"" />
-        <entry offset=""0xa"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""32"" />
+        <entry offset=""0xa"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0xc"">
         <namespace name=""System"" />
@@ -607,16 +542,16 @@ public class Test
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""45"" startColumn=""5"" endLine=""45"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x1"" startLine=""46"" startColumn=""9"" endLine=""46"" endColumn=""16"" document=""0"" />
-        <entry offset=""0x2"" startLine=""46"" startColumn=""27"" endLine=""46"" endColumn=""45"" document=""0"" />
-        <entry offset=""0xd"" hidden=""true"" document=""0"" />
-        <entry offset=""0xf"" startLine=""46"" startColumn=""18"" endLine=""46"" endColumn=""23"" document=""0"" />
-        <entry offset=""0x16"" startLine=""46"" startColumn=""47"" endLine=""46"" endColumn=""48"" document=""0"" />
-        <entry offset=""0x17"" startLine=""46"" startColumn=""49"" endLine=""46"" endColumn=""50"" document=""0"" />
-        <entry offset=""0x18"" startLine=""46"" startColumn=""24"" endLine=""46"" endColumn=""26"" document=""0"" />
-        <entry offset=""0x22"" hidden=""true"" document=""0"" />
-        <entry offset=""0x2d"" startLine=""47"" startColumn=""5"" endLine=""47"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" startLine=""45"" startColumn=""5"" endLine=""45"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""46"" startColumn=""9"" endLine=""46"" endColumn=""16"" />
+        <entry offset=""0x2"" startLine=""46"" startColumn=""27"" endLine=""46"" endColumn=""45"" />
+        <entry offset=""0xd"" hidden=""true"" />
+        <entry offset=""0xf"" startLine=""46"" startColumn=""18"" endLine=""46"" endColumn=""23"" />
+        <entry offset=""0x16"" startLine=""46"" startColumn=""47"" endLine=""46"" endColumn=""48"" />
+        <entry offset=""0x17"" startLine=""46"" startColumn=""49"" endLine=""46"" endColumn=""50"" />
+        <entry offset=""0x18"" startLine=""46"" startColumn=""24"" endLine=""46"" endColumn=""26"" />
+        <entry offset=""0x22"" hidden=""true"" />
+        <entry offset=""0x2d"" startLine=""47"" startColumn=""5"" endLine=""47"" endColumn=""6"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2e"">
         <scope startOffset=""0xf"" endOffset=""0x18"">
@@ -639,28 +574,28 @@ public class Test
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x32"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x33"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""16"" document=""0"" />
-        <entry offset=""0x34"" startLine=""15"" startColumn=""27"" endLine=""15"" endColumn=""40"" document=""0"" />
-        <entry offset=""0x52"" hidden=""true"" document=""0"" />
-        <entry offset=""0x54"" startLine=""15"" startColumn=""18"" endLine=""15"" endColumn=""23"" document=""0"" />
-        <entry offset=""0x65"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""10"" document=""0"" />
-        <entry offset=""0x66"" startLine=""17"" startColumn=""13"" endLine=""17"" endColumn=""28"" document=""0"" />
-        <entry offset=""0x80"" hidden=""true"" document=""0"" />
-        <entry offset=""0x88"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""10"" document=""0"" />
-        <entry offset=""0x95"" startLine=""15"" startColumn=""24"" endLine=""15"" endColumn=""26"" document=""0"" />
-        <entry offset=""0xb0"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""16"" document=""0"" />
-        <entry offset=""0xb1"" startLine=""19"" startColumn=""27"" endLine=""19"" endColumn=""39"" document=""0"" />
-        <entry offset=""0xcf"" hidden=""true"" document=""0"" />
-        <entry offset=""0xd1"" startLine=""19"" startColumn=""18"" endLine=""19"" endColumn=""23"" document=""0"" />
-        <entry offset=""0xe2"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""10"" document=""0"" />
-        <entry offset=""0xe3"" startLine=""21"" startColumn=""13"" endLine=""21"" endColumn=""28"" document=""0"" />
-        <entry offset=""0xfa"" hidden=""true"" document=""0"" />
-        <entry offset=""0x102"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""10"" document=""0"" />
-        <entry offset=""0x10f"" startLine=""19"" startColumn=""24"" endLine=""19"" endColumn=""26"" document=""0"" />
-        <entry offset=""0x12a"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x12e"" hidden=""true"" document=""0"" />
+        <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0x32"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" />
+        <entry offset=""0x33"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""16"" />
+        <entry offset=""0x34"" startLine=""15"" startColumn=""27"" endLine=""15"" endColumn=""40"" />
+        <entry offset=""0x52"" hidden=""true"" />
+        <entry offset=""0x54"" startLine=""15"" startColumn=""18"" endLine=""15"" endColumn=""23"" />
+        <entry offset=""0x65"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""10"" />
+        <entry offset=""0x66"" startLine=""17"" startColumn=""13"" endLine=""17"" endColumn=""28"" />
+        <entry offset=""0x80"" hidden=""true"" />
+        <entry offset=""0x88"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""10"" />
+        <entry offset=""0x95"" startLine=""15"" startColumn=""24"" endLine=""15"" endColumn=""26"" />
+        <entry offset=""0xb0"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""16"" />
+        <entry offset=""0xb1"" startLine=""19"" startColumn=""27"" endLine=""19"" endColumn=""39"" />
+        <entry offset=""0xcf"" hidden=""true"" />
+        <entry offset=""0xd1"" startLine=""19"" startColumn=""18"" endLine=""19"" endColumn=""23"" />
+        <entry offset=""0xe2"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""10"" />
+        <entry offset=""0xe3"" startLine=""21"" startColumn=""13"" endLine=""21"" endColumn=""28"" />
+        <entry offset=""0xfa"" hidden=""true"" />
+        <entry offset=""0x102"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""10"" />
+        <entry offset=""0x10f"" startLine=""19"" startColumn=""24"" endLine=""19"" endColumn=""26"" />
+        <entry offset=""0x12a"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" />
+        <entry offset=""0x12e"" hidden=""true"" />
       </sequencePoints>
     </method>
     <method containingType=""Test`1+&lt;get_IterProp&gt;d__3"" name=""MoveNext"">
@@ -671,13 +606,13 @@ public class Test
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x2a"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" document=""0"" />
-        <entry offset=""0x2b"" startLine=""29"" startColumn=""13"" endLine=""29"" endColumn=""31"" document=""0"" />
-        <entry offset=""0x40"" hidden=""true"" document=""0"" />
-        <entry offset=""0x47"" startLine=""30"" startColumn=""13"" endLine=""30"" endColumn=""31"" document=""0"" />
-        <entry offset=""0x5c"" hidden=""true"" document=""0"" />
-        <entry offset=""0x63"" startLine=""31"" startColumn=""9"" endLine=""31"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0x2a"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" />
+        <entry offset=""0x2b"" startLine=""29"" startColumn=""13"" endLine=""29"" endColumn=""31"" />
+        <entry offset=""0x40"" hidden=""true"" />
+        <entry offset=""0x47"" startLine=""30"" startColumn=""13"" endLine=""30"" endColumn=""31"" />
+        <entry offset=""0x5c"" hidden=""true"" />
+        <entry offset=""0x63"" startLine=""31"" startColumn=""9"" endLine=""31"" endColumn=""10"" />
       </sequencePoints>
     </method>
     <method containingType=""Test`1+&lt;IterMethod&gt;d__4"" name=""MoveNext"">
@@ -688,13 +623,13 @@ public class Test
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x2a"" startLine=""35"" startColumn=""5"" endLine=""35"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x2b"" startLine=""36"" startColumn=""9"" endLine=""36"" endColumn=""33"" document=""0"" />
-        <entry offset=""0x40"" hidden=""true"" document=""0"" />
-        <entry offset=""0x47"" startLine=""37"" startColumn=""9"" endLine=""37"" endColumn=""27"" document=""0"" />
-        <entry offset=""0x5c"" hidden=""true"" document=""0"" />
-        <entry offset=""0x63"" startLine=""38"" startColumn=""9"" endLine=""38"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0x2a"" startLine=""35"" startColumn=""5"" endLine=""35"" endColumn=""6"" />
+        <entry offset=""0x2b"" startLine=""36"" startColumn=""9"" endLine=""36"" endColumn=""33"" />
+        <entry offset=""0x40"" hidden=""true"" />
+        <entry offset=""0x47"" startLine=""37"" startColumn=""9"" endLine=""37"" endColumn=""27"" />
+        <entry offset=""0x5c"" hidden=""true"" />
+        <entry offset=""0x63"" startLine=""38"" startColumn=""9"" endLine=""38"" endColumn=""21"" />
       </sequencePoints>
     </method>
   </methods>
@@ -748,15 +683,15 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x2a"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x2b"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""19"" document=""0"" />
-        <entry offset=""0x32"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""26"" document=""0"" />
-        <entry offset=""0x3e"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""24"" document=""0"" />
-        <entry offset=""0x53"" hidden=""true"" document=""0"" />
-        <entry offset=""0x5a"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""27"" document=""0"" />
-        <entry offset=""0x7a"" hidden=""true"" document=""0"" />
-        <entry offset=""0x81"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0x2a"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
+        <entry offset=""0x2b"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""19"" />
+        <entry offset=""0x32"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""26"" />
+        <entry offset=""0x3e"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""24"" />
+        <entry offset=""0x53"" hidden=""true"" />
+        <entry offset=""0x5a"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""27"" />
+        <entry offset=""0x7a"" hidden=""true"" />
+        <entry offset=""0x81"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x83"">
         <namespace name=""System.Collections.Generic"" />
@@ -854,15 +789,15 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x1f"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x20"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""17"" document=""0"" />
-        <entry offset=""0x26"" hidden=""true"" document=""0"" />
-        <entry offset=""0x29"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" document=""0"" />
-        <entry offset=""0x2a"" startLine=""11"" startColumn=""13"" endLine=""11"" endColumn=""28"" document=""0"" />
-        <entry offset=""0x3a"" hidden=""true"" document=""0"" />
-        <entry offset=""0x41"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""10"" document=""0"" />
-        <entry offset=""0x42"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0x1f"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" />
+        <entry offset=""0x20"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""17"" />
+        <entry offset=""0x26"" hidden=""true"" />
+        <entry offset=""0x29"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" />
+        <entry offset=""0x2a"" startLine=""11"" startColumn=""13"" endLine=""11"" endColumn=""28"" />
+        <entry offset=""0x3a"" hidden=""true"" />
+        <entry offset=""0x41"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""10"" />
+        <entry offset=""0x42"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" />
       </sequencePoints>
     </method>
   </methods>
@@ -889,8 +824,6 @@ class C
         if (disposable != null) { using (disposable) { } }
         lock (this) { }
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }";
             CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
@@ -1019,18 +952,18 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x30"" hidden=""true"" document=""0"" />
-        <entry offset=""0x3b"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x3c"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""21"" document=""0"" />
-        <entry offset=""0x48"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""21"" document=""0"" />
-        <entry offset=""0x54"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" document=""0"" />
-        <entry offset=""0x60"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""47"" document=""0"" />
-        <entry offset=""0x77"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""35"" document=""0"" />
-        <entry offset=""0xa9"" hidden=""true"" document=""0"" />
-        <entry offset=""0xb0"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""35"" document=""0"" />
-        <entry offset=""0xe2"" hidden=""true"" document=""0"" />
-        <entry offset=""0xe9"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0x30"" hidden=""true"" />
+        <entry offset=""0x3b"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" />
+        <entry offset=""0x3c"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""21"" />
+        <entry offset=""0x48"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""21"" />
+        <entry offset=""0x54"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" />
+        <entry offset=""0x60"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""47"" />
+        <entry offset=""0x77"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""35"" />
+        <entry offset=""0xa9"" hidden=""true"" />
+        <entry offset=""0xb0"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""35"" />
+        <entry offset=""0xe2"" hidden=""true"" />
+        <entry offset=""0xe9"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" />
       </sequencePoints>
     </method>
   </methods>
@@ -1058,8 +991,6 @@ class C
 
         yield return 1;
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
             // TODO: Currently we don't have means necessary to pass information about the display 
@@ -1128,18 +1059,18 @@ class C
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""C"" methodName=""F"" />
+        <forward declaringType=""C+&lt;&gt;c__DisplayClass0_0"" methodName=""&lt;M&gt;b__0"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x17"" hidden=""true"" document=""0"" />
-        <entry offset=""0x1c"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""21"" document=""0"" />
-        <entry offset=""0x23"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""21"" document=""0"" />
-        <entry offset=""0x2a"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" document=""0"" />
-        <entry offset=""0x31"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""47"" document=""0"" />
-        <entry offset=""0x41"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""24"" document=""0"" />
-        <entry offset=""0x51"" hidden=""true"" document=""0"" />
-        <entry offset=""0x58"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0x17"" hidden=""true"" />
+        <entry offset=""0x1c"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""21"" />
+        <entry offset=""0x23"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""21"" />
+        <entry offset=""0x2a"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" />
+        <entry offset=""0x31"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""47"" />
+        <entry offset=""0x41"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""24"" />
+        <entry offset=""0x51"" hidden=""true"" />
+        <entry offset=""0x58"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" />
       </sequencePoints>
     </method>
   </methods>
@@ -1184,8 +1115,6 @@ class C
         // Possible EnC edit - add lambda:
         // () => { x1 }
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
             // We need to hoist display class variable to allow adding a new lambda after yield return 
@@ -1267,7 +1196,7 @@ class C
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""C"" methodName=""F"" />
+        <forward declaringType=""C+&lt;&gt;c__DisplayClass0_0"" methodName=""&lt;M&gt;b__0"" />
         <hoistedLocalScopes>
           <slot startOffset=""0x1f"" endOffset=""0x7e"" />
         </hoistedLocalScopes>
@@ -1276,16 +1205,16 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x1f"" hidden=""true"" document=""0"" />
-        <entry offset=""0x2a"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x2b"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""21"" document=""0"" />
-        <entry offset=""0x37"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""21"" document=""0"" />
-        <entry offset=""0x43"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" document=""0"" />
-        <entry offset=""0x4f"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""47"" document=""0"" />
-        <entry offset=""0x66"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""24"" document=""0"" />
-        <entry offset=""0x76"" hidden=""true"" document=""0"" />
-        <entry offset=""0x7d"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0x1f"" hidden=""true"" />
+        <entry offset=""0x2a"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" />
+        <entry offset=""0x2b"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""21"" />
+        <entry offset=""0x37"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""21"" />
+        <entry offset=""0x43"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" />
+        <entry offset=""0x4f"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""47"" />
+        <entry offset=""0x66"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""24"" />
+        <entry offset=""0x76"" hidden=""true"" />
+        <entry offset=""0x7d"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" />
       </sequencePoints>
     </method>
   </methods>
@@ -1327,8 +1256,6 @@ class C
         yield return d;
         d.ToString();
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
             var v = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
@@ -1349,7 +1276,9 @@ class C
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""C"" methodName=""F"" />
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
         <hoistedLocalScopes>
           <slot startOffset=""0x1f"" endOffset=""0xe2"" />
         </hoistedLocalScopes>
@@ -1358,14 +1287,17 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x1f"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x20"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""23"" document=""0"" />
-        <entry offset=""0x2c"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""24"" document=""0"" />
-        <entry offset=""0x82"" hidden=""true"" document=""0"" />
-        <entry offset=""0x89"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""22"" document=""0"" />
-        <entry offset=""0xe1"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0x1f"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
+        <entry offset=""0x20"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""23"" />
+        <entry offset=""0x2c"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""24"" />
+        <entry offset=""0x82"" hidden=""true"" />
+        <entry offset=""0x89"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""22"" />
+        <entry offset=""0xe1"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
       </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0xe3"">
+        <namespace name=""System.Collections.Generic"" />
+      </scope>
     </method>
   </methods>
 </symbols>");
@@ -1402,8 +1334,6 @@ class C
         dynamic d = 1;
         yield return d;
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
             var v = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
@@ -1421,19 +1351,22 @@ class C
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""C"" methodName=""F"" />
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
         <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""d"" />
         </dynamicLocals>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x17"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""23"" document=""0"" />
-        <entry offset=""0x1e"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""24"" document=""0"" />
-        <entry offset=""0x6d"" hidden=""true"" document=""0"" />
-        <entry offset=""0x74"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0x17"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""23"" />
+        <entry offset=""0x1e"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""24"" />
+        <entry offset=""0x6d"" hidden=""true"" />
+        <entry offset=""0x74"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x76"">
+        <namespace name=""System.Collections.Generic"" />
         <scope startOffset=""0x17"" endOffset=""0x76"">
           <local name=""d"" il_index=""1"" il_start=""0x17"" il_end=""0x76"" attributes=""0"" />
         </scope>
@@ -1460,8 +1393,6 @@ class C
         // Possible EnC edit:
         // System.Console.WriteLine(d);
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
             var v = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
@@ -1480,7 +1411,9 @@ class C
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""C"" methodName=""F"" />
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
         <hoistedLocalScopes>
           <slot startOffset=""0x1f"" endOffset=""0x8a"" />
         </hoistedLocalScopes>
@@ -1489,13 +1422,16 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x1f"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x20"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""23"" document=""0"" />
-        <entry offset=""0x2c"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""24"" document=""0"" />
-        <entry offset=""0x82"" hidden=""true"" document=""0"" />
-        <entry offset=""0x89"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0x1f"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
+        <entry offset=""0x20"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""23"" />
+        <entry offset=""0x2c"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""24"" />
+        <entry offset=""0x82"" hidden=""true"" />
+        <entry offset=""0x89"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" />
       </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x8b"">
+        <namespace name=""System.Collections.Generic"" />
+      </scope>
     </method>
   </methods>
 </symbols>");
@@ -1535,9 +1471,9 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x17"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x18"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""31"" document=""0"" />
+        <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0x17"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" />
+        <entry offset=""0x18"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""31"" />
       </sequencePoints>
     </method>
   </methods>

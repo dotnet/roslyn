@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
         {
             var buffer = EditorFactory.CreateBuffer(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, lines);
             var text = buffer.CurrentSnapshot.AsText();
-            return Tuple.Create(buffer.CurrentSnapshot, (SourceText)text);
+            return Tuple.Create(buffer.CurrentSnapshot, text);
         }
 
         [Fact]

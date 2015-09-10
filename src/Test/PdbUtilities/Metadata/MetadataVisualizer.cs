@@ -371,7 +371,11 @@ namespace Roslyn.Test.MetadataUtilities
 
         private string LiteralUtf8Blob(BlobHandle handle, BlobKind kind)
         {
-            return Literal(handle, kind, (r, h) => "'" + Encoding.UTF8.GetString(r.GetBlobBytes((BlobHandle)h)) + "'");
+            return Literal(handle, kind, (r, h) =>
+            {
+                var bytes = r.GetBlobBytes((BlobHandle)h);
+                return "'" + Encoding.UTF8.GetString(bytes, 0, bytes.Length) + "'";
+            });
         }
 
         private string Literal(BlobHandle handle, BlobKind kind)

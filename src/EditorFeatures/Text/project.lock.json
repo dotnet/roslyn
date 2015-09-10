@@ -1,0 +1,98 @@
+{
+  "locked": false,
+  "version": 1,
+  "targets": {
+    ".NETFramework,Version=v4.6": {
+      "Microsoft.Composition/1.0.27": {
+        "compile": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Hosting.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll": {}
+        },
+        "runtime": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Hosting.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll": {}
+        }
+      },
+      "System.Collections.Immutable/1.1.36": {
+        "compile": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
+        },
+        "runtime": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
+        }
+      },
+      "System.Reflection.Metadata/1.1.0-alpha-00014": {
+        "dependencies": {
+          "System.Collections.Immutable": "[1.1.36, )"
+        },
+        "compile": {
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
+        },
+        "runtime": {
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Microsoft.Composition/1.0.27": {
+      "sha512": "pwu80Ohe7SBzZ6i69LVdzowp6V+LaVRzd5F7A6QlD42vQkX0oT7KXKWWPlM/S00w1gnMQMRnEdbtOV12z6rXdQ==",
+      "type": "Package",
+      "files": [
+        "_rels/.rels",
+        "Microsoft.Composition.nuspec",
+        "License-Stable.rtf",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.XML",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.xml",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Hosting.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Hosting.XML",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.XML",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.XML",
+        "package/services/metadata/core-properties/12e2c94035674b25b911285cc26e3260.psmdcp",
+        "[Content_Types].xml"
+      ]
+    },
+    "System.Collections.Immutable/1.1.36": {
+      "sha512": "MOlivTIeAIQPPMUPWIIoMCvZczjFRLYUWSYwqi1szu8QPyeIbsaPeI+hpXe1DzTxNwnRnmfYaoToi6kXIfSPNg==",
+      "type": "Package",
+      "files": [
+        "_rels/.rels",
+        "System.Collections.Immutable.nuspec",
+        "License-Stable.rtf",
+        "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.xml",
+        "package/services/metadata/core-properties/c8b7b781850445db852bd2d848380ca6.psmdcp",
+        "[Content_Types].xml"
+      ]
+    },
+    "System.Reflection.Metadata/1.1.0-alpha-00014": {
+      "sha512": "rVeIWjVoLQS0aNrGdzndZReskyfxu4EfO9BKqT5GJt0YfGtlsHB1aDPnjl4jIBDTr+WJC9YsnZg8S5sKT1X42g==",
+      "type": "Package",
+      "files": [
+        "_rels/.rels",
+        "System.Reflection.Metadata.nuspec",
+        "lib/portable-net45+win8/System.Reflection.Metadata.dll",
+        "lib/portable-net45+win8/System.Reflection.Metadata.pdb",
+        "lib/portable-net45+win8/System.Reflection.Metadata.xml",
+        "package/services/metadata/core-properties/a48ecf967b1540bba8edfe9af3a99ea5.psmdcp",
+        "[Content_Types].xml"
+      ]
+    }
+  },
+  "projectFileDependencyGroups": {
+    "": [
+      "Microsoft.Composition >= 1.0.27"
+    ],
+    ".NETFramework,Version=v4.6": []
+  }
+}

@@ -59,6 +59,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <summary>
+        /// Returns custom modifiers for the type arguments that have been substituted for the type parameters. 
+        /// </summary>
+        internal abstract ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers { get; }
+
+        internal ImmutableArray<ImmutableArray<CustomModifier>> CreateEmptyTypeArgumentsCustomModifiers()
+        {
+            var arity = this.Arity;
+
+            if (arity > 0)
+            {
+                return CreateEmptyTypeArgumentsCustomModifiers(arity);
+            }
+            else
+            {
+                return ImmutableArray<ImmutableArray<CustomModifier>>.Empty;
+            }
+        }
+
+        internal static ImmutableArray<ImmutableArray<CustomModifier>> CreateEmptyTypeArgumentsCustomModifiers(int arity)
+        {
+            Debug.Assert(arity > 0);
+            return ArrayBuilder<ImmutableArray<CustomModifier>>.GetInstance(arity, ImmutableArray<CustomModifier>.Empty).ToImmutableAndFree();
+        }
+
+        internal abstract bool HasTypeArgumentsCustomModifiers { get; }
+
         internal abstract ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics { get; }
 
         internal ImmutableArray<TypeSymbol> TypeArgumentsWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -605,7 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Compares this type to another type.
         /// </summary>
-        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiers = false, bool ignoreDynamic = false)
+        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds = false, bool ignoreDynamic = false)
         {
             if (ReferenceEquals(this, t2)) return true;
             if ((object)t2 == null) return false;
@@ -638,15 +665,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // The checks above are supposed to handle the vast majority of cases.
             // More complicated cases are handled in a special helper to make the common case scenario simple/fast
-            return EqualsComplicatedCases(other, ignoreCustomModifiers, ignoreDynamic);
+            return EqualsComplicatedCases(other, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic);
         }
 
         /// <summary>
         /// Helper for more complicated cases of Equals like when we have generic instantiations or types nested within them.
         /// </summary>
-        private bool EqualsComplicatedCases(NamedTypeSymbol other, bool ignoreCustomModifiers, bool ignoreDynamic)
+        private bool EqualsComplicatedCases(NamedTypeSymbol other, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
         {
-            if ((object)this.ContainingType != null && !this.ContainingType.Equals(other.ContainingType, ignoreCustomModifiers, ignoreDynamic))
+            if ((object)this.ContainingType != null && !this.ContainingType.Equals(other.ContainingType, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic))
             {
                 return false;
             }
@@ -669,13 +696,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            // since both are constructed from the same (original) type, they must have the same arity
-            Debug.Assert(TypeArgumentsNoUseSiteDiagnostics.Length == other.TypeArgumentsNoUseSiteDiagnostics.Length);
+            bool hasTypeArgumentsCustomModifiers = this.HasTypeArgumentsCustomModifiers;
 
-            int count = this.TypeArgumentsNoUseSiteDiagnostics.Length;
+            if (!ignoreCustomModifiersAndArraySizesAndLowerBounds && hasTypeArgumentsCustomModifiers != other.HasTypeArgumentsCustomModifiers)
+            {
+                return false;
+            }
+             
+            var typeArguments = this.TypeArgumentsNoUseSiteDiagnostics;
+            var otherTypeArguments = other.TypeArgumentsNoUseSiteDiagnostics;
+            int count = typeArguments.Length;
+
+            // since both are constructed from the same (original) type, they must have the same arity
+            Debug.Assert(count == otherTypeArguments.Length);
+
             for (int i = 0; i < count; i++)
             {
-                if (!this.TypeArgumentsNoUseSiteDiagnostics[i].Equals(other.TypeArgumentsNoUseSiteDiagnostics[i], ignoreCustomModifiers, ignoreDynamic)) return false;
+                if (!typeArguments[i].Equals(otherTypeArguments[i], ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic)) return false;
+            }
+
+            if (!ignoreCustomModifiersAndArraySizesAndLowerBounds && hasTypeArgumentsCustomModifiers)
+            {
+                Debug.Assert(other.HasTypeArgumentsCustomModifiers);
+                var modifiers = this.TypeArgumentsCustomModifiers;
+                var otherModifiers = other.TypeArgumentsCustomModifiers;
+
+                for (int i = 0; i < count; i++)
+                {
+                    if (!modifiers[i].SequenceEqual(otherModifiers[i])) return false;
+                }
             }
 
             return true;
@@ -688,7 +737,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// parameters in the type.</param>
         public NamedTypeSymbol Construct(params TypeSymbol[] typeArguments)
         {
-            return Construct(typeArguments.AsImmutableOrNull(), false);
+            return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false);
         }
 
         /// <summary>
@@ -698,7 +747,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// parameters in the type.</param>
         public NamedTypeSymbol Construct(ImmutableArray<TypeSymbol> typeArguments)
         {
-            return Construct(typeArguments, false);
+            return ConstructWithoutModifiers(typeArguments, false);
         }
 
         /// <summary>
@@ -707,7 +756,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="typeArguments"></param>
         public NamedTypeSymbol Construct(IEnumerable<TypeSymbol> typeArguments)
         {
-            return Construct(typeArguments.AsImmutableOrNull(), false);
+            return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false);
         }
 
         /// <summary>
@@ -728,11 +777,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.ConstructUnboundGenericType();
         }
 
-        internal static readonly Func<TypeSymbol, bool> TypeSymbolIsNullFunction = type => (object)type == null;
+        internal static readonly Func<TypeWithModifiers, bool> TypeSymbolIsNullFunction = type => (object)type.Type == null;
 
-        internal static readonly Func<TypeSymbol, bool> TypeSymbolIsErrorType = type => (object)type != null && type.IsErrorType();
+        internal static readonly Func<TypeWithModifiers, bool> TypeSymbolIsErrorType = type => (object)type.Type != null && type.Type.IsErrorType();
 
-        internal NamedTypeSymbol Construct(ImmutableArray<TypeSymbol> arguments, bool unbound)
+        internal NamedTypeSymbol ConstructWithoutModifiers(ImmutableArray<TypeSymbol> arguments, bool unbound)
+        {
+            ImmutableArray<TypeWithModifiers> modifiedArguments;
+
+            if (arguments.IsDefault)
+            {
+                modifiedArguments = default(ImmutableArray<TypeWithModifiers>);
+            }
+            else if (arguments.IsEmpty)
+            {
+                modifiedArguments = ImmutableArray<TypeWithModifiers>.Empty;
+            }
+            else
+            {
+                var builder = ArrayBuilder<TypeWithModifiers>.GetInstance(arguments.Length);
+                foreach (TypeSymbol t in arguments)
+                {
+                    builder.Add((object)t == null ? default(TypeWithModifiers) : new TypeWithModifiers(t));
+                }
+
+                modifiedArguments = builder.ToImmutableAndFree();
+            }
+
+            return Construct(modifiedArguments, unbound);
+        }
+
+        internal NamedTypeSymbol Construct(ImmutableArray<TypeWithModifiers> arguments, bool unbound)
         {
             if (!ReferenceEquals(this, ConstructedFrom) || this.Arity == 0)
             {
@@ -764,7 +839,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.ConstructCore(arguments, unbound);
         }
 
-        protected virtual NamedTypeSymbol ConstructCore(ImmutableArray<TypeSymbol> typeArguments, bool unbound)
+        protected virtual NamedTypeSymbol ConstructCore(ImmutableArray<TypeWithModifiers> typeArguments, bool unbound)
         {
             return new ConstructedNamedTypeSymbol(this, typeArguments, unbound);
         }
@@ -816,11 +891,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             builder.AddRange(TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics));
         }
 
-        internal ImmutableArray<TypeSymbol> GetAllTypeArguments(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal ImmutableArray<TypeWithModifiers> GetAllTypeArguments(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            ArrayBuilder<TypeSymbol> builder = ArrayBuilder<TypeSymbol>.GetInstance();
+            ArrayBuilder<TypeWithModifiers> builder = ArrayBuilder<TypeWithModifiers>.GetInstance();
             GetAllTypeArguments(builder, ref useSiteDiagnostics);
             return builder.ToImmutableAndFree();
+        }
+
+        internal void GetAllTypeArguments(ArrayBuilder<TypeWithModifiers> builder, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            var outer = ContainingType;
+            if (!ReferenceEquals(outer, null))
+            {
+                outer.GetAllTypeArguments(builder, ref useSiteDiagnostics);
+            }
+
+            var types = TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+
+            if (!HasTypeArgumentsCustomModifiers)
+            {
+                for (int i = 0; i < types.Length; i++)
+                {
+                    builder.Add(new TypeWithModifiers(types[i]));
+                }
+            }
+            else
+            {
+                var modifiers = TypeArgumentsCustomModifiers;
+
+                for (int i = 0; i < types.Length; i++)
+                {
+                    builder.Add(new TypeWithModifiers(types[i], modifiers[i]));
+                }
+            }
         }
 
         internal int AllTypeArgumentCount()
@@ -902,6 +1005,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (DeriveUseSiteDiagnosticFromType(ref result, arg))
                 {
                     return true;
+                }
+            }
+
+            if (this.HasTypeArgumentsCustomModifiers)
+            {
+                foreach (var modifiers in this.TypeArgumentsCustomModifiers)
+                {
+                    if (DeriveUseSiteDiagnosticFromCustomModifiers(ref result, modifiers))
+                    {
+                        return true;
+                    }
                 }
             }
 

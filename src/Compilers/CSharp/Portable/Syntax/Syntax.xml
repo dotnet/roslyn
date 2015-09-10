@@ -2335,10 +2335,11 @@
         <summary>Gets the open bracket token.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Target" Type="AttributeTargetSpecifierSyntax" Optional="true"/>
-    <PropertyComment>
-      <summary>Gets the optional construct targeted by the attribute.</summary>
-    </PropertyComment>
+    <Field Name="Target" Type="AttributeTargetSpecifierSyntax" Optional="true">
+      <PropertyComment>
+        <summary>Gets the optional construct targeted by the attribute.</summary>
+      </PropertyComment>
+    </Field>
     <Field Name="Attributes" Type="SeparatedSyntaxList&lt;AttributeSyntax&gt;">
       <PropertyComment>
         <summary>Gets the attribute declaration list.</summary>
@@ -3991,6 +3992,22 @@
     </Field>
     <Field Name="ReferenceKeyword" Type="SyntaxToken">
       <Kind Name="ReferenceKeyword"/>
+    </Field>
+    <Field Name="File" Type="SyntaxToken">
+      <Kind Name="StringLiteralToken"/>
+    </Field>
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EndOfDirectiveToken"/>
+    </Field>
+    <Field Name="IsActive" Type="bool" Override="true"/>
+  </Node>
+  <Node Name="LoadDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+    <Kind Name="LoadDirectiveTrivia"/>
+    <Field Name="HashToken" Type="SyntaxToken" Override="true">
+      <Kind Name="HashToken"/>
+    </Field>
+    <Field Name="LoadKeyword" Type="SyntaxToken">
+      <Kind Name="LoadKeyword"/>
     </Field>
     <Field Name="File" Type="SyntaxToken">
       <Kind Name="StringLiteralToken"/>

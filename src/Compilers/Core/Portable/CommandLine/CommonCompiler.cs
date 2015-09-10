@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis
 
         internal virtual MetadataFileReferenceResolver GetExternalMetadataResolver(TouchedFileLogger touchedFiles)
         {
-            return new LoggingMetadataReferencesResolver(Arguments.ReferencePaths, Arguments.BaseDirectory, touchedFiles);
+            return CreateLoggingMetadataResolver(touchedFiles);
         }
 
         /// <summary>
@@ -111,14 +111,18 @@ namespace Microsoft.CodeAnalysis
             {
                 // when compiling into an assembly (csc/vbc) we only allow #r that match references given on command line:
                 referenceDirectiveResolver = new ExistingReferencesResolver(
+                    CreateLoggingMetadataResolver(touchedFiles),
                     resolved.Where(r => r.Properties.Kind == MetadataImageKind.Assembly).OfType<PortableExecutableReference>().AsImmutable(),
-                    Arguments.ReferencePaths,
-                    Arguments.BaseDirectory,
-                    assemblyIdentityComparer,
-                    touchedFiles);
+                    assemblyIdentityComparer);
             }
 
             return resolved;
+        }
+
+        private MetadataFileReferenceResolver CreateLoggingMetadataResolver(TouchedFileLogger logger)
+        {
+            MetadataFileReferenceResolver resolver = new RelativePathReferenceResolver(Arguments.ReferencePaths, Arguments.BaseDirectory);
+            return (logger == null) ? resolver : new LoggingMetadataReferencesResolver(resolver, logger);
         }
 
         /// <summary>
@@ -146,40 +150,46 @@ namespace Microsoft.CodeAnalysis
         /// <returns>File content or null on failure.</returns>
         internal SourceText ReadFileContent(CommandLineSourceFile file, IList<DiagnosticInfo> diagnostics, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, out string normalizedFilePath)
         {
+            var filePath = file.Path;
             try
             {
-                // PERF: Using a very small buffer size for the FileStream opens up an optimization within EncodedStringText where
-                // we read the entire FileStream into a byte array in one shot. For files that are actually smaller than the buffer
-                // size, FileStream.Read still allocates the internal buffer.
-                using (var data = PortableShim.FileStream.Create(file.Path, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.ReadWrite, bufferSize: 1, options: PortableShim.FileOptions.None))
-                {
-                    normalizedFilePath = (string)PortableShim.FileStream.Name.GetValue(data);
-                    return EncodedStringText.Create(data, encoding, checksumAlgorithm);
-                }
+                return ReadFileContentHelper(filePath, encoding, checksumAlgorithm, out normalizedFilePath);
             }
             catch (Exception e)
             {
-                diagnostics.Add(ToFileReadDiagnostics(e, file));
+                diagnostics.Add(ToFileReadDiagnostics(this.MessageProvider, e, filePath));
                 normalizedFilePath = null;
                 return null;
             }
         }
 
-        private DiagnosticInfo ToFileReadDiagnostics(Exception e, CommandLineSourceFile file)
+        internal static SourceText ReadFileContentHelper(string filePath, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, out string normalizedFilePath)
+        {
+            // PERF: Using a very small buffer size for the FileStream opens up an optimization within EncodedStringText where
+            // we read the entire FileStream into a byte array in one shot. For files that are actually smaller than the buffer
+            // size, FileStream.Read still allocates the internal buffer.
+            using (var data = PortableShim.FileStream.Create(filePath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.ReadWrite, bufferSize: 1, options: PortableShim.FileOptions.None))
+            {
+                normalizedFilePath = (string)PortableShim.FileStream.Name.GetValue(data);
+                return EncodedStringText.Create(data, encoding, checksumAlgorithm);
+            }
+        }
+
+        internal static DiagnosticInfo ToFileReadDiagnostics(CommonMessageProvider messageProvider, Exception e, string filePath)
         {
             DiagnosticInfo diagnosticInfo;
 
             if (e is FileNotFoundException || e.GetType().Name == "DirectoryNotFoundException")
             {
-                diagnosticInfo = new DiagnosticInfo(MessageProvider, MessageProvider.ERR_FileNotFound, file.Path);
+                diagnosticInfo = new DiagnosticInfo(messageProvider, messageProvider.ERR_FileNotFound, filePath);
             }
             else if (e is InvalidDataException)
             {
-                diagnosticInfo = new DiagnosticInfo(MessageProvider, MessageProvider.ERR_BinaryFile, file.Path);
+                diagnosticInfo = new DiagnosticInfo(messageProvider, messageProvider.ERR_BinaryFile, filePath);
             }
             else
             {
-                diagnosticInfo = new DiagnosticInfo(MessageProvider, MessageProvider.ERR_NoSourceFile, file.Path, e.Message);
+                diagnosticInfo = new DiagnosticInfo(messageProvider, messageProvider.ERR_NoSourceFile, filePath, e.Message);
             }
 
             return diagnosticInfo;
@@ -367,7 +377,7 @@ namespace Microsoft.CodeAnalysis
                     analyzerExceptionDiagnostics = new ConcurrentSet<Diagnostic>();
                     Action<Diagnostic> addExceptionDiagnostic = diagnostic => analyzerExceptionDiagnostics.Add(diagnostic);
                     var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.CastUp(additionalTextFiles));
-                    analyzerDriver = AnalyzerDriver.Create(compilation, analyzers, analyzerOptions, analyzerManager, addExceptionDiagnostic, Arguments.ReportAnalyzer, out compilation, analyzerCts.Token);
+                    analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(compilation, analyzers, analyzerOptions, analyzerManager, addExceptionDiagnostic, Arguments.ReportAnalyzer, out compilation, analyzerCts.Token);
                     getAnalyzerDiagnostics = () => analyzerDriver.GetDiagnosticsAsync().Result;
                 }
 
@@ -440,8 +450,9 @@ namespace Microsoft.CodeAnalysis
                             (win32ResourceStreamOpt != null) ? new Compilation.SimpleEmitStreamProvider(win32ResourceStreamOpt) : null,
                             Arguments.ManifestResources,
                             emitOptions,
-                            getAnalyzerDiagnostics,
-                            cancellationToken);
+                            debugEntryPoint: null,
+                            getHostDiagnostics: getAnalyzerDiagnostics,
+                            cancellationToken: cancellationToken);
 
                         if (emitResult.Success && touchedFilesLogger != null)
                         {

@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private static BoundExpression GetCustomTypeInfoPayload(LocalSymbol local, CSharpSyntaxNode syntax, CSharpCompilation compilation, out bool hasCustomTypeInfoPayload)
         {
-            var byteArrayType = new ArrayTypeSymbol(
+            var byteArrayType = ArrayTypeSymbol.CreateSZArray(
                 compilation.Assembly,
                 compilation.GetSpecialType(SpecialType.System_Byte));
 

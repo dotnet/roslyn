@@ -170,22 +170,6 @@ using Microsoft.VisualStudio.Shell;
     PublicKeyToken = "b03f5f7f11d50a3a",
     GenerateCodeBase = false)]
 
-[assembly: ProvideBindingRedirection(
-    AssemblyName = "Microsoft.VisualStudio.InteractiveWindow",
-    OldVersionLowerBound = Constants.OldVersionLowerBound,
-    OldVersionUpperBound = Constants.OldVersionUpperBound,
-    NewVersion = Constants.NewVersion,
-    PublicKeyToken = Constants.PublicKeyToken,
-    GenerateCodeBase = false)]
-
-[assembly: ProvideBindingRedirection(
-    AssemblyName = "Microsoft.VisualStudio.VsInteractiveWindow",
-    OldVersionLowerBound = Constants.OldVersionLowerBound,
-    OldVersionUpperBound = Constants.OldVersionUpperBound,
-    NewVersion = Constants.NewVersion,
-    PublicKeyToken = Constants.PublicKeyToken,
-    GenerateCodeBase = false)]
-
 internal class Constants
 {
     public const string OldVersionLowerBound = "0.7.0.0";

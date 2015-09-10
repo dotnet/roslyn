@@ -110,6 +110,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal bool HasReferenceOrLoadDirectives
+        {
+            get
+            {
+                Debug.Assert(this.HasCompilationUnitRoot);
+
+                if (Options.Kind == SourceCodeKind.Interactive || Options.Kind == SourceCodeKind.Script)
+                {
+                    var compilationUnitRoot = this.GetCompilationUnitRoot();
+                    return compilationUnitRoot.GetReferenceDirectives().Count > 0 || compilationUnitRoot.GetLoadDirectives().Count > 0;
+                }
+
+                return false;
+            }
+        }
+
         #region Preprocessor Symbols
         private bool _hasDirectives;
         private InternalSyntax.DirectiveStack _directives;

@@ -388,7 +388,7 @@ abstract public class A
                 var method2Ret = (ArrayTypeSymbol)m2.ReturnType;
                 var method3Ret = (ArrayTypeSymbol)m3.ReturnType;
 
-                Assert.Equal(1, method1Ret.Rank);
+                Assert.True(method1Ret.IsSZArray);
                 Assert.Same(classA, method1Ret.ElementType);
                 Assert.Equal(2, method2Ret.Rank);
                 Assert.Same(classA, method2Ret.ElementType);
@@ -1665,7 +1665,6 @@ class C1<C1T1, C1T2>
             CompileAndVerify(source);
         }
 
-        // TODO: this is possible to emit using AppDomain.TypeLoad event workaround, but it's not implemented yet
         [Fact]
         public void RefEmit_UnsupportedOrdering1()
         {
@@ -1684,7 +1683,6 @@ public class E
 ");
         }
 
-        // TODO: this is possible to emit using AppDomain.TypeLoad event workaround, but it's not implemented yet
         [Fact]
         public void RefEmit_UnsupportedOrdering1_EP()
         {

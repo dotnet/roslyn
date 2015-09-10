@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary> 
         /// Current compilation
         /// </summary>
-        public CSharpCompilation Compilation { get; private set; }
+        public CSharpCompilation Compilation { get; }
 
         /// <summary>
         /// Given anonymous type descriptor provided constructs an anonymous type symbol.
@@ -76,12 +76,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Logical equality on anonymous types that ignores custom modifiers and/or the object/dynamic distinction.
         /// Differs from IsSameType for arrays, pointers, and generic instantiations.
         /// </summary>
-        internal static bool IsSameType(TypeSymbol type1, TypeSymbol type2, bool ignoreCustomModifiers, bool ignoreDynamic)
+        internal static bool IsSameType(TypeSymbol type1, TypeSymbol type2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
         {
             Debug.Assert(type1.IsAnonymousType);
             Debug.Assert(type2.IsAnonymousType);
 
-            if (ignoreCustomModifiers || ignoreDynamic)
+            if (ignoreCustomModifiersAndArraySizesAndLowerBounds || ignoreDynamic)
             {
                 AnonymousTypeDescriptor left = ((AnonymousTypePublicSymbol)type1).TypeDescriptor;
                 AnonymousTypeDescriptor right = ((AnonymousTypePublicSymbol)type2).TypeDescriptor;
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(right.Fields.Length == count);
                 for (int i = 0; i < count; i++)
                 {
-                    if (!left.Fields[i].Type.Equals(right.Fields[i].Type, ignoreCustomModifiers, ignoreDynamic))
+                    if (!left.Fields[i].Type.Equals(right.Fields[i].Type, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic))
                     {
                         return false;
                     }

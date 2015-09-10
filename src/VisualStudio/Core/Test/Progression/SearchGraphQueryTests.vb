@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.VisualStudio.GraphModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 Imports Roslyn.Test.Utilities
@@ -373,6 +374,38 @@ End Namespace
                             <Alias n="2" Uri="File=file:///Z:/Project.cs"/>
                             <Alias n="3" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
+                    </DirectedGraph>)
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        Public Sub SearchWithNullFilePathsOnProject()
+            Using testState = New ProgressionTestState(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" FilePath=<%= TestWorkspaceFactory.NullFilePath %>>
+                            <Document FilePath="Z:\SomeVenusDocument.aspx.cs">
+                                namespace Animal { class Dog&lt;X&gt; { void Bark() { } } }
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim outputContext = testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="A.D.B"), GraphContextDirection.Custom)
+
+                ' When searching, don't descend into projects with a null FilePath because they are artifacts and not
+                ' representable in the Solution Explorer, e.g., Venus projects create sub-projects with a null file
+                ' path for each .aspx file.  Documents, on the other hand, are never allowed to have a null file path
+                ' and as such are not tested here.  The project/document structure for these scenarios would look
+                ' similar to this:
+                '
+                '    Project: SomeVenusProject, FilePath=C:\path\to\project.csproj
+                '      + Document: SomeVenusDocument.aspx, FilePath=C:\path\to\SomeVenusDocument.aspx
+                '        + Project: 1_SomeNamespace_SomeVenusDocument.aspx, FilePath=null        <- the problem is here
+                '          + Document: SomeVenusDocument.aspx.cs
+                AssertSimplifiedGraphIs(
+                    outputContext.Graph,
+                    <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
+                        <Nodes/>
+                        <Links/>
                     </DirectedGraph>)
             End Using
         End Sub

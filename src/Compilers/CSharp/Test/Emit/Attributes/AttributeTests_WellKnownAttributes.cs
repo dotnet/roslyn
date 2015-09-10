@@ -2560,12 +2560,10 @@ abstract class C
                         case "InternalCallStatic":
                         case "InternalCallInstance":
                         case "InternalCallAbstract":
-                            // workaround for a bug in ref.emit:
                             expectedFlags = MethodImplAttributes.InternalCall;
                             break;
 
                         case "ForwardRef":
-                            // workaround for a bug in ref.emit:
                             expectedFlags = MethodImplAttributes.ForwardRef;
                             break;
 
@@ -2906,7 +2904,7 @@ abstract class C
                 Assert.Equal(1, metadataReader.GetTableRowCount(TableIndex.ImplMap));
 
                 // the attribute is emitted:
-                Assert.False(FindCustomAttribute(metadataReader, "DefaultCharSetAttribute").IsNil);
+                Assert.False(MetadataValidation.FindCustomAttribute(metadataReader, "DefaultCharSetAttribute").IsNil);
 
                 var import = metadataReader.GetImportedMethods().Single().GetImport();
                 Assert.Equal(MethodImportAttributes.CharSetAnsi, import.Attributes & MethodImportAttributes.CharSetMask);
@@ -2938,7 +2936,7 @@ abstract class C
                 Assert.Equal(1, metadataReader.GetTableRowCount(TableIndex.ImplMap));
 
                 // the attribute is emitted:
-                Assert.False(FindCustomAttribute(metadataReader, "DefaultCharSetAttribute").IsNil);
+                Assert.False(MetadataValidation.FindCustomAttribute(metadataReader, "DefaultCharSetAttribute").IsNil);
 
                 var import = metadataReader.GetImportedMethods().Single().GetImport();
                 Assert.Equal(MethodImportAttributes.None, import.Attributes & MethodImportAttributes.CharSetMask);
@@ -4193,7 +4191,7 @@ struct S { }
 
                 foreach (var ca in metadataReader.CustomAttributes)
                 {
-                    var name = GetAttributeName(metadataReader, ca);
+                    var name = MetadataValidation.GetAttributeName(metadataReader, ca);
                     Assert.NotEqual("SpecialNameAttribute", name);
                 }
 
@@ -4302,7 +4300,7 @@ delegate void D();
 
                 foreach (var ca in metadataReader.CustomAttributes)
                 {
-                    var name = GetAttributeName(metadataReader, ca);
+                    var name = MetadataValidation.GetAttributeName(metadataReader, ca);
                     Assert.NotEqual("SpecialNameAttribute", name);
                 }
 

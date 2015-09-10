@@ -18,29 +18,6 @@
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
   </PropertyGroup>
-  <ItemGroup Label="File References">
-    <Reference Include="..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\\System.Collections.Immutable.dll" />
-    <Reference Include="System.Composition.AttributedModel">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.Convention">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Convention.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.Hosting">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Hosting.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.Runtime">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Runtime.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.TypedParts">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
-    </Reference>
-  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
@@ -62,6 +39,9 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\PooledStringBuilder.cs">
       <Link>Collections\PooledStringBuilder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\CorLightup.cs">
+      <Link>InternalUtilities\CorLightup.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\MetadataReference\MetadataFileReferenceProvider.cs">
       <Link>MetadataReference\MetadataFileReferenceProvider.cs</Link>
@@ -246,6 +226,9 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\MetadataFileReferenceResolver.cs">
       <Link>InternalUtilities\MetadataFileReferenceResolver.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\RelativePathReferenceResolver.cs">
+      <Link>InternalUtilities\RelativePathReferenceResolver.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
       <Link>InternalUtilities\ReflectionUtilities.cs</Link>
     </Compile>
@@ -276,14 +259,14 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Telemetry" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="csi" />
-    <InternalsVisibleTo Include="Roslyn.CSharp.InteractiveEditorFeatures" />
-    <InternalsVisibleTo Include="Roslyn.InteractiveEditorFeatures" />
-    <InternalsVisibleTo Include="Roslyn.InteractiveFeatures" />
-    <InternalsVisibleTo Include="Roslyn.VisualBasic.InteractiveEditorFeatures" />
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.CSharp.Repl" />
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.InteractiveServices" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.CSharp.Repl" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.VisualBasic.Repl" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
     <InternalsVisibleToTest Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
@@ -293,7 +276,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.VisualBasic.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Closed.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.DiagnosticsWindow" />
@@ -400,6 +383,7 @@
     <Compile Include="FindSymbols\SyntaxTree\AbstractSyntaxTreeInfo.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeDeclarationInfo.cs" />
     <Compile Include="Formatting\FormattingOptionsProvider.cs" />
+    <Compile Include="LanguageServices\TypeInferenceService\AbstractTypeInferenceService.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileMergeSessionResult.cs" />
     <Compile Include="LinkedFileDiffMerging\DefaultDocumentTextDifferencingService.cs" />
     <Compile Include="Log\AggregateLogger.cs" />
@@ -956,10 +940,12 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
+    <None Include="project.json">
+      <SubType>
+      </SubType>
     </None>
-    <PublicAPI Include="PublicAPI.txt" />
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <Import Project="..\..\..\Compilers\Core\SharedCollections\SharedCollections.projitems" Label="Shared" />
   <ImportGroup Label="Targets">

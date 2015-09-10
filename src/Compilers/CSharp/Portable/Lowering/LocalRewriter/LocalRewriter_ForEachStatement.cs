@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (nodeExpressionType.Kind == SymbolKind.ArrayType)
             {
                 ArrayTypeSymbol arrayType = (ArrayTypeSymbol)nodeExpressionType;
-                if (arrayType.Rank == 1)
+                if (arrayType.IsSZArray)
                 {
                     return RewriteSingleDimensionalArrayForEachStatement(node);
                 }
@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ArrayTypeSymbol arrayType = (ArrayTypeSymbol)collectionExpression.Type;
 
-            Debug.Assert(arrayType.Rank == 1);
+            Debug.Assert(arrayType.IsSZArray);
 
             TypeSymbol intType = _compilation.GetSpecialType(SpecialType.System_Int32);
             TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
@@ -662,7 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayTypeSymbol arrayType = (ArrayTypeSymbol)collectionExpression.Type;
 
             int rank = arrayType.Rank;
-            Debug.Assert(rank > 1);
+            Debug.Assert(!arrayType.IsSZArray);
 
             TypeSymbol intType = _compilation.GetSpecialType(SpecialType.System_Int32);
             TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);

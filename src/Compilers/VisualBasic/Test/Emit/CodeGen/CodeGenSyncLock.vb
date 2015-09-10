@@ -874,6 +874,7 @@ End Module
 Module M1
     Sub Main()
         Try
+            Dim o = Nothing
         Catch
         Finally
 lab1:
@@ -891,42 +892,42 @@ End Module
   // Code size       44 (0x2c)
   .maxstack  2
   .locals init (Object V_0,
-  Boolean V_1)
+                Boolean V_1)
   .try
-{
-  .try
-{
-  IL_0000:  leave.s    IL_002a
-}
-  catch System.Exception
-{
-  IL_0002:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_0007:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_000c:  leave.s    IL_002a
-}
-}
+  {
+    .try
+    {
+      IL_0000:  leave.s    IL_002a
+    }
+    catch System.Exception
+    {
+      IL_0002:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+      IL_0007:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+      IL_000c:  leave.s    IL_002a
+    }
+  }
   finally
-{
-  IL_000e:  ldsfld     "String.Empty As String"
-  IL_0013:  stloc.0
-  IL_0014:  ldc.i4.0
-  IL_0015:  stloc.1
-  .try
-{
-  IL_0016:  ldloc.0
-  IL_0017:  ldloca.s   V_1
-  IL_0019:  call       "Sub System.Threading.Monitor.Enter(Object, ByRef Boolean)"
-  IL_001e:  leave.s    IL_000e
-}
-  finally
-{
-  IL_0020:  ldloc.1
-  IL_0021:  brfalse.s  IL_0029
-  IL_0023:  ldloc.0
-  IL_0024:  call       "Sub System.Threading.Monitor.Exit(Object)"
-  IL_0029:  endfinally
-}
-}
+  {
+    IL_000e:  ldsfld     "String.Empty As String"
+    IL_0013:  stloc.0
+    IL_0014:  ldc.i4.0
+    IL_0015:  stloc.1
+    .try
+    {
+      IL_0016:  ldloc.0
+      IL_0017:  ldloca.s   V_1
+      IL_0019:  call       "Sub System.Threading.Monitor.Enter(Object, ByRef Boolean)"
+      IL_001e:  leave.s    IL_000e
+    }
+    finally
+    {
+      IL_0020:  ldloc.1
+      IL_0021:  brfalse.s  IL_0029
+      IL_0023:  ldloc.0
+      IL_0024:  call       "Sub System.Threading.Monitor.Exit(Object)"
+      IL_0029:  endfinally
+    }
+  }
   IL_002a:  br.s       IL_002a
 }
 ]]>)

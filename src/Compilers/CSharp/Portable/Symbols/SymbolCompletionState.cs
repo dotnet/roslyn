@@ -45,6 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 symbol.GetAttributes();
             }
+
+            // any other values are completion parts intended for other kinds of symbols
+            NotePartComplete(CompletionPart.All);
         }
 
         internal bool HasComplete(CompletionPart part)

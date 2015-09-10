@@ -359,8 +359,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 type.Parent.IsParentKind(SyntaxKind.FieldDeclaration))
             {
                 var variableDeclaration = (VariableDeclarationSyntax)type.Parent;
-                return ((ISymbol)semanticModel.GetDeclaredSymbol(
-                    variableDeclaration.Variables[0], cancellationToken)).DeclaredAccessibility;
+                return semanticModel.GetDeclaredSymbol(
+                    variableDeclaration.Variables[0], cancellationToken).DeclaredAccessibility;
             }
 
             // Also do the same check if we are in an object creation expression
@@ -371,8 +371,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 type.Parent.Parent.Parent.Parent.IsParentKind(SyntaxKind.FieldDeclaration))
             {
                 var variableDeclaration = (VariableDeclarationSyntax)type.Parent.Parent.Parent.Parent;
-                return ((ISymbol)semanticModel.GetDeclaredSymbol(
-                    variableDeclaration.Variables[0], cancellationToken)).DeclaredAccessibility;
+                return semanticModel.GetDeclaredSymbol(
+                    variableDeclaration.Variables[0], cancellationToken).DeclaredAccessibility;
             }
 
             // 3) The return type of a delegate type must be at least as accessible as the
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 var symbol = semanticModel.GetDeclaredSymbol(variableDeclaration.Variables[0], cancellationToken);
                 if (symbol != null)
                 {
-                    return ((ISymbol)symbol).DeclaredAccessibility;
+                    return symbol.DeclaredAccessibility;
                 }
             }
 

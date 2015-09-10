@@ -4,6 +4,7 @@ Imports System.ComponentModel.Composition
 Imports System.IO
 Imports Microsoft.CodeAnalysis.Editor.Interactive
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
+Imports Microsoft.CodeAnalysis.Internal.Log
 Imports Microsoft.VisualStudio.LanguageServices.Interactive
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Text.Classification
@@ -63,6 +64,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
                 Path.GetDirectoryName(GetType(VisualBasicVsInteractiveWindowPackage).Assembly.Location),
                 CommonVsUtils.GetWorkingDirectory())
         End Function
+
+        Protected Overrides Sub LogSession(key As String, value As String)
+            Logger.Log(FunctionId.VisualBasic_Interactive_Window, KeyValueLogMessage.Create(Sub(m) m.Add(key, value)))
+        End Sub
     End Class
 End Namespace
 

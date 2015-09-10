@@ -461,7 +461,7 @@ Console.WriteLine(i + 1 * k)
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <Fact(skip:="551797"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(Skip:="551797"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         <WorkItem(551797)>
         Public Sub InlineIntoExpression3()
             Dim code =
@@ -4042,8 +4042,8 @@ End Class
 <File>
 Class C
     Sub M(args As String())
-        Dim y = (&lt;xml&gt;Hello&lt;/xml&gt;).&lt;xmlelement&gt;
-        Dim y1 = (&lt;xml&gt;Hello&lt;/xml&gt;)?.&lt;xmlelement&gt;
+        Dim y = &lt;xml&gt;Hello&lt;/xml&gt;.&lt;xmlelement&gt;
+        Dim y1 = &lt;xml&gt;Hello&lt;/xml&gt;?.&lt;xmlelement&gt;
     End Sub
 End Class
 </File>
@@ -4069,6 +4069,114 @@ With "test"
 End With
 </MethodBody>
             ' Introduction of the Call keyword in this scenario is by design, see bug 529694.
+            Test(code, expected, compareTokens:=False)
+        End Sub
+
+        <WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Sub DontParenthesizeInterpolatedStringWithNoInterpolation()
+            Dim code =
+<MethodBody>
+Dim [||]s1 = $"hello"
+Dim s2 = AscW(s1)
+</MethodBody>
+
+            Dim expected =
+<MethodBody>
+Dim s2 = AscW($"hello")
+</MethodBody>
+
+            Test(code, expected, compareTokens:=False)
+        End Sub
+
+        <WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Sub DontParenthesizeInterpolatedStringWithInterpolation()
+            Dim code =
+<MethodBody>
+Dim x = 42
+Dim [||]s1 = $"hello {x}"
+Dim s2 = AscW(s1)
+</MethodBody>
+
+            Dim expected =
+<MethodBody>
+Dim x = 42
+Dim s2 = AscW($"hello {x}")
+</MethodBody>
+
+            Test(code, expected, compareTokens:=False)
+        End Sub
+
+        <WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Sub InlineFormattableStringIntoCallSiteRequiringFormattableString()
+            Dim code = "
+Imports System
+" & FormattableStringType & "
+Class C
+    Sub M(s As FormattableString)
+    End Sub
+
+    Sub N(x As Integer, y As Integer)
+        Dim [||]s As FormattableString = $""{x}, {y}""
+        M(s)
+    End Sub
+End Class
+"
+
+            Dim expected = "
+Imports System
+" & FormattableStringType & "
+Class C
+    Sub M(s As FormattableString)
+    End Sub
+
+    Sub N(x As Integer, y As Integer)
+        M($""{x}, {y}"")
+    End Sub
+End Class
+"
+
+            Test(code, expected, compareTokens:=False)
+        End Sub
+
+        <WorkItem(4624, "https://github.com/dotnet/roslyn/issues/4624")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Sub InlineFormattableStringIntoCallSiteWithFormattableStringOverload()
+            Dim code = "
+Imports System
+" & FormattableStringType & "
+Class C
+    Sub M(s As String)
+    End Sub
+
+    Sub M(s As FormattableString)
+    End Sub
+
+    Sub N(x As Integer, y As Integer)
+        Dim [||]s As FormattableString = $""{x}, {y}""
+        M(s)
+    End Sub
+End Class
+"
+
+            Dim expected = "
+Imports System
+" & FormattableStringType & "
+Class C
+    Sub M(s As String)
+    End Sub
+
+    Sub M(s As FormattableString)
+    End Sub
+
+    Sub N(x As Integer, y As Integer)
+        M(CType($""{x}, {y}"", FormattableString))
+    End Sub
+End Class
+"
+
             Test(code, expected, compareTokens:=False)
         End Sub
 

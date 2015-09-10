@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// A comparator that treats dynamic and object as "the same" types.
         /// </summary>
-        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringDynamicComparer = new EqualsIgnoringComparer(ignoreDynamic: true, ignoreCustomModifiers: false);
+        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringDynamicComparer = new EqualsIgnoringComparer(ignoreDynamic: true, ignoreCustomModifiersAndArraySizesAndLowerBounds: false);
 
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
@@ -296,10 +296,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// semantics.
         /// </summary>
         /// <param name="t2">The other type.</param>
-        /// <param name="ignoreCustomModifiers">True to compare without regard to custom modifiers, false by default.</param>
+        /// <param name="ignoreCustomModifiersAndArraySizesAndLowerBounds">True to compare without regard to custom modifiers, false by default.</param>
         /// <param name="ignoreDynamic">True to ignore the distinction between object and dynamic, false by default.</param>
         /// <returns>True if the types are equivalent.</returns>
-        internal virtual bool Equals(TypeSymbol t2, bool ignoreCustomModifiers = false, bool ignoreDynamic = false)
+        internal virtual bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds = false, bool ignoreDynamic = false)
         {
             return ReferenceEquals(this, t2);
         }
@@ -322,12 +322,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class EqualsIgnoringComparer : EqualityComparer<TypeSymbol>
         {
-            private readonly bool _ignoreDynamic, _ignoreCustomModifiers;
+            private readonly bool _ignoreDynamic, _ignoreCustomModifiersAndArraySizesAndLowerBounds;
 
-            public EqualsIgnoringComparer(bool ignoreDynamic, bool ignoreCustomModifiers)
+            public EqualsIgnoringComparer(bool ignoreDynamic, bool ignoreCustomModifiersAndArraySizesAndLowerBounds)
             {
                 _ignoreDynamic = ignoreDynamic;
-                _ignoreCustomModifiers = ignoreCustomModifiers;
+                _ignoreCustomModifiersAndArraySizesAndLowerBounds = ignoreCustomModifiersAndArraySizesAndLowerBounds;
             }
 
             public override int GetHashCode(TypeSymbol obj)
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return
                     (object)x == null ? (object)y == null :
-                    x.Equals(y, ignoreCustomModifiers: _ignoreCustomModifiers, ignoreDynamic: _ignoreDynamic);
+                    x.Equals(y, ignoreCustomModifiersAndArraySizesAndLowerBounds: _ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic: _ignoreDynamic);
             }
         }
 
@@ -1332,5 +1332,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         #endregion Abstract base type checks
+
+        [Obsolete("Use TypeWithModifiers.Is method.", true)]
+        internal bool Equals(TypeWithModifiers other)
+        {
+            return other.Is(this);
+        }
     }
 }

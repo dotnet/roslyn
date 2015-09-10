@@ -175,9 +175,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var endOfLine = Match(SyntaxKind.EndOfLineTrivia, "\\n");
             var singleBlankLine = Matcher.Sequence(whitespace, endOfLine);
 
+            var shebangComment = Match(SyntaxKind.ShebangTrivia, "#!");
             var singleLineComment = Match(SyntaxKind.SingleLineCommentTrivia, "//");
             var multiLineComment = Match(SyntaxKind.MultiLineCommentTrivia, "/**/");
-            var anyCommentMatcher = Matcher.Choice(singleLineComment, multiLineComment);
+            var anyCommentMatcher = Matcher.Choice(shebangComment, singleLineComment, multiLineComment);
 
             var commentLine = Matcher.Sequence(whitespace, anyCommentMatcher, whitespace, endOfLine);
 
@@ -803,7 +804,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             bool includeDirectives = false,
             bool includeDocumentationComments = false)
         {
-            var skippedTokenFinder = includeSkipped ? s_findSkippedTokenForward : (Func<SyntaxTriviaList, int, SyntaxToken>)null;
+            var skippedTokenFinder = includeSkipped ? s_findSkippedTokenForward : null;
 
             return FindTokenHelper.FindTokenOnRightOfPosition<CompilationUnitSyntax>(
                 root, position, skippedTokenFinder, includeSkipped, includeDirectives, includeDocumentationComments);
@@ -819,7 +820,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             bool includeDirectives = false,
             bool includeDocumentationComments = false)
         {
-            var skippedTokenFinder = includeSkipped ? s_findSkippedTokenBackward : (Func<SyntaxTriviaList, int, SyntaxToken>)null;
+            var skippedTokenFinder = includeSkipped ? s_findSkippedTokenBackward : null;
 
             return FindTokenHelper.FindTokenOnLeftOfPosition<CompilationUnitSyntax>(
                 root, position, skippedTokenFinder, includeSkipped, includeDirectives, includeDocumentationComments);
@@ -841,7 +842,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             while (left <= right)
             {
                 int middle = left + ((right - left) / 2);
-                SyntaxNodeOrToken node = childList.ElementAt(middle);
+                SyntaxNodeOrToken node = childList[middle];
 
                 var span = node.FullSpan;
                 if (position < span.Start)

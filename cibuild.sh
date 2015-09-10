@@ -13,6 +13,13 @@ usage()
 XUNIT_VERSION=2.0.0-alpha-build2576
 BUILD_CONFIGURATION=Debug
 OS_NAME=$(uname -s)
+USE_CACHE=true
+MONO_ARGS='--debug=mdb-optimizations --attach=disable'
+
+# There are some stability issues that are causing Jenkins builds to fail at an 
+# unacceptable rate.  To temporarily work around that we are going to retry the 
+# unstable tasks a number of times.  
+RETRY_COUNT=5
 
 while [[ $# > 0 ]]
 do
@@ -38,6 +45,10 @@ do
         BUILD_CONFIGURATION=Release
         shift 1
         ;;
+        --nocache)
+        USE_CACHE=false
+        shift 1
+        ;;
         *)
         usage 
         exit 1
@@ -45,11 +56,51 @@ do
     esac
 done
 
-run_xbuild()
+restore_nuget()
 {
-    xbuild /v:m /p:SignAssembly=false /p:DebugSymbols=false "$@"
+    local package_name="nuget.7.zip"
+    local target="/tmp/$package_name"
+    echo "Installing NuGet Packages"
+    if [ -d $target ]; then
+        if [ "$USE_CACHE" = "true" ]; then
+            echo "Already installed"
+            return
+        fi
+    fi
+
+    pushd /tmp/
+
+    rm -r ~/.nuget 2>/dev/null
+    rm $package_name 2>/dev/null
+    curl -O https://dotnetci.blob.core.windows.net/roslyn/$package_name
+    unzip $package_name -d ~/ 1> /dev/null
     if [ $? -ne 0 ]; then
-        echo Compilation failed
+        echo "Unable to download NuGet packages"
+        exit 1
+    fi
+
+    rm $package_name 2>/dev/null
+
+    popd
+}
+
+run_msbuild()
+{
+    local is_good=false
+    
+    for i in `seq 1 $RETRY_COUNT`
+    do
+        mono $MONO_ARGS ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe /v:m /p:SignAssembly=false /p:DebugSymbols=false "$@"
+        if [ $? -eq 0 ]; then
+            is_good=true
+            break
+        fi
+
+        echo Build retry $i
+    done
+
+    if [ "$is_good" != "true" ]; then
+        echo Build failed
         exit 1
     fi
 }
@@ -58,18 +109,18 @@ run_xbuild()
 # we re-run it a number of times.  
 run_nuget()
 {
-    i=5
-    while [ $i -gt 0 ]; do
-        mono .nuget/NuGet.exe "$@"
+    local is_good=false
+    for i in `seq 1 $RETRY_COUNT`
+    do
+        mono $MONO_ARGS .nuget/NuGet.exe "$@"
         if [ $? -eq 0 ]; then
-            i=0
-        else
-            i=$((i - 1))
+            is_good=true
+            break
         fi
     done
 
-    if [ $? -ne 0 ]; then
-        echo NuGet Failed
+    if [ "$is_good" != "true" ]; then
+        echo NuGet failed
         exit 1
     fi
 }
@@ -78,9 +129,10 @@ run_nuget()
 compile_toolset()
 {
     echo Compiling the toolset compilers
-    echo -e "\tCompiling the C# compiler"
-    run_xbuild src/Compilers/CSharp/csc/csc.csproj /p:Configuration=$BUILD_CONFIGURATION
-    run_xbuild src/Compilers/VisualBasic/vbc/vbc.csproj /p:Configuration=$BUILD_CONFIGURATION
+    echo -e "Compiling the C# compiler"
+    run_msbuild src/Compilers/CSharp/csc/csc.csproj /p:Configuration=$BUILD_CONFIGURATION
+    echo -e "Compiling the VB compiler"
+    run_msbuild src/Compilers/VisualBasic/vbc/vbc.csproj /p:Configuration=$BUILD_CONFIGURATION
 }
 
 # Save the toolset binaries from Binaries/BUILD_CONFIGURATION to Binaries/Bootstrap
@@ -110,31 +162,34 @@ save_toolset()
 clean_roslyn()
 {
     echo Cleaning the enlistment
-    xbuild /v:m /t:Clean build/Toolset.sln /p:Configuration=$BUILD_CONFIGURATION
+    mono $MONO_ARGS ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe /v:m /t:Clean build/Toolset.sln /p:Configuration=$BUILD_CONFIGURATION
     rm -rf Binaries/$BUILD_CONFIGURATION
 }
 
 build_roslyn()
-{
-    BOOTSTRAP_ARG=/p:BootstrapBuildPath=$(pwd)/Binaries/Bootstrap
+{    
+    local bootstrapArg=/p:BootstrapBuildPath=$(pwd)/Binaries/Bootstrap
 
     echo Building CrossPlatform.sln
-    run_xbuild $BOOTSTRAP_ARG CrossPlatform.sln /p:Configuration=$BUILD_CONFIGURATION
+    run_msbuild $bootstrapArg CrossPlatform.sln /p:Configuration=$BUILD_CONFIGURATION
 }
 
 # Install the specified Mono toolset from our Azure blob storage.
 install_mono_toolset()
 {
-    TARGET=/tmp/$1
+    local target=/tmp/$1
     echo "Installing Mono toolset $1"
-    if [ -d $TARGET ]; then
-        echo "Already installed"
-        return
+    if [ -d $target ]; then
+        if [ "$USE_CACHE" = "true" ]; then
+            echo "Already installed"
+            return
+        fi
     fi
 
     pushd /tmp
 
-    rm $TARGET 2>/dev/null
+    rm -r $target 2>/dev/null
+    rm $1.tar.bz2 2>/dev/null
     curl -O https://dotnetci.blob.core.windows.net/roslyn/$1.tar.bz2
     tar -jxf $1.tar.bz2
     if [ $? -ne 0 ]; then
@@ -161,9 +216,9 @@ set_mono_path()
     fi
 
     if [ "$OS_NAME" = "Darwin" ]; then
-        MONO_TOOLSET_NAME=mono.mac.1
+        MONO_TOOLSET_NAME=mono.mac.3
     elif [ "$OS_NAME" = "Linux" ]; then
-        MONO_TOOLSET_NAME=mono.linux.1
+        MONO_TOOLSET_NAME=mono.linux.3
     else
         echo "Error: Unsupported OS $OS_NAME"
         exit 1
@@ -175,7 +230,7 @@ set_mono_path()
 
 test_roslyn()
 {
-    local xunit_runner=packages/xunit.runners.$XUNIT_VERSION/tools/xunit.console.x86.exe
+    local xunit_runner=~/.nuget/packages/xunit.runners/$XUNIT_VERSION/tools/xunit.console.x86.exe
     local test_binaries=(
         Roslyn.Compilers.CSharp.CommandLine.UnitTests
         Roslyn.Compilers.CSharp.Syntax.UnitTests
@@ -186,7 +241,7 @@ test_roslyn()
 
     for i in "${test_binaries[@]}"
     do
-        mono $xunit_runner Binaries/$BUILD_CONFIGURATION/$i.dll -xml Binaries/$BUILD_CONFIGURATION/$i.TestResults.xml -noshadow
+        mono $MONO_ARGS $xunit_runner Binaries/$BUILD_CONFIGURATION/$i.dll -xml Binaries/$BUILD_CONFIGURATION/$i.TestResults.xml -noshadow
         if [ $? -ne 0 ]; then
             any_failed=true
         fi
@@ -198,13 +253,10 @@ test_roslyn()
     fi
 }
 
-# NuGet on mono crashes about every 5th time we run it.  This is causing
-# Linux runs to fail frequently enough that we need to employ a 
-# temporary work around.  
-echo Restoring NuGet packages
-run_nuget restore Roslyn.sln
-run_nuget install xunit.runners -PreRelease -Version $XUNIT_VERSION -OutputDirectory packages
+echo Clean out the enlistment
+git clean -dxf . 
 
+restore_nuget
 set_mono_path
 which mono
 compile_toolset

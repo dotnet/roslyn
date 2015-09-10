@@ -4255,6 +4255,499 @@ public struct Subject<T>
 
             Test(input, expected)
         End Sub
+
+        <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub CSharp_DoNotRemove_NecessaryCastFromShortToUShort()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    int M(short x)
+    {
+        return {|Simplify:(ushort)x|};
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+class C
+{
+    int M(short x)
+    {
+        return (ushort)x;
+    }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub CSharp_DoNotRemove_NecessaryCastFromSByteToByte()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    int M(sbyte x)
+    {
+        return {|Simplify:(byte)x|};
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+class C
+{
+    int M(sbyte x)
+    {
+        return (byte)x;
+    }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub CSharp_DoNotRemove_NecessaryCastFromIntToUInt()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    long M(int x)
+    {
+        return {|Simplify:(uint)x|};
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+class C
+{
+    long M(int x)
+    {
+        return (uint)x;
+    }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub CSharp_Remove_UnnecessaryCastFromSByteToShort()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    int M(sbyte x)
+    {
+        return {|Simplify:(short)x|};
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+class C
+{
+    int M(sbyte x)
+    {
+        return x;
+    }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub CSharp_Remove_UnnecessaryCastFromByteToUShort()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    int M(byte x)
+    {
+        return {|Simplify:(ushort)x|};
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+class C
+{
+    int M(byte x)
+    {
+        return x;
+    }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub CSharp_Remove_UnnecessaryCastFromUShortToUInt()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    long M(ushort x)
+    {
+        return {|Simplify:(uint)x|};
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+class C
+{
+    long M(ushort x)
+    {
+        return x;
+    }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4037, "https://github.com/dotnet/roslyn/issues/4037")>
+        Public Sub CSharp_DoNotRemove_NecessaryCastOfEnumFromInInterpolation()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+
+class Sample 
+{
+    public enum State: ushort
+    {
+        None = 0x00,
+        State1 = 1 << 0,
+    }
+
+    public static void Main() 
+    {
+        State alarmState = State.State1;
+
+        string str = $"State: {alarmState} [{{|Simplify:(ushort)alarmState|}:X4}]";
+
+        Console.WriteLine(str);
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+
+class Sample 
+{
+    public enum State: ushort
+    {
+        None = 0x00,
+        State1 = 1 << 0,
+    }
+
+    public static void Main() 
+    {
+        State alarmState = State.State1;
+
+        string str = $"State: {alarmState} [{(ushort)alarmState:X4}]";
+
+        Console.WriteLine(str);
+    }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4037, "https://github.com/dotnet/roslyn/issues/4037")>
+        Public Sub CSharp_DoNotRemove_NecessaryCastOfEnumAndToString()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+
+class Sample 
+{
+    public enum State: ushort
+    {
+        None = 0x00,
+        State1 = 1 << 0,
+    }
+
+    public static void Main() 
+    {
+        State alarmState = State.State1;
+
+        string str = ({|Simplify:(ushort)alarmState|}).ToString("X4");
+
+        Console.WriteLine(str);
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+
+class Sample 
+{
+    public enum State: ushort
+    {
+        None = 0x00,
+        State1 = 1 << 0,
+    }
+
+    public static void Main() 
+    {
+        State alarmState = State.State1;
+
+        string str = ((ushort)alarmState).ToString("X4");
+
+        Console.WriteLine(str);
+    }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4037, "https://github.com/dotnet/roslyn/issues/4037")>
+        Public Sub CSharp_DoNotRemove_NecessaryCastOfEnum()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+
+class Sample 
+{
+    public enum State: ushort
+    {
+        None = 0x00,
+        State1 = 1 << 0,
+    }
+
+    public static void Main() 
+    {
+        State alarmState = State.State1;
+
+        ushort val = {|Simplify:(ushort)alarmState|};
+
+        Console.WriteLine(val);
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+
+class Sample 
+{
+    public enum State: ushort
+    {
+        None = 0x00,
+        State1 = 1 << 0,
+    }
+
+    public static void Main() 
+    {
+        State alarmState = State.State1;
+
+        ushort val = (ushort)alarmState;
+
+        Console.WriteLine(val);
+    }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4037, "https://github.com/dotnet/roslyn/issues/4037")>
+        Public Sub CSharp_Remove_UnnecessaryCastOfUShort()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    void M() 
+    {
+        ushort x = 400;
+        var s = $"Hello {{|Simplify:(object)x|}:x4}";
+        System.Console.WriteLine(s);
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+class C
+{
+    void M() 
+    {
+        ushort x = 400;
+        var s = $"Hello {x:x4}";
+        System.Console.WriteLine(s);
+    }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4037, "https://github.com/dotnet/roslyn/issues/4037")>
+        Public Sub CSharp_Remove_UnnecessaryCastOfDateTime1()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    void M() 
+    {
+        var d = new System.DateTime(2015, 9, 8);
+        var s = $"Hello {{|Simplify:(object)d|}:yyyy-MM-dd}";
+        System.Console.WriteLine(s);
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+class C
+{
+    void M() 
+    {
+        var d = new System.DateTime(2015, 9, 8);
+        var s = $"Hello {d:yyyy-MM-dd}";
+        System.Console.WriteLine(s);
+    }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4037, "https://github.com/dotnet/roslyn/issues/4037")>
+        Public Sub CSharp_Remove_UnnecessaryCastOfDateTime2()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    void M() 
+    {
+        var d = new System.DateTime(2015, 9, 8);
+        var s = $"Hello {({|Simplify:(object)d|}):yyyy-MM-dd}";
+        System.Console.WriteLine(s);
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+class C
+{
+    void M() 
+    {
+        var d = new System.DateTime(2015, 9, 8);
+        var s = $"Hello {(d):yyyy-MM-dd}";
+        System.Console.WriteLine(s);
+    }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
 #End Region
 
 #Region "Visual Basic tests"
@@ -7267,6 +7760,268 @@ End Class
 
             Test(input, expected)
         End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4037, "https://github.com/dotnet/roslyn/issues/4037")>
+        Public Sub VisualBasic_DoNotRemove_NecessaryCastOfEnumFromInInterpolation()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Module Module1
+
+    Enum State As UShort
+        None = 0
+        State1 = 1 << 0
+    End Enum
+
+    Sub Main()
+        Dim alarmState = State.State1
+
+        Dim str = $"State: {alarmState} [{{|Simplify:CUShort(alarmState)|}:x4}]"
+
+        Console.WriteLine(str)
+    End Sub
+
+End Module
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Module Module1
+
+    Enum State As UShort
+        None = 0
+        State1 = 1 << 0
+    End Enum
+
+    Sub Main()
+        Dim alarmState = State.State1
+
+        Dim str = $"State: {alarmState} [{CUShort(alarmState):x4}]"
+
+        Console.WriteLine(str)
+    End Sub
+
+End Module
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4037, "https://github.com/dotnet/roslyn/issues/4037")>
+        Public Sub VisualBasic_DoNotRemove_NecessaryCastOfEnumAndToString()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Module Module1
+
+    Enum State As UShort
+        None = 0
+        State1 = 1 << 0
+    End Enum
+
+    Sub Main()
+        Dim alarmState = State.State1
+
+        Dim str = {|Simplify:CUShort(alarmState)|}.ToString("X4")
+
+        Console.WriteLine(str)
+    End Sub
+
+End Module
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Module Module1
+
+    Enum State As UShort
+        None = 0
+        State1 = 1 << 0
+    End Enum
+
+    Sub Main()
+        Dim alarmState = State.State1
+
+        Dim str = CUShort(alarmState).ToString("X4")
+
+        Console.WriteLine(str)
+    End Sub
+
+End Module
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4037, "https://github.com/dotnet/roslyn/issues/4037")>
+        Public Sub VisualBasic_Remove_UnnecessaryCastOfEnum()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Option Strict On
+
+Module Module1
+
+    Enum State As UShort
+        None = 0
+        State1 = 1 << 0
+    End Enum
+
+    Sub Main()
+        Dim alarmState = State.State1
+
+        Dim val As UShort = {|Simplify:CUShort(alarmState)|}
+
+        Console.WriteLine(val)
+    End Sub
+
+End Module
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Option Strict On
+
+Module Module1
+
+    Enum State As UShort
+        None = 0
+        State1 = 1 << 0
+    End Enum
+
+    Sub Main()
+        Dim alarmState = State.State1
+
+        Dim val As UShort = alarmState
+
+        Console.WriteLine(val)
+    End Sub
+
+End Module
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4037, "https://github.com/dotnet/roslyn/issues/4037")>
+        Public Sub VisualBasic_Remove_UnnecessaryCastOfUShort()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Class C
+    Sub M()
+        Dim x As UShort = 400
+        Dim s = $"Hello {{|Simplify:CObj(x)|}:x4}"
+        Console.WriteLine(s)
+    End Sub
+End Class
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Class C
+    Sub M()
+        Dim x As UShort = 400
+        Dim s = $"Hello {x:x4}"
+        Console.WriteLine(s)
+    End Sub
+End Class
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4037, "https://github.com/dotnet/roslyn/issues/4037")>
+        Public Sub VisualBasic_Remove_UnnecessaryCastOfDateTime1()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Class C
+    Sub M()
+        Dim d As DateTime = #2015-09-08#
+        Dim s = $"Hello {{|Simplify:CObj(d)|}:yyyy-MM-dd}"
+        Console.WriteLine(s)
+    End Sub
+End Class
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Class C
+    Sub M()
+        Dim d As DateTime = #2015-09-08#
+        Dim s = $"Hello {d:yyyy-MM-dd}"
+        Console.WriteLine(s)
+    End Sub
+End Class
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(4037, "https://github.com/dotnet/roslyn/issues/4037")>
+        Public Sub VisualBasic_Remove_UnnecessaryCastOfDateTime2()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Class C
+    Sub M()
+        Dim d As DateTime = #2015-09-08#
+        Dim s = $"Hello {({|Simplify:CObj(d)|}):yyyy-MM-dd}"
+        Console.WriteLine(s)
+    End Sub
+End Class
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Class C
+    Sub M()
+        Dim d As DateTime = #2015-09-08#
+        Dim s = $"Hello {(d):yyyy-MM-dd}"
+        Console.WriteLine(s)
+    End Sub
+End Class
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
 #End Region
 
     End Class

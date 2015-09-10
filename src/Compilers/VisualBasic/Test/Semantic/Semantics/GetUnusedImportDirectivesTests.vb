@@ -300,5 +300,24 @@ Imports System
             ' With doc comments.
             CreateCompilationWithMscorlib(source, parseOptions:=New VisualBasicParseOptions(documentationMode:=DocumentationMode.Diagnose)).AssertTheseDiagnostics(<errors></errors>, suppressInfos:=False)
         End Sub
+
+        <Fact>
+        Public Sub UnusedImportInteractive()
+            Dim tree = Parse("Imports System", options:=TestOptions.Interactive)
+            Dim compilation = VisualBasicCompilation.CreateSubmission("sub1", tree, {MscorlibRef_v4_0_30316_17626})
+            compilation.AssertNoDiagnostics(suppressInfos:=False)
+        End Sub
+
+        <Fact()>
+        Public Sub UnusedImportScript()
+            Dim tree = Parse("Imports System", options:=TestOptions.Script)
+            Dim compilation = CreateCompilationWithMscorlib(tree)
+            compilation.AssertTheseDiagnostics(
+                <errors>
+BC50001: Unused import statement.
+Imports System
+~~~~~~~~~~~~~~
+                </errors>, suppressInfos:=False)
+        End Sub
     End Class
 End Namespace

@@ -1641,6 +1641,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IdentifierName:
                     eventSyntax = syntax;
                     break;
+                case SyntaxKind.MemberBindingExpression:
+                    eventSyntax = ((MemberBindingExpressionSyntax)syntax).Name;
+                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
             }
@@ -2354,7 +2357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var delegateParameterType = delegateParameters[i].Type;
                     var delegateRefKind = delegateParameters[i].RefKind;
 
-                    if (!lambdaParameterType.Equals(delegateParameterType, ignoreCustomModifiers: true, ignoreDynamic: true))
+                    if (!lambdaParameterType.Equals(delegateParameterType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
                     {
                         SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, lambdaParameterType, delegateParameterType);
 

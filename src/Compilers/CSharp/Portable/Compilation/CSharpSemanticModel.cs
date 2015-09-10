@@ -3657,6 +3657,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
 
+                    case BoundKind.Conversion:
+                        // If we are looking for info on "M" in "(Action)M" 
+                        // we want to get the symbol that overload resolution chose for M, not the whole method group M.
+                        var conversion = (BoundConversion)boundNodeForSyntacticParent;
+
+                        var method = conversion.SymbolOpt;
+                        if ((object)method != null)
+                        {
+                            Debug.Assert(conversion.ConversionKind == ConversionKind.MethodGroup);
+
+                            if (conversion.IsExtensionMethod)
+                            {
+                                method = ReducedExtensionMethodSymbol.Create(method);
+                            }
+
+                            symbols = ImmutableArray.Create((Symbol)method);
+                            resultKind = conversion.ResultKind;
+                        }
+                        else
+                        {
+                            goto default;
+                        }
+
+                        break;
+
                     case BoundKind.DynamicInvocation:
                         var dynamicInvocation = (BoundDynamicInvocation)boundNodeForSyntacticParent;
                         symbols = dynamicInvocation.ApplicableMethods.Cast<MethodSymbol, Symbol>();
@@ -4498,14 +4523,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray.Create<ISymbol>();
         }
 
-        internal override ImmutableArray<DeclarationInfo> GetDeclarationsInSpan(TextSpan span, bool getSymbol, CancellationToken cancellationToken)
+        internal override void ComputeDeclarationsInSpan(TextSpan span, bool getSymbol, List<DeclarationInfo> builder, CancellationToken cancellationToken)
         {
-            return CSharpDeclarationComputer.GetDeclarationsInSpan(this, span, getSymbol, cancellationToken);
+            CSharpDeclarationComputer.ComputeDeclarationsInSpan(this, span, getSymbol, builder, cancellationToken);
         }
 
-        internal override ImmutableArray<DeclarationInfo> GetDeclarationsInNode(SyntaxNode node, bool getSymbol, CancellationToken cancellationToken, int? levelsToCompute = null)
+        internal override void ComputeDeclarationsInNode(SyntaxNode node, bool getSymbol, List<DeclarationInfo> builder, CancellationToken cancellationToken, int? levelsToCompute = null)
         {
-            return CSharpDeclarationComputer.GetDeclarationsInNode(this, node, getSymbol, cancellationToken, levelsToCompute);
+            CSharpDeclarationComputer.ComputeDeclarationsInNode(this, node, getSymbol, builder, cancellationToken, levelsToCompute);
         }
 
         protected internal override SyntaxNode GetTopmostNodeForDiagnosticAnalysis(ISymbol symbol, SyntaxNode declaringSyntax)

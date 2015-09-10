@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
 
             Dim tokenAnnotation As New SyntaxAnnotation()
             document = Document.WithSyntaxRoot(syntaxRoot.ReplaceToken(token, token.WithAdditionalAnnotations(tokenAnnotation)))
-            token = CType(document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken).GetAnnotatedNodesAndTokens(tokenAnnotation).First().AsToken(), SyntaxToken)
+            token = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken).GetAnnotatedNodesAndTokens(tokenAnnotation).First().AsToken()
 
             Dim typeSyntax = token.GetAncestor(Of TypeSyntax)()
             If typeSyntax Is Nothing Then
@@ -162,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
             newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken)
 
             ' Place the cursor back to where it logically was after this
-            token = CType(newDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken).GetAnnotatedNodesAndTokens(tokenAnnotation).First().AsToken(), SyntaxToken)
+            token = newDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken).GetAnnotatedNodesAndTokens(tokenAnnotation).First().AsToken()
             args.TextView.TryMoveCaretToAndEnsureVisible(
                 New SnapshotPoint(args.SubjectBuffer.CurrentSnapshot,
                                   Math.Min(token.Span.End + caretOffsetFromToken, args.SubjectBuffer.CurrentSnapshot.Length)))

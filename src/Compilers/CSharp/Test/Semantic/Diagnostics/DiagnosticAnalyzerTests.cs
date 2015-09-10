@@ -950,7 +950,7 @@ public class B
         {
             string source = @"";
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerReportingUnsupportedDiagnostic() };
-            string message = new ArgumentException(string.Format(AnalyzerDriverResources.UnsupportedDiagnosticReported, AnalyzerReportingUnsupportedDiagnostic.UnsupportedDescriptor.Id), "diagnostic").Message;
+            string message = new ArgumentException(string.Format(CodeAnalysisResources.UnsupportedDiagnosticReported, AnalyzerReportingUnsupportedDiagnostic.UnsupportedDescriptor.Id), "diagnostic").Message;
 
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
@@ -982,6 +982,21 @@ public class B
                 context.RegisterCompilationAction(compilationContext =>
                     compilationContext.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(UnsupportedDescriptor, Location.None)));
             }
+        }
+
+        [Fact, WorkItem(4376, "https://github.com/dotnet/roslyn/issues/4376")]
+        public void TestReportingDiagnosticWithInvalidId()
+        {
+            string source = @"";
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerWithInvalidDiagnosticId() };
+            string message = new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticIdReported, AnalyzerWithInvalidDiagnosticId.Descriptor.Id), "diagnostic").Message;
+
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
+                     expected: Diagnostic("AD0001")
+                     .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithInvalidDiagnosticId", "System.ArgumentException", message)
+                     .WithLocation(1, 1));
         }
 
         [Fact, WorkItem(1473, "https://github.com/dotnet/roslyn/issues/1473")]
@@ -1103,6 +1118,20 @@ namespace ConsoleApplication1
             // Ensure that adding a dummy analyzer with no actions doesn't bring down entire analysis.
             // See https://github.com/dotnet/roslyn/issues/2980 for details.
             TestGenericNameCore(source, new AnalyzerWithNoActions(), new CSharpGenericNameAnalyzer());
+        }
+
+        [Fact, WorkItem(4055, "https://github.com/dotnet/roslyn/issues/4055")]
+        public void TestAnalyzerWithNoSupportedDiagnostics()
+        {
+            var source = @"
+class MyClass
+{
+}";
+            // Ensure that adding a dummy analyzer with no supported diagnostics doesn't bring down entire analysis.
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerWithNoSupportedDiagnostics() };
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers);
         }
 
         private static void TestEffectiveSeverity(

@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
@@ -28,6 +27,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // For Method Declaration
             if (currentToken.IsOpenParenInParameterList() && previousKind == SyntaxKind.IdentifierToken)
+            {
+                return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpacingAfterMethodDeclarationName);
+            }
+
+            // For Generic Method Declaration
+            if (currentToken.IsOpenParenInParameterList() && previousKind == SyntaxKind.GreaterThanToken && previousParentKind == SyntaxKind.TypeParameterList)
+            {
+                return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpacingAfterMethodDeclarationName);
+            }
+
+            // Case: public static implicit operator string(Program p) { return null; }
+            if (previousToken.IsKeyword() && currentToken.IsOpenParenInParameterListOfAConversionOperatorDeclaration())
+            {
+                return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpacingAfterMethodDeclarationName);
+            }
+
+            // Case: public static Program operator !(Program p) { return null; }
+            if (previousToken.Parent.IsKind(SyntaxKind.OperatorDeclaration) && currentToken.IsOpenParenInParameterListOfAOperationDeclaration())
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpacingAfterMethodDeclarationName);
             }
@@ -141,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // For spacing Before Square Braces
-            if (currentKind == SyntaxKind.OpenBracketToken && HasFormattableBracketParent(currentToken))
+            if (currentKind == SyntaxKind.OpenBracketToken && HasFormattableBracketParent(currentToken) && !previousToken.IsOpenBraceOrCommaOfObjectInitializer())
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceBeforeOpenSquareBracket);
             }
@@ -236,7 +253,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     case BinaryOperatorSpacingOptions.Single:
                         return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                     case BinaryOperatorSpacingOptions.Remove:
-                        return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                        if (currentKind == SyntaxKind.IsKeyword ||
+                            currentKind == SyntaxKind.AsKeyword ||
+                            previousKind == SyntaxKind.IsKeyword ||
+                            previousKind == SyntaxKind.AsKeyword)
+                        {
+                            // User want spaces removed but at least one is required for the "as" & "is" keyword
+                            return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                        }
+                        else
+                        {
+                            return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                        }
                     case BinaryOperatorSpacingOptions.Ignore:
                         return CreateAdjustSpacesOperation(0, AdjustSpacesOption.PreserveSpaces);
                     default:
@@ -289,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return nextOperation.Invoke();
         }
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
         {
             nextOperation.Invoke(list);
 

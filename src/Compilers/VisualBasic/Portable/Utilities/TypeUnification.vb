@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -15,19 +16,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return False
             End If
 
+            If t1 = t2 Then
+                Return True
+            End If
+
             Dim substitution As TypeSubstitution = Nothing
-            Dim result As Boolean = CanUnifyHelper(containingGenericType, t1, t2, substitution)
+            Dim result As Boolean = CanUnifyHelper(containingGenericType,
+                                                   If(t1 Is Nothing, Nothing, New TypeWithModifiers(t1)),
+                                                   If(t2 Is Nothing, Nothing, New TypeWithModifiers(t2)),
+                                                   substitution)
 #If DEBUG Then
             Debug.Assert(Not result OrElse
-                SubstituteAllTypeParameters(substitution, t1) = SubstituteAllTypeParameters(substitution, t2))
+                SubstituteAllTypeParameters(substitution, New TypeWithModifiers(t1)) = SubstituteAllTypeParameters(substitution, New TypeWithModifiers(t2)))
 #End If
             Return result
         End Function
 
 #If DEBUG Then
-        Private Shared Function SubstituteAllTypeParameters(substitution As TypeSubstitution, type As TypeSymbol) As TypeSymbol
+        Private Shared Function SubstituteAllTypeParameters(substitution As TypeSubstitution, type As TypeWithModifiers) As TypeWithModifiers
             If substitution IsNot Nothing Then
-                Dim previous As TypeSymbol
+                Dim previous As TypeWithModifiers
                 Do
                     previous = type
                     type = type.InternalSubstituteTypeParameters(substitution)
@@ -55,10 +63,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Derived from C# Dev10's BSYMMGR::UnifyTypes.
         ''' Two types will not unify if they have different custom modifiers.
         ''' </remarks>
-        Private Shared Function CanUnifyHelper(containingGenericType As NamedTypeSymbol, t1 As TypeSymbol, t2 As TypeSymbol, ByRef substitution As TypeSubstitution) As Boolean
-            If t1 Is t2 Then
+        Private Shared Function CanUnifyHelper(containingGenericType As NamedTypeSymbol, t1 As TypeWithModifiers, t2 As TypeWithModifiers, ByRef substitution As TypeSubstitution) As Boolean
+            If t1 = t2 Then
                 Return True
-            ElseIf t1 Is Nothing OrElse t2 Is Nothing Then
+            ElseIf t1.Type Is Nothing OrElse t2.Type Is Nothing Then
                 Return False
             End If
 
@@ -67,38 +75,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 t2 = t2.InternalSubstituteTypeParameters(substitution)
             End If
 
-            If t1 Is t2 Then
+            If t1 = t2 Then
                 Return True
             End If
 
-            If Not t1.IsTypeParameter() AndAlso t2.IsTypeParameter() Then
-                Dim tmp As TypeSymbol = t1
+            If Not t1.Type.IsTypeParameter() AndAlso t2.Type.IsTypeParameter() Then
+                Dim tmp As TypeWithModifiers = t1
                 t1 = t2
                 t2 = tmp
             End If
 
-            Debug.Assert(t1.IsTypeParameter() OrElse Not t2.IsTypeParameter())
-            Select Case t1.Kind
+            Debug.Assert(t1.Type.IsTypeParameter() OrElse Not t2.Type.IsTypeParameter())
+            Select Case t1.Type.Kind
                 Case SymbolKind.ArrayType
-                    If t2.TypeKind <> t1.TypeKind Then
+                    If t2.Type.TypeKind <> t1.Type.TypeKind OrElse Not t1.CustomModifiers.SequenceEqual(t2.CustomModifiers) Then
                         Return False
                     End If
 
-                    Dim at1 As ArrayTypeSymbol = DirectCast(t1, ArrayTypeSymbol)
-                    Dim at2 As ArrayTypeSymbol = DirectCast(t2, ArrayTypeSymbol)
-                    If at1.Rank <> at2.Rank OrElse Not at1.CustomModifiers.SequenceEqual(at2.CustomModifiers) Then
+                    Dim at1 As ArrayTypeSymbol = DirectCast(t1.Type, ArrayTypeSymbol)
+                    Dim at2 As ArrayTypeSymbol = DirectCast(t2.Type, ArrayTypeSymbol)
+                    If Not at1.HasSameShapeAs(at2) Then
                         Return False
                     End If
 
-                    Return CanUnifyHelper(containingGenericType, at1.ElementType, at2.ElementType, substitution)
+                    Return CanUnifyHelper(containingGenericType, New TypeWithModifiers(at1.ElementType, at1.CustomModifiers), New TypeWithModifiers(at2.ElementType, at2.CustomModifiers), substitution)
 
                 Case SymbolKind.NamedType, SymbolKind.ErrorType
-                    If t2.TypeKind <> t1.TypeKind Then
+                    If t2.Type.TypeKind <> t1.Type.TypeKind OrElse Not t1.CustomModifiers.SequenceEqual(t2.CustomModifiers) Then
                         Return False
                     End If
 
-                    Dim nt1 As NamedTypeSymbol = DirectCast(t1, NamedTypeSymbol)
-                    Dim nt2 As NamedTypeSymbol = DirectCast(t2, NamedTypeSymbol)
+                    Dim nt1 As NamedTypeSymbol = DirectCast(t1.Type, NamedTypeSymbol)
+                    Dim nt2 As NamedTypeSymbol = DirectCast(t2.Type, NamedTypeSymbol)
                     If Not nt1.IsGenericType Then
                         Return Not nt2.IsGenericType AndAlso nt1 = nt2
                     ElseIf Not nt2.IsGenericType Then
@@ -110,26 +118,70 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return False
                     End If
 
+                    Dim nt1Arguments = nt1.TypeArgumentsNoUseSiteDiagnostics
+                    Dim nt2Arguments = nt2.TypeArgumentsNoUseSiteDiagnostics
+
+                    Dim nt1ArgumentsCustomModifiers = If(nt1.HasTypeArgumentsCustomModifiers, nt1.TypeArgumentsCustomModifiers, Nothing)
+                    Dim nt2ArgumentsCustomModifiers = If(nt2.HasTypeArgumentsCustomModifiers, nt2.TypeArgumentsCustomModifiers, Nothing)
+
                     For i As Integer = 0 To arity - 1
-                        If Not CanUnifyHelper(containingGenericType, nt1.TypeArgumentsNoUseSiteDiagnostics(i), nt2.TypeArgumentsNoUseSiteDiagnostics(i), substitution) Then
+                        If Not CanUnifyHelper(containingGenericType,
+                                              New TypeWithModifiers(nt1Arguments(i), If(nt1ArgumentsCustomModifiers.IsDefault, Nothing, nt1ArgumentsCustomModifiers(i))),
+                                              New TypeWithModifiers(nt2Arguments(i), If(nt2ArgumentsCustomModifiers.IsDefault, Nothing, nt2ArgumentsCustomModifiers(i))),
+                                              substitution) Then
                             Return False
                         End If
                     Next
 
-                    Return nt1.ContainingType Is Nothing OrElse CanUnifyHelper(containingGenericType, nt1.ContainingType, nt2.ContainingType, substitution)
+                    'TODO: Calling CanUnifyHelper for the containing type is an overkill, we simply need to go through type arguments for all containers.
+                    Return nt1.ContainingType Is Nothing OrElse CanUnifyHelper(containingGenericType, New TypeWithModifiers(nt1.ContainingType), New TypeWithModifiers(nt2.ContainingType), substitution)
 
                 Case SymbolKind.TypeParameter
-                    If t2.SpecialType = SpecialType.System_Void Then
+                    If t2.Type.SpecialType = SpecialType.System_Void Then
                         Return False
                     End If
 
-                    Dim tp1 As TypeParameterSymbol = DirectCast(t1, TypeParameterSymbol)
-                    If Contains(t2, tp1) Then
+                    Dim tp1 As TypeParameterSymbol = DirectCast(t1.Type, TypeParameterSymbol)
+                    If Contains(t2.Type, tp1) Then
                         Return False
                     End If
 
-                    AddSubstitution(substitution, containingGenericType, tp1, t2)
-                    Return True
+                    If t1.CustomModifiers.IsDefaultOrEmpty Then
+                        AddSubstitution(substitution, containingGenericType, tp1, t2)
+                        Return True
+                    End If
+
+                    If t1.CustomModifiers.SequenceEqual(t2.CustomModifiers) Then
+                        AddSubstitution(substitution, containingGenericType, tp1, New TypeWithModifiers(t2.Type))
+                        Return True
+                    End If
+
+                    If t1.CustomModifiers.Length < t2.CustomModifiers.Length AndAlso
+                       t1.CustomModifiers.SequenceEqual(t2.CustomModifiers.Take(t1.CustomModifiers.Length)) Then
+                        AddSubstitution(substitution, containingGenericType, tp1,
+                                        New TypeWithModifiers(t2.Type,
+                                                              ImmutableArray.Create(t2.CustomModifiers, t1.CustomModifiers.Length, t2.CustomModifiers.Length - t1.CustomModifiers.Length)))
+                        Return True
+                    End If
+
+                    If t2.Type.IsTypeParameter Then
+                        Dim tp2 As TypeParameterSymbol = DirectCast(t2.Type, TypeParameterSymbol)
+
+                        If t2.CustomModifiers.IsDefaultOrEmpty Then
+                            AddSubstitution(substitution, containingGenericType, tp2, t1)
+                            Return True
+                        End If
+
+                        If t2.CustomModifiers.Length < t1.CustomModifiers.Length AndAlso
+                           t2.CustomModifiers.SequenceEqual(t1.CustomModifiers.Take(t2.CustomModifiers.Length)) Then
+                            AddSubstitution(substitution, containingGenericType, tp2,
+                                            New TypeWithModifiers(t1.Type,
+                                                                  ImmutableArray.Create(t1.CustomModifiers, t2.CustomModifiers.Length, t1.CustomModifiers.Length - t2.CustomModifiers.Length)))
+                            Return True
+                        End If
+                    End If
+
+                    Return False
 
                 Case Else
                     Return t1 = t2
@@ -140,15 +192,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Add a type parameter -> type argument substitution to a TypeSubstitution object, returning a new TypeSubstitution object
         ''' ByRef.
         ''' </summary>
-        Private Shared Sub AddSubstitution(ByRef substitution As TypeSubstitution, targetGenericType As NamedTypeSymbol, tp As TypeParameterSymbol, typeArgument As TypeSymbol)
+        Private Shared Sub AddSubstitution(ByRef substitution As TypeSubstitution, targetGenericType As NamedTypeSymbol, tp As TypeParameterSymbol, typeArgument As TypeWithModifiers)
             If substitution IsNot Nothing Then
-                Dim substitutionPairs = ArrayBuilder(Of KeyValuePair(Of TypeParameterSymbol, TypeSymbol)).GetInstance()
+                Dim substitutionPairs = ArrayBuilder(Of KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers)).GetInstance()
                 substitutionPairs.AddRange(substitution.PairsIncludingParent)
 
                 ' Insert the new pair at the right point, because TypeSubstitution.Create requires that.
                 For i As Integer = 0 To substitutionPairs.Count   ' intentionally going 1 past end of current range
                     If i > substitutionPairs.Count - 1 OrElse substitutionPairs(i).Key.ContainingType.IsSameOrNestedWithin(tp.ContainingType) Then
-                        substitutionPairs.Insert(i, New KeyValuePair(Of TypeParameterSymbol, TypeSymbol)(tp, typeArgument))
+                        substitutionPairs.Insert(i, New KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers)(tp, typeArgument))
                         Exit For
                     End If
                 Next
@@ -156,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim count = substitutionPairs.Count
 
                 Dim typeParameters(0 To count - 1) As TypeParameterSymbol
-                Dim typeArguments(0 To count - 1) As TypeSymbol
+                Dim typeArguments(0 To count - 1) As TypeWithModifiers
 
                 For i As Integer = 0 To count - 1
                     typeParameters(i) = substitutionPairs(i).Key

@@ -237,7 +237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Throw ExceptionUtilities.Unreachable
             End Sub
 
-            Friend MustOverride Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeSymbol
+            Friend MustOverride Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
 
             Friend NotOverridable Overrides Function GetFieldsToEmit() As IEnumerable(Of FieldSymbol)
                 Throw ExceptionUtilities.Unreachable

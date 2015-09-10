@@ -289,8 +289,14 @@ End Class</text>.Value
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(542837)>
-        Public Sub TestArrayRankSpecifier()
-            TestInMethod("Dim q As String() = New String([|Foo()|])", "System.Object")
+        Public Sub TestArrayRankSpecifier1()
+            TestInMethod("Dim q As String() = New String([|Foo()|])", "System.Char()")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WorkItem(542837)>
+        Public Sub TestArrayRankSpecifier2()
+            TestInMethod("Dim q As String() = New String([|Foo()|]) { }", "System.Int32")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
@@ -709,6 +715,21 @@ Module M
     End Sub
 End Module"
             Test(text, "Global.System.Threading.Tasks.Task(Of System.Boolean)", testPosition:=True)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WorkItem(3518, "https://github.com/dotnet/roslyn/issues/3518")>
+        Public Sub NoTypeAfterInvocationWithCompletionListTagTypeAsFirstParameter()
+            Dim text = "Class C
+    Sub Test()
+        M(5)
+        [|x|]
+    End Sub
+
+    Sub M(x As Integer)
+    End Sub
+End Class"
+            Test(text, "System.Object", testNode:=False, testPosition:=True)
         End Sub
     End Class
 End Namespace

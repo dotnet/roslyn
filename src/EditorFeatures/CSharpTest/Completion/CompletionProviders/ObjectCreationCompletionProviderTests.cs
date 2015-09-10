@@ -198,7 +198,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        D d=  new D
+        D d=  new D(
     }
 }";
             VerifyProviderCommit(markup, "D", expected, '(', "");
@@ -248,7 +248,7 @@ class Program
 
         [WorkItem(2836, "https://github.com/dotnet/roslyn/issues/2836")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void AfterNewFollowedByAssignment_GrandParentIsEqualsValueClause()
+        public void AfterNewFollowedBySimpleAssignment_GrandParentIsEqualsValueClause()
         {
             var markup = @"
 class Program
@@ -261,6 +261,174 @@ class Program
     }
 }";
             VerifyItemExists(markup, "Program");
+        }
+
+        [WorkItem(2836, "https://github.com/dotnet/roslyn/issues/2836")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void AfterNewFollowedByCompoundAssignment_GrandParentIsEqualsValueClause()
+        {
+            var markup = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        int i;
+        Program p = new $$
+        i += 5;
+    }
+}";
+            VerifyItemExists(markup, "Program");
+        }
+
+        [WorkItem(2836, "https://github.com/dotnet/roslyn/issues/2836")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void AfterNewFollowedByCompoundAssignment_GrandParentIsEqualsValueClause2()
+        {
+            var markup = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        int i = 1000;
+        Program p = new $$
+        i <<= 4;
+    }
+}";
+            VerifyItemExists(markup, "Program");
+        }
+
+        [WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void CommitObjectWithParenthesis1()
+        {
+            var markup = @"
+class C
+{
+    void M1()
+    {
+        object o = new $$
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M1()
+    {
+        object o = new object(
+    }
+}";
+
+            VerifyProviderCommit(markup, "object", expected, '(', "");
+        }
+
+        [WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void CommitObjectWithParenthesis2()
+        {
+            var markup = @"
+class C
+{
+    void M1()
+    {
+        M2(new $$
+    }
+
+    void M2(object o) { }
+}";
+
+            var expected = @"
+class C
+{
+    void M1()
+    {
+        M2(new object(
+    }
+
+    void M2(object o) { }
+}";
+
+            VerifyProviderCommit(markup, "object", expected, '(', "");
+        }
+
+        [WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void DontCommitObjectWithOpenBrace1()
+        {
+            var markup = @"
+class C
+{
+    void M1()
+    {
+        object o = new $$
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M1()
+    {
+        object o = new {
+    }
+}";
+
+            VerifyProviderCommit(markup, "object", expected, '{', "");
+        }
+
+        [WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void DontCommitObjectWithOpenBrace2()
+        {
+            var markup = @"
+class C
+{
+    void M1()
+    {
+        M2(new $$
+    }
+
+    void M2(object o) { }
+}";
+
+            var expected = @"
+class C
+{
+    void M1()
+    {
+        M2(new {
+    }
+
+    void M2(object o) { }
+}";
+
+            VerifyProviderCommit(markup, "object", expected, '{', "");
+        }
+
+        [WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void InExpressionBodiedProperty()
+        {
+            var markup =
+@"class C
+{
+    object Object => new $$
+}
+";
+            VerifyItemExists(markup, "object");
+        }
+
+        [WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void InExpressionBodiedMethod()
+        {
+            var markup =
+@"class C
+{
+    object GetObject() => new $$
+}
+";
+            VerifyItemExists(markup, "object");
         }
     }
 }

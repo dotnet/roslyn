@@ -9,7 +9,7 @@
     <ProjectGuid>{A31228BB-F05C-4D4A-B98A-0E681D876B7C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.Services</RootNamespace>
-    <AssemblyName>Roslyn.VisualStudio.InteractiveServices</AssemblyName>
+    <AssemblyName>Microsoft.VisualStudio.InteractiveServices</AssemblyName>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
@@ -25,6 +25,10 @@
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
+      <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
+      <Name>Workspaces.Desktop</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj">
       <Project>{21B239D0-D144-430F-A394-C066D58EE267}</Project>
       <Name>CSharpWorkspace</Name>
@@ -38,7 +42,7 @@
       <Name>Workspaces</Name>
       <Aliases>core</Aliases>
     </ProjectReference>
-    <ProjectReference Include="..\..\Features\Core\Features.csproj">
+    <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj">
       <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
       <Name>Features</Name>
     </ProjectReference>
@@ -74,9 +78,9 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.CSharp.Repl" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.CSharp.Repl" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.VisualBasic.Repl" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
@@ -178,7 +182,6 @@
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
-    <Reference Include="System.Collections" />
     <Reference Include="System.Collections.Immutable">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
@@ -197,6 +200,7 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Interactive\LogMessage.cs" />
     <Compile Include="Interactive\VsInteractiveWindowPackage.cs" />
     <Compile Include="Interactive\VsInteractiveWindowProvider.cs" />
     <Compile Include="Interactive\CommonVsUtils.cs" />
@@ -205,7 +209,7 @@
     <Compile Include="Interactive\VsUpdateSolutionEvents.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="project.json" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />

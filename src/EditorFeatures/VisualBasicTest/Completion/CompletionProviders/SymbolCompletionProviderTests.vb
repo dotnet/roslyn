@@ -2529,7 +2529,7 @@ End Class
 Imports System
 Class classattribute : Inherits Attribute
 End Class
-&lt;[class]
+&lt;[class](
 Class C
 End Class
 </Text>.Value
@@ -5141,7 +5141,7 @@ Class C
 Public Class [Inherits]
 End Class
 Class C
-    Inherits [Inherits]
+    Inherits [Inherits].
 "
 
             VerifyProviderCommit(markup, "Inherits", expected, "."c, "")
@@ -5345,7 +5345,7 @@ Class G
 End Class
 
 Class DG
-    Inherits G
+    Inherits G(
 End Class
 "
             VerifyProviderCommit(markup, "G", expected, "("c, "")
@@ -5547,10 +5547,10 @@ Class G(Of T)
 End Class
 
 Class DG
-    Function Bar() as G(Of
+    Function Bar() as G(
 End Class</code>.Value
 
-            VerifyProviderCommit(text, "G(Of …)", expected, Nothing, "")
+            VerifyProviderCommit(text, "G(Of …)", expected, "("c, "")
         End Sub
 
         <WorkItem(668159)>
@@ -5670,7 +5670,7 @@ End Class]]></code>.Value
 <code><![CDATA[
 Class Await
     Sub Foo()
-        Dim x = new [Await
+        Dim x = new [Await]
     End Sub
 End Class]]></code>.Value
 
@@ -6495,5 +6495,338 @@ End Class
             VerifyItemIsAbsent(text, "X")
         End Sub
 
+        <WorkItem(4900, "https://github.com/dotnet/roslyn/issues/4090")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NoInstanceMembersWhenDottingIntoType()
+            Dim text =
+<code><![CDATA[
+Class Instance
+    Public Shared x as Integer
+    Public y as Integer
+End Class
+
+Class Program
+    Sub Foo()
+        Instance.$$
+    End Sub
+End Class
+]]></code>.Value
+            VerifyItemIsAbsent(text, "y")
+            VerifyItemExists(text, "x")
+        End Sub
+
+        <WorkItem(4900, "https://github.com/dotnet/roslyn/issues/4090")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NoSharedMemberWhenDottingIntoInstance()
+            Dim text =
+<code><![CDATA[
+Class Instance
+    Public Shared x as Integer
+    Public y as Integer
+End Class
+
+Class Program
+    Sub Foo()
+        Dim x = new Instance()
+        x.$$
+    End Sub
+End Class
+]]></code>.Value
+            VerifyItemIsAbsent(text, "x")
+            VerifyItemExists(text, "y")
+        End Sub
+
+        <WorkItem(4136, "https://github.com/dotnet/roslyn/issues/4136")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NoValue__WhenDottingIntoEnum()
+            Dim text =
+<code><![CDATA[
+Enum E
+    A
+End Enum
+
+Class Program
+    Sub Foo()
+        E.$$
+    End Sub
+End Class
+]]></code>.Value
+            VerifyItemExists(text, "A")
+            VerifyItemIsAbsent(text, "value__")
+        End Sub
+
+        <WorkItem(4136, "https://github.com/dotnet/roslyn/issues/4136")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NoValue__WhenDottingIntoLocalOfEnumType()
+            Dim text =
+<code><![CDATA[
+Enum E
+    A
+End Enum
+
+Class Program
+    Sub Foo()
+        Dim x = E.A
+        x.$$
+    End Sub
+End Class
+]]></code>.Value
+            VerifyItemIsAbsent(text, "value__")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Sub SharedProjectFieldAndPropertiesTreatedAsIdentical()
+            Dim markup = <Workspace>
+                             <Project Language="Visual Basic" CommonReferences="True" AssemblyName="Proj1" PreprocessorSymbols="ONE=True">
+                                 <Document FilePath="CurrentDocument.vb"><![CDATA[
+Class C
+#if ONE Then
+    Public  x As Integer
+#endif
+#if TWO Then
+    Public Property x as Integer
+#endif
+    Sub foo()
+        x$$
+    End Sub
+End Class]]>
+                                 </Document>
+                             </Project>
+                             <Project Language="Visual Basic" CommonReferences="True" AssemblyName="Proj2" PreprocessorSymbols="TWO=True">
+                                 <Document IsLinkFile="True" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.vb"/>
+                             </Project>
+                         </Workspace>.ToString().NormalizeLineEndings()
+
+            Dim expectedDescription = $"(field) C.x As Integer"
+            VerifyItemInLinkedFiles(markup, "x", expectedDescription)
+        End Sub
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SharedProjectFieldAndPropertiesTreatedAsIdentical2()
+            Dim markup = <Workspace>
+                             <Project Language="Visual Basic" CommonReferences="True" AssemblyName="Proj1" PreprocessorSymbols="ONE=True">
+                                 <Document FilePath="CurrentDocument.vb"><![CDATA[
+Class C
+#if TWO Then
+    Public  x As Integer
+#endif
+#if ONE Then
+    Public Property x as Integer
+#endif
+    Sub foo()
+        x$$
+    End Sub
+End Class]]>
+                                 </Document>
+                             </Project>
+                             <Project Language="Visual Basic" CommonReferences="True" AssemblyName="Proj2" PreprocessorSymbols="TWO=True">
+                                 <Document IsLinkFile="True" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.vb"/>
+                             </Project>
+                         </Workspace>.ToString().NormalizeLineEndings()
+
+            Dim expectedDescription = $"Property C.x As Integer"
+            VerifyItemInLinkedFiles(markup, "x", expectedDescription)
+        End Sub
+
+        <WorkItem(4405, "https://github.com/dotnet/roslyn/issues/4405")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub VerifyDelegateEscapedWhenCommitted()
+            Dim text =
+<code><![CDATA[
+Imports System
+Module Module1
+    Sub Main()
+        Dim x As {0}
+    End Sub
+End Module
+
+]]></code>.Value
+            VerifyProviderCommit(markupBeforeCommit:=String.Format(text, "$$"),
+                                 itemToCommit:="Delegate",
+                                 expectedCodeAfterCommit:=String.Format(text, "[Delegate]"),
+                                 commitChar:=Nothing,
+                                 textTypedSoFar:="")
+        End Sub
+
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemFuncExcludedInExpressionContext1()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        args.Select($$)
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemIsAbsent(text, "Func(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemFuncExcludedInExpressionContext2()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        $$
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemIsAbsent(text, "Func(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemFuncIncludedInGetType()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        GetType($$)
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Func(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemFuncIncludedInTypeOf()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        Dim s = TypeOf args Is $$
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Func(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemFuncIncludedInReturnTypeContext()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Function x() as $$
+    End Function
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Func(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemFuncIncludedInFieldTypeContext()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Dim x as $$
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Func(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemDelegateInStatementContext()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main()
+        $$
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Delegate")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemDelegateInExpressionContext()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main()
+        Dim x = $$
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Delegate")
+        End Sub
+
+        <WorkItem(4750, "https://github.com/dotnet/roslyn/issues/4750")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub ConditionalAccessInWith1()
+            Dim text =
+<code><![CDATA[
+Module Module1
+    Sub Main()
+        Dim s As String
+
+        With s
+1:         Console.WriteLine(If(?.$$, -1))
+            Console.WriteLine()
+        End With
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Length")
+        End Sub
+
+        <WorkItem(4750, "https://github.com/dotnet/roslyn/issues/4750")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub ConditionalAccessInWith2()
+            Dim text =
+<code><![CDATA[
+Module Module1
+    Sub Main()
+        Dim s As String
+
+        With s
+1:         Console.WriteLine(If(?.Length, -1))
+           ?.$$
+            Console.WriteLine()
+        End With
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Length")
+        End Sub
     End Class
 End Namespace

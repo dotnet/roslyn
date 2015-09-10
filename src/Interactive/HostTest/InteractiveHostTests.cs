@@ -17,6 +17,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Traits = Roslyn.Test.Utilities.Traits;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
@@ -29,11 +30,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         private SynchronizedStringWriter _synchronizedErrorOutput;
         private int[] _outputReadPosition = new int[] { 0, 0 };
 
-        internal readonly InteractiveHost Host;
+        private readonly InteractiveHost Host;
 
         public InteractiveHostTests()
         {
-            Host = new InteractiveHost(typeof(CSharpRepl), GetInteractiveHostPath(), ".", millisecondsTimeout: -1);
+            Host = new InteractiveHost(typeof(CSharpReplServiceProvider), GetInteractiveHostPath(), ".", millisecondsTimeout: -1);
 
             RedirectOutput();
 
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             remoteService.SetTestObjectFormattingOptions();
 
             // assert and remove logo:
-            var output = ReadOutputToEnd().Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            var output = SplitLines(ReadOutputToEnd());
             var errorOutput = ReadErrorOutputToEnd();
 
             Assert.Equal("", errorOutput);
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             }
         }
 
-        internal void RedirectOutput()
+        private void RedirectOutput()
         {
             _synchronizedOutput = new SynchronizedStringWriter();
             _synchronizedErrorOutput = new SynchronizedStringWriter();
@@ -89,19 +90,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             Host.ErrorOutput = _synchronizedErrorOutput;
         }
 
-        internal AssemblyLoadResult LoadReference(string reference)
+        private AssemblyLoadResult LoadReference(string reference)
         {
             return Host.TryGetService().LoadReferenceThrowing(reference, addReference: true);
         }
 
-        internal bool Execute(string code)
+        private bool Execute(string code)
         {
             var task = Host.ExecuteAsync(code);
             task.Wait();
             return task.Result.Success;
         }
 
-        internal bool IsShadowCopy(string path)
+        private bool IsShadowCopy(string path)
         {
             return Host.TryGetService().IsShadowCopy(path);
         }
@@ -147,19 +148,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             }
         }
 
-        internal class CompiledFile
+        private class CompiledFile
         {
             public string Path;
             public ImmutableArray<byte> Image;
         }
 
-        internal CompiledFile CompileLibrary(TempDirectory dir, string fileName, string assemblyName, string source, params MetadataReference[] references)
+        private static CompiledFile CompileLibrary(TempDirectory dir, string fileName, string assemblyName, string source, params MetadataReference[] references)
         {
-            const string Prefix = "RoslynTestFile_";
-
-            fileName = Prefix + fileName;
-            assemblyName = Prefix + assemblyName;
-
             var file = dir.CreateFile(fileName);
             var compilation = CreateCompilation(
                 new[] { source },
@@ -425,8 +421,8 @@ WriteLine(5);
             Host.ExecuteFileAsync(file.Path).Wait();
 
             var errorOut = ReadErrorOutputToEnd().Trim();
-            Assert.True(errorOut.StartsWith(file.Path + "(1,2):", StringComparison.Ordinal), "Error output should start with file name, line and column");
-            Assert.True(errorOut.Contains("CS1024"), "Error output should include error CS1024");
+            Assert.True(errorOut.StartsWith(file.Path + "(1,7):", StringComparison.Ordinal), "Error output should start with file name, line and column");
+            Assert.True(errorOut.Contains("CS7010"), "Error output should include error CS7010");
         }
 
         /// <summary>
@@ -467,8 +463,9 @@ WriteLine(5);
             Assert.True(LoadReference("System.Data").IsSuccessful);
             Assert.True(LoadReference("System").IsSuccessful);
             Assert.True(LoadReference("System.Xml").IsSuccessful);
-            var version = (Version)Host.TryGetService().ExecuteAndWrap("new System.Data.DataSet().GetType().Assembly.GetName().Version").Unwrap();
-            Assert.True(version >= new Version(4, 0, 0, 0), "Actual:" + version.ToString());
+            Execute(@"new System.Data.DataSet().GetType().Assembly.GetName().Version");
+            var output = ReadOutputToEnd();
+            Assert.Equal("[4.0.0.0]\r\n", output);
         }
 
         [Fact]
@@ -741,7 +738,7 @@ new D().Y
         ////            var task = Host.InitializeContextAsync(rspFile.Path, isRestarting: false, killProcess: true);
         ////            task.Wait();
 
-        ////            var output = ReadOutputToEnd().Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+        ////            var output = SplitLines(ReadOutputToEnd());
         ////            var errorOutput = ReadErrorOutputToEnd();
 
         ////            Assert.Equal(4, output.Length);
@@ -754,7 +751,7 @@ new D().Y
 
         ////            Host.InitializeContextAsync(rspFile.Path).Wait();
 
-        ////            output = ReadOutputToEnd().Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+        ////            output = SplitLines(ReadOutputToEnd());
         ////            errorOutput = ReadErrorOutputToEnd();
 
         ////            Assert.True(2 == output.Length, "Output is: '" + string.Join("<NewLine>", output) + "'. Expecting 2 lines.");
@@ -792,7 +789,7 @@ new D().Y
         ////            var errorOutput = ReadErrorOutputToEnd();
         ////            Assert.Equal("", errorOutput);
 
-        ////            var output = ReadOutputToEnd().Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+        ////            var output = SplitLines(ReadOutputToEnd());
         ////            Assert.Equal(4, output.Length);
         ////            Assert.Equal("Microsoft (R) Roslyn C# Compiler version " + FileVersionInfo.GetVersionInfo(Host.GetType().Assembly.Location).FileVersion, output[0]);
         ////            Assert.Equal("Loading context from '" + Path.GetFileName(rspFile.Path) + "'.", output[1]);
@@ -801,9 +798,28 @@ new D().Y
         ////        }
 
         [Fact]
+        public void ReferencePaths()
+        {
+            var directory = Temp.CreateDirectory();
+            var assemblyName = GetUniqueName();
+            CompileLibrary(directory, assemblyName + ".dll", assemblyName, @"public class C { }");
+            var rspFile = Temp.CreateFile();
+            rspFile.WriteAllText("/rp:" + directory.Path);
+            var task = Host.ResetAsync(InteractiveHostOptions.Default.WithInitializationFile(rspFile.Path));
+            task.Wait();
+            Execute(
+$@"#r ""{assemblyName}.dll""
+typeof(C).Assembly.GetName()");
+            var output = SplitLines(ReadOutputToEnd());
+            Assert.Equal(2, output.Length);
+            Assert.Equal("Loading context from '" + Path.GetFileName(rspFile.Path) + "'.", output[0]);
+            Assert.Equal($"[{assemblyName}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", output[1]);
+        }
+
+        [Fact]
         public void ReferenceDirectives()
         {
-            var task = Host.ExecuteAsync(@"
+            Execute(@"
 #r ""System.Numerics""
 #r """ + typeof(System.Linq.Expressions.Expression).Assembly.Location + @"""
 
@@ -813,7 +829,6 @@ using System.Numerics;
 WriteLine(Expression.Constant(1));
 WriteLine(new Complex(2, 6).Real);
 ");
-            task.Wait();
 
             var output = ReadOutputToEnd();
             Assert.Equal("1\r\n2\r\n", output);
@@ -822,7 +837,7 @@ WriteLine(new Complex(2, 6).Real);
         [Fact]
         public void ExecutesOnStaThread()
         {
-            var task = Host.ExecuteAsync(@"
+            Execute(@"
 #r ""System""
 #r ""System.Xaml""
 #r ""WindowsBase""
@@ -832,13 +847,27 @@ WriteLine(new Complex(2, 6).Real);
 new System.Windows.Window();
 System.Console.WriteLine(""OK"");
 ");
-            task.Wait();
-
             var error = ReadErrorOutputToEnd();
             Assert.Equal("", error);
 
             var output = ReadOutputToEnd();
             Assert.Equal("OK\r\n", output);
+        }
+
+        /// <summary>
+        /// Execution of expressions should be
+        /// sequential, even await expressions.
+        /// </summary>
+        [Fact]
+        public void ExecuteSequentially()
+        {
+            Execute(@"using System;
+using System.Threading.Tasks;");
+            Execute(@"await Task.Delay(1000).ContinueWith(t => 1)");
+            Execute(@"await Task.Delay(500).ContinueWith(t => 2)");
+            Execute(@"3");
+            var output = ReadOutputToEnd();
+            Assert.Equal("1\r\n2\r\n3\r\n", output);
         }
 
         [Fact]
@@ -849,12 +878,11 @@ System.Console.WriteLine(""OK"");
             dir.CreateFile("mod2.netmodule").WriteAllBytes(TestResources.SymbolsTests.MultiModule.mod2);
             dir.CreateFile("mod3.netmodule").WriteAllBytes(TestResources.SymbolsTests.MultiModule.mod3);
 
-            var task = Host.ExecuteAsync(@"
+            Execute(@"
 #r """ + dll.Path + @"""
 
 new object[] { new Class1(), new Class2(), new Class3() }
 ");
-            task.Wait();
 
             var error = ReadErrorOutputToEnd();
             Assert.Equal("", error);
@@ -926,7 +954,7 @@ new object[] { new Class1(), new Class2(), new Class3() }
             Assert.Throws<FileNotFoundException>(() => LoadReference(typeof(string).Assembly.Location + " " + typeof(string).Assembly.Location));
         }
 
-        #region Submission result printing - null/void/value.
+#region Submission result printing - null/void/value.
 
         [Fact]
         public void SubmissionResult_PrintingNull()
@@ -958,6 +986,11 @@ foo()
             Assert.Equal("<void>\r\n", output);
         }
 
-        #endregion
+#endregion
+
+        private static ImmutableArray<string> SplitLines(string text)
+        {
+            return ImmutableArray.Create(text.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries));
+        }
     }
 }
