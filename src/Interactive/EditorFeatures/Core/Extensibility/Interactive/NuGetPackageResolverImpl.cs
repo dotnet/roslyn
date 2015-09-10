@@ -82,7 +82,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         internal static bool ParsePackageReference(string reference, out string name, out string version)
         {
             var parts = reference.Split('/');
-            int n = reference.Length;
             if ((parts.Length == 2) &&
                 (parts[0].Length > 0) &&
                 (parts[1].Length > 0))
@@ -187,17 +186,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         private static void NuGetRestore(ProcessStartInfo startInfo)
         {
             var process = Process.Start(startInfo);
-            string line;
-            var reader = process.StandardOutput;
-            while ((line = reader.ReadLine()) != null)
-            {
-                // Should echo output to InteractiveWindow.
-            }
-            reader = process.StandardError;
-            while ((line = reader.ReadLine()) != null)
-            {
-                // Should echo errors to InteractiveWindow.
-            }
+            // Should echo output and errors to InteractiveWindow.
+            process.StandardOutput.ReadToEndAsync();
+            process.StandardError.ReadToEndAsync();
             process.WaitForExit();
         }
     }
