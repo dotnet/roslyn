@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
             {
                 var workspace = document.Project.Solution.Workspace;
                 var notificationService = workspace.Services.GetService<INotificationService>();
-                notificationService.SendNotification(errorMessage, EditorFeaturesResources.GoToDefinition, NotificationSeverity.Information);
+                notificationService.SendNotification(errorMessage, title: EditorFeaturesResources.GoToDefinition, severity: NotificationSeverity.Information);
             }
 
             return true;
