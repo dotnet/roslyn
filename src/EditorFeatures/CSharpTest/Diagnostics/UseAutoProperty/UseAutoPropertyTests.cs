@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestSingleGetter1()
+        public void TestSingleGetterFromField()
         {
             Test(
 @"class Class { [|int i|]; int P { get { return i; } } }",
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestSingleGetter2()
+        public void TestSingleGetterFromProperty()
         {
             Test(
 @"class Class { int i; [|int P { get { return i; } }|] }",
