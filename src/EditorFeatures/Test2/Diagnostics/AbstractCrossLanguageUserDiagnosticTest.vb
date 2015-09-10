@@ -19,9 +19,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         Friend MustOverride Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
 
         Protected Sub Test(definition As XElement,
-                           expected As String,
+                           Optional expected As String = Nothing,
                            Optional codeActionIndex As Integer = 0,
-                           Optional verifyTokens As Boolean = True)
+                           Optional verifyTokens As Boolean = True,
+                           Optional fileNameToExpected As Dictionary(Of String, String) = Nothing)
             Using workspace = TestWorkspaceFactory.CreateWorkspace(definition)
                 Dim diagnosticAndFix = GetDiagnosticAndFix(workspace)
                 Dim codeAction = diagnosticAndFix.Item2.Fixes.ElementAt(codeActionIndex).Action
@@ -31,17 +32,27 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 Dim oldSolution = workspace.CurrentSolution
                 Dim updatedSolution = edit.ChangedSolution
 
-                Dim updatedDocument = SolutionUtilities.GetSingleChangedDocument(oldSolution, updatedSolution)
+                If fileNameToExpected Is Nothing Then
+                    Dim updatedDocument = SolutionUtilities.GetSingleChangedDocument(oldSolution, updatedSolution)
 
-                Dim actual = updatedDocument.GetTextAsync().Result.ToString().Trim()
-
-                If verifyTokens Then
-                    Utilities.AssertEx.TokensAreEqual(expected, actual, updatedDocument.Project.Language)
+                    Verify(expected, verifyTokens, updatedDocument)
                 Else
-                    AssertEx.Equal(expected, actual)
+                    For Each kvp In fileNameToExpected
+                        Dim updatedDocument = updatedSolution.Projects.SelectMany(Function(p) p.Documents).Single(Function(d) d.Name = kvp.Key)
+                        Verify(kvp.Value, verifyTokens, updatedDocument)
+                    Next
                 End If
-
             End Using
+        End Sub
+
+        Private Shared Sub Verify(expected As String, verifyTokens As Boolean, updatedDocument As Document)
+            Dim actual = updatedDocument.GetTextAsync().Result.ToString().Trim()
+
+            If verifyTokens Then
+                Utilities.AssertEx.TokensAreEqual(expected, actual, updatedDocument.Project.Language)
+            Else
+                AssertEx.Equal(expected, actual)
+            End If
         End Sub
 
         Friend Function GetDiagnosticAndFix(workspace As TestWorkspace) As Tuple(Of Diagnostic, CodeFixCollection)
