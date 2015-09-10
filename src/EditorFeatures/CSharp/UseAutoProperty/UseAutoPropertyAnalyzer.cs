@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
@@ -64,8 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
 
         protected override ExpressionSyntax GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken)
         {
-            var getAccessor = (AccessorDeclarationSyntax)getMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
-            var firstStatement = getAccessor.Body?.Statements.SingleOrDefault();
+            var getAccessor = getMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken) as AccessorDeclarationSyntax;
+            var firstStatement = getAccessor?.Body.Statements.SingleOrDefault();
             if (firstStatement?.Kind() == SyntaxKind.ReturnStatement)
             {
                 var expr = ((ReturnStatementSyntax)firstStatement).Expression;
@@ -75,15 +76,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             return null;
         }
 
-        protected override ExpressionSyntax GetSetterExpression(IMethodSymbol setMethod, CancellationToken cancellationToken)
+        protected override ExpressionSyntax GetSetterExpression(IMethodSymbol setMethod, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            var setAccessor = (AccessorDeclarationSyntax)setMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+            var setAccessor = setMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken) as AccessorDeclarationSyntax;
 
             // Setter has to be of the form:
             //
             //      set { field = value; } or
             //      set { this.field = value; }
-            var firstStatement = setAccessor.Body?.Statements.SingleOrDefault();
+            var firstStatement = setAccessor?.Body.Statements.SingleOrDefault();
             if (firstStatement?.Kind() == SyntaxKind.ExpressionStatement)
             {
                 var expressionStatement = (ExpressionStatementSyntax)firstStatement;

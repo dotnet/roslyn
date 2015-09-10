@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
         protected abstract void RegisterIneligibleFieldsAction(CompilationStartAnalysisContext context, ConcurrentBag<IFieldSymbol> ineligibleFields);
         protected abstract TExpression GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken);
-        protected abstract TExpression GetSetterExpression(IMethodSymbol setMethod, CancellationToken cancellationToken);
+        protected abstract TExpression GetSetterExpression(IMethodSymbol setMethod, SemanticModel semanticModel, CancellationToken cancellationToken);
         protected abstract SyntaxNode GetNodeToFade(TFieldDeclaration fieldDeclaration, TVariableDeclarator variableDeclarator);
 
         private void AnalyzeProperty(ConcurrentBag<AnalysisResult> analysisResults, SymbolAnalysisContext symbolContext)
@@ -70,6 +71,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return;
             }
 
+            // Need at least a getter.
             if (property.GetMethod == null)
             {
                 return;
@@ -87,24 +89,23 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return;
             }
 
-            // Need at least a getter.
-            if (property.GetMethod == null)
-            {
-                return;
-            }
-
-            var syntaxReference = declarations[0];
-            var propertyDeclaration = syntaxReference.GetSyntax(symbolContext.CancellationToken) as TPropertyDeclaration;
+            var cancellationToken = symbolContext.CancellationToken;
+            var propertyDeclaration = property.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken).FirstAncestorOrSelf<TPropertyDeclaration>();
             if (propertyDeclaration == null)
             {
                 return;
             }
 
-            var cancellationToken = symbolContext.CancellationToken;
-            var semanticModel = symbolContext.Compilation.GetSemanticModel(syntaxReference.SyntaxTree);
-            var getterField = GetGetterField(semanticModel, containingType, property.GetMethod, cancellationToken);
+            var semanticModel = symbolContext.Compilation.GetSemanticModel(propertyDeclaration.SyntaxTree);
+            var getterField = GetGetterField(semanticModel, property.GetMethod, cancellationToken);
             if (getterField == null)
             {
+                return;
+            }
+
+            if (!containingType.Equals(getterField.ContainingType))
+            {
+                // Field and property have to be in the same type.
                 return;
             }
 
@@ -171,15 +172,15 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         private IFieldSymbol GetSetterField(
             SemanticModel semanticModel, ISymbol containingType, IMethodSymbol setMethod, CancellationToken cancellationToken)
         {
-            return CheckFieldAccessExpression(semanticModel, containingType, GetSetterExpression(setMethod, cancellationToken));
+            return CheckFieldAccessExpression(semanticModel, GetSetterExpression(setMethod, semanticModel, cancellationToken));
         }
 
-        private IFieldSymbol GetGetterField(SemanticModel semanticModel, ISymbol containingType, IMethodSymbol getMethod, CancellationToken cancellationToken)
+        private IFieldSymbol GetGetterField(SemanticModel semanticModel, IMethodSymbol getMethod, CancellationToken cancellationToken)
         {
-            return CheckFieldAccessExpression(semanticModel, containingType, GetGetterExpression(getMethod, cancellationToken));
+            return CheckFieldAccessExpression(semanticModel, GetGetterExpression(getMethod, cancellationToken));
         }
 
-        private IFieldSymbol CheckFieldAccessExpression(SemanticModel semanticModel, ISymbol containingType, TExpression expression)
+        private IFieldSymbol CheckFieldAccessExpression(SemanticModel semanticModel, TExpression expression)
         {
             if (expression == null)
             {
@@ -187,7 +188,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             }
 
             var symbolInfo = semanticModel.GetSymbolInfo(expression);
-            if (symbolInfo.Symbol == null || symbolInfo.Symbol.Kind != SymbolKind.Field || symbolInfo.Symbol.ContainingType != containingType)
+            if (symbolInfo.Symbol == null || symbolInfo.Symbol.Kind != SymbolKind.Field)
             {
                 return null;
             }
@@ -221,6 +222,13 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
         private void Process(AnalysisResult result, CompilationAnalysisContext compilationContext)
         {
+            // Check if there are additional reasons we think this field might be ineligible for 
+            // replacing with an auto prop.
+            if (!IsEligibleHeuristic(result.Field, result.PropertyDeclaration, compilationContext.Compilation, compilationContext.CancellationToken))
+            {
+                return;
+            }
+
             var propertyDeclaration = result.PropertyDeclaration;
             var variableDeclarator = result.VariableDeclarator;
             var nodeToFade = GetNodeToFade(result.FieldDeclaration, variableDeclarator);
@@ -241,6 +249,11 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             var diagnostic3 = Diagnostic.Create(Descriptor, nodeToFade.GetLocation(), additionalLocations, properties);
             compilationContext.ReportDiagnostic(diagnostic3);
+        }
+
+        protected virtual bool IsEligibleHeuristic(IFieldSymbol field, TPropertyDeclaration propertyDeclaration, Compilation compilation, CancellationToken cancellationToken)
+        {
+            return true;
         }
 
         internal class AnalysisResult

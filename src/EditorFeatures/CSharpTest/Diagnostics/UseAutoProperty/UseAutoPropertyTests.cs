@@ -101,14 +101,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         public void TestFieldUseInRefArgument1()
         {
             TestMissing(
-@"class Class { [|int i|]; int P { get { return i; } } void M(ref x) { M(ref i); } }");
+@"class Class { [|int i|]; int P { get { return i; } } void M(ref int x) { M(ref i); } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public void TestFieldUseInRefArgument2()
         {
             TestMissing(
-@"class Class { [|int i|]; int P { get { return i; } } void M(ref x) { M(ref this.i); } }");
+@"class Class { [|int i|]; int P { get { return i; } } void M(ref int x) { M(ref this.i); } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
