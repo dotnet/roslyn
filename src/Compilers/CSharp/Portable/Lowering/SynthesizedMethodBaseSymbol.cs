@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var extra in extraSynthed)
                 {
-                    builder.Add(new SynthesizedParameterSymbol(this, this.TypeMap.SubstituteType(extra), ordinal++, RefKind.Ref));
+                    builder.Add(new SynthesizedParameterSymbol(this, this.TypeMap.SubstituteType(extra).Type, ordinal++, RefKind.Ref));
                 }
             }
             return builder.ToImmutableAndFree();
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_iteratorElementType == null)
                 {
-                    _iteratorElementType = TypeMap.SubstituteType(BaseMethod.IteratorElementType);
+                    _iteratorElementType = TypeMap.SubstituteType(BaseMethod.IteratorElementType).Type;
                 }
                 return _iteratorElementType;
             }

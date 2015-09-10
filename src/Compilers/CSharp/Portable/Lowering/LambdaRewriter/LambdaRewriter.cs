@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>The translated statement, as returned from F</returns>
         private T IntroduceFrame<T>(BoundNode node, LambdaFrame frame, Func<ArrayBuilder<BoundExpression>, ArrayBuilder<LocalSymbol>, T> F)
         {
-            var frameTypeParameters = ImmutableArray.Create(StaticCast<TypeSymbol>.From(_currentTypeParameters).Select(TypeMap.TypeSymbolAsTypeWithModifiers), 0, frame.Arity);
+            var frameTypeParameters = ImmutableArray.Create(StaticCast<TypeSymbol>.From(_currentTypeParameters).SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers), 0, frame.Arity);
             NamedTypeSymbol frameType = frame.ConstructIfGeneric(frameTypeParameters);
 
             Debug.Assert(frame.ScopeSyntaxOpt != null);
@@ -760,7 +760,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var constructed = symbol as ConstructedMethodSymbol;
             if (constructed != null)
             {
-                RemapLocalFunction(syntax, constructed.ConstructedFrom, out receiver, out method, ref parameters, this.TypeMap.SubstituteTypes(constructed.TypeArguments));
+                RemapLocalFunction(syntax, constructed.ConstructedFrom, out receiver, out method, ref parameters, this.TypeMap.SubstituteTypes(constructed.TypeArguments).SelectAsArray(t => t.Type));
                 return;
             }
 

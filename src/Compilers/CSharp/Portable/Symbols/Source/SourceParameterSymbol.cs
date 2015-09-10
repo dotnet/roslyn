@@ -69,7 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ordinal,
                     parameterType,
                     refKind,
-                    ImmutableArray<CustomModifier>.Empty,
                     false,
                     name,
                     locations,

@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return block.Update(block.Locals, block.LocalFunctions, block.Statements.Add(ret));
 
                 default:
-                    return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<LocalFunctionSymbol>.Empty, ImmutableArray.Create(ret, node));
+                    return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<LocalFunctionSymbol>.Empty, ImmutableArray.Create(ret, body));
             }
         }
 

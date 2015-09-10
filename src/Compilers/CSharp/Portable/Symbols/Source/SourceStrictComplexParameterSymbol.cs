@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             TypeSymbol parameterType,
             RefKind refKind,
-            ImmutableArray<CustomModifier> customModifiers,
             bool hasByRefBeforeCustomModifiers,
             string name,
             ImmutableArray<Location> locations,
@@ -22,18 +21,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isParams,
             bool isExtensionMethodThis)
         : base(
-            owner,
-            ordinal,
-            parameterType,
-            refKind,
-            customModifiers,
-            hasByRefBeforeCustomModifiers,
-            name,
-            locations,
-            syntaxRef,
-            defaultSyntaxValue,
-            isParams,
-            isExtensionMethodThis)
+            owner: owner,
+            ordinal: ordinal,
+            parameterType: parameterType,
+            refKind: refKind,
+            name: name,
+            locations: locations,
+            syntaxRef: syntaxRef,
+            defaultSyntaxValue: defaultSyntaxValue,
+            isParams: isParams,
+            isExtensionMethodThis: isExtensionMethodThis)
         {
             _tempBinder = binder;
             var unused = GetAttributesBag(diagnostics);
