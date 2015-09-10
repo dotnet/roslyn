@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         private class Session
         {
             // Set of All Locations that will be renamed (does not include non-reference locations that need to be checked for conflicts)
-            private readonly RenameLocationSet _renameLocationSet;
+            private readonly RenameLocations _renameLocationSet;
 
             // Rename Symbol's Source Location
             private readonly Location _renameSymbolDeclarationLocation;
@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             private readonly string _originalText;
             private readonly string _replacementText;
             private readonly OptionSet _optionSet;
+            private readonly Func<IEnumerable<ISymbol>, bool?> _hasConflictCallback;
             private readonly CancellationToken _cancellationToken;
 
             private readonly RenameAnnotation _renamedSymbolDeclarationAnnotation;
@@ -50,13 +51,21 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             private List<ProjectId> _topologicallySortedProjects;
             private bool _documentOfRenameSymbolHasBeenRenamed;
 
-            public Session(RenameLocationSet renameLocationSet, Location renameSymbolDeclarationLocation, string originalText, string replacementText, OptionSet optionSet, CancellationToken cancellationToken)
+            public Session(
+                RenameLocations renameLocationSet,
+                Location renameSymbolDeclarationLocation,
+                string originalText,
+                string replacementText,
+                OptionSet optionSet,
+                Func<IEnumerable<ISymbol>, bool?> newSymbolsAreValid,
+                CancellationToken cancellationToken)
             {
                 _renameLocationSet = renameLocationSet;
                 _renameSymbolDeclarationLocation = renameSymbolDeclarationLocation;
                 _originalText = originalText;
                 _replacementText = replacementText;
                 _optionSet = optionSet;
+                _hasConflictCallback = newSymbolsAreValid;
                 _cancellationToken = cancellationToken;
 
                 _renamedSymbolDeclarationAnnotation = new RenameAnnotation();
@@ -253,9 +262,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 {
                     foreach (var documentId in documents)
                     {
-                        // only check documents that had no errors before rename
-                        // (we might have fixed them because of rename)
-                        if (!documentIdErrorStateLookup[documentId])
+                        // only check documents that had no errors before rename (we might have 
+                        // fixed them because of rename).  Also, don't bother checking if a custom
+                        // callback was provided.  The caller might be ok with a rename that introduces
+                        // errors.
+                        if (!documentIdErrorStateLookup[documentId] && _hasConflictCallback == null)
                         {
                             conflictResolution.NewSolution.GetDocument(documentId).VerifyNoErrorsAsync("Rename introduced errors in error-free code", _cancellationToken, ignoreErrorCodes).Wait(_cancellationToken);
                         }
@@ -337,11 +348,15 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                 newDocumentSemanticModel = newDocumentSemanticModel ?? await newDocument.GetSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
                                 newReferencedSymbols = GetSymbolsInNewSolution(newDocument, newDocumentSemanticModel, conflictAnnotation, tokenOrNode);
 
-                                // The semantic correctness, after rename, for each token of interest in the rename context is performed by getting the symbol pointed by
-                                // each token and obtain the Symbol's First Ordered Location's  Span-Start and check to see if it is the same as before from the base solution.
-                                // During rename, the spans would have been modified and so we need to adjust the old position to the new position for which we use the renameSpanTracker, which
-                                // was tracking & mapping the old span -> new span during rename
-                                hasConflict = await CheckForConflictAsync(conflictResolution, renamedSymbolInNewSolution, newDocument, conflictAnnotation, newReferencedSymbols).ConfigureAwait(false);
+                                // The semantic correctness, after rename, for each token of interest in the
+                                // rename context is performed by getting the symbol pointed by each token 
+                                // and obtain the Symbol's First Ordered Location's  Span-Start and check to
+                                // see if it is the same as before from the base solution. During rename, 
+                                // the spans would have been modified and so we need to adjust the old position
+                                // to the new position for which we use the renameSpanTracker, which was tracking
+                                // & mapping the old span -> new span during rename
+                                hasConflict = _hasConflictCallback?.Invoke(newReferencedSymbols) ??
+                                    await CheckForConflictAsync(conflictResolution, renamedSymbolInNewSolution, newDocument, conflictAnnotation, newReferencedSymbols).ConfigureAwait(false);
                             }
 
                             if (!hasConflict && !conflictAnnotation.IsInvocationExpression)

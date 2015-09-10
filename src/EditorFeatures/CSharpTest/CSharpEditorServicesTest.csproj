@@ -181,6 +181,7 @@
     <Compile Include="CodeActions\Preview\ErrorCases\ExceptionInCodeAction.cs" />
     <Compile Include="CodeActions\Preview\PreviewExceptionTests.cs" />
     <Compile Include="CodeActions\Preview\PreviewTests.cs" />
+    <Compile Include="Diagnostics\UseAutoProperty\UseAutoPropertyTests.cs" />
     <Compile Include="CommentSelection\CSharpCommentSelectionTests.cs" />
     <Compile Include="Completion\CompletionProviders\AbstractCSharpCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\AttributeNamedParameterCompletionProviderTests.cs" />
