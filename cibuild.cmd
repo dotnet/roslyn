@@ -5,9 +5,6 @@ REM Parse Arguments.
 set RoslynRoot=%~dp0
 set BuildConfiguration=Debug
 :ParseArguments
-echo [%1]
-echo [%BuildConfiguration%]
-echo [%Test64%]
 if "%1" == "" goto :DoneParsing
 if /I "%1" == "/?" call :Usage && exit /b 1
 if /I "%1" == "/debug" set BuildConfiguration=Debug&&shift&& goto :ParseArguments
@@ -16,8 +13,6 @@ if /I "%1" == "/test32" set Test64=false&&shift&& goto :ParseArguments
 if /I "%1" == "/test64" set Test64=true&&shift&& goto :ParseArguments
 call :Usage && exit /b 1
 :DoneParsing
-
-pause
 
 call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd.bat"
 

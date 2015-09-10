@@ -56,32 +56,54 @@ do
     esac
 done
 
+acquire_sem_or_wait()
+{
+    local lockpath="/tmp/${1}.lock.d"
+    echo "Acquiring ${lockpath}"
+    while true; do
+        mkdir "${lockpath}" 2>/dev/null
+        if [ $? -eq 0 ]; then
+            break;
+        fi
+        echo "Waiting for lock $1"
+        sleep 10
+    done
+}
+
+release_sem()
+{
+    rmdir "/tmp/${1}.lock.d"
+}
+
 restore_nuget()
 {
-    local package_name="nuget.7.zip"
+    acquire_sem_or_wait "restore_nuget"
+
+    local package_name="nuget.9.zip"
     local target="/tmp/$package_name"
-    echo "Installing NuGet Packages"
-    if [ -d $target ]; then
+    echo "Installing NuGet Packages $target"
+    if [ -f $target ]; then
         if [ "$USE_CACHE" = "true" ]; then
             echo "Already installed"
+            release_sem "restore_nuget"
             return
         fi
     fi
 
     pushd /tmp/
 
-    rm -r ~/.nuget 2>/dev/null
     rm $package_name 2>/dev/null
     curl -O https://dotnetci.blob.core.windows.net/roslyn/$package_name
-    unzip $package_name -d ~/ 1> /dev/null
+    unzip -uoq $package_name -d ~/
     if [ $? -ne 0 ]; then
         echo "Unable to download NuGet packages"
+        release_sem "restore_nuget"
         exit 1
     fi
 
-    rm $package_name 2>/dev/null
-
     popd
+
+    release_sem "restore_nuget"
 }
 
 run_msbuild()
@@ -179,9 +201,13 @@ install_mono_toolset()
 {
     local target=/tmp/$1
     echo "Installing Mono toolset $1"
+
+    acquire_sem_or_wait "$1"
+
     if [ -d $target ]; then
         if [ "$USE_CACHE" = "true" ]; then
             echo "Already installed"
+            release_sem "$1"
             return
         fi
     fi
@@ -194,10 +220,12 @@ install_mono_toolset()
     tar -jxf $1.tar.bz2
     if [ $? -ne 0 ]; then
         echo "Unable to download toolset"
+        release_sem "$1"
         exit 1
     fi
 
     popd
+    release_sem "$1"
 }
 
 # This function will update the PATH variable to put the desired

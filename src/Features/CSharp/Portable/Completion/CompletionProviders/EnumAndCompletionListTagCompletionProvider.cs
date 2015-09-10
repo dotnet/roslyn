@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -8,6 +9,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -38,73 +40,80 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             Document document, int position, CompletionTriggerInfo triggerInfo,
             CancellationToken cancellationToken)
         {
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            if (tree.IsInNonUserCode(position, cancellationToken))
+            try
             {
-                return null;
-            }
-
-            var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            if (token.IsMandatoryNamedParameterPosition())
-            {
-                return null;
-            }
-
-            var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
-
-            var span = new TextSpan(position, 0);
-            var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
-            var type = typeInferenceService.InferType(semanticModel, position,
-                objectAsDefault: true,
-                cancellationToken: cancellationToken);
-
-            // If we have a Nullable<T>, unwrap it.
-            if (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
-            {
-                type = type.GetTypeArguments().FirstOrDefault();
-
-                if (type == null)
+                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                if (tree.IsInNonUserCode(position, cancellationToken))
                 {
                     return null;
                 }
-            }
 
-            if (type.TypeKind != TypeKind.Enum)
-            {
-                type = GetCompletionListType(type, semanticModel.GetEnclosingNamedType(position, cancellationToken), semanticModel.Compilation);
-                if (type == null)
+                var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
+                if (token.IsMandatoryNamedParameterPosition())
                 {
                     return null;
                 }
-            }
 
-            if (!type.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
+                var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
+
+                var span = new TextSpan(position, 0);
+                var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
+                var type = typeInferenceService.InferType(semanticModel, position,
+                    objectAsDefault: true,
+                    cancellationToken: cancellationToken);
+
+                // If we have a Nullable<T>, unwrap it.
+                if (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+                {
+                    type = type.GetTypeArguments().FirstOrDefault();
+
+                    if (type == null)
+                    {
+                        return null;
+                    }
+                }
+
+                if (type.TypeKind != TypeKind.Enum)
+                {
+                    type = GetCompletionListType(type, semanticModel.GetEnclosingNamedType(position, cancellationToken), semanticModel.Compilation);
+                    if (type == null)
+                    {
+                        return null;
+                    }
+                }
+
+                if (!type.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
+                {
+                    return null;
+                }
+
+                // Does type have any aliases?
+                ISymbol alias = await type.FindApplicableAlias(position, semanticModel, cancellationToken).ConfigureAwait(false);
+
+                var displayService = document.GetLanguageService<ISymbolDisplayService>();
+                var displayText = alias != null
+                    ? alias.Name
+                    : displayService.ToMinimalDisplayString(semanticModel, position, type);
+
+                var workspace = document.Project.Solution.Workspace;
+                var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var textChangeSpan = CompletionUtilities.GetTextChangeSpan(text, position);
+
+                var item = new CompletionItem(
+                    this,
+                    displayText: displayText,
+                    filterSpan: textChangeSpan,
+                    descriptionFactory: CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, position, alias ?? type),
+                    glyph: (alias ?? type).GetGlyph(),
+                    preselect: true,
+                    rules: ItemRules.Instance);
+
+                return SpecializedCollections.SingletonEnumerable(item);
+            }
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
-                return null;
+                throw ExceptionUtilities.Unreachable;
             }
-
-            // Does type have any aliases?
-            ISymbol alias = await type.FindApplicableAlias(position, semanticModel, cancellationToken).ConfigureAwait(false);
-
-            var displayService = document.GetLanguageService<ISymbolDisplayService>();
-            var displayText = alias != null
-                ? alias.Name
-                : displayService.ToMinimalDisplayString(semanticModel, position, type);
-
-            var workspace = document.Project.Solution.Workspace;
-            var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var textChangeSpan = CompletionUtilities.GetTextChangeSpan(text, position);
-
-            var item = new CompletionItem(
-                this,
-                displayText: displayText,
-                filterSpan: textChangeSpan,
-                descriptionFactory: CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, position, alias ?? type),
-                glyph: (alias ?? type).GetGlyph(),
-                preselect: true,
-                rules: ItemRules.Instance);
-
-            return SpecializedCollections.SingletonEnumerable(item);
         }
 
         private INamedTypeSymbol GetCompletionListType(ITypeSymbol type, INamedTypeSymbol within, Compilation compilation)

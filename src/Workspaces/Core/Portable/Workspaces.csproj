@@ -649,7 +649,7 @@
     <Compile Include="Rename\RenameEntityKind.cs" />
     <Compile Include="Rename\RenameLocation.cs" />
     <Compile Include="Rename\RenameLocation.ReferenceProcessing.cs" />
-    <Compile Include="Rename\RenameLocationSet.cs" />
+    <Compile Include="Rename\RenameLocations.cs" />
     <Compile Include="Rename\RenameOptions.cs" />
     <Compile Include="Rename\Renamer.cs" />
     <Compile Include="Rename\RenameRewriterParameters.cs" />

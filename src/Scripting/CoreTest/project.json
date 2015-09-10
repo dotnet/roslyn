@@ -4,8 +4,8 @@
     "dnxcore50.app": {}
   },
   "dependencies": {
+    "Microsoft.CSharp": "4.0.0",
     "System.Dynamic.Runtime": "4.0.10",
-    "Microsoft.CSharp": "4.0.0"
   },
   "frameworks": {
     "dotnet": {

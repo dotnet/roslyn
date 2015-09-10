@@ -4,7 +4,8 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.VisualStudio.LanguageServices
+Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 Imports Microsoft.VisualStudio.Text.Projection
 Imports Roslyn.Test.Utilities
@@ -310,6 +311,66 @@ Next
             TestFormatting(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
         End Sub
 
+        <Fact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
+        <Trait(Traits.Feature, Traits.Features.Snippets)>
+        Public Sub SnippetFormatting_TabSize_3()
+            TestFormattingWithTabSize(3)
+        End Sub
+
+        <Fact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
+        <Trait(Traits.Feature, Traits.Features.Snippets)>
+        Public Sub SnippetFormatting_TabSize_4()
+            TestFormattingWithTabSize(4)
+        End Sub
+
+        <Fact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
+        <Trait(Traits.Feature, Traits.Features.Snippets)>
+        Public Sub SnippetFormatting_TabSize_5()
+            TestFormattingWithTabSize(5)
+        End Sub
+
+        Public Sub TestFormattingWithTabSize(tabSize As Integer)
+            Dim workspaceXml =
+<Workspace>
+    <Project Language=<%= LanguageNames.VisualBasic %> CommonReferences="true">
+        <Document>Class C
+	Sub M()
+		[|For index = 1 To 10
+    $$
+Next|]
+	End Sub
+End Class</Document>
+    </Project>
+</Workspace>
+
+            Dim expectedResult = <Test>Class C
+	Sub M()
+		For index = 1 To 10
+
+		Next
+	End Sub
+End Class</Test>
+
+            Using testWorkspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml)
+                Dim document = testWorkspace.Documents.Single()
+
+                Dim optionService = testWorkspace.Services.GetService(Of IOptionService)()
+                Dim optionSet = optionService.GetOptions()
+                optionSet = optionSet.WithChangedOption(FormattingOptions.UseTabs, document.Project.Language, True)
+                optionSet = optionSet.WithChangedOption(FormattingOptions.TabSize, document.Project.Language, tabSize)
+                optionSet = optionSet.WithChangedOption(FormattingOptions.IndentationSize, document.Project.Language, tabSize)
+                optionService.SetOptions(optionSet)
+
+                Dim snippetExpansionClient = New SnippetExpansionClient(
+                    Guids.CSharpLanguageServiceId,
+                    document.GetTextView(),
+                    document.TextBuffer,
+                    Nothing)
+
+                SnippetExpansionClientTestsHelper.TestFormattingAndCaretPosition(snippetExpansionClient, document, expectedResult, tabSize * 3)
+            End Using
+        End Sub
+
         Private Sub TestSnippetAddImports(originalCode As String, namespacesToAdd As String(), placeSystemNamespaceFirst As Boolean, expectedUpdatedCode As String)
             Dim workspaceXml = <Workspace>
                                    <Project Language=<%= LanguageNames.VisualBasic %> CommonReferences="true">
@@ -362,7 +423,7 @@ Next
                     subjectBufferDocument.TextBuffer,
                     Nothing)
 
-                SnippetExpansionClientTestsHelper.Test(snippetExpansionClient, subjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
+                SnippetExpansionClientTestsHelper.TestProjectionBuffer(snippetExpansionClient, subjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
             End Using
         End Sub
     End Class

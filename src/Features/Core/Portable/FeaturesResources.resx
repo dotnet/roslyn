@@ -831,4 +831,7 @@ Do you want to continue?</value>
   <data name="Attribute" xml:space="preserve">
     <value>attribute</value>
   </data>
+  <data name="UseAutoProperty" xml:space="preserve">
+    <value>Use auto property</value>
+  </data>
 </root>
