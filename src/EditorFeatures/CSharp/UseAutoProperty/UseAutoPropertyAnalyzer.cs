@@ -19,9 +19,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             return ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp6;
         }
 
+        protected override bool SupportsPropertyInitializer(Compilation compilation)
+        {
+            return ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp6;
+        }
+
         protected override void RegisterIneligibleFieldsAction(CompilationStartAnalysisContext context, ConcurrentBag<IFieldSymbol> ineligibleFields)
         {
             context.RegisterSyntaxNodeAction(snac => AnalyzeArgument(ineligibleFields, snac), SyntaxKind.Argument);
+        }
+
+        protected override ExpressionSyntax GetFieldInitializer(VariableDeclaratorSyntax variable, CancellationToken cancellationToken)
+        {
+            return variable.Initializer?.Value;
         }
 
         private void AnalyzeArgument(ConcurrentBag<IFieldSymbol> ineligibleFields, SyntaxNodeAnalysisContext context)

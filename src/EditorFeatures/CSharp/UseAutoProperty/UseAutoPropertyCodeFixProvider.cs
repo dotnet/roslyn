@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             return nodeToRemove;
         }
 
-        protected override SyntaxNode UpdateProperty(
+        protected override async Task<SyntaxNode> UpdatePropertyAsync(
             Project project, Compilation compilation, IFieldSymbol fieldSymbol, IPropertySymbol propertySymbol, 
             PropertyDeclarationSyntax propertyDeclaration, bool isWrittenOutsideOfConstructor, CancellationToken cancellationToken)
         {
@@ -46,7 +48,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
                 updatedProperty = updatedProperty.AddAccessorListAccessors(accessor);
             }
 
+            var fieldInitializer = await GetFieldInitializerAsync(fieldSymbol, cancellationToken).ConfigureAwait(false);
+            if (fieldInitializer != null)
+            {
+                updatedProperty = updatedProperty.WithInitializer(SyntaxFactory.EqualsValueClause(fieldInitializer))
+                                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            }
+
             return updatedProperty;
+        }
+
+        private async Task<ExpressionSyntax> GetFieldInitializerAsync(IFieldSymbol fieldSymbol, CancellationToken cancellationToken)
+        {
+            var variableDeclarator = (VariableDeclaratorSyntax)await fieldSymbol.DeclaringSyntaxReferences[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+            return variableDeclarator.Initializer?.Value;
         }
 
         private bool NeedsSetter(Compilation compilation, PropertyDeclarationSyntax propertyDeclaration, bool isWrittenOutsideOfConstructor)

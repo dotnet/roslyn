@@ -29,6 +29,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
         protected abstract void RegisterIneligibleFieldsAction(CompilationStartAnalysisContext context, ConcurrentBag<IFieldSymbol> ineligibleFields);
         protected abstract bool SupportsReadOnlyProperties(Compilation compilation);
+        protected abstract bool SupportsPropertyInitializer(Compilation compilation);
+        protected abstract TExpression GetFieldInitializer(TVariableDeclarator variable, CancellationToken cancellationToken);
         protected abstract TExpression GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken);
         protected abstract TExpression GetSetterExpression(IMethodSymbol setMethod, SemanticModel semanticModel, CancellationToken cancellationToken);
         protected abstract SyntaxNode GetNodeToFade(TFieldDeclaration fieldDeclaration, TVariableDeclarator variableDeclarator);
@@ -156,6 +158,12 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var fieldReference = getterField.DeclaringSyntaxReferences[0];
             var variableDeclarator = fieldReference.GetSyntax(symbolContext.CancellationToken) as TVariableDeclarator;
             if (variableDeclarator == null)
+            {
+                return;
+            }
+
+            var initializer = GetFieldInitializer(variableDeclarator, cancellationToken);
+            if (initializer != null && !SupportsPropertyInitializer(symbolContext.Compilation))
             {
                 return;
             }

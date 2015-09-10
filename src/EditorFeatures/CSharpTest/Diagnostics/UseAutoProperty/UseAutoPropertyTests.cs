@@ -42,6 +42,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public void TestInitializer()
+        {
+            Test(
+@"class Class { [|int i = 1|]; int P { get { return i; } } }",
+@"class Class { int P { get; } = 1; }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public void TestInitializer_CSharp5()
+        {
+            TestMissing(
+@"class Class { [|int i = 1|]; int P { get { return i; } } }",
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public void TestSingleGetter2()
         {
             Test(

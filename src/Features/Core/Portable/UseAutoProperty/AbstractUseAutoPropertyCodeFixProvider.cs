@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
         protected abstract SyntaxNode GetNodeToRemove(TVariableDeclarator declarator);
 
-        protected abstract SyntaxNode UpdateProperty(
+        protected abstract Task<SyntaxNode> UpdatePropertyAsync(
             Project project, Compilation compilation, IFieldSymbol fieldSymbol, IPropertySymbol propertySymbol,
             TPropertyDeclaration propertyDeclaration, bool isWrittenOutsideConstructor, CancellationToken cancellationToken);
 
@@ -74,8 +74,9 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var fieldLocations = await Renamer.GetRenameLocationsAsync(solution, fieldSymbol, solution.Workspace.Options, cancellationToken).ConfigureAwait(false);
 
             // First, create the updated property we want to replace the old property with
-            var updatedProperty = UpdateProperty(project, compilation, fieldSymbol, propertySymbol, property,
-                IsWrittenToOutsideOfConstructorOrProperty(fieldSymbol, fieldLocations, property, cancellationToken), cancellationToken);
+            var isWrittenToOutsideOfConstructor = IsWrittenToOutsideOfConstructorOrProperty(fieldSymbol, fieldLocations, property, cancellationToken);
+            var updatedProperty = await UpdatePropertyAsync(project, compilation, fieldSymbol, propertySymbol, property,
+                isWrittenToOutsideOfConstructor, cancellationToken).ConfigureAwait(false);
 
             // Now, rename all usages of the field to point at the property.  Except don't actually 
             // rename the field itself.  We want to be able to find it again post rename.

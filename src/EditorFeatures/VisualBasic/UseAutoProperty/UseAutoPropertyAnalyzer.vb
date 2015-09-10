@@ -17,8 +17,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
             Return True
         End Function
 
+        Protected Overrides Function SupportsPropertyInitializer(compilation As Compilation) As Boolean
+            Return True
+        End Function
+
         Protected Overrides Sub RegisterIneligibleFieldsAction(context As CompilationStartAnalysisContext, ineligibleFields As ConcurrentBag(Of IFieldSymbol))
         End Sub
+
+        Protected Overrides Function GetFieldInitializer(variable As ModifiedIdentifierSyntax, cancellationToken As CancellationToken) As ExpressionSyntax
+            Dim declarator = TryCast(variable.Parent, VariableDeclaratorSyntax)
+            Return declarator?.Initializer?.Value
+        End Function
 
         Private Function CheckExpressionSyntactically(expression As ExpressionSyntax) As Boolean
             If expression?.Kind() = SyntaxKind.SimpleMemberAccessExpression Then
