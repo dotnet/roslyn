@@ -22,6 +22,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
         End Function
 
         Protected Overrides Sub RegisterIneligibleFieldsAction(context As CompilationStartAnalysisContext, ineligibleFields As ConcurrentBag(Of IFieldSymbol))
+            ' There are no syntactic constructs that make a field ineligible to be replaced with 
+            ' a property.  In C# you can't use a property in a ref/out positoin.  But that restriction
+            ' doesn't apply to VB.
         End Sub
 
         Protected Overrides Function GetFieldInitializer(variable As ModifiedIdentifierSyntax, cancellationToken As CancellationToken) As ExpressionSyntax
