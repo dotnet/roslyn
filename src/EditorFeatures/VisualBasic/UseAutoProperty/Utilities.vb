@@ -1,8 +1,8 @@
 ﻿Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
-    Friend Class Utilities
-        Friend Shared Function GetNodeToRemove(identifier As ModifiedIdentifierSyntax) As SyntaxNode
+    Friend Module Utilities
+        Friend Function GetNodeToRemove(identifier As ModifiedIdentifierSyntax) As SyntaxNode
             Dim declarator = DirectCast(identifier.Parent, VariableDeclaratorSyntax)
             If declarator.Names.Count > 1 Then
                 ' more than one name in this declarator group.  just remove this name.
@@ -18,5 +18,5 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
 
             Return field
         End Function
-    End Class
+    End Module
 End Namespace

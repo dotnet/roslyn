@@ -116,8 +116,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
             End If
 
             If node.Kind() = SyntaxKind.IdentifierName Then
-                Dim symbol = semanticModel.GetSymbolInfo(node)
-                If field.Equals(symbol.Symbol) Then
+                Dim symbolInfo = semanticModel.GetSymbolInfo(node)
+                If field.Equals(symbolInfo.Symbol) Then
                     If semanticFacts.IsWrittenTo(semanticModel, node, cancellationToken) Then
                         Return True
                     End If
