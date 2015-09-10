@@ -712,24 +712,38 @@ static int Baz = w;
             var c = CreateSubmission("var x = 1; { var x = x;}");
 
             c.VerifyDiagnostics(
-                // (2,11): error CS0841: Cannot use local variable 'x' before it is declared
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x"));
+                // (1,22): error CS0841: Cannot use local variable 'x' before it is declared
+                // var x = 1; { var x = x;}
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(1, 22),
+                // (1,22): error CS0165: Use of unassigned local variable 'x'
+                // var x = 1; { var x = x;}
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(1, 22));
         }
 
         [Fact]
-        public void ERR_ReturnNotAllowedInScript()
+        public void ERR_ReturnNotAllowedInScript_Void()
         {
-            var c1 = CreateSubmission("return;");
-
-            c1.VerifyDiagnostics(
+            var c = CreateSubmission("return;");
+            c.VerifyDiagnostics(
                 // (1,1): error CS7020: You cannot use 'return' in top-level script code
-                Diagnostic(ErrorCode.ERR_ReturnNotAllowedInScript, "return"));
+                // return;
+                Diagnostic(ErrorCode.ERR_ReturnNotAllowedInScript, "return").WithLocation(1, 1),
+                // (1,1): warning CS0162: Unreachable code detected
+                // return;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(1, 1));
+        }
 
-            var c2 = CreateSubmission("return 17;");
-
-            c2.VerifyDiagnostics(
+        [Fact]
+        public void ERR_ReturnNotAllowedInScript_Expr()
+        {
+            var c = CreateSubmission("return 17;");
+            c.VerifyDiagnostics(
                 // (1,1): error CS7020: You cannot use 'return' in top-level script code
-                Diagnostic(ErrorCode.ERR_ReturnNotAllowedInScript, "return"));
+                // return 17;
+                Diagnostic(ErrorCode.ERR_ReturnNotAllowedInScript, "return").WithLocation(1, 1),
+                // (1,1): warning CS0162: Unreachable code detected
+                // return 17;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(1, 1));
         }
 
         [Fact]
