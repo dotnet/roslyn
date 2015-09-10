@@ -1737,8 +1737,8 @@
   },
   "projectFileDependencyGroups": {
     "": [
-      "System.Dynamic.Runtime >= 4.0.10",
-      "Microsoft.CSharp >= 4.0.0"
+      "Microsoft.CSharp >= 4.0.0",
+      "System.Dynamic.Runtime >= 4.0.10"
     ],
     ".NETPlatform,Version=v5.0": []
   }
