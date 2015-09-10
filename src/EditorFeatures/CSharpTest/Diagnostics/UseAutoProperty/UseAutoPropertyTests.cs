@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty;
 using Roslyn.Test.Utilities;
@@ -21,6 +22,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
             Test(
 @"class Class { [|int i|]; int P { get { return i; } } }",
 @"class Class { int P { get; } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public void TestCSharp5()
+        {
+            TestMissing(
+@"class Class { [|int i|]; int P { get { return i; } } }",
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]

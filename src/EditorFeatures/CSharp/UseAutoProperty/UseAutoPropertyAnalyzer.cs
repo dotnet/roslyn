@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class UseAutoPropertyAnalyzer : AbstractUseAutoPropertyAnalyzer<PropertyDeclarationSyntax, FieldDeclarationSyntax, VariableDeclaratorSyntax, ExpressionSyntax>
     {
+        protected override bool IsLanguageVersionSupported(Compilation compilation)
+        {
+            return ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp6;
+        }
+
         protected override void RegisterIneligibleFieldsAction(CompilationStartAnalysisContext context, ConcurrentBag<IFieldSymbol> ineligibleFields)
         {
             context.RegisterSyntaxNodeAction(snac => AnalyzeArgument(ineligibleFields, snac), SyntaxKind.Argument);

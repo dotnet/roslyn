@@ -13,6 +13,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
 
         Private ReadOnly semanticFacts As New VisualBasicSemanticFactsService()
 
+        Protected Overrides Function IsLanguageVersionSupported(compilation As Compilation) As Boolean
+            Return True
+        End Function
+
         Protected Overrides Sub RegisterIneligibleFieldsAction(context As CompilationStartAnalysisContext, ineligibleFields As ConcurrentBag(Of IFieldSymbol))
         End Sub
 

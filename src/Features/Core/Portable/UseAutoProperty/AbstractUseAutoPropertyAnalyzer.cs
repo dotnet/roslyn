@@ -31,6 +31,11 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         {
             context.RegisterCompilationStartAction(csac =>
             {
+                if (!IsLanguageVersionSupported(csac.Compilation))
+                {
+                    return;
+                }
+
                 var analysisResults = new ConcurrentBag<AnalysisResult>();
                 var ineligibleFields = new ConcurrentBag<IFieldSymbol>();
 
@@ -41,6 +46,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             });
         }
 
+        protected abstract bool IsLanguageVersionSupported(Compilation compilation);
         protected abstract void RegisterIneligibleFieldsAction(CompilationStartAnalysisContext context, ConcurrentBag<IFieldSymbol> ineligibleFields);
         protected abstract TExpression GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken);
         protected abstract TExpression GetSetterExpression(IMethodSymbol setMethod, SemanticModel semanticModel, CancellationToken cancellationToken);
