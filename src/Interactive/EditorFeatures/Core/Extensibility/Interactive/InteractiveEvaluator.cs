@@ -192,8 +192,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             var metadataService = _workspace.CurrentSolution.Services.MetadataService;
             ImmutableArray<string> referencePaths;
 
-            // reset configuration:
-            if (File.Exists(_responseFilePath))
+            // reset configuration (null initialization file indicates "noconfig"):
+            if (options.InitializationFile != null && File.Exists(_responseFilePath))
             {
                 // The base directory for relative paths is the directory that contains the .rsp file.
                 // Note that .rsp files included by this .rsp file will share the base directory (Dev10 behavior of csc/vbc).
