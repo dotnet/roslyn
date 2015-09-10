@@ -153,25 +153,20 @@ namespace Microsoft.CodeAnalysis
             var filePath = file.Path;
             try
             {
-                return ReadFileContentHelper(filePath, encoding, checksumAlgorithm, out normalizedFilePath);
+                // PERF: Using a very small buffer size for the FileStream opens up an optimization within EncodedStringText where
+                // we read the entire FileStream into a byte array in one shot. For files that are actually smaller than the buffer
+                // size, FileStream.Read still allocates the internal buffer.
+                using (var data = PortableShim.FileStream.Create(filePath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.ReadWrite, bufferSize: 1, options: PortableShim.FileOptions.None))
+                {
+                    normalizedFilePath = (string)PortableShim.FileStream.Name.GetValue(data);
+                    return EncodedStringText.Create(data, encoding, checksumAlgorithm);
+                }
             }
             catch (Exception e)
             {
                 diagnostics.Add(ToFileReadDiagnostics(this.MessageProvider, e, filePath));
                 normalizedFilePath = null;
                 return null;
-            }
-        }
-
-        internal static SourceText ReadFileContentHelper(string filePath, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, out string normalizedFilePath)
-        {
-            // PERF: Using a very small buffer size for the FileStream opens up an optimization within EncodedStringText where
-            // we read the entire FileStream into a byte array in one shot. For files that are actually smaller than the buffer
-            // size, FileStream.Read still allocates the internal buffer.
-            using (var data = PortableShim.FileStream.Create(filePath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.ReadWrite, bufferSize: 1, options: PortableShim.FileOptions.None))
-            {
-                normalizedFilePath = (string)PortableShim.FileStream.Name.GetValue(data);
-                return EncodedStringText.Create(data, encoding, checksumAlgorithm);
             }
         }
 
