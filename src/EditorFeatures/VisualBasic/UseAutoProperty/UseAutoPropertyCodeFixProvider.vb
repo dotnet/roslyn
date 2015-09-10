@@ -16,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
         End Function
 
         Protected Overrides Function UpdateProperty(project As Project,
+                                                    compilation As Compilation,
                                                     fieldSymbol As IFieldSymbol,
                                                     propertySymbol As IPropertySymbol,
                                                     propertyDeclaration As PropertyBlockSyntax,

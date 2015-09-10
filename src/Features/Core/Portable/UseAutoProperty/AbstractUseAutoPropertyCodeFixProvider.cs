@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         protected abstract SyntaxNode GetNodeToRemove(TVariableDeclarator declarator);
 
         protected abstract SyntaxNode UpdateProperty(
-            Project project, IFieldSymbol fieldSymbol, IPropertySymbol propertySymbol, TPropertyDeclaration propertyDeclaration,
-            bool isWrittenOutsideConstructor, CancellationToken cancellationToken);
+            Project project, Compilation compilation, IFieldSymbol fieldSymbol, IPropertySymbol propertySymbol,
+            TPropertyDeclaration propertyDeclaration, bool isWrittenOutsideConstructor, CancellationToken cancellationToken);
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var fieldLocations = await Renamer.GetRenameLocationsAsync(solution, fieldSymbol, solution.Workspace.Options, cancellationToken).ConfigureAwait(false);
 
             // First, create the updated property we want to replace the old property with
-            var updatedProperty = UpdateProperty(project, fieldSymbol, propertySymbol, property,
+            var updatedProperty = UpdateProperty(project, compilation, fieldSymbol, propertySymbol, property,
                 IsWrittenToOutsideOfConstructorOrProperty(fieldSymbol, fieldLocations, property, cancellationToken), cancellationToken);
 
             // Now, rename all usages of the field to point at the property.  Except don't actually 

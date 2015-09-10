@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
 
         Private ReadOnly semanticFacts As New VisualBasicSemanticFactsService()
 
-        Protected Overrides Function IsLanguageVersionSupported(compilation As Compilation) As Boolean
+        Protected Overrides Function SupportsReadOnlyProperties(compilation As Compilation) As Boolean
             Return True
         End Function
 

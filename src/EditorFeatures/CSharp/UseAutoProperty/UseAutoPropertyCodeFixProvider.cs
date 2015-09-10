@@ -25,14 +25,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
         }
 
         protected override SyntaxNode UpdateProperty(
-            Project project, IFieldSymbol fieldSymbol, IPropertySymbol propertySymbol, PropertyDeclarationSyntax propertyDeclaration,
-            bool isWrittenOutsideOfConstructor, CancellationToken cancellationToken)
+            Project project, Compilation compilation, IFieldSymbol fieldSymbol, IPropertySymbol propertySymbol, 
+            PropertyDeclarationSyntax propertyDeclaration, bool isWrittenOutsideOfConstructor, CancellationToken cancellationToken)
         {
             var updatedProperty = propertyDeclaration.WithAccessorList(UpdateAccessorList(propertyDeclaration.AccessorList));
 
             // We may need to add a setter if the field is written to outside of the constructor
             // of it's class.
-            if (NeedsSetter(propertyDeclaration, isWrittenOutsideOfConstructor))
+            if (NeedsSetter(compilation, propertyDeclaration, isWrittenOutsideOfConstructor))
             {
                 var accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
                                .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
@@ -49,9 +49,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             return updatedProperty;
         }
 
-        private bool NeedsSetter(PropertyDeclarationSyntax propertyDeclaration, bool isWrittenOutsideOfConstructor)
+        private bool NeedsSetter(Compilation compilation, PropertyDeclarationSyntax propertyDeclaration, bool isWrittenOutsideOfConstructor)
         {
-            return isWrittenOutsideOfConstructor && !propertyDeclaration.AccessorList.Accessors.Any(SyntaxKind.SetAccessorDeclaration);
+            if (propertyDeclaration.AccessorList.Accessors.Any(SyntaxKind.SetAccessorDeclaration))
+            {
+                // Already has a setter.
+                return false;
+            }
+
+            if (!SupportsReadOnlyProperties(compilation))
+            {
+                // If the language doesn't have readonly properties, then we'll need a 
+                // setter here.
+                return true;
+            }
+
+            // If we're written outside a constructor we need a setter.
+            return isWrittenOutsideOfConstructor;
+        }
+
+        private bool SupportsReadOnlyProperties(Compilation compilation)
+        {
+            return ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp6;
         }
 
         private AccessorListSyntax UpdateAccessorList(AccessorListSyntax accessorList)

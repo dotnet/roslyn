@@ -27,15 +27,16 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor, FadedTokenDescriptor);
 
+        protected abstract void RegisterIneligibleFieldsAction(CompilationStartAnalysisContext context, ConcurrentBag<IFieldSymbol> ineligibleFields);
+        protected abstract bool SupportsReadOnlyProperties(Compilation compilation);
+        protected abstract TExpression GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken);
+        protected abstract TExpression GetSetterExpression(IMethodSymbol setMethod, SemanticModel semanticModel, CancellationToken cancellationToken);
+        protected abstract SyntaxNode GetNodeToFade(TFieldDeclaration fieldDeclaration, TVariableDeclarator variableDeclarator);
+
         public sealed override void Initialize(AnalysisContext context)
         {
             context.RegisterCompilationStartAction(csac =>
             {
-                if (!IsLanguageVersionSupported(csac.Compilation))
-                {
-                    return;
-                }
-
                 var analysisResults = new ConcurrentBag<AnalysisResult>();
                 var ineligibleFields = new ConcurrentBag<IFieldSymbol>();
 
@@ -45,12 +46,6 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 csac.RegisterCompilationEndAction(cac => Process(analysisResults, ineligibleFields, cac));
             });
         }
-
-        protected abstract bool IsLanguageVersionSupported(Compilation compilation);
-        protected abstract void RegisterIneligibleFieldsAction(CompilationStartAnalysisContext context, ConcurrentBag<IFieldSymbol> ineligibleFields);
-        protected abstract TExpression GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken);
-        protected abstract TExpression GetSetterExpression(IMethodSymbol setMethod, SemanticModel semanticModel, CancellationToken cancellationToken);
-        protected abstract SyntaxNode GetNodeToFade(TFieldDeclaration fieldDeclaration, TVariableDeclarator variableDeclarator);
 
         private void AnalyzeProperty(ConcurrentBag<AnalysisResult> analysisResults, SymbolAnalysisContext symbolContext)
         {
@@ -105,6 +100,13 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var semanticModel = symbolContext.Compilation.GetSemanticModel(propertyDeclaration.SyntaxTree);
             var getterField = GetGetterField(semanticModel, property.GetMethod, cancellationToken);
             if (getterField == null)
+            {
+                return;
+            }
+
+            // If the user made the field readonly, we only want to convert it to a property if we
+            // can keep it readonly.
+            if (getterField.IsReadOnly && !SupportsReadOnlyProperties(symbolContext.Compilation))
             {
                 return;
             }

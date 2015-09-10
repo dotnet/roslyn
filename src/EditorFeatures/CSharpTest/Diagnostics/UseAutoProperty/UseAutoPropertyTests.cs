@@ -25,10 +25,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestCSharp5()
+        public void TestCSharp5_1()
+        {
+            Test(
+@"class Class { [|int i|]; public int P { get { return i; } } }",
+@"class Class { public int P { get; private set; } }",
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public void TestCSharp5_2()
         {
             TestMissing(
-@"class Class { [|int i|]; int P { get { return i; } } }",
+@"class Class { [|readonly int i|]; int P { get { return i; } } }",
             CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
         }
 
