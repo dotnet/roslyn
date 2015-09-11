@@ -66,10 +66,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             // To get a Speculative SemanticModel (which is much faster), we need to 
             // walk up to the node the DocumentationTrivia is attached to.
-            var parentNode = token.GetAncestor<DocumentationCommentTriviaSyntax>().ParentTrivia.Token.Parent;
+            var parentNode = token.Parent.FirstAncestorOrSelf<DocumentationCommentTriviaSyntax>()?.ParentTrivia.Token.Parent;
+            if (parentNode == null)
+            {
+                return;
+            }
+
             var semanticModel = await document.GetSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(false);
 
-            var symbols = GetSymbols(semanticModel, token, cancellationToken);
+            var symbols = GetSymbols(token, semanticModel, cancellationToken);
 
             symbols = symbols.FilterToVisibleAndBrowsableSymbols(options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language), semanticModel.Compilation);
 
@@ -138,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 && token.Parent.IsKind(SyntaxKind.QualifiedCref);
         }
 
-        private static IEnumerable<ISymbol> GetSymbols(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
+        private static IEnumerable<ISymbol> GetSymbols(SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             if (IsCrefStartContext(token))
             {
@@ -220,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private IEnumerable<CompletionItem> CreateItems(
             Workspace workspace, SemanticModel semanticModel, IEnumerable<ISymbol> symbols, SyntaxToken token, TextSpan filterSpan, CancellationToken cancellationToken)
         {
-            var builder = SharedPools.Default<StringBuilder>().AllocateAndClear();
+            var builder = SharedPools.Default<StringBuilder>().Allocate();
             try
             {
                 foreach (var symbol in symbols)
