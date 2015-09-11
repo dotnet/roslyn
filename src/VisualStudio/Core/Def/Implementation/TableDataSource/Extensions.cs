@@ -53,13 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 #endif
 
-            // Make things to be deterministic. 
-            // * There must be at least 1 item in the list
-            // * If code reached here, there must be document id
-            var first = duplicatedItems.OrderBy(i => GetDocumentId(i.Primary).ProjectId.Id).First();
-            var documentIds = ImmutableHashSet.CreateRange(duplicatedItems.Select(i => GetDocumentId(i.Primary)));
-
-            return new TableItem<T>(first.Primary, first.DeduplicationKey, documentIds);
+            return new TableItem<T>(duplicatedItems);
         }
 
         public static ImmutableArray<ITrackingPoint> CreateTrackingPoints<TData>(

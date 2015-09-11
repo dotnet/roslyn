@@ -23,6 +23,9 @@
     <CopyNuGetImplementations>true</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="Build Items">
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ConcurrentLruCache.cs">
+      <Link>Shared\ConcurrentLruCache.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Interop\IVsSQM.cs" />
     <Compile Include="..\..\..\Compilers\Helpers\ShadowCopyAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\ShadowCopyAnalyzerAssemblyLoader.cs</Link>
