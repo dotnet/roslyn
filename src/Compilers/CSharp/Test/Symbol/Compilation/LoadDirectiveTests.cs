@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Single(compilation.SyntaxTrees);
             compilation.GetDiagnostics().Verify(
-                // (1,1): error CS8099: Source file references not supported
+                // (1,1): error CS8099: Source file references are not supported.
                 // #load "test"
                 Diagnostic(ErrorCode.ERR_SourceFileReferencesNotSupported, @"#load ""test""").WithLocation(1, 1));
         }
