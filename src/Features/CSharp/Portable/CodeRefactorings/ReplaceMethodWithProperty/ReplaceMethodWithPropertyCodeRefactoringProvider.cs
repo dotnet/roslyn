@@ -40,8 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                 return;
             }
 
+            var start = containingMethod.AttributeLists.Count > 0
+                ? containingMethod.AttributeLists.Last().GetLastToken().GetNextToken().SpanStart
+                : containingMethod.SpanStart;
+
             // Offer this refactoring anywhere in the signature of the method.
-            if (position < containingMethod.Span.Start || position > containingMethod.ParameterList.Span.End)
+            if (position < start || position > containingMethod.ParameterList.Span.End)
             {
                 return;
             }
@@ -54,11 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             }
 
             if (containingMethod.ParameterList.Parameters.Count > 0)
-            {
-                return;
-            }
-
-            if (containingMethod.ExplicitInterfaceSpecifier != null)
             {
                 return;
             }
@@ -253,9 +252,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             if (method.ExpressionBody != null)
             {
                 property = property.WithExpressionBody(method.ExpressionBody);
+                property = property.WithSemicolonToken(method.SemicolonToken);
             }
-
-            property = property.WithSemicolonToken(method.SemicolonToken);
 
             return property;
         }
