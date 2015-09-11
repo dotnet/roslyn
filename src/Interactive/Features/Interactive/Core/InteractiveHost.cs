@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         private TextWriter _output;
         private TextWriter _errorOutput;
 
-        internal event Action<InteractiveHostOptions> ProcessStarting;
+        internal event Action<bool> ProcessStarting;
 
         public InteractiveHost(
             Type replServiceProviderType,

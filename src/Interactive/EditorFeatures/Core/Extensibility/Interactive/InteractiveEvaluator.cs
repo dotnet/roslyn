@@ -171,11 +171,11 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         /// <summary>
         /// Invoked by <see cref="InteractiveHost"/> when a new process is being started.
         /// </summary>
-        private void ProcessStarting(InteractiveHostOptions options)
+        private void ProcessStarting(bool initialize)
         {
             if (!Dispatcher.CheckAccess())
             {
-                Dispatcher.BeginInvoke(new Action(() => ProcessStarting(options)));
+                Dispatcher.BeginInvoke(new Action(() => ProcessStarting(initialize)));
                 return;
             }
 
@@ -192,8 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             var metadataService = _workspace.CurrentSolution.Services.MetadataService;
             ImmutableArray<string> referencePaths;
 
-            // reset configuration (null initialization file indicates "noconfig"):
-            if (options.InitializationFile != null && File.Exists(_responseFilePath))
+            if (initialize && File.Exists(_responseFilePath))
             {
                 // The base directory for relative paths is the directory that contains the .rsp file.
                 // Note that .rsp files included by this .rsp file will share the base directory (Dev10 behavior of csc/vbc).
