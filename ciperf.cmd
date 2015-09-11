@@ -23,7 +23,7 @@ move Binaries\%BuildConfiguration%\* %RoslynRoot%\Binaries\Bootstrap
 msbuild /v:m /t:Clean build/Toolset.sln /p:Configuration=%BuildConfiguration%
 taskkill /F /IM vbcscompiler.exe
 
-msbuild /v:m /m /p:BootstrapBuildPath=%RoslynRoot%\Binaries\Bootstrap BuildAndTest.proj /p:Configuration=%BuildConfiguration%
+msbuild /v:m /m /p:BootstrapBuildPath=%RoslynRoot%\Binaries\Bootstrap BuildAndTest.proj /t:Build /p:Configuration=%BuildConfiguration%
 if ERRORLEVEL 1 (
     taskkill /F /IM vbcscompiler.exe
     echo Build failed
