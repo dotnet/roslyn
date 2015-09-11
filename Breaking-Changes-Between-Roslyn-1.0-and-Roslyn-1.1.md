@@ -1,1 +1,0 @@
-- In pull request [5144](https://github.com/dotnet/roslyn/pull/5144) changed Simplifier.Reduce and Simplifier.Expand methods to throw ArgumentNullExceptions if any non-optional, nullable arguments are passed in.  Previously the user would get a NullReferenceException for synchronous methods and and AggregateException containing a NullReferenceException for asynchronous methods.
