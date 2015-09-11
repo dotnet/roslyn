@@ -280,5 +280,48 @@ public class C
 }";
             Test(initialText, expectedText, isLine: false);
         }
+
+        [WorkItem(3818, "https://github.com/dotnet/roslyn/issues/3818")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void InExtensionMethodUnderMultipleConditionalAccessExpressions2()
+        {
+            var initialText =
+  @"<Workspace>
+    <Project Language=""C#"" AssemblyName=""CSAssembly"" CommonReferences=""true"">
+        <Document FilePath = ""Program"">
+public class C
+{
+    public T F&lt;T&gt;(T x)
+    {
+        return F(new C())?.F(new C())[|.Extn()|]?.F(newC());
+    }
+}
+       </Document>
+       <Document FilePath = ""Extensions"">
+namespace Sample.Extensions
+{
+    public static class Extensions
+    {
+        public static C Extn(this C obj)
+        {
+            return obj.F(new C());
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expectedText =
+@"using Sample.Extensions;
+public class C
+{
+    public T F<T>(T x)
+    {
+        return F(new C())?.F(new C()).Extn()?.F(newC());
+    }
+}";
+            Test(initialText, expectedText, isLine: false);
+        }
     }
 }
