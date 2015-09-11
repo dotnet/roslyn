@@ -32,13 +32,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         // Spend up to 20s connecting to a new process, to allow time for it to start.
         private const int TimeOutMsNewProcess = 20000;
 
+        private static bool IsRunningOnWindows => Path.DirectorySeparatorChar == '\\';
+
         /// <summary>
         /// Run a compilation through the compiler server and print the output
         /// to the console. If the compiler server fails, run the fallback
         /// compiler.
         /// </summary>
         public static int RunWithConsoleOutput(
-            string[] args,
+            IEnumerable<string> originalArgs,
             string clientDir,
             string workingDir,
             string sdkDir,
@@ -46,7 +48,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             RequestLanguage language,
             Func<string, string, string[], IAnalyzerAssemblyLoader, int> fallbackCompiler)
         {
-            args = args.Select(arg => arg.Trim()).ToArray();
+            var args = originalArgs.Select(arg => arg.Trim()).ToArray();
 
             bool hasShared;
             string keepAlive;
@@ -82,6 +84,45 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
 
             return fallbackCompiler(clientDir, sdkDir, parsedArgs.ToArray(), analyzerLoader);
+        }
+
+        public static IEnumerable<string> GetCommandLineArgs(IEnumerable<string> args)
+        {
+            if (IsRunningOnWindows)
+            {
+                return GetCommandLineWindows(args);
+            }
+
+            return args;
+        }
+
+        /// <summary>
+        /// When running on Windows we can't take the commmand line which was provided to the 
+        /// Main method of the application.  That will go through normal windows command line 
+        /// parsing which eliminates artifacts like quotes.  This has the effect of normalizing
+        /// the below command line options, which are semantically different, into the same
+        /// value:
+        ///
+        ///     /reference:a,b
+        ///     /reference:"a,b"
+        ///
+        /// To get the correct semantics here on Windows we parse the original command line 
+        /// provided to the process. 
+        /// </summary>
+        private static IEnumerable<string> GetCommandLineWindows(IEnumerable<string> args)
+        {
+            IntPtr ptr = NativeMethods.GetCommandLine();
+            if (ptr == IntPtr.Zero)
+            {
+                return args;
+            }
+
+            // This memory is owned by the operating system hence we shouldn't (and can't)
+            // free the memory.  
+            var commandLine = Marshal.PtrToStringUni(ptr);
+
+            // The first argument will be the executable name hence we skip it. 
+            return CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments: false).Skip(1);
         }
 
         private static int HandleResponse(BuildResponse response, string clientDir, string sdkDir, IAnalyzerAssemblyLoader analyzerLoader, Func<string, string, string[], IAnalyzerAssemblyLoader, int> fallbackCompiler, List<string> parsedArgs)

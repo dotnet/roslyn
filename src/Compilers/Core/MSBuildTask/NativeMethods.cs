@@ -81,5 +81,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             [In] ref STARTUPINFO lpStartupInfo,
             out PROCESS_INFORMATION lpProcessInformation
         );
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        internal static extern IntPtr GetCommandLine();
     }
 }
