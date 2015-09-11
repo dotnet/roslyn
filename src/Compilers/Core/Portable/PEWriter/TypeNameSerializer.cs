@@ -26,7 +26,7 @@ namespace Microsoft.Cci
                 typeReference = arrType.GetElementType(context);
                 bool isAssemQual = false;
                 AppendSerializedTypeName(sb, typeReference, ref isAssemQual, context);
-                if (arrType.IsVector)
+                if (arrType.IsSZArray)
                 {
                     sb.Append("[]");
                 }

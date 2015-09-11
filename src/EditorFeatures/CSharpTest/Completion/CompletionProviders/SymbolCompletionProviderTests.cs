@@ -8350,5 +8350,29 @@ class C
 ";
             VerifyNoItemsExist(markup);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void CompletionInIncompletePropertyDeclaration()
+        {
+            var markup = @"
+class Class1
+{
+    public string Property1 { get; set; }
+}
+
+class Class2
+{
+    public string Property { get { return this.Source.$$
+    public Class1 Source { get; set; }
+}";
+            VerifyItemExists(markup, "Property1");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void NoCompletionInShebangComments()
+        {
+            VerifyNoItemsExist("#!$$", sourceCodeKind: SourceCodeKind.Script);
+            VerifyNoItemsExist("#! S$$", sourceCodeKind: SourceCodeKind.Script, usePreviousCharAsTrigger: true);
+        }
     }
 }

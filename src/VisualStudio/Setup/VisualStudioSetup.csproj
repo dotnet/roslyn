@@ -22,6 +22,7 @@
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <CopyNuGetImplementations>true</CopyNuGetImplementations>
   </PropertyGroup>
   <PropertyGroup Condition="'$(OfficialBuild)' == 'true'">
     <DefineConstants>$(DefineConstants);OFFICIAL_BUILD</DefineConstants>
@@ -58,13 +59,13 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\..\Features\VisualBasic\BasicFeatures.vbproj">
+    <ProjectReference Include="..\..\Features\VisualBasic\Portable\BasicFeatures.vbproj">
       <Project>{A1BCD0CE-6C2F-4F8C-9A48-D9D93928E26D}</Project>
       <Name>BasicFeatures</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\..\Features\CSharp\CSharpFeatures.csproj">
+    <ProjectReference Include="..\..\Features\CSharp\Portable\CSharpFeatures.csproj">
       <Project>{3973B09A-4FBF-44A5-8359-3D22CEB71F71}</Project>
       <Name>CSharpFeatures</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
@@ -82,7 +83,7 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\..\Features\Core\Features.csproj">
+    <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj">
       <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
       <Name>Features</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
@@ -153,8 +154,10 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Telemetry" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup>
     <StartAction>Program</StartAction>
@@ -162,7 +165,7 @@
     <StartArguments>/rootsuffix RoslynDev /log</StartArguments>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="project.json" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
@@ -180,41 +183,6 @@
     <Reference Include="Microsoft.VisualStudio.Shell.Immutable.10.0, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
     <Reference Include="Microsoft.VisualStudio.Shell.Immutable.11.0, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
     <Reference Include="System" />
-    <Reference Include="Esent.Interop">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\ManagedEsent.1.9.2.0\lib\net40\Esent.Interop.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Collections.Immutable">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-      <Private>True</Private>
-      <!-- Included in the VSIX because it makes our setup authoring (DevDivInsertionFiles) easier. -->
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </Reference>
-    <Reference Include="System.Reflection.Metadata">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
-      <!-- Included in the VSIX because it makes our setup authoring (DevDivInsertionFiles) easier. -->
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </Reference>
-    <Reference Include="System.Composition.Convention">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Convention.dll</HintPath>
-      <!-- Included in the VSIX because it makes our setup authoring (DevDivInsertionFiles) easier. -->
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </Reference>
-    <Reference Include="System.Composition.Hosting">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Hosting.dll</HintPath>
-      <!-- Included in the VSIX because it makes our setup authoring (DevDivInsertionFiles) easier. -->
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </Reference>
-    <Reference Include="System.Composition.TypedParts">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
-      <!-- Included in the VSIX because it makes our setup authoring (DevDivInsertionFiles) easier. -->
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyRedirects.cs" Condition="('$(AssemblyVersion)' == '42.42.42.42') or ('$(OfficialBuild)' == 'true')" />

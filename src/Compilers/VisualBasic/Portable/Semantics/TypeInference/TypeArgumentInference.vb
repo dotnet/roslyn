@@ -192,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' Dev10 does not report this error when inferring a type parameter's type. Create a new object() type
                         ' to suppress the error.
 
-                        inferredType = New ArrayTypeSymbol(arrayType.ElementType, Nothing, arrayType.Rank, arrayLiteral.Binder.Compilation.Assembly)
+                        inferredType = ArrayTypeSymbol.CreateVBArray(arrayType.ElementType, Nothing, arrayType.Rank, arrayLiteral.Binder.Compilation.Assembly)
                     Else
                         inferredType = arrayLiteral.InferredType
                     End If
@@ -969,7 +969,7 @@ HandleAsAGeneralExpression:
                             ' Perform the conversions to the element type of the ParamArray here.
                             Dim arrayType = DirectCast(targetType, ArrayTypeSymbol)
 
-                            If arrayType.Rank <> 1 Then
+                            If Not arrayType.IsSZArray Then
                                 Continue For
                             End If
 
@@ -1211,9 +1211,11 @@ HandleAsAGeneralExpression:
 
             Private Shared Function ArgumentTypePossiblyMatchesParamarrayShape(argument As BoundExpression, paramType As TypeSymbol) As Boolean
                 Dim argumentType As TypeSymbol = argument.Type
+                Dim isArrayLiteral As Boolean = False
 
                 If argumentType Is Nothing Then
                     If argument.Kind = BoundKind.ArrayLiteral Then
+                        isArrayLiteral = True
                         argumentType = DirectCast(argument, BoundArrayLiteral).InferredType
                     Else
                         Return False
@@ -1229,10 +1231,13 @@ HandleAsAGeneralExpression:
                     Dim argumentArray = DirectCast(argumentType, ArrayTypeSymbol)
                     Dim paramArrayType = DirectCast(paramType, ArrayTypeSymbol)
 
-                    If argumentArray.Rank <> paramArrayType.Rank Then
+                    ' We can ignore IsSZArray value for an inferred type of an array literal as long as its rank matches.
+                    If argumentArray.Rank <> paramArrayType.Rank OrElse
+                       (Not isArrayLiteral AndAlso argumentArray.IsSZArray <> paramArrayType.IsSZArray) Then
                         Return False
                     End If
 
+                    isArrayLiteral = False
                     argumentType = argumentArray.ElementType
                     paramType = paramArrayType.ElementType
                 End While
@@ -1491,8 +1496,11 @@ HandleAsAGeneralExpression:
                     If argumentType.IsArrayType() Then
                         Dim parameterArray = DirectCast(parameterType, ArrayTypeSymbol)
                         Dim argumentArray = DirectCast(argumentType, ArrayTypeSymbol)
+                        Dim argumentIsAarrayLiteral = TypeOf argumentArray Is ArrayLiteralTypeSymbol
 
-                        If parameterArray.Rank = argumentArray.Rank Then
+                        ' We can ignore IsSZArray value for an inferred type of an array literal as long as its rank matches. 
+                        If parameterArray.Rank = argumentArray.Rank AndAlso
+                           (argumentIsAarrayLiteral OrElse parameterArray.IsSZArray = argumentArray.IsSZArray) Then
                             Return InferTypeArgumentsFromArgument(
                                     argumentLocation,
                                     argumentArray.ElementType,
@@ -1500,7 +1508,7 @@ HandleAsAGeneralExpression:
                                     parameterArray.ElementType,
                                     param,
                                     digThroughToBasesAndImplements,
-                                    Conversions.CombineConversionRequirements(inferenceRestrictions, If(TypeOf argumentArray Is ArrayLiteralTypeSymbol, RequiredConversion.Any, RequiredConversion.ArrayElement)))
+                                    Conversions.CombineConversionRequirements(inferenceRestrictions, If(argumentIsAarrayLiteral, RequiredConversion.Any, RequiredConversion.ArrayElement)))
                         End If
                     End If
 
@@ -1716,7 +1724,7 @@ HandleAsAGeneralExpression:
                 Dim baseSearchTypeKind As SymbolKind = baseSearchType.Kind
 
                 If baseSearchTypeKind <> SymbolKind.NamedType AndAlso baseSearchTypeKind <> SymbolKind.TypeParameter AndAlso
-                   Not (baseSearchTypeKind = SymbolKind.ArrayType AndAlso DirectCast(baseSearchType, ArrayTypeSymbol).Rank = 1) Then
+                   Not (baseSearchTypeKind = SymbolKind.ArrayType AndAlso DirectCast(baseSearchType, ArrayTypeSymbol).IsSZArray) Then
                     ' The things listed above are the only ones that have bases that could ever lead anywhere useful.
                     ' NamedType is satisfied by interfaces, structures, enums, delegates and modules as well as just classes.
                     Return False

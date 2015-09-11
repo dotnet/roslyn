@@ -125,7 +125,6 @@
   <ItemGroup>
     <Compile Include="AssemblyRedirects.cs" Condition="('$(AssemblyVersion)' == '42.42.42.42') or ('$(OfficialBuild)' == 'true')" />
     <Compile Include="CommandIds.cs" />
-    <Compile Include="ContentTypeMetadata.cs" />
     <Compile Include="Guids.cs" />
     <Compile Include="VsInteractiveWindowEditorFactoryService.cs" />
     <Compile Include="InteractiveWindowPackage.cs" />
@@ -134,7 +133,6 @@
     <Compile Include="IVsInteractiveWindowOleCommandTargetProvider.cs" />
     <Compile Include="MenuIds.cs" />
     <Compile Include="ProvideInteractiveWindowAttribute.cs" />
-    <Compile Include="Utils.cs" />
     <Compile Include="VsInteractiveWindow.cs" />
     <Compile Include="VsInteractiveWindowCommandFilter.cs" />
     <Compile Include="VsInteractiveWindowExtensions.cs" />
@@ -167,7 +165,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\Package.ico" />
-    <None Include="packages.config" />
+    <None Include="project.json" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />

@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -52,6 +54,18 @@ namespace Microsoft.CodeAnalysis
             }
 
             return stream;
+        }
+
+        /// <summary>
+        /// Reads the contents of <paramref name="resolvedPath"/> and returns a <see cref="SourceText"/>.
+        /// </summary>
+        /// <param name="resolvedPath">Path returned by <see cref="ResolveReference(string, string)"/>.</param>
+        public virtual SourceText ReadText(string resolvedPath)
+        {
+            using (var stream = OpenRead(resolvedPath))
+            {
+                return EncodedStringText.Create(stream);
+            }
         }
     }
 }

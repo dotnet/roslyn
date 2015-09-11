@@ -1936,5 +1936,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_GlobalNamespace
         FEATURE_NullPropagatingOperator
         FEATURE_NameOfExpressions
+        FEATURE_ReadonlyAutoProperties
+        FEATURE_RegionsEverywhere
+        FEATURE_MultilineStringLiterals
+        FEATURE_CObjInAttributeArguments
+        FEATURE_LineContinuationComments
+        FEATURE_TypeOfIsNot
+        FEATURE_YearFirstDateLiterals
+        FEATURE_WarningDirectives
+        FEATURE_PartialModules
+        FEATURE_PartialInterfaces
+        FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
     End Enum
 End Namespace

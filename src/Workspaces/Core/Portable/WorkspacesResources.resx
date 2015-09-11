@@ -453,4 +453,7 @@
   <data name="Usage" xml:space="preserve">
     <value>Usage:</value>
   </data>
+  <data name="Exceptions" xml:space="preserve">
+    <value>Exceptions:</value>
+  </data>
 </root>

@@ -484,14 +484,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Protected Sub New()
             End Sub
 
-            Protected Overrides Function GetArrayElementType(type As TypeSymbol) As TypeSymbol
+            Protected Overrides Function GetMDArrayElementType(type As TypeSymbol) As TypeSymbol
                 If type.Kind <> SymbolKind.ArrayType Then
                     Return Nothing
                 End If
 
                 Dim array = DirectCast(type, ArrayTypeSymbol)
 
-                If array.Rank < 2 Then
+                If array.IsSZArray Then
                     Return Nothing ' This is not a multidimensional array
                 End If
 
@@ -519,7 +519,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim array = DirectCast(type, ArrayTypeSymbol)
 
-                If array.Rank <> 1 Then
+                If Not array.IsSZArray Then
                     Return Nothing ' This is a multidimensional array
                 End If
 

@@ -1,7 +1,66 @@
-<Project DefaultTargets="Build" InitialTargets="EnsureGlobalNugets" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="OutDir;Configuration">
+<Project DefaultTargets="Build" InitialTargets="RestoreToolsetPackagesWrapper" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="OutDir;Configuration">
+
+  <PropertyGroup>
+    <ProjectDir>$(MSBuildThisFileDirectory)..\..\</ProjectDir>
+    <NuGetToolPath Condition="">$(ProjectDir)nuget.exe</NuGetToolPath>
+    <ToolsetPackagesDir>$(ProjectDir)build\ToolsetPackages\</ToolsetPackagesDir>
+    <ToolsetPackagesSemaphore>$(ToolsetPackagesDir)toolsetpackages.semaphore</ToolsetPackagesSemaphore>
+    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' and
+                                 '$(OS)' == 'Windows_NT'">$(UserProfile)\.nuget\packages</NuGetPackageRoot>
+    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' and
+                                 '$(OS)' != 'Windows_NT'">$([System.Environment]::GetFolderPath(SpecialFolder.Personal))\.nuget\packages</NuGetPackageRoot>
+  </PropertyGroup>
+
+  <!-- Import the global NuGet packages -->
+  <PropertyGroup>
+    <ToolsetCompilerPackageName>Microsoft.Net.Compilers</ToolsetCompilerPackageName>
+    <ToolsetCompilerPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.Compilers\1.1.0-beta1-20150727-01\build\Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
+    <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.RoslynDiagnostics\1.1.1-beta1-20150814-01\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
+    <AdditionalFileItemNames>$(AdditionalFileItemNames);PublicAPI</AdditionalFileItemNames>
+  </PropertyGroup>
+
+  <!-- Wrap the RestoreToolsetPackages target to prevent the output from being
+      referenced by other targets -->
+  <Target Name="RestoreToolsetPackagesWrapper" DependsOnTargets="RestoreToolsetPackages" />
+
+  <Target Name="RestoreToolsetPackages"
+          Inputs="$(ProjectDir)build\ToolsetPackages\project.json"
+          Outputs="$(ToolsetPackagesSemaphore);
+                   $(ToolsetCompilerPropsFilePath);
+                   $(RoslynDiagnosticsPropsFilePath)"
+          Condition="'$(OS)' == 'Windows_NT'">
+    <Message Importance="High" Text="Restoring toolset packages..." />
+
+    <!-- Run restore -->
+    <Exec Command="$(NuGetToolPath) restore $(ToolsetPackagesDir)project.json" />
+
+    <Error Text="Toolset compilers were not restored correctly. Could not find: $(ToolsetCompilerPropsFilePath)"
+           Condition="!Exists('$(ToolsetCompilerPropsFilePath)')" />
+    <Error Text="RoslynDiagnostics package was not restored correctly. Could not find: $(RoslynDiagnosticsPropsFilePath)"
+           Condition="!Exists('$(RoslynDiagnosticsPropsFilePath)')" />
+
+    <Touch Files="$(ToolsetCompilerPropsFilePath);$(RoslynDiagnosticsPropsFilePath)"
+           ContinueOnError="WarnAndContinue"
+           ForceTouch="true" />
+
+    <!-- Touch semaphore to indicate we're up to date -->
+    <Touch Files="$(ToolsetPackagesSemaphore)"
+           ContinueOnError="WarnAndContinue"
+           AlwaysCreate="true"
+           ForceTouch="true" />
+
+  </Target>
   <!-- This file is imported by all projects at the beginning of the project files -->
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
           Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props') AND '$(MSBuildProjectExtension)' != '.vcxproj'" />
+
+  <!-- NuGet props aren't imported by default on *nix so we do that here -->
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\NuGet\Microsoft.NuGet.props"
+          Condition="'$(OS)' != 'Windows_NT'" />
+
+  <PropertyGroup>
+    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == ''">$(UserProfile)\.nuget\packages</NuGetPackageRoot>
+  </PropertyGroup>
 
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">14.0</VisualStudioVersion>
@@ -29,8 +88,6 @@
 
     <SignAssembly Condition="'$(SignAssembly)' == ''">true</SignAssembly>
 
-    <NuGetPackagesPath Condition="'$(NuGetPackagesPath)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\packages'))</NuGetPackagesPath>
-
     <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
 
     <RoslynSemanticVersion Condition="'$(RoslynSemanticVersion)' == ''">1.1.0</RoslynSemanticVersion>
@@ -38,11 +95,13 @@
     <SystemCollectionsImmutableAssemblyVersion Condition="'$(SystemCollectionsImmutableAssemblyVersion)' == ''">1.1.36</SystemCollectionsImmutableAssemblyVersion>
     <NuGetCommandLineAssemblyVersion Condition="'$(NuGetCommandLineAssemblyVersion)' == ''">2.8.5</NuGetCommandLineAssemblyVersion>
     <MicrosoftCompositionAssemblyVersion Condition="'$(MicrosoftCompositionAssemblyVersion)' == ''">1.0.27</MicrosoftCompositionAssemblyVersion>
-    <SystemReflectionMetadataVersion>$(SystemReflectionMetadataAssemblyVersion)-alpha-00012</SystemReflectionMetadataVersion>
+    <MicrosoftCodeAnalysisAnalyzersAssemblyVersion Condition="'$(MicrosoftCodeAnalysisAnalyzersAssemblyVersion)' == ''">1.0.0</MicrosoftCodeAnalysisAnalyzersAssemblyVersion>
+    <SystemReflectionMetadataVersion>$(SystemReflectionMetadataAssemblyVersion)-alpha-00014</SystemReflectionMetadataVersion>
     <SystemCollectionsImmutableVersion>$(SystemCollectionsImmutableAssemblyVersion)</SystemCollectionsImmutableVersion>
-    <MicrosoftDiaSymReaderNativeVersion>1.1.0-alpha1</MicrosoftDiaSymReaderNativeVersion>
+    <MicrosoftDiaSymReaderNativeVersion>1.1.0-alpha2</MicrosoftDiaSymReaderNativeVersion>
     <NuGetCommandLineVersion>$(NuGetCommandLineAssemblyVersion)</NuGetCommandLineVersion>
     <MicrosoftCompositionVersion>$(MicrosoftCompositionAssemblyVersion)</MicrosoftCompositionVersion>
+    <MicrosoftCodeAnalysisAnalyzersVersion>$(MicrosoftCodeAnalysisAnalyzersAssemblyVersion)</MicrosoftCodeAnalysisAnalyzersVersion>
 
     <!-- If we still have Roslyn installed, our VSIX-producing packages are not going to install, so let's not even try.
          OpenSourceDebug overrides this by simple virtue that it's property setting is after the include of this file -->
@@ -75,14 +134,6 @@
     <ProjectLanguage Condition="'$(MSBuildProjectExtension)' == '.vcxproj' OR '$(Language)' == 'C++'">C++</ProjectLanguage>
   </PropertyGroup>
 
-  <!-- Import the global NuGet packages -->
-  <PropertyGroup>
-    <ToolsetCompilerPackageName>Microsoft.Net.Compilers</ToolsetCompilerPackageName>
-    <ToolsetCompilerPropsFilePath>$(NuGetPackagesPath)\Microsoft.Net.Compilers.1.1.0-beta1-20150727-01\build\Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
-    <RoslynDiagnosticsPropsFilePath>$(NuGetPackagesPath)\Microsoft.Net.RoslynDiagnostics.1.1.1-beta1-20150818-01\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
-    <AdditionalFileItemNames>$(AdditionalFileItemNames);PublicAPI</AdditionalFileItemNames>
-  </PropertyGroup>
-
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
     <!-- Use the compiler server -->
     <UseSharedCompilation>true</UseSharedCompilation>
@@ -95,11 +146,6 @@
     <Import Project="$(RoslynDiagnosticsPropsFilePath)"
             Condition="Exists('$(RoslynDiagnosticsPropsFilePath)') And ('$(UseRoslynAnalyzers)' == 'true')" />
   </ImportGroup>
-
-  <Target Name="EnsureGlobalNuGets" Condition="'$(BootstrapBuildPath)' == ''">
-    <Error Condition="!Exists('$(ToolsetCompilerPropsFilePath)')"
-           Text="This project requires the $(ToolsetCompilerPackageName) NuGet package to build. Use NuGet Package Restore to download the required files (&quot;powershell .nuget\NuGetRestore.ps1&quot;). The missing file is &quot;$(ToolsetCompilerPropsFilePath)&quot;." />
-  </Target>
 
   <PropertyGroup Condition="'$(BootstrapBuildPath)' != ''">
     <CscToolPath>$(BootstrapBuildPath)</CscToolPath>
@@ -126,7 +172,8 @@
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
     <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>
     <NoStdLib>true</NoStdLib>
-    <FrameworkPathOverride>$(NuGetPackagesPath)\Microsoft.NetFX20.1.0.3\lib\net20</FrameworkPathOverride>
+    <FrameworkPathOverride>$(NuGetPackageRoot)\Microsoft.NetFX20\1.0.3\lib\net20</FrameworkPathOverride>
+    <NuGetTargetMoniker>.NETFramework,Version=v2.0</NuGetTargetMoniker>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(ProjectLanguage)' == 'CSharp' AND '$(TargetNetFX20)' == 'true'">
@@ -240,7 +287,7 @@
   <PropertyGroup>
     <CopyVSReferencesToOutput>True</CopyVSReferencesToOutput>
     <AuthenticodeCertificateName>MicrosoftSHA1</AuthenticodeCertificateName>
-    <FakeSignToolPath>$(MSBuildThisFileDirectory)..\..\packages\FakeSign.0.9.2\tools\FakeSign.exe</FakeSignToolPath>
+    <FakeSignToolPath>$(NuGetPackageRoot)\FakeSign\0.9.2\tools\FakeSign.exe</FakeSignToolPath>
   </PropertyGroup>
 
   <Choose>

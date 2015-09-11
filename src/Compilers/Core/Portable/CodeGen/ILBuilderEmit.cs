@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         internal void EmitArrayCreation(Microsoft.Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            Debug.Assert(arrayType.Rank > 1, "should be used only with multidimensional arrays");
+            Debug.Assert(!arrayType.IsSZArray, "should be used only with multidimensional arrays");
 
             var ctor = module.ArrayMethods.GetArrayConstructor(arrayType);
 
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         internal void EmitArrayElementLoad(Microsoft.Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            Debug.Assert(arrayType.Rank > 1, "should be used only with multidimensional arrays");
+            Debug.Assert(!arrayType.IsSZArray, "should be used only with multidimensional arrays");
 
             var load = module.ArrayMethods.GetArrayGet(arrayType);
 
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         internal void EmitArrayElementAddress(Microsoft.Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            Debug.Assert(arrayType.Rank > 1, "should be used only with multidimensional arrays");
+            Debug.Assert(!arrayType.IsSZArray, "should be used only with multidimensional arrays");
 
             var address = module.ArrayMethods.GetArrayAddress(arrayType);
 
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         internal void EmitArrayElementStore(Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            Debug.Assert(arrayType.Rank > 1, "should be used only with multidimensional arrays");
+            Debug.Assert(!arrayType.IsSZArray, "should be used only with multidimensional arrays");
 
             var store = module.ArrayMethods.GetArraySet(arrayType);
 

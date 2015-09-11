@@ -49,11 +49,25 @@
     </When>
   </Choose>
 
+  <!-- Work around mono + msbuild bug https://github.com/Microsoft/msbuild/issues/191 -->
+  <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == 'DNXCore' and '$(OS)' != 'Windows_NT'">
+      <!-- Manually set assembly search paths so they don't get mangled later -->
+      <AssemblySearchPaths Condition=" '$(AssemblySearchPaths)' == ''">
+          {RawFileName};
+          $(OutDir)
+      </AssemblySearchPaths>
+      <RemoveAssemblyFoldersIfNoTargetFramework>false</RemoveAssemblyFoldersIfNoTargetFramework>
+  </PropertyGroup>
+
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.VisualBasic.targets" Condition="'$(ProjectLanguage)' == 'VB' And '$(TargetFrameworkIdentifier)' == '.NETPortable'"/>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" Condition="'$(ProjectLanguage)' == 'CSharp' And '$(TargetFrameworkIdentifier)' == '.NETPortable'"/>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" Condition="'$(ProjectLanguage)' == 'VB' And '$(TargetFrameworkIdentifier)' != '.NETPortable' And '$(TargetCoreClr)' != 'True'" />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" Condition="'$(ProjectLanguage)' == 'CSharp' And '$(TargetFrameworkIdentifier)' != '.NETPortable' And '$(TargetCoreClr)' != 'True'" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" Condition="'$(ProjectLanguage)' == 'VB' And '$(TargetFrameworkIdentifier)' != '.NETPortable'" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" Condition="'$(ProjectLanguage)' == 'CSharp' And '$(TargetFrameworkIdentifier)' != '.NETPortable'" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" Condition="'$(ProjectLanguage)' == 'C++'" />
+
+  <!-- On Mono on *nix the NuGet targets aren't imported by default, so we do that here -->
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\NuGet\Microsoft.NuGet.targets"
+          Condition="'$(OS)' != 'Windows_NT'" />
 
   <!-- It looks like MSBuild has a bug on *nix where they aggressively
        directory separators from '\' to '/', even when the '\'
@@ -136,47 +150,29 @@
     </ItemGroup>
   </Target>
 
-  <PropertyGroup Condition="'$(TargetCoreClr)' == 'True'">
+  <!-- ====================================================================================
 
-    <BuildToolsVersion>1.0.25-prerelease-00063</BuildToolsVersion>
+         Force-include our NuGet-consumed assets into VSIX projects
 
-    <!-- fix this to be not hacky -->
-    <BuildToolsDir>$(NuGetPackagesPath)\Microsoft.DotNet.BuildTools.$(BuildToolsVersion)\lib\</BuildToolsDir>
+         NOTE: this is a very specialized behavior we need for producing the Roslyn VSIXes.
+           It should not be copied into other projects without careful thought and
+           understanding of the VSSDK VSIX targets.
 
-    <!-- Implicitly needed by packageresolve.targets.  Should file a bug for a better error message here -->
-    <PackagesDir>$(NuGetPackagesPath)\</PackagesDir>
+       ==================================================================================== -->
 
-    <DnxVersion>1.0.0-beta5-12101</DnxVersion>
-    <DnxPackageName Condition="'$(DnxPackageName)' == '' and '$(OsEnvironment)'!='Unix'">dnx-coreclr-win-x86.$(DnxVersion)</DnxPackageName>
-    <DnxPackageName Condition="'$(DnxPackageName)' == '' and '$(OsEnvironment)'=='Unix'">dnx-mono.$(DnxVersion)</DnxPackageName>
+  <PropertyGroup>
+    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeNuGetResolvedAssets</GetVsixSourceItemsDependsOn>
+  </PropertyGroup>
 
-    <NuGetToolPath Condition="'$(NuGetToolPath)' == ''">$(NuGetPackagesPath)\..\.nuget\</NuGetToolPath>
-    <NuGetConfigCommandLine>-ConfigFile "$(NuGetConfigFile)"</NuGetConfigCommandLine>
+  <Target Name="IncludeNuGetResolvedAssets" DependsOnTargets="ResolveNuGetPackageAssets">
+    <ItemGroup Condition="'$(IncludeCopyLocalReferencesInVSIXContainer)' == 'true'">
+      <VSIXCopyLocalReferenceSourceItem Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' != ''">
+        <ForceIncludeInVsix>true</ForceIncludeInVsix>
+        <Private>true</Private>
+      </VSIXCopyLocalReferenceSourceItem>
+    </ItemGroup>
+  </Target>
 
-    <NugetRestoreCommand>"$(NuGetToolPath)NuGet.exe"</NugetRestoreCommand>
-    <NugetRestoreCommand>$(NugetRestoreCommand) install</NugetRestoreCommand>
-    <NugetRestoreCommand>$(NugetRestoreCommand) -OutputDirectory "$(NuGetPackagesPath)"</NugetRestoreCommand>
-    <NugetRestoreCommand>$(NugetRestoreCommand) -Config "$(NuGetToolPath)NuGet.Config"</NugetRestoreCommand>
-
-    <DnxPackageDir Condition="'$(DnxPackageDir)'==''">$([System.IO.Path]::GetFullPath('$(NuGetPackagesPath)'))\$(DnxPackageName)\</DnxPackageDir>
-    <DnuToolPath Condition="'$(DnuToolPath)'=='' and '$(OS)' == 'Windows_NT'">$(DnxPackageDir)\bin\dnu.cmd</DnuToolPath>
-    <DnuToolPath Condition="'$(DnuToolPath)'=='' and '$(OS)' != 'Windows_NT'">$(DnxPackageDir)/bin/dnu</DnuToolPath>
-
-    <DnuRestoreCommand>"$(DnuToolPath)"</DnuRestoreCommand>
-    <DnuRestoreCommand>$(DnuRestoreCommand) restore</DnuRestoreCommand>
-    <DnuRestoreCommand>$(DnuRestoreCommand) --packages "$(PackagesDir.TrimEnd('/').TrimEnd('\\'))"</DnuRestoreCommand>
-
-    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
-
-    <!-- For now continue to sign things the way we've always signed them -->
-    <SkipSigning>True</SkipSigning>
-
-    <!-- Consider changing this in buildtools directly -->
-    <NoStdLib>True</NoStdLib>
-
- </PropertyGroup>
-
-  <Import Condition="'$(TargetCoreClr)' == 'True'" Project="$(BuildToolsDir)Build.Common.Targets" />
 
   <!-- ====================================================================================
 

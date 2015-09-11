@@ -94,14 +94,20 @@ class Program
 
             using (var workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml))
             {
-                var analyzerMap = ImmutableDictionary.CreateBuilder<string, ImmutableArray<DiagnosticAnalyzer>>();
-                analyzerMap.Add(LanguageNames.CSharp,
-                    ImmutableArray.Create<DiagnosticAnalyzer>(
-                        new CSharpSimplifyTypeNamesDiagnosticAnalyzer(),
-                        new CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer()));
+                var analyzerMap = new Dictionary<string, DiagnosticAnalyzer[]>
+                {
+                    {
+                        LanguageNames.CSharp,
+                        new DiagnosticAnalyzer[]
+                        {
+                            new CSharpSimplifyTypeNamesDiagnosticAnalyzer(),
+                            new CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer()
+                        }
+                    }
+                };
 
                 var spans =
-                    GetErrorSpans(workspace, analyzerMap.ToImmutable())
+                    GetErrorSpans(workspace, analyzerMap)
                         .OrderBy(s => s.Span.Span.Start).ToImmutableArray();
 
                 Assert.Equal(3, spans.Length);

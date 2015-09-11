@@ -62,6 +62,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot have a previousSubmission when not a submission..
+        /// </summary>
+        internal static string CannotHavePreviousSubmission {
+            get {
+                return ResourceManager.GetString("CannotHavePreviousSubmission", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Can&apos;t reference compilation of type &apos;{0}&apos; from {1} compilation..
         /// </summary>
         internal static string CantReferenceCompilationOf {
@@ -85,6 +94,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string CompilationC {
             get {
                 return ResourceManager.GetString("CompilationC", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not find file..
+        /// </summary>
+        internal static string CouldNotFindFile {
+            get {
+                return ResourceManager.GetString("CouldNotFindFile", resourceCulture);
             }
         }
         
@@ -5363,6 +5381,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to #load is only allowed in scripts.
+        /// </summary>
+        internal static string ERR_LoadDirectiveOnlyAllowedInScripts {
+            get {
+                return ResourceManager.GetString("ERR_LoadDirectiveOnlyAllowedInScripts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Local &apos;{0}&apos; or its members cannot have their address taken and be used inside an anonymous method or lambda expression.
         /// </summary>
         internal static string ERR_LocalCantBeFixedAndHoisted {
@@ -5561,7 +5588,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Metadata references not supported..
+        ///   Looks up a localized string similar to Metadata references are not supported..
         /// </summary>
         internal static string ERR_MetadataReferencesNotSupported {
             get {
@@ -7028,6 +7055,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot use #load after first token in file.
+        /// </summary>
+        internal static string ERR_PPLoadFollowsToken {
+            get {
+                return ResourceManager.GetString("ERR_PPLoadFollowsToken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot use #r after first token in file.
         /// </summary>
         internal static string ERR_PPReferenceFollowsToken {
@@ -7726,6 +7762,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_SizeofUnsafe {
             get {
                 return ResourceManager.GetString("ERR_SizeofUnsafe", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Source file references are not supported..
+        /// </summary>
+        internal static string ERR_SourceFileReferencesNotSupported {
+            get {
+                return ResourceManager.GetString("ERR_SourceFileReferencesNotSupported", resourceCulture);
             }
         }
         
@@ -9675,6 +9720,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SyntaxTree &apos;{0}&apos; resulted from a #load directive and cannot be removed or replaced directly..
+        /// </summary>
+        internal static string SyntaxTreeFromLoadNoRemoveReplace {
+            get {
+                return ResourceManager.GetString("SyntaxTreeFromLoadNoRemoveReplace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SyntaxTree &apos;{0}&apos; not found to remove.
         /// </summary>
         internal static string SyntaxTreeNotFoundTo {
@@ -9743,24 +9797,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string TreeNotPartOfCompilation {
             get {
                 return ResourceManager.GetString("TreeNotPartOfCompilation", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to trees[{0}].
-        /// </summary>
-        internal static string Trees0 {
-            get {
-                return ResourceManager.GetString("Trees0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to trees[{0}] must have root node with SyntaxKind.CompilationUnit..
-        /// </summary>
-        internal static string TreesMustHaveRootNode {
-            get {
-                return ResourceManager.GetString("TreesMustHaveRootNode", resourceCulture);
             }
         }
         

@@ -63,6 +63,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         /// Create a new instance of a workspace that can be populated by opening solution and project files.
         /// </summary>
+        /// <param name="hostServices">The <see cref="HostServices"/> used to configure this workspace.</param>
+        public static MSBuildWorkspace Create(HostServices hostServices)
+        {
+            return Create(ImmutableDictionary<string, string>.Empty, hostServices);
+        }
+
+        /// <summary>
+        /// Create a new instance of a workspace that can be populated by opening solution and project files.
+        /// </summary>
         /// <param name="properties">The MSBuild properties used when interpreting project files.
         /// These are the same properties that are passed to msbuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.</param>
         /// <param name="hostServices">The <see cref="HostServices"/> used to configure this workspace.</param>

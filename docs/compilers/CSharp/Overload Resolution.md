@@ -72,3 +72,27 @@ var properties = x.Properties();
 ```
 
 See #2298 for more details, and #2305 for the implementation and tests that enable Roslyn to compile this code.
+
+### Tie-breaking rule with unused param-array parameters
+
+The old compiler implemented special rules for overload resolution (not in the language specification) in the presence of unused param-array parameters, and Roslyn's more strict interpretation of the specification (now fixed) prevented some programs from compiling.
+
+Specifically, a problem occurred if two methods have the same parameter types with exception of param-array types, and an attempt is made to call them without supplying any arguments for param-array parameter.
+
+```
+public class Test
+{
+    public Test(int a, params string[] p) { }
+    public Test(int a, params List<string>[] p) { }
+}
+```
+
+Now, the following call would cause an ambiguous error:
+
+```
+var x = new Test(10);
+```
+
+Old compiler calls the second overload (```Test(int a, params List<string>[] p)```)
+
+See #4458 for more details, and #4761 for the implementation and tests that enable Roslyn to compile this code.

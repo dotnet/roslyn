@@ -230,6 +230,8 @@
     <Compile Include="Compilation\AttributeSemanticModel.cs" />
     <Compile Include="Compilation\AwaitExpressionInfo.cs" />
     <Compile Include="Compilation\BuiltInOperators.cs" />
+    <Compile Include="Compilation\SyntaxAndDeclarationManager.cs" />
+    <Compile Include="Compilation\SyntaxAndDeclarationManager.LazyState.cs" />
     <Compile Include="Compilation\CSharpCompilerDiagnosticAnalyzer.cs" />
     <Compile Include="Compilation\CSharpCompilation.cs" />
     <Compile Include="Compilation\CSharpCompilationReference.cs" />
@@ -836,9 +838,7 @@
     <Content Include="UseSiteDiagnosticsCheckEnforcer\BaseLine.txt" />
     <Content Include="UseSiteDiagnosticsCheckEnforcer\Run.bat" />
     <None Include="FlowAnalysis\Flow Analysis Design.docx" />
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
+    <None Include="project.json" />
     <None Include="Symbols\PublicSymbolTable.cd" />
     <None Include="..\CSharpCodeAnalysisRules.ruleset">
       <SubType>Designer</SubType>
@@ -889,16 +889,6 @@
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.CSharp.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System.Collections.Immutable, Version=$(SystemCollectionsImmutableAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Reflection.Metadata, Version=$(SystemReflectionMetadataAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <Import Project="..\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />
   <ImportGroup Label="Targets">

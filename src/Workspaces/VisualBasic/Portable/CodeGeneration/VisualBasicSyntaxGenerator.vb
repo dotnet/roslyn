@@ -3401,27 +3401,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Return Me.RemoveNode(root, declaration)
             End If
 
-            Dim newFullDecl = Me.AsIsolatedDeclaration(newDeclaration)
-            Dim fullDecl = Me.GetFullDeclaration(declaration)
+            If root.Span.Contains(declaration.Span) Then
+                Dim newFullDecl = Me.AsIsolatedDeclaration(newDeclaration)
+                Dim fullDecl = Me.GetFullDeclaration(declaration)
 
-            ' special handling for replacing at location of a sub-declaration
-            If fullDecl IsNot declaration Then
+                ' special handling for replacing at location of a sub-declaration
+                If fullDecl IsNot declaration Then
 
-                ' try to replace inline if possible
-                If fullDecl.IsKind(newFullDecl.Kind) AndAlso GetDeclarationCount(newFullDecl) = 1 Then
-                    Dim newSubDecl = Me.GetSubDeclarations(newFullDecl)(0)
-                    If AreInlineReplaceableSubDeclarations(declaration, newSubDecl) Then
-                        Return MyBase.ReplaceNode(root, declaration, newSubDecl)
+                    ' try to replace inline if possible
+                    If fullDecl.IsKind(newFullDecl.Kind) AndAlso GetDeclarationCount(newFullDecl) = 1 Then
+                        Dim newSubDecl = Me.GetSubDeclarations(newFullDecl)(0)
+                        If AreInlineReplaceableSubDeclarations(declaration, newSubDecl) Then
+                            Return MyBase.ReplaceNode(root, declaration, newSubDecl)
+                        End If
                     End If
+
+                    ' otherwise replace by splitting full-declaration into two parts and inserting newDeclaration between them
+                    Dim index = MyBase.IndexOf(Me.GetSubDeclarations(fullDecl), declaration)
+                    Return Me.ReplaceSubDeclaration(root, fullDecl, index, newFullDecl)
                 End If
 
-                ' otherwise replace by splitting full-declaration into two parts and inserting newDeclaration between them
-                Dim index = MyBase.IndexOf(Me.GetSubDeclarations(fullDecl), declaration)
-                Return Me.ReplaceSubDeclaration(root, fullDecl, index, newFullDecl)
+                ' attempt normal replace
+                Return MyBase.ReplaceNode(root, declaration, newFullDecl)
+            Else
+                Return MyBase.ReplaceNode(root, declaration, newDeclaration)
             End If
-
-            ' attempt normal replace
-            Return MyBase.ReplaceNode(root, declaration, newFullDecl)
         End Function
 
         ' return true if one sub-declaration can be replaced in-line with another sub-declaration
@@ -3477,7 +3481,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function InsertNodesBefore(root As SyntaxNode, declaration As SyntaxNode, newDeclarations As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Return Isolate(root.TrackNodes(declaration), Function(r) InsertDeclarationsBeforeInternal(r, r.GetCurrentNode(declaration), newDeclarations))
+            If root.Span.Contains(declaration.Span) Then
+                Return Isolate(root.TrackNodes(declaration), Function(r) InsertDeclarationsBeforeInternal(r, r.GetCurrentNode(declaration), newDeclarations))
+            Else
+                Return MyBase.InsertNodesBefore(root, declaration, newDeclarations)
+            End If
         End Function
 
         Private Function InsertDeclarationsBeforeInternal(root As SyntaxNode, declaration As SyntaxNode, newDeclarations As IEnumerable(Of SyntaxNode)) As SyntaxNode
@@ -3499,7 +3507,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function InsertNodesAfter(root As SyntaxNode, declaration As SyntaxNode, newDeclarations As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Return Isolate(root.TrackNodes(declaration), Function(r) InsertNodesAfterInternal(r, r.GetCurrentNode(declaration), newDeclarations))
+            If root.Span.Contains(declaration.Span) Then
+                Return Isolate(root.TrackNodes(declaration), Function(r) InsertNodesAfterInternal(r, r.GetCurrentNode(declaration), newDeclarations))
+            Else
+                Return MyBase.InsertNodesAfter(root, declaration, newDeclarations)
+            End If
         End Function
 
         Private Function InsertNodesAfterInternal(root As SyntaxNode, declaration As SyntaxNode, newDeclarations As IEnumerable(Of SyntaxNode)) As SyntaxNode
@@ -3610,10 +3622,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Sub
 
         Public Overrides Function RemoveNode(root As SyntaxNode, declaration As SyntaxNode) As SyntaxNode
-            Return Isolate(root.TrackNodes(declaration), Function(r) Me.RemoveNodeInternal(r, r.GetCurrentNode(declaration)))
+            Return RemoveNode(root, declaration, DefaultRemoveOptions)
         End Function
 
-        Private Function RemoveNodeInternal(root As SyntaxNode, node As SyntaxNode) As SyntaxNode
+        Public Overrides Function RemoveNode(root As SyntaxNode, declaration As SyntaxNode, options As SyntaxRemoveOptions) As SyntaxNode
+            If root.Span.Contains(declaration.Span) Then
+                Return Isolate(root.TrackNodes(declaration), Function(r) Me.RemoveNodeInternal(r, r.GetCurrentNode(declaration), options))
+            Else
+                Return MyBase.RemoveNode(root, declaration, options)
+            End If
+        End Function
+
+        Private Function RemoveNodeInternal(root As SyntaxNode, node As SyntaxNode, options As SyntaxRemoveOptions) As SyntaxNode
 
             ' special case handling for nodes that remove their parents too
             Select Case node.Kind
@@ -3621,32 +3641,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Dim vd = TryCast(node.Parent, VariableDeclaratorSyntax)
                     If vd IsNot Nothing AndAlso vd.Names.Count = 1 Then
                         ' remove entire variable declarator if only name
-                        Return RemoveNodeInternal(root, vd)
+                        Return RemoveNodeInternal(root, vd, options)
                     End If
                 Case SyntaxKind.VariableDeclarator
                     If IsChildOfVariableDeclaration(node) AndAlso GetDeclarationCount(node.Parent) = 1 Then
                         ' remove entire parent declaration if this is the only declarator
-                        Return RemoveNodeInternal(root, node.Parent)
+                        Return RemoveNodeInternal(root, node.Parent, options)
                     End If
                 Case SyntaxKind.AttributeList
                     Dim attrList = DirectCast(node, AttributeListSyntax)
                     Dim attrStmt = TryCast(attrList.Parent, AttributesStatementSyntax)
                     If attrStmt IsNot Nothing AndAlso attrStmt.AttributeLists.Count = 1 Then
                         ' remove entire attribute statement if this is the only attribute list
-                        Return RemoveNodeInternal(root, attrStmt)
+                        Return RemoveNodeInternal(root, attrStmt, options)
                     End If
                 Case SyntaxKind.Attribute
                     Dim attrList = TryCast(node.Parent, AttributeListSyntax)
                     If attrList IsNot Nothing AndAlso attrList.Attributes.Count = 1 Then
                         ' remove entire attribute list if this is the only attribute
-                        Return RemoveNodeInternal(root, attrList)
+                        Return RemoveNodeInternal(root, attrList, options)
                     End If
                 Case SyntaxKind.SimpleArgument
                     If IsChildOf(node, SyntaxKind.ArgumentList) AndAlso IsChildOf(node.Parent, SyntaxKind.Attribute) Then
                         Dim argList = DirectCast(node.Parent, ArgumentListSyntax)
                         If argList.Arguments.Count = 1 Then
                             ' remove attribute's arg list if this is the only argument
-                            Return RemoveNodeInternal(root, argList)
+                            Return RemoveNodeInternal(root, argList, options)
                         End If
                     End If
                 Case SyntaxKind.SimpleImportsClause,
@@ -3654,7 +3674,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Dim imps = DirectCast(node.Parent, ImportsStatementSyntax)
                     If imps.ImportsClauses.Count = 1 Then
                         ' remove entire imports statement if this is the only clause
-                        Return RemoveNodeInternal(root, node.Parent)
+                        Return RemoveNodeInternal(root, node.Parent, options)
                     End If
                 Case Else
                     Dim parent = node.Parent
@@ -3663,19 +3683,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                             Case SyntaxKind.ImplementsStatement
                                 Dim imp = DirectCast(parent, ImplementsStatementSyntax)
                                 If imp.Types.Count = 1 Then
-                                    Return RemoveNodeInternal(root, parent)
+                                    Return RemoveNodeInternal(root, parent, options)
                                 End If
                             Case SyntaxKind.InheritsStatement
                                 Dim inh = DirectCast(parent, InheritsStatementSyntax)
                                 If inh.Types.Count = 1 Then
-                                    Return RemoveNodeInternal(root, parent)
+                                    Return RemoveNodeInternal(root, parent, options)
                                 End If
                         End Select
                     End If
             End Select
 
             ' do it the normal way
-            Return root.RemoveNode(node, DefaultRemoveOptions)
+            Return root.RemoveNode(node, options)
         End Function
 #End Region
 

@@ -10,6 +10,7 @@
     <NonShipping>true</NonShipping>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{E1D96749-5BF9-4B04-81A1-9D4B3B1F6BF4}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AssemblyName>ConsoleClassifier</AssemblyName>
@@ -65,7 +66,7 @@
     <Compile Include="Range.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="project.json" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />

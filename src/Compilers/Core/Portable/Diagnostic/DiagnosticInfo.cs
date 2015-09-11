@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis
                     result = true;
                     for (int i = 0; i < _arguments.Length; i++)
                     {
-                        if (_arguments[i] != other._arguments[i])
+                        if (!object.Equals(_arguments[i], other._arguments[i]))
                         {
                             result = false;
                             break;

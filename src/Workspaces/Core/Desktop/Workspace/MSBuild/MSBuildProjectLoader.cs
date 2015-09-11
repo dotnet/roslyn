@@ -716,6 +716,21 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     }
                 }
 
+                // since we have both C# and VB loaders in this same library, it no longer indicates whether we have full language support available.
+                if (loader != null)
+                {
+                    language = loader.Language;
+
+                    // check for command line parser existing... if not then error.
+                    var commandLineParser = _workspace.Services.GetLanguageServices(language).GetService<ICommandLineParserService>();
+                    if (commandLineParser == null)
+                    {
+                        loader = null;
+                        this.ReportFailure(mode, string.Format(WorkspacesResources.CannotOpenProjectUnsupportedLanguage, projectFilePath, language));
+                        return false;
+                    }
+                }
+
                 return loader != null;
             }
         }

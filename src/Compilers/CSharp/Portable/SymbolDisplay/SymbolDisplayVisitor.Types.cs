@@ -62,9 +62,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             AddPunctuation(SyntaxKind.OpenBracketToken);
 
-            if (insertStars && symbol.Rank > 1)
+            if (symbol.Rank > 1)
             {
-                AddPunctuation(SyntaxKind.AsteriskToken);
+                if (insertStars)
+                {
+                    AddPunctuation(SyntaxKind.AsteriskToken);
+                }
+            }
+            else
+            {
+                var array = symbol as ArrayTypeSymbol;
+
+                if ((object)array != null && !array.IsSZArray)
+                {
+                    // Always add an asterisk in this case in order to distinguish between SZArray and MDArray.
+                    AddPunctuation(SyntaxKind.AsteriskToken);
+                }
             }
 
             for (int i = 0; i < symbol.Rank - 1; i++)

@@ -2,7 +2,6 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
     <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-    <Import Project="..\..\..\build\Targets\PortableReferences.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -13,13 +12,11 @@
     <AssemblyName>Microsoft.CodeAnalysis.Scripting</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RestorePackages>true</RestorePackages>
-    <ImplicitlyExpandTargetFramework>False</ImplicitlyExpandTargetFramework>
-    <NoStdLib>true</NoStdLib>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -61,14 +58,19 @@
     <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GlobalAssemblyCache.cs">
       <Link>GlobalAssemblyCache.cs</Link>
     </Compile>
-    <Compile Include="AssemblyLoadResult.cs" />
+    <Compile Include="..\..\Workspaces\Core\Desktop\Utilities\ReferencePathUtilities.cs">
+      <Link>ReferencePathUtilities.cs</Link>
+    </Compile>
+    <Compile Include="AssemblyLoader\AssemblyLoadResult.cs" />
     <Compile Include="DesktopMetadataReferenceResolver.cs" />
-    <Compile Include="InteractiveAssemblyLoader.cs" />
-    <Compile Include="MetadataShadowCopy.cs" />
-    <Compile Include="MetadataShadowCopyProvider.cs" />
+    <Compile Include="AssemblyLoader\InteractiveAssemblyLoader.cs" />
+    <Compile Include="AssemblyLoader\MetadataShadowCopy.cs" />
+    <Compile Include="AssemblyLoader\MetadataShadowCopyProvider.cs" />
+    <Compile Include="AssemblyLoader\ShadowCopy.cs" />
     <Compile Include="NuGetPackageResolver.cs" />
     <Compile Include="ScriptCompilerUtil.cs" />
-    <Compile Include="ShadowCopy.cs" />
+    <Compile Include="ScriptCompiler.cs" />
+    <Compile Include="ScriptRunner.cs" />
     <Compile Include="ObjectFormatter.cs" />
     <Compile Include="ObjectFormatter.Formatter.cs" />
     <Compile Include="Script.cs" />
@@ -86,14 +88,12 @@
     <Compile Include="ScriptOptions.cs" />
     <Compile Include="ScriptState.cs" />
     <Compile Include="ScriptVariable.cs" />
+    <Compile Include="TaskExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.Desktop" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.CSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.VisualBasic" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveFeatures" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveEditorFeatures" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="csi" />
     <InternalsVisibleTo Include="vbi" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
@@ -110,6 +110,13 @@
       <LastGenOutput>ScriptingResources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />

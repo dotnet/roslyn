@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else if (text.StartsWith("#", StringComparison.Ordinal))
             {
-                return SyntaxTrivia.Create(SyntaxKind.ShebangCommentTrivia, text);
+                return SyntaxTrivia.Create(SyntaxKind.ShebangTrivia, text);
             }
             else
             {

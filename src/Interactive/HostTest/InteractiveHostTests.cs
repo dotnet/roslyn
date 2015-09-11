@@ -17,6 +17,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Traits = Roslyn.Test.Utilities.Traits;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         public InteractiveHostTests()
         {
-            Host = new InteractiveHost(typeof(CSharpRepl), GetInteractiveHostPath(), ".", millisecondsTimeout: -1);
+            Host = new InteractiveHost(typeof(CSharpReplServiceProvider), GetInteractiveHostPath(), ".", millisecondsTimeout: -1);
 
             RedirectOutput();
 
@@ -420,8 +421,8 @@ WriteLine(5);
             Host.ExecuteFileAsync(file.Path).Wait();
 
             var errorOut = ReadErrorOutputToEnd().Trim();
-            Assert.True(errorOut.StartsWith(file.Path + "(1,2):", StringComparison.Ordinal), "Error output should start with file name, line and column");
-            Assert.True(errorOut.Contains("CS1024"), "Error output should include error CS1024");
+            Assert.True(errorOut.StartsWith(file.Path + "(1,7):", StringComparison.Ordinal), "Error output should start with file name, line and column");
+            Assert.True(errorOut.Contains("CS7010"), "Error output should include error CS7010");
         }
 
         /// <summary>

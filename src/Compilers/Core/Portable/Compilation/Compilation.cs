@@ -32,9 +32,6 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract partial class Compilation
     {
-        // Inverse of syntaxTrees array (i.e. maps tree to index)
-        internal readonly ImmutableDictionary<SyntaxTree, int> syntaxTreeOrdinalMap;
-
         /// <summary>
         /// Returns true if this is a case sensitive compilation, false otherwise.  Case sensitivity
         /// affects compilation features such as name lookup as well as choosing what names to emit
@@ -58,17 +55,17 @@ namespace Microsoft.CodeAnalysis
         internal Compilation(
             string name,
             ImmutableArray<MetadataReference> references,
+            IReadOnlyDictionary<string, string> features,
             Type submissionReturnType,
             Type hostObjectType,
             bool isSubmission,
-            ImmutableDictionary<SyntaxTree, int> syntaxTreeOrdinalMap,
             AsyncQueue<CompilationEvent> eventQueue)
         {
             Debug.Assert(!references.IsDefault);
+            Debug.Assert(features != null);
 
             this.AssemblyName = name;
             this.ExternalReferences = references;
-            this.syntaxTreeOrdinalMap = syntaxTreeOrdinalMap;
             this.EventQueue = eventQueue;
 
             if (isSubmission)
@@ -82,10 +79,10 @@ namespace Microsoft.CodeAnalysis
                 _lazySubmissionSlotIndex = SubmissionSlotIndexNotApplicable;
             }
 
-            _features = SyntaxTreeCommonFeatures(syntaxTreeOrdinalMap.Keys);
+            _features = features;
         }
 
-        private IReadOnlyDictionary<string, string> SyntaxTreeCommonFeatures(IEnumerable<SyntaxTree> trees)
+        protected static IReadOnlyDictionary<string, string> SyntaxTreeCommonFeatures(IEnumerable<SyntaxTree> trees)
         {
             IReadOnlyDictionary<string, string> set = null;
 
@@ -1805,6 +1802,8 @@ namespace Microsoft.CodeAnalysis
             return new EmitResult(success, diagnostics.ToReadOnlyAndFree());
         }
 
+        internal bool IsEmitDeterministic => this.Feature("deterministic")?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false;
+
         internal bool SerializeToPeStream(
             CommonPEModuleBuilder moduleBeingBuilt,
             EmitStreamProvider peStreamProvider,
@@ -1825,7 +1824,7 @@ namespace Microsoft.CodeAnalysis
             Stream portablePdbTempStream = null;
             Stream peTempStream = null;
 
-            bool deterministic = this.Feature("deterministic")?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false;
+            bool deterministic = IsEmitDeterministic;
             bool emitPortablePdb = moduleBeingBuilt.EmitOptions.DebugInformationFormat == DebugInformationFormat.PortablePdb;
             string pdbPath = (pdbStreamProvider != null) ? (moduleBeingBuilt.EmitOptions.PdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb")) : null;
 
@@ -2098,7 +2097,8 @@ namespace Microsoft.CodeAnalysis
 
         internal void MarkImportDirectiveAsUsed(SyntaxTree syntaxTree, int position)
         {
-            if (syntaxTree != null)
+            // Optimization: Don't initialize TreeToUsedImportDirectivesMap in submissions.
+            if (!IsSubmission && syntaxTree != null)
             {
                 var set = TreeToUsedImportDirectivesMap.GetOrAdd(syntaxTree, s_createSetCallback);
                 set.Add(position);
@@ -2107,8 +2107,13 @@ namespace Microsoft.CodeAnalysis
 
         internal bool IsImportDirectiveUsed(SyntaxTree syntaxTree, int position)
         {
-            SmallConcurrentSetOfInts usedImports;
+            if (IsSubmission)
+            {
+                // Since usings apply to subsequent submissions, we have to assume they are used.
+                return true;
+            }
 
+            SmallConcurrentSetOfInts usedImports;
             return syntaxTree != null &&
                 TreeToUsedImportDirectivesMap.TryGetValue(syntaxTree, out usedImports) &&
                 usedImports.Contains(position);
@@ -2129,14 +2134,10 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(this.ContainsSyntaxTree(tree1));
             Debug.Assert(this.ContainsSyntaxTree(tree2));
 
-            return this.syntaxTreeOrdinalMap[tree1] - this.syntaxTreeOrdinalMap[tree2];
+            return this.GetSyntaxTreeOrdinal(tree1) - this.GetSyntaxTreeOrdinal(tree2);
         }
 
-        internal int GetSyntaxTreeOrdinal(SyntaxTree tree)
-        {
-            Debug.Assert(this.ContainsSyntaxTree(tree));
-            return this.syntaxTreeOrdinalMap[tree];
-        }
+        internal abstract int GetSyntaxTreeOrdinal(SyntaxTree tree);
 
         /// <summary>
         /// Compare two source locations, using their containing trees, and then by Span.First within a tree. 

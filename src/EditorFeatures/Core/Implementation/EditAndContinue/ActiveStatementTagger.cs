@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             {
                 // TODO: call the handler only if the spans affect this buffer
                 var snapshot = _buffer.CurrentSnapshot;
-                handler(this, new SnapshotSpanEventArgs(new SnapshotSpan(snapshot, 0, snapshot.Length)));
+                handler(this, new SnapshotSpanEventArgs(snapshot.GetFullSpan()));
             }
         }
 

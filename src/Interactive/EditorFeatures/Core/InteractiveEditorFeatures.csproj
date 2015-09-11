@@ -16,9 +16,6 @@
     <RestorePackages>true</RestorePackages>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
-  <ItemGroup Label="File References">
-    <Reference Include="..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
-  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
@@ -41,7 +38,7 @@
       <Project>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</Project>
       <Name>EditorFeatures</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Features\Core\Features.csproj">
+    <ProjectReference Include="..\..\..\Features\Core\Portable\Features.csproj">
       <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
       <Name>Features</Name>
     </ProjectReference>
@@ -90,26 +87,6 @@
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Composition.AttributedModel">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.Convention">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Convention.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.Hosting">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Hosting.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.Runtime">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Runtime.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.TypedParts">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
-    </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.Remoting" />
@@ -133,6 +110,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
     <!-- The rest are for test purposes only. -->
     <InternalsVisibleToTest Include="Roslyn.Hosting.Diagnostics" />
+    <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveWindow.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
@@ -148,13 +126,14 @@
   <ItemGroup>
     <Compile Include="CommandHandlers\InteractiveCompletionCommandHandler.cs" />
     <Compile Include="CommandHandlers\InteractiveIntelliSenseCommandHandler.cs" />
+    <Compile Include="Extensibility\Interactive\CSharpVBResetCommand.cs" />
     <Compile Include="Extensibility\Interactive\InteractiveCommandHandler.cs" />
     <Compile Include="Extensibility\Interactive\InteractiveEvaluator.cs" />
     <Compile Include="Extensibility\Interactive\InteractiveMetadataReferenceResolver.cs" />
+    <Compile Include="Extensibility\Interactive\CSharpVBInteractiveCommandContentTypes.cs" />
+    <Compile Include="Extensibility\Interactive\NuGetPackageResolverImpl.cs" />
     <Compile Include="Implementation\Completion\InteractiveCommandCompletionService.cs" />
     <Compile Include="Implementation\Completion\Presentation\CompletionPresenter.cs" />
-    <Compile Include="Implementation\Interactive\Commands\CommandArgumentsParser.cs" />
-    <Compile Include="Implementation\Interactive\Commands\LoadCommand.cs" />
     <Compile Include="Implementation\Interactive\InertClassifierProvider.cs" />
     <Compile Include="Implementation\Interactive\InertClassifierProvider.InertClassifier.cs" />
     <Compile Include="Implementation\Interactive\InteractiveCommandContentTypeLanguageService.cs" />
@@ -163,11 +142,10 @@
     <Compile Include="Implementation\Interactive\InteractiveGlobalUndoServiceFactory.cs" />
     <Compile Include="Implementation\Interactive\InteractiveTextUndoHistoryWorkspaceServiceFactory.cs" />
     <Compile Include="Implementation\Interactive\InteractiveWorkspace.cs" />
-    <Compile Include="Implementation\Interactive\LoadCommandCompletionProvider.ItemRules.cs" />
-    <Compile Include="Implementation\Interactive\LoadCommandCompletionProvider.cs" />
+    <Compile Include="Implementation\Interactive\InteractiveDocumentSupportsSuggestionService.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="project.json" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />

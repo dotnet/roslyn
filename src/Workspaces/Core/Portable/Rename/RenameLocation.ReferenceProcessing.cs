@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Rename
     /// A helper class that contains some of the methods and filters that must be used when
     /// processing the raw results from the FindReferences API.
     /// </summary>
-    internal sealed partial class RenameLocationSet
+    internal sealed partial class RenameLocations
     {
         internal static class ReferenceProcessing
         {
@@ -354,7 +354,8 @@ namespace Microsoft.CodeAnalysis.Rename
                     {
                         if (location.Alias.Name == referencedSymbol.Name)
                         {
-                            results.Add(new RenameLocation(location.Location, location.Document.Id, isCandidateLocation: location.IsCandidateLocation, isRenamableAliasUsage: true));
+                            results.Add(new RenameLocation(location.Location, location.Document.Id, 
+                                isCandidateLocation: location.IsCandidateLocation, isRenamableAliasUsage: true, isWrittenTo: location.IsWrittenTo));
 
                             // We also need to add the location of the alias itself
                             var aliasLocation = location.Alias.Locations.Single();
@@ -367,6 +368,7 @@ namespace Microsoft.CodeAnalysis.Rename
                         results.Add(new RenameLocation(
                             location.Location,
                             location.Document.Id,
+                            isWrittenTo: location.IsWrittenTo,
                             isCandidateLocation: location.IsCandidateLocation,
                             isMethodGroupReference: location.IsCandidateLocation && location.CandidateReason == CandidateReason.MemberGroup,
                             isRenamableAccessor: await IsPropertyAccessorOrAnOverride(referencedSymbol, solution, cancellationToken).ConfigureAwait(false)));

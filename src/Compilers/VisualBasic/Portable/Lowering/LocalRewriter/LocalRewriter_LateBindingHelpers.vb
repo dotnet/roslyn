@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim arrayType = DirectCast(booleanArrayType, ArrayTypeSymbol)
             Dim booleanType = arrayType.ElementType
 
-            Debug.Assert(arrayType.Rank = 1)
+            Debug.Assert(arrayType.IsSZArray)
             Debug.Assert(booleanType.IsBooleanType)
 
             If flags.IsDefaultOrEmpty Then
@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim arrayType = DirectCast(objectArrayType, ArrayTypeSymbol)
             Dim objectType = arrayType.ElementType
 
-            Debug.Assert(arrayType.Rank = 1)
+            Debug.Assert(arrayType.IsSZArray)
             Debug.Assert(objectType.IsObjectType)
             Debug.Assert(Not rewrittenArguments.IsDefaultOrEmpty)
 
@@ -163,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim arrayType = DirectCast(objectArrayType, ArrayTypeSymbol)
             Dim objectType = arrayType.ElementType
 
-            Debug.Assert(arrayType.Rank = 1)
+            Debug.Assert(arrayType.IsSZArray)
             Debug.Assert(objectType.IsObjectType)
 
             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
@@ -267,7 +267,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim objectType = arrayType.ElementType
             Dim intType = Me.GetSpecialType(SpecialType.System_Int32)
 
-            Debug.Assert(arrayType.Rank = 1)
+            Debug.Assert(arrayType.IsSZArray)
             Debug.Assert(objectType.IsObjectType)
 
             If rewrittenArguments.IsDefaultOrEmpty Then
@@ -305,7 +305,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim arrayType = DirectCast(stringArrayType, ArrayTypeSymbol)
             Dim stringType = arrayType.ElementType
 
-            Debug.Assert(arrayType.Rank = 1)
+            Debug.Assert(arrayType.IsSZArray)
             Debug.Assert(stringType.IsStringType)
 
             If argumentNames.IsDefaultOrEmpty Then

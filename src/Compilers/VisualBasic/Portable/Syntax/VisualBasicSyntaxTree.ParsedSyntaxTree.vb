@@ -123,13 +123,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return New SimpleSyntaxReference(Me, node)
             End Function
 
-            ''' <summary>
-            ''' Returns a <see cref="String" /> that represents the source code of this parsed tree.
-            ''' </summary>
-            Public Overrides Function ToString() As String
-                Return Me.GetText().ToString()
-            End Function
-
             Public Overrides Function WithRootAndOptions(root As SyntaxNode, options As ParseOptions) As SyntaxTree
                 If Me._root Is root AndAlso Me._options Is options Then
                     Return Me

@@ -11,22 +11,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     {
         internal static readonly SymbolFactory Instance = new SymbolFactory();
 
-        internal override TypeSymbol GetArrayTypeSymbol(PEModuleSymbol moduleSymbol, int rank, TypeSymbol elementType)
+        internal override TypeSymbol GetMDArrayTypeSymbol(PEModuleSymbol moduleSymbol, int rank, TypeSymbol elementType, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers,
+                                                          ImmutableArray<int> sizes, ImmutableArray<int> lowerBounds)
         {
             if (elementType is UnsupportedMetadataTypeSymbol)
             {
                 return elementType;
             }
 
-            if (rank == 1)
-            {
-                // We do not support multi-dimensional arrays of rank 1, cannot distinguish
-                // them from SZARRAY.
-                // TODO(ngafter): what is the correct diagnostic for this situation?
-                return new UnsupportedMetadataTypeSymbol(); // Found a multi-dimensional array of rank 1 in metadata
-            }
-
-            return new ArrayTypeSymbol(moduleSymbol.ContainingAssembly, elementType, ImmutableArray<CustomModifier>.Empty, rank);
+            return ArrayTypeSymbol.CreateMDArray(moduleSymbol.ContainingAssembly, elementType, rank, sizes, lowerBounds, CSharpCustomModifier.Convert(customModifiers));
         }
 
         internal override TypeSymbol GetByRefReturnTypeSymbol(PEModuleSymbol moduleSymbol, TypeSymbol referencedType, ushort countOfCustomModifiersPrecedingByRef)
@@ -76,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return elementType;
             }
 
-            return new ArrayTypeSymbol(moduleSymbol.ContainingAssembly, elementType, CSharpCustomModifier.Convert(customModifiers));
+            return ArrayTypeSymbol.CreateSZArray(moduleSymbol.ContainingAssembly, elementType, CSharpCustomModifier.Convert(customModifiers));
         }
 
         internal override TypeSymbol GetUnsupportedMetadataTypeSymbol(PEModuleSymbol moduleSymbol, BadImageFormatException exception)

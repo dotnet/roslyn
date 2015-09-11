@@ -50,11 +50,8 @@ namespace Microsoft.CodeAnalysis.Scripting
 
             if (_packageResolver != null)
             {
-                string path = _packageResolver.ResolveNuGetPackage(reference);
-                if (path != null && PortableShim.File.Exists(path))
-                {
-                    return path;
-                }
+                // TODO: Call _packageResolver.ResolveNuGetPackage when
+                // this method supports returning a collection of results.
             }
 
             if (_gacFileResolver != null)

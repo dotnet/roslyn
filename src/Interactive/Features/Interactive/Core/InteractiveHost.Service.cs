@@ -19,6 +19,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Interactive
@@ -46,8 +47,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             // the search paths - updated from the hostObject
             private ImmutableArray<string> _sourceSearchPaths;
 
-            private ObjectFormatter _objectFormatter;
-            private IRepl _repl;
+            private ReplServiceProvider _replServiceProvider;
             private InteractiveHostObject _hostObject;
             private ObjectFormattingOptions _formattingOptions;
 
@@ -126,12 +126,11 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return null;
             }
 
-            public void Initialize(Type replType)
+            public void Initialize(Type replServiceProviderType)
             {
-                Contract.ThrowIfNull(replType);
+                Contract.ThrowIfNull(replServiceProviderType);
 
-                _repl = (IRepl)Activator.CreateInstance(replType);
-                _objectFormatter = _repl.CreateObjectFormatter();
+                _replServiceProvider = (ReplServiceProvider)Activator.CreateInstance(replServiceProviderType);
 
                 _hostObject = new InteractiveHostObject();
 
@@ -139,6 +138,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     .WithSearchPaths(DefaultReferenceSearchPaths)
                     .WithBaseDirectory(Directory.GetCurrentDirectory())
                     .AddReferences(_hostObject.GetType().Assembly);
+
                 _sourceSearchPaths = DefaultSourceSearchPaths;
 
                 _hostObject.ReferencePaths.AddRange(options.SearchPaths);
@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     {
                         var options = result.Options;
                         var state = result.State;
-                        script = Compile(state, text, null, ref options);
+                        script = Compile(state?.Script, text, null, ref options);
                         result = new TaskResult(options, state);
                     }
                     catch (CompilationErrorException e)
@@ -448,11 +448,11 @@ namespace Microsoft.CodeAnalysis.Interactive
                             {
                                 if (resultType != null && resultType.SpecialType == SpecialType.System_Void)
                                 {
-                                    Console.Out.WriteLine(_objectFormatter.VoidDisplayString);
+                                    Console.Out.WriteLine(_replServiceProvider.ObjectFormatter.VoidDisplayString);
                                 }
                                 else
                                 {
-                                    Console.Out.WriteLine(_objectFormatter.FormatObject(executeResult.Value, _formattingOptions));
+                                    Console.Out.WriteLine(_replServiceProvider.ObjectFormatter.FormatObject(executeResult.Value, _formattingOptions));
                                 }
                             }
                         }
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
             }
 
-            private TaskResult CompleteExecution(TaskResult result, RemoteAsyncOperation<RemoteExecutionResult> operation, bool success, string resolvedPath = null)
+            private TaskResult CompleteExecution(TaskResult result, RemoteAsyncOperation<RemoteExecutionResult> operation, bool success)
             {
                 // TODO (tomat): we should be resetting this info just before the execution to ensure that the services see the same
                 // as the next execution.
@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 options = options.WithBaseDirectory(currentDirectory);
 
-                operation.Completed(new RemoteExecutionResult(success, newSourcePaths, newReferencePaths, newWorkingDirectory, resolvedPath));
+                operation.Completed(new RemoteExecutionResult(success, newSourcePaths, newReferencePaths, newWorkingDirectory));
                 return result.With(options);
             }
 
@@ -572,13 +572,13 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     if (!isRestarting)
                     {
-                        Console.Out.WriteLine(_repl.GetLogo());
+                        Console.Out.WriteLine(_replServiceProvider.Logo);
                     }
 
                     if (File.Exists(initializationFileOpt))
                     {
                         Console.Out.WriteLine(string.Format(FeaturesResources.LoadingContextFrom, Path.GetFileName(initializationFileOpt)));
-                        var parser = _repl.GetCommandLineParser();
+                        var parser = _replServiceProvider.CommandLineParser;
 
                         // The base directory for relative paths is the directory that contains the .rsp file.
                         // Note that .rsp files included by this .rsp file will share the base directory (Dev10 behavior of csc/vbc).
@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
                 finally
                 {
-                    result = CompleteExecution(result, operation, true);
+                    result = CompleteExecution(result, operation, success: true);
                 }
 
                 return result;
@@ -738,22 +738,19 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return result;
             }
 
-            private Script<object> Compile(ScriptState<object> previous, string text, string path, ref ScriptOptions options)
+            private Script<object> Compile(Script previousScript, string code, string path, ref ScriptOptions options)
             {
-                Script script = _repl.CreateScript(text).WithOptions(options);
+                Script script;
 
-                if (previous != null)
+                var scriptOptions = options.WithPath(path).WithIsInteractive(path == null);
+
+                if (previousScript != null)
                 {
-                    script = script.WithPrevious(previous.Script);
+                    script = previousScript.ContinueWith(code, scriptOptions);
                 }
                 else
                 {
-                    script = script.WithGlobalsType(_hostObject.GetType());
-                }
-
-                if (path != null)
-                {
-                    script = script.WithPath(path).WithOptions(script.Options.WithIsInteractive(false));
+                    script = _replServiceProvider.CreateScript<object>(code, scriptOptions, _hostObject.GetType(), _assemblyLoader);
                 }
 
                 // force build so exception is thrown now if errors are found.
@@ -824,7 +821,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         {
                             var options = result.Options;
                             var state = result.State;
-                            script = Compile(state, content, fullPath, ref options);
+                            script = Compile(state?.Script, content, fullPath, ref options);
                             result = new TaskResult(options, state);
                         }
                         catch (CompilationErrorException e)
@@ -886,10 +883,14 @@ namespace Microsoft.CodeAnalysis.Interactive
                         try
                         {
                             var state = result.State;
-                            var globals = state ?? (object)_hostObject;
-                            state = script.RunAsync(globals, CancellationToken.None);
-                            var value = await state.ReturnValue.ConfigureAwait(false);
-                            return new ExecuteResult(result.With(state), value, null, true);
+
+                            var task = (state == null) ?
+                                script.RunAsync(_hostObject, CancellationToken.None) :
+                                script.ContinueAsync(state, CancellationToken.None);
+
+                            state = await task.ConfigureAwait(false);
+
+                            return new ExecuteResult(result.With(state), state.ReturnValue, null, true);
                         }
                         catch (Exception e)
                         {
@@ -921,7 +922,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 displayedDiagnostics.Sort((d1, d2) => d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start);
 
-                var formatter = _repl.GetDiagnosticFormatter();
+                var formatter = _replServiceProvider.DiagnosticFormatter;
 
                 foreach (var diagnostic in displayedDiagnostics)
                 {

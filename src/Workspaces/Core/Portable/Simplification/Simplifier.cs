@@ -47,6 +47,16 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// </summary>
         public static async Task<TNode> ExpandAsync<TNode>(TNode node, Document document, Func<SyntaxNode, bool> expandInsideNode = null, bool expandParameter = false, CancellationToken cancellationToken = default(CancellationToken)) where TNode : SyntaxNode
         {
+            if (node == null)
+            {
+                throw new ArgumentNullException(nameof(node));
+            }
+
+            if (document == null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return Expand(node, semanticModel, document.Project.Solution.Workspace, expandInsideNode, expandParameter, cancellationToken);
         }
@@ -56,6 +66,21 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// </summary>
         public static TNode Expand<TNode>(TNode node, SemanticModel semanticModel, Workspace workspace, Func<SyntaxNode, bool> expandInsideNode = null, bool expandParameter = false, CancellationToken cancellationToken = default(CancellationToken)) where TNode : SyntaxNode
         {
+            if (node == null)
+            {
+                throw new ArgumentNullException(nameof(node));
+            }
+
+            if (semanticModel == null)
+            {
+                throw new ArgumentNullException(nameof(semanticModel));
+            }
+
+            if (workspace == null)
+            {
+                throw new ArgumentNullException(nameof(workspace));
+            }
+
             var result = workspace.Services.GetLanguageServices(node.Language).GetService<ISimplificationService>()
                 .Expand(node, semanticModel, annotationForReplacedAliasIdentifier: null, expandInsideNode: expandInsideNode, expandParameter: expandParameter, cancellationToken: cancellationToken);
 
@@ -67,6 +92,11 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// </summary>
         public static async Task<SyntaxToken> ExpandAsync(SyntaxToken token, Document document, Func<SyntaxNode, bool> expandInsideNode = null, CancellationToken cancellationToken = default(CancellationToken))
         {
+            if (document == null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return Expand(token, semanticModel, document.Project.Solution.Workspace, expandInsideNode, cancellationToken);
         }
@@ -76,6 +106,16 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// </summary>
         public static SyntaxToken Expand(SyntaxToken token, SemanticModel semanticModel, Workspace workspace, Func<SyntaxNode, bool> expandInsideNode = null, CancellationToken cancellationToken = default(CancellationToken))
         {
+            if (semanticModel == null)
+            {
+                throw new ArgumentNullException(nameof(semanticModel));
+            }
+
+            if (workspace == null)
+            {
+                throw new ArgumentNullException(nameof(workspace));
+            }
+
             return workspace.Services.GetLanguageServices(token.Language).GetService<ISimplificationService>()
                 .Expand(token, semanticModel, expandInsideNode, cancellationToken);
         }
@@ -85,6 +125,11 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// </summary>
         public static async Task<Document> ReduceAsync(Document document, OptionSet optionSet = null, CancellationToken cancellationToken = default(CancellationToken))
         {
+            if (document == null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return await ReduceAsync(document, root.FullSpan, optionSet, cancellationToken).ConfigureAwait(false);
         }
@@ -95,6 +140,16 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// </summary>
         public static async Task<Document> ReduceAsync(Document document, SyntaxAnnotation annotation, OptionSet optionSet = null, CancellationToken cancellationToken = default(CancellationToken))
         {
+            if (document == null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
+            if (annotation == null)
+            {
+                throw new ArgumentNullException(nameof(annotation));
+            }
+
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return await ReduceAsync(document, root.GetAnnotatedNodesAndTokens(annotation).Select(t => t.FullSpan), optionSet, cancellationToken).ConfigureAwait(false);
         }
@@ -105,6 +160,11 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// </summary>
         public static Task<Document> ReduceAsync(Document document, TextSpan span, OptionSet optionSet = null, CancellationToken cancellationToken = default(CancellationToken))
         {
+            if (document == null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
             return ReduceAsync(document, SpecializedCollections.SingletonEnumerable(span), optionSet, cancellationToken);
         }
 
@@ -114,6 +174,16 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// </summary>
         public static Task<Document> ReduceAsync(Document document, IEnumerable<TextSpan> spans, OptionSet optionSet = null, CancellationToken cancellationToken = default(CancellationToken))
         {
+            if (document == null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
+            if (spans == null)
+            {
+                throw new ArgumentNullException(nameof(spans));
+            }
+
             return document.Project.LanguageServices.GetService<ISimplificationService>().ReduceAsync(document, spans, optionSet, cancellationToken: cancellationToken);
         }
 

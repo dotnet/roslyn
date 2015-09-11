@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ArrayTypeSymbol at1 = (ArrayTypeSymbol)t1.Type;
                         ArrayTypeSymbol at2 = (ArrayTypeSymbol)t2.Type;
 
-                        if (at1.Rank != at2.Rank)
+                        if (!at1.HasSameShapeAs(at2))
                         {
                             return false;
                         }

@@ -1330,5 +1330,89 @@ class C
 </symbols>
 ");
         }
+
+        [Fact]
+        public void IfStatement1()
+        {
+            string source = @"
+class C
+{
+    static void F()
+    {
+        new System.Action(() =>
+        {
+            bool result = false;
+            if (result)
+                System.Console.WriteLine(1);
+        })();
+    }
+}
+";
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+
+            v.VerifyIL("C.<>c.<F>b__0_0", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (bool V_0, //result
+                bool V_1)
+ -IL_0000:  nop
+ -IL_0001:  ldc.i4.0
+  IL_0002:  stloc.0
+ -IL_0003:  ldloc.0
+  IL_0004:  stloc.1
+ ~IL_0005:  ldloc.1
+  IL_0006:  brfalse.s  IL_000f
+ -IL_0008:  ldc.i4.1
+  IL_0009:  call       ""void System.Console.WriteLine(int)""
+  IL_000e:  nop
+ -IL_000f:  ret
+}
+", sequencePoints: "C+<>c.<F>b__0_0");
+        }
+
+        [Fact]
+        public void IfStatement2()
+        {
+            string source = @"
+class C
+{
+    static void F()
+    {
+        new System.Action(() =>
+        {
+            {
+                bool result = false;
+                if (result)
+                    System.Console.WriteLine(1);
+            }
+        })();
+    }
+}
+";
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+
+            v.VerifyIL("C.<>c.<F>b__0_0", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  .locals init (bool V_0, //result
+                bool V_1)
+ -IL_0000:  nop
+ -IL_0001:  nop
+ -IL_0002:  ldc.i4.0
+  IL_0003:  stloc.0
+ -IL_0004:  ldloc.0
+  IL_0005:  stloc.1
+ ~IL_0006:  ldloc.1
+  IL_0007:  brfalse.s  IL_0010
+ -IL_0009:  ldc.i4.1
+  IL_000a:  call       ""void System.Console.WriteLine(int)""
+  IL_000f:  nop
+ -IL_0010:  nop
+ -IL_0011:  ret
+}
+", sequencePoints: "C+<>c.<F>b__0_0");
+        }
     }
 }

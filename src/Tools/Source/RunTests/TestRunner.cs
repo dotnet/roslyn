@@ -106,6 +106,12 @@ namespace RunTests
             Console.WriteLine("================");
         }
 
+        private static readonly string[] UpgradedTests = new string[] {
+            "Microsoft.DiaSymReader.PortablePdb.UnitTests.dll",
+            "Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests.dll",
+            "Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests.dll"
+        };
+
         private async Task<TestResult> RunTest(string assemblyPath, CancellationToken cancellationToken)
         {
             var assemblyName = Path.GetFileName(assemblyPath);
@@ -120,8 +126,10 @@ namespace RunTests
 
             var errorOutput = new StringBuilder();
             var start = DateTime.UtcNow;
+
+            var xunitPath = UpgradedTests.Contains(assemblyName) ? Path.Combine($"{Path.GetDirectoryName(_xunitConsolePath)}", @"..\..\..\xunit.runner.console\2.1.0-beta4-build3109\tools", $"{Path.GetFileName(_xunitConsolePath)}") : _xunitConsolePath;
             var processOutput = await ProcessRunner.RunProcessAsync(
-                _xunitConsolePath,
+                xunitPath,
                 builder.ToString(),
                 lowPriority: false,
                 displayWindow: false,

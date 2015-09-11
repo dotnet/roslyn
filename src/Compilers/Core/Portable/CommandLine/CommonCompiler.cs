@@ -150,12 +150,13 @@ namespace Microsoft.CodeAnalysis
         /// <returns>File content or null on failure.</returns>
         internal SourceText ReadFileContent(CommandLineSourceFile file, IList<DiagnosticInfo> diagnostics, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, out string normalizedFilePath)
         {
+            var filePath = file.Path;
             try
             {
                 // PERF: Using a very small buffer size for the FileStream opens up an optimization within EncodedStringText where
                 // we read the entire FileStream into a byte array in one shot. For files that are actually smaller than the buffer
                 // size, FileStream.Read still allocates the internal buffer.
-                using (var data = PortableShim.FileStream.Create(file.Path, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.ReadWrite, bufferSize: 1, options: PortableShim.FileOptions.None))
+                using (var data = PortableShim.FileStream.Create(filePath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.ReadWrite, bufferSize: 1, options: PortableShim.FileOptions.None))
                 {
                     normalizedFilePath = (string)PortableShim.FileStream.Name.GetValue(data);
                     return EncodedStringText.Create(data, encoding, checksumAlgorithm);
@@ -163,27 +164,27 @@ namespace Microsoft.CodeAnalysis
             }
             catch (Exception e)
             {
-                diagnostics.Add(ToFileReadDiagnostics(e, file));
+                diagnostics.Add(ToFileReadDiagnostics(this.MessageProvider, e, filePath));
                 normalizedFilePath = null;
                 return null;
             }
         }
 
-        private DiagnosticInfo ToFileReadDiagnostics(Exception e, CommandLineSourceFile file)
+        internal static DiagnosticInfo ToFileReadDiagnostics(CommonMessageProvider messageProvider, Exception e, string filePath)
         {
             DiagnosticInfo diagnosticInfo;
 
             if (e is FileNotFoundException || e.GetType().Name == "DirectoryNotFoundException")
             {
-                diagnosticInfo = new DiagnosticInfo(MessageProvider, MessageProvider.ERR_FileNotFound, file.Path);
+                diagnosticInfo = new DiagnosticInfo(messageProvider, messageProvider.ERR_FileNotFound, filePath);
             }
             else if (e is InvalidDataException)
             {
-                diagnosticInfo = new DiagnosticInfo(MessageProvider, MessageProvider.ERR_BinaryFile, file.Path);
+                diagnosticInfo = new DiagnosticInfo(messageProvider, messageProvider.ERR_BinaryFile, filePath);
             }
             else
             {
-                diagnosticInfo = new DiagnosticInfo(MessageProvider, MessageProvider.ERR_NoSourceFile, file.Path, e.Message);
+                diagnosticInfo = new DiagnosticInfo(messageProvider, messageProvider.ERR_NoSourceFile, filePath, e.Message);
             }
 
             return diagnosticInfo;
