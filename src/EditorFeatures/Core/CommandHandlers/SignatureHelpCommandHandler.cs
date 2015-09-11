@@ -59,8 +59,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         {
             AssertIsForeground();
 
-            // check whether this feature is on.
-            if (!args.SubjectBuffer.GetOption(SignatureHelpOptions.ShowSignatureHelp))
+            // check whether this feature is on, but only if `args` was not InvokeSignatureHelpCommandArgs; in that case always invoke
+            if (!(args is InvokeSignatureHelpCommandArgs) && !args.SubjectBuffer.GetOption(SignatureHelpOptions.ShowSignatureHelp))
             {
                 controller = null;
                 return false;
