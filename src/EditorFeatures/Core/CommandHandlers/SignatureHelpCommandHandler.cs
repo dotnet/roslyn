@@ -59,7 +59,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         {
             AssertIsForeground();
 
-            // check whether this feature is on, but only if `args` was not InvokeSignatureHelpCommandArgs; in that case always invoke
+            // If args is `InvokeSignatureHelpCommandArgs` then sig help was explicitly invoked by the user and should
+            // be shown whether or not the option is set.
             if (!(args is InvokeSignatureHelpCommandArgs) && !args.SubjectBuffer.GetOption(SignatureHelpOptions.ShowSignatureHelp))
             {
                 controller = null;
