@@ -193,6 +193,7 @@
     <Compile Include="CodeAnalysisResources.cs" />
     <Compile Include="CodeFixes\CodeFixServiceTests.cs" />
     <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInFixableDiagnosticIds.cs" />
+    <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInFixableDiagnosticIds2.cs" />
     <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInGetFixAllProvider.cs" />
     <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInRegisterMethod.cs" />
     <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInRegisterMethodAsync.cs" />
