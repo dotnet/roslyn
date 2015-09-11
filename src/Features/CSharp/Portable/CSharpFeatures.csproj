@@ -100,6 +100,7 @@
     <Compile Include="CodeRefactorings\MoveDeclarationNearReference\MoveDeclarationNearReferenceCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\MoveDeclarationNearReference\MoveDeclarationNearReferenceCodeRefactoringProvider.Rewriter.cs" />
     <Compile Include="CodeRefactorings\MoveDeclarationNearReference\MoveDeclarationNearReferenceCodeRefactoringProvider.State.cs" />
+    <Compile Include="CodeRefactorings\ReplaceMethodWithProperty\ReplaceMethodWithPropertyCodeRefactoringProvider.cs" />
     <Compile Include="CodeStyle\CSharpCodeStyleOptions.cs" />
     <Compile Include="CodeStyle\CSharpCodeStyleOptionsProvider.cs" />
     <Compile Include="Completion\CompletionProviders\AttributeNamedParameterCompletionProvider.ItemRules.cs" />
@@ -359,6 +360,7 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="..\..\..\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />

@@ -710,6 +710,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Replace &apos;{0}&apos; and &apos;{1}&apos; with property.
+        /// </summary>
+        internal static string Replace0and1WithProperty {
+            get {
+                return ResourceManager.GetString("Replace0and1WithProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Replace &apos;{0}&apos; with property.
+        /// </summary>
+        internal static string Replace0WithProperty {
+            get {
+                return ResourceManager.GetString("Replace0WithProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Make {0} return Task instead of void..
         /// </summary>
         internal static string ReturnTaskInsteadOfVoid {

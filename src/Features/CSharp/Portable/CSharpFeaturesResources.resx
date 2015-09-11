@@ -437,4 +437,10 @@
   <data name="ERR_NameNotInContext" xml:space="preserve">
     <value>The name '{0}' does not exist in the current context.</value>
   </data>
+  <data name="Replace0and1WithProperty" xml:space="preserve">
+    <value>Replace '{0}' and '{1}' with property</value>
+  </data>
+  <data name="Replace0WithProperty" xml:space="preserve">
+    <value>Replace '{0}' with property</value>
+  </data>
 </root>
