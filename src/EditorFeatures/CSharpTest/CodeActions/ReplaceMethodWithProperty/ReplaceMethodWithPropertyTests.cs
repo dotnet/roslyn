@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -106,6 +107,70 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         {
             TestMissing(
 @"class C { int GetFoo() { [||] } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestUpdateReferenceNotInMethod()
+        {
+            Test(
+@"class C { int [||]GetFoo() { } void Bar() { var x = GetFoo(); } }",
+@"class C { int Foo { get { } } void Bar() { var x = Foo; } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestUpdateReferenceSimpleInvocation()
+        {
+            Test(
+@"class C { int [||]GetFoo() { } void Bar() { var x = GetFoo(); } }",
+@"class C { int Foo { get { } } void Bar() { var x = Foo; } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestUpdateReferenceMemberAccessInvocation()
+        {
+            Test(
+@"class C { int [||]GetFoo() { } void Bar() { var x = this.GetFoo(); } }",
+@"class C { int Foo { get { } } void Bar() { var x = this.Foo; } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestUpdateReferenceBindingMemberInvocation()
+        {
+            Test(
+@"class C { int [||]GetFoo() { } void Bar() { C x; var v = x?.GetFoo(); } }",
+@"class C { int Foo { get { } } void Bar() { C x; var v = x?.Foo; } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestUpdateReferenceInMethod()
+        {
+            Test(
+@"class C { int [||]GetFoo() { return GetFoo(); } }",
+@"class C { int Foo { get { return Foo; } } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestOverride()
+        {
+            Test(
+@"class C { public virtual int [||]GetFoo() { } } class D : C { public override int GetFoo() { } }",
+@"class C { public virtual int Foo { get { } } } class D : C { public override int Foo { get { } } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestUpdateReference_NonInvoked()
+        {
+            Test(
+@"using System; class C { int [||]GetFoo() { } void Bar() { Action<int> i = GetFoo; } }",
+@"using System; class C { int Foo { get { } } void Bar() { Action<int> i = {|Conflict:Foo|}; } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestUpdateReference_ImplicitReference()
+        {
+            Test(
+@"using System.Collections; class C { public IEnumerator [||]GetEnumerator() { } void Bar() { foreach (var x in this) { } } }",
+@"using System.Collections; class C { public IEnumerator Enumerator { get { } } void Bar() { {|Conflict:foreach (var x in this) { }|} } }");
         }
     }
 }

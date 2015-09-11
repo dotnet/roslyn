@@ -443,4 +443,10 @@
   <data name="Replace0WithProperty" xml:space="preserve">
     <value>Replace '{0}' with property</value>
   </data>
+  <data name="MethodReferencedImplicitly" xml:space="preserve">
+    <value>Method referenced implicitly</value>
+  </data>
+  <data name="NonInvokedMethodCannotBeReplacedWithProperty" xml:space="preserve">
+    <value>Non-invoked method cannot be replaced with property.</value>
+  </data>
 </root>

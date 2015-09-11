@@ -7,10 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Rename;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProperty
@@ -72,11 +74,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             var propertyName = hasGetPrefix
                 ? containingMethod.Identifier.ValueText.Substring(GetPrefix.Length)
                 : containingMethod.Identifier.ValueText;
+            var nameChanged = hasGetPrefix;
 
             // Looks good!
             context.RegisterRefactoring(new ReplaceMethodWithPropertyCodeAction(
                 string.Format(CSharpFeaturesResources.Replace0WithProperty, containingMethod.Identifier.ValueText),
-                c => ReplaceMethodsWithProperty(context.Document, propertyName, containingMethod, setMethod: null, cancellationToken: c),
+                c => ReplaceMethodsWithProperty(context.Document, propertyName, nameChanged, containingMethod, setMethod: null, cancellationToken: c),
                 containingMethod.Identifier.ValueText));
 
 
@@ -89,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                 {
                     context.RegisterRefactoring(new ReplaceMethodWithPropertyCodeAction(
                         string.Format(CSharpFeaturesResources.Replace0and1WithProperty, containingMethod.Identifier.ValueText, setMethod.Identifier.ValueText),
-                        c => ReplaceMethodsWithProperty(context.Document, propertyName, containingMethod, setMethod, cancellationToken: c),
+                        c => ReplaceMethodsWithProperty(context.Document, propertyName, nameChanged, containingMethod, setMethod, cancellationToken: c),
                         containingMethod.Identifier.ValueText + "get/set"));
                 }
             }
@@ -136,6 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
         private async Task<Solution> ReplaceMethodsWithProperty(
             Document document,
             string propertyName,
+            bool nameChanged,
             MethodDeclarationSyntax getMethod,
             MethodDeclarationSyntax setMethod,
             CancellationToken cancellationToken)
@@ -161,13 +165,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             {
                 var currentDocument = group.Key;
 
-                // This check will be removed when the work is done to make this feature
-                // work across VB/C#.  For now it is in place to get the end to end
-                // functionality implemented in one language.
-                if (currentDocument.Project.Language == LanguageNames.CSharp)
-                {
-                    // updatedSolution = UpdateReferencesInDocument(updatedSolution, group);
-                }
+                updatedSolution = await UpdateReferencesInDocumentAsync(
+                    propertyName, nameChanged, updatedSolution, group, cancellationToken).ConfigureAwait(false);
             }
 
             var definitionsByDocumentId = await GetDefinitionsByDocumentIdAsync(
@@ -201,6 +200,75 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             //    }
 
             //}
+        }
+
+        private async Task<Solution> UpdateReferencesInDocumentAsync(
+            string propertyName,
+            bool nameChanged,
+            Solution updatedSolution,
+            IGrouping<Document, ReferenceLocation> group,
+            CancellationToken cancellationToken)
+        {
+            var originalDocument = group.Key;
+            var root = await originalDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var editor = new SyntaxEditor(root, originalDocument.Project.Solution.Workspace);
+
+            foreach(var referenceLocation in group)
+            {
+                var location = referenceLocation.Location;
+                var nameToken = root.FindToken(location.SourceSpan.Start);
+
+                if (referenceLocation.IsImplicit)
+                {
+                    // Warn the user that we can't properly replace this method with a property.
+                    editor.ReplaceNode(nameToken.Parent, nameToken.Parent.WithAdditionalAnnotations(
+                        ConflictAnnotation.Create(CSharpFeaturesResources.MethodReferencedImplicitly)));
+                }
+                else
+                {
+                    if (nameToken.Kind() == SyntaxKind.IdentifierToken)
+                    {
+                        var nameNode = nameToken.Parent as IdentifierNameSyntax;
+                        var newName = nameChanged
+                            ? SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(propertyName).WithTriviaFrom(nameToken))
+                            : nameNode;
+
+                        var invocation = nameNode?.FirstAncestorOrSelf<InvocationExpressionSyntax>();
+                        var invocationExpression = invocation?.Expression;
+                        if (IsInvocationName(nameNode, invocationExpression))
+                        {
+                            // It was invoked.  Remove the invocation, and also change the name if necessary.
+                            editor.ReplaceNode(invocation, invocation.Expression.ReplaceNode(nameNode, newName));
+                        }
+                        else
+                        {
+                            // Wasn't invoked.  Change the name, but report a conflict.
+                            var annotation = ConflictAnnotation.Create(CSharpFeaturesResources.NonInvokedMethodCannotBeReplacedWithProperty);
+                            editor.ReplaceNode(nameNode, newName.WithIdentifier(newName.Identifier.WithAdditionalAnnotations(annotation)));
+                        }
+                    }
+                }
+            }
+
+            updatedSolution = updatedSolution.WithDocumentSyntaxRoot(originalDocument.Id, editor.GetChangedRoot());
+
+            return updatedSolution;
+        }
+
+        private static bool IsInvocationName(IdentifierNameSyntax nameNode, ExpressionSyntax invocationExpression)
+        {
+            if (invocationExpression == nameNode)
+            {
+                return true;
+            }
+
+            if (nameNode.IsAnyMemberAccessExpressionName() && nameNode.Parent == invocationExpression)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private async Task<Solution> UpdateDefinitionsInDocumentAsync(

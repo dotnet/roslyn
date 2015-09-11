@@ -539,6 +539,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Method referenced implicitly.
+        /// </summary>
+        internal static string MethodReferencedImplicitly {
+            get {
+                return ResourceManager.GetString("MethodReferencedImplicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Move declaration near reference.
         /// </summary>
         internal static string MoveDeclarationNearReference {
@@ -562,6 +571,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string NoCommonRootNodeForExtraction {
             get {
                 return ResourceManager.GetString("NoCommonRootNodeForExtraction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Non-invoked method cannot be replaced with property..
+        /// </summary>
+        internal static string NonInvokedMethodCannotBeReplacedWithProperty {
+            get {
+                return ResourceManager.GetString("NonInvokedMethodCannotBeReplacedWithProperty", resourceCulture);
             }
         }
         
