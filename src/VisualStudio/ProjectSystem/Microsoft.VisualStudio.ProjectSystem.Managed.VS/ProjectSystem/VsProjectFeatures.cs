@@ -13,16 +13,13 @@ namespace Microsoft.VisualStudio.ProjectSystem
     internal class VsProjectFeatures : IProjectFeatures
     {
         private readonly IUnconfiguredProjectVsServices _projectVsServices;
-        private readonly IThreadHandling _threadPolicy;
 
         [ImportingConstructor]
-        public VsProjectFeatures(IUnconfiguredProjectVsServices projectVsServices, IThreadHandling threadPolicy)
+        public VsProjectFeatures(IUnconfiguredProjectVsServices projectVsServices)
         {
             Requires.NotNull(projectVsServices, nameof(projectVsServices));
-            Requires.NotNull(threadPolicy, nameof(threadPolicy));
 
             _projectVsServices = projectVsServices;
-            _threadPolicy = threadPolicy;
         }
 
         public bool SupportsProjectDesigner

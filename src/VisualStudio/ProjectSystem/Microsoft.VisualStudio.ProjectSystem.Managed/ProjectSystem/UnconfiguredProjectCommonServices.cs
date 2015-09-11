@@ -11,13 +11,13 @@ namespace Microsoft.VisualStudio.ProjectSystem
     internal class UnconfiguredProjectCommonServices : IUnconfiguredProjectCommonServices
     {
         [ImportingConstructor]
-        public UnconfiguredProjectCommonServices(IProjectFeatures features, IThreadHandling threadPolicy)
+        public UnconfiguredProjectCommonServices(IProjectFeatures features, IThreadHandling threadingPolicy)
         {
             Requires.NotNull(features, nameof(features));
-            Requires.NotNull(threadPolicy, nameof(threadPolicy));
+            Requires.NotNull(threadingPolicy, nameof(threadingPolicy));
 
             Features = features;
-            ThreadingPolicy = threadPolicy;
+            ThreadingPolicy = threadingPolicy;
         }
 
         public IProjectFeatures Features
