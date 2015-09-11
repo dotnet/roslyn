@@ -162,6 +162,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 && token.Parent.IsKind(SyntaxKind.QualifiedCref);
         }
 
+        private static TextSpan GetTextChangeSpan(SourceText text, int position)
+        {
+            return CommonCompletionUtilities.GetTextChangeSpan(
+                text,
+                position,
+                (ch) => CompletionUtilities.IsTextChangeSpanStartCharacter(ch) || ch == '{',
+                (ch) => CompletionUtilities.IsWordCharacter(ch) || ch == '{' || ch == '}');
+        }
+
         // LookupSymbols doesn't return indexers or operators because they can't be referred to by name, so we'll have to try to 
         // find the innermost type declaration and return its operators and indexers
         private IEnumerable<ISymbol> GetOperatorsAndIndexers(SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
@@ -264,20 +273,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 descriptionFactory: CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, tokenPosition, symbol),
                 glyph: symbol.GetGlyph(),
                 sortText: symbolText);
-        }
-
-        private TextSpan GetTextChangeSpan(SourceText text, int position)
-        {
-            return CommonCompletionUtilities.GetTextChangeSpan(
-                text,
-                position,
-                (ch) => CompletionUtilities.IsTextChangeSpanStartCharacter(ch) || ch == '{',
-                (ch) => CompletionUtilities.IsWordCharacter(ch) || ch == '{' || ch == '}');
-        }
-
-        private string CreateParameters(IEnumerable<ITypeSymbol> arguments, SemanticModel semanticModel, int position)
-        {
-            return string.Join(", ", arguments.Select(t => t.ToMinimalDisplayString(semanticModel, position)));
         }
     }
 }
