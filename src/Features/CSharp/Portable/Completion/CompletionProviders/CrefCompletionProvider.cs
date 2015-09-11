@@ -69,20 +69,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var parentNode = token.GetAncestor<DocumentationCommentTriviaSyntax>().ParentTrivia.Token.Parent;
             var semanticModel = await document.GetSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(false);
 
-            // cref ""|, ""|"", ""a|""
-            if (token.IsKind(SyntaxKind.DoubleQuoteToken, SyntaxKind.SingleQuoteToken) && token.Parent.IsKind(SyntaxKind.XmlCrefAttribute))
+            if (IsCrefStartContext(token))
             {
                 result = semanticModel.LookupSymbols(token.SpanStart)
                                         .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation);
 
                 result = result.Concat(GetOperatorsAndIndexers(token, semanticModel, cancellationToken));
             }
-            else if (IsSignatureContext(token))
+            else if (IsCrefParameterListContext(token))
             {
                 result = semanticModel.LookupNamespacesAndTypes(token.SpanStart)
                                         .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation);
             }
-            else if (token.IsKind(SyntaxKind.DotToken) && token.Parent.IsKind(SyntaxKind.QualifiedCref))
+            else if (IsCrefQualifiedNameContext(token))
             {
                 // cref "a.|"
                 var parent = token.Parent as QualifiedCrefSyntax;
@@ -112,10 +111,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private bool IsSignatureContext(SyntaxToken token)
+        private static bool IsCrefStartContext(SyntaxToken token)
         {
-            return token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken, SyntaxKind.RefKeyword, SyntaxKind.OutKeyword)
-                && token.Parent.IsKind(SyntaxKind.CrefParameterList, SyntaxKind.CrefBracketedParameterList);
+            // cases:
+            //   <see cref="|
+            //   <see cref='|
+
+            return token.IsKind(SyntaxKind.DoubleQuoteToken, SyntaxKind.SingleQuoteToken)
+                && token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);
+        }
+
+        private static bool IsCrefParameterListContext(SyntaxToken token)
+        {
+            // cases:
+            //   <see cref="M(|
+            //   <see cref="M(x, |
+            //   <see cref="M(x, ref |
+            //   <see cref="M(x, out |
+            //   <see cref="M[|
+            //   <see cref="M[x, |
+            //   <see cref="M[x, ref |
+            //   <see cref="M[x, out |
+
+            if (!token.Parent.IsKind(SyntaxKind.CrefParameterList, SyntaxKind.CrefBracketedParameterList))
+            {
+                return false;
+            }
+
+            if (token.IsKind(SyntaxKind.OpenParenToken) &&
+                token.Parent.IsKind(SyntaxKind.CrefParameterList))
+            {
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.OpenBracketToken) &&
+                token.Parent.IsKind(SyntaxKind.CrefBracketedParameterList))
+            {
+                return true;
+            }         
+
+            return token.IsKind(SyntaxKind.CommaToken, SyntaxKind.RefKeyword, SyntaxKind.OutKeyword);
+        }
+
+        private static bool IsCrefQualifiedNameContext(SyntaxToken token)
+        {
+            // cases:
+            //   <see cref="x.|
+
+            return token.IsKind(SyntaxKind.DotToken)
+                && token.Parent.IsKind(SyntaxKind.QualifiedCref);
         }
 
         // LookupSymbols doesn't return indexers or operators because they can't be referred to by name, so we'll have to try to 
