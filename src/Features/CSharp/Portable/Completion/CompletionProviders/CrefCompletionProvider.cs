@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -17,14 +18,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal partial class CrefCompletionProvider : CompletionListProvider
     {
+        public static readonly SymbolDisplayFormat QualifiedCrefFormat =
+            new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
+                propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                parameterOptions: SymbolDisplayParameterOptions.None,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
+
         public static readonly SymbolDisplayFormat CrefFormat =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                parameterOptions:
-                    SymbolDisplayParameterOptions.IncludeType,
+                parameterOptions: SymbolDisplayParameterOptions.None,
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
@@ -143,51 +152,65 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private async Task<CompletionItem> CreateItemAsync(
             Workspace workspace, SemanticModel semanticModel, int textChangeSpanPosition, ISymbol symbol, SyntaxToken token, CancellationToken cancellationToken)
         {
+            var builder = SharedPools.Default<StringBuilder>().AllocateAndClear();
+
             int tokenPosition = token.SpanStart;
-            string symbolText = string.Empty;
 
             if (symbol is INamespaceOrTypeSymbol && token.IsKind(SyntaxKind.DotToken))
             {
-                symbolText = symbol.Name.EscapeIdentifier();
+                // Handle qualified namespace and type names.
 
-                if (symbol.GetArity() > 0)
-                {
-                    symbolText += "{";
-                    symbolText += string.Join(", ", ((INamedTypeSymbol)symbol).TypeParameters);
-                    symbolText += "}";
-                }
+                builder.Append(symbol.ToDisplayString(QualifiedCrefFormat));
             }
             else
             {
-                symbolText = symbol.ToMinimalDisplayString(semanticModel, tokenPosition, CrefFormat);
-                var parameters = symbol.GetParameters().Select(p =>
+                // Handle unqualified namespace and type names, or member names.
+
+                builder.Append(symbol.ToMinimalDisplayString(semanticModel, tokenPosition, CrefFormat));
+
+                var parameters = symbol.GetParameters();
+                if (!parameters.IsDefaultOrEmpty)
+                {
+                    // Note: we intentionally don't add the "params" modifier for any parameters.
+
+                    builder.Append(symbol.IsIndexer() ? '[' : '(');
+
+                    for (int i = 0; i < parameters.Length; i++)
                     {
-                        var displayName = p.Type.ToMinimalDisplayString(semanticModel, tokenPosition);
-
-                        if (p.RefKind == RefKind.Out)
+                        if (i > 0)
                         {
-                            return "out " + displayName;
+                            builder.Append(", ");
                         }
 
-                        if (p.RefKind == RefKind.Ref)
+                        var parameter = parameters[i];
+
+                        if (parameter.RefKind == RefKind.Out)
                         {
-                            return "ref " + displayName;
+                            builder.Append("out ");
+                        }
+                        else if (parameter.RefKind == RefKind.Ref)
+                        {
+                            builder.Append("ref ");
                         }
 
-                        return displayName;
-                    });
+                        builder.Append(parameter.Type.ToMinimalDisplayString(semanticModel, tokenPosition));
+                    }
 
-                var parameterList = !symbol.IsIndexer() ? string.Format("({0})", string.Join(", ", parameters))
-                                                        : string.Format("[{0}]", string.Join(", ", parameters));
-                symbolText += parameterList;
+                    builder.Append(symbol.IsIndexer() ? ']' : ')');
+                }
             }
 
-            var insertionText = symbolText
+            var symbolText = builder.ToString();
+
+            var insertionText = builder
                 .Replace('<', '{')
                 .Replace('>', '}')
-                .Replace("()", "");
+                .ToString();
+
+            SharedPools.Default<StringBuilder>().ClearAndFree(builder);
 
             var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
             return new Item(
                 completionProvider: this,
                 displayText: insertionText,

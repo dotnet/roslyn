@@ -398,7 +398,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 _ => ImmutableArray.Create<IParameterSymbol>());
         }
 
-#if false
         public static ImmutableArray<ITypeParameterSymbol> GetTypeParameters(this ISymbol symbol)
         {
             return symbol.TypeSwitch(
@@ -406,7 +405,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 (INamedTypeSymbol nt) => nt.TypeParameters,
                 _ => ImmutableArray.Create<ITypeParameterSymbol>());
         }
-#endif
 
         public static ImmutableArray<ITypeSymbol> GetTypeArguments(this ISymbol symbol)
         {
