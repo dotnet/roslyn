@@ -138,22 +138,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private async Task<IEnumerable<CompletionItem>> CreateItemsAsync(
             Workspace workspace, SemanticModel semanticModel, int textChangeSpanPosition, IEnumerable<ISymbol> symbols, SyntaxToken token, CancellationToken cancellationToken)
         {
-            var items = new List<CompletionItem>();
-
-            foreach (var symbol in symbols)
+            var builder = SharedPools.Default<StringBuilder>().AllocateAndClear();
+            try
             {
-                var item = await CreateItemAsync(workspace, semanticModel, textChangeSpanPosition, symbol, token, cancellationToken).ConfigureAwait(false);
-                items.Add(item);
-            }
+                var items = new List<CompletionItem>();
 
-            return items;
+                foreach (var symbol in symbols)
+                {
+                    var item = await CreateItemAsync(workspace, semanticModel, textChangeSpanPosition, symbol, token, builder, cancellationToken).ConfigureAwait(false);
+                    items.Add(item);
+
+                    builder.Clear();
+                }
+
+                return items;
+            }
+            finally
+            {
+                SharedPools.Default<StringBuilder>().ClearAndFree(builder);
+            }
         }
 
         private async Task<CompletionItem> CreateItemAsync(
-            Workspace workspace, SemanticModel semanticModel, int textChangeSpanPosition, ISymbol symbol, SyntaxToken token, CancellationToken cancellationToken)
+            Workspace workspace, SemanticModel semanticModel, int textChangeSpanPosition, ISymbol symbol, SyntaxToken token, StringBuilder builder, CancellationToken cancellationToken)
         {
-            var builder = SharedPools.Default<StringBuilder>().AllocateAndClear();
-
             int tokenPosition = token.SpanStart;
 
             if (symbol is INamespaceOrTypeSymbol && token.IsKind(SyntaxKind.DotToken))
@@ -206,8 +214,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 .Replace('<', '{')
                 .Replace('>', '}')
                 .ToString();
-
-            SharedPools.Default<StringBuilder>().ClearAndFree(builder);
 
             var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
