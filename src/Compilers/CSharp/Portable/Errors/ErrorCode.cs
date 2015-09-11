@@ -1314,5 +1314,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DebugEntryPointNotSourceMethodDefinition = 8096,
         ERR_LoadDirectiveOnlyAllowedInScripts = 8097,
         ERR_PPLoadFollowsToken = 8098,
+        ERR_SourceFileReferencesNotSupported = 8099,
     }
 }

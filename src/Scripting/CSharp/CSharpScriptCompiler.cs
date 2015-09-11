@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
                     platform: Platform.AnyCpu,
                     warningLevel: 4,
                     xmlReferenceResolver: null, // don't support XML file references in interactive (permissions & doc comment includes)
-                    sourceReferenceResolver: LoadDirectiveResolver.Default,
+                    sourceReferenceResolver: null,
                     metadataReferenceResolver: script.Options.ReferenceResolver,
                     assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default
                 ),
@@ -61,26 +61,6 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
             );
 
             return compilation;
-        }
-
-        private class LoadDirectiveResolver : SourceFileResolver
-        {
-            public static new LoadDirectiveResolver Default { get; } = new LoadDirectiveResolver();
-
-            private LoadDirectiveResolver()
-                : base(ImmutableArray<string>.Empty, baseDirectory: null)
-            {
-            }
-
-            public override SourceText ReadText(string resolvedPath)
-            {
-                string unused;
-                return CommonCompiler.ReadFileContentHelper(
-                    resolvedPath,
-                    encoding: null,
-                    checksumAlgorithm: SourceHashAlgorithm.Sha1, // TODO: Should we be fetching the checksum algorithm from somewhere?
-                    normalizedFilePath: out unused);
-            }
         }
     }
 }
