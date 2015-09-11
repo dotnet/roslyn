@@ -100,7 +100,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
             }
 
-            var items = await CreateItemsAsync(document.Project.Solution.Workspace, semanticModel, position, result, token, cancellationToken).ConfigureAwait(false);
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var filterSpan = GetTextChangeSpan(text, position);
+
+            var items = CreateItems(document.Project.Solution.Workspace, semanticModel, filterSpan, result, token, cancellationToken);
 
             if (items.Any())
             {
@@ -135,23 +138,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return result;
         }
 
-        private async Task<IEnumerable<CompletionItem>> CreateItemsAsync(
-            Workspace workspace, SemanticModel semanticModel, int textChangeSpanPosition, IEnumerable<ISymbol> symbols, SyntaxToken token, CancellationToken cancellationToken)
+        private IEnumerable<CompletionItem> CreateItems(
+            Workspace workspace, SemanticModel semanticModel, TextSpan filterSpan, IEnumerable<ISymbol> symbols, SyntaxToken token, CancellationToken cancellationToken)
         {
             var builder = SharedPools.Default<StringBuilder>().AllocateAndClear();
             try
             {
-                var items = new List<CompletionItem>();
-
                 foreach (var symbol in symbols)
                 {
-                    var item = await CreateItemAsync(workspace, semanticModel, textChangeSpanPosition, symbol, token, builder, cancellationToken).ConfigureAwait(false);
-                    items.Add(item);
-
                     builder.Clear();
+                    yield return CreateItem(workspace, semanticModel, filterSpan, symbol, token, builder, cancellationToken);
                 }
-
-                return items;
             }
             finally
             {
@@ -159,8 +156,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private async Task<CompletionItem> CreateItemAsync(
-            Workspace workspace, SemanticModel semanticModel, int textChangeSpanPosition, ISymbol symbol, SyntaxToken token, StringBuilder builder, CancellationToken cancellationToken)
+        private CompletionItem CreateItem(
+            Workspace workspace, SemanticModel semanticModel, TextSpan filterSpan, ISymbol symbol, SyntaxToken token, StringBuilder builder, CancellationToken cancellationToken)
         {
             int tokenPosition = token.SpanStart;
 
@@ -215,13 +212,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 .Replace('>', '}')
                 .ToString();
 
-            var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
             return new Item(
                 completionProvider: this,
                 displayText: insertionText,
                 insertionText: insertionText,
-                textSpan: GetTextChangeSpan(text, textChangeSpanPosition),
+                textSpan: filterSpan,
                 descriptionFactory: CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, tokenPosition, symbol),
                 glyph: symbol.GetGlyph(),
                 sortText: symbolText);
