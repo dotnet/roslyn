@@ -672,7 +672,7 @@ Namespace A
     End Class
 End Namespace</Text>.NormalizedValue
 
-            Test(initial, expected, compareTokens:=False, isLine:=False)
+            Test(initial, expected, compareTokens:=False)
         End Sub
 
         <WorkItem(940003)>

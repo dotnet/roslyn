@@ -1642,7 +1642,7 @@ namespace A
 }
 ";
 
-            Test(code, expected, compareTokens: false, isLine: false);
+            Test(code, expected, compareTokens: false);
         }
 
         [WorkItem(932602)]

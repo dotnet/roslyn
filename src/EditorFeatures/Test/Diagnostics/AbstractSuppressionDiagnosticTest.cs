@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     {
         protected abstract int CodeActionIndex { get; }
 
-        protected void Test(string initial, string expected, bool isLine = true, bool isAddedDocument = false)
+        protected void Test(string initial, string expected, bool isAddedDocument = false)
         {
-            Test(initial, expected, parseOptions: null, index: CodeActionIndex, compareTokens: false, isLine: isLine, isAddedDocument: isAddedDocument);
+            Test(initial, expected, parseOptions: null, index: CodeActionIndex, compareTokens: false, isAddedDocument: isAddedDocument);
         }
 
         protected void TestMissing(string initial)

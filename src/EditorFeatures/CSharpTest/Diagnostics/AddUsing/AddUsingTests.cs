@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -31,15 +33,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
              bool systemSpecialCase,
              int index = 0)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(initialMarkup))
+            Test(initialMarkup, expected, index, options: new Dictionary<OptionKey, object>
             {
-                var optionServices = workspace.Services.GetService<IOptionService>();
-                optionServices.SetOptions(optionServices.GetOptions().WithChangedOption(Microsoft.CodeAnalysis.Shared.Options.OrganizerOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, systemSpecialCase));
-
-                var diagnosticsAndFix = this.GetDiagnosticAndFix(workspace);
-                var actions = diagnosticsAndFix.Item2.Fixes.Select(f => f.Action).ToList();
-                TestActions(workspace, expected, index, actions);
-            }
+                { new OptionKey(OrganizerOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp), systemSpecialCase }
+            });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
@@ -1031,7 +1028,7 @@ namespace ExternAliases
     }
 } 
 ";
-            Test(InitialWorkspace, ExpectedDocumentText, isLine: false);
+            Test(InitialWorkspace, ExpectedDocumentText);
         }
 
         [WorkItem(875899)]
@@ -1093,7 +1090,7 @@ namespace ExternAliases
     }
 } 
 ";
-            Test(InitialWorkspace, ExpectedDocumentText, isLine: false);
+            Test(InitialWorkspace, ExpectedDocumentText);
         }
 
         [WorkItem(875899)]
@@ -1143,7 +1140,7 @@ namespace ExternAliases
     }
 } 
 ";
-            Test(InitialWorkspace, ExpectedDocumentText, isLine: false);
+            Test(InitialWorkspace, ExpectedDocumentText);
         }
 
         [WorkItem(875899)]
@@ -1653,7 +1650,7 @@ public class C
         C x = a?.B();
     }
 }";
-            Test(initialText, expectedText, isLine: false);
+            Test(initialText, expectedText);
         }
 
         [WorkItem(1064748)]
@@ -1705,7 +1702,7 @@ public class C
     {
     }
 }";
-            Test(initialText, expectedText, isLine: false);
+            Test(initialText, expectedText);
         }
 
         [WorkItem(1089138)]
@@ -1822,27 +1819,19 @@ class Program { static void Main ( string [ ] args ) { var a = File . OpenRead (
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestInaccessibleExtensionMethod()
         {
-            const string InitialWorkspace = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""lib"" CommonReferences=""true"">
-        <Document FilePath=""lib.cs"">
-namespace ProjectLib
+            const string initial = @"
+namespace N1
 {
-    public static class Class1
+    public static class C
     {
-        public static bool ExtMethod1(this string arg1)
+        private static bool ExtMethod1(this string arg1)
         {
-            Console.WriteLine(arg1);
             return true;
         }
     }
 }
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Console"" CommonReferences=""true"">
-        <ProjectReference>lib</ProjectReference>
-        <Document FilePath=""Program.cs"">
-namespace ConsoleApplication1
+
+namespace N2
 {
     class Program
     {
@@ -1851,63 +1840,8 @@ namespace ConsoleApplication1
             var x = ""str1"".[|ExtMethod1()|];
         }
     }
-} 
-</Document>
-    </Project>
-</Workspace>";
-            const string ExpectedDocumentText = @"using ProjectLib;
-
-namespace ConsoleApplication1
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            var x = ""str1"".ExtMethod1();
-        }
-    }
-}  
-";
-            Test(InitialWorkspace, ExpectedDocumentText, isLine: false);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestInaccessibleExtensionMethod2()
-        {
-            const string InitialWorkspace = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""lib"" CommonReferences=""true"">
-        <Document FilePath=""lib.cs"">
-namespace ProjectLib
-{
-    static class Class1
-    {
-        public static bool ExtMethod1(this string arg1)
-        {
-            Console.WriteLine(arg1);
-            return true;
-        }
-    }
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Console"" CommonReferences=""true"">
-        <ProjectReference>lib</ProjectReference>
-        <Document FilePath=""Program.cs"">
-namespace ConsoleApplication1
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            var x = ""str1"".[|ExtMethod1()|];
-        }
-    }
-} 
-</Document>
-    </Project>
-</Workspace>";
-            TestMissing(InitialWorkspace);
+}";
+            TestMissing(initial);
         }
 
         [WorkItem(1116011)]
@@ -2151,15 +2085,10 @@ namespace A.C
                  bool systemSpecialCase,
                  int index = 0)
             {
-                using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(initialMarkup))
+                Test(initialMarkup, expected, index: index, options: new Dictionary<OptionKey, object>
                 {
-                    var optionServices = workspace.Services.GetService<IOptionService>();
-                    optionServices.SetOptions(optionServices.GetOptions().WithChangedOption(Microsoft.CodeAnalysis.Shared.Options.OrganizerOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, systemSpecialCase));
-
-                    var diagnosticsAndFix = this.GetDiagnosticAndFix(workspace);
-                    var actions = diagnosticsAndFix.Item2.Fixes.Select(f => f.Action).ToList();
-                    TestActions(workspace, expected, index, actions);
-                }
+                    { new OptionKey(OrganizerOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp), systemSpecialCase }
+                });
             }
 
             [WorkItem(752640)]

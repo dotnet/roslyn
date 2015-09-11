@@ -1449,7 +1449,7 @@ End Class]]>
 <Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""type"", Target:=""~T:Class2"")>
 "
 
-                    Test(source.ToString(), expected, isLine:=False)
+                    Test(source.ToString(), expected)
                 End Sub
 
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
@@ -1485,7 +1485,7 @@ End Class
 <Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""type"", Target:=""~T:Class2"")>
 "
 
-                    Test(source.ToString(), expected, isLine:=False, isAddedDocument:=True)
+                    Test(source.ToString(), expected, isAddedDocument:=True)
                 End Sub
 
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
@@ -1531,7 +1531,7 @@ End Class
 <Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""type"", Target:=""~T:Class2"")>
 "
 
-                    Test(source.ToString(), expected, isLine:=False, isAddedDocument:=False)
+                    Test(source.ToString(), expected, isAddedDocument:=False)
                 End Sub
             End Class
         End Class

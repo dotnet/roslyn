@@ -1309,7 +1309,7 @@ class Class { }
 
 ";
 
-                    Test(initialMarkup, expectedText, isLine: false);
+                    Test(initialMarkup, expectedText);
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
@@ -1345,7 +1345,7 @@ class Class { }
 
 ";
 
-                    Test(initialMarkup, expectedText, isLine: false, isAddedDocument: true);
+                    Test(initialMarkup, expectedText, isAddedDocument: true);
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
@@ -1391,7 +1391,7 @@ class Class { }
 
 ";
 
-                    Test(initialMarkup, expectedText, isLine: false, isAddedDocument: false);
+                    Test(initialMarkup, expectedText, isAddedDocument: false);
                 }
             }
         }
