@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return
             End If
 
-            If IsTypeParameterContext(token) Then
+            If IsCrefTypeParameterContext(token) Then
                 Return
             End If
 
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
             Dim filterSpan = CompletionUtilities.GetTextChangeSpan(text, position)
 
-            Dim items = CreateCompletionItems(symbols, filterSpan, semanticModel, workspace, token.SpanStart)
+            Dim items = CreateCompletionItems(workspace, semanticModel, symbols, token.SpanStart, filterSpan)
             context.AddItems(items)
 
             If IsFirstCrefParameterContext(token) Then
@@ -71,10 +71,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             context.MakeExclusive(True)
         End Function
 
-        Private Function IsTypeParameterContext(token As SyntaxToken) As Boolean
+        Private Shared Function IsCrefTypeParameterContext(token As SyntaxToken) As Boolean
             Return (token.IsChildToken(Function(t As TypeArgumentListSyntax) t.OfKeyword) OrElse
                 token.IsChildSeparatorToken(Function(t As TypeArgumentListSyntax) t.Arguments)) AndAlso
-                token.GetAncestor(Of XmlCrefAttributeSyntax)() IsNot Nothing
+                token.Parent?.FirstAncestorOrSelf(Of XmlCrefAttributeSyntax)() IsNot Nothing
         End Function
 
         Private Shared Function IsCrefStartContext(token As SyntaxToken) As Boolean
@@ -144,51 +144,54 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
         End Function
 
-        Private Iterator Function CreateCompletionItems(symbols As IEnumerable(Of ISymbol), filterSpan As TextSpan, semanticModel As SemanticModel, workspace As Workspace, position As Integer) As IEnumerable(Of CompletionItem)
+        Private Iterator Function CreateCompletionItems(workspace As Workspace, semanticModel As SemanticModel, symbols As IEnumerable(Of ISymbol), position As Integer, filterSpan As TextSpan) As IEnumerable(Of CompletionItem)
             Dim builder = SharedPools.Default(Of StringBuilder).Allocate()
             Try
                 For Each symbol In symbols
                     builder.Clear()
-
-                    If symbol.IsUserDefinedOperator() Then
-                        builder.Append("Operator ")
-                    End If
-
-                    builder.Append(symbol.ToDisplayString(CrefFormat))
-
-                    Dim parameters = symbol.GetParameters()
-
-                    If Not parameters.IsDefaultOrEmpty Then
-                        builder.Append("("c)
-
-                        For i = 0 To parameters.Length - 1
-                            If i > 0 Then
-                                builder.Append(", ")
-                            End If
-
-                            Dim parameter = parameters(i)
-
-                            If parameter.RefKind = RefKind.Ref Then
-                                builder.Append("ByRef ")
-                            End If
-
-                            builder.Append(parameter.Type.ToMinimalDisplayString(semanticModel, position))
-                        Next
-
-                        builder.Append(")"c)
-                    ElseIf symbol.Kind = SymbolKind.Method
-                        builder.Append("()")
-                    End If
-
-                    Dim displayString = builder.ToString()
-
-                    Yield New CompletionItem(Me, displayString, filterSpan, glyph:=symbol.GetGlyph(),
-                                             descriptionFactory:=CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, position, symbol),
-                                             rules:=ItemRules.Instance)
+                    Yield CreateCompletionItem(workspace, semanticModel, symbol, position, filterSpan, builder)
                 Next
             Finally
                 SharedPools.Default(Of StringBuilder).ClearAndFree(builder)
             End Try
+        End Function
+
+        Private Function CreateCompletionItem(workspace As Workspace, semanticModel As SemanticModel, symbol As ISymbol, position As Integer, filterSpan As TextSpan, builder As StringBuilder) As CompletionItem
+            If symbol.IsUserDefinedOperator() Then
+                builder.Append("Operator ")
+            End If
+
+            builder.Append(symbol.ToDisplayString(CrefFormat))
+
+            Dim parameters = symbol.GetParameters()
+
+            If Not parameters.IsDefaultOrEmpty Then
+                builder.Append("("c)
+
+                For i = 0 To parameters.Length - 1
+                    If i > 0 Then
+                        builder.Append(", ")
+                    End If
+
+                    Dim parameter = parameters(i)
+
+                    If parameter.RefKind = RefKind.Ref Then
+                        builder.Append("ByRef ")
+                    End If
+
+                    builder.Append(parameter.Type.ToMinimalDisplayString(semanticModel, position))
+                Next
+
+                builder.Append(")"c)
+            ElseIf symbol.Kind = SymbolKind.Method
+                builder.Append("()")
+            End If
+
+            Dim displayString = builder.ToString()
+
+            Return New CompletionItem(Me, displayString, filterSpan, glyph:=symbol.GetGlyph(),
+                                     descriptionFactory:=CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, position, symbol),
+                                     rules:=ItemRules.Instance)
         End Function
 
         Private Function CreateOfCompletionItem(span As TextSpan) As CompletionItem

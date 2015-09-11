@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var filterSpan = GetTextChangeSpan(text, position);
 
-            var items = CreateItems(document.Project.Solution.Workspace, semanticModel, symbols, token, filterSpan, cancellationToken);
+            var items = CreateCompletionItems(document.Project.Solution.Workspace, semanticModel, symbols, token, filterSpan);
             context.AddItems(items);
         }
 
@@ -222,8 +222,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 (ch) => CompletionUtilities.IsWordCharacter(ch) || ch == '{' || ch == '}');
         }
 
-        private IEnumerable<CompletionItem> CreateItems(
-            Workspace workspace, SemanticModel semanticModel, IEnumerable<ISymbol> symbols, SyntaxToken token, TextSpan filterSpan, CancellationToken cancellationToken)
+        private IEnumerable<CompletionItem> CreateCompletionItems(
+            Workspace workspace, SemanticModel semanticModel, IEnumerable<ISymbol> symbols, SyntaxToken token, TextSpan filterSpan)
         {
             var builder = SharedPools.Default<StringBuilder>().Allocate();
             try
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 foreach (var symbol in symbols)
                 {
                     builder.Clear();
-                    yield return CreateItem(workspace, semanticModel, symbol, token, filterSpan, builder, cancellationToken);
+                    yield return CreateItem(workspace, semanticModel, symbol, token, filterSpan, builder);
                 }
             }
             finally
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private CompletionItem CreateItem(
-            Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, TextSpan filterSpan, StringBuilder builder, CancellationToken cancellationToken)
+            Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, TextSpan filterSpan, StringBuilder builder)
         {
             int position = token.SpanStart;
 
