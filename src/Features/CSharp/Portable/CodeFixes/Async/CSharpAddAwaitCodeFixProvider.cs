@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                     return Task.FromResult(root.ReplaceNode(oldNode, ConvertToAwaitExpression(expression)));
 
                 case CS0029:
-                    if (!DoesExpressionReturnGenricTaskWhoseArgumentsMatchLeftSide(expression, semanticModel, document.Project, cancellationToken))
+                    if (!DoesExpressionReturnGenericTaskWhoseArgumentsMatchLeftSide(expression, semanticModel, document.Project, cancellationToken))
                     {
                         return SpecializedTasks.Default<SyntaxNode>();
                     }
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             semanticModel.Compilation.ClassifyConversion(taskType, returnType).Exists;
         }
 
-        private static bool DoesExpressionReturnGenricTaskWhoseArgumentsMatchLeftSide(ExpressionSyntax expression, SemanticModel semanticModel, Project project, CancellationToken cancellationToken)
+        private static bool DoesExpressionReturnGenericTaskWhoseArgumentsMatchLeftSide(ExpressionSyntax expression, SemanticModel semanticModel, Project project, CancellationToken cancellationToken)
         {
             if (expression == null)
             {
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                     case SyntaxKind.ParenthesizedLambdaExpression:
                     case SyntaxKind.SimpleLambdaExpression:
                     case SyntaxKind.AnonymousMethodExpression:
-                        return (node as AnonymousFunctionExpressionSyntax)?.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword;
+                        return (node as AnonymousFunctionExpressionSyntax)?.AsyncKeyword.IsMissing == true;
                     case SyntaxKind.MethodDeclaration:
                         return (node as MethodDeclarationSyntax)?.Modifiers.Any(SyntaxKind.AsyncKeyword) == true;
                     default:

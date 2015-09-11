@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
 
             Select Case diagnostic.Id
                 Case BC30311
-                    If Not DoesExpressionReturnGenricTaskWhoseArgumentsMatchLeftSide(expression, semanticModel, document.Project, cancellationToken) Then
+                    If Not DoesExpressionReturnGenericTaskWhoseArgumentsMatchLeftSide(expression, semanticModel, document.Project, cancellationToken) Then
                         Return Task.FromResult(Of SyntaxNode)(Nothing)
                     End If
                     Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression)))
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             End Select
         End Function
 
-        Private Function DoesExpressionReturnGenricTaskWhoseArgumentsMatchLeftSide(expression As ExpressionSyntax, semanticModel As SemanticModel, project As Project, cancellationToken As CancellationToken) As Boolean
+        Private Function DoesExpressionReturnGenericTaskWhoseArgumentsMatchLeftSide(expression As ExpressionSyntax, semanticModel As SemanticModel, project As Project, cancellationToken As CancellationToken) As Boolean
             If expression Is Nothing Then
                 Return False
             End If
