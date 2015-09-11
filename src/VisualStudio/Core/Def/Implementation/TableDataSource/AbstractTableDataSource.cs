@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         /// for example, for linked files, data that belong to same physical file will be gathered and items that belong to
         /// those data will be de-duplicated.
         /// </summary>
-        protected abstract object GetAggregationKey(object data);
+        protected abstract object GetOrUpdateAggregationKey(object data);
 
         protected void OnDataAddedOrChanged(object data)
         {
@@ -108,10 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 factory.OnDataAddedOrChanged(data);
 
-                for (var i = 0; i < snapshot.Length; i++)
-                {
-                    snapshot[i].AddOrUpdate(factory, newFactory);
-                }
+                NotifySubscriptionOnDataAddedOrChanged_NoLock(snapshot, factory, newFactory);
             }
         }
 
@@ -119,10 +116,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             lock (_gate)
             {
-                OnDataRemoved_NoLock(data);
-
-                RemoveAggregateKey_NoLock(data);
+                RemoveStaledData(data);
             }
+        }
+
+        protected void RemoveStaledData(object data)
+        {
+            OnDataRemoved_NoLock(data);
+
+            RemoveAggregateKey_NoLock(data);
         }
 
         private void OnDataRemoved_NoLock(object data)
@@ -130,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             ImmutableArray<SubscriptionWithoutLock> snapshot;
             TableEntriesFactory<TData> factory;
 
-            var key = TryGetAggregateKey_NoLock(data);
+            var key = TryGetAggregateKey(data);
             if (key == null)
             {
                 // never created before.
@@ -148,11 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             if (!factory.OnDataRemoved(data))
             {
                 // let error list know that factory has changed.
-                for (var i = 0; i < snapshot.Length; i++)
-                {
-                    snapshot[i].AddOrUpdate(factory, false);
-                }
-
+                NotifySubscriptionOnDataAddedOrChanged_NoLock(snapshot, factory, newFactory: false);
                 return;
             }
 
@@ -160,6 +158,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _map.Remove(key);
 
             // let table manager know that we want to clear the entries
+            NotifySubscriptionOnDataRemoved_NoLock(snapshot, factory);
+        }
+
+        private static void NotifySubscriptionOnDataAddedOrChanged_NoLock(ImmutableArray<SubscriptionWithoutLock> snapshot, TableEntriesFactory<TData> factory, bool newFactory)
+        {
+            for (var i = 0; i < snapshot.Length; i++)
+            {
+                snapshot[i].AddOrUpdate(factory, newFactory);
+            }
+        }
+
+        private static void NotifySubscriptionOnDataRemoved_NoLock(ImmutableArray<SubscriptionWithoutLock> snapshot, TableEntriesFactory<TData> factory)
+        {
             for (var i = 0; i < snapshot.Length; i++)
             {
                 snapshot[i].Remove(factory);
@@ -170,7 +181,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             newFactory = false;
 
-            var key = GetAggregationKey(data);
+            var key = GetOrUpdateAggregationKey(data);
             if (_map.TryGetValue(key, out factory))
             {
                 return;
@@ -221,22 +232,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        public object GetOrCreateAggregationKey_NoLock(object data, Func<object, object> aggregateKeyCreator)
+        protected void AddAggregateKey(object data, object aggregateKey)
         {
-            object aggregateKey;
-            var key = GetItemKey(data);
-            if (_aggregateKeyMap.TryGetValue(key, out aggregateKey))
-            {
-                return aggregateKey;
-            }
-
-            aggregateKey = aggregateKeyCreator(data);
-            _aggregateKeyMap.Add(key, aggregateKey);
-
-            return aggregateKey;
+            _aggregateKeyMap.Add(GetItemKey(data), aggregateKey);
         }
 
-        private object TryGetAggregateKey_NoLock(object data)
+        protected object TryGetAggregateKey(object data)
         {
             object aggregateKey;
             var key = GetItemKey(data);

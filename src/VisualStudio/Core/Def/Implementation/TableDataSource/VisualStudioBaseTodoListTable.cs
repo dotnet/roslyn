@@ -85,9 +85,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public override string Identifier => _identifier;
             public override object GetItemKey(object data) => ((TodoListEventArgs)data).DocumentId;
 
-            protected override object GetAggregationKey(object data)
+            protected override object GetOrUpdateAggregationKey(object data)
             {
-                return GetOrCreateAggregationKey_NoLock(data, CreateAggregationKey);
+                var key = TryGetAggregateKey(data);
+                if (key == null)
+                {
+                    key = CreateAggregationKey(data);
+                    AddAggregateKey(data, key);
+                    return key;
+                }
+
+                if (!CheckAggregateKey((ImmutableArray<DocumentId>)key, (TodoListEventArgs)data))
+                {
+                    RemoveStaledData(data);
+
+                    key = CreateAggregationKey(data);
+                    AddAggregateKey(data, key);
+                }
+
+                return key;
+            }
+
+            private bool CheckAggregateKey(ImmutableArray<DocumentId> key, TodoListEventArgs args)
+            {
+                if (args.DocumentId == null || args.Solution == null)
+                {
+                    return true;
+                }
+
+                var documents = args.Solution.GetRelatedDocumentIds(args.DocumentId);
+                return key == documents;
             }
 
             private object CreateAggregationKey(object data)

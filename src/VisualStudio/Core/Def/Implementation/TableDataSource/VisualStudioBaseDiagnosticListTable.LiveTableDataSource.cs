@@ -76,9 +76,41 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return snapshot;
             }
 
-            protected override object GetAggregationKey(object data)
+            protected override object GetOrUpdateAggregationKey(object data)
             {
-                return GetOrCreateAggregationKey_NoLock(data, CreateAggregationKey);
+                var key = TryGetAggregateKey(data);
+                if (key == null)
+                {
+                    key = CreateAggregationKey(data);
+                    AddAggregateKey(data, key);
+                    return key;
+                }
+
+                if (!CheckAggregateKey(key as AggregatedKey, data as DiagnosticsUpdatedArgs))
+                {
+                    RemoveStaledData(data);
+
+                    key = CreateAggregationKey(data);
+                    AddAggregateKey(data, key);
+                }
+
+                return key;
+            }
+
+            private bool CheckAggregateKey(AggregatedKey key, DiagnosticsUpdatedArgs args)
+            {
+                if (key == null || args == null)
+                {
+                    return true;
+                }
+
+                if (args.DocumentId == null || args.Solution == null)
+                {
+                    return true;
+                }
+
+                var documents = args.Solution.GetRelatedDocumentIds(args.DocumentId);
+                return key.DocumentIds == documents;
             }
 
             private object CreateAggregationKey(object data)
@@ -96,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
 
                 var documents = args.Solution.GetRelatedDocumentIds(args.DocumentId);
-                return ValueTuple.Create(documents, argumentKey.Analyzer, argumentKey.StateType);
+                return new AggregatedKey(documents, argumentKey.Analyzer, argumentKey.StateType);
             }
 
             private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)

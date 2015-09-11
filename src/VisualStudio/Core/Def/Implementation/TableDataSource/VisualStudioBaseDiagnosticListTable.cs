@@ -2,8 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.EngineV1;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -95,6 +97,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public abstract string BuildTool { get; }
             public abstract bool SupportSpanTracking { get; }
             public abstract DocumentId TrackingDocumentId { get; }
+        }
+
+        protected class AggregatedKey
+        {
+            public readonly ImmutableArray<DocumentId> DocumentIds;
+            public readonly DiagnosticAnalyzer Analyzer;
+            public readonly DiagnosticIncrementalAnalyzer.StateType StateType;
+
+            public AggregatedKey(ImmutableArray<DocumentId> documentIds, DiagnosticAnalyzer analyzer, DiagnosticIncrementalAnalyzer.StateType stateType)
+            {
+                DocumentIds = documentIds;
+                Analyzer = analyzer;
+                StateType = stateType;
+            }
+
+            public override bool Equals(object obj)
+            {
+                var other = obj as AggregatedKey;
+                if (other == null)
+                {
+                    return false;
+                }
+
+                return this.DocumentIds == other.DocumentIds && this.Analyzer == other.Analyzer && this.StateType == other.StateType;
+            }
+
+            public override int GetHashCode()
+            {
+                return Hash.Combine(Analyzer.GetHashCode(), Hash.Combine(DocumentIds.GetHashCode(), (int)StateType));
+            }
         }
     }
 }

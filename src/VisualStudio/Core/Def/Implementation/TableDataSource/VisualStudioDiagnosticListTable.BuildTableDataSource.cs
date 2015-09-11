@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public override string Identifier => IdentifierString;
             public override object GetItemKey(object data) => data;
 
-            protected override object GetAggregationKey(object data)
+            protected override object GetOrUpdateAggregationKey(object data)
             {
                 return data;
             }
@@ -86,6 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             public override AbstractTableEntriesSnapshot<DiagnosticData> CreateSnapshot(AbstractTableEntriesSource<DiagnosticData> source, int version, ImmutableArray<TableItem<DiagnosticData>> items, ImmutableArray<ITrackingPoint> trackingPoints)
             {
+                // Build doens't support tracking point.
                 return new TableEntriesSnapshot((DiagnosticTableEntriesSource)source, version, items);
             }
 
