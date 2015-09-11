@@ -12,7 +12,7 @@ Specifies the location of the built binaries.
 Specifies the name of the branch. Defaults to 'master'
 
 .PARAMETER JobId
-Specifies the job identifier. e.g. 'PR1234'
+Specifies the job identifier. e.g. 'PR1234'. Defaults to 'usernameNNNN' where NNN is determined by the current date and time
 
 .PARAMETER JobType
 Specifies the job type. Defaults to 'CIPerf'
@@ -49,8 +49,7 @@ param (
     [parameter(Mandatory = $true)]
     [String] $BinariesDirectory,
     [String] $Branch = "master",
-    [parameter(Mandatory = $true)]
-    [String] $JobId,
+    [String] $JobId = $env:USERNAME + "_" + [System.DateTime]::UtcNow.ToString("yyyyMMddThhmmss"),
     [String] $JobType = "CIPerf",
     [String] $Platform = "Windows",
     [String] $Queue = "Windows",
@@ -66,30 +65,33 @@ param (
 )
 
 try {
-    # WARNING: Make sure to reference the latest version of Microsoft.ServiceBus.dll
-    Write-Output "Adding the [Microsoft.ServiceBus.dll] assembly to the script..."
-    $scriptPath = Split-Path (Get-Variable MyInvocation -Scope 0).Value.MyCommand.Path
-    $packagesFolder = (Split-Path $scriptPath -Parent) + "\packages"
-    $assembly = Get-ChildItem $packagesFolder -Include "Microsoft.ServiceBus.dll" -Recurse
-    Add-Type -Path $assembly.FullName
-
-    Write-Output "The [Microsoft.ServiceBus.dll] assembly has been successfully added to the script."
-}
-catch [exception] {
-    Write-Error "Could not add the Microsoft.ServiceBus.dll assembly to the script."
-    exit 1
-}
-
-try {
 
     if (!(Test-Path $BinariesDirectory)) {
         Write-Error "Could not find binaries directory ($BinariesDirectory)"
         exit 1
     }
 
+
+    try {
+        # Reference the latest version of Microsoft.ServiceBus.dll
+        Write-Output "Adding the [Microsoft.ServiceBus.dll] assembly to the script..."
+
+        .\.nuget\NuGet.exe install WindowsAzure.ServiceBus -Version 3.0.2 -NonInteractive -ExcludeVersion -Source https://www.nuget.org/api/v2/ -OutputDirectory $env:TEMP
+        
+        $packagesFolder = Join-Path $env:TEMP -ChildPath WindowsAzure.ServiceBus
+        $assembly = Get-ChildItem $packagesFolder -Include "Microsoft.ServiceBus.dll" -Recurse
+        Add-Type -Path $assembly.FullName
+
+        Write-Output "The [Microsoft.ServiceBus.dll] assembly has been successfully added to the script."
+    }
+    catch [exception] {
+        Write-Error "Could not add the Microsoft.ServiceBus.dll assembly to the script."
+        exit 1
+    }
+
     Write-Host "Scanning for performance test assemblies"
     $TestAssemblies = Get-ChildItem -File -Path $BinariesDirectory -Recurse -Filter "*PerformanceTests.dll"
-    if ($TestAssemblies.count -eq 0) {
+    if ($TestAssemblies.count -le 0) {
         Write-Error "No test assemblies found in $BinariesDirectory"
         exit 1
     }
@@ -136,7 +138,7 @@ try {
     foreach ($TestAssembly in $TestAssemblies) {
         $WorkItemId = $BlobRootName + "/" + $TestAssembly.BaseName
         Write-Host "  " $WorkItemId
-        if ($sb.Length > 3) { $sb.AppendLine(",") }
+        if ($sb.Length -gt 3) { $sb.AppendLine(",") }
         
         [void] $sb.AppendLine("  {")
         [void] $sb.AppendLine("    ""Command"": ""Perf-Run.cmd $TestAssembly"",")
@@ -192,12 +194,13 @@ try {
     # We're uploading the job event to storage only for archival/debugging purposes. It's not actually needed by Helix
     $BlobName = $BlobRootName + "_" + $Queue + ".json"
     if (!$NoUpload) {
-        Write-Host "Uploading job event"
+        Write-Host "Uploading job event (for archive)"
         Set-AzureStorageBlobContent -File $JobJson -Container $StorageContainer -Blob $BlobName -Context $StorageContext
     }
 
     # Submit event to the EventBus
     if (!$NoSubmit) {
+        Write-Host "Submitting job to event hub."
         $EventHubConnectionString = "Endpoint=sb://dotnethelix.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=qVhbrtIm7tmmYKohdYht0MspbuPvnf7huE5d5U8lPGE="
         $EventHubEntityPath = "controler" # Sic: one 'l' in controler
         $EventHubClient = [Microsoft.ServiceBus.Messaging.EventHubClient]::CreateFromConnectionString($EventHubConnectionString, $EventHubEntityPath)
