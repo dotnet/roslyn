@@ -1322,6 +1322,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Method referenced implicitly.
+        /// </summary>
+        internal static string MethodReferencedImplicitly {
+            get {
+                return ResourceManager.GetString("MethodReferencedImplicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Modifying a catch/finally handler with an active statement in the try block will prevent the debug session from continuing..
         /// </summary>
         internal static string ModifyingACatchFinallyHandler {
@@ -1642,6 +1651,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string RenamingCapturedVariable {
             get {
                 return ResourceManager.GetString("RenamingCapturedVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Replace &apos;{0}&apos; and &apos;{1}&apos; with property.
+        /// </summary>
+        internal static string Replace0and1WithProperty {
+            get {
+                return ResourceManager.GetString("Replace0and1WithProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Replace &apos;{0}&apos; with property.
+        /// </summary>
+        internal static string Replace0WithProperty {
+            get {
+                return ResourceManager.GetString("Replace0WithProperty", resourceCulture);
             }
         }
         

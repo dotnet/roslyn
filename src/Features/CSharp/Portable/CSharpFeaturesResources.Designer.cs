@@ -539,15 +539,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Method referenced implicitly.
-        /// </summary>
-        internal static string MethodReferencedImplicitly {
-            get {
-                return ResourceManager.GetString("MethodReferencedImplicitly", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Move declaration near reference.
         /// </summary>
         internal static string MoveDeclarationNearReference {
@@ -724,24 +715,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string RemoveUnnecessaryUsingsWithAccelerator {
             get {
                 return ResourceManager.GetString("RemoveUnnecessaryUsingsWithAccelerator", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Replace &apos;{0}&apos; and &apos;{1}&apos; with property.
-        /// </summary>
-        internal static string Replace0and1WithProperty {
-            get {
-                return ResourceManager.GetString("Replace0and1WithProperty", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Replace &apos;{0}&apos; with property.
-        /// </summary>
-        internal static string Replace0WithProperty {
-            get {
-                return ResourceManager.GetString("Replace0WithProperty", resourceCulture);
             }
         }
         
