@@ -161,6 +161,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             AssertCurrentSubmission(inputString1);
         }
 
+        [Fact]
         public void CheckHistoryNextNotCircular()
         {
             //submit, submit, down, up, down, down
