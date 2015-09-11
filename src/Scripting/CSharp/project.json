@@ -3,7 +3,7 @@
     "net46.app": {},
     "dnxcore50.app": {}
   },
-  "dependencies": { },
+  "dependencies": {},
   "frameworks": {
     "dotnet": {
       "imports": "portable-net452"

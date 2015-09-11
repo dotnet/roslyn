@@ -2125,6 +2125,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use auto property.
+        /// </summary>
+        internal static string UseAutoProperty {
+            get {
+                return ResourceManager.GetString("UseAutoProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to User Diagnostic Analyzer Failure..
         /// </summary>
         internal static string UserDiagnosticAnalyzerFailure {

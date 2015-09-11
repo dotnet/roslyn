@@ -38,13 +38,18 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// <param name="originalText">The original name of the identifier.</param>
         /// <param name="replacementText">The new name of the identifier</param>
         /// <param name="optionSet">The option for rename</param>
+        /// <param name="hasConflict">Called after renaming references.  Can be used by callers to 
+        /// indicate if the new symbols that the reference binds to should be considered to be ok or
+        /// are in conflict.  'true' means they are conflicts.  'false' means they are not conflicts.
+        /// 'null' means that the default conflict check should be used.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A conflict resolution containing the new solution.</returns>
         public static Task<ConflictResolution> ResolveConflictsAsync(
-            RenameLocationSet renameLocationSet,
+            RenameLocations renameLocationSet,
             string originalText,
             string replacementText,
             OptionSet optionSet,
+            Func<IEnumerable<ISymbol>, bool?> hasConflict,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -57,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 throw new ArgumentException(string.Format(WorkspacesResources.RenameSymbolIsNotFromSource, renameLocationSet.Symbol.Name));
             }
 
-            var session = new Session(renameLocationSet, renameSymbolDeclarationLocation, originalText, replacementText, optionSet, cancellationToken);
+            var session = new Session(renameLocationSet, renameSymbolDeclarationLocation, originalText, replacementText, optionSet, hasConflict, cancellationToken);
             return session.ResolveConflictsAsync();
         }
 
