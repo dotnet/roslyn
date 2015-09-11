@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var document = context.Document;
             var position = context.Position;
+            var options = context.Options;
             var cancellationToken = context.CancellationToken;
 
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -55,60 +56,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
             }
 
-            var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            token = token.GetPreviousTokenIfTouchingWord(position);
+            var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken)
+                            .GetPreviousTokenIfTouchingWord(position);
+
             if (token.Kind() == SyntaxKind.None)
             {
                 return;
             }
-
-            var result = SpecializedCollections.EmptyEnumerable<ISymbol>();
 
             // To get a Speculative SemanticModel (which is much faster), we need to 
             // walk up to the node the DocumentationTrivia is attached to.
             var parentNode = token.GetAncestor<DocumentationCommentTriviaSyntax>().ParentTrivia.Token.Parent;
             var semanticModel = await document.GetSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(false);
 
-            if (IsCrefStartContext(token))
+            var symbols = GetSymbols(semanticModel, token, cancellationToken);
+
+            symbols = symbols.FilterToVisibleAndBrowsableSymbols(options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language), semanticModel.Compilation);
+
+            if (!symbols.Any())
             {
-                result = semanticModel.LookupSymbols(token.SpanStart)
-                                        .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation);
-
-                result = result.Concat(GetOperatorsAndIndexers(token, semanticModel, cancellationToken));
+                return;
             }
-            else if (IsCrefParameterListContext(token))
-            {
-                result = semanticModel.LookupNamespacesAndTypes(token.SpanStart)
-                                        .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation);
-            }
-            else if (IsCrefQualifiedNameContext(token))
-            {
-                // cref "a.|"
-                var parent = token.Parent as QualifiedCrefSyntax;
-                var leftType = semanticModel.GetTypeInfo(parent.Container, cancellationToken).Type;
-                var leftSymbol = semanticModel.GetSymbolInfo(parent.Container, cancellationToken).Symbol;
 
-                var container = leftSymbol ?? leftType;
-
-                result = semanticModel.LookupSymbols(token.SpanStart, container: (INamespaceOrTypeSymbol)container)
-                                        .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation);
-
-                if (container is INamedTypeSymbol)
-                {
-                    result = result.Concat(((INamedTypeSymbol)container).InstanceConstructors);
-                }
-            }
+            context.MakeExclusive(true);
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var filterSpan = GetTextChangeSpan(text, position);
 
-            var items = CreateItems(document.Project.Solution.Workspace, semanticModel, filterSpan, result, token, cancellationToken);
-
-            if (items.Any())
-            {
-                context.MakeExclusive(true);
-                context.AddItems(items);
-            }
+            var items = CreateItems(document.Project.Solution.Workspace, semanticModel, symbols, token, filterSpan, cancellationToken);
+            context.AddItems(items);
         }
 
         private static bool IsCrefStartContext(SyntaxToken token)
@@ -148,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 token.Parent.IsKind(SyntaxKind.CrefBracketedParameterList))
             {
                 return true;
-            }         
+            }
 
             return token.IsKind(SyntaxKind.CommaToken, SyntaxKind.RefKeyword, SyntaxKind.OutKeyword);
         }
@@ -162,6 +138,76 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 && token.Parent.IsKind(SyntaxKind.QualifiedCref);
         }
 
+        private static IEnumerable<ISymbol> GetSymbols(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
+        {
+            if (IsCrefStartContext(token))
+            {
+                return GetUnqualifiedSymbols(token, semanticModel, cancellationToken);
+            }
+            else if (IsCrefParameterListContext(token))
+            {
+                return semanticModel.LookupNamespacesAndTypes(token.SpanStart);
+            }
+            else if (IsCrefQualifiedNameContext(token))
+            {
+                return GetQualifiedSymbols((QualifiedCrefSyntax)token.Parent, token, semanticModel, cancellationToken);
+            }
+
+            return SpecializedCollections.EmptyEnumerable<ISymbol>();
+        }
+
+        private static IEnumerable<ISymbol> GetUnqualifiedSymbols(SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            foreach (var symbol in semanticModel.LookupSymbols(token.SpanStart))
+            {
+                yield return symbol;
+            }
+
+            // LookupSymbols doesn't return indexers or operators because they can't be referred to by name.
+            // So, try to find the innermost type declaration and return its operators and indexers
+            var typeDeclaration = token.Parent?.FirstAncestorOrSelf<TypeDeclarationSyntax>();
+            if (typeDeclaration != null)
+            {
+                var type = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken);
+                if (type != null)
+                {
+                    foreach (var baseType in type.GetBaseTypesAndThis())
+                    {
+                        foreach (var member in baseType.GetMembers())
+                        {
+                            if ((member.IsIndexer() || member.IsUserDefinedOperator()) &&
+                                member.IsAccessibleWithin(type))
+                            {
+                                yield return member;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private static IEnumerable<ISymbol> GetQualifiedSymbols(QualifiedCrefSyntax parent, SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            var leftType = semanticModel.GetTypeInfo(parent.Container, cancellationToken).Type;
+            var leftSymbol = semanticModel.GetSymbolInfo(parent.Container, cancellationToken).Symbol;
+
+            var container = (leftSymbol ?? leftType) as INamespaceOrTypeSymbol;
+
+            foreach (var symbol in semanticModel.LookupSymbols(token.SpanStart, container))
+            {
+                yield return symbol;
+            }
+
+            var namedTypeContainer = container as INamedTypeSymbol;
+            if (namedTypeContainer != null)
+            {
+                foreach (var instanceConstructor in namedTypeContainer.InstanceConstructors)
+                {
+                    yield return instanceConstructor;
+                }
+            }
+        }
+
         private static TextSpan GetTextChangeSpan(SourceText text, int position)
         {
             return CommonCompletionUtilities.GetTextChangeSpan(
@@ -171,28 +217,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 (ch) => CompletionUtilities.IsWordCharacter(ch) || ch == '{' || ch == '}');
         }
 
-        // LookupSymbols doesn't return indexers or operators because they can't be referred to by name, so we'll have to try to 
-        // find the innermost type declaration and return its operators and indexers
-        private IEnumerable<ISymbol> GetOperatorsAndIndexers(SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
-        {
-            var typeDeclaration = token.GetAncestor<TypeDeclarationSyntax>();
-
-            var result = new List<ISymbol>();
-
-            if (typeDeclaration != null)
-            {
-                var type = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken);
-
-                result.AddRange(type.GetMembers().OfType<IPropertySymbol>().Where(p => p.IsIndexer));
-                result.AddRange(type.GetAccessibleMembersInThisAndBaseTypes<IMethodSymbol>(type)
-                                    .Where(m => m.MethodKind == MethodKind.UserDefinedOperator));
-            }
-
-            return result;
-        }
-
         private IEnumerable<CompletionItem> CreateItems(
-            Workspace workspace, SemanticModel semanticModel, TextSpan filterSpan, IEnumerable<ISymbol> symbols, SyntaxToken token, CancellationToken cancellationToken)
+            Workspace workspace, SemanticModel semanticModel, IEnumerable<ISymbol> symbols, SyntaxToken token, TextSpan filterSpan, CancellationToken cancellationToken)
         {
             var builder = SharedPools.Default<StringBuilder>().AllocateAndClear();
             try
@@ -200,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 foreach (var symbol in symbols)
                 {
                     builder.Clear();
-                    yield return CreateItem(workspace, semanticModel, filterSpan, symbol, token, builder, cancellationToken);
+                    yield return CreateItem(workspace, semanticModel, symbol, token, filterSpan, builder, cancellationToken);
                 }
             }
             finally
@@ -210,9 +236,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private CompletionItem CreateItem(
-            Workspace workspace, SemanticModel semanticModel, TextSpan filterSpan, ISymbol symbol, SyntaxToken token, StringBuilder builder, CancellationToken cancellationToken)
+            Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, TextSpan filterSpan, StringBuilder builder, CancellationToken cancellationToken)
         {
-            int tokenPosition = token.SpanStart;
+            int position = token.SpanStart;
 
             if (symbol is INamespaceOrTypeSymbol && token.IsKind(SyntaxKind.DotToken))
             {
@@ -224,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 // Handle unqualified namespace and type names, or member names.
 
-                builder.Append(symbol.ToMinimalDisplayString(semanticModel, tokenPosition, CrefFormat));
+                builder.Append(symbol.ToMinimalDisplayString(semanticModel, position, CrefFormat));
 
                 var parameters = symbol.GetParameters();
                 if (!parameters.IsDefaultOrEmpty)
@@ -251,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                             builder.Append("ref ");
                         }
 
-                        builder.Append(parameter.Type.ToMinimalDisplayString(semanticModel, tokenPosition));
+                        builder.Append(parameter.Type.ToMinimalDisplayString(semanticModel, position));
                     }
 
                     builder.Append(symbol.IsIndexer() ? ']' : ')');
@@ -270,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 displayText: insertionText,
                 insertionText: insertionText,
                 textSpan: filterSpan,
-                descriptionFactory: CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, tokenPosition, symbol),
+                descriptionFactory: CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, position, symbol),
                 glyph: symbol.GetGlyph(),
                 sortText: symbolText);
         }
