@@ -194,13 +194,13 @@ namespace Microsoft.CodeAnalysis
             }
 
             Compilation newCompilation;
-            var driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, AnalyzerManager.Instance, onAnalyzerException, false, out newCompilation, CancellationToken.None);
+            var driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, AnalyzerManager.Instance, onAnalyzerException, false, reportDiagnosticsWithSourceSuppressions, out newCompilation, CancellationToken.None);
             var discarded = newCompilation.GetDiagnostics();
             diagnostics = driver.GetDiagnosticsAsync().Result.AddRange(exceptionDiagnostics);
 
             if (!reportDiagnosticsWithSourceSuppressions)
             {
-                diagnostics = diagnostics.WhereAsArray(d => !d.HasSourceSuppression);
+                Assert.True(diagnostics.All(d => !d.HasSourceSuppression));
             }
 
             return (TCompilation)newCompilation; // note this is a new compilation

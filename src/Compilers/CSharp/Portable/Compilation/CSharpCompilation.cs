@@ -2861,9 +2861,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
-        internal override AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager)
+        internal override AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager, bool reportDiagnosticsWithSourceSuppression)
         {
-            return new AnalyzerDriver<SyntaxKind>(analyzers, n => n.Kind(), analyzerManager);
+            return new AnalyzerDriver<SyntaxKind>(analyzers, n => n.Kind(), analyzerManager, reportDiagnosticsWithSourceSuppression);
         }
 
         internal void SymbolDeclaredEvent(Symbol symbol)

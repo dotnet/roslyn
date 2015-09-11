@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         protected readonly ImmutableArray<DiagnosticAnalyzer> analyzers;
         protected readonly AnalyzerManager analyzerManager;
+        private readonly bool _reportDiagnosticsWithSourceSuppression;
 
         // Lazy fields
         private CancellationTokenRegistration _queueRegistration;
@@ -74,10 +75,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="analyzers">The set of analyzers to include in the analysis</param>
         /// <param name="analyzerManager">AnalyzerManager to manage analyzers for analyzer host's lifetime.</param>
-        protected AnalyzerDriver(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager)
+        /// <param name="reportDiagnosticsWithSourceSuppression">Flag to indicate if diagnostics with source suppression, i.e. <see cref="Diagnostic.HasSourceSuppression"/>, should be reported.</param>
+        protected AnalyzerDriver(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager, bool reportDiagnosticsWithSourceSuppression)
         {
             this.analyzers = analyzers;
             this.analyzerManager = analyzerManager;
+            _reportDiagnosticsWithSourceSuppression = reportDiagnosticsWithSourceSuppression;
         }
 
         /// <summary>
@@ -140,9 +143,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(_initializeTask == null);
 
             var diagnosticQueue = DiagnosticQueue.Create(categorizeDiagnostics);
-            var addDiagnostic = GetDiagnosticSinkWithSuppression(diagnosticQueue.Enqueue, compilation);
-            var addLocalDiagnosticOpt = categorizeDiagnostics ? GetDiagnosticSinkWithSuppression(diagnosticQueue.EnqueueLocal, compilation) : null;
-            var addNonLocalDiagnosticOpt = categorizeDiagnostics ? GetDiagnosticSinkWithSuppression(diagnosticQueue.EnqueueNonLocal, compilation) : null;
+            var addDiagnostic = GetDiagnosticSinkWithSuppression(diagnosticQueue.Enqueue, compilation, _reportDiagnosticsWithSourceSuppression);
+            var addLocalDiagnosticOpt = categorizeDiagnostics ? GetDiagnosticSinkWithSuppression(diagnosticQueue.EnqueueLocal, compilation, _reportDiagnosticsWithSourceSuppression) : null;
+            var addNonLocalDiagnosticOpt = categorizeDiagnostics ? GetDiagnosticSinkWithSuppression(diagnosticQueue.EnqueueNonLocal, compilation, _reportDiagnosticsWithSourceSuppression) : null;
 
             Action<Exception, DiagnosticAnalyzer, Diagnostic> newOnAnalyzerException;
             if (analysisOptions.OnAnalyzerException != null)
@@ -150,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Wrap onAnalyzerException to pass in filtered diagnostic.
                 var comp = compilation;
                 newOnAnalyzerException = (ex, analyzer, diagnostic) =>
-                    analysisOptions.OnAnalyzerException(ex, analyzer, GetFilteredDiagnostic(diagnostic, comp));
+                    analysisOptions.OnAnalyzerException(ex, analyzer, GetFilteredDiagnostic(diagnostic, comp, _reportDiagnosticsWithSourceSuppression));
             }
             else
             {
@@ -323,6 +326,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="analyzerManager">AnalyzerManager to manage analyzers for the lifetime of analyzer host.</param>
         /// <param name="addExceptionDiagnostic">Delegate to add diagnostics generated for exceptions from third party analyzers.</param>
         /// <param name="reportAnalyzer">Report additional information related to analyzers, such as analyzer execution time.</param>
+        /// <param name="reportDiagnosticsWithSourceSuppression">Flag to indicate if diagnostics with source suppression, i.e. <see cref="Diagnostic.HasSourceSuppression"/>, should be reported.</param>
         /// <param name="newCompilation">The new compilation with the analyzer driver attached.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
         /// <returns>A newly created analyzer driver</returns>
@@ -337,13 +341,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerManager analyzerManager,
             Action<Diagnostic> addExceptionDiagnostic,
             bool reportAnalyzer,
+            bool reportDiagnosticsWithSourceSuppression,
             out Compilation newCompilation,
             CancellationToken cancellationToken)
         {
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException =
                 (ex, analyzer, diagnostic) => addExceptionDiagnostic?.Invoke(diagnostic);
 
-            return CreateAndAttachToCompilation(compilation, analyzers, options, analyzerManager, onAnalyzerException, reportAnalyzer, out newCompilation, cancellationToken: cancellationToken);
+            return CreateAndAttachToCompilation(compilation, analyzers, options, analyzerManager, onAnalyzerException, reportAnalyzer, reportDiagnosticsWithSourceSuppression, out newCompilation, cancellationToken: cancellationToken);
         }
 
         // internal for testing purposes
@@ -354,10 +359,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerManager analyzerManager,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
             bool reportAnalyzer,
+            bool reportDiagnosticsWithSourceSuppression,
             out Compilation newCompilation,
             CancellationToken cancellationToken)
         {
-            AnalyzerDriver analyzerDriver = compilation.AnalyzerForLanguage(analyzers, analyzerManager);
+            AnalyzerDriver analyzerDriver = compilation.AnalyzerForLanguage(analyzers, analyzerManager, reportDiagnosticsWithSourceSuppression);
             newCompilation = compilation.WithEventQueue(new AsyncQueue<CompilationEvent>());
 
             var categorizeDiagnostics = false;
@@ -668,9 +674,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
-            Action<Diagnostic> addDiagnosticForSymbol = GetDiagnosticSinkWithSuppression(DiagnosticQueue.Enqueue, symbolEvent.Compilation, symbol);
-            Action<Diagnostic, DiagnosticAnalyzer, bool> addLocalDiagnosticForSymbol = analysisScope.CategorizeDiagnostics ? GetDiagnosticSinkWithSuppression(DiagnosticQueue.EnqueueLocal, symbolEvent.Compilation, symbol) : null;
-            Action<Diagnostic, DiagnosticAnalyzer> addNonLocalDiagnosticForSymbol = analysisScope.CategorizeDiagnostics ? GetDiagnosticSinkWithSuppression(DiagnosticQueue.EnqueueNonLocal, symbolEvent.Compilation, symbol) : null;
+            Action<Diagnostic> addDiagnosticForSymbol = GetDiagnosticSinkWithSuppression(DiagnosticQueue.Enqueue, symbolEvent.Compilation, _reportDiagnosticsWithSourceSuppression, symbol);
+            Action<Diagnostic, DiagnosticAnalyzer, bool> addLocalDiagnosticForSymbol = analysisScope.CategorizeDiagnostics ? GetDiagnosticSinkWithSuppression(DiagnosticQueue.EnqueueLocal, symbolEvent.Compilation, _reportDiagnosticsWithSourceSuppression, symbol) : null;
+            Action<Diagnostic, DiagnosticAnalyzer> addNonLocalDiagnosticForSymbol = analysisScope.CategorizeDiagnostics ? GetDiagnosticSinkWithSuppression(DiagnosticQueue.EnqueueNonLocal, symbolEvent.Compilation, _reportDiagnosticsWithSourceSuppression, symbol) : null;
 
             foreach (var analyzer in analysisScope.Analyzers)
             {
@@ -773,11 +779,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal static Action<Diagnostic> GetDiagnosticSinkWithSuppression(Action<Diagnostic> addDiagnosticCore, Compilation compilation, ISymbol symbolOpt = null)
+        internal static Action<Diagnostic> GetDiagnosticSinkWithSuppression(Action<Diagnostic> addDiagnosticCore, Compilation compilation, bool reportDiagnosticsWithSourceSuppression, ISymbol symbolOpt = null)
         {
             return diagnostic =>
             {
-                var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation, symbolOpt);
+                var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation, reportDiagnosticsWithSourceSuppression, symbolOpt);
                 if (filteredDiagnostic != null)
                 {
                     addDiagnosticCore(filteredDiagnostic);
@@ -785,11 +791,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             };
         }
 
-        internal static Action<Diagnostic, DiagnosticAnalyzer, bool> GetDiagnosticSinkWithSuppression(Action<Diagnostic, DiagnosticAnalyzer, bool> addLocalDiagnosticCore, Compilation compilation, ISymbol symbolOpt = null)
+        internal static Action<Diagnostic, DiagnosticAnalyzer, bool> GetDiagnosticSinkWithSuppression(Action<Diagnostic, DiagnosticAnalyzer, bool> addLocalDiagnosticCore, Compilation compilation, bool reportDiagnosticsWithSourceSuppression, ISymbol symbolOpt = null)
         {
             return (diagnostic, analyzer, isSyntaxDiagnostic) =>
             {
-                var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation, symbolOpt);
+                var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation, reportDiagnosticsWithSourceSuppression, symbolOpt);
                 if (filteredDiagnostic != null)
                 {
                     addLocalDiagnosticCore(filteredDiagnostic, analyzer, isSyntaxDiagnostic);
@@ -797,11 +803,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             };
         }
 
-        internal static Action<Diagnostic, DiagnosticAnalyzer> GetDiagnosticSinkWithSuppression(Action<Diagnostic, DiagnosticAnalyzer> addNonLocalDiagnosticCore, Compilation compilation, ISymbol symbolOpt = null)
+        internal static Action<Diagnostic, DiagnosticAnalyzer> GetDiagnosticSinkWithSuppression(Action<Diagnostic, DiagnosticAnalyzer> addNonLocalDiagnosticCore, Compilation compilation, bool reportDiagnosticsWithSourceSuppression, ISymbol symbolOpt = null)
         {
             return (diagnostic, analyzer) =>
             {
-                var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation, symbolOpt);
+                var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation, reportDiagnosticsWithSourceSuppression, symbolOpt);
                 if (filteredDiagnostic != null)
                 {
                     addNonLocalDiagnosticCore(filteredDiagnostic, analyzer);
@@ -809,12 +815,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             };
         }
 
-        private static Diagnostic GetFilteredDiagnostic(Diagnostic diagnostic, Compilation compilation, ISymbol symbolOpt = null)
+        private static Diagnostic GetFilteredDiagnostic(Diagnostic diagnostic, Compilation compilation, bool reportDiagnosticsWithSourceSuppression, ISymbol symbolOpt = null)
         {
             var filteredDiagnostic = compilation.Options.FilterDiagnostic(diagnostic);
             if (filteredDiagnostic != null)
             {
                 filteredDiagnostic = SuppressMessageAttributeState.ApplySourceSuppressions(filteredDiagnostic, compilation, symbolOpt);
+                if (!reportDiagnosticsWithSourceSuppression && filteredDiagnostic.HasSourceSuppression)
+                {
+                    return null;
+                }
             }
 
             return filteredDiagnostic;
@@ -892,13 +902,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static readonly ObjectPool<DeclarationAnalysisData> s_declarationAnalysisDataPool = new ObjectPool<DeclarationAnalysisData>(() => new DeclarationAnalysisData());
 
-            /// <summary>
+        /// <summary>
         /// Create an analyzer driver.
         /// </summary>
         /// <param name="analyzers">The set of analyzers to include in the analysis</param>
         /// <param name="getKind">A delegate that returns the language-specific kind for a given syntax node</param>
         /// <param name="analyzerManager">AnalyzerManager to manage analyzers for the lifetime of analyzer host.</param>
-        internal AnalyzerDriver(ImmutableArray<DiagnosticAnalyzer> analyzers, Func<SyntaxNode, TLanguageKindEnum> getKind, AnalyzerManager analyzerManager) : base(analyzers, analyzerManager)
+        /// <param name="reportDiagnosticsWithSourceSuppression">Flag to indicate if diagnostics with source suppression, i.e. <see cref="Diagnostic.HasSourceSuppression"/>, should be reported.</param>
+        internal AnalyzerDriver(ImmutableArray<DiagnosticAnalyzer> analyzers, Func<SyntaxNode, TLanguageKindEnum> getKind, AnalyzerManager analyzerManager, bool reportDiagnosticsWithSourceSuppression) : base(analyzers, analyzerManager, reportDiagnosticsWithSourceSuppression)
         {
             _getKind = getKind;
         }

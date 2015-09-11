@@ -212,15 +212,23 @@ namespace Microsoft.CodeAnalysis
                     //System.Diagnostics.Debug.Assert(diag.Severity != DiagnosticSeverity.Error);
                     continue;
                 }
-                else if (diag.Severity == DiagnosticSeverity.Hidden || diag.HasSourceSuppression)
+                else if (diag.Severity == DiagnosticSeverity.Hidden)
                 {
                     // Not reported from the command-line compiler.
                     continue;
                 }
-
-                consoleOutput.WriteLine(DiagnosticFormatter.Format(diag, this.Culture));
+                
                 ErrorLogger.LogDiagnostic(diag, this.Culture, errorLogger);
 
+                // We want to report diagnostics with source suppression in the error log file.
+                // However, these diagnostics should not be reported on the console output.
+                if (diag.HasSourceSuppression)
+                {
+                    continue;
+                }
+
+                consoleOutput.WriteLine(DiagnosticFormatter.Format(diag, this.Culture));
+                
                 if (diag.Severity == DiagnosticSeverity.Error)
                 {
                     hasErrors = true;
@@ -377,7 +385,12 @@ namespace Microsoft.CodeAnalysis
                     analyzerExceptionDiagnostics = new ConcurrentSet<Diagnostic>();
                     Action<Diagnostic> addExceptionDiagnostic = diagnostic => analyzerExceptionDiagnostics.Add(diagnostic);
                     var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.CastUp(additionalTextFiles));
-                    analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(compilation, analyzers, analyzerOptions, analyzerManager, addExceptionDiagnostic, Arguments.ReportAnalyzer, out compilation, analyzerCts.Token);
+                    
+                    // We want to report diagnostics with source suppression in the error log file.
+                    // However, these diagnostics won't be reported on the command line.
+                    var reportDiagnosticsWithSourceSuppression = errorLogger != null;
+
+                    analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(compilation, analyzers, analyzerOptions, analyzerManager, addExceptionDiagnostic, Arguments.ReportAnalyzer, reportDiagnosticsWithSourceSuppression, out compilation, analyzerCts.Token);
                     getAnalyzerDiagnostics = () => analyzerDriver.GetDiagnosticsAsync().Result;
                 }
 
