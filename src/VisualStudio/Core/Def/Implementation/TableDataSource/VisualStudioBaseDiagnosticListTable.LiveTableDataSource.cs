@@ -310,32 +310,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                     switch (value)
                     {
-<<<<<<< HEAD
-                        // this item is not navigatable
-                        if (_factorySource._documentId == null)
-                        {
-                            return false;
-                        }
 
-                        var item = GetItem(index).Primary;
-                        if (item == null)
-                        {
-                            return false;
-                        }
-
-                        var trackingLinePosition = GetTrackingLineColumn(_factorySource._workspace, _factorySource._documentId, index);
-                        if (trackingLinePosition != LinePosition.Zero)
-                        {
-                            return TryNavigateTo(_factorySource._workspace, _factorySource._documentId, trackingLinePosition.Line, trackingLinePosition.Character, previewTab);
-                        }
-
-<<<<<<< HEAD
-                        return TryNavigateTo(_factory._workspace, _factory._documentId, 
-                            item.DataLocation?.OriginalStartLine ?? 0, item.DataLocation?.OriginalStartColumn ?? 0, previewTab);
-=======
-                        return TryNavigateTo(_factorySource._workspace, _factorySource._documentId, item.OriginalStartLine, item.OriginalStartColumn, previewTab);
->>>>>>> 8e58be7... introduced tableEntrySource which takes part of responsibility of TableEntryFactory
-=======
                         case WellKnownDiagnosticTags.Build:
                             // any error from build is highest priority
                             return ErrorRank.Lexical;
@@ -353,7 +328,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             return ErrorRank.PostBuild;
                         default:
                             return ErrorRank.Other;
->>>>>>> b24d6bf... added support for snapshot creation
                     }
                 }
 
