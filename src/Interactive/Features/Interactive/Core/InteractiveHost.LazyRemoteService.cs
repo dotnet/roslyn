@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     var notification = Host.ProcessStarting;
                     if (notification != null)
                     {
-                        notification(this.Options);
+                        notification(this.Options.InitializationFile != null);
                     }
 
                     var remoteService = await TryStartProcessAsync(cancellationToken).ConfigureAwait(false);
