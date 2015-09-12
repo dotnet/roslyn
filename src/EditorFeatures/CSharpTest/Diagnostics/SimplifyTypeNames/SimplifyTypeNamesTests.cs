@@ -1853,7 +1853,7 @@ class A { }");
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public void TestMissingNullableSimplificationInsideCref4()
+        public void TestNullableInsideCref_AllowedIfReferencingActualTypeParameter()
         {
             Test(
 @"using System;
@@ -1884,7 +1884,7 @@ class A
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public void TestMissingNullableSimplificationInsideCref6()
+        public void TestNullableInsideCref_AllowedIfReferencingActualType()
         {
             Test(
 @"using System;
@@ -1901,7 +1901,7 @@ class A { }");
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public void TestMissingNullableSimplificationInsideCref7()
+        public void TestNullableInsideCref_AllowedIfReferencingActualType_AsTypeArgument()
         {
             Test(
 @"using System;
