@@ -32,6 +32,13 @@ NewLines("Imports System.Threading \n Class Class1 \n Dim v As Thread \n End Cla
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        Public Sub TestSmartTagDisplay()
+            TestSmartTagText(
+NewLines("Class Class1 \n Dim v As [|Thread|] \n End Class"),
+"Imports System.Threading")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Sub TestGenericClassDefinitionAsClause()
             Test(
 NewLines("Namespace SomeNamespace \n Class Base \n End Class \n End Namespace \n Class SomeClass(Of x As [|Base|]) \n End Class"),
