@@ -723,7 +723,7 @@ using System;
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""type"", Target = ""~T:Class"")]
 
-", isAddedDocument: true);
+");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
                     TestMissing(
@@ -766,7 +766,7 @@ using System;
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""namespace"", Target = ""~N:N"")]
 
-", index: 1, isAddedDocument: true);
+", index: 1);
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
                     TestMissing(
@@ -815,7 +815,7 @@ namespace N1
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""type"", Target = ""~T:N1.N2.Class"")]
 
-", isAddedDocument: true);
+");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
                     TestMissing(
@@ -867,7 +867,7 @@ namespace N
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""type"", Target = ""~T:N.Generic`1.Class"")]
 
-", isAddedDocument: true);
+");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
                     TestMissing(
@@ -919,7 +919,7 @@ namespace N
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~M:N.Generic`1.Class.Method~System.Int32"")]
 
-", isAddedDocument: true);
+");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
                     TestMissing(
@@ -976,7 +976,7 @@ namespace N
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~M:N.Generic`1.Class.Method(System.Int32,System.Char@)~System.Int32"")]
 
-", isAddedDocument: true);
+");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
                     TestMissing(
@@ -1036,7 +1036,7 @@ namespace N
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~M:N.Generic`1.Class.Method~System.Int32"")]
 
-", isAddedDocument: true);
+");
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
@@ -1067,7 +1067,7 @@ namespace N
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~M:N.Generic`1.Class.Method``1(``0)~System.Int32"")]
 
-", isAddedDocument: true);
+");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
                     TestMissing(
@@ -1119,7 +1119,7 @@ namespace N
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~P:N.Generic.Class.Property"")]
 
-", isAddedDocument: true);
+");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
                     TestMissing(
@@ -1162,7 +1162,7 @@ class Class
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~F:Class.field"")]
 
-", isAddedDocument: true);
+");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
                     TestMissing(
@@ -1196,7 +1196,7 @@ class Class
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~F:Class.field"")]
 
-", isAddedDocument: true);
+");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
                     TestMissing(
@@ -1244,7 +1244,7 @@ class Class
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~E:Class.SampleEvent"")]
 
-", isAddedDocument: true);
+");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
                     TestMissing(
@@ -1345,7 +1345,7 @@ class Class { }
 
 ";
 
-                    Test(initialMarkup, expectedText, isAddedDocument: true);
+                    Test(initialMarkup, expectedText);
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
@@ -1391,7 +1391,7 @@ class Class { }
 
 ";
 
-                    Test(initialMarkup, expectedText, isAddedDocument: false);
+                    Test(initialMarkup, expectedText);
                 }
             }
         }

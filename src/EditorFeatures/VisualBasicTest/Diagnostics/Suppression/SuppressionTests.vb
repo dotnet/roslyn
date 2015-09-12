@@ -960,7 +960,7 @@ End Class]]>
 <Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""type"", Target:=""~T:Class1"")>
 "
 
-                    Test(source.Value, expected, isAddedDocument:=True)
+                    Test(source.Value, expected)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
                     Dim fixedSource = $"
@@ -998,7 +998,7 @@ End Namespace]]>
 <Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""namespace"", Target:=""~N:N"")>
 "
 
-                    Test(source.Value, expected, index:=1, isAddedDocument:=True)
+                    Test(source.Value, expected, index:=1)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
                     Dim fixedSource = $"
@@ -1040,7 +1040,7 @@ End Namespace]]>
 <Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""type"", Target:=""~T:N1.N2.Class1"")>
 "
 
-                    Test(source.Value, expected, isAddedDocument:=True)
+                    Test(source.Value, expected)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
                     Dim fixedSource = $"
@@ -1084,7 +1084,7 @@ End Namespace]]>
 <Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""type"", Target:=""~T:N.Generic`1.Class1"")>
 "
 
-                    Test(source.Value, expected, isAddedDocument:=True)
+                    Test(source.Value, expected)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
                     Dim fixedSource = $"
@@ -1128,7 +1128,7 @@ End Namespace]]>
 <Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""member"", Target:=""~M:N.Generic`1.Class1.Method"")>
 "
 
-                    Test(source.Value, expected, isAddedDocument:=True)
+                    Test(source.Value, expected)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
                     Dim fixedSource = $"
@@ -1176,7 +1176,7 @@ End Namespace]]>
 <Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""member"", Target:=""~M:N.Generic`1.Class1.Method(System.Int32,System.Int32@)"")>
 "
 
-                    Test(source.Value, expected, isAddedDocument:=True)
+                    Test(source.Value, expected)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
                     Dim fixedSource = $"
@@ -1228,7 +1228,7 @@ End Namespace]]>
 <Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""member"", Target:=""~M:N.Generic`1.Class1.Method``1(``0,System.Int32@)"")>
 "
 
-                    Test(source.Value, expected, isAddedDocument:=True)
+                    Test(source.Value, expected)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
                     Dim fixedSource = $"
@@ -1278,7 +1278,7 @@ End Namespace]]>
 <Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""member"", Target:=""~P:N.Generic.C.P"")>
 "
 
-                    Test(source.Value, expected, isAddedDocument:=True)
+                    Test(source.Value, expected)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
                     Dim fixedSource = $"
@@ -1318,7 +1318,7 @@ End Class]]>
 <Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""member"", Target:=""~F:C.F"")>
 "
 
-                    Test(source.Value, expected, isAddedDocument:=True)
+                    Test(source.Value, expected)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
                     Dim fixedSource = $"
@@ -1374,7 +1374,7 @@ End Class]]>
 <Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""member"", Target:=""~E:C.SampleEvent"")>
 "
 
-                    Test(source.Value, expected, isAddedDocument:=True)
+                    Test(source.Value, expected)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
                     Dim fixedSource = $"
@@ -1485,7 +1485,7 @@ End Class
 <Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""type"", Target:=""~T:Class2"")>
 "
 
-                    Test(source.ToString(), expected, isAddedDocument:=True)
+                    Test(source.ToString(), expected)
                 End Sub
 
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
@@ -1531,7 +1531,7 @@ End Class
 <Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""type"", Target:=""~T:Class2"")>
 "
 
-                    Test(source.ToString(), expected, isAddedDocument:=False)
+                    Test(source.ToString(), expected)
                 End Sub
             End Class
         End Class

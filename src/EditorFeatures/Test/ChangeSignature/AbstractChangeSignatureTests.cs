@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
                     var codeIssueOrRefactoring = GetCodeRefactoring(workspace);
                     TestActions(workspace, expectedCode, index, codeIssueOrRefactoring.Actions.ToList(),
-                        conflictSpans: null, renameSpans: null, warningSpans: null, compareTokens: true, isAddedDocument: false);
+                        conflictSpans: null, renameSpans: null, warningSpans: null, compareTokens: true);
                 }
             }
             else

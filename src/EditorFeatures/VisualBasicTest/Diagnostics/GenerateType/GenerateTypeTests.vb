@@ -752,7 +752,7 @@ index:=0)
         Public Sub TestGenerateTypeInImports()
             Test(
 NewLines("Imports [|Fizz|]"),
-NewLines("Friend Class Fizz\nEnd Class\n"), isAddedDocument:=True)
+NewLines("Friend Class Fizz\nEnd Class\n"))
         End Sub
 
         <WorkItem(1130905)>
@@ -770,8 +770,7 @@ index:=1)
             Test(
 NewLines("Public Class A \n Public B As New [|B|]() \n End Class"),
 NewLines("Public Class B \n Public Sub New() \n End Sub \n End Class"),
-index:=0,
-isAddedDocument:=True)
+index:=0)
         End Sub
 
         <WorkItem(1107929)>
@@ -798,8 +797,7 @@ index:=2)
             Test(
 NewLines("Public Class A \n Public B As New [|B|] \n End Class"),
 NewLines("Public Class B \n End Class"),
-index:=0,
-isAddedDocument:=True)
+index:=0)
         End Sub
 
         <WorkItem(1107929)>
@@ -826,8 +824,7 @@ index:=2)
             Test(
 NewLines("Public Class A \n Public B As New [|B(Of Integer)|] \n End Class"),
 NewLines("Public Class B(Of T) \n End Class"),
-index:=0,
-isAddedDocument:=True)
+index:=0)
         End Sub
 
         <WorkItem(1107929)>

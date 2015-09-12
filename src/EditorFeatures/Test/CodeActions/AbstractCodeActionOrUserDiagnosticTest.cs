@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -147,28 +148,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected void Test(
             string initialMarkup, string expectedMarkup,
             int index = 0, bool compareTokens = true,  
-            IDictionary<OptionKey, object> options = null, bool isAddedDocument = false,
+            IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null)
         {
-            Test(initialMarkup, expectedMarkup, null, index, compareTokens, options, isAddedDocument, fixAllActionEquivalenceKey);
-            Test(initialMarkup, expectedMarkup, GetScriptOptions(), index, compareTokens, options, isAddedDocument, fixAllActionEquivalenceKey);
+            Test(initialMarkup, expectedMarkup, null, index, compareTokens, options, fixAllActionEquivalenceKey);
+            Test(initialMarkup, expectedMarkup, GetScriptOptions(), index, compareTokens, options, fixAllActionEquivalenceKey);
         }
 
         protected void Test(
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions,
             int index = 0, bool compareTokens = true,  
-            IDictionary<OptionKey, object> options = null, bool isAddedDocument = false,
+            IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null)
         {
-            Test(initialMarkup, expectedMarkup, parseOptions, null, index, compareTokens, options, isAddedDocument, fixAllActionEquivalenceKey);
+            Test(initialMarkup, expectedMarkup, parseOptions, null, index, compareTokens, options, fixAllActionEquivalenceKey);
         }
 
         protected void Test(
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions, CompilationOptions compilationOptions,
             int index = 0, bool compareTokens = true, 
-            IDictionary<OptionKey, object> options = null, bool isAddedDocument = false,
+            IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null)
         {
             string expected;
@@ -188,8 +189,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     workspace, expected, index,
                     actions,
                     conflictSpans, renameSpans, warningSpans,
-                    compareTokens: compareTokens,
-                    isAddedDocument: isAddedDocument);
+                    compareTokens: compareTokens);
             }
         }
 
@@ -197,10 +197,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             TestWorkspace workspace, string expected, 
             int index, IList<CodeAction> actions, 
             IList<TextSpan> conflictSpans, IList<TextSpan> renameSpans, IList<TextSpan> warningSpans, 
-            bool compareTokens, bool isAddedDocument)
+            bool compareTokens)
         {
             var operations = VerifyInputsAndGetOperations(index, actions);
-            return TestOperations(workspace, expected, operations.ToList(), conflictSpans, renameSpans, warningSpans, compareTokens, expectedChangedDocumentId: null, isAddedDocument: isAddedDocument);
+            return TestOperations(workspace, expected, operations.ToList(), conflictSpans, renameSpans, warningSpans, compareTokens, expectedChangedDocumentId: null);
         }
 
         private static bool IsWorkspaceElement(string text)
@@ -216,8 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             IList<TextSpan> renameSpans,
             IList<TextSpan> warningSpans,
             bool compareTokens,
-            DocumentId expectedChangedDocumentId,
-            bool isAddedDocument)
+            DocumentId expectedChangedDocumentId)
         {
             var appliedChanges = ApplyOperationsAndGetSolution(workspace, operations);
             var oldSolution = appliedChanges.Item1;
@@ -229,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 return Tuple.Create(oldSolution, newSolution);
             }
 
-            var document = GetDocumentToVerify(expectedChangedDocumentId, isAddedDocument, oldSolution, newSolution);
+            var document = GetDocumentToVerify(expectedChangedDocumentId, oldSolution, newSolution);
 
             var fixedRoot = document.GetSyntaxRootAsync().Result;
             var actualText = compareTokens ? fixedRoot.ToString() : fixedRoot.ToFullString();
@@ -250,23 +249,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return Tuple.Create(oldSolution, newSolution);
         }
 
-        private static Document GetDocumentToVerify(DocumentId expectedChangedDocumentId, bool isAddedDocument, Solution oldSolution, Solution newSolution)
+        private static Document GetDocumentToVerify(DocumentId expectedChangedDocumentId, Solution oldSolution, Solution newSolution)
         {
             Document document;
             // If the expectedChangedDocumentId is not mentioned then we expect only single document to be changed 
             if (expectedChangedDocumentId == null)
             {
-                if (!isAddedDocument)
-                {
-                    // This method assumes that only one document changed and rest(Project state) remains unchanged
-                    document = SolutionUtilities.GetSingleChangedDocument(oldSolution, newSolution);
-                }
-                else
-                {
-                    // This method assumes that only one document added and rest(Project state) remains unchanged
-                    document = SolutionUtilities.GetSingleAddedDocument(oldSolution, newSolution);
-                    Assert.Empty(SolutionUtilities.GetChangedDocuments(oldSolution, newSolution));
-                }
+                var projectDifferences = SolutionUtilities.GetSingleChangedProjectChanges(oldSolution, newSolution);
+                var documentId = projectDifferences.GetChangedDocuments().FirstOrDefault() ?? projectDifferences.GetAddedDocuments().FirstOrDefault();
+                Assert.NotNull(documentId);
+                document = newSolution.GetDocument(documentId);
             }
             else
             {

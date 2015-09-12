@@ -330,8 +330,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     oldSolutionAndNewSolution = TestOperations(
                         testState.Workspace, expected, operations, 
                         conflictSpans: null, renameSpans: null, warningSpans: null, 
-                        compareTokens: false, expectedChangedDocumentId: testState.ExistingDocument.Id,
-                        isAddedDocument: false);
+                        compareTokens: false, expectedChangedDocumentId: testState.ExistingDocument.Id);
                 }
                 else
                 {
@@ -351,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     Assert.NotNull(expectedTextWithUsings);
                     TestOperations(testState.Workspace, expectedTextWithUsings, operations,
                         conflictSpans: null, renameSpans: null, warningSpans: null, compareTokens: false,
-                        expectedChangedDocumentId: testState.InvocationDocument.Id, isAddedDocument: false);
+                        expectedChangedDocumentId: testState.InvocationDocument.Id);
                 }
 
                 if (checkIfUsingsNotIncluded)
