@@ -9,6 +9,7 @@
     <Import_RootNamespace>Roslyn.Test.Utilities</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Assert\ClrOnlyFactAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Assert\EqualityTesting.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Assert\TestExceptionUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Assert\AssertEx.cs" />
