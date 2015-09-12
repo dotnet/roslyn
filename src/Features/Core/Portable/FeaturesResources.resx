@@ -834,4 +834,7 @@ Do you want to continue?</value>
   <data name="UseAutoProperty" xml:space="preserve">
     <value>Use auto property</value>
   </data>
+  <data name="ChangeTo1" xml:space="preserve">
+    <value>Change '{0}' to '{1}'.</value>
+  </data>
 </root>

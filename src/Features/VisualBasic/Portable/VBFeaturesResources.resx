@@ -126,9 +126,6 @@
   <data name="DeleteTheStatement" xml:space="preserve">
     <value>Delete the '{0}' statement.</value>
   </data>
-  <data name="ChangeTo" xml:space="preserve">
-    <value>Change '{0}' to '{1}'.</value>
-  </data>
   <data name="GeneratedeventnameTargets" xml:space="preserve">
     <value>Create event {0} in {1}</value>
   </data>

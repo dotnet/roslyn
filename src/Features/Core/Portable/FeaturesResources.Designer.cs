@@ -431,6 +431,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Change &apos;{0}&apos; to &apos;{1}&apos;..
+        /// </summary>
+        internal static string ChangeTo1 {
+            get {
+                return ResourceManager.GetString("ChangeTo1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Changing the declaration scope of a captured variable &apos;{0}&apos; will prevent the debug session from continuing..
         /// </summary>
         internal static string ChangingCapturedVariableScope {
