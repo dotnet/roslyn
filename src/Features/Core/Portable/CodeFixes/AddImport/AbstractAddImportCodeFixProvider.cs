@@ -292,13 +292,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         {
             var propertySymbols = symbols
                 .OfType<IPropertySymbol>()
-                .Where(property => property.ContainingType?.IsAccessibleWithin(semanticModel.Compilation.Assembly) == true &&
+                .Where(property => property.IsAccessibleWithin(semanticModel.Compilation.Assembly) == true &&
                                    IsViableProperty(property, expression, semanticModel, syntaxFacts, cancellationToken))
                 .ToList();
 
             var fieldSymbols = symbols
                 .OfType<IFieldSymbol>()
-                .Where(field => field.ContainingType?.IsAccessibleWithin(semanticModel.Compilation.Assembly) == true &&
+                .Where(field => field.IsAccessibleWithin(semanticModel.Compilation.Assembly) == true &&
                                 IsViableField(field, expression, semanticModel, syntaxFacts, cancellationToken))
                 .ToList();
 
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return symbols
                     .OfType<IMethodSymbol>()
                     .Where(method => method.IsExtensionMethod &&
-                                     method.ContainingType?.IsAccessibleWithin(semanticModel.Compilation.Assembly) == true &&
+                                     method.IsAccessibleWithin(semanticModel.Compilation.Assembly) == true &&
                                      IsViableExtensionMethod(method, expression, semanticModel, syntaxFacts, cancellationToken));
             }
 
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             var extensionMethodSymbols = symbols
                 .OfType<IMethodSymbol>()
                 .Where(method => method.IsExtensionMethod &&
-                                 method.ContainingType?.IsAccessibleWithin(semanticModel.Compilation.Assembly) == true &&
+                                 method.IsAccessibleWithin(semanticModel.Compilation.Assembly) == true &&
                                  IsViableExtensionMethod(method, expression, semanticModel, syntaxFacts, cancellationToken))
                 .ToList();
 
