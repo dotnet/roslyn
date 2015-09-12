@@ -11,10 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         Private Shared ReadOnly s_signedDll As VisualBasicCompilationOptions =
-            New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
-                                              optimizationLevel:=OptimizationLevel.Release,
-                                              cryptoKeyFile:=SigningTestHelpers.KeyPairFile,
-                                              strongNameProvider:=New SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray.Create(Of String)()))
+            TestOptions.ReleaseDll.WithCryptoPublicKey(TestResources.TestKeys.PublicKey_ce65828c82a341f2)
 
         <WorkItem(5483, "DevDiv_Projects/Roslyn")>
         <WorkItem(527917, "DevDiv")>

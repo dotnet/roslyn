@@ -12,17 +12,15 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using System.Reflection.PortableExecutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class ReferenceManagerTests : CSharpTestBase
     {
-        private static readonly CSharpCompilationOptions s_signedDll = TestOptions.ReleaseDll.
-            WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
-            WithStrongNameProvider(new SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray.Create<string>()));
+        private static readonly CSharpCompilationOptions s_signedDll = 
+            TestOptions.ReleaseDll.WithCryptoPublicKey(TestResources.TestKeys.PublicKey_ce65828c82a341f2);
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void WinRtCompilationReferences()
         {
             var ifaceDef = CreateCompilationWithMscorlib(
@@ -50,7 +48,7 @@ public class C
             implDef2.VerifyDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void VersionUnification_SymbolUsed()
         {
             // Identity: C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9
@@ -94,7 +92,7 @@ public class C
                     "C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9"));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         [WorkItem(546080, "DevDiv")]
         public void VersionUnification_SymbolNotUsed()
         {
@@ -114,7 +112,7 @@ public class C
             testRefV2.VerifyDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void VersionUnification_MultipleVersions()
         {
             string sourceLibV1 = @"
@@ -214,7 +212,7 @@ public class M
                     "Lib"));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         [WorkItem(529808, "DevDiv"), WorkItem(530246, "DevDiv")]
         public void VersionUnification_UseSiteWarnings()
         {
@@ -398,7 +396,7 @@ public class OKImpl : I
             verify: false);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         [WorkItem(546080, "DevDiv")]
         public void VersionUnification_UseSiteDiagnostics_Multiple()
         {
@@ -502,7 +500,7 @@ public class M
                     "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2"));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void VersionUnification_UseSiteDiagnostics_OptionalAttributes()
         {
             string sourceLibV1 = @"
@@ -586,7 +584,7 @@ public class C
             main.VerifyDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void VersionUnification_SymbolEquality()
         {
             string sourceLibV1 = @"
@@ -651,7 +649,7 @@ public class M
                     "Lib"));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         [WorkItem(546752, "DevDiv")]
         public void VersionUnification_NoPiaMissingCanonicalTypeSymbol()
         {
@@ -728,7 +726,7 @@ public class Test
         }
 
         [WorkItem(546525, "DevDiv")]
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void AssemblyReferencesWithAliases()
         {
             var source =
@@ -755,7 +753,7 @@ namespace Microsoft.TeamFoundation.WebAccess.Common
         }
 
         [WorkItem(545062, "DevDiv")]
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void DuplicateReferences()
         {
             CSharpCompilation c;
@@ -850,7 +848,7 @@ public class E : bar::C { }
             return newParts.Join(Path.DirectorySeparatorChar.ToString());
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void DuplicateAssemblyReferences_EquivalentPath()
         {
             string p1 = Temp.CreateFile().WriteAllBytes(TestResources.General.MDTestLib1).Path;
@@ -920,7 +918,7 @@ public class E : bar::C { }
             Assert.Equal(p3, dr3.FilePath);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void DuplicateModuleReferences_EquivalentPath()
         {
             var dir = Temp.CreateDirectory();
@@ -956,7 +954,7 @@ public class E : bar::C { }
         /// <summary>
         /// Two metadata files with the same strong identity referenced twice, with embedInteropTypes=true and embedInteropTypes=false.
         /// </summary>
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void DuplicateAssemblyReferences_EquivalentStrongNames_Metadata()
         {
             var ref1 = AssemblyMetadata.CreateFromImage(TestResources.General.C2).GetReference(embedInteropTypes: true, filePath: @"R:\A\MTTestLib1.dll");
@@ -971,7 +969,7 @@ public class E : bar::C { }
         /// <summary>
         /// Two compilations with the same strong identity referenced twice, with embedInteropTypes=true and embedInteropTypes=false.
         /// </summary>
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void DuplicateAssemblyReferences_EquivalentStrongNames_Compilations()
         {
             var sourceLib = @"
@@ -990,7 +988,7 @@ public interface I {}";
                 Diagnostic(ErrorCode.ERR_AssemblySpecifiedForLinkAndRef).WithArguments("Lib", "Lib"));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void DuplicateAssemblyReferences_EquivalentName()
         {
             string p1 = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.System_Core).Path;
@@ -1009,7 +1007,7 @@ public interface I {}";
         /// <summary>
         /// Two Framework identities with unified versions.
         /// </summary>
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         [WorkItem(546026, "DevDiv"), WorkItem(546169, "DevDiv")]
         public void CS1703ERR_DuplicateImport()
         {
@@ -1028,7 +1026,7 @@ public interface I {}";
                 Diagnostic(ErrorCode.ERR_DuplicateImport).WithArguments(p1, p2));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void CS1704ERR_DuplicateImportSimple()
         {
             var libSource = @"
@@ -1036,31 +1034,13 @@ using System;
 public class A { }";
 
 
-            var c1 = CreateCompilationWithMscorlib(libSource, options: TestOptions.ReleaseDll, assemblyName: "CS1704");
+            var peImage = CreateCompilationWithMscorlib(libSource, options: TestOptions.ReleaseDll, assemblyName: "CS1704").EmitToArray();
 
             var dir1 = Temp.CreateDirectory();
-            var exe1 = dir1.CreateFile("CS1704.dll");
-            var pdb1 = dir1.CreateFile("CS1704.pdb");
+            var exe1 = dir1.CreateFile("CS1704.dll").WriteAllBytes(peImage);
 
             var dir2 = Temp.CreateDirectory();
-            var exe2 = dir2.CreateFile("CS1704.dll");
-            var pdb2 = dir2.CreateFile("CS1704.pdb");
-
-            using (var output = exe1.Open())
-            {
-                using (var outputPdb = pdb1.Open())
-                {
-                    c1.Emit(output, outputPdb);
-                }
-            }
-
-            using (var output = exe2.Open())
-            {
-                using (var outputPdb = pdb2.Open())
-                {
-                    c1.Emit(output, outputPdb);
-                }
-            }
+            var exe2 = dir2.CreateFile("CS1704.dll").WriteAllBytes(peImage);
 
             var ref1 = AssemblyMetadata.CreateFromFile(exe1.Path).GetReference(aliases: ImmutableArray.Create("A1"));
             var ref2 = AssemblyMetadata.CreateFromFile(exe2.Path).GetReference(aliases: ImmutableArray.Create("A2"));
@@ -1078,7 +1058,7 @@ class C : A2::A { }
             CreateCompilationWithMscorlib(source, new[] { ref1, ref2 }).VerifyDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void WeakIdentitiesWithDifferentVersions()
         {
             var sourceLibV1 = @"
@@ -1132,7 +1112,7 @@ public class Q
         /// Although the CLR considers all WinRT references equivalent the Dev11 C# and VB compilers still 
         /// compare their identities as if they were regular managed dlls.
         /// </summary>
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void WinMd_SameSimpleNames_SameVersions()
         {
             var sourceMain = @"
@@ -1167,7 +1147,7 @@ public class Q
         /// Although the CLR considers all WinRT references equivalent the Dev11 C# and VB compilers still 
         /// compare their identities as if they were regular managed dlls.
         /// </summary>
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void WinMd_DifferentSimpleNames()
         {
             var sourceMain = @"
@@ -1197,7 +1177,7 @@ public class Q
         /// Although the CLR considers all WinRT references equivalent the Dev11 C# and VB compilers still 
         /// compare their identities as if they were regular managed dlls.
         /// </summary>
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void WinMd_SameSimpleNames_DifferentVersions()
         {
             var sourceMain = @"
@@ -1230,7 +1210,7 @@ public class Q
         /// <summary>
         /// We replicate the Dev11 behavior here but is there any real world scenario for this?
         /// </summary>
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void MetadataReferencesDifferInCultureOnly()
         {
             var arSA = TestReferences.SymbolsTests.Versioning.AR_SA;
@@ -1284,7 +1264,7 @@ public class A
             public bool resolved1, resolved2;
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void ReferenceResolution1()
         {
             var path1 = Temp.CreateFile().WriteAllBytes(TestResources.General.MDTestLib1).Path;
@@ -1347,7 +1327,7 @@ public class A
             }
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void ReferenceResolution_ExceptionsFromResolver()
         {
             var options = TestOptions.ReleaseDll.
@@ -1363,7 +1343,7 @@ public class A
             }
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void ReferenceResolution_ExceptionsFromProvider()
         {
             var provider = new ErroneousMetadataReferenceProvider();
@@ -1387,7 +1367,7 @@ public class A
                 Diagnostic(ErrorCode.ERR_NoMetadataFile, @"#r ""c:\null.dll""").WithArguments(@"c:\null.dll"));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void ResolvedReferencesCaching()
         {
             var c1 = CSharpCompilation.Create("foo",
@@ -1401,7 +1381,7 @@ public class A
             var a2 = c2.SourceAssembly;
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void CyclesInReferences()
         {
             var sourceA = @"
@@ -1457,7 +1437,7 @@ public class B : A
                 Diagnostic(ErrorCode.ERR_MissingTypeInSource, "x").WithArguments("Foo"));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void BoundReferenceCaching_CyclesInReferences()
         {
             var a = CreateCompilationWithMscorlib("public class A { }", assemblyName: "A");
@@ -1490,7 +1470,7 @@ public class B : A
         }
 
         [WorkItem(546828, "DevDiv")]
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void MetadataDependsOnSource()
         {
             // {0} is the body of the ReachFramework assembly reference.
@@ -1598,7 +1578,7 @@ class Test
         }
 
         [WorkItem(546828, "DevDiv")]
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void MetadataDependsOnMetadataOrSource()
         {
             var il = @"
@@ -1687,7 +1667,7 @@ namespace System.Printing
             Assert.NotEqual(comp.Assembly.Identity, actualIdentity);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         [WorkItem(546900, "DevDiv")]
         public void MetadataRefersToSourceAssemblyModule()
         {
@@ -1732,7 +1712,7 @@ public class B
             b.VerifyDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         [WorkItem(530839, "DevDiv")]
         public void EmbedInteropTypesReferences()
         {
@@ -1770,7 +1750,7 @@ public class C : I { }
         }
 
         [WorkItem(531537, "DevDiv")]
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void ModuleSymbolReuse()
         {
             var text1 = @"
@@ -1826,7 +1806,7 @@ class D
         }
 
         [WorkItem(531537, "DevDiv")]
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void ModuleSymbolReuse_ImplicitType()
         {
             var text1 = @"
@@ -1859,7 +1839,7 @@ namespace A
             Assert.Equal(1, implicitTypeCount2);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void CachingAndVisibility()
         {
             var cPublic = CreateCompilationWithMscorlib("class C { }", options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Public));
@@ -1879,7 +1859,7 @@ namespace A
             Assert.Same(cAll.Assembly.CorLibrary, cAll2.Assembly.CorLibrary);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void ImportingPrivateNetModuleMembers()
         {
             string moduleSource = @"
@@ -1909,7 +1889,7 @@ internal class C
             Assert.Equal(0, mPublic.Length);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         [WorkItem(531342, "DevDiv"), WorkItem(727122, "DevDiv")]
         public void PortableLibrary()
         {
@@ -1930,7 +1910,7 @@ internal class C
             main.VerifyDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         [WorkItem(762729, "DevDiv")]
         public void OverloadResolutionUseSiteWarning()
         {
@@ -1975,7 +1955,7 @@ public class Source
                 Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "a.M").WithArguments("B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B"));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         [WorkItem(762729, "DevDiv")]
         public void MethodGroupConversionUseSiteWarning()
         {
@@ -2020,7 +2000,7 @@ public class Source
                 Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "a.M").WithArguments("B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B"));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         [WorkItem(762729, "DevDiv")]
         public void IndexerUseSiteWarning()
         {
@@ -2061,7 +2041,7 @@ public class Source
                 Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "a[null]").WithArguments("B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B"));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         [WorkItem(762729, "DevDiv")]
         public void Repro762729()
         {
@@ -2091,6 +2071,9 @@ public static class Extensions
 
             var libBv1 = CreateCompilationWithMscorlibAndSystemCore(string.Format(libBTemplate, "1"), assemblyName: "B", options: s_signedDll);
             var libBv2 = CreateCompilationWithMscorlibAndSystemCore(string.Format(libBTemplate, "2"), assemblyName: "B", options: s_signedDll);
+
+            Assert.Equal("B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", libBv1.Assembly.Identity.GetDisplayName());
+            Assert.Equal("B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", libBv2.Assembly.Identity.GetDisplayName());
 
             libBv1.EmitToImageReference();
             libBv2.EmitToImageReference();
@@ -2140,7 +2123,7 @@ public class Source
         }
 
         [WorkItem(905495, "DevDiv")]
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void ReferenceWithNoMetadataSection()
         {
             var c = CreateCompilationWithMscorlib("", new[] { new TestImageReference(TestResources.Basic.NativeApp, "NativeApp.exe") });
@@ -2150,7 +2133,7 @@ public class Source
         }
 
         [WorkItem(2988, "https://github.com/dotnet/roslyn/issues/2988")]
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void EmptyReference1()
         {
             var source = "class C { public static void Main() { } }";
@@ -2161,7 +2144,7 @@ public class Source
         }
 
         [WorkItem(2992, "https://github.com/dotnet/roslyn/issues/2992")]
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void MetadataDisposed()
         {
             var md = AssemblyMetadata.CreateFromImage(TestResources.NetFX.Minimal.mincorlib);
@@ -2176,7 +2159,7 @@ public class Source
         }
 
         [WorkItem(43)]
-        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        [Fact]
         public void ReusingCorLibManager()
         {
             var corlib1 = CreateCompilation("");
@@ -2188,6 +2171,44 @@ public class Source
             Assert.Same(assembly1.CorLibrary, assembly1);
             Assert.Same(assembly2.CorLibrary, assembly2);
             Assert.True(corlib1.ReferenceManagerEquals(corlib2));
+        }
+
+        [WorkItem(5138)]
+        [Fact]
+        public void AsymmetricUnification()
+        {
+            var vectors40 = CreateCompilationWithMscorlib(
+                @"[assembly: System.Reflection.AssemblyVersion(""4.0.0.0"")]",
+                options: TestOptions.ReleaseDll.WithCryptoPublicKey(TestResources.TestKeys.PublicKey_b03f5f7f11d50a3a),
+                assemblyName: "System.Numerics.Vectors");
+
+            Assert.Equal("System.Numerics.Vectors, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", vectors40.Assembly.Identity.GetDisplayName());
+
+            var vectors41 = CreateCompilationWithMscorlib(
+                @"[assembly: System.Reflection.AssemblyVersion(""4.1.0.0"")]",
+                options: TestOptions.ReleaseDll.WithCryptoPublicKey(TestResources.TestKeys.PublicKey_b03f5f7f11d50a3a),
+                assemblyName: "System.Numerics.Vectors");
+
+            Assert.Equal("System.Numerics.Vectors, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", vectors41.Assembly.Identity.GetDisplayName());
+
+            var refVectors40 = vectors40.EmitToImageReference();
+            var refVectors41 = vectors41.EmitToImageReference();
+
+            var c1 = CreateCompilationWithMscorlib("", new[] { refVectors40, refVectors41 }, options: TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
+            c1.VerifyDiagnostics();
+
+            var a0 = c1.GetAssemblyOrModuleSymbol(refVectors40);
+            var a1 = c1.GetAssemblyOrModuleSymbol(refVectors41);
+            Assert.Equal("System.Numerics.Vectors, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((IAssemblySymbol)a0).Identity.GetDisplayName());
+            Assert.Equal("System.Numerics.Vectors, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((IAssemblySymbol)a1).Identity.GetDisplayName());
+
+            var c2 = CreateCompilationWithMscorlib("", new[] { refVectors41, refVectors40 }, options: TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
+            c2.VerifyDiagnostics();
+
+            a0 = c2.GetAssemblyOrModuleSymbol(refVectors40);
+            a1 = c2.GetAssemblyOrModuleSymbol(refVectors41);
+            Assert.Equal("System.Numerics.Vectors, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((IAssemblySymbol)a0).Identity.GetDisplayName());
+            Assert.Equal("System.Numerics.Vectors, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((IAssemblySymbol)a1).Identity.GetDisplayName());
         }
     }
 }
