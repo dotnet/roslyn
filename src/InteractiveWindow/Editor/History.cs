@@ -148,7 +148,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         }
         internal Entry GetNext(string pattern)
         {
-            Entry next = MoveNext(pattern);
+            var next = MoveNext(pattern);
             if (next == null)
             {
                 // if we hit the end of history list, reset _current to stop navigating history.
