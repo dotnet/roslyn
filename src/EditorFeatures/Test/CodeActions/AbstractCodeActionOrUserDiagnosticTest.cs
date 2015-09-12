@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        protected void TestAnnotations(
+        private void TestAnnotations(
             string expectedText,
             IList<TextSpan> expectedSpans,
             SyntaxNode fixedRoot,
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        protected virtual void TestMissing(
+        protected void TestMissing(
             string initialMarkup,
             IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null)
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             TestMissing(initialMarkup, parseOptions: GetScriptOptions(), options:options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
         }
 
-        protected virtual void TestMissing(
+        protected void TestMissing(
             string initialMarkup,
             ParseOptions parseOptions,
             IDictionary<OptionKey, object> options = null,
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             TestMissing(initialMarkup, parseOptions, compilationOptions: null, options:options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
         }
 
-        protected virtual void TestMissing(
+        protected void TestMissing(
             string initialMarkup,
             ParseOptions parseOptions, CompilationOptions compilationOptions,
             IDictionary<OptionKey, object> options = null,
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        protected virtual void Test(
+        protected void Test(
             string initialMarkup, string expectedMarkup,
             int index = 0, bool compareTokens = true,  
             IDictionary<OptionKey, object> options = null, bool isAddedDocument = false,
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             Test(initialMarkup, expectedMarkup, GetScriptOptions(), index, compareTokens, options, isAddedDocument, fixAllActionEquivalenceKey);
         }
 
-        protected virtual void Test(
+        protected void Test(
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions,
             int index = 0, bool compareTokens = true,  
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             Test(initialMarkup, expectedMarkup, parseOptions, null, index, compareTokens, options, isAddedDocument, fixAllActionEquivalenceKey);
         }
 
-        protected virtual void Test(
+        protected void Test(
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions, CompilationOptions compilationOptions,
             int index = 0, bool compareTokens = true, 
