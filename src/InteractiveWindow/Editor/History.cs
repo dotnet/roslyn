@@ -146,6 +146,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
             }
         }
+
         internal Entry GetNext(string pattern)
         {
             var next = MoveNext(pattern);
