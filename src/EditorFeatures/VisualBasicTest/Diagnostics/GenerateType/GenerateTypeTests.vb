@@ -49,6 +49,12 @@ NewLines("Class C \n dim f as Foo \n End Class \n Friend Class Foo \n End Class"
 index:=1)
         End Sub
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestMissingOnLowercaseName()
+            TestMissing(
+NewLines("Class C \n dim f as [|foo|] \n End Class"))
+        End Sub
+
         <WorkItem(539716)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateClassFromFullyQualifiedFieldIntoSameNamespace()
