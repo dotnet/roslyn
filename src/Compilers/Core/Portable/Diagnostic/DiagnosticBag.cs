@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
     /// <remarks>The bag is optimized to be efficient when containing zero errors.</remarks>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     [DebuggerTypeProxy(typeof(DebuggerProxy))]
-    internal class DiagnosticBag
+    internal sealed class DiagnosticBag
     {
         // The lazyBag field is populated lazily -- the first time an error is added.
         private ConcurrentQueue<Diagnostic> _lazyBag;
@@ -145,7 +145,10 @@ namespace Microsoft.CodeAnalysis
         {
             if (!bag.IsEmptyWithoutResolution)
             {
-                AddRange(bag.Bag);
+                foreach (var diagnostic in bag.AsEnumerable())
+                {
+                    this.Bag.Enqueue(diagnostic);
+                }
             }
         }
 
@@ -195,56 +198,88 @@ namespace Microsoft.CodeAnalysis
 
             ArrayBuilder<TDiagnostic> builder = ArrayBuilder<TDiagnostic>.GetInstance();
 
-            foreach (TDiagnostic diagnostic in oldBag) // Cast should be safe since all diagnostics should be from same language.
+            foreach (TDiagnostic diagnostic in new Enumerable(oldBag)) // Cast should be safe since all diagnostics should be from same language.
             {
-                if (diagnostic.Severity != InternalDiagnosticSeverity.Void)
-                {
-                    Debug.Assert(diagnostic.Severity != InternalDiagnosticSeverity.Unknown); //Info access should have forced resolution.
-                    builder.Add(diagnostic);
-                }
+                Debug.Assert(diagnostic.Severity != InternalDiagnosticSeverity.Unknown); //Info access should have forced resolution.
+                builder.Add(diagnostic);
             }
 
             return builder.ToImmutableAndFree();
         }
 
-
         /// <remarks>
         /// Generally, this should only be called by the creator (modulo pooling) of the bag (i.e. don't use bags to communicate -
         /// if you need more info, pass more info).
         /// </remarks>
-        public IEnumerable<Diagnostic> AsEnumerable()
+        public Enumerable AsEnumerable()
         {
-            ConcurrentQueue<Diagnostic> bag = this.Bag;
-
-            bool foundVoid = false;
-
-            foreach (Diagnostic diagnostic in bag)
-            {
-                if (diagnostic.Severity == InternalDiagnosticSeverity.Void)
-                {
-                    foundVoid = true;
-                    break;
-                }
-            }
-
-            return foundVoid
-                ? AsEnumerableFiltered()
-                : bag;
+            return new Enumerable(this.Bag);
         }
 
-        /// <remarks>
-        /// Using an iterator to avoid copying the list.  If perf is a problem,
-        /// create an explicit enumerator type.
-        /// </remarks>
-        private IEnumerable<Diagnostic> AsEnumerableFiltered()
+        internal struct Enumerable : IEnumerable<Diagnostic>
         {
-            foreach (Diagnostic diagnostic in this.Bag)
+            private readonly ConcurrentQueue<Diagnostic> _diagnostics;
+
+            internal Enumerable(ConcurrentQueue<Diagnostic> diagnostics)
             {
-                if (diagnostic.Severity != InternalDiagnosticSeverity.Void)
+                _diagnostics = diagnostics;
+            }
+
+            public Enumerator GetEnumerator()
+            {
+                return new Enumerator(_diagnostics.GetEnumerator());
+            }
+
+            IEnumerator<Diagnostic> IEnumerable<Diagnostic>.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+        }
+
+        internal struct Enumerator : IEnumerator<Diagnostic>
+        {
+            private readonly IEnumerator<Diagnostic> _diagnostics;
+
+            internal Enumerator(IEnumerator<Diagnostic> diagnostics)
+            {
+                _diagnostics = diagnostics;
+            }
+
+            public bool MoveNext()
+            {
+                while (_diagnostics.MoveNext())
                 {
-                    Debug.Assert(diagnostic.Severity != InternalDiagnosticSeverity.Unknown); //Info access should have forced resolution.
-                    yield return diagnostic;
+                    if (_diagnostics.Current.Severity != InternalDiagnosticSeverity.Void)
+                    {
+                        return true;
+                    }
                 }
+                return false;
+            }
+
+            public Diagnostic Current
+            {
+                get { return _diagnostics.Current; }
+            }
+
+            object IEnumerator.Current
+            {
+                get { return Current; }
+            }
+
+            void IEnumerator.Reset()
+            {
+                _diagnostics.Reset();
+            }
+
+            void IDisposable.Dispose()
+            {
+                _diagnostics.Dispose();
             }
         }
 
@@ -361,6 +396,7 @@ namespace Microsoft.CodeAnalysis
         {
             return "Count = " + (_lazyBag?.Count ?? 0);
         }
+
         #endregion
     }
 }
