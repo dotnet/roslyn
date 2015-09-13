@@ -2356,7 +2356,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If initializerSet IsNot Nothing Then
                 For Each initializers In initializerSet
                     For Each initializer In initializers
-                        Dim fieldOrPropertyArray As ImmutableArray(Of Symbol) = initializer.FieldsOrProperty
+                        Dim fieldOrPropertyArray As ImmutableArray(Of Symbol) = initializer.FieldsOrProperties
 
                         If Not fieldOrPropertyArray.IsDefault Then
                             Debug.Assert(fieldOrPropertyArray.Length > 0)
