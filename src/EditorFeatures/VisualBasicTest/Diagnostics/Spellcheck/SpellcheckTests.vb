@@ -31,7 +31,7 @@ End Class</File>
         Dim a = new [|Fooa|].ToString()
     End Sub
 End Class</File>
-            TestExactActionSetOffered(text.NormalizedValue, {String.Format(FeaturesResources.ChangeTo1, "Fooa", "Foo")})
+            TestExactActionSetOffered(text.NormalizedValue, {String.Format(FeaturesResources.ChangeTo, "Fooa", "Foo")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -42,7 +42,7 @@ End Class</File>
     End Sub
 End Class</File>
             TestExactActionSetOffered(text.NormalizedValue,
-                {String.Format(FeaturesResources.ChangeTo1, "Foa", "Foo")})
+                {String.Format(FeaturesResources.ChangeTo, "Foa", "Foo")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -53,7 +53,7 @@ End Class</File>
     End Sub
 End Class</File>
             TestExactActionSetOffered(text.NormalizedValue,
-                {String.Format(FeaturesResources.ChangeTo1, "Foa", "Foo")})
+                {String.Format(FeaturesResources.ChangeTo, "Foa", "Foo")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -63,7 +63,7 @@ End Class</File>
     End Sub
 End Class</File>
             TestExactActionSetOffered(text.NormalizedValue,
-                {String.Format(FeaturesResources.ChangeTo1, "Foa", "Foo")})
+                {String.Format(FeaturesResources.ChangeTo, "Foa", "Foo")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -74,7 +74,7 @@ End Class</File>
         Dim y = 2 + [|zza|]
     End Sub
 End Module</File>
-            TestExactActionSetOffered(text.NormalizedValue, {String.Format(FeaturesResources.ChangeTo1, "zza", "zzz")})
+            TestExactActionSetOffered(text.NormalizedValue, {String.Format(FeaturesResources.ChangeTo, "zza", "zzz")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -87,7 +87,7 @@ Public Class Class1
         End If
     End Sub
 End Class</File>
-            TestExactActionSetOffered(text.NormalizedValue, {String.Format(FeaturesResources.ChangeTo1, "Boolea", "Boolean")})
+            TestExactActionSetOffered(text.NormalizedValue, {String.Format(FeaturesResources.ChangeTo, "Boolea", "Boolean")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -100,7 +100,7 @@ Public Class Class1
         End If
     End Sub
 End Class</File>
-            TestExactActionSetOffered(text.NormalizedValue, {String.Format(FeaturesResources.ChangeTo1, "Boolea", "Boolean")})
+            TestExactActionSetOffered(text.NormalizedValue, {String.Format(FeaturesResources.ChangeTo, "Boolea", "Boolean")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>

@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         private SpellCheckCodeAction CreateCodeAction(TSimpleName nameNode, string oldName, string newName, Document document)
         {
             return new SpellCheckCodeAction(
-                string.Format(FeaturesResources.ChangeTo1, oldName, newName),
+                string.Format(FeaturesResources.ChangeTo, oldName, newName),
                 c => Update(document, nameNode, newName, c),
                 equivalenceKey: newName);
         }

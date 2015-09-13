@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
 
             Public Overrides ReadOnly Property Title As String
                 Get
-                    Return String.Format(FeaturesResources.ChangeTo1, _invalidToken.ValueText, SyntaxFacts.GetText(BlockKindToKeywordKind(_blockKind)))
+                    Return String.Format(FeaturesResources.ChangeTo, _invalidToken.ValueText, SyntaxFacts.GetText(BlockKindToKeywordKind(_blockKind)))
                 End Get
             End Property
 

@@ -422,20 +422,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Change &apos;{0}&apos; to &apos;{1}.{2}&apos;..
+        ///   Looks up a localized string similar to Change &apos;{0}&apos; to &apos;{1}&apos;..
         /// </summary>
         internal static string ChangeTo {
             get {
                 return ResourceManager.GetString("ChangeTo", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Change &apos;{0}&apos; to &apos;{1}&apos;..
-        /// </summary>
-        internal static string ChangeTo1 {
-            get {
-                return ResourceManager.GetString("ChangeTo1", resourceCulture);
             }
         }
         

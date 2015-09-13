@@ -366,9 +366,6 @@
   <data name="ExtractInterface" xml:space="preserve">
     <value>Extract Interface...</value>
   </data>
-  <data name="ChangeTo" xml:space="preserve">
-    <value>Change '{0}' to '{1}.{2}'.</value>
-  </data>
   <data name="UpdatingAWillPrevent" xml:space="preserve">
     <value>Updating '{0}' will prevent the debug session from continuing.</value>
   </data>
@@ -834,7 +831,7 @@ Do you want to continue?</value>
   <data name="UseAutoProperty" xml:space="preserve">
     <value>Use auto property</value>
   </data>
-  <data name="ChangeTo1" xml:space="preserve">
+  <data name="ChangeTo" xml:space="preserve">
     <value>Change '{0}' to '{1}'.</value>
   </data>
 </root>
