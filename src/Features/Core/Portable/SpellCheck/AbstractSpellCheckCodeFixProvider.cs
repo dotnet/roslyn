@@ -65,7 +65,6 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             var results = new MultiDictionary<double, string>();
 
             int closeMatchThreshold = EditDistance.GetCloseMatchThreshold(nameText);
-            var nameTextLower = nameText.ToLower();
 
             foreach (var item in completionList.Items)
             {
@@ -75,9 +74,8 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 }
 
                 var candidateText = item.FilterText;
-                var candidateTextLower = candidateText.ToLower();
                 double matchCost;
-                if (!EditDistance.IsCloseMatch(nameTextLower, candidateTextLower, closeMatchThreshold, out matchCost))
+                if (!EditDistance.IsCloseMatch(nameText, candidateText, closeMatchThreshold, out matchCost))
                 {
                     continue;
                 }
