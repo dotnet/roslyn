@@ -21,15 +21,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Function
 
-        Private ReadOnly Property IArrayTypeReferenceIsVector As Boolean Implements Cci.IArrayTypeReference.IsVector
+        Private ReadOnly Property IArrayTypeReferenceIsSZArray As Boolean Implements Cci.IArrayTypeReference.IsSZArray
             Get
-                Return Me.Rank = 1
+                Return Me.IsSZArray
             End Get
         End Property
 
         Private ReadOnly Property IArrayTypeReferenceLowerBounds As IEnumerable(Of Integer) Implements Cci.IArrayTypeReference.LowerBounds
             Get
-                Return Linq.Enumerable.Repeat(0, Me.Rank)
+                Dim lowerBounds = Me.LowerBounds
+
+                If lowerBounds.IsDefault Then
+                    Return Linq.Enumerable.Repeat(0, Me.Rank)
+                End If
+
+                Return lowerBounds
             End Get
         End Property
 
@@ -41,9 +47,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IArrayTypeReferenceSizes As IEnumerable(Of ULong) Implements Cci.IArrayTypeReference.Sizes
             Get
-                Return SpecializedCollections.EmptyEnumerable(Of ULong)()
+                If Me.Sizes.IsEmpty Then
+                    Return SpecializedCollections.EmptyEnumerable(Of ULong)()
+                End If
+
+                Return GetSizes()
             End Get
         End Property
+
+        Private Iterator Function GetSizes() As IEnumerable(Of ULong)
+            For Each size In Me.Sizes
+                Yield CType(size, ULong)
+            Next
+        End Function
 
         Private ReadOnly Property ITypeReferenceIsEnum As Boolean Implements Cci.ITypeReference.IsEnum
             Get

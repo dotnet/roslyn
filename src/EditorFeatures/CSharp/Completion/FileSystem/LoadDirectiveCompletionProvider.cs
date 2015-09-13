@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Text.RegularExpressions;
@@ -6,18 +6,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.FileSystem;
-using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
-// This is in completely the wrong place.  It needs to be put in a proper place once we create a real
-// interactive services assembly.
-
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
+namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
 {
-    // TODO(cyrusn): Use a predefined name here.
-    [ExportCompletionProvider("LoadCommandCompletionProvider", InteractiveLanguageNames.InteractiveCommand)]
-    internal partial class LoadCommandCompletionProvider : CompletionListProvider
+    [ExportCompletionProvider("LoadDirectiveCompletionProvider", LanguageNames.CSharp)]
+    internal partial class LoadDirectiveCompletionProvider : CompletionListProvider
     {
         private const string NetworkPath = "\\\\";
         private static readonly Regex s_directiveRegex = new Regex(@"#load\s+(""[^""]*""?)", RegexOptions.Compiled);

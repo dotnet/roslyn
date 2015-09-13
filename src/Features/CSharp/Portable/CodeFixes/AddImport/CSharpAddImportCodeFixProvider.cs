@@ -465,22 +465,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                     SyntaxNode newRoot = root.AddUsingDirective(
                                     fullyQualifiedUsingDirective, contextNode, placeSystemNamespaceFirst,
                                     Formatter.Annotation);
-                    var newDocument = document.WithSyntaxRoot(newRoot);
-                    var newSemanticModel = await newDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                     var newUsing = newRoot
-                        .DescendantNodes().OfType<UsingDirectiveSyntax>().Where(uds => uds.IsEquivalentTo(fullyQualifiedUsingDirective, topLevel: true)).Single();
-                    var speculationAnalyzer = new SpeculationAnalyzer(newUsing.Name, simpleUsingDirective.Name, newSemanticModel, cancellationToken);
-                    if (speculationAnalyzer.ReplacementChangesSemantics())
+                        .DescendantNodes().OfType<UsingDirectiveSyntax>()
+                        .Where(uds => uds.IsEquivalentTo(fullyQualifiedUsingDirective, topLevel: true))
+                        .Single();
+                    newRoot = newRoot.TrackNodes(newUsing);
+                    var documentWithSyntaxRoot = document.WithSyntaxRoot(newRoot);
+                    var options = document.Project.Solution.Workspace.Options;
+                    var simplifiedDocument = await Simplifier.ReduceAsync(documentWithSyntaxRoot, newUsing.Span, options, cancellationToken).ConfigureAwait(false);
+
+                    newRoot = await simplifiedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    var simplifiedUsing = newRoot.GetCurrentNode(newUsing);
+                    if (simplifiedUsing.Name.IsEquivalentTo(newUsing.Name, topLevel: true))
                     {
                         // Not fully qualifying the using causes to refer to a different namespace so we need to keep it as is.
-                        return newDocument;
+                        return documentWithSyntaxRoot;
                     }
                     else
                     {
                         // It does not matter if it is fully qualified or simple so lets return the simple name.
                         return document.WithSyntaxRoot(root.AddUsingDirective(
-                            simpleUsingDirective, contextNode, placeSystemNamespaceFirst,
+                            simplifiedUsing.WithoutTrivia().WithoutAnnotations(), contextNode, placeSystemNamespaceFirst,
                             Formatter.Annotation));
                     }
                 }
@@ -701,11 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                 return false;
             }
 
-            var comparisonType = this.IgnoreCase
-                ? StringComparison.OrdinalIgnoreCase
-                : StringComparison.Ordinal;
-
-            return string.Compare(propertyOrField.ContainingType.Name, leftName.Identifier.Text, comparisonType) == 0;
+            return StringComparer.Ordinal.Compare(propertyOrField.ContainingType.Name, leftName.Identifier.Text) == 0;
         }
 
         internal override bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel)

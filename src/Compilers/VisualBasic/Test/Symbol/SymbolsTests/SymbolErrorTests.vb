@@ -23673,5 +23673,46 @@ Imports GlobEnumsClass
                                                </expected>)
         End Sub
 
+        <Fact>
+        Public Sub MustOverrideInScript()
+            Dim comp = CreateCompilationWithMscorlib(
+                <compilation>
+                    <file name="a.vbx"><![CDATA[
+Friend MustOverride Function F() As Object
+Friend MustOverride ReadOnly Property P
+]]></file>
+                </compilation>,
+                parseOptions:=TestOptions.Script,
+                references:={MscorlibRef, SystemCoreRef})
+            comp.AssertTheseDiagnostics(<expected>
+BC30607: 'NotInheritable' classes cannot have members declared 'MustOverride'.
+Friend MustOverride Function F() As Object
+       ~~~~~~~~~~~~
+BC30607: 'NotInheritable' classes cannot have members declared 'MustOverride'.
+Friend MustOverride ReadOnly Property P
+       ~~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub MustOverrideInInteractive()
+            Dim source = <![CDATA[
+Friend MustOverride Function F() As Object
+Friend MustOverride ReadOnly Property P
+]]>
+            Dim submission = VisualBasicCompilation.CreateSubmission(
+                "s0.dll",
+                syntaxTree:=Parse(source.Value, TestOptions.Interactive),
+                references:={MscorlibRef, SystemCoreRef})
+            submission.AssertTheseDiagnostics(<expected>
+BC30607: 'NotInheritable' classes cannot have members declared 'MustOverride'.
+Friend MustOverride Function F() As Object
+       ~~~~~~~~~~~~
+BC30607: 'NotInheritable' classes cannot have members declared 'MustOverride'.
+Friend MustOverride ReadOnly Property P
+       ~~~~~~~~~~~~
+</expected>)
+        End Sub
+
     End Class
 End Namespace

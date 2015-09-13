@@ -154,7 +154,6 @@
     <Compile Include="Diagnostics\AnalyzerHelper.cs" />
     <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
     <Compile Include="Diagnostics\AnalyzerUpdateArgsId.cs" />
-    <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.SolutionCrawlerAnalysisState.cs" />
     <Compile Include="Diagnostics\HostDiagnosticAnalyzerPackage.cs" />
     <Compile Include="Diagnostics\InternalDiagnosticsOptionsProvider.cs" />
     <Compile Include="Diagnostics\PredefinedBuildTools.cs" />
@@ -512,6 +511,8 @@
     <Compile Include="SolutionCrawler\WorkCoordinator.SemanticChangeProcessor.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.WorkItem.cs" />
     <Compile Include="SolutionCrawler\SolutionCrawlerRegistrationService.cs" />
+    <Compile Include="UseAutoProperty\AbstractUseAutoPropertyCodeFixProvider.cs" />
+    <Compile Include="UseAutoProperty\AbstractUseAutoPropertyAnalyzer.cs" />
     <Compile Include="Workspace\BackgroundCompiler.cs" />
     <Compile Include="Workspace\BackgroundParser.cs" />
   </ItemGroup>

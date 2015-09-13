@@ -148,16 +148,18 @@ internal class C : B
             context.CompileExpression("this.M(this.P)", out error, testData);
 
             testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+@"
+{
   // Code size       13 (0xd)
   .maxstack  2
   .locals init (object V_0)
   IL_0000:  ldarg.0
-  IL_0001:  dup
+  IL_0001:  ldarg.0
   IL_0002:  callvirt   ""object C.P.get""
   IL_0007:  callvirt   ""object B.M(object)""
   IL_000c:  ret
-}");
+}
+");
         }
 
         [Fact]

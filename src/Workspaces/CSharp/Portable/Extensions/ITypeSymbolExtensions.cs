@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -8,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -49,25 +51,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static async Task<ISymbol> FindApplicableAlias(this ITypeSymbol type, int position, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            if (semanticModel.IsSpeculativeSemanticModel)
-            {
-                position = semanticModel.OriginalPositionForSpeculation;
-                semanticModel = semanticModel.ParentModel;
-            }
-
-            var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-
-            IEnumerable<UsingDirectiveSyntax> applicableUsings = GetApplicableUsings(position, root as CompilationUnitSyntax);
-            foreach (var applicableUsing in applicableUsings)
-            {
-                var alias = semanticModel.GetOriginalSemanticModel().GetDeclaredSymbol(applicableUsing, cancellationToken);
-                if (alias != null && alias.Target == type)
+            try {
+                if (semanticModel.IsSpeculativeSemanticModel)
                 {
-                    return alias;
+                    position = semanticModel.OriginalPositionForSpeculation;
+                    semanticModel = semanticModel.ParentModel;
                 }
-            }
 
-            return null;
+                var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+
+                IEnumerable<UsingDirectiveSyntax> applicableUsings = GetApplicableUsings(position, root as CompilationUnitSyntax);
+                foreach (var applicableUsing in applicableUsings)
+                {
+                    var alias = semanticModel.GetOriginalSemanticModel().GetDeclaredSymbol(applicableUsing, cancellationToken);
+                    if (alias != null && alias.Target == type)
+                    {
+                        return alias;
+                    }
+                }
+
+                return null;
+            }
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         private static IEnumerable<UsingDirectiveSyntax> GetApplicableUsings(int position, SyntaxNode root)

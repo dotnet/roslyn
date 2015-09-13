@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -168,14 +167,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Trivia nodes represents parts of the program text that are not parts of the
-        /// syntactic grammar, such as spaces, newlines, comments, preprocessors
+        /// Trivia nodes represent parts of the program text that are not parts of the
+        /// syntactic grammar, such as spaces, newlines, comments, preprocessor
         /// directives, and disabled code.
         /// </summary>
         /// <param name="kind">
-        /// A <cref c="SyntaxKind"/> representing the specific kind of SyntaxTrivia. One of
-        /// WhitespaceTrivia, EndOfLineTrivia, CommentTrivia,
-        /// DocumentationCommentExteriorTrivia, DisabledTextTrivia.
+        /// A <see cref="SyntaxKind"/> representing the specific kind of <see cref="SyntaxTrivia"/>. One of
+        /// <see cref="SyntaxKind.WhitespaceTrivia"/>, <see cref="SyntaxKind.EndOfLineTrivia"/>,
+        /// <see cref="SyntaxKind.SingleLineCommentTrivia"/>, <see cref="SyntaxKind.MultiLineCommentTrivia"/>,
+        /// <see cref="SyntaxKind.DocumentationCommentExteriorTrivia"/>, <see cref="SyntaxKind.DisabledTextTrivia"/>,
+        /// <see cref="SyntaxKind.ShebangTrivia"/>
         /// </param>
         /// <param name="text">
         /// The actual text of this token.
@@ -194,6 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EndOfLineTrivia:
                 case SyntaxKind.MultiLineCommentTrivia:
                 case SyntaxKind.SingleLineCommentTrivia:
+                case SyntaxKind.ShebangTrivia:
                 case SyntaxKind.WhitespaceTrivia:
 
                     return new SyntaxTrivia(default(SyntaxToken), new Syntax.InternalSyntax.SyntaxTrivia(kind, text, null, null), 0, 0);

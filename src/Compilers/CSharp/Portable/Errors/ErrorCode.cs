@@ -1313,7 +1313,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_AlignmentMagnitude = 8094,
         ERR_ConstantStringTooLong = 8095,
         ERR_DebugEntryPointNotSourceMethodDefinition = 8096,
-        ERR_PatternNullableType = 8097,
-        ERR_BadIsPatternExpression = 8098,
+        ERR_LoadDirectiveOnlyAllowedInScripts = 8097,
+        ERR_PPLoadFollowsToken = 8098,
+        ERR_PatternNullableType = 8099,
+        ERR_BadIsPatternExpression = 8100,
     }
 }

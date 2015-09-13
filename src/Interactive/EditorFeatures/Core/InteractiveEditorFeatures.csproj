@@ -110,6 +110,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
     <!-- The rest are for test purposes only. -->
     <InternalsVisibleToTest Include="Roslyn.Hosting.Diagnostics" />
+    <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveWindow.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
@@ -130,10 +131,9 @@
     <Compile Include="Extensibility\Interactive\InteractiveEvaluator.cs" />
     <Compile Include="Extensibility\Interactive\InteractiveMetadataReferenceResolver.cs" />
     <Compile Include="Extensibility\Interactive\CSharpVBInteractiveCommandContentTypes.cs" />
+    <Compile Include="Extensibility\Interactive\NuGetPackageResolverImpl.cs" />
     <Compile Include="Implementation\Completion\InteractiveCommandCompletionService.cs" />
     <Compile Include="Implementation\Completion\Presentation\CompletionPresenter.cs" />
-    <Compile Include="Implementation\Interactive\Commands\CommandArgumentsParser.cs" />
-    <Compile Include="Implementation\Interactive\Commands\LoadCommand.cs" />
     <Compile Include="Implementation\Interactive\InertClassifierProvider.cs" />
     <Compile Include="Implementation\Interactive\InertClassifierProvider.InertClassifier.cs" />
     <Compile Include="Implementation\Interactive\InteractiveCommandContentTypeLanguageService.cs" />
@@ -142,8 +142,7 @@
     <Compile Include="Implementation\Interactive\InteractiveGlobalUndoServiceFactory.cs" />
     <Compile Include="Implementation\Interactive\InteractiveTextUndoHistoryWorkspaceServiceFactory.cs" />
     <Compile Include="Implementation\Interactive\InteractiveWorkspace.cs" />
-    <Compile Include="Implementation\Interactive\LoadCommandCompletionProvider.ItemRules.cs" />
-    <Compile Include="Implementation\Interactive\LoadCommandCompletionProvider.cs" />
+    <Compile Include="Implementation\Interactive\InteractiveDocumentSupportsSuggestionService.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />

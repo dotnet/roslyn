@@ -59,13 +59,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                                             includeConstants As Boolean)
 
             If Not IsMultidimensionalInitializer(inits) Then
-                EmitVectorElementInitializers(arrayType, inits, includeConstants)
+                EmitOnedimensionalElementInitializers(arrayType, inits, includeConstants)
             Else
                 EmitMultidimensionalElementInitializers(arrayType, inits, includeConstants)
             End If
         End Sub
 
-        Private Sub EmitVectorElementInitializers(arrayType As ArrayTypeSymbol,
+        Private Sub EmitOnedimensionalElementInitializers(arrayType As ArrayTypeSymbol,
                                     inits As ImmutableArray(Of BoundExpression),
                                     includeConstants As Boolean)
 
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     _builder.EmitOpCode(ILOpCode.Dup)
                     _builder.EmitIntConstant(i)
                     EmitExpression(init, True)
-                    EmitVectorElementStore(arrayType, init.Syntax)
+                    EmitArrayElementStore(arrayType, init.Syntax)
                 End If
             Next i
         End Sub

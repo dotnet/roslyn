@@ -290,7 +290,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Return Nothing
                 End If
                 Dim otherModifiers = VisitCustomModifiers(symbol.CustomModifiers)
-                Return New ArrayTypeSymbol(otherElementType, otherModifiers, symbol.Rank, Me._otherAssembly)
+
+                If symbol.IsSZArray Then
+                    Return ArrayTypeSymbol.CreateSZArray(otherElementType, otherModifiers, Me._otherAssembly)
+                End If
+
+                Return ArrayTypeSymbol.CreateMDArray(otherElementType, otherModifiers, symbol.Rank, symbol.Sizes, symbol.LowerBounds, Me._otherAssembly)
             End Function
 
             Public Overrides Function VisitEvent(symbol As EventSymbol) As Symbol
@@ -482,7 +487,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Private Function AreArrayTypesEqual(type As ArrayTypeSymbol, other As ArrayTypeSymbol) As Boolean
                 Debug.Assert(type.CustomModifiers.IsEmpty)
                 Debug.Assert(other.CustomModifiers.IsEmpty)
-                Return type.Rank = other.Rank AndAlso Me.AreTypesEqual(type.ElementType, other.ElementType)
+                Return type.HasSameShapeAs(other) AndAlso Me.AreTypesEqual(type.ElementType, other.ElementType)
             End Function
 
             Private Function AreEventsEqual([event] As EventSymbol, other As EventSymbol) As Boolean
@@ -631,7 +636,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Public Overrides Function VisitArrayType(symbol As ArrayTypeSymbol) As Symbol
                 Dim translatedElementType As TypeSymbol = DirectCast(Me.Visit(symbol.ElementType), TypeSymbol)
                 Dim translatedModifiers = VisitCustomModifiers(symbol.CustomModifiers)
-                Return New ArrayTypeSymbol(translatedElementType, translatedModifiers, symbol.Rank, symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly)
+
+                If symbol.IsSZArray Then
+                    Return ArrayTypeSymbol.CreateSZArray(translatedElementType, translatedModifiers, symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly)
+                End If
+
+                Return ArrayTypeSymbol.CreateMDArray(translatedElementType, translatedModifiers, symbol.Rank, symbol.Sizes, symbol.LowerBounds, symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly)
             End Function
 
             Public Overrides Function VisitNamedType(type As NamedTypeSymbol) As Symbol

@@ -66,6 +66,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsSimplifyTypeNames = "CodeActions.SimplifyTypeNames";
             public const string CodeActionsSpellcheck = "CodeActions.Spellcheck";
             public const string CodeActionsSuppression = "CodeActions.Suppression";
+            public const string CodeActionsUseAutoProperty = "CodeActions.UseAutoProperty";
             public const string CodeGeneration = "CodeGeneration";
             public const string CodeGenerationSortDeclarations = "CodeGeneration.SortDeclarations";
             public const string CodeModel = "CodeModel";
@@ -93,6 +94,7 @@ namespace Roslyn.Test.Utilities
             public const string F1Help = "F1Help";
             public const string Formatting = "Formatting";
             public const string GoToDefinition = "GoToDefinition";
+            public const string Interactive = "Interactive";
             public const string InteractiveHost = "InteractiveHost";
             public const string KeywordHighlighting = "KeywordHighlighting";
             public const string KeywordRecommending = "KeywordRecommending";

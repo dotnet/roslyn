@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-namespace Microsoft.CodeAnalysis.Scripting
+namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
     /// <summary>
     /// The result of loading an assembly reference to the interactive session.
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             return new AssemblyLoadResult(path, originalPath, isSuccessful: false);
         }
 
-        internal AssemblyLoadResult(string path, string originalPath, bool isSuccessful)
+        public AssemblyLoadResult(string path, string originalPath, bool isSuccessful)
         {
             Path = path;
             OriginalPath = originalPath;

@@ -302,7 +302,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ReportDiagnostic(diagnostics, arrayModifier, ERRID.ERR_ArrayRankLimit)
                 End If
 
-                currentType = New ArrayTypeSymbol(currentType, Nothing, arrayModifier.Rank, Compilation)
+                currentType = ArrayTypeSymbol.CreateVBArray(currentType, Nothing, arrayModifier.Rank, Compilation)
             Next
 
             Return currentType
@@ -333,7 +333,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ReportDiagnostic(diagnostics, arrayBoundsOpt, ERRID.ERR_ArrayRankLimit)
                 End If
 
-                currentType = New ArrayTypeSymbol(currentType, Nothing, rank, Compilation)
+                currentType = ArrayTypeSymbol.CreateVBArray(currentType, Nothing, rank, Compilation)
             End If
 
             Return currentType

@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Suppressed for error types.
                 diagnostics.Add(ErrorCode.ERR_EventNotDelegate, location, this);
             }
-            else if (IsAbstract && !ContainingType.IsAbstract && ContainingType.TypeKind == TypeKind.Class)
+            else if (IsAbstract && !ContainingType.IsAbstract && (ContainingType.TypeKind == TypeKind.Class || ContainingType.TypeKind == TypeKind.Submission))
             {
                 // '{0}' is abstract but it is contained in non-abstract class '{1}'
                 diagnostics.Add(ErrorCode.ERR_AbstractInConcreteClass, location, this, ContainingType);
@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // We do an extra check before copying the type to handle the case where the overriding
             // event (incorrectly) has a different type than the overridden event.  In such cases,
             // we want to retain the original (incorrect) type to avoid hiding the type given in source.
-            if (type.Equals(overriddenEventType, ignoreCustomModifiers: true, ignoreDynamic: false))
+            if (type.Equals(overriddenEventType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: false))
             {
                 type = overriddenEventType;
             }

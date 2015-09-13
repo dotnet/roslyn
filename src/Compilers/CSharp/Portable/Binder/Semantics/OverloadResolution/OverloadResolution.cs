@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Note: we need to confirm the "arrayness" on the original definition because
             // it's possible that the type becomes an array as a result of substitution.
             ParameterSymbol final = member.GetParameters().Last();
-            return final.IsParams && ((ParameterSymbol)final.OriginalDefinition).Type.IsArray();
+            return final.IsParams && ((ParameterSymbol)final.OriginalDefinition).Type.IsSZArray();
         }
 
         private static bool IsOverride(Symbol overridden, Symbol overrider)
@@ -1137,7 +1137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             refKind = parameter.RefKind;
 
             if (result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
-                parameter.IsParams && parameter.Type.TypeKind == TypeKind.Array)
+                parameter.IsParams && parameter.Type.IsSZArray())
             {
                 return ((ArrayTypeSymbol)parameter.Type).ElementType;
             }
@@ -1641,7 +1641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // We should not have gotten here unless there were identity conversions
                 // between the two types.
-                Debug.Assert(arr1.Rank == arr2.Rank);
+                Debug.Assert(arr1.HasSameShapeAs(arr2));
 
                 return MoreSpecificType(arr1.ElementType, arr2.ElementType, ref useSiteDiagnostics);
             }

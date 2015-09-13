@@ -2,7 +2,6 @@
 
 extern alias WORKSPACES;
 
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -29,7 +28,6 @@ using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Roslyn.Utilities;
 using DesktopMetadataReferenceResolver = WORKSPACES::Microsoft.CodeAnalysis.Scripting.DesktopMetadataReferenceResolver;
 using GacFileResolver = WORKSPACES::Microsoft.CodeAnalysis.Scripting.GacFileResolver;
-using NuGetPackageResolver = WORKSPACES::Microsoft.CodeAnalysis.Scripting.NuGetPackageResolver;
 
 namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
@@ -248,9 +246,13 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         private static MetadataFileReferenceResolver CreateFileResolver(ImmutableArray<string> referencePaths, string baseDirectory)
         {
+            var userProfilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            var packagesDirectory = (userProfilePath == null) ?
+                null :
+                PathUtilities.CombineAbsoluteAndRelativePaths(userProfilePath, PathUtilities.CombinePossiblyRelativeAndRelativePaths(".nuget", "packages"));
             return new DesktopMetadataReferenceResolver(
                 new RelativePathReferenceResolver(referencePaths, baseDirectory),
-                NuGetPackageResolver.Instance,
+                string.IsNullOrEmpty(packagesDirectory) ? null : new NuGetPackageResolverImpl(packagesDirectory),
                 new GacFileResolver(
                     architectures: GacFileResolver.Default.Architectures,  // TODO (tomat)
                     preferredCulture: System.Globalization.CultureInfo.CurrentCulture)); // TODO (tomat)
@@ -487,33 +489,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
                 if (result.Success)
                 {
-                    SubmissionSuccessfullyExecuted(result);
-                }
-
-                return new ExecutionResult(result.Success);
-            }
-            catch (Exception e) when (FatalError.Report(e))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        public async Task<ExecutionResult> LoadCommandAsync(string path)
-        {
-            try
-            {
-                var result = await _interactiveHost.ExecuteFileAsync(path).ConfigureAwait(false);
-
-                if (result.Success)
-                {
-                    // We are executing a command, which means the current content type has been switched to "Command" 
-                    // and the source document removed.
-                    Debug.Assert(!_workspace.CurrentSolution.GetProject(_currentSubmissionProjectId).HasDocuments);
-                    Debug.Assert(result.ResolvedPath != null);
-
-                    var documentId = DocumentId.CreateNewId(_currentSubmissionProjectId, result.ResolvedPath);
-                    var newSolution = _workspace.CurrentSolution.AddDocument(documentId, Path.GetFileName(result.ResolvedPath), new FileTextLoader(result.ResolvedPath, defaultEncoding: null));
-                    _workspace.SetCurrentSolution(newSolution);
+                    // We are not executing a command (the current content type is not "Interactive Command"),
+                    // so the source document should not have been removed.
+                    Debug.Assert(_workspace.CurrentSolution.GetProject(_currentSubmissionProjectId).HasDocuments);
 
                     SubmissionSuccessfullyExecuted(result);
                 }

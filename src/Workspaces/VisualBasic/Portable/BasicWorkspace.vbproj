@@ -126,7 +126,6 @@
     <Compile Include="Extensions\INamespaceOrTypeSymbolExtensions.vb" />
     <Compile Include="Extensions\InvocationExpressionSyntaxExtensions.vb" />
     <Compile Include="Extensions\ITypeSymbolExtensions.vb" />
-    <Compile Include="Extensions\LocationExtensions.vb" />
     <Compile Include="Extensions\MemberAccessExpressionSyntaxExtensions.vb" />
     <Compile Include="Extensions\MethodBaseSyntaxExtensions.vb" />
     <Compile Include="Extensions\NameSyntaxExtensions.vb" />

@@ -937,26 +937,27 @@ static class S2
 }";
             var compilation = CompileAndVerify(source);
             compilation.VerifyIL("N.C.M",
-@"{
+@"
+{
   // Code size       73 (0x49)
   .maxstack  3
   IL_0000:  ldarg.0
-  IL_0001:  dup
+  IL_0001:  ldarg.0
   IL_0002:  ldftn      ""void N.S1.F1(object, object)""
   IL_0008:  newobj     ""System.Action<object>..ctor(object, System.IntPtr)""
   IL_000d:  call       ""void N.S1.M1(object, System.Action<object>)""
   IL_0012:  ldarg.0
-  IL_0013:  dup
+  IL_0013:  ldarg.0
   IL_0014:  ldftn      ""void S2.F2(object, object)""
   IL_001a:  newobj     ""System.Action<object>..ctor(object, System.IntPtr)""
   IL_001f:  call       ""void N.S1.M1(object, System.Action<object>)""
   IL_0024:  ldarg.0
-  IL_0025:  dup
+  IL_0025:  ldarg.0
   IL_0026:  ldftn      ""void N.S1.F3(object, object)""
   IL_002c:  newobj     ""System.Action<object>..ctor(object, System.IntPtr)""
   IL_0031:  call       ""void S2.M2(object, System.Action<object>)""
   IL_0036:  ldarg.0
-  IL_0037:  dup
+  IL_0037:  ldarg.0
   IL_0038:  ldftn      ""void S2.F4(object, object)""
   IL_003e:  newobj     ""System.Action<object>..ctor(object, System.IntPtr)""
   IL_0043:  call       ""void S2.M2(object, System.Action<object>)""
@@ -2463,7 +2464,7 @@ static class S
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
                 var intType = compilation.GetSpecialType(SpecialType.System_Int32);
                 var stringType = compilation.GetSpecialType(SpecialType.System_String);
-                var arrayType = new ArrayTypeSymbol(compilation.Assembly, stringType, ImmutableArray.Create<CustomModifier>(), 1);
+                var arrayType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, stringType, ImmutableArray.Create<CustomModifier>(), 1);
 
                 // Non-generic method.
                 var method = type.GetMember<MethodSymbol>("M1");

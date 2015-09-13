@@ -123,6 +123,7 @@
     <Compile Include="Completion\CompletionProviders\SpeculativeTCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\SymbolCompletionProvider.ItemRules.cs" />
     <Compile Include="Completion\CSharpCompletionRules.cs" />
+    <Compile Include="Completion\KeywordRecommenders\LoadKeywordRecommender.cs" />
     <Compile Include="Completion\SuggestionMode\CSharpSuggestionModeCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\SymbolCompletionProvider.cs" />
     <Compile Include="Completion\CSharpCompletionOptions.cs" />

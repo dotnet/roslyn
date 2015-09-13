@@ -226,30 +226,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return count;
         }
 
-        /// <summary>
-        /// Count the number of custom modifiers in/on the return type
-        /// and parameters of the specified method.
-        /// </summary>
-        public static bool HasCustomModifiers(this MethodSymbol method)
-        {
-            if (method.ReturnTypeCustomModifiers.Any() || method.ReturnType.HasCustomModifiers())
-            {
-                return true;
-            }
-
-            foreach (ParameterSymbol param in method.Parameters)
-            {
-                if (param.CustomModifiers.Any() || param.Type.HasCustomModifiers())
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        //UNDONE: HasCustomModifiers(PropertySymbol), HasCustomModifiers(FieldSymbol)
-
         internal static Symbol SymbolAsMember(this Symbol s, NamedTypeSymbol newOwner)
         {
             switch (s.Kind)

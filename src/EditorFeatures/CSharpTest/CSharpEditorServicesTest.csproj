@@ -92,11 +92,6 @@
       <Project>{76C6F005-C89D-4348-BB4A-39189DDBEB52}</Project>
       <Name>ServicesTestUtilities</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\CoreTest\ScriptingTest.csproj">
-      <Project>{2DAE4406-7A89-4B5F-95C3-BC5472CE47CE}</Project>
-      <Name>ScriptingTest</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
@@ -186,6 +181,7 @@
     <Compile Include="CodeActions\Preview\ErrorCases\ExceptionInCodeAction.cs" />
     <Compile Include="CodeActions\Preview\PreviewExceptionTests.cs" />
     <Compile Include="CodeActions\Preview\PreviewTests.cs" />
+    <Compile Include="Diagnostics\UseAutoProperty\UseAutoPropertyTests.cs" />
     <Compile Include="CommentSelection\CSharpCommentSelectionTests.cs" />
     <Compile Include="Completion\CompletionProviders\AbstractCSharpCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\AttributeNamedParameterCompletionProviderTests.cs" />
@@ -278,7 +274,6 @@
     <Compile Include="Formatting\Indentation\SmartTokenFormatterFormatTokenTests.cs" />
     <Compile Include="Interactive\BraceMatching\InteractiveBraceHighlightingTests.cs" />
     <Compile Include="Interactive\CodeActions\InteractiveIntroduceVariableTests.cs" />
-    <Compile Include="Interactive\CommandArgumentsParsingTest.cs" />
     <Compile Include="Interactive\NavigateTo\InteractiveNavigateToTests.cs" />
     <Compile Include="KeywordHighlighting\AbstractCSharpKeywordHighlighterTests.cs" />
     <Compile Include="KeywordHighlighting\AsyncAnonymousMethodHighlighterTests.cs" />

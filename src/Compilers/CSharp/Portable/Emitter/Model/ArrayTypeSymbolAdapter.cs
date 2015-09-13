@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        bool Cci.IArrayTypeReference.IsVector
+        bool Cci.IArrayTypeReference.IsSZArray
         {
             get
             {
-                return this.Rank == 1;
+                return this.IsSZArray;
             }
         }
 
@@ -39,9 +39,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                for (int i = 0; i < this.Rank; ++i)
-                    yield return 0;
+                var lowerBounds = this.LowerBounds;
+
+                if (lowerBounds.IsDefault)
+                {
+                    return DefaultLowerBounds(this.Rank);
+                }
+                else
+                {
+                    return lowerBounds;
+                }
             }
+        }
+
+        private static IEnumerable<int> DefaultLowerBounds(int rank)
+        {
+            for (int i = 0; i < rank; ++i)
+                yield return 0;
         }
 
         uint Cci.IArrayTypeReference.Rank
@@ -56,7 +70,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return SpecializedCollections.EmptyEnumerable<ulong>();
+                if (this.Sizes.IsEmpty)
+                {
+                    return SpecializedCollections.EmptyEnumerable<ulong>();
+                }
+
+                return GetSizes();
+            }
+        }
+
+        private IEnumerable<ulong> GetSizes()
+        {
+            foreach (var size in this.Sizes)
+            {
+                yield return (ulong)size;
             }
         }
 

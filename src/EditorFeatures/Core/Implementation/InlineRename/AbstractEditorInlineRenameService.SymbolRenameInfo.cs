@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             private readonly Document _document;
             private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
-            private Task<RenameLocationSet> _underlyingFindRenameLocationsTask;
+            private Task<RenameLocations> _underlyingFindRenameLocationsTask;
 
             /// <summary>
             /// Whether or not we shortened the trigger span (say because we were renaming an attribute,
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 _document = document;
                 this.RenameSymbol = renameSymbol;
 
-                this.HasOverloads = RenameLocationSet.GetOverloadedSymbols(this.RenameSymbol).Any();
+                this.HasOverloads = RenameLocations.GetOverloadedSymbols(this.RenameSymbol).Any();
                 this.ForceRenameOverloads = forceRenameOverloads;
 
                 _isRenamingAttributePrefix = CanRenameAttributePrefix(document, triggerSpan, cancellationToken);
@@ -208,14 +208,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             public Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken)
             {
-                Task<RenameLocationSet> renameTask;
+                Task<RenameLocations> renameTask;
                 lock (_gate)
                 {
                     if (_underlyingFindRenameLocationsTask == null)
                     {
                         // If this is the first call, then just start finding the initial set of rename
                         // locations.
-                        _underlyingFindRenameLocationsTask = RenameLocationSet.FindAsync(
+                        _underlyingFindRenameLocationsTask = RenameLocations.FindAsync(
                             this.RenameSymbol, _document.Project.Solution, optionSet, cancellationToken);
                         renameTask = _underlyingFindRenameLocationsTask;
 
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return GetLocationSet(renameTask, optionSet, cancellationToken);
             }
 
-            private async Task<IInlineRenameLocationSet> GetLocationSet(Task<RenameLocationSet> renameTask, OptionSet optionSet, CancellationToken cancellationToken)
+            private async Task<IInlineRenameLocationSet> GetLocationSet(Task<RenameLocations> renameTask, OptionSet optionSet, CancellationToken cancellationToken)
             {
                 var locationSet = await renameTask.ConfigureAwait(false);
                 if (optionSet != null)

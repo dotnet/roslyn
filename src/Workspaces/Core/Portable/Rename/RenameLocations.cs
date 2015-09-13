@@ -14,10 +14,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Rename
 {
     /// <summary>
-    /// Holds the ILocations of a symbol that should be renamed, along with the symbol and Solution
+    /// Holds the Locations of a symbol that should be renamed, along with the symbol and Solution
     /// for the set.
     /// </summary>
-    internal sealed partial class RenameLocationSet
+    internal sealed partial class RenameLocations
     {
         private class SearchResult
         {
@@ -37,26 +37,27 @@ namespace Microsoft.CodeAnalysis.Rename
         private readonly ISymbol _symbol;
         private readonly Solution _solution;
         private readonly SearchResult _mergedResult;
+        internal OptionSet Options { get; }
 
         // possibly null fields
-        private readonly OptionSet _optionSet;
         private readonly SearchResult _originalSymbolResult;
         private readonly List<SearchResult> _overloadsResult;
         private readonly IEnumerable<RenameLocation> _stringsResult;
         private readonly IEnumerable<RenameLocation> _commentsResult;
 
-        public RenameLocationSet(ISet<RenameLocation> locations, ISymbol symbol, Solution solution, IEnumerable<ISymbol> referencedSymbols, IEnumerable<ReferenceLocation> implicitLocations)
+        internal RenameLocations(ISet<RenameLocation> locations, ISymbol symbol, Solution solution, IEnumerable<ISymbol> referencedSymbols, IEnumerable<ReferenceLocation> implicitLocations, OptionSet options)
         {
             _symbol = symbol;
             _solution = solution;
             _mergedResult = new SearchResult(locations, implicitLocations, referencedSymbols);
+            Options = options;
         }
 
-        private RenameLocationSet(ISymbol symbol, Solution solution, OptionSet optionSet, SearchResult originalSymbolResult, List<SearchResult> overloadsResult, IEnumerable<RenameLocation> stringsResult, IEnumerable<RenameLocation> commentsResult)
+        private RenameLocations(ISymbol symbol, Solution solution, OptionSet options, SearchResult originalSymbolResult, List<SearchResult> overloadsResult, IEnumerable<RenameLocation> stringsResult, IEnumerable<RenameLocation> commentsResult)
         {
             _symbol = symbol;
             _solution = solution;
-            _optionSet = optionSet;
+            Options = options;
             _originalSymbolResult = originalSymbolResult;
             _overloadsResult = overloadsResult;
             _stringsResult = stringsResult;
@@ -66,18 +67,18 @@ namespace Microsoft.CodeAnalysis.Rename
             var mergedReferencedSymbols = new List<ISymbol>();
             var mergedImplicitLocations = new List<ReferenceLocation>();
 
-            if (optionSet.GetOption(RenameOptions.RenameInStrings))
+            if (options.GetOption(RenameOptions.RenameInStrings))
             {
                 mergedLocations.AddRange(stringsResult);
             }
 
-            if (optionSet.GetOption(RenameOptions.RenameInComments))
+            if (options.GetOption(RenameOptions.RenameInComments))
             {
                 mergedLocations.AddRange(commentsResult);
             }
 
-            var renameMethodGroupReferences = optionSet.GetOption(RenameOptions.RenameOverloads) || !GetOverloadedSymbols(symbol).Any();
-            var overloadsToMerge = (optionSet.GetOption(RenameOptions.RenameOverloads) ? overloadsResult : null) ?? SpecializedCollections.EmptyEnumerable<SearchResult>();
+            var renameMethodGroupReferences = options.GetOption(RenameOptions.RenameOverloads) || !GetOverloadedSymbols(symbol).Any();
+            var overloadsToMerge = (options.GetOption(RenameOptions.RenameOverloads) ? overloadsResult : null) ?? SpecializedCollections.EmptyEnumerable<SearchResult>();
             foreach (var result in overloadsToMerge.Concat(originalSymbolResult))
             {
                 mergedLocations.AddRange(renameMethodGroupReferences
@@ -100,22 +101,22 @@ namespace Microsoft.CodeAnalysis.Rename
         /// <summary>
         /// Find the locations that need to be renamed.
         /// </summary>
-        public static async Task<RenameLocationSet> FindAsync(ISymbol symbol, Solution solution, OptionSet optionSet, CancellationToken cancellationToken)
+        internal static async Task<RenameLocations> FindAsync(ISymbol symbol, Solution solution, OptionSet optionSet, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(symbol);
             using (Logger.LogBlock(FunctionId.Rename_AllRenameLocations, cancellationToken))
             {
                 symbol = await ReferenceProcessing.FindDefinitionSymbolAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
                 var originalSymbolResult = await AddLocationsReferenceSymbolsAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
-                var intermediateResult = new RenameLocationSet(symbol, solution, optionSet, originalSymbolResult, overloadsResult: null, stringsResult: null, commentsResult: null);
+                var intermediateResult = new RenameLocations(symbol, solution, optionSet, originalSymbolResult, overloadsResult: null, stringsResult: null, commentsResult: null);
 
                 return await intermediateResult.FindWithUpdatedOptionsAsync(optionSet, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        public async Task<RenameLocationSet> FindWithUpdatedOptionsAsync(OptionSet optionSet, CancellationToken cancellationToken)
+        internal async Task<RenameLocations> FindWithUpdatedOptionsAsync(OptionSet optionSet, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(_optionSet, "FindWithUpdatedOptionsAsync can only be called on a result of FindAsync");
+            Contract.ThrowIfNull(Options, "FindWithUpdatedOptionsAsync can only be called on a result of FindAsync");
             using (Logger.LogBlock(FunctionId.Rename_AllRenameLocations, cancellationToken))
             {
                 var overloadsResult = _overloadsResult ?? (optionSet.GetOption(RenameOptions.RenameOverloads)
@@ -130,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Rename
                     optionSet.GetOption(RenameOptions.RenameInComments) && _commentsResult == null,
                     cancellationToken).ConfigureAwait(false);
 
-                return new RenameLocationSet(_symbol, _solution, optionSet, _originalSymbolResult,
+                return new RenameLocations(_symbol, _solution, optionSet, _originalSymbolResult,
                     _overloadsResult ?? overloadsResult,
                     _stringsResult ?? stringsAndComments.Item1,
                     _commentsResult ?? stringsAndComments.Item2);

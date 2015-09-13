@@ -209,6 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         DisableKeyword = 8479,
         RestoreKeyword = 8480,
         ReferenceKeyword = 8481,
+        LoadKeyword = 8485,
 
         InterpolatedStringStartToken = 8482,            // $"
         InterpolatedStringEndToken = 8483,              // "
@@ -542,6 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         InterpolationAlignmentClause = 8920,
         InterpolationFormatClause = 8921,
 
-        ShebangCommentTrivia = 8922,
+        ShebangTrivia = 8922,
+        LoadDirectiveTrivia = 8923,
     }
 }

@@ -453,7 +453,7 @@ public class C : I
   IL_0042:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Target""
   IL_0047:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__0""
   IL_004c:  ldarg.1
-  IL_004d:  dup
+  IL_004d:  ldarg.1
   IL_004e:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
   IL_0053:  ret
 }
@@ -2174,7 +2174,7 @@ public class C
   IL_0042:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Target""
   IL_0047:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__0""
   IL_004c:  ldarg.1
-  IL_004d:  dup
+  IL_004d:  ldarg.1
   IL_004e:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
   IL_0053:  ret
 }
@@ -2321,7 +2321,7 @@ public class C
   IL_0042:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Target""
   IL_0047:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__0""
   IL_004c:  ldarg.1
-  IL_004d:  dup
+  IL_004d:  ldarg.1
   IL_004e:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
   IL_0053:  ret
 }
@@ -2370,7 +2370,7 @@ public class C
   IL_0042:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Target""
   IL_0047:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__0""
   IL_004c:  ldarg.1
-  IL_004d:  dup
+  IL_004d:  ldarg.1
   IL_004e:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
   IL_0053:  ret
 }
@@ -2419,7 +2419,7 @@ public class C
   IL_0042:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Target""
   IL_0047:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__0""
   IL_004c:  ldarg.1
-  IL_004d:  dup
+  IL_004d:  ldarg.1
   IL_004e:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
   IL_0053:  ret
 }
@@ -2468,7 +2468,7 @@ public class C
   IL_0042:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Target""
   IL_0047:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__0""
   IL_004c:  ldarg.1
-  IL_004d:  dup
+  IL_004d:  ldarg.1
   IL_004e:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
   IL_0053:  ret
 }
@@ -2517,10 +2517,11 @@ public class C
   IL_0042:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Target""
   IL_0047:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__0""
   IL_004c:  ldarg.1
-  IL_004d:  dup
+  IL_004d:  ldarg.1
   IL_004e:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
   IL_0053:  ret
-}");
+}
+");
         }
 
         [Fact]
@@ -2565,7 +2566,7 @@ public class C
   IL_0041:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Target""
   IL_0046:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__0""
   IL_004b:  ldarg.1
-  IL_004c:  dup
+  IL_004c:  ldarg.1
   IL_004d:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
   IL_0052:  ret
 }
@@ -2614,10 +2615,11 @@ public class C
   IL_0042:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Target""
   IL_0047:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__0""
   IL_004c:  ldarg.1
-  IL_004d:  dup
+  IL_004d:  ldarg.1
   IL_004e:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
   IL_0053:  ret
-}");
+}
+");
         }
 
         [Fact]
@@ -2662,10 +2664,11 @@ public class C
   IL_0042:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Target""
   IL_0047:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__0""
   IL_004c:  ldarg.1
-  IL_004d:  dup
+  IL_004d:  ldarg.1
   IL_004e:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
   IL_0053:  ret
-}");
+}
+");
         }
 
         [Fact]
@@ -4958,7 +4961,7 @@ public class C
   IL_0042:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Target""
   IL_0047:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__0""
   IL_004c:  ldarg.1
-  IL_004d:  dup
+  IL_004d:  ldarg.1
   IL_004e:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
   IL_0053:  dup
   IL_0054:  starg.s    V_1
@@ -5009,7 +5012,7 @@ public class C
   IL_0042:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Target""
   IL_0047:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__0""
   IL_004c:  ldarg.1
-  IL_004d:  dup
+  IL_004d:  ldarg.1
   IL_004e:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
   IL_0053:  dup
   IL_0054:  starg.s    V_1
@@ -5060,7 +5063,7 @@ public class C
   IL_0042:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Target""
   IL_0047:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__0""
   IL_004c:  ldarg.1
-  IL_004d:  dup
+  IL_004d:  ldarg.1
   IL_004e:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
   IL_0053:  starg.s    V_1
   IL_0055:  ret
@@ -7635,7 +7638,7 @@ public class C
   IL_0065:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Target""
   IL_006a:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__0""
   IL_006f:  ldarg.1
-  IL_0070:  dup
+  IL_0070:  ldarg.1
   IL_0071:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
   IL_0076:  ret
 }
@@ -7777,7 +7780,7 @@ public class C
   IL_0066:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, int, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, int, object>>.Target""
   IL_006b:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, int, object>> C.<>o__0.<>p__0""
   IL_0070:  ldarg.1
-  IL_0071:  dup
+  IL_0071:  ldarg.1
   IL_0072:  ldarg.2
   IL_0073:  ldc.i4.s   123
   IL_0075:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, int, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object, int, int)""
@@ -8101,10 +8104,11 @@ public class C
   IL_010d:  initobj    ""System.DateTime""
   IL_0113:  ldloc.0
   IL_0114:  ldarg.1
-  IL_0115:  dup
+  IL_0115:  ldarg.1
   IL_0116:  callvirt   ""object <>F<System.Runtime.CompilerServices.CallSite, object, int, bool, double, char, string, byte, sbyte, uint, long, ulong, float, decimal, System.DateTime, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, int, bool, double, char, string, byte, sbyte, uint, long, ulong, float, decimal, System.DateTime, object, object)""
   IL_011b:  ret
-}"
+}
+"
                 );
         }
 
@@ -8410,7 +8414,7 @@ public class C
 }";
             CompileAndVerifyIL(source, "C.M", @"
 {
-  // Code size      102 (0x66)
+  // Code size      103 (0x67)
   .maxstack  9
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{0000000c}<System.Runtime.CompilerServices.CallSite, object, object, object, object>> C.<>o__0.<>p__0""
   IL_0005:  brtrue.s   IL_004d
@@ -8447,9 +8451,9 @@ public class C
   IL_0057:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{0000000c}<System.Runtime.CompilerServices.CallSite, object, object, object, object>> C.<>o__0.<>p__0""
   IL_005c:  ldarg.1
   IL_005d:  ldarga.s   V_1
-  IL_005f:  dup
-  IL_0060:  callvirt   ""object <>F{0000000c}<System.Runtime.CompilerServices.CallSite, object, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, ref object, ref object)""
-  IL_0065:  ret
+  IL_005f:  ldarga.s   V_1
+  IL_0061:  callvirt   ""object <>F{0000000c}<System.Runtime.CompilerServices.CallSite, object, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, ref object, ref object)""
+  IL_0066:  ret
 }
 ");
         }
@@ -9786,7 +9790,7 @@ public class C
   IL_0060:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, int, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, int, object>>.Target""
   IL_0065:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, int, object>> C.<>o__0.<>p__0""
   IL_006a:  ldarg.1
-  IL_006b:  dup
+  IL_006b:  ldarg.1
   IL_006c:  ldarg.2
   IL_006d:  ldc.i4.s   123
   IL_006f:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, int, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object, int, int)""
@@ -9848,7 +9852,7 @@ public class C
   IL_0064:  ldfld      ""System.Action<System.Runtime.CompilerServices.CallSite, object, object, int, int> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, object, object, int, int>>.Target""
   IL_0069:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, object, object, int, int>> C.<>o__0.<>p__0""
   IL_006e:  ldarg.1
-  IL_006f:  dup
+  IL_006f:  ldarg.1
   IL_0070:  ldarg.2
   IL_0071:  ldc.i4.s   123
   IL_0073:  callvirt   ""void System.Action<System.Runtime.CompilerServices.CallSite, object, object, int, int>.Invoke(System.Runtime.CompilerServices.CallSite, object, object, int, int)""
@@ -9964,11 +9968,12 @@ public class C
   IL_0059:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, F, object, object, object, object>> C.<>o__0.<>p__0""
   IL_005e:  ldarg.1
   IL_005f:  ldarg.2
-  IL_0060:  dup
-  IL_0061:  dup
+  IL_0060:  ldarg.2
+  IL_0061:  ldarg.2
   IL_0062:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, F, object, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, F, object, object, object)""
   IL_0067:  ret
-}");
+}
+");
         }
 
         [Fact]
@@ -11492,13 +11497,14 @@ public class C
   IL_009f:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object, object>>.Target""
   IL_00a4:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object, object>> C.<>o__0.<>p__0""
   IL_00a9:  ldarg.1
-  IL_00aa:  dup
-  IL_00ab:  dup
+  IL_00aa:  ldarg.1
+  IL_00ab:  ldarg.1
   IL_00ac:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object, object)""
   IL_00b1:  ldarg.1
   IL_00b2:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object, object)""
   IL_00b7:  ret
-}");
+}
+");
         }
 
         [Fact]
@@ -11566,7 +11572,7 @@ public class C
   IL_0079:  ldfld      ""<>F{00000020}<System.Runtime.CompilerServices.CallSite, object, object, int, object, object, object, object> System.Runtime.CompilerServices.CallSite<<>F{00000020}<System.Runtime.CompilerServices.CallSite, object, object, int, object, object, object, object>>.Target""
   IL_007e:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000020}<System.Runtime.CompilerServices.CallSite, object, object, int, object, object, object, object>> C.<>o__0.<>p__0""
   IL_0083:  ldarg.1
-  IL_0084:  dup
+  IL_0084:  ldarg.1
   IL_0085:  ldc.i4.0
   IL_0086:  ldnull
   IL_0087:  ldarga.s   V_1
@@ -11686,7 +11692,7 @@ public class C
   IL_0045:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Target""
   IL_004a:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__0""
   IL_004f:  ldarg.1
-  IL_0050:  dup
+  IL_0050:  ldarg.1
   IL_0051:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
   IL_0056:  ret
 }
@@ -11761,7 +11767,7 @@ public class C
   IL_0094:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Target""
   IL_0099:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__0""
   IL_009e:  ldarg.1
-  IL_009f:  dup
+  IL_009f:  ldarg.1
   IL_00a0:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
   IL_00a5:  ldarg.1
   IL_00a6:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""

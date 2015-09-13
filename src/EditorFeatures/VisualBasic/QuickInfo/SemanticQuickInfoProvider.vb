@@ -183,6 +183,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
                 CreateDocumentationCommentDeferredContent(documentation.DocumentationText),
                 SpecializedCollections.EmptyList(Of SymbolDisplayPart),
                 SpecializedCollections.EmptyList(Of SymbolDisplayPart),
+                SpecializedCollections.EmptyList(Of SymbolDisplayPart),
                 SpecializedCollections.EmptyList(Of SymbolDisplayPart))
         End Function
     End Class

@@ -99,6 +99,8 @@
     <Compile Include="Completion\CompletionProviders\XmlDocCommentCompletion\XmlDocCommentCompletionItemRules.cs" />
     <Compile Include="Completion\CompletionProviders\XmlDocCommentCompletion\XmlDocCommentCompletionProvider.cs" />
     <Compile Include="Completion\FileSystem\GlobalAssemblyCacheCompletionHelper.cs" />
+    <Compile Include="Completion\FileSystem\LoadDirectiveCompletionProvider.cs" />
+    <Compile Include="Completion\FileSystem\LoadDirectiveCompletionProvider.ItemRules.cs" />
     <Compile Include="Completion\FileSystem\ReferenceDirectiveCompletionProvider.cs" />
     <Compile Include="Completion\FileSystem\ReferenceDirectiveCompletionProvider.ItemRules.cs" />
     <Compile Include="ContentType\ContentTypeDefinitions.cs" />
@@ -220,6 +222,8 @@
     <Compile Include="SignatureHelp\SignatureHelpUtilities.cs" />
     <Compile Include="TextStructureNavigation\TextStructureNavigatorProvider.cs" />
     <Compile Include="TodoComment\CSharpTodoCommentIncrementalAnalyzerProvider.cs" />
+    <Compile Include="UseAutoProperty\UseAutoPropertyAnalyzer.cs" />
+    <Compile Include="UseAutoProperty\UseAutoPropertyCodeFixProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">

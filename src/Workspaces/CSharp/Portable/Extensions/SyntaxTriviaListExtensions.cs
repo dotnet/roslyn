@@ -2,10 +2,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
@@ -35,7 +31,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static SyntaxTrivia? GetLastComment(this SyntaxTriviaList triviaList)
         {
             return triviaList
-                .Where(t => t.MatchesKind(SyntaxKind.SingleLineCommentTrivia, SyntaxKind.MultiLineCommentTrivia))
+                .Where(t => t.IsRegularComment())
+                .LastOrNullable();
+        }
+
+        public static SyntaxTrivia? GetLastCommentOrWhitespace(this SyntaxTriviaList triviaList)
+        {
+            return triviaList
+                .Where(t => t.MatchesKind(SyntaxKind.SingleLineCommentTrivia, SyntaxKind.MultiLineCommentTrivia, SyntaxKind.WhitespaceTrivia))
                 .LastOrNullable();
         }
 

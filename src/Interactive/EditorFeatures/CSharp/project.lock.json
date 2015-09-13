@@ -19,6 +19,14 @@
           "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll": {}
         }
       },
+      "Newtonsoft.Json/6.0.4": {
+        "compile": {
+          "lib/net45/Newtonsoft.Json.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Newtonsoft.Json.dll": {}
+        }
+      },
       "System.Collections/4.0.10": {
         "compile": {
           "ref/net46/_._": {}
@@ -132,9 +140,9 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.1.0-alpha-00012": {
+      "System.Reflection.Metadata/1.1.0-alpha-00014": {
         "dependencies": {
-          "System.Collections.Immutable": "[1.1.37-beta-23024, )"
+          "System.Collections.Immutable": "[1.1.36, )"
         },
         "compile": {
           "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
@@ -228,6 +236,31 @@
         "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll",
         "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.XML",
         "package/services/metadata/core-properties/12e2c94035674b25b911285cc26e3260.psmdcp",
+        "[Content_Types].xml"
+      ]
+    },
+    "Newtonsoft.Json/6.0.4": {
+      "sha512": "FyQLmEpjsCrEP+znauLDGAi+h6i9YnaMkITlfIoiM4RYyX3nki306bTHsr/0okiIvIc7BJhQTbOAIZVocccFUw==",
+      "type": "Package",
+      "files": [
+        "_rels/.rels",
+        "Newtonsoft.Json.nuspec",
+        "lib/net20/Newtonsoft.Json.dll",
+        "lib/net20/Newtonsoft.Json.xml",
+        "lib/net35/Newtonsoft.Json.dll",
+        "lib/net35/Newtonsoft.Json.xml",
+        "lib/net40/Newtonsoft.Json.dll",
+        "lib/net40/Newtonsoft.Json.xml",
+        "lib/net45/Newtonsoft.Json.dll",
+        "lib/net45/Newtonsoft.Json.xml",
+        "lib/netcore45/Newtonsoft.Json.dll",
+        "lib/netcore45/Newtonsoft.Json.xml",
+        "lib/portable-net40+sl5+wp80+win8+wpa81/Newtonsoft.Json.dll",
+        "lib/portable-net40+sl5+wp80+win8+wpa81/Newtonsoft.Json.xml",
+        "lib/portable-net45+wp80+win8+wpa81/Newtonsoft.Json.dll",
+        "lib/portable-net45+wp80+win8+wpa81/Newtonsoft.Json.xml",
+        "tools/install.ps1",
+        "package/services/metadata/core-properties/87a0a4e28d50417ea282e20f81bc6477.psmdcp",
         "[Content_Types].xml"
       ]
     },
@@ -615,8 +648,8 @@
         "[Content_Types].xml"
       ]
     },
-    "System.Reflection.Metadata/1.1.0-alpha-00012": {
-      "sha512": "kKZXpKet/6BNEihGTeCm5oM8rS3w4VHX+JqG0c++Tu3CFF0dDSfh2n6dX52PbLX8mqZ8k1sSbG2p2hbAoRZ0qg==",
+    "System.Reflection.Metadata/1.1.0-alpha-00014": {
+      "sha512": "rVeIWjVoLQS0aNrGdzndZReskyfxu4EfO9BKqT5GJt0YfGtlsHB1aDPnjl4jIBDTr+WJC9YsnZg8S5sKT1X42g==",
       "type": "Package",
       "files": [
         "_rels/.rels",
@@ -624,7 +657,7 @@
         "lib/portable-net45+win8/System.Reflection.Metadata.dll",
         "lib/portable-net45+win8/System.Reflection.Metadata.pdb",
         "lib/portable-net45+win8/System.Reflection.Metadata.xml",
-        "package/services/metadata/core-properties/b7a6b5852c5d410d860abd6018cbc785.psmdcp",
+        "package/services/metadata/core-properties/a48ecf967b1540bba8edfe9af3a99ea5.psmdcp",
         "[Content_Types].xml"
       ]
     },
