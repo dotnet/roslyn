@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static void Verify(this DiagnosticBag actual, params DiagnosticDescription[] expected)
         {
-            Verify(actual.AsEnumerable(), expected, errorCodeOnly: false);
+            Verify(actual, expected, errorCodeOnly: false);
         }
 
         public static void Verify(this IEnumerable<Diagnostic> actual, params DiagnosticDescription[] expected)

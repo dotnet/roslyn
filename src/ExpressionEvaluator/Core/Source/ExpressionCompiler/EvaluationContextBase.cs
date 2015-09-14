@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal string GetErrorMessageAndMissingAssemblyIdentities(DiagnosticBag diagnostics, DiagnosticFormatter formatter, CultureInfo preferredUICulture, AssemblyIdentity linqLibrary, out bool useReferencedModulesOnly, out ImmutableArray<AssemblyIdentity> missingAssemblyIdentities)
         {
-            var errors = diagnostics.AsEnumerable().Where(d => d.Severity == DiagnosticSeverity.Error);
+            var errors = diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error);
             foreach (var error in errors)
             {
                 missingAssemblyIdentities = this.GetMissingAssemblyIdentities(error, linqLibrary);

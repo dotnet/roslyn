@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         internal static bool PreventsSuccessfulDelegateConversion(DiagnosticBag diagnostics)
         {
-            foreach (Diagnostic diag in diagnostics.AsEnumerable()) // Checking the code would have resolved them anyway.
+            foreach (Diagnostic diag in diagnostics) // Checking the code would have resolved them anyway.
             {
                 if (ErrorFacts.PreventsSuccessfulDelegateConversion((ErrorCode)diag.Code))
                 {

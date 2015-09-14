@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Represents a mutable bag of diagnostics. You can add diagnostics to the bag,
     /// and also get all the diagnostics out of the bag (the bag implements
-    /// IEnumerable&lt;Diagnostics&gt;. Once added, diagnostics cannot be removed, and no ordering
+    /// IEnumerable&lt;Diagnostics&gt;). Once added, diagnostics cannot be removed, and no ordering
     /// is guaranteed.
     /// 
     /// It is ok to Add diagnostics to the same bag concurrently on multiple threads.
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
     /// <remarks>The bag is optimized to be efficient when containing zero errors.</remarks>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     [DebuggerTypeProxy(typeof(DebuggerProxy))]
-    internal class DiagnosticBag
+    internal sealed class DiagnosticBag : IEnumerable<Diagnostic>
     {
         // The lazyBag field is populated lazily -- the first time an error is added.
         private ConcurrentQueue<Diagnostic> _lazyBag;
@@ -143,9 +143,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public void AddRange(DiagnosticBag bag)
         {
-            if (!bag.IsEmptyWithoutResolution)
+            foreach (var diagnostic in bag)
             {
-                AddRange(bag.Bag);
+                this.Bag.Enqueue(diagnostic);
             }
         }
 
@@ -164,10 +164,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ImmutableArray<TDiagnostic> ToReadOnlyAndFree<TDiagnostic>() where TDiagnostic : Diagnostic
         {
-            ConcurrentQueue<Diagnostic> oldBag = _lazyBag;
+            var result = ToReadOnly<TDiagnostic>();
             Free();
-
-            return ToReadOnlyCore<TDiagnostic>(oldBag);
+            return result;
         }
 
         public ImmutableArray<Diagnostic> ToReadOnlyAndFree()
@@ -177,8 +176,18 @@ namespace Microsoft.CodeAnalysis
 
         public ImmutableArray<TDiagnostic> ToReadOnly<TDiagnostic>() where TDiagnostic : Diagnostic
         {
-            ConcurrentQueue<Diagnostic> oldBag = _lazyBag;
-            return ToReadOnlyCore<TDiagnostic>(oldBag);
+            if (_lazyBag == null)
+            {
+                return ImmutableArray<TDiagnostic>.Empty;
+            }
+
+            ArrayBuilder<TDiagnostic> builder = ArrayBuilder<TDiagnostic>.GetInstance();
+            foreach (TDiagnostic diagnostic in this) // Cast should be safe since all diagnostics should be from same language.
+            {
+                Debug.Assert(diagnostic.Severity != InternalDiagnosticSeverity.Unknown); //Info access should have forced resolution.
+                builder.Add(diagnostic);
+            }
+            return builder.ToImmutableAndFree();
         }
 
         public ImmutableArray<Diagnostic> ToReadOnly()
@@ -186,64 +195,68 @@ namespace Microsoft.CodeAnalysis
             return ToReadOnly<Diagnostic>();
         }
 
-        private static ImmutableArray<TDiagnostic> ToReadOnlyCore<TDiagnostic>(ConcurrentQueue<Diagnostic> oldBag) where TDiagnostic : Diagnostic
+        public Enumerator GetEnumerator()
         {
-            if (oldBag == null)
+            return new Enumerator(_lazyBag);
+        }
+
+        IEnumerator<Diagnostic> IEnumerable<Diagnostic>.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        internal struct Enumerator : IEnumerator<Diagnostic>
+        {
+            private readonly IEnumerator<Diagnostic> _diagnostics;
+
+            internal Enumerator(ConcurrentQueue<Diagnostic> diagnostics)
             {
-                return ImmutableArray<TDiagnostic>.Empty;
+                _diagnostics = (diagnostics == null) ? null : diagnostics.GetEnumerator();
             }
 
-            ArrayBuilder<TDiagnostic> builder = ArrayBuilder<TDiagnostic>.GetInstance();
-
-            foreach (TDiagnostic diagnostic in oldBag) // Cast should be safe since all diagnostics should be from same language.
+            public bool MoveNext()
             {
-                if (diagnostic.Severity != InternalDiagnosticSeverity.Void)
+                if (_diagnostics != null)
                 {
-                    Debug.Assert(diagnostic.Severity != InternalDiagnosticSeverity.Unknown); //Info access should have forced resolution.
-                    builder.Add(diagnostic);
+                    while (_diagnostics.MoveNext())
+                    {
+                        if (_diagnostics.Current.Severity != InternalDiagnosticSeverity.Void)
+                        {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+
+            public Diagnostic Current
+            {
+                get { return _diagnostics.Current; }
+            }
+
+            object IEnumerator.Current
+            {
+                get { return Current; }
+            }
+
+            void IEnumerator.Reset()
+            {
+                if (_diagnostics != null)
+                {
+                    _diagnostics.Reset();
                 }
             }
 
-            return builder.ToImmutableAndFree();
-        }
-
-
-        /// <remarks>
-        /// Generally, this should only be called by the creator (modulo pooling) of the bag (i.e. don't use bags to communicate -
-        /// if you need more info, pass more info).
-        /// </remarks>
-        public IEnumerable<Diagnostic> AsEnumerable()
-        {
-            ConcurrentQueue<Diagnostic> bag = this.Bag;
-
-            bool foundVoid = false;
-
-            foreach (Diagnostic diagnostic in bag)
+            void IDisposable.Dispose()
             {
-                if (diagnostic.Severity == InternalDiagnosticSeverity.Void)
+                if (_diagnostics != null)
                 {
-                    foundVoid = true;
-                    break;
-                }
-            }
-
-            return foundVoid
-                ? AsEnumerableFiltered()
-                : bag;
-        }
-
-        /// <remarks>
-        /// Using an iterator to avoid copying the list.  If perf is a problem,
-        /// create an explicit enumerator type.
-        /// </remarks>
-        private IEnumerable<Diagnostic> AsEnumerableFiltered()
-        {
-            foreach (Diagnostic diagnostic in this.Bag)
-            {
-                if (diagnostic.Severity != InternalDiagnosticSeverity.Void)
-                {
-                    Debug.Assert(diagnostic.Severity != InternalDiagnosticSeverity.Unknown); //Info access should have forced resolution.
-                    yield return diagnostic;
+                    _diagnostics.Dispose();
                 }
             }
         }
@@ -361,6 +374,7 @@ namespace Microsoft.CodeAnalysis
         {
             return "Count = " + (_lazyBag?.Count ?? 0);
         }
+
         #endregion
     }
 }

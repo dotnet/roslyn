@@ -103,12 +103,11 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         private void CompilationError(DiagnosticBag diagnostics, DiagnosticFormatter formatter)
         {
-            var resolvedLocalDiagnostics = diagnostics.AsEnumerable();
-            var firstError = resolvedLocalDiagnostics.FirstOrDefault(d => d.Severity == DiagnosticSeverity.Error);
+            var firstError = diagnostics.FirstOrDefault(d => d.Severity == DiagnosticSeverity.Error);
             if (firstError != null)
             {
                 throw new CompilationErrorException(formatter.Format(firstError, CultureInfo.CurrentCulture),
-                    (resolvedLocalDiagnostics.AsImmutable()));
+                    diagnostics.ToReadOnly());
             }
         }
 

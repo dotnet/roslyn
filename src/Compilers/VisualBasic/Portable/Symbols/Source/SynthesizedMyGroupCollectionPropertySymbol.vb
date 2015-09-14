@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim diagnosticLocation As Location = AttributeSyntax.GetLocation()
 
-            For Each diag As VBDiagnostic In source.AsEnumerable
+            For Each diag As VBDiagnostic In source
                 destination.Add(diag.WithLocation(diagnosticLocation))
             Next
         End Sub

@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 methodBodyBinder.EnableSimpleNameBindingOrderChecks(False)
 #End If
 
-                For Each diag As VBDiagnostic In bindingDiagnostics.AsEnumerable()
+                For Each diag As VBDiagnostic In bindingDiagnostics
                     diagnostics.Add(diag.WithLocation(diagnosticLocation))
                 Next
 

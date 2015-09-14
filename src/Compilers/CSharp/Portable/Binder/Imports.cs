@@ -372,9 +372,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 semanticDiagnostics.AddRange(alias.Alias.AliasTargetDiagnostics);
             }
 
-            if (_diagnostics != null && !_diagnostics.IsEmptyWithoutResolution)
+            if (_diagnostics != null)
             {
-                semanticDiagnostics.AddRange(_diagnostics.AsEnumerable());
+                semanticDiagnostics.AddRange(_diagnostics);
             }
         }
 
