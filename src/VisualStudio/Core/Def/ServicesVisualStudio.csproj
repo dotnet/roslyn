@@ -68,6 +68,7 @@
     <Compile Include="Implementation\TableDataSource\AbstractTableDataSource.cs" />
     <Compile Include="Implementation\TableDataSource\AbstractTableEntriesSource.cs" />
     <Compile Include="Implementation\TableDataSource\Extensions.cs" />
+    <Compile Include="Implementation\TableDataSource\SharedInfoCache.cs" />
     <Compile Include="Implementation\TableDataSource\TableItem.cs" />
     <Compile Include="Implementation\TableDataSource\MiscDiagnosticTableControlEventProcessorProvider.cs" />
     <Compile Include="Implementation\TableDataSource\MiscellaneousDiagnosticListTable.cs" />
