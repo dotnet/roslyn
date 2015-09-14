@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             Contract.ThrowIfFalse(items.Count() > 0);
 
             // There must be document id
-            Contract.ThrowIfTrue(items.Any(i => Extensions.GetDocumentId(i.Primary) == null));
+            Contract.ThrowIfTrue(items.Any(i => i.PrimaryDocumentId == null));
 #endif
 
             var first = true;
@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             var count = 0;
 
             // Make things to be deterministic. 
-            var ordereditems = items.OrderBy(i => Extensions.GetDocumentId(i.Primary).Id);
+            var ordereditems = items.OrderBy(i => i.PrimaryDocumentId.Id);
             foreach (var item in ordereditems)
             {
                 count++;
@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     first = false;
                 }
 
-                collectionHash = Hash.Combine(Extensions.GetDocumentId(item.Primary).Id.GetHashCode(), collectionHash);
+                collectionHash = Hash.Combine(item.PrimaryDocumentId.Id.GetHashCode(), collectionHash);
             }
 
             if (count == 1)
@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             // order of item is important. make sure we maintain it.
-            _cache = SharedInfoCache.GetOrAdd(collectionHash, ordereditems, c => new SharedInfoCache(c.Select(i => Extensions.GetDocumentId(i.Primary)).ToImmutableArray()));
+            _cache = SharedInfoCache.GetOrAdd(collectionHash, ordereditems, c => new SharedInfoCache(c.Select(i => i.PrimaryDocumentId).ToImmutableArray()));
         }
 
         public DocumentId PrimaryDocumentId
@@ -79,6 +79,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
+        private Workspace Workspace
+        {
+            get
+            {
+                return Extensions.GetWorkspace(Primary);
+            }
+        }
+
         public string ProjectName
         {
             get
@@ -86,11 +94,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 if (_cache == null)
                 {
                     // return single project name
-                    return Extensions.GetWorkspace(Primary).GetProjectName(PrimaryDocumentId.ProjectId);
+                    return Workspace.GetProjectName(PrimaryDocumentId.ProjectId);
                 }
 
                 // return joined project names
-                return _cache.GetProjectName(Extensions.GetWorkspace(Primary));
+                return _cache.GetProjectName(Workspace);
             }
         }
 
@@ -104,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return Array.Empty<string>();
                 }
 
-                return _cache.GetProjectNames(Extensions.GetWorkspace(Primary));
+                return _cache.GetProjectNames(Workspace);
             }
         }
 
@@ -114,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             {
                 if (_cache == null)
                 {
-                    return Extensions.GetWorkspace(Primary).GetProjectGuid(PrimaryDocumentId.ProjectId);
+                    return Workspace.GetProjectGuid(PrimaryDocumentId.ProjectId);
                 }
 
                 // if this is aggregated element, there is no projectguid
@@ -132,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return Array.Empty<Guid>();
                 }
 
-                return _cache.GetProjectGuids(Extensions.GetWorkspace(Primary));
+                return _cache.GetProjectGuids(Workspace);
             }
         }
 

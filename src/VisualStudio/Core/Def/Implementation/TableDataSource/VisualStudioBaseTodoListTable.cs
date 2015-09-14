@@ -225,7 +225,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     //         also, what is cancellation mechanism?
                     var item = GetItem(index);
 
-                    var data = item.Primary;
+                    var data = item?.Primary;
                     if (data == null)
                     {
                         content = null;
@@ -283,7 +283,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public override bool TryNavigateTo(int index, bool previewTab)
                 {
-                    var item = GetItem(index).Primary;
+                    var item = GetItem(index)?.Primary;
                     if (item == null)
                     {
                         return false;

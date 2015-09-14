@@ -55,7 +55,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         public int IndexOf(int index, ITableEntriesSnapshot newerSnapshot)
         {
-            var item = GetItem(index).Primary;
+            var data = GetItem(index);
+            if (data == null)
+            {
+                return -1;
+            }
+
+            var item = data.Primary;
             if (item == null)
             {
                 return -1;
@@ -71,10 +77,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             // quick path - this will deal with a case where we update data without any actual change
             if (this.Count == ourSnapshot.Count)
             {
-                var newItem = ourSnapshot.GetItem(index).Primary;
-                if (newItem != null && newItem.Equals(item))
+                var newData = ourSnapshot.GetItem(index);
+                if (newData != null)
                 {
-                    return index;
+                    var newItem = newData.Primary;
+                    if (newItem != null && newItem.Equals(item))
+                    {
+                        return index;
+                    }
                 }
             }
 
@@ -82,10 +92,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             var bestMatch = Tuple.Create(-1, int.MaxValue);
             for (var i = 0; i < ourSnapshot.Count; i++)
             {
-                var newItem = ourSnapshot.GetItem(i).Primary;
-                if (IsEquivalent(item, newItem))
+                var newData = ourSnapshot.GetItem(i);
+                if (newData != null)
                 {
-                    return i;
+                    var newItem = newData.Primary;
+                    if (IsEquivalent(item, newItem))
+                    {
+                        return i;
+                    }
                 }
             }
 
