@@ -110,9 +110,6 @@
   <data name="DisplayNameOrPathCannotBe" xml:space="preserve">
     <value>Display name or path cannot be empty.</value>
   </data>
-  <data name="AssemblyNotFound" xml:space="preserve">
-    <value>Assembly not found.</value>
-  </data>
   <data name="AbsolutePathExpected" xml:space="preserve">
     <value>Absolute path expected</value>
   </data>

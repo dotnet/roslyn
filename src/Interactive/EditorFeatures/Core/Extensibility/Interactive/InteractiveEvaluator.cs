@@ -26,8 +26,8 @@ using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Roslyn.Utilities;
-using DesktopMetadataReferenceResolver = WORKSPACES::Microsoft.CodeAnalysis.Scripting.DesktopMetadataReferenceResolver;
-using GacFileResolver = WORKSPACES::Microsoft.CodeAnalysis.Scripting.GacFileResolver;
+using RuntimeMetadataReferenceResolver = WORKSPACES::Microsoft.CodeAnalysis.Scripting.Hosting.RuntimeMetadataReferenceResolver;
+using GacFileResolver = WORKSPACES::Microsoft.CodeAnalysis.Scripting.Hosting.GacFileResolver;
 
 namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         private readonly InteractiveWorkspace _workspace;
         private IInteractiveWindow _currentWindow;
         private ImmutableHashSet<MetadataReference> _references;
-        private MetadataFileReferenceResolver _metadataReferenceResolver;
-        private ImmutableArray<string> _sourceSearchPaths;
+        private MetadataReferenceResolver _metadataReferenceResolver;
+        private SourceReferenceResolver _sourceReferenceResolver;
 
         private ProjectId _previousSubmissionProjectId;
         private ProjectId _currentSubmissionProjectId;
@@ -62,6 +62,10 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         private int _submissionCount = 0;
         private readonly EventHandler<ContentTypeChangedEventArgs> _contentTypeChangedHandler;
+
+        public ImmutableArray<string> ReferenceSearchPaths { get; private set; }
+        public ImmutableArray<string> SourceSearchPaths { get; private set; }
+        public string WorkingDirectory { get; private set; }
 
         internal InteractiveEvaluator(
             IContentType contentType,
@@ -132,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         }
 
         protected abstract string LanguageName { get; }
-        protected abstract CompilationOptions GetSubmissionCompilationOptions(string name, MetadataReferenceResolver metadataReferenceResolver);
+        protected abstract CompilationOptions GetSubmissionCompilationOptions(string name, MetadataReferenceResolver metadataReferenceResolver, SourceReferenceResolver sourceReferenceResolver);
         protected abstract ParseOptions ParseOptions { get; }
         protected abstract CommandLineParser CommandLineParser { get; }
 
@@ -190,21 +194,22 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _previousSubmissionProjectId = null;
 
             var metadataService = _workspace.CurrentSolution.Services.MetadataService;
-            ImmutableArray<string> referencePaths;
+
+            ReferenceSearchPaths = ImmutableArray.Create(FileUtilities.NormalizeDirectoryPath(RuntimeEnvironment.GetRuntimeDirectory()));
+            SourceSearchPaths = ImmutableArray.Create(FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)));
 
             if (initialize && File.Exists(_responseFilePath))
             {
                 // The base directory for relative paths is the directory that contains the .rsp file.
                 // Note that .rsp files included by this .rsp file will share the base directory (Dev10 behavior of csc/vbc).
                 var rspArguments = this.CommandLineParser.Parse(new[] { "@" + _responseFilePath }, Path.GetDirectoryName(_responseFilePath), RuntimeEnvironment.GetRuntimeDirectory(), null /* TODO: pass a valid value*/);
-                referencePaths = rspArguments.ReferencePaths;
+                ReferenceSearchPaths = ReferenceSearchPaths.AddRange(rspArguments.ReferencePaths);
 
                 // the base directory for references specified in the .rsp file is the .rsp file directory:
-                var rspMetadataReferenceResolver = CreateFileResolver(referencePaths, rspArguments.BaseDirectory);
-                var metadataProvider = metadataService.GetProvider();
+                var rspMetadataReferenceResolver = CreateMetadataReferenceResolver(metadataService, ReferenceSearchPaths, rspArguments.BaseDirectory);
 
                 // ignore unresolved references, they will be reported in the interactive window:
-                var rspReferences = rspArguments.ResolveMetadataReferences(new AssemblyReferenceResolver(rspMetadataReferenceResolver, metadataProvider))
+                var rspReferences = rspArguments.ResolveMetadataReferences(rspMetadataReferenceResolver)
                     .Where(r => !(r is UnresolvedMetadataReference));
 
                 var interactiveHelpersRef = metadataService.GetReference(typeof(Script).Assembly.Location, MetadataReferenceProperties.Assembly);
@@ -222,14 +227,11 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             {
                 var mscorlibRef = metadataService.GetReference(typeof(object).Assembly.Location, MetadataReferenceProperties.Assembly);
                 _references = ImmutableHashSet.Create<MetadataReference>(mscorlibRef);
-
                 _rspSourceFiles = ImmutableArray.Create<CommandLineSourceFile>();
-                referencePaths = ScriptOptions.Default.SearchPaths;
             }
 
-            // reset search paths, working directory:
-            _metadataReferenceResolver = CreateFileResolver(referencePaths, _initialWorkingDirectory);
-            _sourceSearchPaths = InteractiveHost.Service.DefaultSourceSearchPaths;
+            _metadataReferenceResolver = CreateMetadataReferenceResolver(metadataService, ReferenceSearchPaths, _initialWorkingDirectory);
+            _sourceReferenceResolver = CreateSourceReferenceResolver(SourceSearchPaths, _initialWorkingDirectory);
 
             // create the first submission project in the workspace after reset:
             if (_currentSubmissionBuffer != null)
@@ -243,18 +245,25 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             get { return ((FrameworkElement)GetInteractiveWindow().TextView).Dispatcher; }
         }
 
-        private static MetadataFileReferenceResolver CreateFileResolver(ImmutableArray<string> referencePaths, string baseDirectory)
+        private static MetadataReferenceResolver CreateMetadataReferenceResolver(IMetadataService metadataService, ImmutableArray<string> searchPaths, string baseDirectory)
         {
             var userProfilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             var packagesDirectory = (userProfilePath == null) ?
                 null :
                 PathUtilities.CombineAbsoluteAndRelativePaths(userProfilePath, PathUtilities.CombinePossiblyRelativeAndRelativePaths(".nuget", "packages"));
-            return new DesktopMetadataReferenceResolver(
-                new RelativePathReferenceResolver(referencePaths, baseDirectory),
+
+            return new RuntimeMetadataReferenceResolver(
+                new RelativePathResolver(searchPaths, baseDirectory),
                 string.IsNullOrEmpty(packagesDirectory) ? null : new NuGetPackageResolverImpl(packagesDirectory),
                 new GacFileResolver(
                     architectures: GacFileResolver.Default.Architectures,  // TODO (tomat)
-                    preferredCulture: System.Globalization.CultureInfo.CurrentCulture)); // TODO (tomat)
+                    preferredCulture: System.Globalization.CultureInfo.CurrentCulture), // TODO (tomat)
+                (path, properties) => metadataService.GetReference(path, properties));
+        }
+
+        private static SourceReferenceResolver CreateSourceReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)
+        {
+            return new SourceFileResolver(searchPaths, baseDirectory);
         }
 
         #endregion
@@ -370,8 +379,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             // TODO (tomat): needs implementation in InteractiveHostService as well
             // var localCompilationOptions = (rspArguments != null) ? rspArguments.CompilationOptions : CompilationOptions.Default;
-            var localCompilationOptions = GetSubmissionCompilationOptions(name,
-                new AssemblyReferenceResolver(_metadataReferenceResolver, solution.Services.MetadataService.GetProvider()));
+            var localCompilationOptions = GetSubmissionCompilationOptions(name, _metadataReferenceResolver, _sourceReferenceResolver);
 
             var localParseOptions = ParseOptions;
 
@@ -454,14 +462,12 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             {
                 var options = InteractiveHostOptions.Default.WithInitializationFile(initialize ? _responseFilePath : null);
 
-                // async as this can load references, run initialization code, etc.
                 var result = await _interactiveHost.ResetAsync(options).ConfigureAwait(false);
 
-                // TODO: set up options
-                //if (result.Success)
-                //{
-                //    UpdateLocalPaths(result.NewReferencePaths, result.NewSourcePaths, result.NewWorkingDirectory);
-                //}
+                if (result.Success)
+                {
+                    UpdateResolvers(result);
+                }
 
                 return new ExecutionResult(result.Success);
             }
@@ -492,7 +498,16 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                     // so the source document should not have been removed.
                     Debug.Assert(_workspace.CurrentSolution.GetProject(_currentSubmissionProjectId).HasDocuments);
 
-                    SubmissionSuccessfullyExecuted(result);
+                    // only remember the submission if we compiled successfully, otherwise we
+                    // ignore it's id so we don't reference it in the next submission.
+                    _previousSubmissionProjectId = _currentSubmissionProjectId;
+
+                    // Grab any directive references from it
+                    var compilation = await _workspace.CurrentSolution.GetProject(_previousSubmissionProjectId).GetCompilationAsync().ConfigureAwait(false);
+                    _references = _references.Union(compilation.DirectiveReferences);
+
+                    // update local search paths - remote paths has already been updated
+                    UpdateResolvers(result);
                 }
 
                 return new ExecutionResult(result.Success);
@@ -501,21 +516,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             {
                 throw ExceptionUtilities.Unreachable;
             }
-        }
-
-        private void SubmissionSuccessfullyExecuted(RemoteExecutionResult result)
-        {
-            // only remember the submission if we compiled successfully, otherwise we
-            // ignore it's id so we don't reference it in the next submission.
-            _previousSubmissionProjectId = _currentSubmissionProjectId;
-
-            // Grab any directive references from it
-            var compilation = _workspace.CurrentSolution.GetProject(_previousSubmissionProjectId).GetCompilationAsync().Result;
-            _references = _references.Union(compilation.DirectiveReferences);
-
-            // update local search paths - remote paths has already been updated
-
-            UpdateLocalPaths(result.NewReferencePaths, result.NewSourcePaths, result.NewWorkingDirectory);
         }
 
         public void AbortExecution()
@@ -531,48 +531,56 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         #endregion
 
-        #region Paths
+        #region Paths, Resolvers
 
-        public ImmutableArray<string> ReferenceSearchPaths { get { return _metadataReferenceResolver.SearchPaths; } }
-        public ImmutableArray<string> SourceSearchPaths { get { return _sourceSearchPaths; } }
-        public string CurrentDirectory { get { return _metadataReferenceResolver.BaseDirectory; } }
-
-        public void UpdateLocalPaths(string[] newReferenceSearchPaths, string[] newSourceSearchPaths, string newBaseDirectory)
+        private void UpdateResolvers(RemoteExecutionResult result)
         {
-            var changed = false;
-            if (newReferenceSearchPaths != null || newBaseDirectory != null)
-            {
-                _metadataReferenceResolver = CreateFileResolver(
-                    (newReferenceSearchPaths == null) ? _metadataReferenceResolver.SearchPaths : newReferenceSearchPaths.AsImmutable(),
-                    newBaseDirectory ?? _metadataReferenceResolver.BaseDirectory);
-
-                changed = true;
-            }
-
-            if (newSourceSearchPaths != null)
-            {
-                _sourceSearchPaths = newSourceSearchPaths.AsImmutable();
-                changed = true;
-            }
-
-            if (changed)
-            {
-                var solution = _workspace.CurrentSolution;
-
-                var metadataProvider = _workspace.CurrentSolution.Services.MetadataService.GetProvider();
-
-                var oldOptions = solution.GetProjectState(_currentSubmissionProjectId).CompilationOptions;
-                var newOptions = oldOptions.WithMetadataReferenceResolver(new AssemblyReferenceResolver(_metadataReferenceResolver, metadataProvider));
-
-                _workspace.SetCurrentSolution(solution.WithProjectCompilationOptions(_currentSubmissionProjectId, newOptions));
-            }
+            UpdateResolvers(result.ChangedReferencePaths.AsImmutableOrNull(), result.ChangedSourcePaths.AsImmutableOrNull(), result.ChangedWorkingDirectory);
         }
 
-        public void SetInitialPaths(string[] referenceSearchPaths, string[] sourceSearchPaths, string baseDirectory)
+        private void UpdateResolvers(ImmutableArray<string> changedReferenceSearchPaths, ImmutableArray<string> changedSourceSearchPaths, string changedWorkingDirectory)
         {
-            _initialWorkingDirectory = baseDirectory;
-            UpdateLocalPaths(referenceSearchPaths, sourceSearchPaths, baseDirectory);
-            _interactiveHost.SetPathsAsync(referenceSearchPaths, sourceSearchPaths, baseDirectory);
+            if (changedReferenceSearchPaths.IsDefault && changedSourceSearchPaths.IsDefault && changedWorkingDirectory == null)
+            {
+                return;
+            }
+
+            var solution = _workspace.CurrentSolution;
+            var options = solution.GetProjectState(_currentSubmissionProjectId).CompilationOptions;
+
+            if (changedWorkingDirectory != null)
+            {
+                WorkingDirectory = changedWorkingDirectory;
+            }
+
+            if (!changedReferenceSearchPaths.IsDefault || changedWorkingDirectory != null)
+            {
+                ReferenceSearchPaths = changedReferenceSearchPaths;
+                _metadataReferenceResolver = CreateMetadataReferenceResolver(_workspace.CurrentSolution.Services.MetadataService, ReferenceSearchPaths, WorkingDirectory);
+                options = options.WithMetadataReferenceResolver(_metadataReferenceResolver);
+            }
+
+            if (!changedSourceSearchPaths.IsDefault || changedWorkingDirectory != null)
+            {
+                SourceSearchPaths = changedSourceSearchPaths;
+                _sourceReferenceResolver = CreateSourceReferenceResolver(SourceSearchPaths, WorkingDirectory);
+                options = options.WithSourceReferenceResolver(_sourceReferenceResolver);
+            }
+
+            _workspace.SetCurrentSolution(solution.WithProjectCompilationOptions(_currentSubmissionProjectId, options));
+        }
+
+        public async Task SetPathsAsync(ImmutableArray<string> referenceSearchPaths, ImmutableArray<string> sourceSearchPaths, string workingDirectory)
+        {
+            try
+            {
+                var result = await _interactiveHost.SetPathsAsync(referenceSearchPaths.ToArray(), sourceSearchPaths.ToArray(), workingDirectory).ConfigureAwait(false);
+                UpdateResolvers(result);
+            }
+            catch (Exception e) when (FatalError.Report(e))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         public string GetPrompt()

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -1125,6 +1126,34 @@ static T G<T>(T t, Func<T, Task<T>> f)
 new Metadata.ICSPropImpl()
 ").Result;
             Assert.NotNull(result);
+        }
+
+        [Fact]
+        public void ReferenceDirective_RelativeToBaseParent()
+        {
+            string path = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSClasses01).Path;
+            string fileName = Path.GetFileName(path);
+            string dir = Path.Combine(Path.GetDirectoryName(path), "subdir");
+
+            var script = CSharpScript.Create($@"#r ""..\{fileName}""", 
+                ScriptOptions.Default.WithPath(Path.Combine(dir, "a.csx")));
+
+            script.GetCompilation().VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReferenceDirective_RelativeToBaseRoot()
+        {
+            string path = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSClasses01).Path;
+            string root = Path.GetPathRoot(path);
+            string unrooted = path.Substring(root.Length);
+
+            string dir = Path.Combine(root, "foo", "bar", "baz");
+
+            var script = CSharpScript.Create($@"#r ""\{unrooted}""",
+                ScriptOptions.Default.WithPath(Path.Combine(dir, "a.csx")));
+
+            script.GetCompilation().VerifyDiagnostics();
         }
 
         #endregion

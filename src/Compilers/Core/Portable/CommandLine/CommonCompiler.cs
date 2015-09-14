@@ -79,50 +79,41 @@ namespace Microsoft.CodeAnalysis
             return typeof(CommonCompiler).GetTypeInfo().Assembly.GetName().Version;
         }
 
-        internal virtual MetadataFileReferenceProvider GetMetadataProvider()
+        internal virtual Func<string, MetadataReferenceProperties, PortableExecutableReference> GetMetadataProvider()
         {
-            return MetadataFileReferenceProvider.Default;
+            return (path, properties) => MetadataReference.CreateFromFile(path, properties);
         }
 
-        internal virtual MetadataFileReferenceResolver GetExternalMetadataResolver(TouchedFileLogger touchedFiles)
+        internal virtual MetadataReferenceResolver GetCommandLineMetadataReferenceResolver(TouchedFileLogger loggerOpt)
         {
-            return CreateLoggingMetadataResolver(touchedFiles);
+            var pathResolver = new RelativePathResolver(Arguments.ReferencePaths, Arguments.BaseDirectory);
+            return new LoggingMetadataFileReferenceResolver(pathResolver, GetMetadataProvider(), loggerOpt);
         }
 
         /// <summary>
         /// Resolves metadata references stored in command line arguments and reports errors for those that can't be resolved.
         /// </summary>
         internal List<MetadataReference> ResolveMetadataReferences(
-            MetadataFileReferenceResolver externalReferenceResolver,
-            MetadataFileReferenceProvider metadataProvider,
             List<DiagnosticInfo> diagnostics,
-            AssemblyIdentityComparer assemblyIdentityComparer,
             TouchedFileLogger touchedFiles,
-            out MetadataFileReferenceResolver referenceDirectiveResolver)
+            out MetadataReferenceResolver referenceDirectiveResolver)
         {
+            var commandLineReferenceResolver = GetCommandLineMetadataReferenceResolver(touchedFiles);
+
             List<MetadataReference> resolved = new List<MetadataReference>();
-            Arguments.ResolveMetadataReferences(new AssemblyReferenceResolver(externalReferenceResolver, metadataProvider), diagnostics, this.MessageProvider, resolved);
+            Arguments.ResolveMetadataReferences(commandLineReferenceResolver, diagnostics, this.MessageProvider, resolved);
 
             if (Arguments.IsInteractive)
             {
-                referenceDirectiveResolver = externalReferenceResolver;
+                referenceDirectiveResolver = commandLineReferenceResolver;
             }
             else
             {
                 // when compiling into an assembly (csc/vbc) we only allow #r that match references given on command line:
-                referenceDirectiveResolver = new ExistingReferencesResolver(
-                    CreateLoggingMetadataResolver(touchedFiles),
-                    resolved.Where(r => r.Properties.Kind == MetadataImageKind.Assembly).OfType<PortableExecutableReference>().AsImmutable(),
-                    assemblyIdentityComparer);
+                referenceDirectiveResolver = new ExistingReferencesResolver(commandLineReferenceResolver, resolved.ToImmutableArray());
             }
 
             return resolved;
-        }
-
-        private MetadataFileReferenceResolver CreateLoggingMetadataResolver(TouchedFileLogger logger)
-        {
-            MetadataFileReferenceResolver resolver = new RelativePathReferenceResolver(Arguments.ReferencePaths, Arguments.BaseDirectory);
-            return (logger == null) ? resolver : new LoggingMetadataReferencesResolver(resolver, logger);
         }
 
         /// <summary>

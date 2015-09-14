@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace CSharpInteractive
@@ -36,13 +37,17 @@ namespace CSharpInteractive
             }
         }
 
-        internal override MetadataFileReferenceResolver GetExternalMetadataResolver(TouchedFileLogger touchedFiles)
+        internal override MetadataReferenceResolver GetCommandLineMetadataReferenceResolver(TouchedFileLogger loggerOpt)
         {
-            // We don't log touched files atm.
-            return new DesktopMetadataReferenceResolver(
-                new RelativePathReferenceResolver(Arguments.ReferencePaths, Arguments.BaseDirectory),
+            return new RuntimeMetadataReferenceResolver(
+                new RelativePathResolver(Arguments.ReferencePaths, Arguments.BaseDirectory),
                 null,
-                new GacFileResolver(GacFileResolver.Default.Architectures, CultureInfo.CurrentCulture));
+                new GacFileResolver(GacFileResolver.Default.Architectures, CultureInfo.CurrentCulture),
+                (path, properties) =>
+                {
+                    loggerOpt?.AddRead(path);
+                    return MetadataReference.CreateFromFile(path);
+                });
         }
 
         public override void PrintLogo(TextWriter consoleOutput)
