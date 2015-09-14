@@ -734,21 +734,6 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Sub Command_Class()
-            Dim code =
-                StringFromLines("Class C",
-                                "    $$",
-                                "End Class")
-
-            Dim expected =
-                StringFromLines("''' <summary>",
-                                "''' $$",
-                                "''' </summary>",
-                                "Class C",
-                                "",
-                                "End Class")
-
         <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub PressingEnter_Indentation4()
