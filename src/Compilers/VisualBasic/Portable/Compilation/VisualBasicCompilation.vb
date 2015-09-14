@@ -2079,7 +2079,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For Each diagnostic As Diagnostic In incoming
                 Dim filtered = Me._options.FilterDiagnostic(diagnostic)
                 If filtered Is Nothing OrElse
-                    (Not includeDiagnosticsWithSourceSuppression AndAlso filtered.HasSourceSuppression) Then
+                    (Not includeDiagnosticsWithSourceSuppression AndAlso filtered.IsSuppressed) Then
                     Continue For
                 End If
 

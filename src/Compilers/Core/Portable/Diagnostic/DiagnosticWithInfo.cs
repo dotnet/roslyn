@@ -16,15 +16,15 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly DiagnosticInfo _info;
         private readonly Location _location;
-        private readonly bool _hasSourceSuppression;
+        private readonly bool _isSuppressed;
 
-        internal DiagnosticWithInfo(DiagnosticInfo info, Location location, bool hasSourceSuppression = false)
+        internal DiagnosticWithInfo(DiagnosticInfo info, Location location, bool isSuppressed = false)
         {
             Debug.Assert(info != null);
             Debug.Assert(location != null);
             _info = info;
             _location = location;
-            _hasSourceSuppression = hasSourceSuppression;
+            _isSuppressed = isSuppressed;
         }
 
         public override Location Location
@@ -85,9 +85,9 @@ namespace Microsoft.CodeAnalysis
             get { return true; }
         }
 
-        public override bool HasSourceSuppression
+        public override bool IsSuppressed
         {
-            get { return _hasSourceSuppression; }
+            get { return _isSuppressed; }
         }
 
         public sealed override int WarningLevel
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis
 
             if (location != _location)
             {
-                return new DiagnosticWithInfo(_info, location, _hasSourceSuppression);
+                return new DiagnosticWithInfo(_info, location, _isSuppressed);
             }
 
             return this;
@@ -203,17 +203,17 @@ namespace Microsoft.CodeAnalysis
         {
             if (this.Severity != severity)
             {
-                return new DiagnosticWithInfo(this.Info.GetInstanceWithSeverity(severity), _location, _hasSourceSuppression);
+                return new DiagnosticWithInfo(this.Info.GetInstanceWithSeverity(severity), _location, _isSuppressed);
             }
 
             return this;
         }
 
-        internal override Diagnostic WithHasSourceSuppression(bool hasSourceSuppression)
+        internal override Diagnostic WithIsSuppressed(bool isSuppressed)
         {
-            if (this.HasSourceSuppression != hasSourceSuppression)
+            if (this.IsSuppressed != isSuppressed)
             {
-                return new DiagnosticWithInfo(this.Info, _location, hasSourceSuppression);
+                return new DiagnosticWithInfo(this.Info, _location, isSuppressed);
             }
 
             return this;

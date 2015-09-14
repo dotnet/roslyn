@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 var suppressionAction = actions.Single() as SuppressionCodeAction;
                 if (suppressionAction != null)
                 {
-                    actions = suppressionAction.NestedActions.ToList();
+                    actions = suppressionAction.NestedActions.ToList<CodeAction>();
                 }
             }
 

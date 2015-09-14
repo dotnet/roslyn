@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     var severity = (DiagnosticSeverity)reader.ReadInt32();
                     var defaultSeverity = (DiagnosticSeverity)reader.ReadInt32();
                     var isEnabledByDefault = reader.ReadBoolean();
-                    var hasSourceSuppression = reader.ReadBoolean();
+                    var isSuppressed = reader.ReadBoolean();
                     var warningLevel = reader.ReadInt32();
 
                     var start = reader.ReadInt32();
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         title: title,
                         description: description,
                         helpLink: helpLink,
-                        hasSourceSuppression: hasSourceSuppression));
+                        isSuppressed: isSuppressed));
                 }
             }
 
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         writer.WriteInt32((int)item.Severity);
                         writer.WriteInt32((int)item.DefaultSeverity);
                         writer.WriteBoolean(item.IsEnabledByDefault);
-                        writer.WriteBoolean(item.HasSourceSuppression);
+                        writer.WriteBoolean(item.IsSuppressed);
                         writer.WriteInt32(item.WarningLevel);
 
                         if (item.HasTextSpan)

@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 descriptor.Title.ToString(CultureInfo.CurrentUICulture),
                 descriptor.Description.ToString(CultureInfo.CurrentUICulture),
                 descriptor.HelpLinkUri,
-                hasSourceSuppression: diagnostic.HasSourceSuppression);
+                isSuppressed: diagnostic.IsSuppressed);
         }
     }
 }

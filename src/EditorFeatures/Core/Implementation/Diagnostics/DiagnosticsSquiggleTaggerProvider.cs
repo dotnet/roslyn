@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         private string GetErrorTypeFromDiagnostic(DiagnosticData diagnostic)
         {
-            if (diagnostic.HasSourceSuppression)
+            if (diagnostic.IsSuppressed)
             {
                 // Don't squiggle suppressed diagnostics.
                 return null;
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         private string GetErrorTypeFromDiagnosticTags(DiagnosticData diagnostic)
         {
-            if (diagnostic.CustomTags.Count < 1)
+            if (diagnostic.CustomTags.Count <= 1)
             {
                 return null;
             }

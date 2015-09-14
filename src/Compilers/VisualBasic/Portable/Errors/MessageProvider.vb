@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function GetDiagnosticReport(diagnosticInfo As DiagnosticInfo, options As CompilationOptions) As ReportDiagnostic
-            Dim hasDisableDirectiveSuppression = False
+            Dim hasSourceSuppression = False
             Return VisualBasicDiagnosticFilter.GetDiagnosticReport(diagnosticInfo.Severity,
                                                                    True,
                                                                    diagnosticInfo.MessageIdentifier,
@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                    diagnosticInfo.Category,
                                                                    options.GeneralDiagnosticOption,
                                                                    options.SpecificDiagnosticOptions,
-                                                                   hasDisableDirectiveSuppression)
+                                                                   hasSourceSuppression)
         End Function
 
 

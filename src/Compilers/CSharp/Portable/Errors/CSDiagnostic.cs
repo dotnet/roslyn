@@ -9,8 +9,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class CSDiagnostic : DiagnosticWithInfo
     {
-        internal CSDiagnostic(DiagnosticInfo info, Location location, bool hasSourceSuppression = false)
-            : base(info, location, hasSourceSuppression)
+        internal CSDiagnostic(DiagnosticInfo info, Location location, bool isSuppressed = false)
+            : base(info, location, isSuppressed)
         {
         }
 
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (location != this.Location)
             {
-                return new CSDiagnostic(this.Info, location, this.HasSourceSuppression);
+                return new CSDiagnostic(this.Info, location, this.IsSuppressed);
             }
 
             return this;
@@ -38,17 +38,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (this.Severity != severity)
             {
-                return new CSDiagnostic(this.Info.GetInstanceWithSeverity(severity), this.Location, this.HasSourceSuppression);
+                return new CSDiagnostic(this.Info.GetInstanceWithSeverity(severity), this.Location, this.IsSuppressed);
             }
 
             return this;
         }
 
-        internal override Diagnostic WithHasSourceSuppression(bool hasSourceSuppression)
+        internal override Diagnostic WithIsSuppressed(bool isSuppressed)
         {
-            if (this.HasSourceSuppression != hasSourceSuppression)
+            if (this.IsSuppressed != isSuppressed)
             {
-                return new CSDiagnostic(this.Info, this.Location, hasSourceSuppression);
+                return new CSDiagnostic(this.Info, this.Location, isSuppressed);
             }
 
             return this;

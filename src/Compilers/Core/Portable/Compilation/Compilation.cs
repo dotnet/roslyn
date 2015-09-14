@@ -945,7 +945,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <param name="accumulator">Bag to which filtered diagnostics will be added.</param>
         /// <param name="incoming">Diagnostics to be filtered.</param>
-        /// <param name="includeDiagnosticsWithSourceSuppression">Flag indicating whether diagnostcs with <see cref="Diagnostic.HasSourceSuppression"/> should be retained or not.</param>
+        /// <param name="includeDiagnosticsWithSourceSuppression">Flag indicating whether diagnostcs with <see cref="Diagnostic.IsSuppressed"/> should be retained or not.</param>
         /// <returns>True if there were no errors or warnings-as-errors.</returns>
         internal abstract bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, ref DiagnosticBag incoming, bool includeDiagnosticsWithSourceSuppression = false);
 

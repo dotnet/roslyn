@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public readonly int WarningLevel;
         public readonly IReadOnlyList<string> CustomTags;
         public readonly ImmutableDictionary<string, string> Properties;
-        public readonly bool HasSourceSuppression;
+        public readonly bool IsSuppressed;
 
         public readonly string ENUMessageForBingSearch;
 
@@ -108,12 +108,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             string title = null,
             string description = null,
             string helpLink = null,
-            bool hasSourceSuppression = false) :
+            bool isSuppressed = false) :
                 this(
                     id, category, message, enuMessageForBingSearch,
                     severity, severity, isEnabledByDefault, warningLevel,
                     ImmutableArray<string>.Empty, ImmutableDictionary<string, string>.Empty,
-                    workspace, projectId, location, additionalLocations, title, description, helpLink, hasSourceSuppression)
+                    workspace, projectId, location, additionalLocations, title, description, helpLink, isSuppressed)
         {
         }
 
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             string title = null,
             string description = null,
             string helpLink = null,
-            bool hasSourceSuppression = false)
+            bool isSuppressed = false)
         {
             this.Id = id;
             this.Category = category;
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.Title = title;
             this.Description = description;
             this.HelpLink = helpLink;
-            this.HasSourceSuppression = hasSourceSuppression;
+            this.IsSuppressed = isSuppressed;
         }
 
         public bool HasTextSpan { get { return (DataLocation?.SourceSpan).HasValue; } }
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     Message == other.Message &&
                     Severity == other.Severity &&
                     WarningLevel == other.WarningLevel &&
-                    HasSourceSuppression == other.HasSourceSuppression &&
+                    IsSuppressed == other.IsSuppressed &&
                     ProjectId == other.ProjectId &&
                     DocumentId == other.DocumentId &&
                     DataLocation?.OriginalStartLine == other?.DataLocation?.OriginalStartLine &&
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                    Hash.Combine(this.Category,
                    Hash.Combine(this.Message,
                    Hash.Combine(this.WarningLevel,
-                   Hash.Combine(this.HasSourceSuppression,
+                   Hash.Combine(this.IsSuppressed,
                    Hash.Combine(this.ProjectId,
                    Hash.Combine(this.DocumentId,
                    Hash.Combine(this.DataLocation?.OriginalStartLine ?? 0,
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return Diagnostic.Create(
                 this.Id, this.Category, this.Message, this.Severity, this.DefaultSeverity, 
-                this.IsEnabledByDefault, this.WarningLevel, this.HasSourceSuppression, this.Title, this.Description, this.HelpLink, 
+                this.IsEnabledByDefault, this.WarningLevel, this.IsSuppressed, this.Title, this.Description, this.HelpLink, 
                 location, additionalLocations, customTags: this.CustomTags, properties: this.Properties);
         }
 
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 title: diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture),
                 description: diagnostic.Descriptor.Description.ToString(CultureInfo.CurrentUICulture),
                 helpLink: diagnostic.Descriptor.HelpLinkUri,
-                hasSourceSuppression: diagnostic.HasSourceSuppression);
+                isSuppressed: diagnostic.IsSuppressed);
         }
 
         public static DiagnosticData Create(Project project, Diagnostic diagnostic)
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 title: diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture),
                 description: diagnostic.Descriptor.Description.ToString(CultureInfo.CurrentUICulture),
                 helpLink: diagnostic.Descriptor.HelpLinkUri,
-                hasSourceSuppression: diagnostic.HasSourceSuppression);
+                isSuppressed: diagnostic.IsSuppressed);
         }
 
         private static DiagnosticDataLocation CreateLocation(Document document, Location location)
@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 title: diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture),
                 description: diagnostic.Descriptor.Description.ToString(CultureInfo.CurrentUICulture),
                 helpLink: diagnostic.Descriptor.HelpLinkUri,
-                hasSourceSuppression: diagnostic.HasSourceSuppression);
+                isSuppressed: diagnostic.IsSuppressed);
         }
 
         private static void GetLocationInfo(Document document, Location location, out TextSpan sourceSpan, out FileLinePositionSpan originalLineInfo, out FileLinePositionSpan mappedLineInfo)

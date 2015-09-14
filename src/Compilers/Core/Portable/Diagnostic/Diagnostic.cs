@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="defaultSeverity">The diagnostic's default severity.</param>
         /// <param name="isEnabledByDefault">True if the diagnostic is enabled by default</param>
         /// <param name="warningLevel">The warning level, between 1 and 4 if severity is <see cref="DiagnosticSeverity.Warning"/>; otherwise 0.</param>
-        /// <param name="hasSourceSuppression">Flag indicating whether the diagnostic is suppressed by a source suppression.</param>
+        /// <param name="isSuppressed">Flag indicating whether the diagnostic is suppressed by a source suppression.</param>
         /// <param name="title">An optional short localizable title describing the diagnostic.</param>
         /// <param name="description">An optional longer localizable description for the diagnostic.</param>
         /// <param name="helpLink">An optional hyperlink that provides more detailed information regarding the diagnostic.</param>
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis
             DiagnosticSeverity defaultSeverity,
             bool isEnabledByDefault,
             int warningLevel,
-            bool hasSourceSuppression,
+            bool isSuppressed,
             LocalizableString title = null,
             LocalizableString description = null,
             string helpLink = null,
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             return SimpleDiagnostic.Create(id, title ?? string.Empty, category, message, description ?? string.Empty, helpLink ?? string.Empty,
-                severity, defaultSeverity, isEnabledByDefault, warningLevel, location ?? Location.None, additionalLocations, customTags, properties, hasSourceSuppression);
+                severity, defaultSeverity, isEnabledByDefault, warningLevel, location ?? Location.None, additionalLocations, customTags, properties, isSuppressed);
         }
 
         internal static Diagnostic Create(CommonMessageProvider messageProvider, int errorCode)
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns true if the diagnostic has a source suppression, i.e. an attribute or a pragma suppression.
         /// </summary>
-        public abstract bool HasSourceSuppression { get; }
+        public abstract bool IsSuppressed { get; }
 
         /// <summary>
         /// Returns true if this diagnostic is enabled by default by the author of the diagnostic.
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Create a new instance of this diagnostic with the suppression info changed.
         /// </summary>
-        internal abstract Diagnostic WithHasSourceSuppression(bool hasSourceSuppression);
+        internal abstract Diagnostic WithIsSuppressed(bool isSuppressed);
 
         // compatibility
         internal virtual int Code { get { return 0; } }

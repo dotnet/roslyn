@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 get { return DiagnosticSeverity.Error; }
             }
 
-            public override bool HasSourceSuppression
+            public override bool IsSuppressed
             {
                 get { return false; }
             }
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 throw new NotImplementedException();
             }
 
-            internal override Diagnostic WithHasSourceSuppression(bool hasSourceSuppression)
+            internal override Diagnostic WithIsSuppressed(bool isSuppressed)
             {
                 throw new NotImplementedException();
             }

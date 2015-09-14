@@ -109,7 +109,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                    Test(input, expected, isLine: false, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                    Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
                 }
 
                 [Fact]
@@ -205,7 +205,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                    Test(input, expected, isLine: false, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                    Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
                 }
 
                 [Fact]
@@ -305,7 +305,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                    Test(input, expected, isLine: false, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                    Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
                 }
             }
         }
@@ -421,7 +421,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                    Test(input, expected, isLine: false, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                    Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
                 }
 
                 [Fact]
@@ -526,7 +526,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                    Test(input, expected, isLine: false, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                    Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
                 }
 
                 [Fact(Skip ="TODO: File a GitHubIssue for test framework unable to handle multiple projects in solution with same file name.")]
@@ -645,7 +645,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                    Test(input, expected, isLine: false, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                    Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
                 }
             }
         }

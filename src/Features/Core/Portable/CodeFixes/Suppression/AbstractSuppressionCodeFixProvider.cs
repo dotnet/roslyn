@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
         public bool CanBeSuppressed(Diagnostic diagnostic)
         {
-            if (diagnostic.Location.Kind != LocationKind.SourceFile || diagnostic.HasSourceSuppression || IsNotConfigurableDiagnostic(diagnostic))
+            if (diagnostic.Location.Kind != LocationKind.SourceFile || diagnostic.IsSuppressed || IsNotConfigurableDiagnostic(diagnostic))
             {
                 // Don't offer suppression fixes for:
                 //   1. Diagnostics without a source location.

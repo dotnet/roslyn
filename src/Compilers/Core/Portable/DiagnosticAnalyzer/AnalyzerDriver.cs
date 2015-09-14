@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="analyzers">The set of analyzers to include in the analysis</param>
         /// <param name="analyzerManager">AnalyzerManager to manage analyzers for analyzer host's lifetime.</param>
-        /// <param name="reportDiagnosticsWithSourceSuppression">Flag to indicate if diagnostics with source suppression, i.e. <see cref="Diagnostic.HasSourceSuppression"/>, should be reported.</param>
+        /// <param name="reportDiagnosticsWithSourceSuppression">Flag to indicate if diagnostics with source suppression, i.e. <see cref="Diagnostic.IsSuppressed"/>, should be reported.</param>
         protected AnalyzerDriver(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager, bool reportDiagnosticsWithSourceSuppression)
         {
             this.analyzers = analyzers;
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Wrap onAnalyzerException to pass in filtered diagnostic.
                 var comp = compilation;
                 newOnAnalyzerException = (ex, analyzer, diagnostic) =>
-                    analysisOptions.OnAnalyzerException(ex, analyzer, GetFilteredDiagnostic(diagnostic, comp, _reportDiagnosticsWithSourceSuppression));
+                    analysisOptions.OnAnalyzerException(ex, analyzer, GetFilteredDiagnostic(diagnostic, comp));
             }
             else
             {
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="analyzerManager">AnalyzerManager to manage analyzers for the lifetime of analyzer host.</param>
         /// <param name="addExceptionDiagnostic">Delegate to add diagnostics generated for exceptions from third party analyzers.</param>
         /// <param name="reportAnalyzer">Report additional information related to analyzers, such as analyzer execution time.</param>
-        /// <param name="reportDiagnosticsWithSourceSuppression">Flag to indicate if diagnostics with source suppression, i.e. <see cref="Diagnostic.HasSourceSuppression"/>, should be reported.</param>
+        /// <param name="reportDiagnosticsWithSourceSuppression">Flag to indicate if diagnostics with source suppression, i.e. <see cref="Diagnostic.IsSuppressed"/>, should be reported.</param>
         /// <param name="newCompilation">The new compilation with the analyzer driver attached.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
         /// <returns>A newly created analyzer driver</returns>
@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             while (DiagnosticQueue.TryDequeue(out d))
             {
                 d = SuppressMessageAttributeState.ApplySourceSuppressions(d, compilation);
-                if (_reportDiagnosticsWithSourceSuppression || !d.HasSuppressionInSource)
+                if (_reportDiagnosticsWithSourceSuppression || !d.IsSuppressed)
                 {
                     allDiagnostics.Add(d);
                 }                
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             for (var i = 0; i < diagnostics.Length; i++)
             {
                 var diagnostic = SuppressMessageAttributeState.ApplySourceSuppressions(diagnostics[i], compilation);
-                if (reportDiagnosticsWithSourceSuppression || !diagnostic.HasSuppressionInSource)
+                if (reportDiagnosticsWithSourceSuppression || !diagnostic.IsSuppressed)
                 {
                     builder.Add(diagnostic);
                 }
@@ -921,7 +921,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="analyzers">The set of analyzers to include in the analysis</param>
         /// <param name="getKind">A delegate that returns the language-specific kind for a given syntax node</param>
         /// <param name="analyzerManager">AnalyzerManager to manage analyzers for the lifetime of analyzer host.</param>
-        /// <param name="reportDiagnosticsWithSourceSuppression">Flag to indicate if diagnostics with source suppression, i.e. <see cref="Diagnostic.HasSourceSuppression"/>, should be reported.</param>
+        /// <param name="reportDiagnosticsWithSourceSuppression">Flag to indicate if diagnostics with source suppression, i.e. <see cref="Diagnostic.IsSuppressed"/>, should be reported.</param>
         internal AnalyzerDriver(ImmutableArray<DiagnosticAnalyzer> analyzers, Func<SyntaxNode, TLanguageKindEnum> getKind, AnalyzerManager analyzerManager, bool reportDiagnosticsWithSourceSuppression) : base(analyzers, analyzerManager, reportDiagnosticsWithSourceSuppression)
         {
             _getKind = getKind;

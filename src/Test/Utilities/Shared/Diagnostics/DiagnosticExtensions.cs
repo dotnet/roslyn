@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis
 
             if (!reportDiagnosticsWithSourceSuppressions)
             {
-                Assert.True(diagnostics.All(d => !d.HasSourceSuppression));
+                Assert.True(diagnostics.All(d => !d.IsSuppressed));
             }
 
             return (TCompilation)newCompilation; // note this is a new compilation

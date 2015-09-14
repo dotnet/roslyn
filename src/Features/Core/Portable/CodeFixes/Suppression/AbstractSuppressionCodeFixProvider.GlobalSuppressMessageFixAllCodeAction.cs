@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                     foreach (var diagnostic in diagnostics)
                     {
-                        Contract.ThrowIfFalse(!diagnostic.HasSourceSuppression);
+                        Contract.ThrowIfFalse(!diagnostic.IsSuppressed);
                         suppressionsRoot = Fixer.AddGlobalSuppressMessageAttribute(suppressionsRoot, targetSymbol, diagnostic);
                     }
                 }
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
             private static void AddDiagnosticForSymbolIfNeeded(ISymbol targetSymbol, Diagnostic diagnostic, ImmutableDictionary<ISymbol, List<Diagnostic>>.Builder diagnosticsMapBuilder)
             {
-                if (diagnostic.HasSourceSuppression)
+                if (diagnostic.IsSuppressed)
                 {
                     return;
                 }

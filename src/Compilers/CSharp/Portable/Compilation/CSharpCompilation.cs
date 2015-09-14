@@ -2059,7 +2059,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var filtered = _options.FilterDiagnostic(d);
                 if (filtered == null ||
-                    (!includeDiagnosticsWithSourceSuppression && filtered.HasSourceSuppression))
+                    (!includeDiagnosticsWithSourceSuppression && filtered.IsSuppressed))
                 {
                     continue;
                 }
@@ -2299,7 +2299,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // The diagnostics should include syntax and declaration errors. We insert these before calling Emitter.Emit, so that the emitter
             // does not attempt to emit if there are declaration errors (but we do insert all errors from method body binding...)
-            bool hasDeclarationErrors = !FilterAndAppendDiagnostics(diagnostics, GetDiagnostics(CompilationStage.Declare, true, false, cancellationToken));
+            var diags = GetDiagnostics(CompilationStage.Declare, includeEarlierStages: true, includeDiagnosticsWithSourceSuppression: false, cancellationToken: cancellationToken);
+            bool hasDeclarationErrors = !FilterAndAppendDiagnostics(diagnostics, diags);
 
             // TODO (tomat): NoPIA:
             // EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(this)

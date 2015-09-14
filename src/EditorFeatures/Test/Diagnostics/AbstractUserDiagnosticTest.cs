@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         protected override IList<CodeAction> GetCodeActions(TestWorkspace workspace, string fixAllActionEquivalenceKey)
         {
-                var diagnostics = GetDiagnosticAndFix(workspace, fixAllActionEquivalenceKey);
+            var diagnostics = GetDiagnosticAndFix(workspace, fixAllActionEquivalenceKey);
             return diagnostics?.Item2?.Fixes.Select(f => f.Action).ToList();
-            }
+        }
 
         internal Tuple<Diagnostic, CodeFixCollection> GetDiagnosticAndFix(TestWorkspace workspace, string fixAllActionEquivalenceKey = null)
         {
@@ -393,8 +393,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 if (!isNewFile)
                 {
                     oldSolutionAndNewSolution = TestOperations(
-                        testState.Workspace, expected, operations, 
-                        conflictSpans: null, renameSpans: null, warningSpans: null, 
+                        testState.Workspace, expected, operations,
+                        conflictSpans: null, renameSpans: null, warningSpans: null,
                         compareTokens: false, expectedChangedDocumentId: testState.ExistingDocument.Id);
                 }
                 else

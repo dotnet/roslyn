@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' We don't permit configuring 1607 and independently configuring the new warnings.
 
             Dim report As ReportDiagnostic
-            Dim hasDisableDirectiveSuppression As Boolean = False
+            Dim hasSourceSuppression As Boolean = False
 
             If (s_alinkWarnings.Contains(CType(diagnostic.Code, ERRID)) AndAlso
                 caseInsensitiveSpecificDiagnosticOptions.Keys.Contains(VisualBasic.MessageProvider.Instance.GetIdForErrorCode(ERRID.WRN_AssemblyGeneration1))) Then
@@ -66,14 +66,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 diagnostic.Category,
                 generalDiagnosticOption,
                 caseInsensitiveSpecificDiagnosticOptions,
-                hasDisableDirectiveSuppression)
+                hasSourceSuppression)
             Else
                 report = GetDiagnosticReport(diagnostic.Severity, diagnostic.IsEnabledByDefault, diagnostic.Id, diagnostic.Location,
-                    diagnostic.Category, generalDiagnosticOption, caseInsensitiveSpecificDiagnosticOptions, hasDisableDirectiveSuppression)
+                    diagnostic.Category, generalDiagnosticOption, caseInsensitiveSpecificDiagnosticOptions, hasSourceSuppression)
             End If
 
-            If hasDisableDirectiveSuppression Then
-                diagnostic = diagnostic.WithHasSourceSuppression(True)
+            If hasSourceSuppression Then
+                diagnostic = diagnostic.WithIsSuppressed(True)
             End If
 
             Return diagnostic.WithReportDiagnostic(report)

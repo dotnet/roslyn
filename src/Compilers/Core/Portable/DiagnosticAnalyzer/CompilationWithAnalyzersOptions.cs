@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool LogAnalyzerExecutionTime => _logAnalyzerExecutionTime;
 
         /// <summary>
-        /// Flag indicating whether analyzer diagnostics with <see cref="Diagnostic.HasSourceSuppression"/> should be reported.
+        /// Flag indicating whether analyzer diagnostics with <see cref="Diagnostic.IsSuppressed"/> should be reported.
         /// </summary>
         public bool ReportDiagnosticsWithSourceSuppression => _reportDiagnosticsWithSourceSuppression;
 
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="onAnalyzerException">Action to invoke if an analyzer throws an exception.</param>
         /// <param name="concurrentAnalysis">Flag indicating whether analysis can be performed concurrently on multiple threads.</param>
         /// <param name="logAnalyzerExecutionTime">Flag indicating whether analyzer execution time should be logged.</param>
-        /// <param name="reportDiagnosticsWithSourceSuppression">Flag indicating whether analyzer diagnostics with <see cref="Diagnostic.HasSourceSuppression"/> should be reported.</param>
+        /// <param name="reportDiagnosticsWithSourceSuppression">Flag indicating whether analyzer diagnostics with <see cref="Diagnostic.IsSuppressed"/> should be reported.</param>
         public CompilationWithAnalyzersOptions(AnalyzerOptions options, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException, bool concurrentAnalysis, bool logAnalyzerExecutionTime, bool reportDiagnosticsWithSourceSuppression)
         {
             _options = options;

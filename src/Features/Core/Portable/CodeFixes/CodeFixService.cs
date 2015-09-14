@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (!range.IntersectsWith(diagnostic.TextSpan) || diagnostic.HasSourceSuppression)
+                    if (!range.IntersectsWith(diagnostic.TextSpan) || diagnostic.IsSuppressed)
                     {
                         continue;
                     }
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Dictionary<TextSpan, List<DiagnosticData>> aggregatedDiagnostics = null;
             foreach (var diagnostic in await _diagnosticService.GetDiagnosticsForSpanAsync(document, range, cancellationToken).ConfigureAwait(false))
             {
-                if (diagnostic.HasSourceSuppression)
+                if (diagnostic.IsSuppressed)
                 {
                     continue;
                 }
