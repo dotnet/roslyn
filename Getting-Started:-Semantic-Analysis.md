@@ -72,10 +72,10 @@ namespace HelloWorld
 ```
 
 4) Move your cursor to the line containing the **closing brace** of your **Main** method and set a breakpoint there.
-  * In Visual Studio, choose Debug -> Toggle Breakpoint.
+  * In Visual Studio, choose **Debug -> Toggle Breakpoint**.
 
 5) Run the program.
-  * In Visual Studio, choose Debug -> Start Debugging.
+  * In Visual Studio, choose **Debug -> Start Debugging**.
 
 6) Inspect the root variable in the debugger by hovering over it and expanding the datatip.
 
@@ -91,8 +91,8 @@ This example shows how to obtain a **SemanticModel** object for our HelloWorld *
 ```
 
 2) Set this statement as the next statement to be executed and execute it.
-  * Right-click this line and choose Set Next Statement.
-  * In Visual Studio, choose Debug -> Step Over, to execute this statement and initialize the new variable.
+  * Right-click this line and choose **Set Next Statement**.
+  * In Visual Studio, choose **Debug -> Step Over**, to execute this statement and initialize the new variable.
   * You will need to repeat this process for each of the following steps as we introduce new variables and inspect them with the debugger.
 
 3) Now add this code to bind the **Name** of the "**using System;**" directive using the **SemanticModel.GetSymbolInfo** method:
@@ -112,7 +112,7 @@ This example shows how to obtain a **SemanticModel** object for our HelloWorld *
 6) Execute this statement and examine the **systemSymbol** variable using the debugger datatips.
 
 7) Stop the program.
-  * In Visual Studio, choose Debug -> Stop debugging.
+  * In Visual Studio, choose **Debug -> Stop** debugging.
 
 8) Add the following code to enumerate the sub-namespaces of the **System** namespace and print their names to the **Console**:
 ```C#
@@ -122,7 +122,7 @@ This example shows how to obtain a **SemanticModel** object for our HelloWorld *
             }
 ```
 
-9) Press Ctrl+F5 to run the program. You should see the following output:
+9) Press **Ctrl+F5** to run the program. You should see the following output:
 ```
 Collections
 Configuration
@@ -178,7 +178,7 @@ The previous example showed how to bind name to find a **Symbol**. However, ther
             }
 ```
 
-7) Press Ctrl+F5 to run to run the program without debugging it. You should see the following output:
+7) Press **Ctrl+F5** to run to run the program without debugging it. You should see the following output:
 ```
 Join
 Substring
