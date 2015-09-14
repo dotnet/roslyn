@@ -1,7 +1,3 @@
-#### The .NET Compiler Platform ("Roslyn")
-# Getting Started: Syntax Analysis
-
-
 ## Prerequisites
 * [Visual Studio 2015](https://www.visualstudio.com/downloads)
 * [.NET Compiler Platform SDK](https://aka.ms/roslynsdktemplates)
@@ -22,8 +18,6 @@ The four primary building blocks of syntax trees are:
 * And lastly the **SyntaxTrivia** structure, which represents syntactically insignificant bits of information such as the whitespace between tokens, preprocessing directives, and comments.
 
 Trivia, tokens, and nodes are composed hierarchically to form a tree that completely represents everything in a fragment of Visual Basic or C# code. For example, were you to examine the following C# source file using the **Syntax Visualizer** (In Visual Studio, choose **View -> Other Windows -> Syntax Visualizer**) it tree view would look like this:
-
-
 
 **SyntaxNode**: Blue | **SyntaxToken**: Green | **SyntaxTrivia**: Red
 ![C# Code File](images/walkthrough-csharp-syntax-figure1.png)

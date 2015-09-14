@@ -2,13 +2,13 @@
 
 ## Required Software
 
-The Roslyn source code targets the latest public build of Visual Studio 2015.  At this time that is RTM.  In order to edit, build and test the source code install [Visual Studio 2015](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015).
+The Roslyn source code targets the latest public build of Visual Studio 2015.  At this time that is RTM.  In order to edit, build and test the source code install [Visual Studio 2015](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015) along with the Windows 10 Tools (inside the VS 2015 installer).
 
 ## Getting the code
 
 1. Open Developer Command Prompt for VS2015
 2. Clone https://github.com/dotnet/roslyn
-3. Change directory to `<clone dir>` and run `powershell .nuget\NuGetRestore.ps1`
+3. Run: `nuget.exe restore Roslyn.sln`
 4. Open Roslyn.sln 
 
 ## Running Unit Tests
