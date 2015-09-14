@@ -71,13 +71,18 @@ try {
         exit 1
     }
 
+    $NuGetExe = Join-Path -Path $PSScriptRoot -ChildPath NuGet.exe
+    if (!(Test-Path $NuGetExe) {
+        Write-Error "Could not find nuget.exe at $NuGetExe."
+        exit 1
+    }
 
     try {
         # Reference the latest version of Microsoft.ServiceBus.dll
         Write-Output "Adding the [Microsoft.ServiceBus.dll] assembly to the script..."
 
-        .\.nuget\NuGet.exe install WindowsAzure.ServiceBus -Version 3.0.2 -NonInteractive -ExcludeVersion -Source https://www.nuget.org/api/v2/ -OutputDirectory $env:TEMP
-        
+        & $NuGetExe install WindowsAzure.ServiceBus -Version 3.0.2 -NonInteractive -ExcludeVersion -Source https://www.nuget.org/api/v2/ -OutputDirectory $env:TEMP
+
         $packagesFolder = Join-Path $env:TEMP -ChildPath WindowsAzure.ServiceBus
         $assembly = Get-ChildItem $packagesFolder -Include "Microsoft.ServiceBus.dll" -Recurse
         Add-Type -Path $assembly.FullName

@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Threading;
 using Microsoft.Xunit.Performance;
 using Xunit;
 
@@ -9,6 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceTests
         [Benchmark]
         public void DoNothing()
         {
+            Benchmark.Iterate(() => { });
         }
 
         [Benchmark]
@@ -22,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceTests
         [InlineData(2000)]
         public void Sleep(int durationInMilliseconds)
         {
-            Thread.Sleep(durationInMilliseconds);
+            Benchmark.Iterate(() => Thread.Sleep(durationInMilliseconds));
         }
     }
 }

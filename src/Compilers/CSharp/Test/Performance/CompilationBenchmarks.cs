@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.Xunit.Performance;
 
 namespace Microsoft.CodeAnalysis.CSharp.PerformanceTests
@@ -8,7 +10,10 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceTests
         [Benchmark]
         public void EmptyCompilation()
         {
-            var compilation = CreateCSharpCompilation(code: string.Empty);
+            Benchmark.Iterate(() =>
+            {
+                var compilation = CreateCSharpCompilation(code: string.Empty);
+            });
         }
 
         [Benchmark]
@@ -28,8 +33,11 @@ namespace HelloApplication
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(helloWorldCSharpSource);
-            var errors = compilation.GetDiagnostics();
+            Benchmark.Iterate(() =>
+            {
+                var compilation = CreateCompilationWithMscorlib(helloWorldCSharpSource);
+                var errors = compilation.GetDiagnostics();
+            });
         }
     }
 }
