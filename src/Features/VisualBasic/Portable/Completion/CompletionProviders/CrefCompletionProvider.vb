@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -31,12 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim cancellationToken = context.CancellationToken
 
             Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
-            Dim token = tree.FindTokenOnLeftOfPosition(position, cancellationToken) _
-                            .GetPreviousTokenIfTouchingWord(position)
-
-            If token.Kind = SyntaxKind.None Then
-                Return
-            End If
+            Dim token = tree.GetTargetToken(position, cancellationToken)
 
             If IsCrefTypeParameterContext(token) Then
                 Return

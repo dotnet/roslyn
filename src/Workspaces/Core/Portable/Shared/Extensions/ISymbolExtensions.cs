@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return symbol.TypeSwitch(
                 (IMethodSymbol m) => m.Parameters,
-                (IPropertySymbol p) => p.Parameters,
+                (IPropertySymbol nt) => nt.Parameters,
                 _ => ImmutableArray.Create<IParameterSymbol>());
         }
 
@@ -416,7 +416,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ImmutableArray<ITypeSymbol> GetAllTypeArguments(this ISymbol symbol)
         {
-            var results = new List<ITypeSymbol>(symbol.GetTypeArguments());
+            var results = ImmutableArray.CreateBuilder<ITypeSymbol>();
+            results.AddRange(symbol.GetTypeArguments());
 
             var containingType = symbol.ContainingType;
             while (containingType != null)
@@ -425,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 containingType = containingType.ContainingType;
             }
 
-            return ImmutableArray.CreateRange(results);
+            return results.AsImmutable();
         }
 
         public static bool IsAttribute(this ISymbol symbol)
@@ -515,12 +516,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // Otherwise, just default to object.
             return compilation.ObjectType;
-        }
-
-        public static bool IsDeprecated(this ISymbol symbol)
-        {
-            // TODO(cyrusn): Implement this
-            return false;
         }
 
         public static bool IsStaticType(this ISymbol symbol)

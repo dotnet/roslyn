@@ -59,11 +59,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken)
                             .GetPreviousTokenIfTouchingWord(position);
 
-            if (token.Kind() == SyntaxKind.None)
-            {
-                return;
-            }
-
             // To get a Speculative SemanticModel (which is much faster), we need to 
             // walk up to the node the DocumentationTrivia is attached to.
             var parentNode = token.Parent.FirstAncestorOrSelf<DocumentationCommentTriviaSyntax>()?.ParentTrivia.Token.Parent;
@@ -218,8 +213,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CommonCompletionUtilities.GetTextChangeSpan(
                 text,
                 position,
-                (ch) => CompletionUtilities.IsTextChangeSpanStartCharacter(ch) || ch == '{',
-                (ch) => CompletionUtilities.IsWordCharacter(ch) || ch == '{' || ch == '}');
+                ch => CompletionUtilities.IsTextChangeSpanStartCharacter(ch) || ch == '{',
+                ch => CompletionUtilities.IsWordCharacter(ch) || ch == '{' || ch == '}');
         }
 
         private IEnumerable<CompletionItem> CreateCompletionItems(
