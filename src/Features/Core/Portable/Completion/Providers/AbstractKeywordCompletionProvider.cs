@@ -54,9 +54,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             using (Logger.LogBlock(FunctionId.Completion_KeywordCompletionProvider_GetItemsWorker, cancellationToken))
             {
-                var keywords = await document.GetUnionResultsFromDocumentAndLinks(
+                var keywords = await document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
                     s_comparer,
-                    async (doc, ct) => await RecommendKeywordsAsync(doc, position, ct).ConfigureAwait(false),
+                    (doc, ct) => RecommendKeywordsAsync(doc, position, ct),
                     cancellationToken).ConfigureAwait(false);
 
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);

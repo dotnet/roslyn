@@ -62,9 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
-                var snippetCompletionItems = await document.GetUnionResultsFromDocumentAndLinks(
+                var snippetCompletionItems = await document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
                     UnionCompletionItemComparer.Instance,
-                    async (d, c) => await GetSnippetsForDocumentAsync(d, position, workspace, c).ConfigureAwait(false),
+                    (d, c) => GetSnippetsForDocumentAsync(d, position, workspace, c),
                     cancellationToken).ConfigureAwait(false);
 
                 context.AddItems(snippetCompletionItems);

@@ -31,7 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var position = context.Position;
             var cancellationToken = context.CancellationToken;
 
-            if (await ShouldShowSpeculativeTCompletionItem(document, position, cancellationToken).ConfigureAwait(false))
+            var showSpeculativeT = await document.IsValidContextForDocumentOrLinkedDocumentsAsync(
+                (doc, ct) => ShouldShowSpeculativeTCompletionItemAsync(doc, position, ct),
+                cancellationToken).ConfigureAwait(false);
+
+            if (showSpeculativeT)
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var filterSpan = this.GetTextChangeSpan(text, position);
@@ -41,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private async Task<bool> ShouldShowSpeculativeTCompletionItem(Document document, int position, CancellationToken cancellationToken)
+        private async Task<bool> ShouldShowSpeculativeTCompletionItemAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             if (syntaxTree.IsInNonUserCode(position, cancellationToken) ||
