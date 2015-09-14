@@ -281,7 +281,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         /// </summary>
         int IVsIntellisenseProjectHost.CreateFileCodeModel(string pszFilename, out object ppCodeModel)
         {
-            EnvDTE.ProjectItem projectItem = this.GetDTEProjectItemForFile(pszFilename);
+            EnvDTE.ProjectItem projectItem = this.GetProjectItemForDocumentMoniker(pszFilename);
             if (projectItem != null)
             {
                 ppCodeModel = projectItem.FileCodeModel;
@@ -486,30 +486,15 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
             return null;
         }
 
-        /// <summary>
-        /// Returns EnvDTE.ProjectItem object for the given filename.
-        /// Returns null if file is not in the project or the method fails.
-        /// </summary>
-        private EnvDTE.ProjectItem GetDTEProjectItemForFile(string mkDocument)
+        private ProjectItem GetProjectItemForDocumentMoniker(string documentMoniker)
         {
             this.ThreadHandling.VerifyOnUIThread();
 
-            int isFound = 0;
-            uint itemid = VSConstants.VSITEMID_NIL;
-            VSDOCUMENTPRIORITY[] priority = new VSDOCUMENTPRIORITY[1];
+            HierarchyId id = _projectVsServices.Project.GetHierarchyId(documentMoniker);
+            if (id.IsNil || id.IsRoot)
+                return null;
 
-            int hr = _projectVsServices.Project.IsDocumentInProject(mkDocument, out isFound, priority, out itemid);
-
-            if (ErrorHandler.Succeeded(hr) && (isFound != 0) && (itemid != VSConstants.VSITEMID_NIL))
-            {
-                object extObject;
-                if (ErrorHandler.Succeeded(_projectVsServices.Hierarchy.GetProperty(itemid, (int)__VSHPROPID.VSHPROPID_ExtObject, out extObject)))
-                {
-                    return extObject as EnvDTE.ProjectItem;
-                }
-            }
-
-            return null;
+            return _projectVsServices.Hierarchy.GetProperty(id, VsHierarchyPropID.ExtObject, (ProjectItem)null);
         }
 
         /// <summary>

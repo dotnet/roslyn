@@ -137,6 +137,7 @@
     <Compile Include="ProjectSystem\UnconfiguredProjectVsServices.cs" />
     <Compile Include="ProjectSystem\VsProjectFeatures.cs" />
     <Compile Include="Shell\HierarchyId.cs" />
+    <Compile Include="Shell\Interop\VsProjectExtensions.cs" />
     <Compile Include="Shell\Interop\VsHierarchyExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
