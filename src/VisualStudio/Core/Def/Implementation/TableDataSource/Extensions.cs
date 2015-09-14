@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
@@ -115,6 +116,60 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             var adjustedColumn = Math.Max(column, 0);
             return snapshot.CreateTrackingPoint(textLine.Start + adjustedColumn, PointTrackingMode.Positive);
+        }
+
+        public static string GetProjectName(this Workspace workspace, ImmutableArray<ProjectId> projectIds)
+        {
+            var projectNames = GetProjectNames(workspace, projectIds);
+            if (projectNames.Length == 0)
+            {
+                return null;
+            }
+
+            return string.Join(", ", projectNames.OrderBy(StringComparer.CurrentCulture));
+        }
+
+        public static string GetProjectName(this Workspace workspace, ProjectId projectId)
+        {
+            if (projectId == null)
+            {
+                return null;
+            }
+
+            var project = workspace.CurrentSolution.GetProject(projectId);
+            if (project == null)
+            {
+                return null;
+            }
+
+            return project.Name;
+        }
+
+        public static string[] GetProjectNames(this Workspace workspace, ImmutableArray<ProjectId> projectIds)
+        {
+            return projectIds.Select(p => GetProjectName(workspace, p)).WhereNotNull().ToArray();
+        }
+
+        public static Guid GetProjectGuid(this Workspace workspace, ProjectId projectId)
+        {
+            if (projectId == null)
+            {
+                return Guid.Empty;
+            }
+
+            var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
+            var project = vsWorkspace?.GetHostProject(projectId);
+            if (project == null)
+            {
+                return Guid.Empty;
+            }
+
+            return project.Guid;
+        }
+
+        public static Guid[] GetProjectGuids(this Workspace workspace, ImmutableArray<ProjectId> projectIds)
+        {
+            return projectIds.Select(p => GetProjectGuid(workspace, p)).Where(g => g != Guid.Empty).ToArray();
         }
 
         public static DocumentId GetDocumentId<T>(T item)
