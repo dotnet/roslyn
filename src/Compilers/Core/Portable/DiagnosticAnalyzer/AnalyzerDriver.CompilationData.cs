@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal static CompilationData GetCachedCompilationData(Compilation compilation)
+        internal static CompilationData GetOrCreateCachedCompilationData(Compilation compilation)
         {
             return s_compilationDataCache.GetValue(compilation, c => new CompilationData(c));
         }
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static SemanticModel GetOrCreateCachedSemanticModel(SyntaxTree tree, Compilation compilation, CancellationToken cancellationToken)
         {
-            var compilationData = GetCachedCompilationData(compilation);
+            var compilationData = GetOrCreateCachedCompilationData(compilation);
             return compilationData.GetOrCreateCachedSemanticModel(tree, compilation, cancellationToken);
         }
 
@@ -169,13 +169,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static bool TryGetCachedDeclaringReferences(ISymbol symbol, Compilation compilation, out ImmutableArray<SyntaxReference> declaringReferences)
         {
-            var compilationData = GetCachedCompilationData(compilation);
+            var compilationData = GetOrCreateCachedCompilationData(compilation);
             return compilationData.TryGetCachedDeclaringReferences(symbol, out declaringReferences);
         }
 
         public static void CacheDeclaringReferences(ISymbol symbol, Compilation compilation, ImmutableArray<SyntaxReference> declaringReferences)
         {
-            var compilationData = GetCachedCompilationData(compilation);
+            var compilationData = GetOrCreateCachedCompilationData(compilation);
             compilationData.CacheDeclaringReferences(symbol, declaringReferences);
         }
 
