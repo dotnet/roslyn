@@ -72,7 +72,7 @@ try {
     }
 
     $NuGetExe = Join-Path -Path $PSScriptRoot -ChildPath NuGet.exe
-    if (!(Test-Path $NuGetExe) {
+    if (!(Test-Path $NuGetExe)) {
         Write-Error "Could not find nuget.exe at $NuGetExe."
         exit 1
     }

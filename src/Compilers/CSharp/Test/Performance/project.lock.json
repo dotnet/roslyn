@@ -221,7 +221,7 @@
       ]
     },
     "System.Collections/4.0.10": {
-      "sha512": "G+toQ0yP+OeP/4OoNZoS6pY4OumnLQxogIotGVnNAzBzlAysQ1/nN/QKkKz7cbjsl0j9rSG8gO6VBrRNfl3thg==",
+      "sha512": "ux6ilcZZjV/Gp7JEZpe+2V1eTueq6NuoGRM3eZCFuPM25hLVVgCRuea6STW8hvqreIOE59irJk5/ovpA5xQipw==",
       "type": "Package",
       "files": [
         "_rels/.rels",
@@ -250,7 +250,7 @@
         "ref/net46/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
-        "package/services/metadata/core-properties/ac9c7722031241b9bfcf76a298a5d2cf.psmdcp",
+        "package/services/metadata/core-properties/b4f8061406e54dbda8f11b23186be11a.psmdcp",
         "[Content_Types].xml"
       ]
     },
@@ -268,7 +268,7 @@
       ]
     },
     "System.Diagnostics.Debug/4.0.10": {
-      "sha512": "3hQHgjaio4VT69P/RZq5CA9V454I37H7XkwViR4smCsK4jeTgq+bQI7/vS45ZNTGUn97t9tCBPZOwC8AFFECLw==",
+      "sha512": "pi2KthuvI2LWV2c2V+fwReDsDiKpNl040h6DcwFOb59SafsPT/V1fCy0z66OKwysurJkBMmp5j5CBe3Um+ub0g==",
       "type": "Package",
       "files": [
         "_rels/.rels",
@@ -297,12 +297,12 @@
         "ref/net46/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
-        "package/services/metadata/core-properties/d3937ee60f3f4d09943e79f2e32a2c9a.psmdcp",
+        "package/services/metadata/core-properties/bfb05c26051f4a5f9015321db9cb045c.psmdcp",
         "[Content_Types].xml"
       ]
     },
     "System.Diagnostics.Tracing/4.0.20": {
-      "sha512": "mSlqpxtVNaEl/Fuymwjp9jGvjHb6+FNTUI+LQwBH1WFWy6S10VeXvJwokOC71FmYdbl+Cdyk0OGlVE6YXYa8dA==",
+      "sha512": "gn/wexGHc35Fv++5L1gYHMY5g25COfiZ0PGrL+3PfwzoJd4X2LbTAm/U8d385SI6BKQBI/z4dQfvneS9J27+Tw==",
       "type": "Package",
       "files": [
         "_rels/.rels",
@@ -331,12 +331,12 @@
         "ref/net46/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
-        "package/services/metadata/core-properties/c747c51774304ae69103509c90e50186.psmdcp",
+        "package/services/metadata/core-properties/13423e75e6344b289b3779b51522737c.psmdcp",
         "[Content_Types].xml"
       ]
     },
     "System.Linq/4.0.0": {
-      "sha512": "de5y6zZ1XzkixH04wuyj7o+0oUeGvq4B5F1voWhUu/isJixUfjoSpu2OVK+0+vE+2drFh4085NtVyz6pM6jdJQ==",
+      "sha512": "r6Hlc+ytE6m/9UBr+nNRRdoJEWjoeQiT3L3lXYFDHoXk3VYsRBCDNXrawcexw7KPLaH0zamQLiAb6avhZ50cGg==",
       "type": "Package",
       "files": [
         "_rels/.rels",
@@ -364,12 +364,12 @@
         "ref/netcore50/System.Linq.xml",
         "ref/wp80/_._",
         "ref/wpa81/_._",
-        "package/services/metadata/core-properties/93bdeb6af21d4259927e4c747a814874.psmdcp",
+        "package/services/metadata/core-properties/6fcde56ce4094f6a8fff4b28267da532.psmdcp",
         "[Content_Types].xml"
       ]
     },
     "System.Reflection/4.0.10": {
-      "sha512": "b6VhktNkFmVfd7ykoaAh4iQfc5DnbR8TEtPYFNGLAqagj7oKtoVdOJZ6vMgQeEQ3Kl5oEs+iC2oEDhRFZJfnLg==",
+      "sha512": "WZ+4lEE4gqGx6mrqLhSiW4oi6QLPWwdNjzhhTONmhELOrW8Cw9phlO9tltgvRUuQUqYtBiliFwhO5S5fCJElVw==",
       "type": "Package",
       "files": [
         "_rels/.rels",
@@ -398,7 +398,7 @@
         "ref/net46/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
-        "package/services/metadata/core-properties/010581211bc442b3bbd8480f841263df.psmdcp",
+        "package/services/metadata/core-properties/84d992ce164945bfa10835e447244fb1.psmdcp",
         "[Content_Types].xml"
       ]
     },
@@ -416,7 +416,7 @@
       ]
     },
     "System.Runtime/4.0.20": {
-      "sha512": "lk2daP5LCI/iUJPs+FcZLCBey2Ppe/tzEZ/Atb6IzbGL36+IEpvl//K6rNN+wFGq17TAmJAz9lJjAcUiJvN6yQ==",
+      "sha512": "X7N/9Bz7jVPorqdVFO86ns1sX6MlQM+WTxELtx+Z4VG45x9+LKmWH0GRqjgKprUnVuwmfB9EJ9DQng14Z7/zwg==",
       "type": "Package",
       "files": [
         "_rels/.rels",
@@ -445,12 +445,12 @@
         "ref/net46/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
-        "package/services/metadata/core-properties/e91eca3dfe4442a6a995ebb7093d180e.psmdcp",
+        "package/services/metadata/core-properties/d1ded52f75da4446b1c962f9292aa3ef.psmdcp",
         "[Content_Types].xml"
       ]
     },
     "System.Runtime.Extensions/4.0.10": {
-      "sha512": "nJ5bAGB0PFD1cK9Xvj1omwXgwoVJfhfSHsH1JGL0VCH2IizUlmIZWksQ/XZbxu6mZ62vKbE0ZWrlhDds3ZjTWQ==",
+      "sha512": "5dsEwf3Iml7d5OZeT20iyOjT+r+okWpN7xI2v+R4cgd3WSj4DeRPTvPFjDpacbVW4skCAZ8B9hxXJYgkCFKJ1A==",
       "type": "Package",
       "files": [
         "_rels/.rels",
@@ -479,12 +479,12 @@
         "ref/net46/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
-        "package/services/metadata/core-properties/aab851eea4404ff49d6b79ba077d728d.psmdcp",
+        "package/services/metadata/core-properties/c7fee76a13d04c7ea49fb1a24c184f37.psmdcp",
         "[Content_Types].xml"
       ]
     },
     "System.Threading/4.0.10": {
-      "sha512": "r0kmTbXnz3G9pagdoO1fVptT4/1cV0R4zNfuJ6KzNo6PXs+WkmIUZUGWB5NL9UWPEu8AVWvQT6f9MPCGqbOC+A==",
+      "sha512": "0w6pRxIEE7wuiOJeKabkDgeIKmqf4ER1VNrs6qFwHnooEE78yHwi/bKkg5Jo8/pzGLm0xQJw0nEmPXt1QBAIUA==",
       "type": "Package",
       "files": [
         "_rels/.rels",
@@ -513,12 +513,12 @@
         "ref/net46/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
-        "package/services/metadata/core-properties/da8a3fc9ec0f4340bc42010c30f283de.psmdcp",
+        "package/services/metadata/core-properties/c17c3791d8fa4efbb8aded2ca8c71fbe.psmdcp",
         "[Content_Types].xml"
       ]
     },
     "System.Threading.Tasks/4.0.10": {
-      "sha512": "5W63czaYeGMLY7z2RpAuL2g/Yp8+5EwJjdNOHwg8tcoOovA4Yo4PL4SP/dlT8JEMz4t+UYOcaOpH0892cPt8MA==",
+      "sha512": "NOwJGDfk79jR0bnzosbXLVD/PdI8KzBeESoa3CofEM5v9R5EBfcI0Jyf18stx+0IYV9okmDIDxVtxq9TbnR9bQ==",
       "type": "Package",
       "files": [
         "_rels/.rels",
@@ -547,7 +547,7 @@
         "ref/net46/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
-        "package/services/metadata/core-properties/2163b143eb8c46b4a3f61659e208bab7.psmdcp",
+        "package/services/metadata/core-properties/a4ed35f8764a4b68bb39ec8d13b3e730.psmdcp",
         "[Content_Types].xml"
       ]
     },
