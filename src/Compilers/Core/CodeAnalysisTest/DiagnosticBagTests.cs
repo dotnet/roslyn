@@ -1,14 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#if false
-using System;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Xunit;
-
-using Roslyn.Compilers;
-using Roslyn.Compilers.Common;
 
 namespace Roslyn.Compilers.UnitTests
 {
@@ -21,10 +17,14 @@ namespace Roslyn.Compilers.UnitTests
         public void EmptyDiagnosticBag()
         {
             DiagnosticBag bag1 = new DiagnosticBag();
-            Assert.True(bag1.IsEmpty);
-            Assert.False(bag1.IsSealed);
+            Assert.True(bag1.IsEmptyWithoutResolution);
             Assert.Equal(0, bag1.Count());
-            Assert.Equal("<no errors>", bag1.ToString());
+            using (var iterator = (IEnumerator<Diagnostic>)bag1.GetEnumerator())
+            {
+                Assert.False(iterator.MoveNext());
+                iterator.Reset();
+                Assert.False(iterator.MoveNext());
+            }
         }
 
         [Fact]
@@ -33,9 +33,8 @@ namespace Roslyn.Compilers.UnitTests
             DiagnosticBag bag1 = new DiagnosticBag();
             bag1.Add(CreateDiagnostic(4));
             bag1.Add(CreateDiagnostic(7));
-            Assert.False(bag1.IsEmpty);
+            Assert.False(bag1.IsEmptyWithoutResolution);
             Assert.Equal(2, bag1.Count());
-            Assert.NotNull(bag1.ToString());
 
             bool found4 = false, found7 = false;
             foreach (Diagnostic d in bag1)
@@ -55,8 +54,8 @@ namespace Roslyn.Compilers.UnitTests
             }
 
             DiagnosticBag bag2 = new DiagnosticBag();
-            bag1.Add(bag2);
-            Assert.False(bag1.IsEmpty);
+            bag1.AddRange(bag2);
+            Assert.False(bag1.IsEmptyWithoutResolution);
             Assert.Equal(2, bag1.Count());
 
             found4 = false; found7 = false;
@@ -80,39 +79,14 @@ namespace Roslyn.Compilers.UnitTests
             bag3.Add(CreateDiagnostic(3));
             bag3.Add(CreateDiagnostic(2));
             bag3.Add(CreateDiagnostic(1));
-            bag1.Add(bag3);
-            Assert.False(bag1.IsEmpty);
+            bag1.AddRange(bag3);
+            Assert.False(bag1.IsEmptyWithoutResolution);
             Assert.Equal(5, bag1.Count());
         }
 
-        [Fact]
-        public void SealBag()
+        private static Diagnostic CreateDiagnostic(int code)
         {
-            DiagnosticBag bag1 = new DiagnosticBag();
-            Assert.False(bag1.IsSealed);
-            bag1.Add(CreateDiagnostic(4));
-            bag1.Seal();
-            Assert.True(bag1.IsSealed);
-
-            Assert.Throws<InvalidOperationException>(delegate()
-            {
-                bag1.Add(CreateDiagnostic(7));
-            });
-
-            Assert.Equal(1, bag1.Count());
+            return new CSDiagnostic(new DiagnosticInfo(MessageProvider.Instance, code), Location.None);
         }
-
-
-        private Diagnostic CreateDiagnostic(int code)
-        {
-            MockMessageProvider provider = new MockMessageProvider();
-            DiagnosticInfo di = new DiagnosticInfo(provider, code);
-            return new Diagnostic(di, new EmptyMockLocation());
-        }
-    }
-
-    class EmptyMockLocation : Location
-    {
     }
 }
-#endif
