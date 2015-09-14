@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal sealed class SnippetCompletionProvider : AbstractCompletionProvider
+    internal sealed class SnippetCompletionProvider : CompletionListProvider
     {
         // If null, the document's language service will be used.
         private readonly ISnippetInfoService _snippetInfoService;
@@ -39,8 +39,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
 
-        protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        public override async Task ProduceCompletionListAsync(CompletionListContext context)
         {
+            var document = context.Document;
+            var position = context.Position;
+            var options = context.Options;
+            var cancellationToken = context.CancellationToken;
+
             using (Logger.LogBlock(FunctionId.Completion_SnippetCompletionProvider_GetItemsWorker_CSharp, cancellationToken))
             {
                 // TODO (https://github.com/dotnet/roslyn/issues/5107): Enable in Interactive.
@@ -49,16 +54,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                      workspace.Kind == WorkspaceKind.Debugger ||
                      workspace.Kind == WorkspaceKind.Interactive)
                 {
-                    return SpecializedCollections.EmptyEnumerable<CompletionItem>();
+                    return;
                 }
 
-                var optionService = workspace.Services.GetService<IOptionService>();
-                if (!optionService.GetOption(CSharpCompletionOptions.IncludeSnippets))
+                if (!options.GetOption(CSharpCompletionOptions.IncludeSnippets))
                 {
-                    return SpecializedCollections.EmptyEnumerable<CompletionItem>();
+                    return;
                 }
 
-                return await document.GetUnionResultsFromDocumentAndLinks(UnionCompletionItemComparer.Instance, async (d, c) => await GetSnippetsForDocumentAsync(d, position, workspace, c).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+                var snippetCompletionItems = await document.GetUnionResultsFromDocumentAndLinks(
+                    UnionCompletionItemComparer.Instance,
+                    async (d, c) => await GetSnippetsForDocumentAsync(d, position, workspace, c).ConfigureAwait(false),
+                    cancellationToken).ConfigureAwait(false);
+
+                context.AddItems(snippetCompletionItems);
             }
         }
 
