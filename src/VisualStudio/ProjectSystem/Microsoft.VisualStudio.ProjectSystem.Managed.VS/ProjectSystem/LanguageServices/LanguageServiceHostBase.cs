@@ -281,7 +281,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         /// </summary>
         int IVsIntellisenseProjectHost.CreateFileCodeModel(string pszFilename, out object ppCodeModel)
         {
-            EnvDTE.ProjectItem projectItem = GetProjectItemForDocumentMoniker(pszFilename);
+            ProjectItem projectItem = GetProjectItemForDocumentMoniker(pszFilename);
             if (projectItem != null)
             {
                 ppCodeModel = projectItem.FileCodeModel;
@@ -382,11 +382,11 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         /// <summary>
         /// See ICodeModelProvider
         /// </summary>
-        EnvDTE.FileCodeModel ICodeModelProvider.GetFileCodeModel(ProjectItem fileItem)
+        FileCodeModel ICodeModelProvider.GetFileCodeModel(ProjectItem fileItem)
         {
             object result;
             Marshal.ThrowExceptionForHR(_intellisenseEngine.GetFileCodeModel(_projectVsServices.Hierarchy, fileItem, out result));
-            return (EnvDTE.FileCodeModel)result;
+            return (FileCodeModel)result;
         }
 
         #endregion
