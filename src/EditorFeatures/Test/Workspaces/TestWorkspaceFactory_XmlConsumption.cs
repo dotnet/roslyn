@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -457,9 +458,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     }
 
                     return language == LanguageNames.CSharp
-                       ? (CompilationOptions)new CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.WindowsRuntimeMetadata)
-                       : new VisualBasicCompilationOptions(OutputKind.WindowsRuntimeMetadata).WithGlobalImports(globalImports)
-                                                                         .WithRootNamespace(rootNamespace);
+                       ? (CompilationOptions)new CSharpCompilationOptions(OutputKind.WindowsRuntimeMetadata)
+                       : new VisualBasicCompilationOptions(OutputKind.WindowsRuntimeMetadata).WithGlobalImports(globalImports).WithRootNamespace(rootNamespace);
                 }
             }
             else
@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                                                    .WithGeneralDiagnosticOption(reportDiagnostic)
                                                    .WithSourceReferenceResolver(SourceFileResolver.Default)
                                                    .WithXmlReferenceResolver(XmlFileResolver.Default)
-                                                   .WithMetadataReferenceResolver(new AssemblyReferenceResolver(MetadataFileReferenceResolver.Default, MetadataFileReferenceProvider.Default))
+                                                   .WithMetadataReferenceResolver(RuntimeMetadataReferenceResolver.Default)
                                                    .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
 
             if (language == LanguageNames.VisualBasic)

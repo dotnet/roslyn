@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
             ' (in accessibility terms) in a way the user would not want.
             Dim containingType = field.ContainingType
             For Each ref In containingType.DeclaringSyntaxReferences
-                Dim containingNode = ref.GetSyntax(cancellationToken)
+                Dim containingNode = ref.GetSyntax(cancellationToken)?.Parent
                 If containingNode IsNot Nothing Then
                     Dim semanticModel = compilation.GetSemanticModel(containingNode.SyntaxTree)
                     If IsWrittenOutsideOfConstructorOrProperty(field, propertyDeclaration, containingNode, semanticModel, cancellationToken) Then

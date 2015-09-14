@@ -8304,11 +8304,58 @@ class A {
         {
             var markup = @"
 class A {
-    static int s_abc;
-    int B { get; } = $$
+    static Action s_abc;
+    event Action B = $$
 }
 ";
             VerifyItemExists(markup, "s_abc");
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void NoInstanceMembersInFieldLikeEventInitializer()
+        {
+            var markup = @"
+class A {
+    Action abc;
+    event Action B = $$
+}
+";
+            VerifyItemIsAbsent(markup, "abc");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void StaticMembersInFieldLikeEventInitializer()
+        {
+            var markup = @"
+class A {
+    static Action s_abc;
+    event Action B = $$
+}
+";
+            VerifyItemExists(markup, "s_abc");
+        }
+
+        [WorkItem(5069, "https://github.com/dotnet/roslyn/issues/5069")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void InstanceMembersInTopLevelFieldInitializer()
+        {
+            var markup = @"
+int aaa = 1;
+int bbb = $$
+";
+            VerifyItemExists(markup, "aaa", sourceCodeKind: SourceCodeKind.Interactive);
+        }
+
+        [WorkItem(5069, "https://github.com/dotnet/roslyn/issues/5069")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void InstanceMembersInTopLevelFieldLikeEventInitializer()
+        {
+            var markup = @"
+Action aaa = null;
+event Action bbb = $$
+";
+            VerifyItemExists(markup, "aaa", sourceCodeKind: SourceCodeKind.Interactive);
         }
 
         [WorkItem(33, "https://github.com/dotnet/roslyn/issues/33")]

@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Editor.Interactive;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
@@ -24,6 +25,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             // register work coordinator for this workspace
             _registrationService = this.Services.GetService<ISolutionCrawlerRegistrationService>();
             _registrationService.Register(this);
+
+            // TODO (https://github.com/dotnet/roslyn/issues/5107): Enable in Interactive.
+            this.Options = this.Options.WithChangedOption(InternalFeatureOnOffOptions.Snippets, false);
         }
 
         protected override void Dispose(bool finalize)

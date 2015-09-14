@@ -1642,7 +1642,7 @@ namespace A
 }
 ";
 
-            Test(code, expected, compareTokens: false, isLine: false);
+            Test(code, expected, compareTokens: false);
         }
 
         [WorkItem(932602)]
@@ -1959,8 +1959,7 @@ index: 1);
             Test(
 @"class A { public B b = new [|B|](); }",
 @"public class B { public B() { } }",
-index: 0,
-isAddedDocument: true);
+index: 0);
         }
 
         [WorkItem(1107929)]
@@ -1990,8 +1989,7 @@ index: 2);
             Test(
 @"class A { public B<int> b = new [|B|]<int>(); }",
 @"public class B<T> { public B() {}}",
-index: 0,
-isAddedDocument: true);
+index: 0);
         }
 
         [WorkItem(1107929)]

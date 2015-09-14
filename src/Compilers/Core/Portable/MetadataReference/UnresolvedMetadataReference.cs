@@ -3,7 +3,7 @@
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Represents a metadata reference that can't be resolved.
+    /// Represents a metadata reference that can't be or is not yet resolved.
     /// </summary>
     /// <remarks>
     /// For error reporting only, can't be used to reference a metadata file.

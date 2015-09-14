@@ -1,18 +1,20 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class CrefCompletionProvider
-        Inherits AbstractCompletionProvider
+        Inherits CompletionListProvider
 
-        Private ReadOnly _crefFormat2 As SymbolDisplayFormat =
+        Private Shared ReadOnly CrefFormat As SymbolDisplayFormat =
             New SymbolDisplayFormat(
                 globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameOnly,
@@ -24,176 +26,173 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
 
-        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CompletionItem))
+        Public Overrides Async Function ProduceCompletionListAsync(context As CompletionListContext) As Task
+            Dim document = context.Document
+            Dim position = context.Position
+            Dim cancellationToken = context.CancellationToken
+
             Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
-            Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
+            Dim token = tree.GetTargetToken(position, cancellationToken)
 
-            Dim span = CompletionUtilities.GetTextChangeSpan(text, position)
-            Dim token = tree.FindTokenOnLeftOfPosition(position, cancellationToken)
-            Dim touchingToken = token.GetPreviousTokenIfTouchingWord(position)
-
-            If touchingToken.Kind = SyntaxKind.None Then
-                Return Nothing
-            End If
-
-            If token.GetAncestor(Of DocumentationCommentTriviaSyntax)() Is Nothing Then
-                Return Nothing
+            If IsCrefTypeParameterContext(token) Then
+                Return
             End If
 
             ' To get a Speculative SemanticModel (which is much faster), we need to 
             ' walk up to the node the DocumentationTrivia is attached to.
-            Dim parentNode = token.GetAncestor(Of DocumentationCommentTriviaSyntax)().ParentTrivia.Token.Parent
+            Dim parentNode = token.Parent?.FirstAncestorOrSelf(Of DocumentationCommentTriviaSyntax)()?.ParentTrivia.Token.Parent
+            If parentNode Is Nothing Then
+                Return
+            End If
+
             Dim semanticModel = Await document.GetSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(False)
             Dim workspace = document.Project.Solution.Workspace
 
-            If IsXmlStringContext(touchingToken) OrElse
-                IsCrefStartPosition(touchingToken) Then
-                ' Not after a dot, return all the available symbols
-
-                Dim symbols = semanticModel.LookupSymbols(position)
-                Return CreateCompletionItems(symbols, span, semanticModel, workspace, touchingToken.SpanStart)
+            Dim symbols = GetSymbols(token, semanticModel, cancellationToken)
+            If Not symbols.Any() Then
+                Return
             End If
 
-            If IsTypeParameterContext(touchingToken) Then
-                Return Nothing
+            Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
+            Dim filterSpan = CompletionUtilities.GetTextChangeSpan(text, position)
+
+            Dim items = CreateCompletionItems(workspace, semanticModel, symbols, token.SpanStart, filterSpan)
+            context.AddItems(items)
+
+            If IsFirstCrefParameterContext(token) Then
+                ' Include Of in case they're typing a type parameter
+                context.AddItem(CreateOfCompletionItem(filterSpan))
             End If
 
-            If IsFirstParameterContext(touchingToken) OrElse IsOtherParameterContext(touchingToken) Then
-                Dim symbols = semanticModel.LookupNamespacesAndTypes(position)
-                Dim items = CreateCompletionItems(symbols, span, semanticModel, workspace, touchingToken.SpanStart)
-
-                If (IsFirstParameterContext(touchingToken)) Then
-                    ' Include Of in case they're typing a type parameter
-                    Return items.Concat(CreateOfCompletionItem(span))
-                End If
-
-                Return items
-            End If
-
-            If touchingToken.IsChildToken(Function(x As QualifiedNameSyntax) x.DotToken) Then
-                ' Bind the name left of the dot
-                Dim container = DirectCast(touchingToken.Parent, QualifiedNameSyntax).Left
-                Dim leftSymbol = semanticModel.GetSymbolInfo(container, cancellationToken)
-
-                Dim containingType = TryCast(leftSymbol.Symbol, INamespaceOrTypeSymbol)
-
-                If containingType Is Nothing Then
-                    containingType = semanticModel.GetTypeInfo(container, cancellationToken).Type
-                End If
-
-                If containingType IsNot Nothing Then
-                    Dim symbols = semanticModel.LookupSymbols(position, containingType)
-                    Dim constructors = GetConstructors(containingType)
-
-                    Return CreateCompletionItems(constructors.Concat(symbols), span, semanticModel, workspace, touchingToken.SpanStart)
-                End If
-            End If
-
-            Return Nothing
+            context.MakeExclusive(True)
         End Function
 
-        Private Function IsTypeParameterContext(touchingToken As SyntaxToken) As Boolean
-            Return (touchingToken.IsChildToken(Function(t As TypeArgumentListSyntax) t.OfKeyword) OrElse
-                touchingToken.IsChildSeparatorToken(Function(t As TypeArgumentListSyntax) t.Arguments)) AndAlso
-                touchingToken.GetAncestor(Of XmlCrefAttributeSyntax)() IsNot Nothing
+        Private Shared Function IsCrefTypeParameterContext(token As SyntaxToken) As Boolean
+            Return (token.IsChildToken(Function(t As TypeArgumentListSyntax) t.OfKeyword) OrElse
+                token.IsChildSeparatorToken(Function(t As TypeArgumentListSyntax) t.Arguments)) AndAlso
+                token.Parent?.FirstAncestorOrSelf(Of XmlCrefAttributeSyntax)() IsNot Nothing
         End Function
 
-        Private Function GetConstructors(container As ISymbol) As IEnumerable(Of ISymbol)
-            Dim namedType = TryCast(container, INamedTypeSymbol)
-            If namedType Is Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of IMethodSymbol)()
+        Private Shared Function IsCrefStartContext(token As SyntaxToken) As Boolean
+            ' cases:
+            '   <see cref="x|
+            '   <see cref='x|
+            If token.IsChildToken(Function(x As XmlCrefAttributeSyntax) x.StartQuoteToken) Then
+                Return True
             End If
 
-            Return namedType.Constructors
-        End Function
+            ' cases:
+            '   <see cref="|
+            '   <see cref='|
+            If token.Parent.IsKind(SyntaxKind.XmlString) AndAlso token.Parent.IsParentKind(SyntaxKind.XmlAttribute) Then
+                Dim xmlAttribute = DirectCast(token.Parent.Parent, XmlAttributeSyntax)
+                Dim xmlName = TryCast(xmlAttribute.Name, XmlNameSyntax)
 
-        Private Function IsCrefContext(token As SyntaxToken) As Boolean
-            If token.Parent.IsKind(SyntaxKind.XmlString) AndAlso token.Parent.Parent.IsKind(SyntaxKind.XmlAttribute) Then
-                Dim attribute = DirectCast(token.Parent.Parent, XmlAttributeSyntax)
-                Dim name = TryCast(attribute.Name, XmlNameSyntax)
-                If name IsNot Nothing AndAlso name.LocalName.ValueText = "cref" Then
+                If xmlName?.LocalName.ValueText = "cref" Then
                     Return True
                 End If
-            End If
-
-            If token.Parent.GetAncestor(Of XmlCrefAttributeSyntax)() IsNot Nothing Then
-                Return True
             End If
 
             Return False
         End Function
 
-        Private Shared Function IsFirstParameterContext(ByRef touchingToken As SyntaxToken) As Boolean
-            Return touchingToken.IsChildToken(Function(x As CrefSignatureSyntax) x.OpenParenToken)
+        Private Shared Function IsCrefParameterListContext(token As SyntaxToken) As Boolean
+            ' cases:
+            '   <see cref="M(|
+            '   <see cref="M(x, |
+            Return IsFirstCrefParameterContext(token) OrElse
+                   token.IsChildSeparatorToken(Function(x As CrefSignatureSyntax) x.ArgumentTypes)
         End Function
 
-        Private Shared Function IsOtherParameterContext(ByRef touchingToken As SyntaxToken) As Boolean
-            Return touchingToken.IsChildSeparatorToken(Function(p As CrefSignatureSyntax) p.ArgumentTypes)
+        Private Shared Function IsFirstCrefParameterContext(ByRef token As SyntaxToken) As Boolean
+            Return token.IsChildToken(Function(x As CrefSignatureSyntax) x.OpenParenToken)
         End Function
 
-        Private Shared Function IsCrefStartPosition(ByRef touchingToken As SyntaxToken) As Boolean
-            Return touchingToken.IsChildToken(Function(x As XmlCrefAttributeSyntax) x.StartQuoteToken)
-        End Function
-
-        Private Function IsXmlStringContext(token As SyntaxToken) As Boolean
-            If Not token.IsChildToken(Function(s As XmlStringSyntax) s.StartQuoteToken) Then
-                Return False
+        Private Shared Function GetSymbols(token As SyntaxToken, semanticModel As SemanticModel, cancellationToken As CancellationToken) As IEnumerable(Of ISymbol)
+            If IsCrefStartContext(token) Then
+                Return semanticModel.LookupSymbols(token.SpanStart)
+            ElseIf IsCrefParameterListContext(token) Then
+                Return semanticModel.LookupNamespacesAndTypes(token.SpanStart)
+            ElseIf token.IsChildToken(Function(x As QualifiedNameSyntax) x.DotToken) Then
+                Return GetQualifiedSymbols(DirectCast(token.Parent, QualifiedNameSyntax), token, semanticModel, cancellationToken)
             End If
 
-            Dim parentAttribute = TryCast(token.Parent.Parent, XmlAttributeSyntax)
-            If parentAttribute Is Nothing Then
-                Return False
+            Return SpecializedCollections.EmptyEnumerable(Of ISymbol)
+        End Function
+
+        Private Shared Iterator Function GetQualifiedSymbols(qualifiedName As QualifiedNameSyntax, token As SyntaxToken, semanticModel As SemanticModel, cancellationToken As CancellationToken) As IEnumerable(Of ISymbol)
+            Dim leftSymbol = semanticModel.GetSymbolInfo(qualifiedName.Left, cancellationToken).Symbol
+            Dim leftType = semanticModel.GetTypeInfo(qualifiedName.Left, cancellationToken).Type
+
+            Dim container = TryCast(If(leftSymbol, leftType), INamespaceOrTypeSymbol)
+
+            For Each symbol In semanticModel.LookupSymbols(token.SpanStart, container)
+                Yield symbol
+            Next
+
+            Dim namedTypeContainer = TryCast(container, INamedTypeSymbol)
+            If namedTypeContainer IsNot Nothing Then
+                For Each constructor In namedTypeContainer.Constructors
+                    If Not constructor.IsStatic Then
+                        Yield constructor
+                    End If
+                Next
+            End If
+        End Function
+
+        Private Iterator Function CreateCompletionItems(workspace As Workspace, semanticModel As SemanticModel, symbols As IEnumerable(Of ISymbol), position As Integer, filterSpan As TextSpan) As IEnumerable(Of CompletionItem)
+            Dim builder = SharedPools.Default(Of StringBuilder).Allocate()
+            Try
+                For Each symbol In symbols
+                    builder.Clear()
+                    Yield CreateCompletionItem(workspace, semanticModel, symbol, position, filterSpan, builder)
+                Next
+            Finally
+                SharedPools.Default(Of StringBuilder).ClearAndFree(builder)
+            End Try
+        End Function
+
+        Private Function CreateCompletionItem(workspace As Workspace, semanticModel As SemanticModel, symbol As ISymbol, position As Integer, filterSpan As TextSpan, builder As StringBuilder) As CompletionItem
+            If symbol.IsUserDefinedOperator() Then
+                builder.Append("Operator ")
             End If
 
-            Dim parentNameSyntax = TryCast(parentAttribute.Name, XmlNameSyntax)
-            If parentAttribute Is Nothing Then
-                Return False
+            builder.Append(symbol.ToDisplayString(CrefFormat))
+
+            Dim parameters = symbol.GetParameters()
+
+            If Not parameters.IsDefaultOrEmpty Then
+                builder.Append("("c)
+
+                For i = 0 To parameters.Length - 1
+                    If i > 0 Then
+                        builder.Append(", ")
+                    End If
+
+                    Dim parameter = parameters(i)
+
+                    If parameter.RefKind = RefKind.Ref Then
+                        builder.Append("ByRef ")
+                    End If
+
+                    builder.Append(parameter.Type.ToMinimalDisplayString(semanticModel, position))
+                Next
+
+                builder.Append(")"c)
+            ElseIf symbol.Kind = SymbolKind.Method
+                builder.Append("()")
             End If
 
-            Return parentNameSyntax.LocalName.ValueText = "cref"
+            Dim displayString = builder.ToString()
+
+            Return New CompletionItem(Me, displayString, filterSpan, glyph:=symbol.GetGlyph(),
+                                     descriptionFactory:=CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, position, symbol),
+                                     rules:=ItemRules.Instance)
         End Function
 
-        Private Function CreateCompletionItems(symbols As IEnumerable(Of ISymbol), span As TextSpan, semanticModel As SemanticModel, workspace As Workspace, position As Integer) As IEnumerable(Of CompletionItem)
-            Return symbols.Select(Function(s)
-                                      Dim displayString As String
-                                      If s.Kind = SymbolKind.Method Then
-                                          Dim method = DirectCast(s, IMethodSymbol)
-                                          displayString = method.ToDisplayString(_crefFormat2) + CreateParameters(method, semanticModel, position)
-                                          If method.MethodKind = MethodKind.UserDefinedOperator Then
-                                              displayString = "Operator " + displayString
-                                          End If
-                                      ElseIf s.GetParameters().Any() Then
-                                          displayString = s.ToDisplayString(_crefFormat2) + CreateParameters(s, semanticModel, position)
-                                      Else
-                                          displayString = s.ToDisplayString(_crefFormat2)
-                                      End If
-
-                                      Return New CompletionItem(Me, displayString, span, glyph:=s.GetGlyph(),
-                                                                descriptionFactory:=CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, position, s),
-                                                                rules:=ItemRules.Instance)
-                                  End Function)
-        End Function
-
-        Private Function CreateOfCompletionItem(span As TextSpan) As IEnumerable(Of CompletionItem)
-            Dim item = New CompletionItem(Me, "Of", span, glyph:=Glyph.Keyword,
-                                      descriptionFactory:=Function(c As CancellationToken) Task.FromResult(RecommendedKeyword.CreateDisplayParts("Of", VBFeaturesResources.OfKeywordToolTip)))
-
-            Return SpecializedCollections.SingletonEnumerable(item)
-        End Function
-
-        Protected Overrides Function IsExclusiveAsync(document As Document, position As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of Boolean)
-            Return SpecializedTasks.True
-        End Function
-
-        Private Function CreateParameters(method As ISymbol, semanticModel As SemanticModel, position As Integer) As String
-            Dim parameterNames = method.GetParameters().Select(Function(p)
-                                                                   If p.RefKind = RefKind.Ref Then
-                                                                       Return "ByRef " + p.Type.ToMinimalDisplayString(semanticModel, position)
-                                                                   End If
-                                                                   Return p.Type.ToMinimalDisplayString(semanticModel, position)
-                                                               End Function)
-
-            Return String.Format("({0})", String.Join(", ", parameterNames))
+        Private Function CreateOfCompletionItem(span As TextSpan) As CompletionItem
+            Return New CompletionItem(Me, "Of", span, glyph:=Glyph.Keyword,
+                                      description:=RecommendedKeyword.CreateDisplayParts("Of", VBFeaturesResources.OfKeywordToolTip))
         End Function
 
     End Class

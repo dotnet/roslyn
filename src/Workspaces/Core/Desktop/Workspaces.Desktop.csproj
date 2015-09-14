@@ -67,10 +67,10 @@
     <Compile Include="..\..\..\Compilers\Helpers\SimpleAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\SimpleAnalyzerAssemblyLoader.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Scripting\Core\DesktopMetadataReferenceResolver.cs">
-      <Link>InternalUtilities\DesktopMetadataReferenceResolver.cs</Link>
+    <Compile Include="..\..\..\Scripting\Core\Resolvers\RuntimeMetadataReferenceResolver.cs">
+      <Link>InternalUtilities\ScriptMetadataReferenceResolver.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Scripting\Core\NuGetPackageResolver.cs">
+    <Compile Include="..\..\..\Scripting\Core\Resolvers\NuGetPackageResolver.cs">
       <Link>InternalUtilities\NuGetPackageResolver.cs</Link>
     </Compile>
     <Compile Include="Options\ExportOptionAttribute.cs" />

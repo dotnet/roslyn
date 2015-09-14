@@ -373,7 +373,7 @@
     <value>Metadata file '{0}' could not be found</value>
   </data>
   <data name="ERR_MetadataReferencesNotSupported" xml:space="preserve">
-    <value>Metadata references not supported.</value>
+    <value>Metadata references are not supported.</value>
   </data>
   <data name="FTL_MetadataCantOpenFile" xml:space="preserve">
     <value>Metadata file '{0}' could not be opened -- {1}</value>
@@ -4650,5 +4650,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="SyntaxTreeFromLoadNoRemoveReplace" xml:space="preserve">
     <value>SyntaxTree '{0}' resulted from a #load directive and cannot be removed or replaced directly.</value>
+  </data>
+  <data name="ERR_SourceFileReferencesNotSupported" xml:space="preserve">
+    <value>Source file references are not supported.</value>
   </data>
 </root>

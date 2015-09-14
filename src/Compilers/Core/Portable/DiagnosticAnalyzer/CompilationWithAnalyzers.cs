@@ -688,7 +688,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     finally
                     {
                         // Update the diagnostic results based on the diagnostics reported on the driver.
-                        _analysisResult.StoreAnalysisResult(analysisScope, driver);
+                        _analysisResult.StoreAnalysisResult(analysisScope, driver, _compilation);
                     }
                 }
             }
@@ -963,7 +963,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentNullException(nameof(compilation));
             }
 
-            var suppressMessageState = AnalyzerDriver.GetCachedCompilationData(compilation).SuppressMessageAttributeState;
+            var suppressMessageState = AnalyzerDriver.GetOrCreateCachedCompilationData(compilation).SuppressMessageAttributeState;
             foreach (var diagnostic in diagnostics.ToImmutableArray())
             {
                 if (diagnostic != null)

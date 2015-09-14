@@ -31,9 +31,10 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
         /// <param name="code">The source code of the script.</param>
         /// <param name="options">The script options.</param>
         /// <param name="globalsType">Type of global object.</param>
-        public static Script<object> Create(string code, ScriptOptions options = null, Type globalsType = null)
+        /// <param name="assemblyLoader">Custom  assembly loader.</param>
+        public static Script<object> Create(string code, ScriptOptions options = null, Type globalsType = null, InteractiveAssemblyLoader assemblyLoader = null)
         {
-            return Create<object>(code, options, globalsType);
+            return Create<object>(code, options, globalsType, assemblyLoader);
         }
 
         /// <summary>
