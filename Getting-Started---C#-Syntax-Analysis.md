@@ -19,8 +19,6 @@ The four primary building blocks of syntax trees are:
 
 Trivia, tokens, and nodes are composed hierarchically to form a tree that completely represents everything in a fragment of Visual Basic or C# code. For example, were you to examine the following C# source file using the **Syntax Visualizer** (In Visual Studio, choose **View -> Other Windows -> Syntax Visualizer**) it tree view would look like this:
 
-
-
 **SyntaxNode**: Blue | **SyntaxToken**: Green | **SyntaxTrivia**: Red
 ![C# Code File](images/walkthrough-csharp-syntax-figure1.png)
 
