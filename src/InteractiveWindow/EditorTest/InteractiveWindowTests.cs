@@ -698,7 +698,7 @@ System.Console.WriteLine();",
         /// When there is no selection, copy
         /// should copy the current line.
         /// </summary>
-        [Fact]
+        [WpfFact]
         public void CopyNoSelection()
         {
             Submit(
@@ -803,7 +803,7 @@ System.Console.WriteLine();",
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void CancelMultiLineInput()
         {
             ApplyChanges(
