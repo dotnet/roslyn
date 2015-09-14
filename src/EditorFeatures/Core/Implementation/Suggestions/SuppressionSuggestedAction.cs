@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             get
             {
                 var suppressionAction = (SuppressionCodeAction)this.CodeAction;
-                return (suppressionAction.NestedActions != null) && suppressionAction.NestedActions.Any();
+                return suppressionAction.GetCodeActions().Any();
             }
         }
 
@@ -55,17 +55,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             var suppressionAction = (SuppressionCodeAction)this.CodeAction;
-            if ((suppressionAction.NestedActions != null) && suppressionAction.NestedActions.Any())
+            if (suppressionAction.GetCodeActions().Any())
             {
                 var nestedSuggestedActions = ImmutableArray.CreateBuilder<SuggestedAction>();
 
-                foreach (var c in suppressionAction.NestedActions)
+                foreach (var c in suppressionAction.GetCodeActions())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
                     nestedSuggestedActions.Add(new CodeFixSuggestedAction(
                             this.Workspace, this.SubjectBuffer, this.EditHandler,
-                            new CodeFix(c, _fix.Diagnostics), this.Provider, null));
+                            new CodeFix(c, _fix.Diagnostics), c, this.Provider, null));
                 }
 
                 _actionSets = ImmutableArray.Create(

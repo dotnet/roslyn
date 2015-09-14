@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -72,7 +73,18 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 var state = State.Generate((TService)this, semanticDocument, node, cancellationToken);
                 if (state != null)
                 {
-                    return GetActions(semanticDocument, node, state, cancellationToken);
+                    var actions = GetActions(semanticDocument, node, state, cancellationToken).ToList();
+                    if (actions.Count > 1)
+                    {
+                        // Wrap the generate type actions into a single top level suggestion
+                        // so as to not clutter the list.
+                        return SpecializedCollections.SingletonEnumerable(
+                            new MyCodeAction(FeaturesResources.Generate_type, actions.AsImmutable(), actions[0].EquivalenceKey));
+                    }
+                    else
+                    {
+                        return actions;
+                    }
                 }
 
                 return SpecializedCollections.EmptyEnumerable<CodeAction>();
@@ -279,6 +291,14 @@ namespace Microsoft.CodeAnalysis.GenerateType
             }
 
             return false;
+        }
+
+        private class MyCodeAction : CodeAction.SimpleCodeAction
+        {
+            public MyCodeAction(string title, ImmutableArray<CodeAction> nestedActions, string equivalenceKey)
+                : base(title, nestedActions, equivalenceKey)
+            {
+            }
         }
     }
 }

@@ -1,5 +1,8 @@
 Microsoft.CodeAnalysis.Editing.SyntaxEditor.RemoveNode(Microsoft.CodeAnalysis.SyntaxNode node, Microsoft.CodeAnalysis.SyntaxRemoveOptions options) -> void
 Microsoft.CodeAnalysis.Project.IsSubmission.get -> bool
 Microsoft.CodeAnalysis.Workspace.UpdateReferencesAfterAdd() -> void
+static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeActions.CodeAction> nestedActions, string equivalenceKey = null) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
+static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> createChangedDocument, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeActions.CodeAction> nestedActions, string equivalenceKey = null) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
+static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>> createChangedSolution, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeActions.CodeAction> nestedActions, string equivalenceKey = null) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
 static Microsoft.CodeAnalysis.Editing.SyntaxGenerator.GetGenerator(Microsoft.CodeAnalysis.Project project) -> Microsoft.CodeAnalysis.Editing.SyntaxGenerator
 virtual Microsoft.CodeAnalysis.Editing.SyntaxGenerator.RemoveNode(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.SyntaxNode node, Microsoft.CodeAnalysis.SyntaxRemoveOptions options) -> Microsoft.CodeAnalysis.SyntaxNode
