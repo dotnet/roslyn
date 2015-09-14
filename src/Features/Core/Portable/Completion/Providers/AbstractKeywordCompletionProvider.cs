@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -13,14 +12,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract class AbstractKeywordCompletionProvider<TContext> : AbstractCompletionProvider
+    internal abstract class AbstractKeywordCompletionProvider<TContext> : CompletionListProvider
     {
         private readonly ImmutableArray<IKeywordRecommender<TContext>> _keywordRecommenders;
 
         protected AbstractKeywordCompletionProvider(
-            IEnumerable<IKeywordRecommender<TContext>> keywordRecommenders)
+            ImmutableArray<IKeywordRecommender<TContext>> keywordRecommenders)
         {
-            _keywordRecommenders = ImmutableArray.CreateRange(keywordRecommenders);
+            _keywordRecommenders = keywordRecommenders;
         }
 
         protected abstract Task<TContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken);
@@ -41,35 +40,42 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static readonly Comparer s_comparer = new Comparer();
 
-        protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(
-            Document document, int position, CompletionTriggerInfo triggerInfo,
-            CancellationToken cancellationToken)
+        public override async Task ProduceCompletionListAsync(CompletionListContext context)
         {
-            var options = document.Project.Solution.Workspace.Options;
+            var document = context.Document;
+            var position = context.Position;
+            var options = context.Options;
+            var cancellationToken = context.CancellationToken;
 
             if (!options.GetOption(CompletionOptions.IncludeKeywords, document.Project.Language))
             {
-                return null;
+                return;
             }
 
             using (Logger.LogBlock(FunctionId.Completion_KeywordCompletionProvider_GetItemsWorker, cancellationToken))
             {
-                var unionKeywords = await document.GetUnionResultsFromDocumentAndLinks(s_comparer, async (doc, ct) => await RecommendKeywordsAsync(doc, position, ct).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var textChangeSpan = this.GetTextChangeSpan(text, position);
-                var completions = unionKeywords.Select(s => CreateItem(textChangeSpan, s)).ToList();
+                var keywords = await document.GetUnionResultsFromDocumentAndLinks(
+                    s_comparer,
+                    async (doc, ct) => await RecommendKeywordsAsync(doc, position, ct).ConfigureAwait(false),
+                    cancellationToken).ConfigureAwait(false);
 
-                return completions;
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var filterSpan = this.GetTextChangeSpan(text, position);
+
+                foreach (var keyword in keywords)
+                {
+                    context.AddItem(CreateItem(keyword, filterSpan));
+                }
             }
         }
 
-        protected virtual CompletionItem CreateItem(TextSpan span, RecommendedKeyword keyword)
+        protected virtual CompletionItem CreateItem(RecommendedKeyword keyword, TextSpan filterSpan)
         {
             return new KeywordCompletionItem(
                 this,
                 displayText: keyword.Keyword,
-                filterSpan: span,
-                descriptionFactory: (c) => Task.FromResult(keyword.DescriptionFactory(c)),
+                filterSpan: filterSpan,
+                descriptionFactory: c => Task.FromResult(keyword.DescriptionFactory(c)),
                 glyph: Glyph.Keyword,
                 isIntrinsic: keyword.IsIntrinsic);
         }
