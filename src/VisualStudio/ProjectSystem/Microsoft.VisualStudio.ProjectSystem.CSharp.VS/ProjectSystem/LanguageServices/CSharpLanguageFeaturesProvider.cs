@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
             Requires.NotNullOrEmpty(name, nameof(name));
 
             var identifiers = from token in name.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries)
-                              let id = this.MakeProperIdentifier(token)
+                              let id = MakeProperIdentifier(token)
                               where !string.IsNullOrEmpty(id)
                               select id;
             return string.Join(".", identifiers);

@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         [AppliesTo(ProjectCapability.CSharpLanguageService)]
         private void Initialize()
         {
-            var nowait = this.InitializeAsync();
+            var nowait = InitializeAsync();
         }
     }
 }

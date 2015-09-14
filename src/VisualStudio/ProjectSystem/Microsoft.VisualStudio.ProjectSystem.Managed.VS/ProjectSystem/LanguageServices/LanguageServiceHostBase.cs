@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
 
         IVsIntellisenseProject IProjectWithIntellisense.IntellisenseProject
         {
-            get { return this._intellisenseEngine; }
+            get { return _intellisenseEngine; }
         }
 
         /// <summary>
@@ -203,10 +203,10 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         /// </summary>
         protected async Task InitializeAsync()
         {
-            this.ProjectAsynchronousTasksService.UnloadCancellationToken.ThrowIfCancellationRequested();
+            ProjectAsynchronousTasksService.UnloadCancellationToken.ThrowIfCancellationRequested();
 
             // Don't start until the project has been loaded as far as the IDE is concerned.
-            await this.ProjectAsyncLoadDashboard.ProjectLoadedInHost;
+            await ProjectAsyncLoadDashboard.ProjectLoadedInHost;
 
             // Defer this work until VS has idle time.  Otherwise we'll block the UI thread to load the MSBuild project evaluation
             // during synchronous project load time.
@@ -217,7 +217,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
                     await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                     await Task.Yield();
 
-                    using (this.ProjectAsynchronousTasksService.LoadedProject())
+                    using (ProjectAsynchronousTasksService.LoadedProject())
                     {
                         // hack to ensure webproj package is properly sited, by forcing it to load with a QueryService call for
                         // one of the services it implements.
@@ -229,19 +229,19 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
                         }
 
                         // Create the Intellisense engine for C#
-                        var registry = this.ServiceProvider.GetService(typeof(SLocalRegistry)) as ILocalRegistry3;
+                        var registry = ServiceProvider.GetService(typeof(SLocalRegistry)) as ILocalRegistry3;
                         Assumes.Present(registry);
                         IntPtr pIntellisenseEngine = IntPtr.Zero;
                         try
                         {
                             Marshal.ThrowExceptionForHR(registry.CreateInstance(
-                                this.IntelliSenseProviderGuid,
+                                IntelliSenseProviderGuid,
                                 null,
                                 typeof(IVsIntellisenseProject).GUID,
                                 (uint)CLSCTX.CLSCTX_INPROC_SERVER,
                                 out pIntellisenseEngine));
 
-                            this._intellisenseEngine = Marshal.GetObjectForIUnknown(pIntellisenseEngine) as IVsIntellisenseProject;
+                            _intellisenseEngine = Marshal.GetObjectForIUnknown(pIntellisenseEngine) as IVsIntellisenseProject;
                         }
                         finally
                         {
@@ -251,24 +251,24 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
                             }
                         }
 
-                        Marshal.ThrowExceptionForHR(this._intellisenseEngine.Init(this));
-                        await this.LanguageServiceRegister.RegisterProjectAsync(this);
+                        Marshal.ThrowExceptionForHR(_intellisenseEngine.Init(this));
+                        await LanguageServiceRegister.RegisterProjectAsync(this);
                     }
                 });
 
             // The rest of this can execute on a worker thread.
             await TaskScheduler.Default;
-            using (this.ProjectAsynchronousTasksService.LoadedProject())
+            using (ProjectAsynchronousTasksService.LoadedProject())
             {
                 var designTimeBuildBlock = new ActionBlock<IProjectVersionedValue<IProjectSubscriptionUpdate>>(
-                    this.ProjectBuildRuleBlock_Changed);
-                this._designTimeBuildSubscriptionLink = this.ActiveConfiguredProjectSubscriptionService.JointRuleBlock.LinkTo(
+                    ProjectBuildRuleBlock_Changed);
+                _designTimeBuildSubscriptionLink = ActiveConfiguredProjectSubscriptionService.JointRuleBlock.LinkTo(
                     designTimeBuildBlock,
                     ruleNames: WatchedEvaluationRules.Union(WatchedDesignTimeBuildRules));
 
                 var evaluationBlock = new ActionBlock<IProjectVersionedValue<IProjectSubscriptionUpdate>>(
-                    this.ProjectRuleBlock_ChangedAsync);
-                this._evaluationSubscriptionLink = this.ActiveConfiguredProjectSubscriptionService.ProjectRuleBlock.LinkTo(
+                    ProjectRuleBlock_ChangedAsync);
+                _evaluationSubscriptionLink = ActiveConfiguredProjectSubscriptionService.ProjectRuleBlock.LinkTo(
                     evaluationBlock,
                     ruleNames: WatchedEvaluationRules);
             }
@@ -281,7 +281,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         /// </summary>
         int IVsIntellisenseProjectHost.CreateFileCodeModel(string pszFilename, out object ppCodeModel)
         {
-            EnvDTE.ProjectItem projectItem = this.GetProjectItemForDocumentMoniker(pszFilename);
+            EnvDTE.ProjectItem projectItem = GetProjectItemForDocumentMoniker(pszFilename);
             if (projectItem != null)
             {
                 ppCodeModel = projectItem.FileCodeModel;
@@ -314,9 +314,9 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
 
             object pvar = null;
 
-            HResult hr = this.HrInvoke(async delegate
+            HResult hr = HrInvoke(async delegate
             {
-                var generalProperties = await this.ActiveConfigurationExports.Value.Properties.Value.GetConfigurationGeneralPropertiesAsync();
+                var generalProperties = await ActiveConfigurationExports.Value.Properties.Value.GetConfigurationGeneralPropertiesAsync();
 
                 switch (dwPropID)
                 {
@@ -324,15 +324,15 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
                         pvar = _projectVsServices.Hierarchy;
                         break;
                     case (uint)HOSTPROPID.HOSTPROPID_PROJECTNAME:
-                        pvar = this.UnconfiguredProject.FullPath;
+                        pvar = UnconfiguredProject.FullPath;
                         break;
                     case (uint)HOSTPROPID.HOSTPROPID_INTELLISENSECACHE_FILENAME:
                         string intDir = await generalProperties.IntDir.GetEvaluatedValueAtEndAsync();
-                        string cacheFile = Path.Combine(intDir, Path.GetFileNameWithoutExtension(this.UnconfiguredProject.FullPath) + ".cachedata");
+                        string cacheFile = Path.Combine(intDir, Path.GetFileNameWithoutExtension(UnconfiguredProject.FullPath) + ".cachedata");
                         pvar = cacheFile;
                         break;
                     case (uint)HOSTPROPID.HOSTPROPID_RELURL:
-                        pvar = this.UnconfiguredProject.FullPath;
+                        pvar = UnconfiguredProject.FullPath;
                         break;
                     case HOSTPROPID_TARGETFRAMEWORKMONIKER:
                         pvar = await generalProperties.TargetFrameworkMoniker.GetEvaluatedValueAtEndAsync();
@@ -345,7 +345,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
                         // path rather than just the leaf filename without extension. It also makes a note
                         // that it caches the path returned to ensure it always returns that path even
                         // after a project rename, which seems odd.
-                        pvar = Path.GetFileNameWithoutExtension(this.UnconfiguredProject.FullPath);
+                        pvar = Path.GetFileNameWithoutExtension(UnconfiguredProject.FullPath);
                         break;
                     default:
                         pvar = null;
@@ -365,9 +365,9 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         int IVsIntellisenseProjectHost.GetOutputAssembly(out string pbstrOutputAssemblyParam)
         {
             string pbstrOutputAssembly = null;
-            HResult hr = this.HrInvoke(async delegate
+            HResult hr = HrInvoke(async delegate
             {
-                var generalProperties = await this.ActiveConfigurationExports.Value.Properties.Value.GetConfigurationGeneralPropertiesAsync();
+                var generalProperties = await ActiveConfigurationExports.Value.Properties.Value.GetConfigurationGeneralPropertiesAsync();
                 pbstrOutputAssembly = await generalProperties.TargetPath.GetEvaluatedValueAtEndAsync();
             });
 
@@ -385,7 +385,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         EnvDTE.FileCodeModel ICodeModelProvider.GetFileCodeModel(ProjectItem fileItem)
         {
             object result;
-            Marshal.ThrowExceptionForHR(this._intellisenseEngine.GetFileCodeModel(_projectVsServices.Hierarchy, fileItem, out result));
+            Marshal.ThrowExceptionForHR(_intellisenseEngine.GetFileCodeModel(_projectVsServices.Hierarchy, fileItem, out result));
             return (EnvDTE.FileCodeModel)result;
         }
 
@@ -397,18 +397,18 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         async Task IProjectWithIntellisense.OnProjectAddedAsync(UnconfiguredProject unconfiguredProject, IVsIntellisenseProject intellisenseProject)
         {
             ProjectReferenceState state;
-            if (this._projectReferenceFullPaths.TryGetValue(unconfiguredProject.FullPath, out state))
+            if (_projectReferenceFullPaths.TryGetValue(unconfiguredProject.FullPath, out state))
             {
-                await this.ThreadHandling.AsyncPump.SwitchToMainThreadAsync();
+                await ThreadHandling.AsyncPump.SwitchToMainThreadAsync();
                 if (state.ResolvedPath != null)
                 {
-                    Marshal.ThrowExceptionForHR(this._intellisenseEngine.RemoveAssemblyReference(state.ResolvedPath));
+                    Marshal.ThrowExceptionForHR(_intellisenseEngine.RemoveAssemblyReference(state.ResolvedPath));
                 }
 
-                Marshal.ThrowExceptionForHR(this._intellisenseEngine.AddP2PReference(intellisenseProject));
+                Marshal.ThrowExceptionForHR(_intellisenseEngine.AddP2PReference(intellisenseProject));
                 state.AsProjectReference = true;
 
-                Marshal.ThrowExceptionForHR(this._intellisenseEngine.StartIntellisenseEngine());
+                Marshal.ThrowExceptionForHR(_intellisenseEngine.StartIntellisenseEngine());
             }
         }
 
@@ -416,18 +416,18 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         async Task IProjectWithIntellisense.OnProjectRemovedAsync(UnconfiguredProject unconfiguredProject, IVsIntellisenseProject intellisenseProject)
         {
             ProjectReferenceState state;
-            if (this._projectReferenceFullPaths.TryGetValue(unconfiguredProject.FullPath, out state))
+            if (_projectReferenceFullPaths.TryGetValue(unconfiguredProject.FullPath, out state))
             {
-                await this.ThreadHandling.AsyncPump.SwitchToMainThreadAsync();
-                Marshal.ThrowExceptionForHR(this._intellisenseEngine.RemoveP2PReference(intellisenseProject));
+                await ThreadHandling.AsyncPump.SwitchToMainThreadAsync();
+                Marshal.ThrowExceptionForHR(_intellisenseEngine.RemoveP2PReference(intellisenseProject));
                 state.AsProjectReference = false;
 
                 if (state.ResolvedPath != null)
                 {
-                    Marshal.ThrowExceptionForHR(this._intellisenseEngine.AddAssemblyReference(state.ResolvedPath));
+                    Marshal.ThrowExceptionForHR(_intellisenseEngine.AddAssemblyReference(state.ResolvedPath));
                 }
 
-                Marshal.ThrowExceptionForHR(this._intellisenseEngine.StartIntellisenseEngine());
+                Marshal.ThrowExceptionForHR(_intellisenseEngine.StartIntellisenseEngine());
             }
         }
 
@@ -438,7 +438,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         /// </summary>
         public void Dispose()
         {
-            this.Dispose(true);
+            Dispose(true);
             GC.SuppressFinalize(this);
         }
 
@@ -450,19 +450,19 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         {
             if (disposing)
             {
-                this.ThreadHandling.AsyncPump.Run(async delegate
+                ThreadHandling.AsyncPump.Run(async delegate
                 {
-                    await this.LanguageServiceRegister.UnregisterAsync(this);
-                    if (this._intellisenseEngine != null)
+                    await LanguageServiceRegister.UnregisterAsync(this);
+                    if (_intellisenseEngine != null)
                     {
-                        await this.ThreadHandling.AsyncPump.SwitchToMainThreadAsync();
-                        Marshal.ThrowExceptionForHR(this._intellisenseEngine.StopIntellisenseEngine());
-                        Marshal.ThrowExceptionForHR(this._intellisenseEngine.Close());
-                        this._intellisenseEngine = null;
+                        await ThreadHandling.AsyncPump.SwitchToMainThreadAsync();
+                        Marshal.ThrowExceptionForHR(_intellisenseEngine.StopIntellisenseEngine());
+                        Marshal.ThrowExceptionForHR(_intellisenseEngine.Close());
+                        _intellisenseEngine = null;
                     }
 
-                    this._designTimeBuildSubscriptionLink?.Dispose();
-                    this._evaluationSubscriptionLink?.Dispose();
+                    _designTimeBuildSubscriptionLink?.Dispose();
+                    _evaluationSubscriptionLink?.Dispose();
                 });
             }
         }
@@ -475,8 +475,8 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         /// <returns>A tuple, where the first item is the absolute path to the source file and the second item is the item id.</returns>
         private Tuple<string, uint> SourceFileToLanguageServiceUnit(string sourceFile, IProjectTree tree)
         {
-            string absolutePath = this.UnconfiguredProject.MakeRooted(sourceFile);
-            IProjectTree sourceFileNode = this.PhysicalProjectTreeProvider.Value.FindByPath(tree, absolutePath);
+            string absolutePath = UnconfiguredProject.MakeRooted(sourceFile);
+            IProjectTree sourceFileNode = PhysicalProjectTreeProvider.Value.FindByPath(tree, absolutePath);
             if (sourceFileNode != null)
             {
                 uint itemid = unchecked((uint)sourceFileNode.Identity.ToInt32());
@@ -488,7 +488,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
 
         private ProjectItem GetProjectItemForDocumentMoniker(string documentMoniker)
         {
-            this.ThreadHandling.VerifyOnUIThread();
+            ThreadHandling.VerifyOnUIThread();
 
             HierarchyId id = _projectVsServices.Project.GetHierarchyId(documentMoniker);
             if (id.IsNil || id.IsRoot)
@@ -505,11 +505,11 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
             return HResult.Invoke(
                 delegate
                 {
-                    return this.ThreadHandling.ExecuteSynchronously(asyncAction);
+                    return ThreadHandling.ExecuteSynchronously(asyncAction);
                 },
                 Microsoft.VisualStudio.Shell.ServiceProvider.GlobalProvider,
-                registerProjectFaultHandlerService ? this.ProjectFaultHandlerService : null,
-                this.UnconfiguredProject);
+                registerProjectFaultHandlerService ? ProjectFaultHandlerService : null,
+                UnconfiguredProject);
         }
 
         /// <summary>
@@ -526,75 +526,75 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         /// </summary>
         private async System.Threading.Tasks.Task ProjectRuleBlock_ChangedAsync(IProjectVersionedValue<IProjectSubscriptionUpdate> e)
         {
-            await this.ThreadHandling.SwitchToUIThread();
-            await this.ProjectAsynchronousTasksService.LoadedProjectAsync(async delegate
+            await ThreadHandling.SwitchToUIThread();
+            await ProjectAsynchronousTasksService.LoadedProjectAsync(async delegate
             {
                 var sourceFiles = e.Value.ProjectChanges[CSharp.SchemaName];
                 var projectReferences = e.Value.ProjectChanges[ProjectReference.SchemaName];
-                var treeUpdate = await this.ProjectTreeService.PublishLatestTreeAsync(blockDuringLoadingTree: true);
+                var treeUpdate = await ProjectTreeService.PublishLatestTreeAsync(blockDuringLoadingTree: true);
                 var tree = treeUpdate.Tree;
 
-                foreach (var sourceUnit in sourceFiles.Difference.AddedItems.Select(item => this.SourceFileToLanguageServiceUnit(item, tree)).Where(u => u != null))
+                foreach (var sourceUnit in sourceFiles.Difference.AddedItems.Select(item => SourceFileToLanguageServiceUnit(item, tree)).Where(u => u != null))
                 {
-                    Marshal.ThrowExceptionForHR(this._intellisenseEngine.AddFile(sourceUnit.Item1, sourceUnit.Item2));
+                    Marshal.ThrowExceptionForHR(_intellisenseEngine.AddFile(sourceUnit.Item1, sourceUnit.Item2));
                 }
 
-                foreach (var sourceUnit in sourceFiles.Difference.RemovedItems.Select(item => this.SourceFileToLanguageServiceUnit(item, tree)).Where(u => u != null))
+                foreach (var sourceUnit in sourceFiles.Difference.RemovedItems.Select(item => SourceFileToLanguageServiceUnit(item, tree)).Where(u => u != null))
                 {
-                    Marshal.ThrowExceptionForHR(this._intellisenseEngine.RemoveFile(sourceUnit.Item1, sourceUnit.Item2));
+                    Marshal.ThrowExceptionForHR(_intellisenseEngine.RemoveFile(sourceUnit.Item1, sourceUnit.Item2));
                 }
 
                 foreach (KeyValuePair<string, string> sourceFileNames in sourceFiles.Difference.RenamedItems)
                 {
-                    var newSourceUnit = this.SourceFileToLanguageServiceUnit(sourceFileNames.Value, tree);
+                    var newSourceUnit = SourceFileToLanguageServiceUnit(sourceFileNames.Value, tree);
                     if (newSourceUnit != null)
                     {
-                        string beforeAbsolutePath = this.UnconfiguredProject.MakeRooted(sourceFileNames.Key);
-                        Marshal.ThrowExceptionForHR(this._intellisenseEngine.RenameFile(beforeAbsolutePath, newSourceUnit.Item1, newSourceUnit.Item2));
+                        string beforeAbsolutePath = UnconfiguredProject.MakeRooted(sourceFileNames.Key);
+                        Marshal.ThrowExceptionForHR(_intellisenseEngine.RenameFile(beforeAbsolutePath, newSourceUnit.Item1, newSourceUnit.Item2));
                     }
                 }
 
                 foreach (string projectReferencePath in projectReferences.Difference.AddedItems)
                 {
-                    string projectReferenceFullPath = this.UnconfiguredProject.MakeRooted(projectReferencePath);
+                    string projectReferenceFullPath = UnconfiguredProject.MakeRooted(projectReferencePath);
                     ProjectReferenceState state;
-                    if (!this._projectReferenceFullPaths.TryGetValue(projectReferenceFullPath, out state))
+                    if (!_projectReferenceFullPaths.TryGetValue(projectReferenceFullPath, out state))
                     {
-                        this._projectReferenceFullPaths = this._projectReferenceFullPaths.Add(projectReferenceFullPath, state = new ProjectReferenceState());
+                        _projectReferenceFullPaths = _projectReferenceFullPaths.Add(projectReferenceFullPath, state = new ProjectReferenceState());
                     }
 
                     IVsIntellisenseProject intellisenseProject;
-                    if (this.LanguageServiceRegister.TryGetIntellisenseProject(projectReferenceFullPath, out intellisenseProject))
+                    if (LanguageServiceRegister.TryGetIntellisenseProject(projectReferenceFullPath, out intellisenseProject))
                     {
                         if (state.ResolvedPath != null && !state.AsProjectReference)
                         {
-                            Marshal.ThrowExceptionForHR(this._intellisenseEngine.RemoveAssemblyReference(state.ResolvedPath));
+                            Marshal.ThrowExceptionForHR(_intellisenseEngine.RemoveAssemblyReference(state.ResolvedPath));
                         }
 
                         state.AsProjectReference = true;
-                        Marshal.ThrowExceptionForHR(this._intellisenseEngine.AddP2PReference(intellisenseProject));
+                        Marshal.ThrowExceptionForHR(_intellisenseEngine.AddP2PReference(intellisenseProject));
                     }
                 }
 
                 foreach (string projectReferencePath in projectReferences.Difference.RemovedItems)
                 {
-                    string projectReferenceFullPath = this.UnconfiguredProject.MakeRooted(projectReferencePath);
-                    this._projectReferenceFullPaths = this._projectReferenceFullPaths.Remove(projectReferenceFullPath);
+                    string projectReferenceFullPath = UnconfiguredProject.MakeRooted(projectReferencePath);
+                    _projectReferenceFullPaths = _projectReferenceFullPaths.Remove(projectReferenceFullPath);
 
                     IVsIntellisenseProject intellisenseProject;
-                    if (this.LanguageServiceRegister.TryGetIntellisenseProject(projectReferencePath, out intellisenseProject))
+                    if (LanguageServiceRegister.TryGetIntellisenseProject(projectReferencePath, out intellisenseProject))
                     {
-                        Marshal.ThrowExceptionForHR(this._intellisenseEngine.RemoveP2PReference(this._intellisenseEngine));
+                        Marshal.ThrowExceptionForHR(_intellisenseEngine.RemoveP2PReference(_intellisenseEngine));
                     }
 
                     ProjectReferenceState state;
-                    if (this._projectReferenceFullPaths.TryGetValue(projectReferenceFullPath, out state))
+                    if (_projectReferenceFullPaths.TryGetValue(projectReferenceFullPath, out state))
                     {
                         state.AsProjectReference = false;
                     }
                 }
 
-                Marshal.ThrowExceptionForHR(this._intellisenseEngine.StartIntellisenseEngine());
+                Marshal.ThrowExceptionForHR(_intellisenseEngine.StartIntellisenseEngine());
             });
         }
 
@@ -604,8 +604,8 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         /// </summary>
         private async Task ProjectBuildRuleBlock_Changed(IProjectVersionedValue<IProjectSubscriptionUpdate> e)
         {
-            await this.ThreadHandling.SwitchToUIThread();
-            using (this.ProjectAsynchronousTasksService.LoadedProject())
+            await ThreadHandling.SwitchToUIThread();
+            using (ProjectAsynchronousTasksService.LoadedProject())
             {
                 foreach (var resolvedReferenceChange in e.Value.ProjectChanges.Values)
                 {
@@ -623,11 +623,11 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
                         {
                             if (e.Value.CurrentState[ProjectReference.SchemaName].Items.ContainsKey(originalItemSpec))
                             {
-                                string originalFullPath = this.UnconfiguredProject.MakeRooted(originalItemSpec);
+                                string originalFullPath = UnconfiguredProject.MakeRooted(originalItemSpec);
                                 ProjectReferenceState state;
-                                if (!this._projectReferenceFullPaths.TryGetValue(originalFullPath, out state))
+                                if (!_projectReferenceFullPaths.TryGetValue(originalFullPath, out state))
                                 {
-                                    this._projectReferenceFullPaths = this._projectReferenceFullPaths.Add(originalFullPath, state = new ProjectReferenceState());
+                                    _projectReferenceFullPaths = _projectReferenceFullPaths.Add(originalFullPath, state = new ProjectReferenceState());
                                 }
 
                                 state.ResolvedPath = resolvedReferencePath;
@@ -640,15 +640,15 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
                             }
                         }
 
-                        Marshal.ThrowExceptionForHR(this._intellisenseEngine.AddAssemblyReference(resolvedReferencePath));
+                        Marshal.ThrowExceptionForHR(_intellisenseEngine.AddAssemblyReference(resolvedReferencePath));
                     }
 
                     foreach (string resolvedReferencePath in resolvedReferenceChange.Difference.RemovedItems)
                     {
-                        Marshal.ThrowExceptionForHR(this._intellisenseEngine.RemoveAssemblyReference(resolvedReferencePath));
+                        Marshal.ThrowExceptionForHR(_intellisenseEngine.RemoveAssemblyReference(resolvedReferencePath));
                     }
 
-                    Marshal.ThrowExceptionForHR(this._intellisenseEngine.StartIntellisenseEngine());
+                    Marshal.ThrowExceptionForHR(_intellisenseEngine.StartIntellisenseEngine());
                 }
             }
         }

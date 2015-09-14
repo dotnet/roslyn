@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
             for (int i = 0; i < tree.Children.Count; i++)
             {
                 var child = tree.Children[i].AddCapability(ProjectTreeCapabilities.VisibleOnlyInShowAllFiles);
-                child = this.HideAllChildren(child);
+                child = HideAllChildren(child);
                 tree = child.Parent;
             }
 
