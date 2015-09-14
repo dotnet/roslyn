@@ -135,7 +135,6 @@
     <Compile Include="Completion\CompletionTriggerInfo.cs" />
     <Compile Include="Completion\CompletionTriggerReason.cs" />
     <Compile Include="Completion\ICompletionService.cs" />
-    <Compile Include="Completion\Providers\AbstractCompletionProvider.cs" />
     <Compile Include="Completion\Providers\UnionCompletionItemComparer.cs" />
     <Compile Include="Completion\Providers\AbstractKeywordCompletionProvider.cs" />
     <Compile Include="Completion\Providers\AbstractObjectCreationCompletionProvider.cs" />
