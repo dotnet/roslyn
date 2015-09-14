@@ -571,7 +571,7 @@ Environment.ProcessorCount
         }
 
         [Fact]
-        public async void Submissions_ExecutionOrder2()
+        public async Task Submissions_ExecutionOrder2()
         {
             var s0 = await CSharpScript.RunAsync("int x = 1;");
 
@@ -598,7 +598,7 @@ Environment.ProcessorCount
         }
 
         [Fact]
-        public async void ObjectOverrides1()
+        public async Task ObjectOverrides1()
         {
             var state0 = await CSharpScript.RunAsync("", OptionsWithFacades, new HostObjectWithOverrides());
 
@@ -613,7 +613,7 @@ Environment.ProcessorCount
         }
 
         [Fact]
-        public async void ObjectOverrides2()
+        public async Task ObjectOverrides2()
         {
             var state0 = await CSharpScript.RunAsync("", OptionsWithFacades, new object());
             var state1 = await state0.ContinueWithAsync<bool>(@"
@@ -995,7 +995,7 @@ new object[] { x, y, z }
         [WorkItem(9229, "DevDiv_Projects/Roslyn")]
         [WorkItem(2721, "https://github.com/dotnet/roslyn/issues/2721")]
         [Fact]
-        public async void PrivateImplementationDetailsType()
+        public async Task PrivateImplementationDetailsType()
         {
             var result1 = await CSharpScript.EvaluateAsync<int[]>("new int[] { 1,2,3,4 }");
             AssertEx.Equal(new[] { 1, 2, 3, 4 }, result1);
@@ -1051,7 +1051,7 @@ new object[] { x, y, z }
         /// 'await' in lambda should be ignored.
         /// </summary>
         [Fact]
-        public async void AwaitInLambda()
+        public async Task AwaitInLambda()
         {
             var s0 = await CSharpScript.RunAsync(@"
 using System;
@@ -1361,7 +1361,7 @@ new List<ArgumentException>()
         }
 
         [Fact]
-        public async void HostObjectBinding_Interface()
+        public async Task HostObjectBinding_Interface()
         {
             var c = new C();
             
