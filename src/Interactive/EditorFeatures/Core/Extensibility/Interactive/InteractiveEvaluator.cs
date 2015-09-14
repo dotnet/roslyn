@@ -546,7 +546,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             }
 
             var solution = _workspace.CurrentSolution;
-            var options = solution.GetProjectState(_currentSubmissionProjectId).CompilationOptions;
+
+            // Maybe called after reset, when no submissions are available.
+            var optionsOpt = (_currentSubmissionProjectId != null) ? solution.GetProjectState(_currentSubmissionProjectId).CompilationOptions : null;
 
             if (changedWorkingDirectory != null)
             {
@@ -557,17 +559,28 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             {
                 ReferenceSearchPaths = changedReferenceSearchPaths;
                 _metadataReferenceResolver = CreateMetadataReferenceResolver(_workspace.CurrentSolution.Services.MetadataService, ReferenceSearchPaths, WorkingDirectory);
-                options = options.WithMetadataReferenceResolver(_metadataReferenceResolver);
+
+                if (optionsOpt != null)
+                {
+                    optionsOpt = optionsOpt.WithMetadataReferenceResolver(_metadataReferenceResolver);
+                }
             }
 
             if (!changedSourceSearchPaths.IsDefault || changedWorkingDirectory != null)
             {
                 SourceSearchPaths = changedSourceSearchPaths;
                 _sourceReferenceResolver = CreateSourceReferenceResolver(SourceSearchPaths, WorkingDirectory);
-                options = options.WithSourceReferenceResolver(_sourceReferenceResolver);
+
+                if (optionsOpt != null)
+                {
+                    optionsOpt = optionsOpt.WithSourceReferenceResolver(_sourceReferenceResolver);
+                }
             }
 
-            _workspace.SetCurrentSolution(solution.WithProjectCompilationOptions(_currentSubmissionProjectId, options));
+            if (optionsOpt != null)
+            {
+                _workspace.SetCurrentSolution(solution.WithProjectCompilationOptions(_currentSubmissionProjectId, optionsOpt));
+            }
         }
 
         public async Task SetPathsAsync(ImmutableArray<string> referenceSearchPaths, ImmutableArray<string> sourceSearchPaths, string workingDirectory)

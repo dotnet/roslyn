@@ -658,7 +658,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                                 string fullPath = ResolveRelativePath(file.Path, rspDirectory, sourceSearchPaths, displayPath: true);
                                 if (fullPath != null)
                                 {
-                                    var newScriptState = await ExecuteFileAsync(state, fullPath).ConfigureAwait(false);
+                                    var newScriptState = await ExecuteFileAsync(rspState, fullPath).ConfigureAwait(false);
                                     if (newScriptState != null)
                                     {
                                         rspState = rspState.WithScriptState(newScriptState);
