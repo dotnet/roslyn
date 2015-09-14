@@ -5,21 +5,23 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract partial class AbstractCompletionProvider
+    internal class UnionCompletionItemComparer : IEqualityComparer<CompletionItem>
     {
-        protected class UnionCompletionItemComparer : IEqualityComparer<CompletionItem>
+        public static UnionCompletionItemComparer Instance { get; } = new UnionCompletionItemComparer();
+
+        private UnionCompletionItemComparer()
         {
-            public static UnionCompletionItemComparer Instance = new UnionCompletionItemComparer();
+        }
 
-            public bool Equals(CompletionItem x, CompletionItem y)
-            {
-                return x.DisplayText == y.DisplayText && x.Glyph == y.Glyph;
-            }
+        public bool Equals(CompletionItem x, CompletionItem y)
+        {
+            return x.DisplayText == y.DisplayText
+                && x.Glyph == y.Glyph;
+        }
 
-            public int GetHashCode(CompletionItem obj)
-            {
-                return Hash.Combine(obj.DisplayText.GetHashCode(), obj.Glyph.GetHashCode());
-            }
+        public int GetHashCode(CompletionItem obj)
+        {
+            return Hash.Combine(obj.DisplayText.GetHashCode(), obj.Glyph.GetHashCode());
         }
     }
 }
