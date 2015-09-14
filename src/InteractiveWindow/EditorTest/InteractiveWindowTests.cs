@@ -482,17 +482,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Assert.Equal(expectedColumn, actualColumn);
         }
 		
-		[WpfFact]
-        public void CheckHistoryPrevious()
-        {
-            const string inputString = "1 ";
-            Window.InsertCode(inputString);
-            Assert.Equal(inputString, GetTextFromCurrentLanguageBuffer());
-            Task.Run(() => Window.Operations.ExecuteInput()).PumpingWait();
-            Window.Operations.HistoryPrevious();
-            Assert.Equal(inputString, GetTextFromCurrentLanguageBuffer());
-        }
-
         [WpfFact]
         public void ResetCommandArgumentParsing_Success()
         {
