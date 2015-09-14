@@ -552,28 +552,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 // Core task to compute analyzer diagnostics.
                                 Func<Tuple<Task, CancellationTokenSource>> getComputeTask = () => Tuple.Create(
                                     Task.Run(async () =>
+                                    {
+                                        try
                                         {
+                                            AsyncQueue<CompilationEvent> eventQueue = null;
                                             try
                                             {
-                                                AsyncQueue<CompilationEvent> eventQueue = null;
-                                                try
-                                                {
-                                                    // Get event queue with pending events to analyze.
-                                                    eventQueue = getEventQueue();
+                                                // Get event queue with pending events to analyze.
+                                                eventQueue = getEventQueue();
 
-                                                    // Execute analyzer driver on the given analysis scope with the given event queue.
-                                                    await ComputeAnalyzerDiagnosticsCoreAsync(driver, eventQueue, analysisScope, cancellationToken: linkedCts.Token).ConfigureAwait(false);
-                                                }
-                                                finally
-                                                {
-                                                    FreeEventQueue(eventQueue);
-                                                }
+                                                // Execute analyzer driver on the given analysis scope with the given event queue.
+                                                await ComputeAnalyzerDiagnosticsCoreAsync(driver, eventQueue, analysisScope, cancellationToken: linkedCts.Token).ConfigureAwait(false);
                                             }
-                                            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                                            finally
                                             {
-                                                throw ExceptionUtilities.Unreachable;
+                                                FreeEventQueue(eventQueue);
                                             }
-                                        },
+                                        }
+                                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                                        {
+                                            throw ExceptionUtilities.Unreachable;
+                                        }
+                                    },
                                         linkedCts.Token),
                                     cts);
 
@@ -688,7 +688,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     finally
                     {
                         // Update the diagnostic results based on the diagnostics reported on the driver.
-                        _analysisResult.StoreAnalysisResult(analysisScope, driver);
+                        _analysisResult.StoreAnalysisResult(analysisScope, driver, _compilation);
                     }
                 }
             }

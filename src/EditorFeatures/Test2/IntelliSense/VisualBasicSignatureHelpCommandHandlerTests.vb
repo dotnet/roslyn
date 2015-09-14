@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Editor.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
@@ -263,6 +264,29 @@ End Class
 
                 state.SendTypeChars("(")
                 state.AssertSelectedSignatureHelpItem($"<{Extension}> Enumerable.OfType(Of TResult)() As IEnumerable(Of TResult)")
+            End Using
+        End Sub
+
+        <WorkItem(5174, "https://github.com/dotnet/roslyn/issues/5174")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Sub DontShowSignatureHelpIfOptionIsTurnedOffUnlessExplicitlyInvoked()
+            Using state = TestState.CreateVisualBasicTestState(
+                              <Document>
+Class C
+    Sub M(i As Integer)
+        M$$
+    End Sub
+End Class
+                              </Document>)
+
+                ' disable implicit sig help then type a trigger character -> no session should be available
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(SignatureHelpOptions.ShowSignatureHelp, "Visual Basic", False)
+                state.SendTypeChars("(")
+                state.AssertNoSignatureHelpSession()
+
+                ' force-invoke -> session should be available
+                state.SendInvokeSignatureHelp()
+                state.AssertSignatureHelpSession()
             End Using
         End Sub
     End Class

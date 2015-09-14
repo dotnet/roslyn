@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
+using System;
 using System.IO;
 using System.Text;
 using Xunit;
@@ -86,6 +86,27 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
                     PathUtilities.CombineAbsoluteAndRelativePaths(packagesDirectory, PathUtilities.CombinePossiblyRelativeAndRelativePaths("System.Collections/4.0.10", "ref/dotnet/System.Collections.dll")),
                     PathUtilities.CombineAbsoluteAndRelativePaths(packagesDirectory, PathUtilities.CombinePossiblyRelativeAndRelativePaths("System.IO/4.0.10", "ref/dotnet/System.Runtime.dll")),
                     PathUtilities.CombineAbsoluteAndRelativePaths(packagesDirectory, PathUtilities.CombinePossiblyRelativeAndRelativePaths("System.IO/4.0.10", "ref/dotnet/System.IO.dll")));
+            }
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void HandledException()
+        {
+            using (var directory = new DisposableDirectory(Temp))
+            {
+                var resolver = new NuGetPackageResolverImpl(directory.Path, startInfo => { throw new IOException(); });
+                var actualPaths = resolver.ResolveNuGetPackage("A.B.C/1.2");
+                Assert.True(actualPaths.IsDefault);
+            }
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void UnhandledException()
+        {
+            using (var directory = new DisposableDirectory(Temp))
+            {
+                var resolver = new NuGetPackageResolverImpl(directory.Path, startInfo => { throw new InvalidOperationException(); });
+                Assert.Throws<InvalidOperationException>(() => resolver.ResolveNuGetPackage("A.B.C/1.2"));
             }
         }
 

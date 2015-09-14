@@ -7,11 +7,8 @@
 //     the code is regenerated.
 // </auto-generated>
 //------------------------------------------------------------------------------
-
+using System.Reflection;
 namespace Microsoft.CodeAnalysis.Scripting {
-    using System;
-    using System.Reflection;
-    
     
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
@@ -40,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Scripting {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.Scripting.ScriptingResources", typeof(ScriptingResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new System.Resources.ResourceManager("Microsoft.CodeAnalysis.Scripting.ScriptingResources", typeof(ScriptingResources).GetTypeInfo().Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -67,15 +64,6 @@ namespace Microsoft.CodeAnalysis.Scripting {
         internal static string AbsolutePathExpected {
             get {
                 return ResourceManager.GetString("AbsolutePathExpected", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Assembly not found..
-        /// </summary>
-        internal static string AssemblyNotFound {
-            get {
-                return ResourceManager.GetString("AssemblyNotFound", resourceCulture);
             }
         }
         
