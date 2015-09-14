@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.ProjectSystem
     internal interface IProjectFeatures
     {
         /// <summary>
-        ///     Returns a value indicating if the current project supports the Project Designer.
+        ///     Gets a value indicating whether the current project supports the Project Designer.
         /// </summary>
         bool SupportsProjectDesigner
         {
