@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
 
         public override bool IsExpandable
         {
-            get { return false; }
+            get { return false; }   // By default, My Project isn't expandable unless Show All Files is on
         }
 
         protected override string GetAppDesignerFolderName()
