@@ -13,8 +13,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     internal class SharedInfoCache
     {
         // this should let us to share common information among diagnostics reducing calculation and allocation.
-        // this does produce one slight problem where project name might get staled a bit once project is renamed in error list.
-        // but it should eventually get to right name as code changes happen.
         private static readonly ConcurrentLruCache<int, SharedInfoCache> documentInfoCache = new ConcurrentLruCache<int, SharedInfoCache>(capacity: 5);
 
         private readonly ImmutableArray<DocumentId> _documentIds;
@@ -32,37 +30,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         public string GetProjectName(Workspace workspace)
         {
-            return GetCache().GetProjectName(workspace);
+            return GetCache(workspace).GetProjectName(workspace);
         }
 
         public string[] GetProjectNames(Workspace workspace)
         {
-            return GetCache().GetProjectNames(workspace);
+            return GetCache(workspace).GetProjectNames(workspace);
         }
 
         public Guid[] GetProjectGuids(Workspace workspace)
         {
-            return GetCache().GetProjectGuids(workspace);
+            return GetCache(workspace).GetProjectGuids(workspace);
         }
 
-        private ProjectInfoCache GetCache()
+        private ProjectInfoCache GetCache(Workspace workspace)
         {
             if (_cache == null)
             {
                 // make sure this is deterministric
                 var orderedItems = _documentIds.Select(d => d.ProjectId).Distinct().OrderBy(p => p.Id);
-                _cache = ProjectInfoCache.GetOrAdd(GetHashCode(orderedItems), orderedItems, c => new ProjectInfoCache(orderedItems.ToImmutableArray()));
+                _cache = ProjectInfoCache.GetOrAdd(GetHashCode(workspace, orderedItems), orderedItems, c => new ProjectInfoCache(orderedItems.ToImmutableArray()));
             }
 
             return _cache;
         }
 
-        private int GetHashCode(IEnumerable<ProjectId> ordereditems)
+        private int GetHashCode(Workspace workspace, IEnumerable<ProjectId> ordereditems)
         {
             var collectionHash = 1;
             foreach (var item in ordereditems)
             {
-                collectionHash = Hash.Combine(item.GetHashCode(), collectionHash);
+                collectionHash = Hash.Combine(workspace.GetProjectName(item), Hash.Combine(item.GetHashCode(), collectionHash));
             }
 
             return collectionHash;
