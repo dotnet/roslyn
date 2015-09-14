@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Immutable;
-using System.Globalization;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 
 namespace Microsoft.CodeAnalysis.Scripting.CSharp
 {
@@ -28,7 +25,11 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
                 previousSubmission = script.Previous.GetCompilation();
             }
 
-            var references = script.GetReferencesForCompilation();
+            var diagnostics = DiagnosticBag.GetInstance();
+            var references = script.GetReferencesForCompilation(MessageProvider.Instance, diagnostics);
+
+            // TODO: report diagnostics
+            diagnostics.Free();
 
             var parseOptions = script.Options.IsInteractive ? s_defaultInteractive : s_defaultScript;
             var tree = SyntaxFactory.ParseSyntaxTree(script.Code, parseOptions, script.Options.Path);
@@ -51,8 +52,8 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
                     platform: Platform.AnyCpu,
                     warningLevel: 4,
                     xmlReferenceResolver: null, // don't support XML file references in interactive (permissions & doc comment includes)
-                    sourceReferenceResolver: null,
-                    metadataReferenceResolver: script.Options.ReferenceResolver,
+                    sourceReferenceResolver: SourceFileResolver.Default,
+                    metadataReferenceResolver: script.Options.MetadataResolver,
                     assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default
                 ),
                 previousSubmission,

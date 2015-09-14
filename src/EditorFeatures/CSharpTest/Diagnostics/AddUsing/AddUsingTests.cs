@@ -699,18 +699,20 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestWithReferenceDirective()
         {
-            // TODO: avoid using real file
-            string path = typeof(System.Linq.Expressions.Expression).Assembly.Location;
+            var resolver = new TestMetadataReferenceResolver(assemblyNames: new Dictionary<string, PortableExecutableReference>()
+            {
+                { "exprs", AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Core).GetReference() }
+            });
 
             Test(
-@"#r """ + path + @"""
+@"#r ""exprs""
 [|Expression|]",
-@"#r """ + path + @"""
+@"#r ""exprs""
 using System.Linq.Expressions;
 
 Expression",
 parseOptions: GetScriptOptions(),
-compilationOptions: TestOptions.ReleaseDll.WithMetadataReferenceResolver(new AssemblyReferenceResolver(MetadataFileReferenceResolver.Default, MetadataFileReferenceProvider.Default)),
+compilationOptions: TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver),
 compareTokens: false);
         }
 

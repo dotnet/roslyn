@@ -47,7 +47,6 @@
       <Link>CoreClrShim.cs</Link>
     </Compile>
     <Compile Include="AdditionalTextFile.cs" />
-    <Compile Include="AssemblyReferenceResolver.cs" />
     <Compile Include="AssemblyUtilities.cs" />
     <Compile Include="Binding\AbstractLookupSymbolsInfo.cs" />
     <Compile Include="CaseInsensitiveComparison.cs" />
@@ -125,7 +124,7 @@
     <Compile Include="CommandLine\CommonCompiler.CompilerEmitStreamProvider.cs" />
     <Compile Include="CommandLine\CommonCompiler.cs" />
     <Compile Include="CommandLine\CommonCompiler.ExistingReferencesResolver.cs" />
-    <Compile Include="CommandLine\CommonCompiler.LoggingMetadataFileResolver.cs" />
+    <Compile Include="CommandLine\CommonCompiler.LoggingMetadataFileReferenceResolver.cs" />
     <Compile Include="CommandLine\CommonCompiler.LoggingSourceFileResolver.cs" />
     <Compile Include="CommandLine\CommonCompiler.LoggingStrongNameProvider.cs" />
     <Compile Include="CommandLine\CommonCompiler.LoggingXmlFileResolver.cs" />
@@ -356,7 +355,6 @@
     <Compile Include="Interop\ClrStrongName.cs" />
     <Compile Include="Interop\IVsSQM.cs" />
     <Compile Include="MemberDescriptor.cs" />
-    <Compile Include="MetadataFileReferenceResolver.cs" />
     <Compile Include="MetadataReader\EmbeddedResource.cs" />
     <Compile Include="MetadataReader\LocalSlotConstraints.cs" />
     <Compile Include="MetadataReader\MetadataDecoder.cs" />
@@ -382,7 +380,6 @@
     <Compile Include="MetadataReference\AssemblyMetadata.cs" />
     <Compile Include="MetadataReference\CompilationReference.cs" />
     <Compile Include="MetadataReference\Metadata.cs" />
-    <Compile Include="MetadataReference\MetadataFileReferenceProvider.cs" />
     <Compile Include="MetadataReference\MetadataImageKind.cs" />
     <Compile Include="MetadataReference\MetadataImageReference.cs" />
     <Compile Include="MetadataReference\MetadataReference.cs" />
@@ -397,7 +394,7 @@
     <Compile Include="FileSystem\PathKind.cs" />
     <Compile Include="FileSystem\PathUtilities.cs" />
     <Compile Include="FileSystem\FileUtilities.cs" />
-    <Compile Include="RelativePathReferenceResolver.cs" />
+    <Compile Include="FileSystem\RelativePathResolver.cs" />
     <Compile Include="PEWriter\Blob.cs" />
     <Compile Include="PEWriter\BlobWriter.cs" />
     <Compile Include="PEWriter\BlobWriterImpl.cs" />

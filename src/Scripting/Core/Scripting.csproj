@@ -50,24 +50,24 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
-      <Link>FusionAssemblyIdentity.cs</Link>
+      <Link>Resolvers\FusionAssemblyIdentity.cs</Link>
     </Compile>
     <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GacFileResolver.cs">
-      <Link>GacFileResolver.cs</Link>
+      <Link>Resolvers\GacFileResolver.cs</Link>
     </Compile>
     <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GlobalAssemblyCache.cs">
-      <Link>GlobalAssemblyCache.cs</Link>
+      <Link>Resolvers\GlobalAssemblyCache.cs</Link>
     </Compile>
     <Compile Include="..\..\Workspaces\Core\Desktop\Utilities\ReferencePathUtilities.cs">
       <Link>ReferencePathUtilities.cs</Link>
     </Compile>
     <Compile Include="AssemblyLoader\AssemblyLoadResult.cs" />
-    <Compile Include="DesktopMetadataReferenceResolver.cs" />
+    <Compile Include="Resolvers\RuntimeMetadataReferenceResolver.cs" />
     <Compile Include="AssemblyLoader\InteractiveAssemblyLoader.cs" />
     <Compile Include="AssemblyLoader\MetadataShadowCopy.cs" />
     <Compile Include="AssemblyLoader\MetadataShadowCopyProvider.cs" />
     <Compile Include="AssemblyLoader\ShadowCopy.cs" />
-    <Compile Include="NuGetPackageResolver.cs" />
+    <Compile Include="Resolvers\NuGetPackageResolver.cs" />
     <Compile Include="ScriptCompilerUtil.cs" />
     <Compile Include="ScriptCompiler.cs" />
     <Compile Include="ScriptRunner.cs" />

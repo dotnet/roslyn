@@ -13,7 +13,7 @@ using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
-    internal sealed class NuGetPackageResolverImpl : WORKSPACES::Microsoft.CodeAnalysis.Scripting.NuGetPackageResolver
+    internal sealed class NuGetPackageResolverImpl : WORKSPACES::Microsoft.CodeAnalysis.Scripting.Hosting.NuGetPackageResolver
     {
         private const string ProjectJsonFramework = "net46";
         private const string ProjectLockJsonFramework = ".NETFramework,Version=v4.6";
