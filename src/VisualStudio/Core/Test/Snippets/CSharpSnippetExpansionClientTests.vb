@@ -228,19 +228,19 @@ using G=   H.I;
             TestProjectionFormatting(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
         End Sub
 
-        <Fact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
+        <WpfFact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
         <Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetFormatting_TabSize_3()
             TestFormattingWithTabSize(3)
         End Sub
 
-        <Fact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
+        <WpfFact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
         <Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetFormatting_TabSize_4()
             TestFormattingWithTabSize(4)
         End Sub
 
-        <Fact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
+        <WpfFact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
         <Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetFormatting_TabSize_5()
             TestFormattingWithTabSize(5)
