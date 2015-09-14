@@ -1822,7 +1822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private IEnumerable<Diagnostic> FreezeDeclarationDiagnostics()
         {
             _declarationDiagnosticsFrozen = true;
-            var result = _lazyDeclarationDiagnostics?.AsEnumerable() ?? Enumerable.Empty<Diagnostic>();
+            var result = _lazyDeclarationDiagnostics ?? Enumerable.Empty<Diagnostic>();
             return result;
         }
 

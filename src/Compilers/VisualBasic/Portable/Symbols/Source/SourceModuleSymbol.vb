@@ -371,7 +371,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' Map diagnostics to new ones.
                     ' Note, it is safe to resolve diagnostics here because we suppress obsolete diagnostics
                     ' in ProjectImportsBinder.
-                    For Each d As Diagnostic In diagBagForThisImport.AsEnumerable()
+                    For Each d As Diagnostic In diagBagForThisImport
                         ' NOTE: Dev10 doesn't report 'ERR_DuplicateImport1' for project level imports. 
                         If d.Code <> ERRID.ERR_DuplicateImport1 Then
                             diagBag.Add(globalImport.MapDiagnostic(d))
@@ -578,7 +578,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' Get all the errors that were generated. 
-            Dim declarationDiagnostics = sourceFile.DeclarationErrors.AsEnumerable()
+            Dim declarationDiagnostics As IEnumerable(Of Diagnostic) = sourceFile.DeclarationErrors
 
             ' Filter diagnostics outside the tree/span of interest.
             If locationFilter IsNot Nothing Then
@@ -777,7 +777,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(diagBag IsNot Nothing)
             Debug.Assert(Not diagBag.IsEmptyWithoutResolution())
 
-            For Each diag In diagBag.AsEnumerable()
+            For Each diag In diagBag
                 Dim cdiag = TryCast(diag, DiagnosticWithInfo)
                 If cdiag Is Nothing OrElse Not cdiag.HasLazyInfo Then
                     Return False

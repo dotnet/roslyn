@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Represents a mutable bag of diagnostics. You can add diagnostics to the bag,
     /// and also get all the diagnostics out of the bag (the bag implements
-    /// IEnumerable&lt;Diagnostics&gt;. Once added, diagnostics cannot be removed, and no ordering
+    /// IEnumerable&lt;Diagnostics&gt;). Once added, diagnostics cannot be removed, and no ordering
     /// is guaranteed.
     /// 
     /// It is ok to Add diagnostics to the same bag concurrently on multiple threads.
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
     /// <remarks>The bag is optimized to be efficient when containing zero errors.</remarks>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     [DebuggerTypeProxy(typeof(DebuggerProxy))]
-    internal sealed class DiagnosticBag
+    internal sealed class DiagnosticBag : IEnumerable<Diagnostic>
     {
         // The lazyBag field is populated lazily -- the first time an error is added.
         private ConcurrentQueue<Diagnostic> _lazyBag;
@@ -143,12 +143,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public void AddRange(DiagnosticBag bag)
         {
-            if (!bag.IsEmptyWithoutResolution)
+            foreach (var diagnostic in bag)
             {
-                foreach (var diagnostic in bag.AsEnumerable())
-                {
-                    this.Bag.Enqueue(diagnostic);
-                }
+                this.Bag.Enqueue(diagnostic);
             }
         }
 
@@ -167,10 +164,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ImmutableArray<TDiagnostic> ToReadOnlyAndFree<TDiagnostic>() where TDiagnostic : Diagnostic
         {
-            ConcurrentQueue<Diagnostic> oldBag = _lazyBag;
+            var result = ToReadOnly<TDiagnostic>();
             Free();
-
-            return ToReadOnlyCore<TDiagnostic>(oldBag);
+            return result;
         }
 
         public ImmutableArray<Diagnostic> ToReadOnlyAndFree()
@@ -180,8 +176,18 @@ namespace Microsoft.CodeAnalysis
 
         public ImmutableArray<TDiagnostic> ToReadOnly<TDiagnostic>() where TDiagnostic : Diagnostic
         {
-            ConcurrentQueue<Diagnostic> oldBag = _lazyBag;
-            return ToReadOnlyCore<TDiagnostic>(oldBag);
+            if (_lazyBag == null)
+            {
+                return ImmutableArray<TDiagnostic>.Empty;
+            }
+
+            ArrayBuilder<TDiagnostic> builder = ArrayBuilder<TDiagnostic>.GetInstance();
+            foreach (TDiagnostic diagnostic in this) // Cast should be safe since all diagnostics should be from same language.
+            {
+                Debug.Assert(diagnostic.Severity != InternalDiagnosticSeverity.Unknown); //Info access should have forced resolution.
+                builder.Add(diagnostic);
+            }
+            return builder.ToImmutableAndFree();
         }
 
         public ImmutableArray<Diagnostic> ToReadOnly()
@@ -189,74 +195,40 @@ namespace Microsoft.CodeAnalysis
             return ToReadOnly<Diagnostic>();
         }
 
-        private static ImmutableArray<TDiagnostic> ToReadOnlyCore<TDiagnostic>(ConcurrentQueue<Diagnostic> oldBag) where TDiagnostic : Diagnostic
+        public Enumerator GetEnumerator()
         {
-            if (oldBag == null)
-            {
-                return ImmutableArray<TDiagnostic>.Empty;
-            }
-
-            ArrayBuilder<TDiagnostic> builder = ArrayBuilder<TDiagnostic>.GetInstance();
-
-            foreach (TDiagnostic diagnostic in new Enumerable(oldBag)) // Cast should be safe since all diagnostics should be from same language.
-            {
-                Debug.Assert(diagnostic.Severity != InternalDiagnosticSeverity.Unknown); //Info access should have forced resolution.
-                builder.Add(diagnostic);
-            }
-
-            return builder.ToImmutableAndFree();
+            return new Enumerator(_lazyBag);
         }
 
-        /// <remarks>
-        /// Generally, this should only be called by the creator (modulo pooling) of the bag (i.e. don't use bags to communicate -
-        /// if you need more info, pass more info).
-        /// </remarks>
-        public Enumerable AsEnumerable()
+        IEnumerator<Diagnostic> IEnumerable<Diagnostic>.GetEnumerator()
         {
-            return new Enumerable(this.Bag);
+            return GetEnumerator();
         }
 
-        internal struct Enumerable : IEnumerable<Diagnostic>
+        IEnumerator IEnumerable.GetEnumerator()
         {
-            private readonly ConcurrentQueue<Diagnostic> _diagnostics;
-
-            internal Enumerable(ConcurrentQueue<Diagnostic> diagnostics)
-            {
-                _diagnostics = diagnostics;
-            }
-
-            public Enumerator GetEnumerator()
-            {
-                return new Enumerator(_diagnostics.GetEnumerator());
-            }
-
-            IEnumerator<Diagnostic> IEnumerable<Diagnostic>.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
+            return GetEnumerator();
         }
 
         internal struct Enumerator : IEnumerator<Diagnostic>
         {
             private readonly IEnumerator<Diagnostic> _diagnostics;
 
-            internal Enumerator(IEnumerator<Diagnostic> diagnostics)
+            internal Enumerator(ConcurrentQueue<Diagnostic> diagnostics)
             {
-                _diagnostics = diagnostics;
+                _diagnostics = (diagnostics == null) ? null : diagnostics.GetEnumerator();
             }
 
             public bool MoveNext()
             {
-                while (_diagnostics.MoveNext())
+                if (_diagnostics != null)
                 {
-                    if (_diagnostics.Current.Severity != InternalDiagnosticSeverity.Void)
+                    while (_diagnostics.MoveNext())
                     {
-                        return true;
+                        if (_diagnostics.Current.Severity != InternalDiagnosticSeverity.Void)
+                        {
+                            return true;
+                        }
                     }
                 }
                 return false;
@@ -274,12 +246,18 @@ namespace Microsoft.CodeAnalysis
 
             void IEnumerator.Reset()
             {
-                _diagnostics.Reset();
+                if (_diagnostics != null)
+                {
+                    _diagnostics.Reset();
+                }
             }
 
             void IDisposable.Dispose()
             {
-                _diagnostics.Dispose();
+                if (_diagnostics != null)
+                {
+                    _diagnostics.Dispose();
+                }
             }
         }
 

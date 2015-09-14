@@ -12585,7 +12585,7 @@ expectedOutput: "-100");
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             methodBodyCompiler.Visit(type);
 
-            Assert.Equal(1, diagnostics.AsEnumerable().Count());
+            Assert.Equal(1, diagnostics.Count());
             diagnostics.Free();
         }
 

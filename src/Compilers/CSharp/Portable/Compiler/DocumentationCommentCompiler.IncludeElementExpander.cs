@@ -639,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!bindingDiagnostics.IsEmptyWithoutResolution && ((SyntaxTree)sourceLocation.SourceTree).ReportDocumentationCommentDiagnostics())
                 {
-                    foreach (Diagnostic diagnostic in bindingDiagnostics.AsEnumerable())
+                    foreach (Diagnostic diagnostic in bindingDiagnostics)
                     {
                         // CONSIDER: Dev11 actually uses the originating location plus the offset into the cref/name
                         _diagnostics.Add(diagnostic.WithLocation(sourceLocation));

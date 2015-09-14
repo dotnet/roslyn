@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var binder = new ExecutableCodeBinder(bodyBlock.Parent, method, parameterBinderContext);
             var diagnostics = new DiagnosticBag();
             var block = (BoundBlock)binder.BindStatement(bodyBlock, diagnostics);
-            AssertEx.SetEqual(errors, diagnostics.AsEnumerable().Select(DumpDiagnostic));
+            AssertEx.SetEqual(errors, diagnostics.Select(DumpDiagnostic));
         }
 
         public void TestWarnings(string code, params string[] expectedWarnings)
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var block = (BoundBlock)binder.BindStatement(bodyBlock, new DiagnosticBag());
             var actualWarnings = new DiagnosticBag();
             DiagnosticsPass.IssueDiagnostics(compilation, block, actualWarnings, method);
-            AssertEx.SetEqual(expectedWarnings, actualWarnings.AsEnumerable().Select(DumpDiagnostic));
+            AssertEx.SetEqual(expectedWarnings, actualWarnings.Select(DumpDiagnostic));
         }
 
         public const string LINQ =

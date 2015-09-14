@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function Parse(importedNames As IEnumerable(Of String)) As IEnumerable(Of GlobalImport)
             Dim errors As DiagnosticBag = DiagnosticBag.GetInstance()
             Dim parsedImports = OptionsValidator.ParseImports(importedNames, errors)
-            Dim firstError = errors.AsEnumerable().FirstOrDefault(Function(diag) diag.Severity = DiagnosticSeverity.Error)
+            Dim firstError = errors.FirstOrDefault(Function(diag) diag.Severity = DiagnosticSeverity.Error)
             errors.Free()
             If firstError IsNot Nothing Then
                 Throw New ArgumentException(firstError.GetMessage(CultureInfo.CurrentUICulture))

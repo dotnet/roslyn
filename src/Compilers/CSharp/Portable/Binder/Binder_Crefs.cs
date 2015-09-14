@@ -920,7 +920,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool HasNonObsoleteError(DiagnosticBag unusedDiagnostics)
         {
-            foreach (Diagnostic diag in unusedDiagnostics.AsEnumerable())
+            foreach (Diagnostic diag in unusedDiagnostics)
             {
                 // CONSIDER: If this check is too slow, we could add a helper to DiagnosticBag
                 // that checks for unrealized diagnostics without expanding them.

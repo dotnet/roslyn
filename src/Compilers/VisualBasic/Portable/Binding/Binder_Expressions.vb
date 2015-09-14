@@ -4630,11 +4630,7 @@ lElseClause:
         End Function
 
         Private Shared Function DiagnosticBagHasErrorsOtherThanObsoleteOnes(bag As DiagnosticBag) As Boolean
-            If bag.IsEmptyWithoutResolution Then
-                Return False
-            End If
-
-            For Each diag In bag.AsEnumerable()
+            For Each diag In bag
                 If diag.Severity = DiagnosticSeverity.Error Then
                     Select Case diag.Code
                         Case ERRID.ERR_UseOfObsoletePropertyAccessor2,
