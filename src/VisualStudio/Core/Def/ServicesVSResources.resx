@@ -489,4 +489,25 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="WRN_MissingAnalyzerReferenceMessage" xml:space="preserve">
     <value>Analyzer assembly '{0}' depends on '{1}' but it was not found. Analyzers may not run correctly.</value>
   </data>
+  <data name="SuppressionStateColumnHeader" xml:space="preserve">
+    <value>Suppression State</value>
+  </data>
+  <data name="SuppressionStateActive" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="SuppressionStateSuppressed" xml:space="preserve">
+    <value>Suppressed</value>
+  </data>
+  <data name="SuppressMultipleOccurrences" xml:space="preserve">
+    <value>Suppress diagnostics</value>
+  </data>
+  <data name="SuppressMultipleOccurrencesForLanguage" xml:space="preserve">
+    <value>Suppress diagnostics ('{0}')</value>
+  </data>
+  <data name="ComputingSuppressionFix" xml:space="preserve">
+    <value>Computing suppressions fix...</value>
+  </data>
+  <data name="ComputingSuppressionFixForLanguage" xml:space="preserve">
+    <value>Computing suppressions fix ('{0}')...</value>
+  </data>
 </root>

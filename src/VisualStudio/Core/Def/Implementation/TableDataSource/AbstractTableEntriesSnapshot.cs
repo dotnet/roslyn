@@ -82,11 +82,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 if (newData != null)
                 {
                     var newItem = newData.Primary;
-                    if (newItem != null && newItem.Equals(item))
-                    {
-                        return index;
-                    }
+                if (newItem != null && newItem.Equals(item))
+                {
+                    return index;
                 }
+            }
             }
 
             // slow path.
@@ -97,11 +97,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 if (newData != null)
                 {
                     var newItem = newData.Primary;
-                    if (IsEquivalent(item, newItem))
-                    {
-                        return i;
-                    }
+                if (IsEquivalent(item, newItem))
+                {
+                    return i;
                 }
+            }
             }
 
             // no similar item exist. table control itself will try to maintain selection
@@ -119,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             StopTracking();
         }
 
-        protected TableItem<TData> GetItem(int index)
+        internal TableItem<TData> GetItem(int index)
         {
             if (index < 0 || _items.Length <= index)
             {
