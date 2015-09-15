@@ -24,9 +24,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             ITextBuffer subjectBuffer,
             ICodeActionEditHandlerService editHandler,
             CodeFix fix,
+            CodeAction action,
             object provider,
             SuggestedActionSet fixAllSuggestedActionSet)
-            : base(workspace, subjectBuffer, editHandler, fix.Action, provider)
+            : base(workspace, subjectBuffer, editHandler, action, provider)
         {
             _fix = fix;
             _fixAllSuggestedActionSet = fixAllSuggestedActionSet;

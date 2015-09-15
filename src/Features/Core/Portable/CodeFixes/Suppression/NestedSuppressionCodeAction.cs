@@ -19,7 +19,5 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         public sealed override string EquivalenceKey => Title + DiagnosticIdForEquivalenceKey;
         public static bool IsEquivalenceKeyForGlobalSuppression(string equivalenceKey) =>
             equivalenceKey.StartsWith(FeaturesResources.SuppressWithGlobalSuppressMessage);
-
-        public abstract bool SupportsFixAllOccurrences { get; }
     }
 }

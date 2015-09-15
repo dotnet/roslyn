@@ -2,9 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Test.Utilities;
@@ -18,6 +20,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTyp
         {
             return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
                 null, new GenerateTypeCodeFixProvider());
+        }
+
+        protected override IList<CodeAction> MassageActions(IList<CodeAction> codeActions)
+        {
+            return FlattenActions(codeActions);
         }
 
         #region Generate Class
@@ -1501,7 +1508,7 @@ index: 1);
         {
             TestSmartTagText(
 @"class C : [|Foo|]",
-string.Format(FeaturesResources.GenerateForInNewFile, "class", "Foo", FeaturesResources.GlobalNamespace));
+string.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Foo", FeaturesResources.GlobalNamespace));
         }
 
         [WorkItem(543853)]
@@ -1571,8 +1578,8 @@ class Program
             TestExactActionSetOffered(code,
                 new[]
                 {
-                    string.Format(FeaturesResources.GenerateForInNewFile, "class", "Foo", FeaturesResources.GlobalNamespace),
-                    string.Format(FeaturesResources.GenerateForIn, "class", "Foo", "Program"),
+                    string.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Foo", FeaturesResources.GlobalNamespace),
+                    string.Format(FeaturesResources.Generate_nested_0_1, "class", "Foo", "Program"),
                     FeaturesResources.GenerateNewType
                 });
 
