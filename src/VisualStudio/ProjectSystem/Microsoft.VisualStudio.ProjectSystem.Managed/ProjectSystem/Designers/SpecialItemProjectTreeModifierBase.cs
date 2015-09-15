@@ -40,14 +40,14 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
             get;
         }
 
-        protected override sealed IProjectTree ApplyModificationsToCompletedTree(IProjectTree root)
+        protected override sealed IProjectTree ApplyModificationsToCompletedTree(IProjectTree projectRoot)
         {
             if (!IsSupported)
-                return root;
+                return projectRoot;
 
-            IProjectTree item = FindCandidateSpecialItem(root);
+            IProjectTree item = FindCandidateSpecialItem(projectRoot);
             if (item == null)
-                return root;
+                return projectRoot;
 
             ProjectImageMoniker icon = GetSpecialItemIcon();
 

@@ -13,33 +13,33 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
         ///     Returns a value indicating whether the specified <see cref="IProjectTree"/> is
         ///     the project root; that is, has the capability <see cref="ProjectTreeCapabilities.ProjectRoot"/>.
         /// </summary>
-        public static bool IsProjectRoot(this IProjectTree tree)
+        public static bool IsProjectRoot(this IProjectTree node)
         {
-            Requires.NotNull(tree, nameof(tree));
+            Requires.NotNull(node, nameof(node));
 
-            return tree.HasCapability(ProjectTreeCapabilities.ProjectRoot);
+            return node.HasCapability(ProjectTreeCapabilities.ProjectRoot);
         }
 
         /// <summary>
         ///     Returns a value indicating whether the specified <see cref="IProjectTree"/> has
         ///     the specified capability.
         /// </summary>
-        public static bool HasCapability(this IProjectTree tree, string capability)
+        public static bool HasCapability(this IProjectTree node, string capability)
         {
-            Requires.NotNull(tree, nameof(tree));
+            Requires.NotNull(node, nameof(node));
 
-            return tree.Capabilities.Contains(capability); 
+            return node.Capabilities.Contains(capability); 
         }
 
         /// <summary>
         ///     Returns a value indicating whether the specified <see cref="IProjectTree"/> is 
         ///     included as part of the project.
         /// </summary>
-        public static bool IsIncludedInProject(this IProjectTree tree)
+        public static bool IsIncludedInProject(this IProjectTree node)
         {
-            Requires.NotNull(tree, nameof(tree));
+            Requires.NotNull(node, nameof(node));
 
-            return !tree.HasCapability(ProjectTreeCapabilities.IncludeInProjectCandidate);
+            return !node.HasCapability(ProjectTreeCapabilities.IncludeInProjectCandidate);
         }
     }
 }

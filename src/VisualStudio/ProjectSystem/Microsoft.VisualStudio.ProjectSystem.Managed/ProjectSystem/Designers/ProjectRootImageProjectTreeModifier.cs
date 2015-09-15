@@ -23,16 +23,16 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
             _provider = provider;
         }
 
-        protected override IProjectTree ApplyInitialModifications(IProjectTree tree)
+        protected override IProjectTree ApplyInitialModifications(IProjectTree node)
         {
-            if (!tree.IsProjectRoot())
-                return tree;
+            if (!node.IsProjectRoot())
+                return node;
 
             ProjectImageMoniker icon;
-            if (!_provider.TryGetProjectImage(ProjectImageKey.ProjectRoot, out icon) || tree.Icon == icon)
-                return tree;
+            if (!_provider.TryGetProjectImage(ProjectImageKey.ProjectRoot, out icon) || node.Icon == icon)
+                return node;
 
-            return tree.SetIcon(icon);
+            return node.SetIcon(icon);
         }
     }
 }
