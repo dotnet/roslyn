@@ -113,13 +113,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var metadataProvider = GetMetadataProvider();
             var xmlFileResolver = new LoggingXmlFileResolver(Arguments.BaseDirectory, touchedFilesLogger);
             var sourceFileResolver = new LoggingSourceFileResolver(ImmutableArray<string>.Empty, Arguments.BaseDirectory, touchedFilesLogger);
 
-            var externalReferenceResolver = GetExternalMetadataResolver(touchedFilesLogger);
-            MetadataFileReferenceResolver referenceDirectiveResolver;
-            var resolvedReferences = ResolveMetadataReferences(externalReferenceResolver, metadataProvider, diagnostics, assemblyIdentityComparer, touchedFilesLogger, out referenceDirectiveResolver);
+            MetadataReferenceResolver referenceDirectiveResolver;
+            var resolvedReferences = ResolveMetadataReferences(diagnostics, touchedFilesLogger, out referenceDirectiveResolver);
             if (ReportErrors(diagnostics, consoleOutput, errorLogger))
             {
                 return null;
@@ -132,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 trees.WhereNotNull(),
                 resolvedReferences,
                 Arguments.CompilationOptions.
-                    WithMetadataReferenceResolver(new AssemblyReferenceResolver(referenceDirectiveResolver, metadataProvider)).
+                    WithMetadataReferenceResolver(referenceDirectiveResolver).
                     WithAssemblyIdentityComparer(assemblyIdentityComparer).
                     WithStrongNameProvider(strongNameProvider).
                     WithXmlReferenceResolver(xmlFileResolver).

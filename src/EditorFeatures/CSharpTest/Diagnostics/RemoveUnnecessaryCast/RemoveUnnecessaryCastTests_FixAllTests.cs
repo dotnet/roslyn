@@ -179,7 +179,7 @@ class Program3
     </Project>
 </Workspace>";
 
-            Test(input, expected, isLine: false, compareTokens: false, fixAllActionEquivalenceKey: null);
+            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null);
         }
 
         [Fact]
@@ -323,7 +323,7 @@ class Program3
     </Project>
 </Workspace>";
 
-            Test(input, expected, isLine: false, compareTokens: false, fixAllActionEquivalenceKey: null);
+            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null);
         }
 
         [Fact]
@@ -467,7 +467,7 @@ class Program3
     </Project>
 </Workspace>";
 
-            Test(input, expected, isLine: false, compareTokens: false, fixAllActionEquivalenceKey: null);
+            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null);
         }
         #endregion
     }

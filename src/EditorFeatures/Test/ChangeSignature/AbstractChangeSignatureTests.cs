@@ -32,14 +32,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         {
             if (expectedCodeAction)
             {
-                using (var workspace = CreateWorkspaceFromFile(markup, null, null))
+                using (var workspace = CreateWorkspaceFromFile(markup, parseOptions: null, compilationOptions: null))
                 {
                     var optionsService = workspace.Services.GetService<IChangeSignatureOptionsService>() as TestChangeSignatureOptionsService;
                     optionsService.IsCancelled = isCancelled;
                     optionsService.UpdatedSignature = updatedSignature;
 
-                    var codeIssueOrRefactoring = GetCodeRefactoring(workspace, null);
-                    TestActions(workspace, expectedCode, index, codeIssueOrRefactoring.Actions.ToList());
+                    var codeIssueOrRefactoring = GetCodeRefactoring(workspace);
+                    TestActions(workspace, expectedCode, index, codeIssueOrRefactoring.Actions.ToList(),
+                        conflictSpans: null, renameSpans: null, warningSpans: null, compareTokens: true);
                 }
             }
             else

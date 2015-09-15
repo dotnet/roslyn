@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System.Collections.Concurrent;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -7,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.UseAutoProperty;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
 {
@@ -81,11 +83,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
         protected override ExpressionSyntax GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken)
         {
             var getAccessor = getMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken) as AccessorDeclarationSyntax;
-            var firstStatement = getAccessor?.Body.Statements.SingleOrDefault();
-            if (firstStatement?.Kind() == SyntaxKind.ReturnStatement)
+            var statements = getAccessor?.Body?.Statements;
+            if (statements?.Count == 1)
             {
-                var expr = ((ReturnStatementSyntax)firstStatement).Expression;
-                return CheckExpressionSyntactically(expr) ? expr : null;
+                // this only works with a getter body with exactly one statement
+                var firstStatement = statements.Value[0];
+                if (firstStatement.Kind() == SyntaxKind.ReturnStatement)
+                {
+                    var expr = ((ReturnStatementSyntax)firstStatement).Expression;
+                    return CheckExpressionSyntactically(expr) ? expr : null;
+                }
             }
 
             return null;

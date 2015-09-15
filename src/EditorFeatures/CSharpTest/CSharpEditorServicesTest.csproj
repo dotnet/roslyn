@@ -234,6 +234,7 @@
     <Compile Include="Diagnostics\RemoveUnnecessaryUsings\RemoveUnnecessaryUsingsTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\SimplifyTypeNames\SimplifyTypeNamesTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\SimplifyTypeNames\SimplifyTypeNamesTests.cs" />
+    <Compile Include="Diagnostics\Suppression\SuppressionTest_FixAllTests.cs" />
     <Compile Include="Diagnostics\Suppression\SuppressionAllCodeTests.cs" />
     <Compile Include="Diagnostics\Suppression\SuppressionTests.cs" />
     <Compile Include="DocumentationComments\DocumentationCommentTests.cs" />

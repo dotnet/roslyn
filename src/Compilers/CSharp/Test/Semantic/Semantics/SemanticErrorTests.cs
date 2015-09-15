@@ -15121,7 +15121,7 @@ public class Child2 : Parent
 
             compilation.VerifyDiagnostics(expected);
 
-            compilation.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, compilation.SyntaxTrees.Single(), null, true).Verify(expected);
+            compilation.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, compilation.SyntaxTrees.Single(), null, true, false, CancellationToken.None).Verify(expected);
         }
 
         [WorkItem(539631, "DevDiv")]

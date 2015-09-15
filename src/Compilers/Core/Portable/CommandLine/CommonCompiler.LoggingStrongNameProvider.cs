@@ -8,19 +8,19 @@ namespace Microsoft.CodeAnalysis
     {
         internal sealed class LoggingStrongNameProvider : DesktopStrongNameProvider
         {
-            private readonly TouchedFileLogger _logger;
+            private readonly TouchedFileLogger _loggerOpt;
 
             public LoggingStrongNameProvider(ImmutableArray<string> keyFileSearchPaths, TouchedFileLogger logger)
                 : base(keyFileSearchPaths)
             {
-                _logger = logger;
+                _loggerOpt = logger;
             }
 
             internal override bool FileExists(string fullPath)
             {
-                if (_logger != null && fullPath != null)
+                if (fullPath != null)
                 {
-                    _logger.AddRead(fullPath);
+                    _loggerOpt?.AddRead(fullPath);
                 }
 
                 return base.FileExists(fullPath);
@@ -28,11 +28,7 @@ namespace Microsoft.CodeAnalysis
 
             internal override byte[] ReadAllBytes(string fullPath)
             {
-                if (_logger != null)
-                {
-                    _logger.AddRead(fullPath);
-                }
-
+                _loggerOpt?.AddRead(fullPath);
                 return base.ReadAllBytes(fullPath);
             }
         }

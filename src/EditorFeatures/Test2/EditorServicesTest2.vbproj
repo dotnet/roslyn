@@ -175,6 +175,7 @@
     <Compile Include="Diagnostics\InMemoryAssemblyLoader.vb" />
     <Compile Include="Diagnostics\UseAutoProperty\UseAutoPropertyTests.vb" />
     <Compile Include="LanguageServices\SyntaxFactsServiceTests.vb" />
+    <Compile Include="Simplification\SimplifierAPITests.vb" />
     <Compile Include="Utilities\MockDocumentNavigationServiceProvider.vb" />
     <Compile Include="Utilities\MockSymbolNavigationServiceProvider.vb" />
     <Compile Include="CodeFixes\CodeFixServiceTests.vb" />

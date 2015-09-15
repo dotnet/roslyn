@@ -97,5 +97,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return _originalVariable.GetConstantValueDiagnostics(boundInitValue);
         }
+
+        internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)
+        {
+            var origSynthesized = (SynthesizedLocal)_originalVariable;
+            return new TypeSubstitutedLocalSymbol(
+                    origSynthesized.WithSynthesizedLocalKindAndSyntax(kind, syntax),
+                    _type,
+                    _containingSymbol
+                );
+        }
     }
 }

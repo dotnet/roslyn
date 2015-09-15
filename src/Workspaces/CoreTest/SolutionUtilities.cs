@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class SolutionUtilities
     {
-        private static ProjectChanges GetSingleChangedProjectChanges(Solution oldSolution, Solution newSolution)
+        public static ProjectChanges GetSingleChangedProjectChanges(Solution oldSolution, Solution newSolution)
         {
             var solutionDifferences = newSolution.GetChanges(oldSolution);
             var projectId = solutionDifferences.GetProjectChanges().Single().ProjectId;

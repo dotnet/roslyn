@@ -11,14 +11,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     internal interface ISuppressionFixProvider
     {
         /// <summary>
-        /// Returns true if the given diagnostic can be suppressed.
+        /// Returns true if the given diagnostic can be suppressed or triaged.
         /// </summary>
         bool CanBeSuppressed(Diagnostic diagnostic);
 
         /// <summary>
-        /// Gets one or more suppression fixes for the specified diagnostics represented as a list of <see cref="CodeAction"/>'s.
+        /// Gets one or more suppression or triage fixes for the specified diagnostics represented as a list of <see cref="CodeAction"/>'s.
         /// </summary>
         /// <returns>A list of zero or more potential <see cref="CodeFix"/>'es. It is also safe to return null if there are none.</returns>
         Task<IEnumerable<CodeFix>> GetSuppressionsAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Gets an optional <see cref="FixAllProvider"/> that can fix all/multiple occurrences of diagnostics fixed by this fix provider.
+        /// Return null if the provider doesn't support fix all/multiple occurrences.
+        /// Otherwise, you can return any of the well known fix all providers from <see cref="WellKnownFixAllProviders"/> or implement your own fix all provider.
+        /// </summary>
+        FixAllProvider GetFixAllProvider();
     }
 }

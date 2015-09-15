@@ -425,7 +425,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 For Each initializerGroup In initializers
                     If Not initializerGroup.IsEmpty Then
                         For Each initializer In initializerGroup
-                            For Each fieldOrProperty In initializer.FieldsOrProperty
+                            For Each fieldOrProperty In initializer.FieldsOrProperties
                                 Debug.Assert(fieldOrProperty.Kind = SymbolKind.Field)
                                 Debug.Assert(DirectCast(fieldOrProperty, FieldSymbol).IsConst)
                             Next

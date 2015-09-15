@@ -97,10 +97,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(loweringKind);
             }
 
-            BoundExpression loweredAccessExpression = used ?
-                        this.VisitExpression(node.AccessExpression) :
-                        this.VisitUnusedExpression(node.AccessExpression);
+            BoundExpression loweredAccessExpression;
+            
+            if (used)
+            {
+                loweredAccessExpression = this.VisitExpression(node.AccessExpression);
+            }
+            else
+            {
+                loweredAccessExpression = this.VisitUnusedExpression(node.AccessExpression);
+                if (loweredAccessExpression == null)
+                {
+                    return null;
+                }
+            }
 
+            Debug.Assert(loweredAccessExpression != null);
             _currentConditionalAccessTarget = previousConditionalAccessTarget;
 
             TypeSymbol type = this.VisitType(node.Type);

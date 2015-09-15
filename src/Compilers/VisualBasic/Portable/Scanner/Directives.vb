@@ -265,6 +265,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Private ReadOnly _symbols As ImmutableDictionary(Of String, CConst)
             Private ReadOnly _conditionals As ImmutableStack(Of ConditionalState)
             Private ReadOnly _regionDirectives As ImmutableStack(Of RegionDirectiveTriviaSyntax)
+            Private ReadOnly _haveSeenRegionDirectives As Boolean
             Private ReadOnly _externalSourceDirective As ExternalSourceDirectiveTriviaSyntax
 
             Friend Sub New(symbols As ImmutableDictionary(Of String, CConst))
@@ -276,11 +277,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Private Sub New(symbols As ImmutableDictionary(Of String, CConst),
                     conditionals As ImmutableStack(Of ConditionalState),
                     regionDirectives As ImmutableStack(Of RegionDirectiveTriviaSyntax),
+                    haveSeenRegionDirectives As Boolean,
                     externalSourceDirective As ExternalSourceDirectiveTriviaSyntax)
 
                 Me._symbols = symbols
                 Me._conditionals = conditionals
                 Me._regionDirectives = regionDirectives
+                Me._haveSeenRegionDirectives = haveSeenRegionDirectives
                 Me._externalSourceDirective = externalSourceDirective
             End Sub
 
@@ -293,7 +296,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Private Function SetSymbol(name As String, value As CConst) As PreprocessorState
                 Dim symbols = Me._symbols
                 symbols = symbols.SetItem(name, value)
-                Return New PreprocessorState(symbols, Me._conditionals, Me._regionDirectives, Me._externalSourceDirective)
+                Return New PreprocessorState(symbols, Me._conditionals, Me._regionDirectives, Me._haveSeenRegionDirectives, Me._externalSourceDirective)
             End Function
 
             Friend ReadOnly Property ConditionalStack As ImmutableStack(Of ConditionalState)
@@ -303,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Property
 
             Private Function WithConditionals(conditionals As ImmutableStack(Of ConditionalState)) As PreprocessorState
-                Return New PreprocessorState(Me._symbols, conditionals, Me._regionDirectives, Me._externalSourceDirective)
+                Return New PreprocessorState(Me._symbols, conditionals, Me._regionDirectives, Me._haveSeenRegionDirectives, Me._externalSourceDirective)
             End Function
 
             Friend ReadOnly Property RegionDirectiveStack As ImmutableStack(Of RegionDirectiveTriviaSyntax)
@@ -312,8 +315,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End Get
             End Property
 
+            Friend ReadOnly Property HaveSeenRegionDirectives As Boolean
+                Get
+                    Return _haveSeenRegionDirectives
+                End Get
+            End Property
+
             Private Function WithRegions(regions As ImmutableStack(Of RegionDirectiveTriviaSyntax)) As PreprocessorState
-                Return New PreprocessorState(Me._symbols, Me._conditionals, regions, Me._externalSourceDirective)
+                Return New PreprocessorState(Me._symbols, Me._conditionals, regions, Me._haveSeenRegionDirectives OrElse regions.Count > 0, Me._externalSourceDirective)
             End Function
 
             Friend ReadOnly Property ExternalSourceDirective As ExternalSourceDirectiveTriviaSyntax
@@ -323,7 +332,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Property
 
             Private Function WithExternalSource(externalSource As ExternalSourceDirectiveTriviaSyntax) As PreprocessorState
-                Return New PreprocessorState(Me._symbols, Me._conditionals, Me._regionDirectives, externalSource)
+                Return New PreprocessorState(Me._symbols, Me._conditionals, Me._regionDirectives, Me._haveSeenRegionDirectives, externalSource)
             End Function
 
             Friend Function InterpretConstDirective(ByRef statement As DirectiveTriviaSyntax) As PreprocessorState
@@ -498,6 +507,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return False
                 End If
 
+                If Me._haveSeenRegionDirectives <> other._haveSeenRegionDirectives Then
+                    Return False
+                End If
+
                 Return True
             End Function
 
@@ -609,6 +622,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend Function RecoverFromMissingConditionalEnds(eof As PunctuationSyntax,
                                                           <Out> ByRef notClosedIfDirectives As ArrayBuilder(Of IfDirectiveTriviaSyntax),
                                                           <Out> ByRef notClosedRegionDirectives As ArrayBuilder(Of RegionDirectiveTriviaSyntax),
+                                                          <Out> ByRef haveRegionDirectives As Boolean,
                                                           <Out> ByRef notClosedExternalSourceDirective As ExternalSourceDirectiveTriviaSyntax) As PunctuationSyntax
 
             notClosedIfDirectives = Nothing
@@ -636,6 +650,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 notClosedRegionDirectives.AddRange(Me._scannerPreprocessorState.RegionDirectiveStack)
             End If
 
+            haveRegionDirectives = Me._scannerPreprocessorState.HaveSeenRegionDirectives
             notClosedExternalSourceDirective = Me._scannerPreprocessorState.ExternalSourceDirective
 
             Return eof

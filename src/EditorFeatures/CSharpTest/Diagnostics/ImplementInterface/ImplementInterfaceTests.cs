@@ -2234,11 +2234,7 @@ public class Test : IFoo
 }
 ";
 
-            using (var workspace = TestWorkspaceFactory.CreateWorkspace(initial))
-            {
-                var diagnosticAndFixes = GetDiagnosticAndFix(workspace);
-                TestActions(workspace, expected, 1, diagnosticAndFixes.Item2.Fixes.Select(f => f.Action).ToList());
-            }
+            Test(initial, expected, index: 1);
         }
 
         [WorkItem(602475)]
@@ -2283,11 +2279,7 @@ class C : I
 }
 ";
 
-            using (var workspace = TestWorkspaceFactory.CreateWorkspace(initial))
-            {
-                var diagnosticAndFixes = GetDiagnosticAndFix(workspace);
-                TestActions(workspace, expected, 0, diagnosticAndFixes.Item2.Fixes.Select(f => f.Action).ToList());
-            }
+            Test(initial, expected, index: 0);
         }
 
 #if false
