@@ -258,7 +258,17 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="equivalenceKey">Optional value used to determine the equivalence of the <see cref="CodeAction"/> with other <see cref="CodeAction"/>s. See <see cref="CodeAction.EquivalenceKey"/>.</param>
         public static CodeAction Create(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey = null)
         {
-            return Create(title, createChangedDocument, nestedActions: null, equivalenceKey: equivalenceKey);
+            if (title == null)
+            {
+                throw new ArgumentNullException(nameof(title));
+            }
+
+            if (createChangedDocument == null)
+            {
+                throw new ArgumentNullException(nameof(createChangedDocument));
+            }
+
+            return new DocumentChangeAction(title, createChangedDocument, equivalenceKey);
         }
 
         /// <summary>
@@ -270,34 +280,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="equivalenceKey">Optional value used to determine the equivalence of the <see cref="CodeAction"/> with other <see cref="CodeAction"/>s. See <see cref="CodeAction.EquivalenceKey"/>.</param>
         public static CodeAction Create(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey = null)
         {
-            return Create(title, createChangedSolution, nestedActions: null, equivalenceKey: equivalenceKey);
-        }
-
-        /// <summary>
-        /// Creates a <see cref="CodeAction"/> for a change to a single <see cref="Document"/>. 
-        /// The code action can also provide nested actions the user can choose to invoke.
-        /// </summary>
-        public static CodeAction Create(string title, Func<CancellationToken, Task<Document>> createChangedDocument, IEnumerable<CodeAction> nestedActions, string equivalenceKey = null)
-        {
-            if (title == null)
-            {
-                throw new ArgumentNullException(nameof(title));
-            }
-
-            if (createChangedDocument == null)
-            {
-                throw new ArgumentNullException(nameof(createChangedDocument));
-            }
-
-            return new DocumentChangeAction(title, createChangedDocument, nestedActions.AsImmutableOrEmpty(), equivalenceKey);
-        }
-
-        /// <summary>
-        /// Creates a <see cref="CodeAction"/> for a change to more than one <see cref="Document"/> within a <see cref="Solution"/>.
-        /// The code action can also provide nested actions the user can choose to invoke.
-        /// </summary>
-        public static CodeAction Create(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, IEnumerable<CodeAction> nestedActions, string equivalenceKey = null)
-        {
             if (title == null)
             {
                 throw new ArgumentNullException(nameof(title));
@@ -308,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 throw new ArgumentNullException(nameof(createChangedSolution));
             }
 
-            return new SolutionChangeAction(title, createChangedSolution, nestedActions.AsImmutableOrEmpty(), equivalenceKey);
+            return new SolutionChangeAction(title, createChangedSolution, equivalenceKey);
         }
 
         /// <summary>
@@ -359,12 +341,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             private readonly Func<CancellationToken, Task<Document>> _createChangedDocument;
 
             public DocumentChangeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey = null)
-                : this(title, createChangedDocument, nestedActions: ImmutableArray<CodeAction>.Empty, equivalenceKey: equivalenceKey)
-            {
-            }
-
-            public DocumentChangeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, ImmutableArray<CodeAction> nestedActions, string equivalenceKey = null)
-                : base(title, nestedActions, equivalenceKey)
+                : base(title, nestedActions: ImmutableArray<CodeAction>.Empty, equivalenceKey: equivalenceKey)
             {
                 _createChangedDocument = createChangedDocument;
             }
@@ -382,12 +359,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             private readonly Func<CancellationToken, Task<Solution>> _createChangedSolution;
 
             public SolutionChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey = null)
-                : this(title, createChangedSolution, nestedActions: ImmutableArray<CodeAction>.Empty, equivalenceKey: equivalenceKey)
-            {
-            }
-
-            public SolutionChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, ImmutableArray<CodeAction> nestedActions, string equivalenceKey = null)
-                : base(title, nestedActions, equivalenceKey)
+                : base(title, nestedActions: ImmutableArray<CodeAction>.Empty, equivalenceKey: equivalenceKey)
             {
                 _createChangedSolution = createChangedSolution;
             }

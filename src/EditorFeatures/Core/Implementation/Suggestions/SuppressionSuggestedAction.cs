@@ -43,8 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             get
             {
-                var suppressionAction = (SuppressionCodeAction)this.CodeAction;
-                return suppressionAction.GetCodeActions().Any();
+                return this.CodeAction.GetCodeActions().Any();
             }
         }
 
@@ -58,13 +57,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return Task.FromResult(_actionSets);
             }
 
-            var suppressionAction = (SuppressionCodeAction)this.CodeAction;
-            if (suppressionAction.GetCodeActions().Any())
+            if (this.CodeAction.GetCodeActions().Any())
             {
                 var nestedSuggestedActions = ImmutableArray.CreateBuilder<SuggestedAction>();
-                var fixCount = suppressionAction.GetCodeActions().Count();
+                var fixCount = this.CodeAction.GetCodeActions().Count();
 
-                foreach (var c in suppressionAction.GetCodeActions())
+                foreach (var c in this.CodeAction.GetCodeActions())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
