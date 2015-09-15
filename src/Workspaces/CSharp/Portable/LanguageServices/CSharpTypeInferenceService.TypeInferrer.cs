@@ -573,6 +573,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var typeArguments = method.ConstructedFrom.TypeParameters.Select(tp => bestMap.GetValueOrDefault(tp) ?? tp).ToArray();
+
+                if (!ReferenceEquals(method, method.ConstructedFrom))
+                {
+                    return method.ConstructedFrom.Construct(typeArguments);
+                }
+
                 return method.Construct(typeArguments);
             }
 
