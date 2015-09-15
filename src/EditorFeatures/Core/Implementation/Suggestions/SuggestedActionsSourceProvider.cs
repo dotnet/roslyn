@@ -160,9 +160,67 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var fixes = GetCodeFixes(supportSuggestion, requestedActionCategories, workspace, document, range, cancellationToken);
                     var refactorings = GetRefactorings(supportSuggestion, requestedActionCategories, workspace, document, range, cancellationToken);
 
-                    return (fixes == null) ? refactorings :
-                                (refactorings == null) ? fixes : fixes.Concat(refactorings);
+                    var result = fixes == null ? refactorings : refactorings == null 
+                                               ? fixes : fixes.Concat(refactorings);
+
+                    if (result == null)
+                    {
+                        return null;
+                    }
+
+                    var allActionSets = result.ToList();
+                    allActionSets = InlineActionSetsIfDesirable(allActionSets);
+                    return allActionSets;
                 }
+            }
+
+            private List<SuggestedActionSet> InlineActionSetsIfDesirable(List<SuggestedActionSet> allActionSets)
+            {
+                // If we only have a single set of items, and that set only has three max suggestion 
+                // offered.  Then we can consider inlining any nested actions into the top level list.
+                // (but we only do this if the parent of the nested actions isn't invokable itself).
+                if (allActionSets.Sum(a => a.Actions.Count()) > 3)
+                {
+                    return allActionSets;
+                }
+
+                return allActionSets.Select(InlineActions).ToList();
+            }
+
+            private bool IsInlineable(ISuggestedAction action)
+            {
+                var suggestedAction = action as SuggestedAction;
+                return suggestedAction != null &&
+                         !suggestedAction.CodeAction.IsInvokable &&
+                         suggestedAction.CodeAction.HasCodeActions;
+            }
+
+            private SuggestedActionSet InlineActions(SuggestedActionSet actionSet)
+            {
+                if (!actionSet.Actions.Any(IsInlineable))
+                {
+                    return actionSet;
+                }
+
+                var newActions = new List<ISuggestedAction>();
+                foreach (var action in actionSet.Actions)
+                {
+                    if (IsInlineable(action))
+                    {
+                        // Looks like something we can inline.
+                        var childActionSets = ((SuggestedAction)action).GetActionSets();
+                        if (childActionSets.Length != 1)
+                        {
+                            return actionSet;
+                        }
+
+                        newActions.AddRange(childActionSets[0].Actions);
+                    }
+
+                    newActions.Add(action);
+                }
+
+                return new SuggestedActionSet(newActions, actionSet.Title, actionSet.Priority, actionSet.ApplicableToSpan);
             }
 
             private IEnumerable<SuggestedActionSet> GetCodeFixes(
@@ -225,9 +283,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         // Suppression fixes are handled below.
                         if (!(fix.Action is SuppressionCodeAction))
                         {
+                            SuggestedAction suggestedAction;
+                            if (fix.Action.HasCodeActions)
+                            {
+                                var nestedActions = new List<SuggestedAction>();
+                                foreach (var nestedAction in fix.Action.GetCodeActions())
+                                {
+                                    nestedActions.Add(new CodeFixSuggestedAction(workspace, _subjectBuffer, _owner._editHandler,
+                                        fix, nestedAction, fixCollection.Provider, getFixAllSuggestedActionSet(nestedAction)));
+                                }
 
-                            var suggestedAction = new CodeFixSuggestedAction(workspace, _subjectBuffer, _owner._editHandler,
-                                fix, fixCollection.Provider, getFixAllSuggestedActionSet(fix.Action));
+                                var diag = fix.Diagnostics[0];
+                                var set = new SuggestedActionSet(nestedActions, SuggestedActionSetPriority.Medium, GetApplicableToSpan(diag));
+
+                                suggestedAction = new SuggestedAction(workspace, _subjectBuffer, _owner._editHandler,
+                                    fix.Action, fixCollection.Provider, new[] { set });
+                            }
+                            else
+                            {
+                                suggestedAction = new CodeFixSuggestedAction(workspace, _subjectBuffer, _owner._editHandler,
+                                    fix, fix.Action, fixCollection.Provider, getFixAllSuggestedActionSet(fix.Action));
+                            }
 
                             AddFix(fix, suggestedAction, map, order);
                         }
@@ -283,12 +359,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var fixes = map[diag];
 
                     var priority = fixes.All(s => s is SuppressionSuggestedAction) ? SuggestedActionSetPriority.None : SuggestedActionSetPriority.Medium;
-                    var applicableToSpan = new Span(diag.Location.SourceSpan.Start, diag.Location.SourceSpan.Length);
+                    var applicableToSpan = GetApplicableToSpan(diag);
 
                     sets.Add(new SuggestedActionSet(fixes, priority, applicableToSpan));
                 }
 
                 return sets.ToImmutable();
+            }
+
+            private static Span GetApplicableToSpan(Diagnostic diag)
+            {
+                return new Span(diag.Location.SourceSpan.Start, diag.Location.SourceSpan.Length);
             }
 
             private IEnumerable<SuggestedActionSet> GetRefactorings(

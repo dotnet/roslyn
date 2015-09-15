@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Option Strict Off
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
@@ -15,6 +16,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
             Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, New GenerateTypeCodeFixProvider())
+        End Function
+
+        Protected Overrides Function MassageActions(actions As IList(Of CodeAction)) As IList(Of CodeAction)
+            Return FlattenActions(actions)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -467,7 +472,7 @@ Class Program
 End Class
 #End ExternalSource
 </text>.NormalizedValue,
-{String.Format(FeaturesResources.GenerateForInNewFile, "class", "Foo", FeaturesResources.GlobalNamespace), String.Format(FeaturesResources.GenerateForIn, "class", "Foo", "Program"), FeaturesResources.GenerateNewType})
+{String.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Foo", FeaturesResources.GlobalNamespace), String.Format(FeaturesResources.Generate_nested_0_1, "class", "Foo", "Program"), FeaturesResources.GenerateNewType})
         End Sub
 
         <WorkItem(545363)>
@@ -486,7 +491,9 @@ Class Bar
 End Class
 #End ExternalSource
 </text>.NormalizedValue,
-{String.Format(FeaturesResources.GenerateForInNewFile, "class", "Foo", FeaturesResources.GlobalNamespace), String.Format(FeaturesResources.GenerateForIn, "class", "Foo", FeaturesResources.GlobalNamespace), String.Format(FeaturesResources.GenerateForIn, "class", "Foo", "Program"), FeaturesResources.GenerateNewType})
+{String.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Foo", FeaturesResources.GlobalNamespace),
+String.Format(FeaturesResources.Generate_0_1, "class", "Foo", FeaturesResources.GlobalNamespace),
+String.Format(FeaturesResources.Generate_nested_0_1, "class", "Foo"), FeaturesResources.GenerateNewType})
         End Sub
 
         <WorkItem(545363)>
@@ -858,6 +865,10 @@ index:=2)
                 Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
                     New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(),
                     New GenerateTypeCodeFixProvider())
+            End Function
+
+            Protected Overrides Function MassageActions(actions As IList(Of CodeAction)) As IList(Of CodeAction)
+                Return FlattenActions(actions)
             End Function
 
             <WorkItem(829970)>

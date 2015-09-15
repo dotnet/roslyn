@@ -818,6 +818,42 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Generate {0} &apos;{1}&apos;.
+        /// </summary>
+        internal static string Generate_0_1 {
+            get {
+                return ResourceManager.GetString("Generate_0_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate {0} &apos;{1}&apos; in new file.
+        /// </summary>
+        internal static string Generate_0_1_in_new_file {
+            get {
+                return ResourceManager.GetString("Generate_0_1_in_new_file", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate nested {0} &apos;{1}&apos;.
+        /// </summary>
+        internal static string Generate_nested_0_1 {
+            get {
+                return ResourceManager.GetString("Generate_nested_0_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate type.
+        /// </summary>
+        internal static string Generate_type {
+            get {
+                return ResourceManager.GetString("Generate_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Generate abstract method &apos;{0}&apos; in &apos;{1}&apos;.
         /// </summary>
         internal static string GenerateAbstractMethod {
@@ -922,24 +958,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string GenerateFieldIn {
             get {
                 return ResourceManager.GetString("GenerateFieldIn", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generate {0} for &apos;{1}&apos; in &apos;{2}&apos;.
-        /// </summary>
-        internal static string GenerateForIn {
-            get {
-                return ResourceManager.GetString("GenerateForIn", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generate {0} for &apos;{1}&apos; in &apos;{2}&apos; (in new file).
-        /// </summary>
-        internal static string GenerateForInNewFile {
-            get {
-                return ResourceManager.GetString("GenerateForInNewFile", resourceCulture);
             }
         }
         

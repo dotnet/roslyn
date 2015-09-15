@@ -99,7 +99,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        protected abstract IList<CodeAction> GetCodeActions(TestWorkspace workspace, string fixAllActionEquivalenceKey);
+        protected IList<CodeAction> GetCodeActions(TestWorkspace workspace, string fixAllActionEquivalenceKey)
+        {
+            return MassageActions(GetCodeActionsWorker(workspace, fixAllActionEquivalenceKey));
+        }
+
+        protected abstract IList<CodeAction> GetCodeActionsWorker(TestWorkspace workspace, string fixAllActionEquivalenceKey);
 
         protected void TestSmartTagText(
             string initialMarkup,
@@ -299,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 var suppressionAction = actions.Single() as SuppressionCodeAction;
                 if (suppressionAction != null)
                 {
-                    actions = suppressionAction.NestedActions.ToList<CodeAction>();
+                    actions = suppressionAction.GetCodeActions().ToList();
                 }
             }
 
@@ -318,6 +323,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var newSolution = applyChangesOperation.ChangedSolution;
 
             return Tuple.Create(oldSolution, newSolution);
+        }
+
+        protected virtual IList<CodeAction> MassageActions(IList<CodeAction> actions)
+        {
+            return actions;
+        }
+
+        protected static IList<CodeAction> FlattenActions(IEnumerable<CodeAction> codeActions)
+        {
+            return codeActions?.SelectMany(a => a.HasCodeActions ? a.GetCodeActions().ToArray() : new[] { a }).ToList();
         }
     }
 }
