@@ -838,7 +838,7 @@ public class E : bar::C { }
         // "<path>\x\y.dll" -> "<path>\x\..\x\y.dll"
         private static string MakeEquivalentPath(string path)
         {
-            string[] parts = Path.GetFullPath(path).Split(Path.DirectorySeparatorChar);
+            string[] parts = path.Split(Path.DirectorySeparatorChar);
             Debug.Assert(parts.Length >= 3);
 
             int dir = parts.Length - 2;
@@ -857,20 +857,21 @@ public class E : bar::C { }
 
             var r1 = MetadataReference.CreateFromFile(p1);
             var r2 = MetadataReference.CreateFromFile(p2);
+            var r3 = MetadataReference.CreateFromFile(p3);
             SyntaxTree t1, t2, t3;
 
             var compilation = CSharpCompilation.Create("foo",
                 syntaxTrees: new[]
                 {
-                    t1 = Parse("#r \"" + p2 + "\"", options: TestOptions.Script),
-                    t2 = Parse("#r \"" + p3 + "\"", options: TestOptions.Script),
-                    t3 = Parse("#r \"Foo\"", options: TestOptions.Script),
+                    t1 = Parse($"#r \"{p2}\"", options: TestOptions.Script),
+                    t2 = Parse($"#r \"{p3}\"", options: TestOptions.Script),
+                    t3 = Parse("#r \"Lib\"", options: TestOptions.Script),
                 },
                 references: new MetadataReference[] { MscorlibRef, r1, r2 },
-                options: TestOptions.ReleaseDll.
-                    WithMetadataReferenceResolver(new AssemblyReferenceResolver(
-                        new MappingReferenceResolver(assemblyNames: new Dictionary<string, string> { { "Foo", p3 } }),
-                        MetadataFileReferenceProvider.Default))
+                options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(
+                    new TestMetadataReferenceResolver(
+                        assemblyNames: new Dictionary<string, PortableExecutableReference> { { "Lib", r3 } },
+                        files: new Dictionary<string, PortableExecutableReference> { { p2, r2 }, { p3, r3 } }))
             );
 
             // no diagnostics expected, all duplicate references should be ignored as they all refer to the same file:
@@ -884,7 +885,7 @@ public class E : bar::C { }
 
             // All #r's resolved are represented in directive references.
             var dirRefs = compilation.DirectiveReferences;
-            Assert.Equal(2, dirRefs.Length);
+            Assert.Equal(1, dirRefs.Length);
 
             var as1 = compilation.GetReferencedAssemblySymbol(r2);
             Assert.Equal("MDTestLib1", as1.Identity.Name);
@@ -1234,9 +1235,10 @@ public class A
             compilation.VerifyDiagnostics();
         }
 
-        private class ReferenceResolver1 : TestMetadataReferenceResolver
+        private class ReferenceResolver1 : MetadataReferenceResolver
         {
             public readonly string path1, path2;
+            public bool resolved1, resolved2;
 
             public ReferenceResolver1(string path1, string path2)
             {
@@ -1244,24 +1246,25 @@ public class A
                 this.path2 = path2;
             }
 
-            public override string ResolveReference(string reference, string baseFilePath)
+            public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
             {
                 switch (reference)
                 {
                     case "1":
                         resolved1 = true;
-                        return path1;
+                        return ImmutableArray.Create(MetadataReference.CreateFromFile(path1));
 
                     case "2.dll":
                         resolved2 = true;
-                        return path2;
+                        return ImmutableArray.Create(MetadataReference.CreateFromFile(path2));
 
                     default:
-                        return base.ResolveReference(reference, baseFilePath);
+                        return ImmutableArray<PortableExecutableReference>.Empty;
                 }
             }
 
-            public bool resolved1, resolved2;
+            public override bool Equals(object other) => true;
+            public override int GetHashCode() => 1;
         }
 
         [Fact]
@@ -1277,8 +1280,7 @@ public class A
                     Parse("#r \"1\"", options: TestOptions.Script),
                     Parse("#r \"2.dll\"", options: TestOptions.Script),
                 },
-                options: TestOptions.ReleaseDll
-                    .WithMetadataReferenceResolver(new AssemblyReferenceResolver(resolver, MetadataFileReferenceProvider.Default)));
+                options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver));
 
             Assert.NotNull(c1.Assembly); // force creation of SourceAssemblySymbol
 
@@ -1303,35 +1305,21 @@ public class A
             {
             }
 
-            public override string ResolveReference(string reference, string baseFilePath)
+            public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
             {
                 switch (reference)
                 {
                     case "throw": throw new TestException();
                 }
 
-                return base.ResolveReference(reference, baseFilePath);
-            }
-        }
-
-        private class ErroneousMetadataReferenceProvider : MetadataFileReferenceProvider
-        {
-            public override PortableExecutableReference GetReference(string fullPath, MetadataReferenceProperties properties = default(MetadataReferenceProperties))
-            {
-                switch (fullPath)
-                {
-                    case @"c:\throw.dll": throw new TestException();
-                }
-
-                return null;
+                return base.ResolveReference(reference, baseFilePath, properties);
             }
         }
 
         [Fact]
         public void ReferenceResolution_ExceptionsFromResolver()
         {
-            var options = TestOptions.ReleaseDll.
-                WithMetadataReferenceResolver(new AssemblyReferenceResolver(new ErroneousReferenceResolver(), MetadataFileReferenceProvider.Default));
+            var options = TestOptions.ReleaseDll.WithMetadataReferenceResolver(new ErroneousReferenceResolver());
 
             foreach (var tree in new[]
             {
@@ -1341,30 +1329,6 @@ public class A
                 var c = CSharpCompilation.Create("c", syntaxTrees: new[] { tree }, options: options);
                 Assert.Throws<TestException>(() => { var a = c.Assembly; });
             }
-        }
-
-        [Fact]
-        public void ReferenceResolution_ExceptionsFromProvider()
-        {
-            var provider = new ErroneousMetadataReferenceProvider();
-
-            var c1 = CSharpCompilation.Create("c",
-                syntaxTrees: new[] { Parse(@"#r ""c:\throw.dll""", options: TestOptions.Script) },
-                options: TestOptions.ReleaseDll.
-                    WithMetadataReferenceResolver(new AssemblyReferenceResolver(new MappingReferenceResolver(files: new Dictionary<string, string>() { { @"c:\throw.dll", @"c:\throw.dll" } }), provider)));
-
-
-            Assert.Throws<TestException>(() => { var a = c1.Assembly; });
-
-            var c2 = CSharpCompilation.Create("c",
-                references: new[] { MscorlibRef },
-                syntaxTrees: new[] { Parse(@"#r ""c:\null.dll""", options: TestOptions.Script) },
-                options: TestOptions.ReleaseDll.
-                    WithMetadataReferenceResolver(new AssemblyReferenceResolver(new MappingReferenceResolver(files: new Dictionary<string, string>() { { @"c:\null.dll", @"c:\null.dll" } }), provider)));
-
-            c2.VerifyDiagnostics(
-                // (1,1): error CS0006: Metadata file 'c:\null.dll' could not be found
-                Diagnostic(ErrorCode.ERR_NoMetadataFile, @"#r ""c:\null.dll""").WithArguments(@"c:\null.dll"));
         }
 
         [Fact]

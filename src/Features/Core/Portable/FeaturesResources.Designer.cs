@@ -1772,7 +1772,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to with SuppressMessageAttribute (separate file).
+        ///   Looks up a localized string similar to in Suppression File.
         /// </summary>
         internal static string SuppressWithGlobalSuppressMessage {
             get {
@@ -1781,11 +1781,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to with SuppressMessageAttribute.
+        ///   Looks up a localized string similar to in Source.
         /// </summary>
-        internal static string SuppressWithLocalSuppressMessage {
+        internal static string SuppressWithPragma {
             get {
-                return ResourceManager.GetString("SuppressWithLocalSuppressMessage", resourceCulture);
+                return ResourceManager.GetString("SuppressWithPragma", resourceCulture);
             }
         }
         
@@ -1851,6 +1851,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string ToDetectRedundantCalls {
             get {
                 return ResourceManager.GetString("ToDetectRedundantCalls", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Re-triage {0}(currently &apos;{1}&apos;).
+        /// </summary>
+        internal static string TriageCodeActionTitleForTriagedDiagnostic {
+            get {
+                return ResourceManager.GetString("TriageCodeActionTitleForTriagedDiagnostic", resourceCulture);
             }
         }
         

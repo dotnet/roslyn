@@ -11,6 +11,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.FileSystem;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -72,14 +74,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
                 return null;
             }
 
-            var assemblyReferenceResolver = document.Project.CompilationOptions.MetadataReferenceResolver as AssemblyReferenceResolver;
-            if (assemblyReferenceResolver == null)
-            {
-                return null;
-            }
-
-            var metadataFileResolver = assemblyReferenceResolver.PathResolver as MetadataFileReferenceResolver;
-            if (metadataFileResolver == null)
+            // TODO: avoid dependency on a specific resolver
+            var desktopReferenceResolver = document.Project.CompilationOptions.MetadataReferenceResolver as RuntimeMetadataReferenceResolver;
+            if (desktopReferenceResolver == null)
             {
                 return null;
             }
@@ -89,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
                 GetFileSystemDiscoveryService(snapshot),
                 Glyph.OpenFolder,
                 Glyph.Assembly,
-                searchPaths: metadataFileResolver.SearchPaths,
+                searchPaths: desktopReferenceResolver.PathResolver.SearchPaths,
                 allowableExtensions: new[] { ".dll", ".exe" },
                 exclude: path => path.Contains(","),
                 itemRules: ItemRules.Instance);

@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     {
         private readonly string _title;
         private readonly string _equivalenceKey;
-        public readonly IEnumerable<CodeAction> NestedActions;
+        public readonly IEnumerable<NestedSuppressionCodeAction> NestedActions;
 
-        public SuppressionCodeAction(Diagnostic diagnostic, IEnumerable<CodeAction> nestedActions)
+        public SuppressionCodeAction(Diagnostic diagnostic, IEnumerable<NestedSuppressionCodeAction> nestedActions)
         {
             _title = string.Format(FeaturesResources.SuppressionCodeActionTitle, diagnostic.Id);
             _equivalenceKey = ComputeEquivalenceKey(nestedActions);

@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp.Test
         }
 
         [Fact]
-        public async void TestGetCompilation()
+        public async Task TestGetCompilation()
         {
             var state = await CSharpScript.RunAsync("1 + 2", globals: new ScriptTests());
             var compilation = state.Script.GetCompilation();
@@ -51,14 +52,14 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp.Test
         }
 
         [Fact]
-        public async void TestRunScript()
+        public async Task TestRunScript()
         {
             var state = await CSharpScript.RunAsync("1 + 2");
             Assert.Equal(3, state.ReturnValue);
         }
 
         [Fact]
-        public async void TestCreateAndRunScript()
+        public async Task TestCreateAndRunScript()
         {
             var script = CSharpScript.Create("1 + 2");
             var state = await script.RunAsync();
@@ -67,21 +68,21 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp.Test
         }
 
         [Fact]
-        public async void TestEvalScript()
+        public async Task TestEvalScript()
         {
             var value = await CSharpScript.EvaluateAsync("1 + 2");
             Assert.Equal(3, value);
         }
 
         [Fact]
-        public async void TestRunScriptWithSpecifiedReturnType()
+        public async Task TestRunScriptWithSpecifiedReturnType()
         {
             var state = await CSharpScript.RunAsync("1 + 2");
             Assert.Equal(3, state.ReturnValue);
         }
 
         [Fact]
-        public async void TestRunVoidScript()
+        public async Task TestRunVoidScript()
         {
             var state = await CSharpScript.RunAsync("System.Console.WriteLine(0);");
             Assert.Null(state.ReturnValue);
@@ -124,14 +125,14 @@ d.Do()"
         }
 
         [Fact]
-        public async void TestRunScriptWithGlobals()
+        public async Task TestRunScriptWithGlobals()
         {
             var state = await CSharpScript.RunAsync("X + Y", globals: new Globals { X = 1, Y = 2 });
             Assert.Equal(3, state.ReturnValue);
         }
 
         [Fact]
-        public async void TestRunCreatedScriptWithExpectedGlobals()
+        public async Task TestRunCreatedScriptWithExpectedGlobals()
         {
             var script = CSharpScript.Create("X + Y", globalsType: typeof(Globals));
             var state = await script.RunAsync(new Globals { X = 1, Y = 2 });
@@ -167,7 +168,7 @@ d.Do()"
         }
 
         [Fact]
-        public async void ContinueAsync_Error1()
+        public async Task ContinueAsync_Error1()
         {
             var state = await CSharpScript.RunAsync("X + Y", globals: new Globals());
 
@@ -175,7 +176,7 @@ d.Do()"
         }
 
         [Fact]
-        public async void ContinueAsync_Error2()
+        public async Task ContinueAsync_Error2()
         {
             var state1 = await CSharpScript.RunAsync("X + Y + 1", globals: new Globals());
             var state2 = await CSharpScript.RunAsync("X + Y + 2", globals: new Globals());
@@ -184,7 +185,7 @@ d.Do()"
         }
 
         [Fact]
-        public async void TestRunScriptWithScriptState()
+        public async Task TestRunScriptWithScriptState()
         {
             // run a script using another scripts end state as the starting state (globals)
             var state = await CSharpScript.RunAsync("int X = 100;").ContinueWith("X + X");
@@ -192,7 +193,7 @@ d.Do()"
         }
 
         [Fact]
-        public async void TestRepl()
+        public async Task TestRepl()
         {
             string[] submissions = new[]
             {
@@ -223,7 +224,7 @@ d.Do()"
 #endif
 
         [Fact]
-        public async void TestGetScriptVariableAfterRunningScript()
+        public async Task TestGetScriptVariableAfterRunningScript()
         {
             var state = await CSharpScript.RunAsync("int x = 100;");
             var globals = state.Variables.Names.ToList();
@@ -234,7 +235,7 @@ d.Do()"
         }
 
         [Fact]
-        public async void TestBranchingSubscripts()
+        public async Task TestBranchingSubscripts()
         {
             // run script to create declaration of M
             var state1 = await CSharpScript.RunAsync("int M(int x) { return x + x; }");
