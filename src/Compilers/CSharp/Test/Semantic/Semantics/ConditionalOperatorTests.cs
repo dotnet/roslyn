@@ -1400,5 +1400,69 @@ class TestClass
 
             Assert.Null(model.GetSymbolInfo(access).Symbol);
         }
+
+        [Fact(), WorkItem(4615, "https://github.com/dotnet/roslyn/issues/4615")]
+        public void ConditionalAndConditionalMethods()
+        {
+            string source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        TestClass.Create().Test();
+        TestClass.Create().Self().Test();
+        System.Console.WriteLine(""---"");
+        TestClass.Create()?.Test();
+        TestClass.Create()?.Self().Test();
+        TestClass.Create()?.Self()?.Test();
+     }
+}
+
+class TestClass
+{
+    [System.Diagnostics.Conditional(""DEBUG"")]
+    public void Test() 
+    { 
+        System.Console.WriteLine(""Test"");
+    }
+
+    public static TestClass Create()
+    {
+        System.Console.WriteLine(""Create"");
+        return new TestClass();
+    }
+
+    public TestClass Self()
+    {
+        System.Console.WriteLine(""Self"");
+        return this;
+    }
+}
+";
+            
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe,
+                                                            parseOptions: CSharpParseOptions.Default.WithPreprocessorSymbols("DEBUG"));
+
+            CompileAndVerify(compilation, expectedOutput:
+@"Create
+Test
+Create
+Self
+Test
+---
+Create
+Test
+Create
+Self
+Test
+Create
+Self
+Test
+");
+
+            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(compilation, expectedOutput:"---");
+        }
     }
 }
