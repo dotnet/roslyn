@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -23,16 +24,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     internal class SuppressionSuggestedAction : SuggestedAction, ITelemetryDiagnosticID<string>
     {
         private readonly CodeFix _fix;
+        private readonly Func<CodeAction, SuggestedActionSet> _getFixAllSuggestedActionSet;
 
         public SuppressionSuggestedAction(
             Workspace workspace,
             ITextBuffer subjectBuffer,
             ICodeActionEditHandlerService editHandler,
             CodeFix fix,
-            object provider) :
+            object provider,
+            Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet) :
                 base(workspace, subjectBuffer, editHandler, fix.Action, provider)
         {
             _fix = fix;
+            _getFixAllSuggestedActionSet = getFixAllSuggestedActionSet;
         }
 
         public override bool HasActionSets
@@ -58,14 +62,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             if (suppressionAction.GetCodeActions().Any())
             {
                 var nestedSuggestedActions = ImmutableArray.CreateBuilder<SuggestedAction>();
+                var fixCount = suppressionAction.GetCodeActions().Count();
 
                 foreach (var c in suppressionAction.GetCodeActions())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
+                    var fixAllSuggestedActionSet = _getFixAllSuggestedActionSet(c);
                     nestedSuggestedActions.Add(new CodeFixSuggestedAction(
                             this.Workspace, this.SubjectBuffer, this.EditHandler,
-                            new CodeFix(c, _fix.Diagnostics), c, this.Provider, null));
+                            new CodeFix(c, _fix.Diagnostics), c, this.Provider, fixAllSuggestedActionSet));
                 }
 
                 _actionSets = ImmutableArray.Create(

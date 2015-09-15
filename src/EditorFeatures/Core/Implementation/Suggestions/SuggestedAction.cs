@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return null;
         }
 
-        public virtual bool HasActionSets => _actionSets.Length > 0; // CodeAction.HasCodeActions;
+        public virtual bool HasActionSets => _actionSets.Length > 0;
 
         public virtual Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
         {
@@ -223,14 +223,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         internal ImmutableArray<SuggestedActionSet> GetActionSets()
         {
             return _actionSets;
-            //var suggestedActions = new List<ISuggestedAction>();
-
-            //foreach (var action in this.CodeAction.GetCodeActions())
-            //{
-            //    suggestedActions.Add(new SuggestedAction(this.Workspace, this.SubjectBuffer, this.EditHandler, action, this.Provider));
-            //}
-
-            //return new[] { new SuggestedActionSet(suggestedActions) };
         }
 
         #region not supported

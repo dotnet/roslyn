@@ -4,6 +4,7 @@
     "dnxcore50.app": { }
   },
   "dependencies": {
+    "Microsoft.NETCore.Portable.Compatibility": "1.0.0",
     "System.Collections": "4.0.10",
     "System.Diagnostics.Debug": "4.0.10",
     "System.Globalization": "4.0.10",

@@ -92,6 +92,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             var hostPath = interactiveHostPath;
             _interactiveHost = new InteractiveHost(replType, hostPath, initialWorkingDirectory);
             _interactiveHost.ProcessStarting += ProcessStarting;
+
+            WorkingDirectory = initialWorkingDirectory;
         }
 
         public IContentType ContentType

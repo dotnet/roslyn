@@ -304,7 +304,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 var suppressionAction = actions.Single() as SuppressionCodeAction;
                 if (suppressionAction != null)
                 {
+<<<<<<< HEAD
                     actions = suppressionAction.GetCodeActions().ToList();
+=======
+                    actions = suppressionAction.NestedActions.ToList<CodeAction>();
+>>>>>>> master
                 }
             }
 

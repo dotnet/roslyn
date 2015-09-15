@@ -19,11 +19,6 @@
   <ItemGroup Label="Build Items">
     <SyntaxTestDefinition Include="..\..\Portable\Syntax\Syntax.xml" />
   </ItemGroup>
-  <ItemGroup Label="File References">
-    <Reference Include="xunit">
-      <HintPath>$(NuGetPackageRoot)\xunit\1.9.2\lib\net20\xunit.dll</HintPath>
-    </Reference>
-  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Tools\Source\CompilerGeneratorTools\Source\VisualBasicSyntaxGenerator\VisualBasicSyntaxGenerator.vbproj">
       <Project>{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}</Project>

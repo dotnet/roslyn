@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis
             public readonly string Category;
             public readonly string HelpLink;
             public readonly bool IsEnabledByDefault;
+            public readonly bool IsSuppressedInSource;
             public readonly DiagnosticSeverity DefaultSeverity;
             public readonly DiagnosticSeverity Severity;
             public readonly int WarningLevel;
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis
 
             public Issue(
                 string id, string message, string description,
-                string title, string category, string helpLink, bool isEnabledByDefault,
+                string title, string category, string helpLink, bool isEnabledByDefault, bool isSuppressedInSource,
                 DiagnosticSeverity defaultSeverity, DiagnosticSeverity severity, int warningLevel,
                 Location location, IReadOnlyList<Location> additionalLocations,
                 IReadOnlyList<string> customTags, ImmutableDictionary<string, string> customProperties)
@@ -43,6 +44,7 @@ namespace Microsoft.CodeAnalysis
                 Category = category;
                 HelpLink = helpLink;
                 IsEnabledByDefault = isEnabledByDefault;
+                IsSuppressedInSource = isSuppressedInSource;
                 DefaultSeverity = defaultSeverity;
                 Severity = severity;
                 WarningLevel = warningLevel;

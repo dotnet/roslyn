@@ -5605,7 +5605,7 @@ BC30387: Class 'M1.c1' must declare a 'Sub New' because its base class 'M1.Base'
 
             CompilationUtils.AssertTheseDiagnostics(compilation, expected)
 
-            CompilationUtils.AssertTheseDiagnostics(compilation.GetDiagnosticsForTree(CompilationStage.Compile, compilation.SyntaxTrees.Single(), Nothing, True), expected)
+            CompilationUtils.AssertTheseDiagnostics(compilation.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, compilation.SyntaxTrees.Single()), expected)
         End Sub
 
         <Fact()>
