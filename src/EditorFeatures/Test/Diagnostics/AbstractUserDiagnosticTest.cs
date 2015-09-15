@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         internal abstract IEnumerable<Tuple<Diagnostic, CodeFixCollection>> GetDiagnosticAndFixes(TestWorkspace workspace, string fixAllActionEquivalenceKey);
         internal abstract IEnumerable<Diagnostic> GetDiagnostics(TestWorkspace workspace);
 
-        protected override IList<CodeAction> GetCodeActions(TestWorkspace workspace, string fixAllActionEquivalenceKey)
+        protected override IList<CodeAction> GetCodeActionsWorker(TestWorkspace workspace, string fixAllActionEquivalenceKey)
         {
             var diagnostics = GetDiagnosticAndFix(workspace, fixAllActionEquivalenceKey);
             return diagnostics?.Item2?.Fixes.Select(f => f.Action).ToList();
@@ -224,9 +224,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             using (var workspace = isLine ? CreateWorkspaceFromFile(initialMarkup, parseOptions, compilationOptions) : TestWorkspaceFactory.CreateWorkspace(initialMarkup))
             {
-                var diagnosticAndFix = GetDiagnosticAndFix(workspace);
+                var codeActions = GetCodeActions(workspace, fixAllActionEquivalenceKey: null);
                 TestAddDocument(workspace, expectedMarkup, index, expectedContainers, expectedDocumentName,
-                    diagnosticAndFix.Item2.Fixes.Select(f => f.Action).ToList(), compareTokens);
+                    codeActions, compareTokens);
             }
         }
 
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var fixes = generateTypeDiagFixes.Item2.Fixes;
                 Assert.NotNull(fixes);
 
-                var fixActions = fixes.Select(f => f.Action);
+                var fixActions = MassageActions(fixes.Select(f => f.Action).ToList());
                 Assert.NotNull(fixActions);
 
                 // Since the dialog option is always fed as the last CodeAction

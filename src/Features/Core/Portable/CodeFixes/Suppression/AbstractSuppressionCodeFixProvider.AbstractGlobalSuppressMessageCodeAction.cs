@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             }
 
             protected abstract Task<Document> GetChangedSuppressionDocumentAsync(CancellationToken cancellationToken);
-            public override bool SupportsFixAllOccurrences => true;
 
             private string GetSuppressionsFilePath(string suppressionsFileName)
             {

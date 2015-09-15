@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         internal async Task<IEnumerable<PragmaWarningCodeAction>> GetPragmaSuppressionsAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             var codeFixes = await GetSuppressionsAsync(document, span, diagnostics, skipSuppressMessage: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-            return codeFixes.SelectMany(fix => ((SuppressionCodeAction)fix.Action).NestedActions).Cast<PragmaWarningCodeAction>();
+            return codeFixes.SelectMany(fix => fix.Action.GetCodeActions()).OfType<PragmaWarningCodeAction>();
         }
 
         private async Task<IEnumerable<CodeFix>> GetSuppressionsAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, bool skipSuppressMessage, CancellationToken cancellationToken)

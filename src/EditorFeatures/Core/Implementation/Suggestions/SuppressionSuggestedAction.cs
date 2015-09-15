@@ -43,8 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             get
             {
-                var suppressionAction = (SuppressionCodeAction)this.CodeAction;
-                return (suppressionAction.NestedActions != null) && suppressionAction.NestedActions.Any();
+                return this.CodeAction.GetCodeActions().Any();
             }
         }
 
@@ -58,20 +57,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return Task.FromResult(_actionSets);
             }
 
-            var suppressionAction = (SuppressionCodeAction)this.CodeAction;
-            if ((suppressionAction.NestedActions != null) && suppressionAction.NestedActions.Any())
+            if (this.CodeAction.GetCodeActions().Any())
             {
                 var nestedSuggestedActions = ImmutableArray.CreateBuilder<SuggestedAction>();
-                var fixCount = suppressionAction.NestedActions.Count();
+                var fixCount = this.CodeAction.GetCodeActions().Length;
 
-                foreach (var c in suppressionAction.NestedActions)
+                foreach (var c in this.CodeAction.GetCodeActions())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var fixAllSuggestedActionSet = c.SupportsFixAllOccurrences ? _getFixAllSuggestedActionSet(c) : null;
+                    var fixAllSuggestedActionSet = _getFixAllSuggestedActionSet(c);
                     nestedSuggestedActions.Add(new CodeFixSuggestedAction(
                             this.Workspace, this.SubjectBuffer, this.EditHandler,
-                            new CodeFix(c, _fix.Diagnostics), this.Provider, fixAllSuggestedActionSet));
+                            new CodeFix(c, _fix.Diagnostics), c, this.Provider, fixAllSuggestedActionSet));
                 }
 
                 _actionSets = ImmutableArray.Create(
