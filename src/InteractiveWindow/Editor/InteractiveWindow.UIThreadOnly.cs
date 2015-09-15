@@ -1956,6 +1956,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     TextView.Selection.Clear();
                     caret.MoveTo(moveTo);
                 }
+                caret.EnsureVisible();
             }
 
             /// <summary>
@@ -1992,6 +1993,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     TextView.Selection.Clear();
                     caret.MoveTo(moveTo);
                 }
+                caret.EnsureVisible();
             }
 
             /// <summary>Implements <see cref="IInteractiveWindowOperations.SelectAll"/>.</summary>
