@@ -688,9 +688,6 @@ Do you want to proceed?</value>
   <data name="RenameCancelToolTip" xml:space="preserve">
     <value>Cancel</value>
   </data>
-  <data name="ComputingFixAllOccurrences" xml:space="preserve">
-    <value>Computing fix all occurrences code fix...</value>
-  </data>
   <data name="PreviewChangesRootNodeText" xml:space="preserve">
     <value>Changes</value>
   </data>
@@ -717,9 +714,6 @@ Do you want to proceed?</value>
   </data>
   <data name="FixAllOccurrencesIn" xml:space="preserve">
     <value>Fix all occurrences in</value>
-  </data>
-  <data name="FixAllOccurrences" xml:space="preserve">
-    <value>Fix all occurrences</value>
   </data>
   <data name="CannotApplyOperationWhileRenameSessionIsActive" xml:space="preserve">
     <value>Cannot apply operation while a rename session is active.</value>

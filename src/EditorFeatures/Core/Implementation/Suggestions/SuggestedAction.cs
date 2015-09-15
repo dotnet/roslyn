@@ -85,35 +85,40 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             using (new CaretPositionRestorer(this.SubjectBuffer, this.EditHandler.AssociatedViewService))
             {
-                var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
-                extensionManager.PerformAction(Provider, () =>
-                {
-                    IEnumerable<CodeActionOperation> operations = null;
-
-                    // NOTE: As mentoned above, we want to avoid computing the operations on the UI thread.
-                    // However, for CodeActionWithOptions, GetOptions() might involve spinning up a dialog
-                    // to compute the options and must be done on the UI thread.
-                    var actionWithOptions = this.CodeAction as CodeActionWithOptions;
-                    if (actionWithOptions != null)
-                    {
-                        var options = actionWithOptions.GetOptions(cancellationToken);
-                        if (options != null)
-                        {
-                            operations = GetOperationsAsync(actionWithOptions, options, cancellationToken).WaitAndGetResult(cancellationToken);
-                        }
-                    }
-                    else
-                    {
-                        operations = GetOperationsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-                    }
-
-                    if (operations != null)
-                    {
-                        var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                        EditHandler.Apply(Workspace, document, operations, CodeAction.Title, cancellationToken);
-                    }
-                });
+                Func<Document> getFromDocument = () => this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                InvokeCore(getFromDocument, cancellationToken);
             }
+        }
+
+        public void InvokeCore(Func<Document> getFromDocument, CancellationToken cancellationToken)
+        {
+            var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
+            extensionManager.PerformAction(Provider, () =>
+            {
+                IEnumerable<CodeActionOperation> operations = null;
+
+                // NOTE: As mentoned above, we want to avoid computing the operations on the UI thread.
+                // However, for CodeActionWithOptions, GetOptions() might involve spinning up a dialog
+                // to compute the options and must be done on the UI thread.
+                var actionWithOptions = this.CodeAction as CodeActionWithOptions;
+                if (actionWithOptions != null)
+                {
+                    var options = actionWithOptions.GetOptions(cancellationToken);
+                    if (options != null)
+                    {
+                        operations = GetOperationsAsync(actionWithOptions, options, cancellationToken).WaitAndGetResult(cancellationToken);
+                    }
+                }
+                else
+                {
+                    operations = GetOperationsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                }
+
+                if (operations != null)
+                {
+                    EditHandler.Apply(Workspace, getFromDocument(), operations, CodeAction.Title, cancellationToken);
+                }
+            });
         }
 
         public string DisplayText

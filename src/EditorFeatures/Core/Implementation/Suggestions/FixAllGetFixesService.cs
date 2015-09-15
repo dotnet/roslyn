@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return this;
         }
 
-        public async Task<IEnumerable<CodeActionOperation>> GetFixAllOperationsAsync(FixAllProvider fixAllProvider, FixAllContext fixAllContext)
+        public async Task<IEnumerable<CodeActionOperation>> GetFixAllOperationsAsync(FixAllProvider fixAllProvider, FixAllContext fixAllContext, string fixAllPreviewChangesTitle, string waitDialogMessage)
         {
             // Compute fix all occurrences code fix for the given fix all context.
             // Bring up a cancellable wait dialog.
@@ -40,8 +40,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation, fixAllContext.CancellationToken))
             {
                 var result = _waitIndicator.Wait(
-                    EditorFeaturesResources.FixAllOccurrences,
-                    EditorFeaturesResources.ComputingFixAllOccurrences,
+                    fixAllPreviewChangesTitle,
+                    waitDialogMessage,
                     allowCancel: true,
                     action: waitContext =>
                     {
@@ -75,10 +75,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             FixAllLogger.LogComputationResult(completed: true);
-            return await GetFixAllOperationsAsync(codeAction, fixAllContext).ConfigureAwait(false);
+            return await GetFixAllOperationsAsync(codeAction, fixAllContext, fixAllPreviewChangesTitle).ConfigureAwait(false);
         }
 
-        private async Task<IEnumerable<CodeActionOperation>> GetFixAllOperationsAsync(CodeAction codeAction, FixAllContext fixAllContext)
+        private async Task<IEnumerable<CodeActionOperation>> GetFixAllOperationsAsync(CodeAction codeAction, FixAllContext fixAllContext, string fixAllPreviewChangesTitle)
         {
             // We have computed the fix all occurrences code fix.
             // Now fetch the new solution with applied fix and bring up the Preview changes dialog.
@@ -105,10 +105,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     Glyph.BasicProject;
 
                 var changedSolution = previewService.PreviewChanges(
-                string.Format(EditorFeaturesResources.PreviewChangesOf, EditorFeaturesResources.FixAllOccurrences),
+                string.Format(EditorFeaturesResources.PreviewChangesOf, fixAllPreviewChangesTitle),
                 "vs.codefix.fixall",
                 codeAction.Title,
-                EditorFeaturesResources.FixAllOccurrences,
+                fixAllPreviewChangesTitle,
                 glyph,
                 newSolution,
                 fixAllContext.Project.Solution);

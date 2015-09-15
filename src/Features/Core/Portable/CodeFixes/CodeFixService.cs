@@ -289,6 +289,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return result;
         }
 
+        public CodeFixProvider GetSuppressionFixer(string language, ImmutableArray<Diagnostic> diagnostics)
+        {
+            Lazy<ISuppressionFixProvider> lazySuppressionProvider;
+            if (!_suppressionProvidersMap.TryGetValue(language, out lazySuppressionProvider) || lazySuppressionProvider.Value == null)
+            {
+                return null;
+            }
+
+            return new WrapperCodeFixProvider(lazySuppressionProvider.Value, diagnostics);
+        }
+
         private async Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, ImmutableHashSet<string> diagnosticIds, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(document);
