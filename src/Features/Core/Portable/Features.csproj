@@ -85,6 +85,7 @@
     <Compile Include="ChangeSignature\ParameterConfiguration.cs" />
     <Compile Include="ChangeSignature\SignatureChange.cs" />
     <Compile Include="CodeFixes\CodeFixContextExtensions.cs" />
+    <Compile Include="CodeFixes\FixAllOccurrences\FixMultipleCodeAction.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllCodeAction.cs" />
     <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\AbstractAddAsyncAwaitCodeFixProvider.cs" />
@@ -98,6 +99,7 @@
     <Compile Include="CodeFixes\CodeFixService.cs" />
     <Compile Include="CodeFixes\CodeFixService.ProjectCodeFixProvider.cs" />
     <Compile Include="CodeFixes\FirstDiagnosticResult.cs" />
+    <Compile Include="CodeFixes\FixAllOccurrences\IFixMultipleOccurrencesService.cs" />
     <Compile Include="CodeFixes\FullyQualify\AbstractFullyQualifyCodeFixProvider.cs" />
     <Compile Include="CodeFixes\GenerateMember\AbstractGenerateMemberCodeFixProvider.cs" />
     <Compile Include="CodeFixes\ICodeFixService.cs" />
@@ -105,6 +107,7 @@
     <Compile Include="CodeFixes\FixAllOccurrences\IFixAllGetFixesService.cs" />
     <Compile Include="CodeFixes\Iterator\AbstractIteratorCodeFixProvider.cs" />
     <Compile Include="CodeFixes\PredefinedCodeFixProviderNames.cs" />
+    <Compile Include="CodeFixes\Suppression\SuppressionHelpers.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.AbstractSuppressionCodeAction.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.FixAllProvider.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.AbstractGlobalSuppressMessageCodeAction.cs" />

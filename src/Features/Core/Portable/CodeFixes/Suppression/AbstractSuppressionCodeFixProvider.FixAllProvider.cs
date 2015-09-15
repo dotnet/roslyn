@@ -28,25 +28,35 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             public async override Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
             {
                 var batchFixer = (BatchFixAllProvider)WellKnownFixAllProviders.BatchFixer;
+                var fixMultipleContext = fixAllContext as FixMultipleContext;
                 var suppressionFixer = (AbstractSuppressionCodeFixProvider)((WrapperCodeFixProvider)fixAllContext.CodeFixProvider).SuppressionFixProvider;
                 var isGlobalSuppression = NestedSuppressionCodeAction.IsEquivalenceKeyForGlobalSuppression(fixAllContext.CodeActionEquivalenceKey);
                 if (!isGlobalSuppression)
                 {
                     // Pragma warning fix all.
                     batchFixer = new PragmaWarningBatchFixAllProvider(suppressionFixer);
-                    return await batchFixer.GetFixAsync(fixAllContext).ConfigureAwait(false);
                 }
 
                 var title = fixAllContext.CodeActionEquivalenceKey;
                 if (fixAllContext.Document != null)
                 {
-                    var documentsAndDiagnosticsToFixMap = await batchFixer.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
-                    return CreateGlobalSuppressionFixAllAction(title, suppressionFixer, fixAllContext.Document, documentsAndDiagnosticsToFixMap);
+                    var documentsAndDiagnosticsToFixMap = fixMultipleContext != null ?
+                        fixMultipleContext.DocumentDiagnosticsToFix :
+                        await batchFixer.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
+
+                    return !isGlobalSuppression ?
+                        await batchFixer.GetFixAsync(documentsAndDiagnosticsToFixMap, fixAllContext).ConfigureAwait(false) :
+                        CreateGlobalSuppressionFixAllAction(title, suppressionFixer, fixAllContext.Document, documentsAndDiagnosticsToFixMap);
                 }
                 else
                 {
-                    var projectsAndDiagnosticsToFixMap = await batchFixer.GetProjectDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
-                    return CreateGlobalSuppressionFixAllAction(title, suppressionFixer, fixAllContext.Project, projectsAndDiagnosticsToFixMap);
+                    var projectsAndDiagnosticsToFixMap = fixMultipleContext != null ?
+                        fixMultipleContext.ProjectDiagnosticsToFix :
+                        await batchFixer.GetProjectDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
+
+                    return !isGlobalSuppression ?
+                        await batchFixer.GetFixAsync(projectsAndDiagnosticsToFixMap, fixAllContext).ConfigureAwait(false) :
+                        CreateGlobalSuppressionFixAllAction(title, suppressionFixer, fixAllContext.Project, projectsAndDiagnosticsToFixMap);
                 }
             }
 

@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     {
                         var filePath = document.FilePath;
                         var fullPath = !string.IsNullOrEmpty(filePath) ? Path.GetFullPath(filePath) : filePath;
-                        if (fullPath == suppressionsFilePath)
+                        if (fullPath == suppressionsFilePath && File.Exists(fullPath))
                         {
                             // Existing global suppressions file, see if this file only has global assembly attributes.
                             hasDocWithSuppressionsName = true;

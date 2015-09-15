@@ -56,7 +56,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Workspace),
                 owner.GetOnAnalyzerException(project.Id),
                 concurrentAnalysis: false,
-                logAnalyzerExecutionTime: true);
+                logAnalyzerExecutionTime: true,
+                reportDiagnosticsWithSourceSuppression: true);
             _lazyCompilationWithAnalyzers = null;
         }
 

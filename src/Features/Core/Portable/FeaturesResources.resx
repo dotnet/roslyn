@@ -745,6 +745,12 @@ Do you want to continue?</value>
   <data name="UnsupportedDiagnosticReported" xml:space="preserve">
     <value>Reported diagnostic with ID '{0}' is not supported by the analyzer.</value>
   </data>
+  <data name="ComputingFixAllOccurrences" xml:space="preserve">
+    <value>Computing fix all occurrences code fix...</value>
+  </data>
+  <data name="FixAllOccurrences" xml:space="preserve">
+    <value>Fix all occurrences</value>
+  </data>
   <data name="FixAllTitle_Document" xml:space="preserve">
     <value>Document</value>
   </data>

@@ -13,6 +13,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// Computes the fix all occurrences code fix, brings up the preview changes dialog for the fix and
         /// returns the code action operations corresponding to the fix.
         /// </summary>
-        Task<IEnumerable<CodeActionOperation>> GetFixAllOperationsAsync(FixAllProvider fixAllProvider, FixAllContext fixAllContext);
+        Task<IEnumerable<CodeActionOperation>> GetFixAllOperationsAsync(FixAllProvider fixAllProvider, FixAllContext fixAllContext, string fixAllPreviewChangesTitle, string waitDialogMessage);
     }
 }
