@@ -856,5 +856,91 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
             builder1.Free();
             builder2.Free();
         }
+
+        /// <summary>
+        /// This stream requires at least two calls to Read() to read all elements.
+        /// </summary>
+        private class TwoReadStream : Stream
+        {
+            public static byte[] BackingData { get; } = { 1, 2, 3, 4, 5 };
+
+            public override bool CanRead
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public override bool CanSeek
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public override bool CanWrite
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public override long Length => BackingData.Length;
+
+            public override long Position { get; set; } = 0;
+
+            public override void Flush()
+            {
+                throw new NotImplementedException();
+            }
+
+            private bool _firstRead = true;
+
+            public override int Read(byte[] buffer, int offset, int count)
+            {
+
+                // No matter what the client asks for, only give them half the first time
+                // Unless they only ask for 1 byte
+                if (_firstRead)
+                {
+                    count = (int)Math.Ceiling(count / 2.0);
+                    _firstRead = false;
+                }
+                for (int i = offset; i < offset + count; i++)
+                {
+                    buffer[i] = BackingData[Position++];
+                }
+                return count;
+            }
+
+            public override long Seek(long offset, SeekOrigin origin)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override void SetLength(long value)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override void Write(byte[] buffer, int offset, int count)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        [Fact]
+        public void ProperStreamRead()
+        {
+            var stream = new TwoReadStream();
+            var builder = PooledBlobBuilder.GetInstance((int)stream.Length);
+            builder.WriteBytes(stream, (int)stream.Length);
+            AssertEx.Equal(TwoReadStream.BackingData, builder.ToArray());
+
+            builder.Free();
+        }
     }
 }

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
@@ -677,14 +678,15 @@ namespace Microsoft.Cci
 
             int bytesToCurrent = Math.Min(FreeBytes, byteCount);
 
-            int bytesRead = source.Read(_buffer, Length, bytesToCurrent);
-            AddLength(bytesRead);
+            source.ReadAll(_buffer, Length, bytesToCurrent);
+            AddLength(bytesToCurrent);
 
             int remaining = byteCount - bytesToCurrent;
-            if (remaining > 0 && bytesRead == bytesToCurrent)
+            if (remaining > 0)
             {
                 Expand(remaining);
-                AddLength(source.Read(_buffer, 0, remaining));
+                source.ReadAll(_buffer, 0, remaining);
+                AddLength(remaining);
             }
         }
 
