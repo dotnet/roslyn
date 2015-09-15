@@ -16,6 +16,39 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
             return ApplyModifications(tree, (IProjectTree)null, projectTreeProvider);
         }
 
-        public abstract IProjectTree ApplyModifications(IProjectTree tree, IProjectTree previousTree, IProjectTreeProvider projectTreeProvider);
+        public IProjectTree ApplyModifications(IProjectTree tree, IProjectTree previousTree, IProjectTreeProvider projectTreeProvider)
+        {
+            if (tree.IsProjectRoot())
+                tree = ApplyModificationsToCompletedTree(tree);
+
+            if (previousTree == null)
+                tree = ApplyInitialModifications(tree);
+
+            return ApplyModifications(tree, previousTree);
+        }
+
+        /// <summary>
+        ///     Applies modifications to the specified tree, specifying the previous tree if available.
+        /// </summary>
+        protected virtual IProjectTree ApplyModifications(IProjectTree tree, IProjectTree previousTree)
+        {
+            return tree;
+        }
+
+        /// <summary>
+        ///     Applies initial modifications to the specified tree.
+        /// </summary>
+        protected virtual IProjectTree ApplyInitialModifications(IProjectTree tree)
+        {
+            return tree;
+        }
+
+        /// <summary>
+        ///     Applies modifications to the specified project root.
+        /// </summary>
+        protected virtual IProjectTree ApplyModificationsToCompletedTree(IProjectTree root)
+        {
+            return root;
+        }
     }
 }

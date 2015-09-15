@@ -23,12 +23,8 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
             _provider = provider;
         }
 
-        public override IProjectTree ApplyModifications(IProjectTree tree, IProjectTree previousTree, IProjectTreeProvider projectTreeProvider)
+        protected override IProjectTree ApplyInitialModifications(IProjectTree tree)
         {
-            // We're not initializing, don't update the icon
-            if (previousTree != null)
-                return tree;
-
             if (!tree.IsProjectRoot())
                 return tree;
 

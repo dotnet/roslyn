@@ -40,17 +40,14 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
             get;
         }
 
-        public override sealed IProjectTree ApplyModifications(IProjectTree tree, IProjectTree previousTree, IProjectTreeProvider projectTreeProvider)
+        protected override sealed IProjectTree ApplyModificationsToCompletedTree(IProjectTree root)
         {
             if (!IsSupported)
-                return tree;
+                return root;
 
-            if (!tree.IsProjectRoot())
-                return tree;
-
-            IProjectTree item = FindCandidateSpecialItem(tree);
+            IProjectTree item = FindCandidateSpecialItem(root);
             if (item == null)
-                return tree;
+                return root;
 
             ProjectImageMoniker icon = GetSpecialItemIcon();
 
@@ -69,6 +66,9 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
             return item.Root;
         }
 
+        /// <summary>
+        ///     Returns the candidate of the special item, or null if not found.
+        /// </summary>
         protected abstract IProjectTree FindCandidateSpecialItem(IProjectTree projectRoot);
 
         private IProjectTree HideAllChildren(IProjectTree tree)
