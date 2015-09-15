@@ -235,7 +235,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     switch (columnName)
                     {
                         case StandardTableKeyNames.Priority:
-                            content = (VSTASKPRIORITY)data.Priority;
+                            content = ValueTypeCache.GetOrCreate((VSTASKPRIORITY)data.Priority);
                             return true;
                         case StandardTableKeyNames.Text:
                             content = data.Message;
@@ -250,7 +250,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = GetLineColumn(data).Character;
                             return true;
                         case StandardTableKeyNames.TaskCategory:
-                            content = VSTASKCATEGORY.CAT_COMMENTS;
+                            content = ValueTypeCache.GetOrCreate(VSTASKCATEGORY.CAT_COMMENTS);
                             return true;
                         case StandardTableKeyNames.ProjectName:
                             content = item.ProjectName;
@@ -259,7 +259,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = item.ProjectNames;
                             return ((string[])content).Length > 0;
                         case StandardTableKeyNames.ProjectGuid:
-                            content = item.ProjectGuid;
+                            content = ValueTypeCache.GetOrCreate(item.ProjectGuid);
                             return (Guid)content != Guid.Empty;
                         case ProjectGuids:
                             content = item.ProjectGuids;

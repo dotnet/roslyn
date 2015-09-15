@@ -257,10 +257,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     switch (columnName)
                     {
                         case StandardTableKeyNames.ErrorRank:
-                            content = GetErrorRank(data);
+                            content = ValueTypeCache.GetOrCreate(GetErrorRank(data));
                             return true;
                         case StandardTableKeyNames.ErrorSeverity:
-                            content = GetErrorCategory(data.Severity);
+                            content = ValueTypeCache.GetOrCreate(GetErrorCategory(data.Severity));
                             return true;
                         case StandardTableKeyNames.ErrorCode:
                             content = data.Id;
@@ -275,7 +275,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = data.Category;
                             return true;
                         case StandardTableKeyNames.ErrorSource:
-                            content = GetErrorSource(_source.BuildTool);
+                            content = ValueTypeCache.GetOrCreate(GetErrorSource(_source.BuildTool));
                             return true;
                         case StandardTableKeyNames.BuildTool:
                             content = GetBuildTool(_source.BuildTool);
@@ -299,7 +299,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = item.ProjectNames;
                             return ((string[])content).Length > 0;
                         case StandardTableKeyNames.ProjectGuid:
-                            content = item.ProjectGuid;
+                            content = ValueTypeCache.GetOrCreate(item.ProjectGuid);
                             return (Guid)content != Guid.Empty;
                         case ProjectGuids:
                             content = item.ProjectGuids;

@@ -78,6 +78,7 @@
     <Compile Include="Implementation\ProjectInfo\DefaultProjectInfoServiceFactory.cs" />
     <Compile Include="Implementation\TableDataSource\MiscTodoListTableControlEventProcessorProvider.cs" />
     <Compile Include="Implementation\TableDataSource\UriNavigator.cs" />
+    <Compile Include="Implementation\TableDataSource\ValueTypeCache.cs" />
     <Compile Include="Implementation\TableDataSource\VisualStudioBaseDiagnosticListTable.LiveTableDataSource.cs" />
     <Compile Include="Implementation\TableDataSource\VisualStudioDiagnosticListTable.BuildTableDataSource.cs" />
     <Compile Include="Implementation\TableDataSource\VisualStudioDiagnosticListTable.cs" />

@@ -180,10 +180,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     switch (columnName)
                     {
                         case StandardTableKeyNames.ErrorRank:
-                            content = WellKnownDiagnosticTags.Build;
+                            // build error gets highest rank
+                            content = ValueTypeCache.GetOrCreate(ErrorRank.Lexical);
                             return true;
                         case StandardTableKeyNames.ErrorSeverity:
-                            content = GetErrorCategory(data.Severity);
+                            content = ValueTypeCache.GetOrCreate(GetErrorCategory(data.Severity));
                             return true;
                         case StandardTableKeyNames.ErrorCode:
                             content = data.Id;
@@ -198,7 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = data.Category;
                             return true;
                         case StandardTableKeyNames.ErrorSource:
-                            content = ErrorSource.Build;
+                            content = ValueTypeCache.GetOrCreate(ErrorSource.Build);
                             return true;
                         case StandardTableKeyNames.BuildTool:
                             content = _source.BuildTool;
@@ -222,7 +223,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = item.ProjectNames;
                             return ((string[])content).Length > 0;
                         case StandardTableKeyNames.ProjectGuid:
-                            content = item.ProjectGuid;
+                            content = ValueTypeCache.GetOrCreate(item.ProjectGuid);
                             return (Guid)content != Guid.Empty;
                         case ProjectGuids:
                             content = item.ProjectGuids;
