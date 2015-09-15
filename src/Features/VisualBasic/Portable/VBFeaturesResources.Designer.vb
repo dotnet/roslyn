@@ -2750,15 +2750,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to with #Disable directive.
-        '''</summary>
-        Friend ReadOnly Property SuppressWithPragma() As String
-            Get
-                Return ResourceManager.GetString("SuppressWithPragma", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to SyncLock block.
         '''</summary>
         Friend ReadOnly Property SyncLockBlock() As String

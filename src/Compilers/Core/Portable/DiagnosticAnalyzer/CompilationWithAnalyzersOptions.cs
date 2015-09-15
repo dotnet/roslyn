@@ -13,12 +13,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Action<Exception, DiagnosticAnalyzer, Diagnostic> _onAnalyzerException;
         private readonly bool _concurrentAnalysis;
         private readonly bool _logAnalyzerExecutionTime;
+        private readonly bool _reportDiagnosticsWithSourceSuppression;
 
         /// <summary>
         /// Options passed to <see cref="DiagnosticAnalyzer"/>s.
         /// </summary>
         public AnalyzerOptions AnalyzerOptions => _options;
-
 
         /// <summary>
         /// An optional delegate to be invoked when an analyzer throws an exception.
@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool LogAnalyzerExecutionTime => _logAnalyzerExecutionTime;
 
         /// <summary>
+        /// Flag indicating whether analyzer diagnostics with <see cref="Diagnostic.IsSuppressed"/> should be reported.
+        /// </summary>
+        public bool ReportDiagnosticsWithSourceSuppression => _reportDiagnosticsWithSourceSuppression;
+
+        /// <summary>
         /// Creates a new <see cref="CompilationWithAnalyzersOptions"/>.
         /// </summary>
         /// <param name="options">Options that are passed to analyzers.</param>
@@ -43,11 +48,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="concurrentAnalysis">Flag indicating whether analysis can be performed concurrently on multiple threads.</param>
         /// <param name="logAnalyzerExecutionTime">Flag indicating whether analyzer execution time should be logged.</param>
         public CompilationWithAnalyzersOptions(AnalyzerOptions options, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException, bool concurrentAnalysis, bool logAnalyzerExecutionTime)
+            : this (options, onAnalyzerException, concurrentAnalysis, logAnalyzerExecutionTime, reportDiagnosticsWithSourceSuppression: false)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="CompilationWithAnalyzersOptions"/>.
+        /// </summary>
+        /// <param name="options">Options that are passed to analyzers.</param>
+        /// <param name="onAnalyzerException">Action to invoke if an analyzer throws an exception.</param>
+        /// <param name="concurrentAnalysis">Flag indicating whether analysis can be performed concurrently on multiple threads.</param>
+        /// <param name="logAnalyzerExecutionTime">Flag indicating whether analyzer execution time should be logged.</param>
+        /// <param name="reportDiagnosticsWithSourceSuppression">Flag indicating whether analyzer diagnostics with <see cref="Diagnostic.IsSuppressed"/> should be reported.</param>
+        public CompilationWithAnalyzersOptions(AnalyzerOptions options, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException, bool concurrentAnalysis, bool logAnalyzerExecutionTime, bool reportDiagnosticsWithSourceSuppression)
         {
             _options = options;
             _onAnalyzerException = onAnalyzerException;
             _concurrentAnalysis = concurrentAnalysis;
             _logAnalyzerExecutionTime = logAnalyzerExecutionTime;
+            _reportDiagnosticsWithSourceSuppression = reportDiagnosticsWithSourceSuppression;
         }
     }
 }

@@ -109,6 +109,7 @@ public class C
         ""title"": ""Field is never used"",
         ""category"": ""Compiler"",
         ""isEnabledByDefault"": ""True"",
+        ""isSuppressedInSource"": ""False"",
         ""customTags"": ""Compiler;Telemetry""
       }}
     }},
@@ -122,6 +123,7 @@ public class C
         ""defaultSeverity"": ""Error"",
         ""category"": ""Compiler"",
         ""isEnabledByDefault"": ""True"",
+        ""isSuppressedInSource"": ""False"",
         ""customTags"": ""Compiler;Telemetry;NotConfigurable""
       }}
     }}
