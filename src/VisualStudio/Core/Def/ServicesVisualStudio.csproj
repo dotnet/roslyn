@@ -67,10 +67,12 @@
     <Compile Include="Implementation\SolutionSize\SolutionSizeTracker.cs" />
     <Compile Include="Implementation\TableDataSource\DiagnosticTableControlEventProcessorProvider.AggregateDiagnosticTableControlEventProcessor.cs" />
     <Compile Include="Implementation\TableDataSource\Suppression\IVisualStudioDiagnosticListSuppressionStateService.cs" />
+    <Compile Include="Implementation\TableDataSource\Suppression\VisualStudioDiagnosticListTableCommandHandler.cs" />
     <Compile Include="Implementation\TableDataSource\Suppression\VisualStudioDiagnosticListSuppressionStateService.cs" />
     <Compile Include="Implementation\TableDataSource\Suppression\DiagnosticTableControlEventProcessorProvider.SuppressionStateProcessor.cs" />
     <Compile Include="Implementation\TableDataSource\Suppression\VisualStudioSuppressionFixService.cs" />
     <Compile Include="Implementation\TableDataSource\Suppression\IVisualStudioSuppressionFixService.cs" />
+    <Compile Include="Implementation\TableDataSource\Suppression\SuppressionStateColumnDefinition.cs" />
     <Compile Include="Implementation\TableDataSource\AbstractTableDataSource.cs" />
     <Compile Include="Implementation\TableDataSource\AbstractTableEntriesSource.cs" />
     <Compile Include="Implementation\TableDataSource\Extensions.cs" />

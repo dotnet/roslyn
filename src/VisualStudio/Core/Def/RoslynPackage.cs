@@ -142,6 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // package from each language very early
             this.ComponentModel.GetService<VisualStudioDiagnosticListTable>();
             this.ComponentModel.GetService<VisualStudioTodoListTable>();
+            this.ComponentModel.GetService<VisualStudioDiagnosticListTableCommandHandler>().Initialize(this);
 
             this.ComponentModel.GetService<HACK_ThemeColorFixer>();
             this.ComponentModel.GetExtensions<IReferencedSymbolsPresenter>();

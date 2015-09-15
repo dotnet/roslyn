@@ -2,6 +2,7 @@
 
 using System.ComponentModel;
 using System.ComponentModel.Composition;
+using System.ComponentModel.Design;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -40,8 +41,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             _errorList.PropertyChanged += OnErrorListPropertyChanged;
-
             AddInitialTableSource(workspace.CurrentSolution, GetCurrentDataSource());
+            SuppressionStateColumnDefinition.SetDefaultFilter(_errorList.TableControl);
         }
 
         private ITableDataSource GetCurrentDataSource()

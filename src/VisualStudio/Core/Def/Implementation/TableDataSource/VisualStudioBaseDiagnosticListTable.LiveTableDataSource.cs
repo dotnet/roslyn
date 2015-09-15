@@ -235,8 +235,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 private FrameworkElement[] _descriptions;
 
                 public TableEntriesSnapshot(
-                    DiagnosticTableEntriesSource source, int version, ImmutableArray<TableItem<DiagnosticData>> items, ImmutableArray<ITrackingPoint> trackingPoints) :
-                    base(version, items, trackingPoints)
+                DiagnosticTableEntriesSource source, int version, ImmutableArray<TableItem<DiagnosticData>> items, ImmutableArray<ITrackingPoint> trackingPoints) :
+                base(version, items, trackingPoints)
                 {
                     _source = source;
                 }
@@ -304,6 +304,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         case ProjectGuids:
                             content = item.ProjectGuids;
                             return ((Guid[])content).Length > 0;
+                        case SuppressionStateColumnDefinition.ColumnName:
+                            content = data.IsSuppressed ? ServicesVSResources.SuppressionStateSuppressed : ServicesVSResources.SuppressionStateActive;
+                            return true;
                         default:
                             content = null;
                             return false;
@@ -384,7 +387,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     }
 
                     return TryNavigateTo(item.Workspace, item.DocumentId,
-                                         item.DataLocation?.OriginalStartLine ?? 0, item.DataLocation?.OriginalStartColumn ?? 0, previewTab);
+                            item.DataLocation?.OriginalStartLine ?? 0, item.DataLocation?.OriginalStartColumn ?? 0, previewTab);
                 }
 
                 protected override bool IsEquivalent(DiagnosticData item1, DiagnosticData item2)
