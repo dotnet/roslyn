@@ -823,7 +823,7 @@ TestDelegate testDelB = delegate (string s) { Console.WriteLine(s); };
 
             using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
             {
-                s.ContinueWith(@"testDelB(""hello"");");
+                s.ContinueWith(@"testDelB(""hello"");").Wait();
                 Assert.Equal("hello", redirect.Output.Trim());
             }
         }
