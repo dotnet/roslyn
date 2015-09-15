@@ -10,9 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Friend Structure FieldOrPropertyInitializer
         ''' <summary>
-        ''' The fields or a property being initialized, or Nothing if this represents an executable statement in script code.
+        ''' The fields or properties being initialized, or Nothing if this represents an executable statement in script code.
+        ''' We can get into a multiple properties case when multiple WithEvents fields are initialized with As New ...
         ''' </summary>
-        Public ReadOnly FieldsOrProperty As ImmutableArray(Of Symbol)
+        Public ReadOnly FieldsOrProperties As ImmutableArray(Of Symbol)
 
         ''' <summary>
         ''' A reference to 
@@ -53,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                          syntax.GetSyntax().IsKind(SyntaxKind.EqualsValue) OrElse
                          syntax.GetSyntax().IsKind(SyntaxKind.ModifiedIdentifier))
 
-            Me.FieldsOrProperty = ImmutableArray.Create(Of Symbol)(field)
+            Me.FieldsOrProperties = ImmutableArray.Create(Of Symbol)(field)
             Me.Syntax = syntax
             Me.IsMetadataConstant = field.IsMetadataConstant
             Me.PrecedingInitializersLength = precedingInitializersLength
@@ -65,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Sub New(fieldsOrProperties As ImmutableArray(Of Symbol), syntax As SyntaxReference, precedingInitializersLength As Integer)
             Debug.Assert(Not fieldsOrProperties.IsEmpty)
             Debug.Assert(syntax.GetSyntax().IsKind(SyntaxKind.AsNewClause) OrElse syntax.GetSyntax().IsKind(SyntaxKind.EqualsValue))
-            Me.FieldsOrProperty = fieldsOrProperties
+            Me.FieldsOrProperties = fieldsOrProperties
             Me.Syntax = syntax
             Me.IsMetadataConstant = False
             Me.PrecedingInitializersLength = precedingInitializersLength
@@ -81,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(syntax IsNot Nothing)
             Debug.Assert(syntax.GetSyntax().IsKind(SyntaxKind.AsNewClause) OrElse syntax.GetSyntax().IsKind(SyntaxKind.EqualsValue))
 
-            Me.FieldsOrProperty = ImmutableArray.Create(Of Symbol)([property])
+            Me.FieldsOrProperties = ImmutableArray.Create(Of Symbol)([property])
             Me.Syntax = syntax
             Me.IsMetadataConstant = False
             Me.PrecedingInitializersLength = precedingInitializersLength
