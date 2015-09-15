@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.ProjectSystem.Utilities.Designers;
 namespace Microsoft.VisualStudio.ProjectSystem.Designers
 {
     /// <summary>
-    ///     Provides the base class for <see cref="IProjectTreeModifier"/> objects that handle special folders, such as the Properties "AppDesigner" folder.
+    ///     Provides the base class for <see cref="IProjectTreeModifier"/> objects that handle special items, such as the AppDesigner folder.
     /// </summary>
     internal abstract class SpecialItemProjectTreeModifierBase : ProjectTreeModifierBase
     {
@@ -20,22 +20,34 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
             _imageProvider = imageProvider;
         }
 
+        /// <summary>
+        ///     Gets the image key that represents the image that will be applied to the candidate special item.
+        /// </summary>
         public abstract string ImageKey
         {
             get;
         }
 
+        /// <summary>
+        ///     Gets the default capabilities that will be applied to the candidate special item.
+        /// </summary>
         public abstract ImmutableHashSet<string> DefaultCapabilities
         {
             get;
         }
 
+        /// <summary>
+        ///     Gets a value indicating whether the special item is supported in this project.
+        /// </summary>
         public abstract bool IsSupported
         {
             get;
         }
 
-        public abstract bool IsExpandable
+        /// <summary>
+        ///     Gets a value indicating whether the special item is expandable by default.
+        /// </summary>
+        public abstract bool IsExpandableByDefault
         {
             get;
         }
@@ -58,7 +70,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
                         resetExpandedIcon: icon == null,
                         capabilities: DefaultCapabilities.Union(item.Capabilities));
 
-            if (!IsExpandable)
+            if (!IsExpandableByDefault)
             {
                 item = HideAllChildren(item);
             }
@@ -67,7 +79,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
         }
 
         /// <summary>
-        ///     Returns the candidate of the special item, or null if not found.
+        ///     Returns a candidate of the special item, or <see langword="null"/> if not found.
         /// </summary>
         protected abstract IProjectTree FindCandidateSpecialItem(IProjectTree projectRoot);
 

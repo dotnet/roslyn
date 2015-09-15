@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
         {
         }
 
-        public override bool IsExpandable
+        public override bool IsExpandableByDefault
         {
             get { return false; }   // By default, My Project isn't expandable unless Show All Files is on
         }
