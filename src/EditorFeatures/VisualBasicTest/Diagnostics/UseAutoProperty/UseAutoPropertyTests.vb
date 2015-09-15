@@ -177,7 +177,7 @@ NewLines("partial class Class1 \n end class \n partial class Class1 \n ReadOnly 
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
-        Public Sub TestNotWithFieldWithAttirbute()
+        Public Sub TestNotWithFieldWithAttribute()
             TestMissing(
 NewLines("class Class1 \n [|<A>dim i as integer|] \n property P as Integer \n get \n return i \n end property \n end class"))
         End Sub
@@ -220,6 +220,11 @@ NewLines("class Class1 \n [|dim i as integer|] \n public property P as Integer \
             Test(
 NewLines("class Class1 \n [|dim i as integer|] \n public property P as Integer \n get \n return i \n end get \n set \n i = value \n end set \n end property \n public sub Foo() \n i = 1 \n end sub \n end class"),
 NewLines("class Class1 \n public property P as Integer \n public sub Foo() P = 1 \n end sub \n end class"))
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        Public Sub TestAlreadyAutoProperty()
+            TestMissing(NewLines("Class Class1 \n Public Property [|P|] As Integer \n End Class"))
         End Sub
     End Class
 End Namespace
