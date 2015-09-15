@@ -19,6 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     /// </summary>
     internal abstract class AbstractTableEntriesSnapshot<TData> : ITableEntriesSnapshot
     {
+        // TODO : remove these once we move to new drop which contains API change from editor team
         protected const string ProjectNames = StandardTableKeyNames.ProjectName + "s";
         protected const string ProjectGuids = StandardTableKeyNames.ProjectGuid + "s";
 

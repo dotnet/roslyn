@@ -16,7 +16,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     internal abstract class AbstractTableDataSource<TData> : ITableDataSource
     {
         private readonly object _gate;
+
+        // This map holds aggregation key to factory
+        // Any data that shares same aggregation key will de-duplicated to same factory
         private readonly Dictionary<object, TableEntriesFactory<TData>> _map;
+
+        // This map holds each data source key to its aggregation key
         private readonly Dictionary<object, object> _aggregateKeyMap;
 
         private ImmutableArray<SubscriptionWithoutLock> _subscriptions;
