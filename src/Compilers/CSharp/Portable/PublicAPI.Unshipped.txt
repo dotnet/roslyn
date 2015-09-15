@@ -86,7 +86,6 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.DeclarationPattern = 8658 -> Microsoft.
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.IsPatternExpression = 8657 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.PropertyPattern = 8554 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.RecursivePattern = 8661 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.ShebangCommentTrivia = 8922 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SubPropertyPattern = 8555 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SubPropertyPatternList = 8556 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SubRecursivePattern = 8662 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
@@ -153,6 +152,10 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxExtensions.NormalizeWhitespace(this M
 static Microsoft.CodeAnalysis.CSharp.SyntaxExtensions.NormalizeWhitespace(this Microsoft.CodeAnalysis.SyntaxToken token, string indentation, bool elasticTrivia) -> Microsoft.CodeAnalysis.SyntaxToken
 static Microsoft.CodeAnalysis.CSharp.SyntaxExtensions.NormalizeWhitespace(this Microsoft.CodeAnalysis.SyntaxTriviaList list, string indentation = "    ", string eol = "\r\n", bool elasticTrivia = false) -> Microsoft.CodeAnalysis.SyntaxTriviaList
 static Microsoft.CodeAnalysis.CSharp.SyntaxExtensions.NormalizeWhitespace(this Microsoft.CodeAnalysis.SyntaxTriviaList list, string indentation, bool elasticTrivia) -> Microsoft.CodeAnalysis.SyntaxTriviaList
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.LoadDirectiveTrivia(Microsoft.CodeAnalysis.SyntaxToken file, bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.LoadDirectiveTrivia(Microsoft.CodeAnalysis.SyntaxToken hashToken, Microsoft.CodeAnalysis.SyntaxToken loadKeyword, Microsoft.CodeAnalysis.SyntaxToken file, Microsoft.CodeAnalysis.SyntaxToken endOfDirectiveToken, bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitLoadDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitLoadDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax node) -> TResult
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CaseMatchLabel(Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax condition, Microsoft.CodeAnalysis.SyntaxToken colonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.CaseMatchLabelSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CaseMatchLabel(Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern, Microsoft.CodeAnalysis.SyntaxToken colonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.CaseMatchLabelSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CaseMatchLabel(Microsoft.CodeAnalysis.SyntaxToken keyword, Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern, Microsoft.CodeAnalysis.SyntaxToken whereKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax condition, Microsoft.CodeAnalysis.SyntaxToken colonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.CaseMatchLabelSyntax
