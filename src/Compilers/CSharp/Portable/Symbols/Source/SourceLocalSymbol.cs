@@ -103,6 +103,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return SynthesizedLocalKind.UserDefined; }
         }
 
+        internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
         internal override bool IsPinned
         {
             get

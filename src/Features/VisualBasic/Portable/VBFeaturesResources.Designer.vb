@@ -383,15 +383,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Change &apos;{0}&apos; to &apos;{1}&apos;..
-        '''</summary>
-        Friend ReadOnly Property ChangeTo() As String
-            Get
-                Return ResourceManager.GetString("ChangeTo", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Declares the name of a class and introduces the definitions of the variables, properties, and methods that make up the class..
         '''</summary>
         Friend ReadOnly Property ClassKeywordToolTip() As String

@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 For j = 0 To siblingInitializers.Length - 1
                     Dim initializer = siblingInitializers(j)
 
-                    If Not initializer.FieldsOrProperty.IsDefault AndAlso initializer.FieldsOrProperty.First.ContainingType.IsEnumType Then
+                    If Not initializer.FieldsOrProperties.IsDefault AndAlso initializer.FieldsOrProperties.First.ContainingType.IsEnumType Then
                         Continue For
                     End If
 
@@ -123,18 +123,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Debug.Assert(parentBinder.SyntaxTree Is syntaxTree, "sibling initializer array contains initializers from two different syntax trees.")
                     End If
 
-                    If initializer.FieldsOrProperty.IsDefault Then
+                    If initializer.FieldsOrProperties.IsDefault Then
                         ' use the binder of the Script class for global statements
                         Dim isLast = (i = initializers.Length - 1 AndAlso j = siblingInitializers.Length - 1)
                         boundInitializers.Add(parentBinder.BindGlobalStatement(scriptInitializerOpt, DirectCast(initializerNode, StatementSyntax), diagnostics, isLast))
                         Continue For
                     End If
 
-                    Dim firstFieldOrProperty = initializer.FieldsOrProperty.First
+                    Dim firstFieldOrProperty = initializer.FieldsOrProperties.First
                     Dim initializerBinder = BinderBuilder.CreateBinderForInitializer(parentBinder, firstFieldOrProperty)
                     If initializerNode.Kind = SyntaxKind.ModifiedIdentifier Then
                         ' Array field with no explicit initializer.
-                        Debug.Assert(initializer.FieldsOrProperty.Length = 1)
+                        Debug.Assert(initializer.FieldsOrProperties.Length = 1)
                         Debug.Assert(firstFieldOrProperty.Kind = SymbolKind.Field)
 
                         Dim fieldSymbol = DirectCast(firstFieldOrProperty, SourceFieldSymbol)
@@ -178,15 +178,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 End If
                             End If
 
-                            initializerBinder.BindFieldInitializer(initializer.FieldsOrProperty,
+                            initializerBinder.BindFieldInitializer(initializer.FieldsOrProperties,
                                                                    initializerNode,
                                                                    boundInitializers,
                                                                    diagnostics)
                         End If
                     Else
-                        Dim propertySymbol = DirectCast(firstFieldOrProperty, PropertySymbol)
-
-                        initializerBinder.BindPropertyInitializer(propertySymbol,
+                        initializerBinder.BindPropertyInitializer(initializer.FieldsOrProperties,
                                                                   initializerNode,
                                                                   boundInitializers,
                                                                   diagnostics)
@@ -324,11 +322,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Friend Sub BindPropertyInitializer(
-            propertySymbol As PropertySymbol,
+            propertySymbols As ImmutableArray(Of Symbol),
             initValueOrAsNewNode As VisualBasicSyntaxNode,
             boundInitializers As ArrayBuilder(Of BoundInitializer),
             diagnostics As DiagnosticBag
         )
+            Dim propertySymbol = DirectCast(propertySymbols.First, PropertySymbol)
             Dim syntaxNode As VisualBasicSyntaxNode = initValueOrAsNewNode
 
             Dim boundReceiver = If(propertySymbol.IsShared, Nothing, CreateMeReference(syntaxNode, isSynthetic:=True))
@@ -341,6 +340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If propertySymbol.IsReadOnly AndAlso propertySymbol.AssociatedField IsNot Nothing Then
                 ' For ReadOnly auto-implemented properties we have to write directly to the backing field.
                 Debug.Assert(propertySymbol.Type = propertySymbol.AssociatedField.Type)
+                Debug.Assert(propertySymbols.Length = 1)
                 boundPropertyOrFieldAccess = New BoundFieldAccess(syntaxNode,
                                                                   boundReceiver,
                                                                   propertySymbol.AssociatedField,
@@ -370,8 +370,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                diagnostics)
 
             boundInitializers.Add(New BoundFieldOrPropertyInitializer(initValueOrAsNewNode,
-                                                                      ImmutableArray.Create(Of Symbol)(propertySymbol),
-                                                                      boundPropertyOrFieldAccess,
+                                                                      propertySymbols,
+                                                                      If(propertySymbols.Length = 1, boundPropertyOrFieldAccess, Nothing),
                                                                       boundInitExpression))
 
         End Sub
