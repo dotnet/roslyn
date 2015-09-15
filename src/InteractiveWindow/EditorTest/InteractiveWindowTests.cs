@@ -349,6 +349,18 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Task.Run(() => Window.Operations.End(true)).PumpingWait();
         }
 
+        public void ScrollToCursorOnHomeAndEndOnNonUIThread()
+        {
+            Window.InsertCode(new string('1', 512));    // a long input string 
+
+            Task.Run(() => Window.Operations.Home(false)).PumpingWait();
+            Assert.True(Window.TextView.TextViewModel.IsPointInVisualBuffer(Window.TextView.Caret.Position.BufferPosition,
+                                                                            Window.TextView.Caret.Position.Affinity));
+            Task.Run(() => Window.Operations.End(false)).PumpingWait();
+            Assert.True(Window.TextView.TextViewModel.IsPointInVisualBuffer(Window.TextView.Caret.Position.BufferPosition,
+                                                                            Window.TextView.Caret.Position.Affinity));
+        }
+
         [Fact]
         public void CallSelectAllOnNonUIThread()
         {
