@@ -41,6 +41,12 @@ Don't actually upload anything to blob storage (useful for debugging)
 .PARAMETER NoSubmit
 Don't submit the job at the end (useful for debugging)
 
+.PARAMETER SubmitConnectionString
+The connection string to use when submitting the final job to Helix
+
+.PARAMETER SCRAMScope
+The scope to use if connection strings and account keys are to be retrieved from SCRAM
+
 .EXAMPLE 1
 C:\PS> .\CIPerf.ps1 -BinariesDirectory "Open\Binaries\Release" -JobId "PR1234" -Queue "RoslynAzureWindows10x86"
 #>
@@ -49,19 +55,20 @@ param (
     [parameter(Mandatory = $true)]
     [String] $BinariesDirectory,
     [String] $Branch = "master",
-    [String] $JobId = $env:USERNAME + "_" + [System.DateTime]::UtcNow.ToString("yyyyMMddThhmmss"),
+    [String] $JobId = $env:USERNAME + "_" + [System.DateTime]::UtcNow.ToString("yyyyMMddTHHmmss"),
     [String] $JobType = "CIPerf",
     [String] $Platform = "Windows",
     [String] $Queue = "Windows",
     [String] $Repository = "Roslyn",
-    [parameter(Mandatory = $true)]
     [String] $StorageAccountKey,
     [parameter(Mandatory = $true)]
     [String] $StorageAccountName,
     [parameter(Mandatory = $true)]
     [String] $StorageContainer,
     [switch] $NoUpload,
-    [switch] $NoSubmit
+    [switch] $NoSubmit,
+    [String] $SubmitConnectionString,
+    [String] $SCRAMScope
 )
 
 try {
@@ -70,6 +77,35 @@ try {
         Write-Error "Could not find binaries directory ($BinariesDirectory)"
         exit 1
     }
+
+    if ([System.String]::IsNullOrEmpty($SCRAMScope)) {
+        # Credentials must be passed on the command line
+        if ([System.String]::IsNullOrEmpty($StorageAccountKey)) {
+            Write-Error "If SCRAMScope is not specified, you must supply the StorageAccountKey parameter"
+            exit 1
+        }
+
+        if (!($NoSubmit) -and [System.String]::IsNullOrEmpty($SubmitConnectionString)) {
+            Write-Error "You must supply a connetion string to a Service Bus Event Hub end point to submit the job to Helix or use the -NoSubmit switch"
+            Write-Error "The connection string may either be retrieved from SCRAM by passing a -SCRAMScope parameter on the command line"
+            Write-Error "or passed using the -SubmitConnectionString parameter."
+            Write-Error "The string should be like ""Endpoint=sb://something.servicebus.windows.net/;SharedAccessKeyName=...;SharedAccessKey=...;EntityPath=..."""
+            exit 1
+        }
+    } else {
+        if ([System.String]::IsNullOrEmpty($StorageAccountKey)) {
+            $StorageAccountKey = (Get-GenericCredential -Scope $SCRAMScope -UserName $StorageAccountName).Password
+        }
+
+        if (!($NoSubmit) -and [System.String]::IsNullOrEmpty($SubmitConnectionString)) {
+            $SubmitConnectionString = (Get-GenericCredential -Scope $SCRAMScope -UserName "HelixEventHub").Password
+        }
+    }
+
+    # TODO: Validate args:
+    # Since Repostory, Branch, JobId, JobType and Platform are used to create paths
+    # in the storage container, they may not contain punctuation or non-ASCII chars (whitespace should also be discouraged)
+    # Hyphen and periods might be allowed (period for the JobId, for example)
 
     $NuGetExe = Join-Path -Path $PSScriptRoot -ChildPath NuGet.exe
     if (!(Test-Path $NuGetExe)) {
@@ -133,9 +169,44 @@ try {
     $ub = New-Object System.UriBuilder -ArgumentList $StorageContext.BlobEndPoint
     $ub.Path += $StorageContainer + "/" + $BlobName
     $ub.Query = $StorageContainerRSAS.Substring(1)
-    $PayloadUri = $ub.Uri
+    $PayloadUri = $ub.Uri.OriginalString
 
     Write-Host "Creating work item list"
+
+    # Look for xunit.zip in the "fixtures" folder and create it if it doesn't already exist
+    $BlobName = "$Repository/$Branch/fixtures/xunit2.1/xunit.zip"
+    $xunitBlob = Get-AzureStorageBlob -Container $StorageContainer -Blob $BlobName -Context $StorageContext -ErrorAction Ignore
+    if ($xunitBlob -eq $null) {
+
+        Write-Host "Xunit fixture is missing. Creating it and uploading to storage..."
+        $FixturesStage = Join-Path -Path $HelixStage -ChildPath fixtures
+
+        $FixturesStagePackages = Join-Path -Path $FixturesStage -ChildPath Packages
+        & $NuGetExe install -OutputDirectory $FixturesStagePackages -NonInteractive -ExcludeVersion xunit.runner.console -Version 2.1.0-beta4-build3109 -Source https://www.nuget.org/api/v2/
+        & $NuGetExe install -OutputDirectory $FixturesStagePackages -NonInteractive -ExcludeVersion Microsoft.DotNet.xunit.performance.runner.Windows -Version 1.0.0-alpha-build0013 -Source https://www.myget.org/F/dotnet-buildtools/
+
+        $FixturesStageToZip = Join-Path $FixturesStage -ChildPath ToZip
+        mkdir $FixturesStageToZip > $null
+
+        # Move the contents of all "Tools" folders into the root of the archive (overwriting any duplicates)
+        (Get-ChildItem -Path $FixturesStagePackages -Recurse -Directory -Include "Tools").FullName | Get-ChildItem | Move-Item -Destination $FixturesStageToZip -Force
+
+        $xunitZip = Join-Path $FixturesStage -ChildPath xunit.zip
+        Write-Host "Zipping $FixturesStageToZip to $xunitZip"
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        $compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
+        [System.IO.Compression.ZipFile]::CreateFromDirectory($FixturesStageToZip, $xunitZip, $compressionLevel, $false)
+
+        if (!$NoUpload) {
+            Write-Host "Uploading xunit fixture"
+            Set-AzureStorageBlobContent -File $xunitZip -Container $StorageContainer -Blob $BlobName -Context $StorageContext
+        }
+    }
+
+    $ub = New-Object System.UriBuilder -ArgumentList $StorageContext.BlobEndPoint
+    $ub.Path += $StorageContainer + "/" + $BlobName
+    $ub.Query = $StorageContainerRSAS.Substring(1)
+    $CorrelationPayloadUri = $ub.Uri.OriginalString
 
     $sb = New-Object -TypeName System.Text.StringBuilder
     [void] $sb.AppendLine("[")
@@ -148,6 +219,7 @@ try {
         [void] $sb.AppendLine("  {")
         [void] $sb.AppendLine("    ""Command"": ""Perf-Run.cmd $TestAssembly"",")
         [void] $sb.AppendLine("    ""CorrelationPayloadUris"": [")
+        [void] $sb.AppendLine("        ""$CorrelationPayloadUri""")
         [void] $sb.AppendLine("    ],")
         [void] $sb.AppendLine("    ""PayloadUri"": ""$PayloadUri"",")
         [void] $sb.AppendLine("    ""WorkItemId"": ""$WorkItemId""")
@@ -169,12 +241,12 @@ try {
     $ub = New-Object System.UriBuilder -ArgumentList $StorageContext.BlobEndPoint
     $ub.Path = $StorageContainer + "/" + $BlobName
     $ub.Query = $StorageContainerRSAS.Substring(1)
-    $ListUri = $ub.Uri
+    $ListUri = $ub.Uri.OriginalString
     
     # Using the same storage account and container for results as for the payload
     $ub = New-Object System.UriBuilder -ArgumentList $StorageContext.BlobEndPoint
     $ub.Path = $StorageContainer
-    $ResultsUri = $ub.Uri
+    $ResultsUri = $ub.Uri.OriginalString
 
     $ResultsUriRSAS =  $StorageContainerRSAS
     $ResultsUriWSAS = New-AzureStorageContainerSASToken -Context $StorageContext -Permission w -Container $StorageContainer -StartTime ([System.DateTime]::UtcNow.Date) -ExpiryTime ([System.DateTime]::UtcNow.Date + [System.TimeSpan]::FromDays(7))
@@ -206,9 +278,7 @@ try {
     # Submit event to the EventBus
     if (!$NoSubmit) {
         Write-Host "Submitting job to event hub."
-        $EventHubConnectionString = "Endpoint=sb://dotnethelix.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=qVhbrtIm7tmmYKohdYht0MspbuPvnf7huE5d5U8lPGE="
-        $EventHubEntityPath = "controler" # Sic: one 'l' in controler
-        $EventHubClient = [Microsoft.ServiceBus.Messaging.EventHubClient]::CreateFromConnectionString($EventHubConnectionString, $EventHubEntityPath)
+        $EventHubClient = [Microsoft.ServiceBus.Messaging.EventHubClient]::CreateFromConnectionString($SubmitConnectionString)
         $JobJsonStream = [System.IO.File]::Open($JobJson, [System.IO.FileMode]::Open)
         $EventData = New-Object Microsoft.ServiceBus.Messaging.EventData -ArgumentList $JobJsonStream
         $EventHubClient.Send($EventData)

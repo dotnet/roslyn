@@ -33,7 +33,7 @@ REM Kill any instances of VBCSCompiler.exe to release locked files;
 REM otherwise future CI runs may fail while trying to delete those files.
 taskkill /F /IM vbcscompiler.exe
 
-powershell .\ciperf.ps1 -BinariesDirectory %RoslynRoot%Binaries\%BuildConfiguration% -StorageAccountKey "PclTaMXargO66jeSWYgM7O4jifXlJHZFbHRjMjhMPnR6TxmI9Wy7G//lIVzSGdxpgxXTvgXKtdQuhb5tswZA3A==" -StorageAccountName dotnetbuilddrops -StorageContainer roslyn-scratch -NoSubmit
+powershell .\ciperf.ps1 -BinariesDirectory %RoslynRoot%Binaries\%BuildConfiguration% -StorageAccountName roslynscratch -StorageContainer drops -SCRAMScope "Roslyn\Azure" -NoSubmit
 
 REM It is okay and expected for taskkill to fail (it's a cleanup routine).  Ensure
 REM caller sees successful exit.
