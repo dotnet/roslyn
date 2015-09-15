@@ -1363,15 +1363,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Import &apos;{0}&apos;..
-        '''</summary>
-        Friend ReadOnly Property Import() As String
-            Get
-                Return ResourceManager.GetString("Import", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Imports all or specified elements of a namespace into a file..
         '''</summary>
         Friend ReadOnly Property ImportsKeywordToolTip() As String

@@ -188,6 +188,7 @@
     <Compile Include="Classification\ClassificationBuilder.PunctuationClassificationTypes.cs" />
     <Compile Include="Classification\ClassificationBuilder.XmlDocClassificationTypes.cs" />
     <Compile Include="Classification\ClassificationTestHelper.cs" />
+    <Compile Include="CodeActions\AbstractCodeActionOrUserDiagnosticTest.cs" />
     <Compile Include="CodeActions\AbstractCodeActionTest.cs" />
     <Compile Include="CodeActions\CodeActionSmartTagProducerTests.cs" />
     <Compile Include="CodeAnalysisResources.cs" />

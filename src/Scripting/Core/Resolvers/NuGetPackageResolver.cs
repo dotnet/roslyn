@@ -2,7 +2,7 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Scripting
+namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
     internal abstract class NuGetPackageResolver
     {
