@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     {
         /// <summary>
         /// Re-use already boxed object for value type.
-        /// this cache never release cached object. must be used only with fixed set of valut types. or
+        /// this cache never release cached object. must be used only with fixed set of value types. or
         /// something that grows very slowly like Guid for projects.
         /// </summary>
         public static object GetOrCreate<T>(T value) where T : struct
