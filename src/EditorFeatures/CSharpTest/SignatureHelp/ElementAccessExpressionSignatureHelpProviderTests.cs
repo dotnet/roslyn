@@ -833,6 +833,30 @@ public class P
 
                 Test(markup);
             }
+
+            [WorkItem(2482, "https://github.com/dotnet/roslyn/issues/2482")]
+            [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+            public void WhereExpressionLooksLikeArrayTypeSyntaxOfQualifiedName()
+            {
+                var markup = @"
+class WithIndexer
+{
+    public int this[int index] { get { return 0; } }
+}
+
+class TestClass
+{
+    public WithIndexer Item { get; set; }
+
+    public void Method(TestClass tc)
+    {
+        // `tc.Item[]` parses as ArrayTypeSyntax with an ElementType of QualifiedNameSyntax
+        tc.Item[$$]
+    }
+}
+";
+                Test(markup, new[] { new SignatureHelpTestItem("int WithIndexer[int index]") }, usePreviousCharAsTrigger: true);
+            }
         }
     }
 }
