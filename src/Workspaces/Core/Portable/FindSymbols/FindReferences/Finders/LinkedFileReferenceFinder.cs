@@ -1,13 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
@@ -21,6 +18,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             foreach (var location in symbol.DeclaringSyntaxReferences)
             {
                 var originalDocument = solution.GetDocument(location.SyntaxTree);
+
+                // GetDocument will return null for locations in #load'ed trees.
+                // TODO:  Remove this check and add logic to fetch the #load'ed tree's
+                // Document once https://github.com/dotnet/roslyn/issues/5260 is fixed.
+                if (originalDocument == null)
+                {
+                    Debug.Assert(solution.Workspace.Kind == "Interactive");
+                    continue;
+                }
 
                 foreach (var linkedDocumentId in originalDocument.GetLinkedDocumentIds())
                 {

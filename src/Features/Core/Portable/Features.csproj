@@ -227,6 +227,8 @@
     <Compile Include="IntroduceVariable\AbstractIntroduceVariableService.IntroduceVariableAllOccurrenceCodeAction.cs" />
     <Compile Include="LanguageServices\ProjectInfoService\IProjectInfoService.cs" />
     <Compile Include="QuickInfo\QuickInfoUtilities.cs" />
+    <Compile Include="ReplaceMethodWithProperty\ReplaceMethodWithPropertyCodeRefactoringProvider.cs" />
+    <Compile Include="ReplaceMethodWithProperty\IReplaceMethodWithPropertyService.cs" />
     <Compile Include="Shared\Options\OrganizerOptionsProvider.cs" />
     <Compile Include="Shared\Options\ServiceComponentOnOffOptionsProvider.cs" />
     <Compile Include="Shared\Options\ServiceFeatureOnOffOptions.cs" />

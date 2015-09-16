@@ -434,4 +434,10 @@
   <data name="ERR_NameNotInContext" xml:space="preserve">
     <value>The name '{0}' does not exist in the current context.</value>
   </data>
+  <data name="NonInvokedMethodCannotBeReplacedWithProperty" xml:space="preserve">
+    <value>Non-invoked method cannot be replaced with property.</value>
+  </data>
+  <data name="OnlyMethodsWithASingleArgumentCanBeReplacedWithAProperty" xml:space="preserve">
+    <value>Only methods with a single argument can be replaced with a property.</value>
+  </data>
 </root>

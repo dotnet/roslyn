@@ -1862,26 +1862,23 @@ class UsePia
             var expected =
 @"
 {
-  // Code size       41 (0x29)
-  .maxstack  2
-  .locals init (ITest28 V_0,
-                ITest28 V_1)
+  // Code size       39 (0x27)
+  .maxstack  3
+  .locals init (ITest28 V_0)
   IL_0000:  nop
   IL_0001:  ldstr      ""00000000-0000-0000-0000-000000000000""
   IL_0006:  newobj     ""System.Guid..ctor(string)""
   IL_000b:  call       ""System.Type System.Type.GetTypeFromCLSID(System.Guid)""
   IL_0010:  call       ""object System.Activator.CreateInstance(System.Type)""
   IL_0015:  castclass  ""ITest28""
-  IL_001a:  stloc.0
-  IL_001b:  ldloc.0
-  IL_001c:  ldc.i4.2
-  IL_001d:  callvirt   ""void ITest28.P1.set""
-  IL_0022:  nop
-  IL_0023:  ldloc.0
-  IL_0024:  stloc.1
-  IL_0025:  br.s       IL_0027
-  IL_0027:  ldloc.1
-  IL_0028:  ret
+  IL_001a:  dup
+  IL_001b:  ldc.i4.2
+  IL_001c:  callvirt   ""void ITest28.P1.set""
+  IL_0021:  nop
+  IL_0022:  stloc.0
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ldloc.0
+  IL_0026:  ret
 }
 ";
 

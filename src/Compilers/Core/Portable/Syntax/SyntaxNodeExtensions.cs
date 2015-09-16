@@ -68,6 +68,11 @@ namespace Microsoft.CodeAnalysis
         public static TRoot ReplaceNode<TRoot>(this TRoot root, SyntaxNode oldNode, SyntaxNode newNode)
             where TRoot : SyntaxNode
         {
+            if (oldNode == newNode)
+            {
+                return root;
+            }
+
             return (TRoot)root.ReplaceCore(nodes: new[] { oldNode }, computeReplacementNode: (o, r) => newNode);
         }
 
