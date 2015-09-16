@@ -1563,6 +1563,7 @@ class C
                 state.CompletionCommandHandler.ExecuteCommand(New DeleteKeyCommandArgs(view, state.SubjectBuffer), Sub() editorOperations.Delete())
 
                 state.AssertNoCompletionSession()
+                view.Close()
             End Using
         End Sub
     End Class
