@@ -75,7 +75,7 @@ class C
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.Interactive)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub SnippetExpansionNoteNotAddedToDescription_Interactive()
             Dim workspaceXml =
                 <Workspace>

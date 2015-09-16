@@ -209,7 +209,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets), Trait(Traits.Feature, Traits.Features.Interactive)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets), Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub SnippetCommandHandler_Interactive_Tab()
             Dim markup = "for$$"
             Dim testState = SnippetTestState.CreateSubmissionTestState(markup, LanguageNames.CSharp)
@@ -222,7 +222,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets), Trait(Traits.Feature, Traits.Features.Interactive)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets), Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub SnippetCommandHandler_Interactive_InsertSnippetCommand()
             Dim markup = "for$$"
 
@@ -251,7 +251,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets), Trait(Traits.Feature, Traits.Features.Interactive)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets), Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub SnippetCommandHandler_Interactive_SurroundWithCommand()
             Dim markup = "for$$"
 
