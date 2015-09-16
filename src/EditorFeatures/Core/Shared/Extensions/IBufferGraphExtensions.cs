@@ -63,7 +63,18 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
                 case BufferMapDirection.Down:
                     {
-                        return bufferGraph.MapDownToInsertionPoint(point, PointTrackingMode.Positive, s => s == targetBuffer.CurrentSnapshot);
+                        // TODO (https://github.com/dotnet/roslyn/issues/5281): Remove try-catch.
+                        try
+                        {
+                            return bufferGraph.MapDownToInsertionPoint(point, PointTrackingMode.Positive, s => s == targetBuffer.CurrentSnapshot);
+                        }
+                        catch (ArgumentOutOfRangeException) when (bufferGraph.TopBuffer.ContentType.TypeName == "Interactive Content")
+                        {
+                            // Suppress this to work around DevDiv #144964.
+                            // Note: Other callers might be affected, but this is the narrowest workaround for the observed problems.
+                            // A fix is already being reviewed, so a broader change is not required.
+                            return null;
+                        }
                     }
 
                 case BufferMapDirection.Up:
