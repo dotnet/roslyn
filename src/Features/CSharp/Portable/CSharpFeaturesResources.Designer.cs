@@ -602,6 +602,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Only methods with a single argument can be replaced with a property..
+        /// </summary>
+        internal static string OnlyMethodsWithASingleArgumentCanBeReplacedWithAProperty {
+            get {
+                return ResourceManager.GetString("OnlyMethodsWithASingleArgumentCanBeReplacedWithAProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to orderby clause.
         /// </summary>
         internal static string OrderByClause {

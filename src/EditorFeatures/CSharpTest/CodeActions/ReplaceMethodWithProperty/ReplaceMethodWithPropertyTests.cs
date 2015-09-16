@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        public void TestUpdateReferenceNotInMethod()
+        public void TestUpdateGetReferenceNotInMethod()
         {
             Test(
 @"class C { int [||]GetFoo() { } void Bar() { var x = GetFoo(); } }",
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        public void TestUpdateReferenceSimpleInvocation()
+        public void TestUpdateGetReferenceSimpleInvocation()
         {
             Test(
 @"class C { int [||]GetFoo() { } void Bar() { var x = GetFoo(); } }",
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        public void TestUpdateReferenceMemberAccessInvocation()
+        public void TestUpdateGetReferenceMemberAccessInvocation()
         {
             Test(
 @"class C { int [||]GetFoo() { } void Bar() { var x = this.GetFoo(); } }",
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        public void TestUpdateReferenceBindingMemberInvocation()
+        public void TestUpdateGetReferenceBindingMemberInvocation()
         {
             Test(
 @"class C { int [||]GetFoo() { } void Bar() { C x; var v = x?.GetFoo(); } }",
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        public void TestUpdateReferenceInMethod()
+        public void TestUpdateGetReferenceInMethod()
         {
             Test(
 @"class C { int [||]GetFoo() { return GetFoo(); } }",
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        public void TestUpdateReference_NonInvoked()
+        public void TestUpdateGetReference_NonInvoked()
         {
             Test(
 @"using System; class C { int [||]GetFoo() { } void Bar() { Action<int> i = GetFoo; } }",
@@ -167,11 +167,74 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        public void TestUpdateReference_ImplicitReference()
+        public void TestUpdateGetReference_ImplicitReference()
         {
             Test(
 @"using System.Collections; class C { public IEnumerator [||]GetEnumerator() { } void Bar() { foreach (var x in this) { } } }",
 @"using System.Collections; class C { public IEnumerator Enumerator { get { } } void Bar() { {|Conflict:foreach (var x in this) { }|} } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestUpdateGetSet()
+        {
+            Test(
+@"using System; class C { int [||]GetFoo() { } void SetFoo(int i) { } }",
+@"using System; class C { int Foo { get { } set { } } }",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestUpdateGetSetReference_NonInvoked()
+        {
+            Test(
+@"using System; class C { int [||]GetFoo() { } void SetFoo(int i) { } void Bar() { Action<int> i = SetFoo; } }",
+@"using System; class C { int Foo { get { } set { } } void Bar() { Action<int> i = {|Conflict:Foo|}; } }",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestUpdateGetSet_SetterAccessibility()
+        {
+            Test(
+@"using System; class C { public int [||]GetFoo() { } private void SetFoo(int i) { } }",
+@"using System; class C { public int Foo { get { } private set { } } }",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestUpdateGetSet_ExpressionBodies()
+        {
+            Test(
+@"using System; class C { int [||]GetFoo() => 0; void SetFoo(int i) => Bar(); }",
+@"using System; class C { int Foo { get { return 0; } set { Bar(); } } }",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestUpdateGetSet_GetInSetReference()
+        {
+            Test(
+@"using System; class C { int [||]GetFoo() { } void SetFoo(int i) { } void Bar() { SetFoo(GetFoo() + 1); } }",
+@"using System; class C { int Foo { get { } set { } } void Bar() { Foo = Foo + 1; } }",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestUpdateGetSet_UpdateSetPrameterName()
+        {
+            Test(
+@"using System; class C { int [||]GetFoo() { } void SetFoo(int i) { v = i; } }",
+@"using System; class C { int Foo { get { } set { v = value; } } }",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestUpdateGetSet_SetReferenceInSetter()
+        {
+            Test(
+@"using System; class C { int [||]GetFoo() { } void SetFoo(int i) { SetFoo(i - 1); } }",
+@"using System; class C { int Foo { get { } set { Foo = value - 1; } } }",
+index: 1);
         }
     }
 }
