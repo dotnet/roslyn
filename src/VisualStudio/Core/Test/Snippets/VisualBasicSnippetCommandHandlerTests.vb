@@ -364,7 +364,7 @@ End Class
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets), Trait(Traits.Feature, Traits.Features.Interactive)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets), Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub SnippetCommandHandler_Interactive_Tab()
             Dim markup = "for$$"
             Dim testState = SnippetTestState.CreateSubmissionTestState(markup, LanguageNames.VisualBasic)
@@ -377,7 +377,7 @@ End Class
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets), Trait(Traits.Feature, Traits.Features.Interactive)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets), Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub SnippetCommandHandler_Interactive_InsertSnippetCommand()
             Dim markup = "for$$"
 
