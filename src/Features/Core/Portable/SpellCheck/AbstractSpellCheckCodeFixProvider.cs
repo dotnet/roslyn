@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             }
 
             var matches = results.OrderBy(kvp => kvp.Key)
-                                 .SelectMany(kvp => kvp.Value)
+                                 .SelectMany(kvp => kvp.Value.Order())
                                  .Where(t => t != nameText)
                                  .Take(3)
                                  .Select(n => CreateCodeAction(nameNode, nameText, n, document));
