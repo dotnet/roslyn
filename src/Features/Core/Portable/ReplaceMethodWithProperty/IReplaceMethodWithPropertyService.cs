@@ -29,5 +29,4 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             SetMethodDeclaration = setMethodDeclaration;
         }
     }
-
 }

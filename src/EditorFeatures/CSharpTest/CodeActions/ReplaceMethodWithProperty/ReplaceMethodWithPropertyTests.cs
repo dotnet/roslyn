@@ -236,5 +236,32 @@ index: 1);
 @"using System; class C { int Foo { get { } set { Foo = value - 1; } } }",
 index: 1);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestVirtualGetWithOverride_1()
+        {
+            Test(
+@"class C { protected virtual int [||]GetFoo() { } } class D : C { protected override int GetFoo() { } }",
+@"class C { protected virtual int Foo { get { } } } class D : C { protected override int Foo{ get { } } }",
+index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestVirtualGetWithOverride_2()
+        {
+            Test(
+@"class C { protected virtual int [||]GetFoo() { } } class D : C { protected override int GetFoo() { base.GetFoo(); } }",
+@"class C { protected virtual int Foo { get { } } } class D : C { protected override int Foo { get { base.Foo; } } }",
+index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestGetWithInterface()
+        {
+            Test(
+@"interface I { int [||]GetFoo(); } class C : I { public int GetFoo() { } }",
+@"interface I { int Foo { get; } } class C : I { public int Foo { get { } } }",
+index: 0);
+        }
     }
 }

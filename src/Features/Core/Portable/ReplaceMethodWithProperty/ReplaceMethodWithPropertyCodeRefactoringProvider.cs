@@ -71,7 +71,6 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                 c => ReplaceMethodsWithProperty(context.Document, propertyName, nameChanged, methodSymbol, setMethod: null, cancellationToken: c),
                 methodName));
 
-
             // If this method starts with 'Get' see if there's an associated 'Set' method we could 
             // replace as well.
             if (hasGetPrefix)
