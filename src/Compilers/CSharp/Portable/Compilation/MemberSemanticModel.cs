@@ -422,6 +422,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override ISymbol GetDeclaredSymbol(LocalFunctionStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var boundLocalFunction = GetLowerBoundNode(declarationSyntax) as BoundLocalFunctionStatement;
+            return boundLocalFunction?.Symbol;
+        }
+
         public override ISymbol GetDeclaredSymbol(MemberDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Can't define member inside member.
@@ -1108,6 +1114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.ParenthesizedLambdaExpression:
                     case SyntaxKind.SimpleLambdaExpression:
                     case SyntaxKind.AnonymousMethodExpression:
+                    case SyntaxKind.LocalFunctionStatement:
                         // We can't use a statement that is inside a lambda.
                         enclosingStatement = null;
                         break;

@@ -972,6 +972,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+        {
+            // Control-flow analysis does NOT dive into a local function, while data-flow analysis does.
+            return null;
+        }
+
         public override BoundNode VisitLocal(BoundLocal node)
         {
             return null;
@@ -2034,7 +2040,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitSequencePoint(BoundSequencePoint node)
         {
-            VisitStatement(node.StatementOpt);
+            if (node.StatementOpt != null)
+                VisitStatement(node.StatementOpt);
             return null;
         }
 
@@ -2046,7 +2053,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitSequencePointWithSpan(BoundSequencePointWithSpan node)
         {
-            VisitStatement(node.StatementOpt);
+            if (node.StatementOpt != null)
+                VisitStatement(node.StatementOpt);
             return null;
         }
 

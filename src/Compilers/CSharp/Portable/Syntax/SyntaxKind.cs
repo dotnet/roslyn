@@ -468,6 +468,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         CatchFilterClause = 8828,
         FinallyClause = 8829,
 
+        // statements that didn't fit above
+        LocalFunctionStatement = 8830,
+
         // declarations
         CompilationUnit = 8840,
         GlobalStatement = 8841,

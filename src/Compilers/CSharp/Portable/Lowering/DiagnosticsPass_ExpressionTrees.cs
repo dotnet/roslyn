@@ -213,6 +213,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(ErrorCode.ERR_ComRefCallInExpressionTree, node);
                 }
+                else if (method.MethodKind == MethodKind.LocalFunction)
+                {
+                    Error(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, node);
+                }
             }
         }
 
@@ -509,6 +513,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 this.Visit(node.Argument);
             }
+            else if (_inExpressionLambda && node.MethodOpt?.MethodKind == MethodKind.LocalFunction)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, node);
+            }
 
             return null;
         }
@@ -524,6 +532,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // ERR_LambdaInIsAs makes this impossible (since the node will always be wrapped in
             // a failed conversion).
             Debug.Assert(!(!parentIsConversion && _inExpressionLambda));
+
+            if (_inExpressionLambda && (node.LookupSymbolOpt as MethodSymbol)?.MethodKind == MethodKind.LocalFunction)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, node);
+            }
 
             CheckReceiverIfField(node.ReceiverOpt);
             return base.VisitMethodGroup(node);

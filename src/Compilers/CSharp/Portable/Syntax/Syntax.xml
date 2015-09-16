@@ -413,7 +413,7 @@
     <FactoryComment>
       <summary>Creates a ConditionalAccessExpressionSyntax node.</summary>
     </FactoryComment>
-  </Node>    
+  </Node>
   <Node Name="MemberBindingExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="MemberBindingExpression"/>
     <Field Name="OperatorToken" Type="SyntaxToken">
@@ -434,7 +434,7 @@
       <summary>Creates an MemberBindingExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
-    <Node Name="ElementBindingExpressionSyntax" Base="ExpressionSyntax">
+  <Node Name="ElementBindingExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="ElementBindingExpression"/>
     <Field Name="ArgumentList" Type="BracketedArgumentListSyntax">
       <PropertyComment>
@@ -1631,6 +1631,28 @@
     <Field Name="Statements" Type="SyntaxList&lt;StatementSyntax&gt;"/>
     <Field Name="CloseBraceToken" Type="SyntaxToken">
       <Kind Name="CloseBraceToken"/>
+    </Field>
+  </Node>
+  <Node Name="LocalFunctionStatementSyntax" Base="StatementSyntax">
+    <Kind Name="LocalFunctionStatement"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;"/>
+    <Field Name="ReturnType" Type="TypeSyntax"/>
+    <Field Name="Identifier" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the identifier.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true"/>
+    <Field Name="ParameterList" Type="ParameterListSyntax"/>
+    <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;"/>
+    <Field Name="Body" Type="BlockSyntax" Optional="true"/>
+    <Field Name="ExpressionBody" Type="ArrowExpressionClauseSyntax" Optional="true" />
+    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true">
+      <PropertyComment>
+        <summary>Gets the optional semicolon token.</summary>
+      </PropertyComment>
+      <Kind Name="SemicolonToken"/>
     </Field>
   </Node>
   <Node Name="LocalDeclarationStatementSyntax" Base="StatementSyntax">

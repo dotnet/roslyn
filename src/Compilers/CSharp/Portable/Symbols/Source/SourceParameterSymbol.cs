@@ -36,7 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             bool isParams,
             bool isExtensionMethodThis,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            bool beStrict)
         {
             var name = identifier.ValueText;
             var locations = ImmutableArray.Create<Location>(new SourceLocation(identifier));
@@ -57,6 +58,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 !owner.IsPartialMethod())
             {
                 return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, locations);
+            }
+
+            if (beStrict)
+            {
+                return new SourceStrictComplexParameterSymbol(
+                    diagnostics,
+                    context,
+                    owner,
+                    ordinal,
+                    parameterType,
+                    refKind,
+                    false,
+                    name,
+                    locations,
+                    syntax.GetReference(),
+                    ConstantValue.Unset,
+                    isParams,
+                    isExtensionMethodThis);
             }
 
             return new SourceComplexParameterSymbol(
@@ -154,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract SyntaxList<AttributeListSyntax> AttributeDeclarationList { get; }
 
-        internal abstract CustomAttributesBag<CSharpAttributeData> GetAttributesBag();
+        internal abstract CustomAttributesBag<CSharpAttributeData> GetAttributesBag(DiagnosticBag diagnosticsOpt);
 
         /// <summary>
         /// Gets the attributes applied on this symbol.
@@ -166,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         public sealed override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
-            return this.GetAttributesBag().Attributes;
+            return this.GetAttributesBag(null).Attributes;
         }
 
         internal abstract SyntaxReference SyntaxReference { get; }

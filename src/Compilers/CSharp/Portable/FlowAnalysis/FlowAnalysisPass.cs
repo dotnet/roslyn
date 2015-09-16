@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? (BoundStatement)BoundYieldBreakStatement.Synthesized(syntax)
                 : BoundReturnStatement.Synthesized(syntax, null);
 
-            // Implicitly added return for async method does not need sequence points since lowering would add one.
+                // Implicitly added return for async method does not need sequence points since lowering would add one.
             if (syntax.IsKind(SyntaxKind.Block) && !method.IsAsync)
             {
                 var blockSyntax = (BlockSyntax)syntax;
@@ -86,10 +86,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (body.Kind)
             {
                 case BoundKind.Block:
-                    return body.Update(body.Locals, body.Statements.Add(ret));
+                    var block = (BoundBlock)body;
+                    return block.Update(block.Locals, block.LocalFunctions, block.Statements.Add(ret));
 
                 default:
-                    return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create(ret, body));
+                    return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<LocalFunctionSymbol>.Empty, ImmutableArray.Create(ret, body));
             }
         }
 

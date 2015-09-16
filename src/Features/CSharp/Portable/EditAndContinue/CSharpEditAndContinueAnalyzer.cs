@@ -1275,6 +1275,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.UnsafeStatement:
                     return ((UnsafeStatementSyntax)node).UnsafeKeyword.Span;
 
+                case SyntaxKind.LocalFunctionStatement:
+                    var lfd = (LocalFunctionStatementSyntax)node;
+                    return lfd.Identifier.Span;
+
                 case SyntaxKind.YieldBreakStatement:
                 case SyntaxKind.YieldReturnStatement:
                 case SyntaxKind.ReturnStatement:

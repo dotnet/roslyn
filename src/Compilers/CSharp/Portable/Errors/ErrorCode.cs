@@ -1314,5 +1314,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DebugEntryPointNotSourceMethodDefinition = 8096,
         ERR_LoadDirectiveOnlyAllowedInScripts = 8097,
         ERR_PPLoadFollowsToken = 8098,
+        ERR_ExpressionTreeContainsLocalFunction = 8099,
+        ERR_ReturnTypesDontMatch = 8100,
+        ERR_DynamicLocalFunctionParameter = 8101,
+        ERR_CantInferVoid = 8102,
     }
 }
