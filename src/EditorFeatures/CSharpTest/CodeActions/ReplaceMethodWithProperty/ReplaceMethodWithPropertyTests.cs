@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProperty;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.ReplaceMethodWithProperty;
 using Roslyn.Test.Utilities;
@@ -68,6 +63,64 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestMethodWithTrivia_1()
+        {
+            Test(
+@"class C
+{
+    // Foo
+    int [||]GetFoo()
+    {
+    }
+}",
+@"class C
+{
+    // Foo
+    int Foo
+    {
+        get
+        {
+        }
+    }
+}",
+compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestMethodWithTrivia_2()
+        {
+            Test(
+@"class C
+{
+    // Foo
+    int [||]GetFoo()
+    {
+    }
+    // SetFoo
+    void SetFoo(int i)
+    {
+    }
+}",
+@"class C
+{
+    // Foo
+    // SetFoo
+    int Foo
+    {
+        get
+        {
+        }
+
+        set
+        {
+        }
+    }
+}",
+index: 1,
+compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestExplicitInterfaceMethod_1()
         {
             Test(
@@ -88,6 +141,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         {
             TestMissing(
 @"class C { void [||]GetFoo() { } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestAsyncMethod()
+        {
+            TestMissing(
+@"class C { async Task [||]GetFoo() { } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestGenericMethod()
+        {
+            TestMissing(
+@"class C { int [||]GetFoo<T>() { } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestExtensionMethod()
+        {
+            TestMissing(
+@"static class C { int [||]GetFoo(this int i) { } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -228,10 +302,19 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        public void TestUpdateGetSet_UpdateSetPrameterName()
+        public void TestUpdateGetSet_UpdateSetParameterName_1()
         {
             Test(
 @"using System; class C { int [||]GetFoo() { } void SetFoo(int i) { v = i; } }",
+@"using System; class C { int Foo { get { } set { v = value; } } }",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestUpdateGetSet_UpdateSetParameterName_2()
+        {
+            Test(
+@"using System; class C { int [||]GetFoo() { } void SetFoo(int value) { v = value; } }",
 @"using System; class C { int Foo { get { } set { v = value; } } }",
 index: 1);
         }

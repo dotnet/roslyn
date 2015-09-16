@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
@@ -93,7 +95,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 
         private static bool HasGetPrefix(string text)
         {
-            return text.StartsWith(GetPrefix) && text.Length > GetPrefix.Length;
+            return text.StartsWith(GetPrefix) && text.Length > GetPrefix.Length && !char.IsLower(text[GetPrefix.Length]);
         }
 
         private IMethodSymbol FindSetMethod(IMethodSymbol getMethod)
@@ -112,6 +114,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return getMethod != null &&
                 getMethod.ContainingType != null &&
                 !getMethod.IsGenericMethod &&
+                !getMethod.IsAsync &&
                 getMethod.Parameters.Length == 0 &&
                 !getMethod.ReturnsVoid &&
                 getMethod.DeclaringSyntaxReferences.Length == 1;
@@ -128,6 +131,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         {
             return setMethod != null &&
                 !setMethod.IsGenericMethod &&
+                !setMethod.IsAsync &&
                 setMethod.ReturnsVoid &&
                 setMethod.DeclaringSyntaxReferences.Length == 1;
         }
@@ -171,6 +175,8 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             var allReferenceDocuments = getReferencesByDocument.Concat(setReferencesByDocument).Select(g => g.Key).Distinct();
             foreach (var referenceDocument in allReferenceDocuments)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 updatedSolution = await UpdateReferencesInDocumentAsync(
                     propertyName, nameChanged, updatedSolution, referenceDocument,
                     getReferencesByDocument[referenceDocument],
@@ -195,20 +201,27 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             var editor = new SyntaxEditor(root, originalDocument.Project.Solution.Workspace);
             var service = originalDocument.GetLanguageService<IReplaceMethodWithPropertyService>();
 
-            ReplaceGetReferences(propertyName, nameChanged, getReferences, root, editor, service);
-            ReplaceSetReferences(propertyName, nameChanged, setReferences, root, editor, service);
+            ReplaceGetReferences(propertyName, nameChanged, getReferences, root, editor, service, cancellationToken);
+            ReplaceSetReferences(propertyName, nameChanged, setReferences, root, editor, service, cancellationToken);
 
             updatedSolution = updatedSolution.WithDocumentSyntaxRoot(originalDocument.Id, editor.GetChangedRoot());
 
             return updatedSolution;
         }
 
-        private static void ReplaceGetReferences(string propertyName, bool nameChanged, IEnumerable<ReferenceLocation> getReferences, SyntaxNode root, SyntaxEditor editor, IReplaceMethodWithPropertyService service)
+        private static void ReplaceGetReferences(
+            string propertyName, bool nameChanged, 
+            IEnumerable<ReferenceLocation> getReferences, 
+            SyntaxNode root, SyntaxEditor editor, 
+            IReplaceMethodWithPropertyService service,
+            CancellationToken cancellationToken)
         {
             if (getReferences != null)
             {
                 foreach (var referenceLocation in getReferences)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     var location = referenceLocation.Location;
                     var nameToken = root.FindToken(location.SourceSpan.Start);
 
@@ -226,12 +239,19 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             }
         }
 
-        private static void ReplaceSetReferences(string propertyName, bool nameChanged, IEnumerable<ReferenceLocation> setReferences, SyntaxNode root, SyntaxEditor editor, IReplaceMethodWithPropertyService service)
+        private static void ReplaceSetReferences(
+            string propertyName, bool nameChanged,
+            IEnumerable<ReferenceLocation> setReferences,
+            SyntaxNode root, SyntaxEditor editor, 
+            IReplaceMethodWithPropertyService service,
+            CancellationToken cancellationToken)
         {
             if (setReferences != null)
             {
                 foreach (var referenceLocation in setReferences)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     var location = referenceLocation.Location;
                     var nameToken = root.FindToken(location.SourceSpan.Start);
 
@@ -265,6 +285,8 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             var documentIds = getDefinitionsByDocumentId.Keys.Concat(setDefinitionsByDocumentId.Keys).Distinct();
             foreach (var documentId in documentIds)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var getDefinitions = getDefinitionsByDocumentId[documentId];
                 var setDefinitions = setDefinitionsByDocumentId[documentId];
 
@@ -304,6 +326,8 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             // First replace all the get methods with properties.
             foreach (var getSetPair in getSetPairs)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var getMethod = getSetPair.GetMethodDeclaration;
                 editor.ReplaceNode(getMethod, service.ConvertMethodsToProperty(
                     semanticModel, generator, getSetPair, propertyName, nameChanged));
@@ -312,6 +336,8 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             // Then remove all the set methods.
             foreach (var originalSetMethod in originalSetDefinitions)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var setMethod = GetSymbolInCurrentCompilation(compilation, originalSetMethod, cancellationToken);
                 var setMethodDeclaration = await GetMethodDeclarationAsync(setMethod, cancellationToken).ConfigureAwait(false);
 
@@ -336,6 +362,8 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             var result = new List<GetAndSetMethods>();
             foreach (var originalDefinition in originalDefinitions)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var getMethod = GetSymbolInCurrentCompilation(compilation, originalDefinition, cancellationToken);
                 if (IsValidGetMethod(getMethod))
                 {
@@ -379,6 +407,8 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             var result = new MultiDictionary<DocumentId, IMethodSymbol>();
             foreach (var referencedSymbol in referencedSymbols)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var definition = referencedSymbol.Definition as IMethodSymbol;
                 if (definition?.DeclaringSyntaxReferences.Length > 0)
                 {

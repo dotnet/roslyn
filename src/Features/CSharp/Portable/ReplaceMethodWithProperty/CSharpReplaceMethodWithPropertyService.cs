@@ -1,9 +1,14 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
 using System.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ReplaceMethodWithProperty;
 
@@ -47,10 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             var getMethodDeclaration = getAndSetMethods.GetMethodDeclaration as MethodDeclarationSyntax;
             if (getMethodDeclaration == null)
             {
-                return getMethodDeclaration;
+                return getAndSetMethods.GetMethodDeclaration;
             }
-
-            var setMethod = getAndSetMethods.SetMethodDeclaration as MethodDeclarationSyntax;
 
             var getAccessor = CreateGetAccessor(getAndSetMethods);
             var setAccessor = CreateSetAccessor(semanticModel, generator, getAndSetMethods);
@@ -66,13 +69,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                 getMethodDeclaration.ReturnType, getMethodDeclaration.ExplicitInterfaceSpecifier, 
                 GetPropertyName(getMethodDeclaration.Identifier, propertyName, nameChanged), accessorList);
 
-            if (getMethodDeclaration.ExpressionBody != null && setMethod == null)
+            IEnumerable<SyntaxTrivia> trivia = getMethodDeclaration.GetLeadingTrivia();
+            var setMethodDeclaration = getAndSetMethods.SetMethodDeclaration;
+            if (setMethodDeclaration != null)
+            {
+                trivia = trivia.Concat(setMethodDeclaration.GetLeadingTrivia());
+            }
+            property = property.WithLeadingTrivia(trivia);
+
+            if (getMethodDeclaration.ExpressionBody != null && setMethodDeclaration == null)
             {
                 property = property.WithExpressionBody(getMethodDeclaration.ExpressionBody);
                 property = property.WithSemicolonToken(getMethodDeclaration.SemicolonToken);
             }
 
-            return property;
+            return property.WithAdditionalAnnotations(Formatter.Annotation);
         }
 
         private SyntaxToken GetPropertyName(SyntaxToken identifier, string propertyName, bool nameChanged)
@@ -101,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
 
             if (getMethodDeclaration.Body != null)
             {
-                return accessor.WithBody(getMethodDeclaration.Body);
+                return accessor.WithBody(getMethodDeclaration.Body.WithAdditionalAnnotations(Formatter.Annotation));
             }
 
             return accessor;
@@ -112,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
         {
             var setMethodDeclaration = getAndSetMethods.SetMethodDeclaration as MethodDeclarationSyntax;
             var setMethod = getAndSetMethods.SetMethod;
-            if (setMethodDeclaration == null || setMethod == null || setMethod.Parameters.Length != 1)
+            if (setMethodDeclaration == null || setMethod?.Parameters.Length != 1)
             {
                 return null;
             }
@@ -141,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             if (setMethodDeclaration.Body != null)
             {
                 var body = ReplaceReferencesToParameterWithValue(semanticModel, setMethod.Parameters[0], setMethodDeclaration.Body);
-                return accessor.WithBody(body);
+                return accessor.WithBody(body.WithAdditionalAnnotations(Formatter.Annotation));
             }
 
             return accessor;
