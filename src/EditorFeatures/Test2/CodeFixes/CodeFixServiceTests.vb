@@ -55,8 +55,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 ' Verify available diagnostics
                 Dim document = project.Documents.Single()
                 Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document,
-                    document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan,
-                    CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                    document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan).WaitAndGetResult(CancellationToken.None)
 
                 Assert.Equal(1, diagnostics.Count())
 
@@ -119,8 +118,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 ' Verify available diagnostics
                 Dim document = project.Documents.Single()
                 Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document,
-                    document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan,
-                    CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                    document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan).WaitAndGetResult(CancellationToken.None)
 
                 Assert.Equal(1, diagnostics.Count())
 

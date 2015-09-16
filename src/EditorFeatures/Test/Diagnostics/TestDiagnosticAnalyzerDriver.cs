@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
@@ -19,17 +20,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         private readonly TestHostDiagnosticUpdateSource _exceptionDiagnosticsSource;
         private readonly SolutionCrawler.IIncrementalAnalyzer _incrementalAnalyzer;
         private readonly Action<Exception, DiagnosticAnalyzer, Diagnostic> _onAnalyzerException;
+        private readonly bool _includeSuppressedDiagnostics;
 
-        public TestDiagnosticAnalyzerDriver(Project project, DiagnosticAnalyzer workspaceAnalyzerOpt = null, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = false)
-            : this (project, ImmutableArray.Create(workspaceAnalyzerOpt ?? DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(project.Language)), onAnalyzerException, logAnalyzerExceptionAsDiagnostics)
+        public TestDiagnosticAnalyzerDriver(Project project, DiagnosticAnalyzer workspaceAnalyzerOpt = null, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = false, bool includeSuppressedDiagnostics = false)
+            : this (project, ImmutableArray.Create(workspaceAnalyzerOpt ?? DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(project.Language)), onAnalyzerException, logAnalyzerExceptionAsDiagnostics, includeSuppressedDiagnostics)
         { }
 
-        public TestDiagnosticAnalyzerDriver(Project project, ImmutableArray<DiagnosticAnalyzer> workspaceAnalyzers, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = false)
+        public TestDiagnosticAnalyzerDriver(Project project, ImmutableArray<DiagnosticAnalyzer> workspaceAnalyzers, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = false, bool includeSuppressedDiagnostics = false)
         {
             _workspaceAnalyzers = workspaceAnalyzers;
             _exceptionDiagnosticsSource = new TestHostDiagnosticUpdateSource(project.Solution.Workspace);
             _diagnosticAnalyzerService = new TestDiagnosticAnalyzerService(project.Language, workspaceAnalyzers, _exceptionDiagnosticsSource, onAnalyzerException);
             _incrementalAnalyzer = _diagnosticAnalyzerService.CreateIncrementalAnalyzer(project.Solution.Workspace);
+            _includeSuppressedDiagnostics = includeSuppressedDiagnostics;
 
             // If the test is not configured with a custom onAnalyzerException handler AND has not requested exceptions to be handled and logged as diagnostics, then FailFast on exceptions.
             if (onAnalyzerException == null && !logAnalyzerExceptionAsDiagnostics)
@@ -47,19 +50,26 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
             if (getDocumentDiagnostics)
             {
-                var dxs = _diagnosticAnalyzerService.GetDiagnosticsAsync(project.Solution, project.Id, document.Id).WaitAndGetResult(CancellationToken.None);
+                var dxs = _diagnosticAnalyzerService.GetDiagnosticsAsync(project.Solution, project.Id, document.Id, _includeSuppressedDiagnostics).WaitAndGetResult(CancellationToken.None);
                 documentDiagnostics = DiagnosticData.ToDiagnosticsAsync(project, dxs.Where(d => d.HasTextSpan && d.TextSpan.IntersectsWith(span)), CancellationToken.None).WaitAndGetResult(CancellationToken.None);
             }
 
             if (getProjectDiagnostics)
             {
-                var dxs = _diagnosticAnalyzerService.GetDiagnosticsAsync(project.Solution, project.Id).WaitAndGetResult(CancellationToken.None);
+                var dxs = _diagnosticAnalyzerService.GetDiagnosticsAsync(project.Solution, project.Id, includeSuppressedDiagnostics: _includeSuppressedDiagnostics).WaitAndGetResult(CancellationToken.None);
                 projectDiagnostics = DiagnosticData.ToDiagnosticsAsync(project, dxs.Where(d => !d.HasTextSpan), CancellationToken.None).WaitAndGetResult(CancellationToken.None);
             }
 
             var exceptionDiagnostics = DiagnosticData.ToDiagnosticsAsync(project, _exceptionDiagnosticsSource.TestOnly_GetReportedDiagnostics(), CancellationToken.None).WaitAndGetResult(CancellationToken.None);
 
-            return documentDiagnostics.Concat(projectDiagnostics).Concat(exceptionDiagnostics);
+            var allDiagnostics = documentDiagnostics.Concat(projectDiagnostics).Concat(exceptionDiagnostics);
+
+            if (!_includeSuppressedDiagnostics)
+            {
+                Assert.True(!allDiagnostics.Any(d => d.IsSuppressed));
+            }
+
+            return allDiagnostics;
         }
 
         public IEnumerable<Diagnostic> GetAllDiagnostics(DiagnosticAnalyzer workspaceAnalyzerOpt, Document document, TextSpan span)

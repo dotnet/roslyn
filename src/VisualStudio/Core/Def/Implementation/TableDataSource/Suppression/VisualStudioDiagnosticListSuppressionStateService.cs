@@ -18,8 +18,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     /// <summary>
     /// Service to maintain information about the suppression state of specific set of items in the error list.
     /// </summary>
-    [Export(typeof(IVisualStudioDiagnosticListSuppressionStateService))]
-    internal class VisualStudioDiagnosticListSuppressionStateService : IVisualStudioDiagnosticListSuppressionStateService
+    [Export(typeof(VisualStudioDiagnosticListSuppressionStateService))]
+    internal class VisualStudioDiagnosticListSuppressionStateService
     {
         private readonly VisualStudioWorkspace _workspace;
         private readonly IVsUIShell _shellService;
@@ -93,6 +93,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
+        /// <summary>
+        /// Updates suppression state information when the selected entries change in the error list.
+        /// </summary>
         public void ProcessSelectionChanged(TableSelectionChangedEventArgs e)
         {
             var hasAddedSuppressionStateEntry = ProcessEntries(e.AddedEntries, added: true);
@@ -165,6 +168,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return snapshot as AbstractTableEntriesSnapshot<DiagnosticData>;
         }
 
+        /// <summary>
+        /// Gets <see cref="DiagnosticData"/> objects for error list entries, filtered based on the given parameters.
+        /// </summary>
         public ImmutableArray<DiagnosticData> GetItems(bool selectedEntriesOnly, bool isAddSuppression, bool isSuppressionInSource, CancellationToken cancellationToken)
         {
             var builder = ImmutableArray.CreateBuilder<DiagnosticData>();

@@ -14,36 +14,73 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        public override Task<ImmutableArray<DiagnosticData>> GetSpecificCachedDiagnosticsAsync(Solution solution, object id, CancellationToken cancellationToken)
+        public async override Task<ImmutableArray<DiagnosticData>> GetSpecificCachedDiagnosticsAsync(Solution solution, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return new IDECachedDiagnosticGetter(this).GetSpecificDiagnosticsAsync(solution, id, cancellationToken);
+            var diagnostics = await (new IDECachedDiagnosticGetter(this).GetSpecificDiagnosticsAsync(solution, id, cancellationToken)).ConfigureAwait(false);
+            return FilterSuppressedDiagnostics(diagnostics, includeSuppressedDiagnostics);
         }
 
-        public override Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Solution solution, ProjectId projectId, DocumentId documentId, CancellationToken cancellationToken)
+        public async override Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Solution solution, ProjectId projectId, DocumentId documentId, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return new IDECachedDiagnosticGetter(this).GetDiagnosticsAsync(solution, projectId, documentId, cancellationToken);
+            var diagnostics = await (new IDECachedDiagnosticGetter(this).GetDiagnosticsAsync(solution, projectId, documentId, cancellationToken)).ConfigureAwait(false);
+            return FilterSuppressedDiagnostics(diagnostics, includeSuppressedDiagnostics);
         }
 
-        public override Task<ImmutableArray<DiagnosticData>> GetSpecificDiagnosticsAsync(Solution solution, object id, CancellationToken cancellationToken)
+        public async override Task<ImmutableArray<DiagnosticData>> GetSpecificDiagnosticsAsync(Solution solution, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return new IDELatestDiagnosticGetter(this).GetSpecificDiagnosticsAsync(solution, id, cancellationToken);
+            var diagnostics = await (new IDELatestDiagnosticGetter(this).GetSpecificDiagnosticsAsync(solution, id, cancellationToken)).ConfigureAwait(false);
+            return FilterSuppressedDiagnostics(diagnostics, includeSuppressedDiagnostics);
         }
 
-        public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId projectId, DocumentId documentId, CancellationToken cancellationToken)
+        public async override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId projectId, DocumentId documentId, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return new IDELatestDiagnosticGetter(this).GetDiagnosticsAsync(solution, projectId, documentId, cancellationToken);
+            var diagnostics = await (new IDELatestDiagnosticGetter(this).GetDiagnosticsAsync(solution, projectId, documentId, cancellationToken)).ConfigureAwait(false);
+            return FilterSuppressedDiagnostics(diagnostics, includeSuppressedDiagnostics);
         }
 
-        public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId projectId, DocumentId documentId, ImmutableHashSet<string> diagnosticIds, CancellationToken cancellationToken)
+        public async override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId projectId, DocumentId documentId, ImmutableHashSet<string> diagnosticIds, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Fix all code path, we can make computation concurrent if we are computing diagnostics across a project/solution.
-            return new IDELatestDiagnosticGetter(this, diagnosticIds, concurrent: documentId == null).GetDiagnosticsAsync(solution, projectId, documentId, cancellationToken);
+            var diagnostics = await (new IDELatestDiagnosticGetter(this, diagnosticIds, concurrent: documentId == null).GetDiagnosticsAsync(solution, projectId, documentId, cancellationToken)).ConfigureAwait(false);
+            return FilterSuppressedDiagnostics(diagnostics, includeSuppressedDiagnostics);
         }
 
-        public override Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Solution solution, ProjectId projectId, ImmutableHashSet<string> diagnosticIds, CancellationToken cancellationToken)
+        public async override Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Solution solution, ProjectId projectId, ImmutableHashSet<string> diagnosticIds, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Fix all code path, we can make computation concurrent if we are computing project diagnostics across solution.
-            return new IDELatestDiagnosticGetter(this, diagnosticIds, concurrent: projectId == null).GetProjectDiagnosticsAsync(solution, projectId, cancellationToken);
+            var diagnostics = await (new IDELatestDiagnosticGetter(this, diagnosticIds, concurrent: projectId == null).GetProjectDiagnosticsAsync(solution, projectId, cancellationToken)).ConfigureAwait(false);
+            return FilterSuppressedDiagnostics(diagnostics, includeSuppressedDiagnostics);
+        }
+
+        private static ImmutableArray<DiagnosticData> FilterSuppressedDiagnostics(ImmutableArray<DiagnosticData> diagnostics, bool includeSuppressedDiagnostics)
+        {
+            if (includeSuppressedDiagnostics || diagnostics.IsDefaultOrEmpty)
+            {
+                return diagnostics;
+            }
+
+            ImmutableArray<DiagnosticData>.Builder builder = null;
+            for (int i = 0; i < diagnostics.Length; i++)
+            {
+                var diagnostic = diagnostics[i];
+                if (diagnostic.IsSuppressed)
+                {
+                    if (builder == null)
+                    {
+                        builder = ImmutableArray.CreateBuilder<DiagnosticData>();
+                        for (int j = 0; j < i; j++)
+                        {
+                            builder.Add(diagnostics[j]);
+                        }
+                    }
+                }
+                else if (builder != null)
+                {
+                    builder.Add(diagnostic);
+                }
+            }
+
+            return builder != null ? builder.ToImmutable() : diagnostics;
         }
 
         private abstract class DiagnosticsGetter

@@ -107,36 +107,40 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="solution">The solution.</param>
         /// <param name="id">Matched against values supplied in a <see cref="DiagnosticsUpdatedArgs"/> to <see cref="DiagnosticAnalyzerService.RaiseDiagnosticsUpdated(object, DiagnosticsUpdatedArgs)"/>.</param>
+        /// <param name="includeSuppressedDiagnostics">Flag indicating whether diagnostics with source suppressions (pragma/SuppressMessageAttribute) should be included.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public abstract Task<ImmutableArray<DiagnosticData>> GetSpecificCachedDiagnosticsAsync(Solution solution, object id, CancellationToken cancellationToken);
+        public abstract Task<ImmutableArray<DiagnosticData>> GetSpecificCachedDiagnosticsAsync(Solution solution, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken));
         /// <summary>
         /// Get previously-computed (and potentially stale) diagnostics associated with a particular document, project, or solution.
         /// </summary>
         /// <param name="solution">The solution. If projectId and documentId are both null, returned diagnostics are for the entire solution.</param>
         /// <param name="projectId">If projectId is non null and documentId is null, returned diagnostics are for that project only.</param>
         /// <param name="documentId">If documentId is non null, returned diagnostics are for that document only.</param>
+        /// <param name="includeSuppressedDiagnostics">Flag indicating whether diagnostics with source suppressions (pragma/SuppressMessageAttribute) should be included.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public abstract Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Solution solution, ProjectId projectId = null, DocumentId documentId = null, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Solution solution, ProjectId projectId = null, DocumentId documentId = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken));
         /// <summary>
         /// Get diagnostics associated with a particular combination of
         /// analysis classification (syntax/semantics/project), document/project, and analyzer.
         /// </summary>
         /// <param name="solution">The solution.</param>
         /// <param name="id">Matched against values supplied in a <see cref="DiagnosticsUpdatedArgs"/> to <see cref="DiagnosticAnalyzerService.RaiseDiagnosticsUpdated(object, DiagnosticsUpdatedArgs)"/>.</param>
+        /// <param name="includeSuppressedDiagnostics">Flag indicating whether diagnostics with source suppressions (pragma/SuppressMessageAttribute) should be included.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public abstract Task<ImmutableArray<DiagnosticData>> GetSpecificDiagnosticsAsync(Solution solution, object id, CancellationToken cancellationToken);
+        public abstract Task<ImmutableArray<DiagnosticData>> GetSpecificDiagnosticsAsync(Solution solution, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken));
         /// <summary>
         /// Get diagnostics associated with a particular document, project, or solution.
         /// </summary>
         /// <param name="solution">The solution. If projectId and documentId are both null, returned diagnostics are for the entire solution.</param>
         /// <param name="projectId">If projectId is non null and documentId is null, returned diagnostics are for that project only.</param>
         /// <param name="documentId">If documentId is non null, returned diagnostics are for that document only.</param>
+        /// <param name="includeSuppressedDiagnostics">Flag indicating whether diagnostics with source suppressions (pragma/SuppressMessageAttribute) should be included.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId projectId = null, DocumentId documentId = null, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId projectId = null, DocumentId documentId = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken));
         /// <summary>
         /// Get diagnostics matching one of a set of diagnostic IDs associated with a particular document, project, or solution.
         /// </summary>
@@ -144,35 +148,39 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="projectId">If projectId is non null and documentId is null, returned diagnostics are for that project only.</param>
         /// <param name="documentId">If documentId is non null, returned diagnostics are for that document only.</param>
         /// <param name="diagnosticIds">The diagnostic IDs to match.</param>
+        /// <param name="includeSuppressedDiagnostics">Flag indicating whether diagnostics with source suppressions (pragma/SuppressMessageAttribute) should be included.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId projectId = null, DocumentId documentId = null, ImmutableHashSet<string> diagnosticIds = null, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId projectId = null, DocumentId documentId = null, ImmutableHashSet<string> diagnosticIds = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken));
         /// <summary>
         /// Get diagnostics matching one of a set of diagnostic IDs that are not associated with a particular document.
         /// </summary>
         /// <param name="solution">The solution. If projectId is null, returned diagnostics are for the entire solution.</param>
         /// <param name="projectId">If projectId is non null, returned diagnostics are for that project only.</param>
         /// <param name="diagnosticIds">The diagnostic IDs to match.</param>
+        /// <param name="includeSuppressedDiagnostics">Flag indicating whether diagnostics with source suppressions (pragma/SuppressMessageAttribute) should be included.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public abstract Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Solution solution, ProjectId projectId = null, ImmutableHashSet<string> diagnosticIds = null, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Solution solution, ProjectId projectId = null, ImmutableHashSet<string> diagnosticIds = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken));
         /// <summary>
         /// Add diagnostics local to a span to a list of diagnostics.
         /// </summary>
         /// <param name="document">The document containing the span.</param>
         /// <param name="range">The span for which to produce diagnostics.</param>
         /// <param name="diagnostics">The list of diagnostics to be augmented.</param>
+        /// <param name="includeSuppressedDiagnostics">Flag indicating whether diagnostics with source suppressions (pragma/SuppressMessageAttribute) should be included.</param>
         /// <param name="cancellationToken"></param>
         /// <returns>True if the set of results is complete, false if getting a complete set requires running per-document actions.</returns>
-        public abstract Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> diagnostics, CancellationToken cancellationToken);
+        public abstract Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> diagnostics, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken));
         /// <summary>
         /// Get diagnostics local to a span.
         /// </summary>
         /// <param name="document">The document containing the span.</param>
         /// <param name="range">The span for which to produce diagnostics.</param>
+        /// <param name="includeSuppressedDiagnostics">Flag indicating whether diagnostics with source suppressions (pragma/SuppressMessageAttribute) should be included.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public abstract Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, CancellationToken cancellationToken);
+        public abstract Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken));
         #endregion
 
         #region build error synchronization

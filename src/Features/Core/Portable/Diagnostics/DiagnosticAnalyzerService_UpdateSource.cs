@@ -24,14 +24,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         bool IDiagnosticUpdateSource.SupportGetDiagnostics { get { return true; } }
 
-        ImmutableArray<DiagnosticData> IDiagnosticUpdateSource.GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, CancellationToken cancellationToken)
+        ImmutableArray<DiagnosticData> IDiagnosticUpdateSource.GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
             if (id != null)
             {
-                return GetSpecificCachedDiagnosticsAsync(workspace, id, cancellationToken).WaitAndGetResult(cancellationToken);
+                return GetSpecificCachedDiagnosticsAsync(workspace, id, includeSuppressedDiagnostics, cancellationToken).WaitAndGetResult(cancellationToken);
             }
 
-            return GetCachedDiagnosticsAsync(workspace, projectId, documentId, cancellationToken).WaitAndGetResult(cancellationToken);
+            return GetCachedDiagnosticsAsync(workspace, projectId, documentId, includeSuppressedDiagnostics, cancellationToken).WaitAndGetResult(cancellationToken);
         }
     }
 }

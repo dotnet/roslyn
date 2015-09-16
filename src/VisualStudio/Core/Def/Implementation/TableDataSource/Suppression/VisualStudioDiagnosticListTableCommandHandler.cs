@@ -11,13 +11,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     [Export(typeof(VisualStudioDiagnosticListTableCommandHandler))]
     internal partial class VisualStudioDiagnosticListTableCommandHandler
     {
-        private readonly IVisualStudioSuppressionFixService _suppressionFixService;
-        private readonly IVisualStudioDiagnosticListSuppressionStateService _suppressionStateService;
+        private readonly VisualStudioSuppressionFixService _suppressionFixService;
+        private readonly VisualStudioDiagnosticListSuppressionStateService _suppressionStateService;
         
         [ImportingConstructor]
         public VisualStudioDiagnosticListTableCommandHandler(
-            IVisualStudioSuppressionFixService suppressionFixService,
-            IVisualStudioDiagnosticListSuppressionStateService suppressionStateService)
+            VisualStudioSuppressionFixService suppressionFixService,
+            VisualStudioDiagnosticListSuppressionStateService suppressionStateService)
         {
             _suppressionFixService = suppressionFixService;
             _suppressionStateService = suppressionStateService;

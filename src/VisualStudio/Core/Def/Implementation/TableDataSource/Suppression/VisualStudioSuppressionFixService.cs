@@ -23,25 +23,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
     /// <summary>
     /// Service to compute and apply bulk suppression fixes.
     /// </summary>
-    [Export(typeof(IVisualStudioSuppressionFixService))]
-    internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressionFixService
+    [Export(typeof(VisualStudioSuppressionFixService))]
+    internal sealed class VisualStudioSuppressionFixService
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IWpfTableControl _tableControl;
+        private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly ICodeFixService _codeFixService;
         private readonly IFixMultipleOccurrencesService _fixMultipleOccurencesService;
-        private readonly IVisualStudioDiagnosticListSuppressionStateService _suppressionStateService;
+        private readonly VisualStudioDiagnosticListSuppressionStateService _suppressionStateService;
         private readonly IWaitIndicator _waitIndicator;
 
         [ImportingConstructor]
         public VisualStudioSuppressionFixService(
             SVsServiceProvider serviceProvider,
             VisualStudioWorkspaceImpl workspace,
+            IDiagnosticAnalyzerService diagnosticService,
             ICodeFixService codeFixService,
-            IVisualStudioDiagnosticListSuppressionStateService suppressionStateService,
+            VisualStudioDiagnosticListSuppressionStateService suppressionStateService,
             IWaitIndicator waitIndicator)
         {
             _workspace = workspace;
+            _diagnosticService = diagnosticService;
             _codeFixService = codeFixService;
             _suppressionStateService = suppressionStateService;
             _waitIndicator = waitIndicator;
@@ -114,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                         }
 
                         waitContext.CancellationToken.ThrowIfCancellationRequested();
-                        diagnosticsToFixMap = GetDiagnosticsToFixMapAsync(_workspace, diagnosticsToFix, shouldFixInProject, waitContext.CancellationToken).WaitAndGetResult(waitContext.CancellationToken);
+                        diagnosticsToFixMap = GetDiagnosticsToFixMapAsync(diagnosticsToFix, shouldFixInProject, waitContext.CancellationToken).WaitAndGetResult(waitContext.CancellationToken);
                     }
                     catch (OperationCanceledException)
                     {
@@ -204,7 +207,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             }
         }
 
-        private async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDiagnosticsToFixMapAsync(Workspace workspace, IEnumerable<DiagnosticData> diagnosticsToFix, Func<Project, bool> shouldFixInProject, CancellationToken cancellationToken)
+        private async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDiagnosticsToFixMapAsync(IEnumerable<DiagnosticData> diagnosticsToFix, Func<Project, bool> shouldFixInProject, CancellationToken cancellationToken)
         {
             var builder = ImmutableDictionary.CreateBuilder<DocumentId, List<DiagnosticData>>();
             foreach (var diagnosticData in diagnosticsToFix)
@@ -225,13 +228,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             }
 
             var finalBuilder = ImmutableDictionary.CreateBuilder<Document, ImmutableArray<Diagnostic>>();
-            foreach (var group in builder.GroupBy(kvp => kvp.Key.ProjectId))
+            var latestDocumentDiagnosticsMap = new Dictionary<DocumentId, ImmutableHashSet<DiagnosticData>>();
+            foreach (var group in builder.GroupBy(kvp => kvp.Key.ProjectId).AsImmutable())
             {
                 var projectId = group.Key;
-                var project = workspace.CurrentSolution.GetProject(projectId);
+                var project = _workspace.CurrentSolution.GetProject(projectId);
                 if (project == null || !shouldFixInProject(project))
                 {
                     continue;
+                }
+
+                var uniqueDiagnosticIds = group.SelectMany(kvp => kvp.Value.Select(d => d.Id)).ToImmutableHashSet();
+                var latestProjectDiagnostics = (await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, diagnosticIds: uniqueDiagnosticIds, includeSuppressedDiagnostics: true, cancellationToken: cancellationToken)
+                    .ConfigureAwait(false)).Where(d => d.DocumentId != null);
+
+                latestDocumentDiagnosticsMap.Clear();
+                foreach (var kvp in latestProjectDiagnostics.GroupBy(d => d.DocumentId))
+                {
+                    latestDocumentDiagnosticsMap.Add(kvp.Key, kvp.ToImmutableHashSet());
                 }
 
                 var documentsToTreeMap = await GetDocumentIdsToTreeMapAsync(project, cancellationToken).ConfigureAwait(false);
@@ -243,7 +257,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                         continue;
                     }
 
-                    var diagnostics = await DiagnosticData.ToDiagnosticsAsync(project, documentDiagnostics.Value, cancellationToken).ConfigureAwait(false);
+                    ImmutableHashSet<DiagnosticData> latestDocumentDiagnostics;
+                    if (!latestDocumentDiagnosticsMap.TryGetValue(document.Id, out latestDocumentDiagnostics))
+                    {
+                        // Ignore stale diagnostics in error list.
+                        continue;
+                    }
+
+                    // Filter out stale diagnostics in error list.
+                    var documentDiagnosticsToFix = documentDiagnostics.Value.Where(d => latestDocumentDiagnostics.Contains(d));
+
+                    if (documentDiagnosticsToFix.IsEmpty())
+                    {
+                        continue;
+                    }
+
+                    var diagnostics = await DiagnosticData.ToDiagnosticsAsync(project, documentDiagnosticsToFix, cancellationToken).ConfigureAwait(false);
                     finalBuilder.Add(document, diagnostics.ToImmutableArray());
                 }
             }

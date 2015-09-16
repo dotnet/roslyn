@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public override async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
         {
-            var diagnostics = await GetDiagnosticsAsync(project.Solution, project.Id, null, cancellationToken).ConfigureAwait(false);
+            var diagnostics = await GetDiagnosticsAsync(project.Solution, project.Id, null, includeSuppressedDiagnostics: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             RaiseEvents(project, diagnostics);
         }
@@ -72,81 +72,81 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
         #endregion
 
-        public override Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Solution solution, ProjectId projectId = null, DocumentId documentId = null, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Solution solution, ProjectId projectId = null, DocumentId documentId = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return GetDiagnosticsAsync(solution, projectId, documentId, cancellationToken);
+            return GetDiagnosticsAsync(solution, projectId, documentId, includeSuppressedDiagnostics, cancellationToken);
         }
 
-        public override Task<ImmutableArray<DiagnosticData>> GetSpecificCachedDiagnosticsAsync(Solution solution, object id, CancellationToken cancellationToken)
+        public override Task<ImmutableArray<DiagnosticData>> GetSpecificCachedDiagnosticsAsync(Solution solution, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return GetSpecificDiagnosticsAsync(solution, id, cancellationToken);
+            return GetSpecificDiagnosticsAsync(solution, id, includeSuppressedDiagnostics, cancellationToken);
         }
 
-        public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId projectId = null, DocumentId documentId = null, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId projectId = null, DocumentId documentId = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (documentId != null)
             {
-                var diagnostics = await GetProjectDiagnosticsAsync(solution.GetProject(projectId), cancellationToken).ConfigureAwait(false);
+                var diagnostics = await GetProjectDiagnosticsAsync(solution.GetProject(projectId), includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
                 return diagnostics.Where(d => d.DocumentId == documentId).ToImmutableArrayOrEmpty();
             }
 
             if (projectId != null)
             {
-                return await GetProjectDiagnosticsAsync(solution.GetProject(projectId), cancellationToken).ConfigureAwait(false);
+                return await GetProjectDiagnosticsAsync(solution.GetProject(projectId), includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
             }
 
             var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
             foreach (var project in solution.Projects)
             {
-                builder.AddRange(await GetProjectDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false));
+                builder.AddRange(await GetProjectDiagnosticsAsync(project, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false));
             }
 
             return builder.ToImmutable();
         }
 
-        public override async Task<ImmutableArray<DiagnosticData>> GetSpecificDiagnosticsAsync(Solution solution, object id, CancellationToken cancellationToken)
+        public override async Task<ImmutableArray<DiagnosticData>> GetSpecificDiagnosticsAsync(Solution solution, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (id is ValueTuple<DiagnosticIncrementalAnalyzer, DocumentId>)
             {
                 var key = (ValueTuple<DiagnosticIncrementalAnalyzer, DocumentId>)id;
-                return await GetDiagnosticsAsync(solution, key.Item2.ProjectId, key.Item2, cancellationToken).ConfigureAwait(false);
+                return await GetDiagnosticsAsync(solution, key.Item2.ProjectId, key.Item2, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
             }
 
             if (id is ValueTuple<DiagnosticIncrementalAnalyzer, ProjectId>)
             {
                 var key = (ValueTuple<DiagnosticIncrementalAnalyzer, ProjectId>)id;
-                var diagnostics = await GetDiagnosticsAsync(solution, key.Item2, null, cancellationToken).ConfigureAwait(false);
+                var diagnostics = await GetDiagnosticsAsync(solution, key.Item2, null, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
                 return diagnostics.Where(d => d.DocumentId == null).ToImmutableArray();
             }
 
             return ImmutableArray<DiagnosticData>.Empty;
         }
 
-        public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId projectId = null, DocumentId documentId = null, ImmutableHashSet<string> diagnosticIds = null, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId projectId = null, DocumentId documentId = null, ImmutableHashSet<string> diagnosticIds = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var diagnostics = await GetDiagnosticsAsync(solution, projectId, documentId, cancellationToken).ConfigureAwait(false);
+            var diagnostics = await GetDiagnosticsAsync(solution, projectId, documentId, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
             return diagnostics.Where(d => diagnosticIds.Contains(d.Id)).ToImmutableArrayOrEmpty();
         }
 
-        public override async Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Solution solution, ProjectId projectId = null, ImmutableHashSet<string> diagnosticIds = null, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Solution solution, ProjectId projectId = null, ImmutableHashSet<string> diagnosticIds = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var diagnostics = await GetDiagnosticsForIdsAsync(solution, projectId, null, diagnosticIds, cancellationToken).ConfigureAwait(false);
+            var diagnostics = await GetDiagnosticsForIdsAsync(solution, projectId, null, diagnosticIds, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
             return diagnostics.Where(d => d.DocumentId == null).ToImmutableArray();
         }
 
-        public override async Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> result, CancellationToken cancellationToken)
+        public override async Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> result, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            result.AddRange(await GetDiagnosticsForSpanAsync(document, range, cancellationToken).ConfigureAwait(false));
+            result.AddRange(await GetDiagnosticsForSpanAsync(document, range, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false));
             return true;
         }
 
-        public override async Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, CancellationToken cancellationToken)
+        public override async Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var diagnostics = await GetDiagnosticsAsync(document.Project.Solution, document.Project.Id, document.Id, cancellationToken).ConfigureAwait(false);
+            var diagnostics = await GetDiagnosticsAsync(document.Project.Solution, document.Project.Id, document.Id, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
             return diagnostics.Where(d => range.IntersectsWith(d.TextSpan));
         }
 
-        private async Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsAsync(Project project, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsAsync(Project project, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
             if (project == null)
             {

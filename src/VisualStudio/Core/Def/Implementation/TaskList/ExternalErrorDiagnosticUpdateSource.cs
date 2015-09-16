@@ -375,7 +375,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         public bool SupportGetDiagnostics { get { return false; } }
 
         public ImmutableArray<DiagnosticData> GetDiagnostics(
-            Workspace workspace, ProjectId projectId, DocumentId documentId, object id, CancellationToken cancellationToken)
+            Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ImmutableArray<DiagnosticData>.Empty;
         }

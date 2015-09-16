@@ -1,10 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.ComponentModel.Design;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Suppression;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.TableControl;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
@@ -13,9 +9,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     {
         private partial class SuppressionStateEventProcessor : EventProcessor
         {
-            private readonly IVisualStudioDiagnosticListSuppressionStateService _suppressionStateService;
+            private readonly VisualStudioDiagnosticListSuppressionStateService _suppressionStateService;
 
-            public SuppressionStateEventProcessor(IVisualStudioDiagnosticListSuppressionStateService suppressionStateService)
+            public SuppressionStateEventProcessor(VisualStudioDiagnosticListSuppressionStateService suppressionStateService)
             {
                 _suppressionStateService = suppressionStateService;
             }

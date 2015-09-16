@@ -508,18 +508,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             Public Event DiagnosticsUpdated As EventHandler(Of DiagnosticsUpdatedArgs) Implements IDiagnosticService.DiagnosticsUpdated
 
-            Public Function GetDiagnostics(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, cancellationToken As CancellationToken) As IEnumerable(Of DiagnosticData) Implements IDiagnosticService.GetDiagnostics
+            Public Function GetDiagnostics(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, reportSuppressedDiagnostics As Boolean, cancellationToken As CancellationToken) As IEnumerable(Of DiagnosticData) Implements IDiagnosticService.GetDiagnostics
                 Assert.NotNull(workspace)
 
+                Dim diagnostics As IEnumerable(Of DiagnosticData)
+
                 If documentId IsNot Nothing Then
-                    Return Items.Where(Function(t) t.DocumentId Is documentId).ToImmutableArrayOrEmpty()
+                    diagnostics = Items.Where(Function(t) t.DocumentId Is documentId).ToImmutableArrayOrEmpty()
+                ElseIf projectId IsNot Nothing Then
+                    diagnostics = Items.Where(Function(t) t.ProjectId Is projectId).ToImmutableArrayOrEmpty()
+                Else
+                    diagnostics = ImmutableArray(Of DiagnosticData).Empty
                 End If
 
-                If projectId IsNot Nothing Then
-                    Return Items.Where(Function(t) t.ProjectId Is projectId).ToImmutableArrayOrEmpty()
+                If Not reportSuppressedDiagnostics Then
+                    diagnostics = diagnostics.Where(Function(d) Not d.IsSuppressed)
                 End If
 
-                Return ImmutableArray(Of DiagnosticData).Empty
+                Return diagnostics
             End Function
 
             Public Sub RaiseDiagnosticsUpdated(workspace As Workspace, ParamArray items As DiagnosticData())

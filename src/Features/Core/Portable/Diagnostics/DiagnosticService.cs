@@ -112,19 +112,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public IEnumerable<DiagnosticData> GetDiagnostics(
-            Workspace workspace, ProjectId projectId, DocumentId documentId, object id, CancellationToken cancellationToken)
+            Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
             if (id != null)
             {
                 // get specific one
-                return GetSpecificDiagnostics(workspace, projectId, documentId, id, cancellationToken);
+                return GetSpecificDiagnostics(workspace, projectId, documentId, id, includeSuppressedDiagnostics, cancellationToken);
             }
 
             // get aggregated ones
-            return GetDiagnostics(workspace, projectId, documentId, cancellationToken);
+            return GetDiagnostics(workspace, projectId, documentId, includeSuppressedDiagnostics, cancellationToken);
         }
 
-        private IEnumerable<DiagnosticData> GetSpecificDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, CancellationToken cancellationToken)
+        private IEnumerable<DiagnosticData> GetSpecificDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
             foreach (var source in _updateSources)
             {
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 if (source.SupportGetDiagnostics)
                 {
-                    var diagnostics = source.GetDiagnostics(workspace, projectId, documentId, id, cancellationToken);
+                    var diagnostics = source.GetDiagnostics(workspace, projectId, documentId, id, includeSuppressedDiagnostics, cancellationToken);
                     if (diagnostics != null && diagnostics.Length > 0)
                     {
                         return diagnostics;
@@ -147,7 +147,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                         if (pool.Object.Count == 1)
                         {
-                            return pool.Object[0].Diagnostics;
+                            var diagnostics = pool.Object[0].Diagnostics;
+                            return !includeSuppressedDiagnostics ? FilterSuppressedDiagnostics(diagnostics) : diagnostics;
                         }
                     }
                 }
@@ -156,8 +157,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
         }
 
+        private static IEnumerable<DiagnosticData> FilterSuppressedDiagnostics(IEnumerable<DiagnosticData> diagnostics)
+        {
+            if (diagnostics != null)
+            {
+                foreach (var diagnostic in diagnostics)
+                {
+                    if (!diagnostic.IsSuppressed)
+                    {
+                        yield return diagnostic;
+                    }
+                }
+            }
+        }
+
         private IEnumerable<DiagnosticData> GetDiagnostics(
-            Workspace workspace, ProjectId projectId, DocumentId documentId, CancellationToken cancellationToken)
+            Workspace workspace, ProjectId projectId, DocumentId documentId, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
             foreach (var source in _updateSources)
             {
@@ -165,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 if (source.SupportGetDiagnostics)
                 {
-                    foreach (var diagnostic in source.GetDiagnostics(workspace, projectId, documentId, null, cancellationToken))
+                    foreach (var diagnostic in source.GetDiagnostics(workspace, projectId, documentId, null, includeSuppressedDiagnostics, cancellationToken))
                     {
                         yield return diagnostic;
                     }
@@ -180,7 +195,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             foreach (var diagnostic in data.Diagnostics)
                             {
-                                yield return diagnostic;
+                                if (includeSuppressedDiagnostics || !diagnostic.IsSuppressed)
+                                {
+                                    yield return diagnostic;
+                                }
                             }
                         }
                     }

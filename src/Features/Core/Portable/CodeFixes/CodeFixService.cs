@@ -78,12 +78,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             using (var diagnostics = SharedPools.Default<List<DiagnosticData>>().GetPooledObject())
             {
-                var fullResult = await _diagnosticService.TryAppendDiagnosticsForSpanAsync(document, range, diagnostics.Object, cancellationToken).ConfigureAwait(false);
+                var fullResult = await _diagnosticService.TryAppendDiagnosticsForSpanAsync(document, range, diagnostics.Object, cancellationToken: cancellationToken).ConfigureAwait(false);
                 foreach (var diagnostic in diagnostics.Object)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (!range.IntersectsWith(diagnostic.TextSpan) || diagnostic.IsSuppressed)
+                    if (!range.IntersectsWith(diagnostic.TextSpan))
                     {
                         continue;
                     }
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // this design's weakness is that each side don't have enough information to narrow down works to do. it will most likely always do more works than needed.
             // sometimes way more than it is needed. (compilation)
             Dictionary<TextSpan, List<DiagnosticData>> aggregatedDiagnostics = null;
-            foreach (var diagnostic in await _diagnosticService.GetDiagnosticsForSpanAsync(document, range, cancellationToken).ConfigureAwait(false))
+            foreach (var diagnostic in await _diagnosticService.GetDiagnosticsForSpanAsync(document, range, cancellationToken: cancellationToken).ConfigureAwait(false))
             {
                 if (diagnostic.IsSuppressed)
                 {
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             Contract.ThrowIfNull(document);
             var solution = document.Project.Solution;
-            var diagnostics = await _diagnosticService.GetDiagnosticsForIdsAsync(solution, null, document.Id, diagnosticIds, cancellationToken).ConfigureAwait(false);
+            var diagnostics = await _diagnosticService.GetDiagnosticsForIdsAsync(solution, null, document.Id, diagnosticIds, cancellationToken: cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId != null));
             return await DiagnosticData.ToDiagnosticsAsync(document.Project, diagnostics, cancellationToken).ConfigureAwait(false);
         }

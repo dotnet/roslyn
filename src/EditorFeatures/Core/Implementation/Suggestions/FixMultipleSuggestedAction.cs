@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     internal class FixMultipleSuggestedAction : FixAllSuggestedAction
     {
         private readonly Document _triggerDocumentOpt;
-        private readonly string _hashOfIds;
+        private readonly string _telemetryId;
 
         internal FixMultipleSuggestedAction(
             Workspace workspace,
@@ -30,14 +30,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             _triggerDocumentOpt = codeAction.FixAllContext.Document;
 
-            // hash all the diagnostic IDs
-            _hashOfIds = GetHash(codeAction.FixAllContext.DiagnosticIds);
+            _telemetryId = GetTelemetryId(codeAction.FixAllContext.DiagnosticIds);
         }
 
-        private static string GetHash(IEnumerable<string> diagnosticIds)
+        private static string GetTelemetryId(IEnumerable<string> diagnosticIds)
         {
+            // hash all the diagnostic IDs
             var hash = 0;
-            foreach (var diagnosticId in diagnosticIds)
+            foreach (var diagnosticId in diagnosticIds.Order())
             {
                 hash = Hash.Combine(diagnosticId.GetHashCode(), hash);
             }
@@ -45,9 +45,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return hash.ToString(CultureInfo.InvariantCulture);
         }
 
-        public new string GetDiagnosticID()
+        public override string GetDiagnosticID()
         {
-            return _hashOfIds;
+            return _telemetryId;
         }
 
         public override bool HasPreview

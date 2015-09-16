@@ -185,7 +185,7 @@ class Class
 
                         TextSpan span;
                         var document = GetDocumentAndSelectSpan(workspace, out span);
-                        var diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, span, CancellationToken.None)
+                        var diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, span)
                             .WaitAndGetResult(CancellationToken.None)
                             .Where(d => d.Id == "CS0219");
                         Assert.Equal(2, diagnostics.Count());
@@ -512,13 +512,25 @@ class Class
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestErrorDiagnosticCannotBeSuppressed()
+                public void TestErrorDiagnosticCanBeSuppressed()
                 {
-                    TestMissing(
+                    Test(
             @"
 using System;
 
 [|class Class|]
+{
+    int Method()
+    {
+        int x = 0;
+    }
+}",
+            @"
+using System;
+
+#pragma warning disable ErrorDiagnostic // ErrorDiagnostic
+class Class
+#pragma warning restore ErrorDiagnostic // ErrorDiagnostic
 {
     int Method()
     {

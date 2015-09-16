@@ -295,7 +295,8 @@
       <Button guid="guidRoslynGrpId" id="cmdidRemoveSuppressions" priority="0xf002" type="Button">
         <Parent guid="guidRoslynGrpId" id="grpErrorListContextMenu"/>
         <CommandFlag>DynamicVisibility</CommandFlag>
-        <CommandFlag>DefaultDisabled</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>TextChanges</CommandFlag>
         <Strings>
           <ButtonText>Remove&amp; Suppression(s)</ButtonText>
           <CanonicalName>RemoveSuppressions</CanonicalName>
