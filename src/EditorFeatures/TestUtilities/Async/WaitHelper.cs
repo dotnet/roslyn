@@ -13,8 +13,7 @@ namespace Roslyn.Test.Utilities
     {
         public static void WaitForDispatchedOperationsToComplete(DispatcherPriority priority)
         {
-            Action action = delegate { };
-            new FrameworkElement().Dispatcher.Invoke(action, priority);
+            new FrameworkElement().Dispatcher.DoEvents();
         }
 
         public static void PumpingWait(this Task task)
