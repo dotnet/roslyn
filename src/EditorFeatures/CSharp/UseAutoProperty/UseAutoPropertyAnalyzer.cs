@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
         protected override ExpressionSyntax GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken)
         {
             var getAccessor = getMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken) as AccessorDeclarationSyntax;
-            var firstStatement = getAccessor?.Body.Statements.SingleOrDefault();
+            var firstStatement = getAccessor?.Body?.Statements.SingleOrDefault();
             if (firstStatement?.Kind() == SyntaxKind.ReturnStatement)
             {
                 var expr = ((ReturnStatementSyntax)firstStatement).Expression;

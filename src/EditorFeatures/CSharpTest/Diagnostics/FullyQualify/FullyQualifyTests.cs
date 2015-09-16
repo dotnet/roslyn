@@ -50,6 +50,14 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public void TestSmartTagDisplayText()
+        {
+            TestSmartTagText(
+@"class Class { [|List<int>|] Method() { Foo(); } }",
+"System.Collections.Generic.List");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestGenericWithWrongArgs()
         {
             TestMissing(

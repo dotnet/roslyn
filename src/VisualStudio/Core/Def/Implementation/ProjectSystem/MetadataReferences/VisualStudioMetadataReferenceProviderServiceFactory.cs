@@ -23,37 +23,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private sealed class Service : IMetadataService
         {
             private readonly VisualStudioMetadataReferenceManager _manager;
-            private readonly Provider _provider;
 
             public Service(VisualStudioMetadataReferenceManager manager)
             {
                 _manager = manager;
-                _provider = new Provider(this);
             }
 
             public PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
             {
                 return _manager.CreateMetadataReferenceSnapshot(resolvedPath, properties);
-            }
-
-            public MetadataFileReferenceProvider GetProvider()
-            {
-                return _provider;
-            }
-        }
-
-        private sealed class Provider : MetadataFileReferenceProvider
-        {
-            private readonly Service _service;
-
-            public Provider(Service service)
-            {
-                _service = service;
-            }
-
-            public override PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
-            {
-                return _service.GetReference(resolvedPath, properties);
             }
         }
     }

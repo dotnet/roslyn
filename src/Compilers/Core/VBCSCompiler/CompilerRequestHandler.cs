@@ -17,7 +17,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     internal class CompilerRequestHandler : IRequestHandler
     {
         // Caches are used by C# and VB compilers, and shared here.
-        public static readonly ReferenceProvider AssemblyReferenceProvider = new ReferenceProvider();
+        public static readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider =
+            (path, properties) => new CachingMetadataReference(path, properties);
+
         public static readonly IAnalyzerAssemblyLoader AnalyzerLoader = new ShadowCopyAnalyzerAssemblyLoader(Path.Combine(Path.GetTempPath(), "VBCSCompiler", "AnalyzerAssemblyLoader"));
 
         private static void LogAbnormalExit(string msg)

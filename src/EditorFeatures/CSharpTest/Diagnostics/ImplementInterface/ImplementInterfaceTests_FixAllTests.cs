@@ -114,7 +114,7 @@ class B3 : I1, I2
     </Project>
 </Workspace>";
 
-            Test(input, expected, isLine: false, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
+            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
         }
 
         [Fact]
@@ -232,7 +232,7 @@ class B3 : I1, I2
     </Project>
 </Workspace>";
 
-            Test(input, expected, isLine: false, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
+            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
         }
 
         [Fact]
@@ -361,7 +361,7 @@ class B3 : I1, I2
     </Project>
 </Workspace>";
 
-            Test(input, expected, isLine: false, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
+            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
         }
 
         [Fact]
@@ -497,7 +497,7 @@ class B3 : I1, I2
     </Project>
 </Workspace>";
 
-            Test(input, expected, isLine: false, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
+            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
         }
 
         #endregion

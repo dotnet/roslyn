@@ -1999,6 +1999,7 @@ FullWidthRepeat2:
             Dim DateIsInvalid As Boolean = False
             Dim YearIsTwoDigits As Boolean = False
             Dim DaysToMonth As Integer() = Nothing
+            Dim yearIsFirst As Boolean = False
 
             ' // Unfortunately, we can't fall back on OLE Automation's date parsing because
             ' // they don't have the same range as the URT's DateTime class
@@ -2028,6 +2029,7 @@ FullWidthRepeat2:
                 ' Condition below uses 5 because we already skipped the separator.
                 If Here - FirstValueStart = 5 Then
                     HaveYearValue = True
+                    yearIsFirst = True
                     YearValue = FirstValue
 
                     ' // We have to have a month value
@@ -2264,7 +2266,13 @@ FullWidthRepeat2:
 
             If Not DateIsInvalid Then
                 Dim DateTimeValue As New DateTime(YearValue, MonthValue, DayValue, HourValue, MinuteValue, SecondValue)
-                Return MakeDateLiteralToken(precedingTrivia, DateTimeValue, Here)
+                Dim result = MakeDateLiteralToken(precedingTrivia, DateTimeValue, Here)
+
+                If yearIsFirst Then
+                    result = Parser.CheckFeatureAvailability(Feature.YearFirstDateLiterals, result, Options.LanguageVersion)
+                End If
+
+                Return result
             Else
                 Return MakeBadToken(precedingTrivia, Here, ERRID.ERR_InvalidDate)
             End If
@@ -2326,6 +2334,8 @@ baddate:
                 Return MakeBadToken(precedingTrivia, 3, ERRID.ERR_IllegalCharConstant)
             End If
 
+            Dim haveNewLine As Boolean = False
+
             Dim scratch = GetScratch()
             While CanGet(length)
                 ch = Peek(length)
@@ -2357,10 +2367,20 @@ baddate:
                     followingTrivia = ScanSingleLineTrivia()
 
                     ' NATURAL TEXT, NO INTERNING
-                    Return SyntaxFactory.StringLiteralToken(spelling, GetScratchText(scratch), precedingTrivia.Node, followingTrivia.Node)
+                    Dim result As SyntaxToken = SyntaxFactory.StringLiteralToken(spelling, GetScratchText(scratch), precedingTrivia.Node, followingTrivia.Node)
 
-                ElseIf Me._isScanningDirective AndAlso IsNewLine(ch) Then
-                    Exit While
+                    If haveNewLine Then
+                        result = Parser.CheckFeatureAvailability(Feature.MultilineStringLiterals, result, Options.LanguageVersion)
+                    End If
+
+                    Return result
+
+                ElseIf IsNewLine(ch) Then
+                    If Me._isScanningDirective Then
+                        Exit While
+                    End If
+
+                    haveNewLine = True
                 End If
 
                 scratch.Append(ch)

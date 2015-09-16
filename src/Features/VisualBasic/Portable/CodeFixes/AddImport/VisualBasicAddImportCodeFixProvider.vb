@@ -231,7 +231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
         End Function
 
         Protected Overrides Function GetDescription(namespaceSymbol As INamespaceOrTypeSymbol, semanticModel As SemanticModel, root As SyntaxNode) As String
-            Return String.Format(VBFeaturesResources.Import, namespaceSymbol.ToDisplayString())
+            Return $"Imports {namespaceSymbol.ToDisplayString()}"
         End Function
 
         Protected Overrides Function GetNamespacesInScope(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As ISet(Of INamespaceSymbol)

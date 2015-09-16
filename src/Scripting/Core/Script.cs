@@ -175,29 +175,66 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// Gets the references that need to be assigned to the compilation.
         /// This can be different than the list of references defined by the <see cref="ScriptOptions"/> instance.
         /// </summary>
-        internal ImmutableArray<MetadataReference> GetReferencesForCompilation()
+        internal ImmutableArray<MetadataReference> GetReferencesForCompilation(
+            CommonMessageProvider messageProvider, 
+            DiagnosticBag diagnostics,
+            MetadataReference languageRuntimeReferenceOpt = null)
         {
-            var references = Options.References;
-
-            var previous = Previous;
-            if (previous != null)
+            var resolver = Options.MetadataResolver;
+            var references = ArrayBuilder<MetadataReference>.GetInstance();
+            try
             {
-                // TODO (tomat): RESOLVED? bound imports should be reused from previous submission instead of passing 
-                // them to every submission in the chain. See bug #7802.
-                var compilation = previous.GetCompilation();
-                return ImmutableArray.CreateRange(references.Union(compilation.References));
+                var previous = Previous;
+                if (previous != null)
+                {
+                    // TODO: this should be done in reference manager
+                    references.AddRange(previous.GetCompilation().References);
+                }
+                else
+                {
+                    var corLib = MetadataReference.CreateFromAssemblyInternal(typeof(object).GetTypeInfo().Assembly);
+                    references.Add(corLib);
+
+                    if (GlobalsType != null)
+                    {
+                        var globalsTypeAssembly = MetadataReference.CreateFromAssemblyInternal(GlobalsType.GetTypeInfo().Assembly);
+                        references.Add(globalsTypeAssembly);
+                    }
+
+                    if (languageRuntimeReferenceOpt != null)
+                    {
+                        references.Add(languageRuntimeReferenceOpt);
+                    }
+                }
+
+                foreach (var reference in Options.MetadataReferences)
+                {
+                    var unresolved = reference as UnresolvedMetadataReference;
+                    if (unresolved != null)
+                    {
+                        var resolved = resolver.ResolveReference(unresolved.Reference, null, unresolved.Properties);
+                        if (resolved.IsDefault)
+                        {
+                            diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_MetadataFileNotFound, Location.None, unresolved.Reference));
+                        }
+                        else
+                        {
+                            references.AddRange(resolved);
+                        }
+                    }
+                    else
+                    {
+                        references.Add(reference);
+                    }
+                }
+
+                return references.ToImmutable();
             }
-
-            var corLib = MetadataReference.CreateFromAssemblyInternal(typeof(object).GetTypeInfo().Assembly);
-            references = references.Add(corLib);
-
-            if (GlobalsType != null)
+            finally
             {
-                var globalsTypeAssembly = MetadataReference.CreateFromAssemblyInternal(GlobalsType.GetTypeInfo().Assembly);
-                references = references.Add(globalsTypeAssembly);
-            }
+                references.Free();
 
-            return references;
+            }
         }
     }
 

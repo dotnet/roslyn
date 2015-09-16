@@ -7,6 +7,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.F
         /// <summary>
         /// Gets the full path of the current directory.
         /// </summary>
-        string CurrentDirectory { get; }
+        string WorkingDirectory { get; }
     }
 }
