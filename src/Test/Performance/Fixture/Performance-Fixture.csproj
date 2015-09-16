@@ -16,7 +16,6 @@
     <TargetFrameworkIdentifier>
     </TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <CopyNuGetImplementations>true</CopyNuGetImplementations>
     <OutDir>$(OutDir)\Performance</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
