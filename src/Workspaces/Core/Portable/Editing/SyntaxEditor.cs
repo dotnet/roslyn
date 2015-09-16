@@ -119,6 +119,11 @@ namespace Microsoft.CodeAnalysis.Editing
         public void ReplaceNode(SyntaxNode node, SyntaxNode newNode)
         {
             CheckNodeInTree(node);
+            if (node == newNode)
+            {
+                return;
+            }
+
             this.ReplaceNode(node, (n, g) => newNode);
         }
 
