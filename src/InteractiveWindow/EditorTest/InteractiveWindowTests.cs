@@ -726,6 +726,17 @@ System.Console.WriteLine();",
             Assert.Equal("> ", snapshot.GetText());
         }
 
+        [Fact]
+        public void SelectAllInHeader()
+        {
+            Window.WriteLine("Header");
+            Window.FlushOutput();
+            Assert.Equal("Header\r\n> ", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+
+            Window.TextView.Caret.MoveTo(new SnapshotPoint(Window.TextView.TextBuffer.CurrentSnapshot, 1));
+            Window.Operations.SelectAll(); // Used to throw.
+        }
+
         private void Submit(string submission, string output)
         {
             Task.Run(() => Window.SubmitAsync(new[] { submission })).PumpingWait();

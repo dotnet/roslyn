@@ -1146,12 +1146,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     index--;
                 }
                 // Find the nearest preceding prompt.
-                while (!IsPrompt(sourceSpans[index]))
+                while (index >= 0 && !IsPrompt(sourceSpans[index]))
                 {
                     index--;
                 }
                 return index;
             }
+
             /// <summary>
             /// Return the index of the span containing the point. Returns the
             /// length of the collection if the point is at the end of the last span.
