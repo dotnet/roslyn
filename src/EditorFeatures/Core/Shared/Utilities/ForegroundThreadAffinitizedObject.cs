@@ -14,10 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     /// </summary>
     internal class ForegroundThreadAffinitizedObject
     {
-        [ThreadStatic]
         private static Thread s_foregroundThread;
-
-        [ThreadStatic]
         private static TaskScheduler s_foregroundTaskScheduler;
 
         internal static Thread ForegroundThread
