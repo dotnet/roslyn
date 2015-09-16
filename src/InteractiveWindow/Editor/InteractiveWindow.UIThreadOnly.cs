@@ -2105,6 +2105,23 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             public bool Delete()
             {
                 _historySearch = null;
+                return DeleteSelection();
+            }
+
+            /// <summary> Implements <see cref="IInteractiveWindowOperations2.TypeChar"/>. </summary>
+            public void TypeChar()
+            {
+                _historySearch = null;
+                // in case user didn't select anything, we still move the cursor so the character typed 
+                // inside non-editable buffer will be inserted at the closest location in editable buffer.
+                if (!DeleteSelection())
+                {
+                    MoveCaretToClosestEditableBuffer();
+                }   
+            }
+
+            private bool DeleteSelection()
+            {
                 bool handled = false;
                 if (!TextView.Selection.IsEmpty)
                 {
@@ -2115,7 +2132,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         handled = true;
                     }
                 }
-
                 return handled;
             }
 

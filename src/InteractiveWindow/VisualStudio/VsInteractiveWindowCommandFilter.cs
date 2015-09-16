@@ -386,7 +386,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                 switch ((VSConstants.VSStd2KCmdID)nCmdID)
                 {
                     case VSConstants.VSStd2KCmdID.TYPECHAR:
-                        _window.Operations.Delete();
+                        var operations = _window.Operations as IInteractiveWindowOperations2;
+                        if (operations != null)
+                        {
+                            operations.TypeChar();
+                        }
+                        else
+                        {
+                            _window.Operations.Delete();
+                        }                           
                         break;
 
                     case VSConstants.VSStd2KCmdID.RETURN:

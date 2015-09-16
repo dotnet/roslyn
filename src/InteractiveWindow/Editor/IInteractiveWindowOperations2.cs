@@ -8,5 +8,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// Copies the current selection to the clipboard.
         /// </summary>
         void Copy();
+
+        /// <summary>
+        /// Handles the user pressing any alphanumeric key.
+        /// </summary>
+        void TypeChar();
     }
 }
