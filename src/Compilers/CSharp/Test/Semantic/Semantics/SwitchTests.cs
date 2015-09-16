@@ -2115,7 +2115,7 @@ namespace Test
         }
 
         [Fact]
-        public void SwitchFallOut_Script1()
+        public void SwitchFallOut_Script()
         {
             var source =
 @"using System;
@@ -2137,7 +2137,7 @@ switch (1)
         }
 
         [Fact]
-        public void SwitchFallOut_Script2()
+        public void SwitchFallOut_Submission()
         {
             var source =
 @"using System;

@@ -298,6 +298,38 @@ WriteLine(""hello"");
             Assert.Empty(model.LookupLabels(source.Length - 1)); // Used to assert.
         }
 
+        [Fact]
+        public void Labels()
+        {
+            string source =
+@"L0: ;
+goto L0;";
+            var tree = Parse(source, options: TestOptions.Script);
+            var model = CreateCompilationWithMscorlib45(new[] { tree }).GetSemanticModel(tree, ignoreAccessibility: false);
+            var root = tree.GetCompilationUnitRoot();
+            var statements = root.ChildNodes().Select(n => ((GlobalStatementSyntax)n).Statement).ToArray();
+            var symbol0 = model.GetDeclaredSymbol((LabeledStatementSyntax)statements[0]);
+            Assert.NotNull(symbol0);
+            var symbol1 = model.GetSymbolInfo(((GotoStatementSyntax)statements[1]).Expression).Symbol;
+            Assert.Same(symbol0, symbol1);
+        }
+
+        [Fact]
+        public void Variables()
+        {
+            string source =
+@"int x = 1;
+object y = x;";
+            var tree = Parse(source, options: TestOptions.Script);
+            var model = CreateCompilationWithMscorlib45(new[] { tree }).GetSemanticModel(tree, ignoreAccessibility: false);
+            var root = tree.GetCompilationUnitRoot();
+            var declarations = root.ChildNodes().Select(n => ((FieldDeclarationSyntax)n).Declaration.Variables[0]).ToArray();
+            var symbol0 = model.GetDeclaredSymbol(declarations[0]);
+            Assert.NotNull(symbol0);
+            var symbol1 = model.GetSymbolInfo(declarations[1].Initializer.Value).Symbol;
+            Assert.Same(symbol0, symbol1);
+        }
+
         [WorkItem(543890)]
         [Fact]
         public void ThisIndexerAccessInSubmission()
