@@ -4819,7 +4819,7 @@ class Program
         { }
         catch (System.Exception)
         { }
-        catch (System.Exception e)
+        catch (System.Exception e) when (true)
         { }
 
         using(somevar)
@@ -4861,7 +4861,7 @@ class Program
         { }
         catch ( System.Exception )
         { }
-        catch ( System.Exception e )
+        catch ( System.Exception e ) when ( true )
         { }
 
         using ( somevar )
@@ -4908,7 +4908,7 @@ class Program
 
         try
         { }
-        catch (System.Exception e)
+        catch (System.Exception e) when (true)
         { }
 
         using (somevar)
@@ -4942,7 +4942,7 @@ class Program
 
         try
         { }
-        catch(System.Exception e)
+        catch(System.Exception e) when(true)
         { }
 
         using(somevar)

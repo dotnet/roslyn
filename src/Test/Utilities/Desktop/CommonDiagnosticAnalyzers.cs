@@ -122,6 +122,7 @@ namespace Microsoft.CodeAnalysis
         ""category"": """ + Descriptor1.Category + @""",
         ""helpLink"": """ + Descriptor1.HelpLinkUri + @""",
         ""isEnabledByDefault"": """ + Descriptor1.IsEnabledByDefault + @""",
+        ""isSuppressedInSource"": ""False"",
         ""customTags"": """ + Descriptor1.CustomTags.Join(";") + @"""" +
         GetExpectedPropertiesMapText() + @"
       }
@@ -139,6 +140,7 @@ namespace Microsoft.CodeAnalysis
         ""category"": """ + Descriptor2.Category + @""",
         ""helpLink"": """ + Descriptor2.HelpLinkUri + @""",
         ""isEnabledByDefault"": """ + Descriptor2.IsEnabledByDefault + @""",
+        ""isSuppressedInSource"": ""False"",
         ""customTags"": """ + Descriptor2.CustomTags.Join(";") + @"""" +
         GetExpectedPropertiesMapText() + @"
       }

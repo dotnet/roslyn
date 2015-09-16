@@ -2,6 +2,7 @@
 
 Imports System.Globalization
 Imports System.Reflection
+Imports Microsoft.CodeAnalysis.Scripting.Hosting
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
@@ -12,9 +13,16 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
 
         Private Shared ReadOnly s_defaultInteractive As VisualBasicParseOptions = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic11, kind:=SourceCodeKind.Interactive)
         Private Shared ReadOnly s_defaultScript As VisualBasicParseOptions = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic11, kind:=SourceCodeKind.Script)
+        Private Shared ReadOnly s_vbRuntimeReference As MetadataReference = MetadataReference.CreateFromAssemblyInternal(GetType(CompilerServices.NewLateBinding).GetTypeInfo().Assembly)
 
         Private Sub New()
         End Sub
+
+        Public Overrides ReadOnly Property DiagnosticFormatter As DiagnosticFormatter
+            Get
+                Return VisualBasicDiagnosticFormatter.Instance
+            End Get
+        End Property
 
         Private Shared Function GetGlobalImportsForCompilation(script As Script) As IEnumerable(Of GlobalImport)
             ' TODO: remember these per options instance so we don't need to reparse each submission
@@ -23,17 +31,16 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
         End Function
 
         Public Overrides Function CreateSubmission(script As Script) As Compilation
-            Dim references = script.GetReferencesForCompilation()
-
             Dim previousSubmission As Compilation = Nothing
-
             If script.Previous IsNot Nothing Then
                 previousSubmission = script.Previous.GetCompilation()
-            Else
-                references = references.Add(MetadataReference.CreateFromAssemblyInternal(GetType(CompilerServices.NewLateBinding).GetTypeInfo().Assembly))
             End If
 
-            Dim globalImports = GetGlobalImportsForCompilation(script)
+            Dim diagnostics = DiagnosticBag.GetInstance()
+            Dim references = script.GetReferencesForCompilation(MessageProvider.Instance, diagnostics, s_vbRuntimeReference)
+
+            '  TODO report Diagnostics
+            diagnostics.Free()
 
             ' parse:
             Dim parseOptions = If(script.Options.IsInteractive, s_defaultInteractive, s_defaultScript)
@@ -44,7 +51,10 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
             Dim submissionTypeName As String = Nothing
             script.Builder.GenerateSubmissionId(assemblyName, submissionTypeName)
 
-            Dim submission = VisualBasicCompilation.CreateSubmission(assemblyName,
+            Dim globalImports = GetGlobalImportsForCompilation(script)
+
+            Dim submission = VisualBasicCompilation.CreateSubmission(
+                assemblyName,
                 tree,
                 references,
                 New VisualBasicCompilationOptions(
@@ -59,7 +69,9 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
                     optionCompareText:=False,
                     embedVbCoreRuntime:=False,
                     checkOverflow:=False,
-                    metadataReferenceResolver:=script.Options.ReferenceResolver,
+                    xmlReferenceResolver:=Nothing, ' don't support XML file references in interactive (permissions & doc comment includes)
+                    sourceReferenceResolver:=SourceFileResolver.Default,
+                    metadataReferenceResolver:=script.Options.MetadataResolver,
                     assemblyIdentityComparer:=DesktopAssemblyIdentityComparer.Default),
                 previousSubmission,
                 script.ReturnType,
@@ -67,11 +79,5 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
 
             Return submission
         End Function
-
-        Public Overrides ReadOnly Property DiagnosticFormatter As DiagnosticFormatter
-            Get
-                Return VisualBasicDiagnosticFormatter.Instance
-            End Get
-        End Property
     End Class
 End Namespace

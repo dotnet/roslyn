@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Extensibility.Completion
 {
-    internal abstract class SnippetCompletionProvider : AbstractCompletionProvider, ISnippetCompletionProvider, ICustomCommitCompletionProvider
+    internal abstract class SnippetCompletionProvider : CompletionListProvider, ISnippetCompletionProvider, ICustomCommitCompletionProvider
     {
         public abstract void Commit(CompletionItem completionItem, ITextView textView, ITextBuffer subjectBuffer, ITextSnapshot triggerSnapshot, char? commitChar);
     }

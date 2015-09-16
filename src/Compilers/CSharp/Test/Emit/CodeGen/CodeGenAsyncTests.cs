@@ -3400,6 +3400,48 @@ class Program
             CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe));
         }
 
+        [Fact, WorkItem(4697, "https://github.com/dotnet/roslyn/issues/4697")]
+        public void AwaitInObjInitializer()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+namespace CompilerCrashRepro2
+{
+    public class Item<T>
+    {
+        public T Value { get; set; }
+    }
+
+    public class Crasher
+    {
+        public static void Main()
+        {
+            var r = Build<int>()().Result.Value;
+            System.Console.WriteLine(r);
+        }
+
+        public static Func<Task<Item<T>>> Build<T>()
+        {
+            return async () => new Item<T>()
+            {
+                Value = await GetValue<T>()
+            };
+        }
+
+        public static Task<T> GetValue<T>()
+        {
+            return Task.FromResult(default(T));
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "0");
+            CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe), expectedOutput: "0");
+        }
+
+
         [Fact]
         public void AwaitInScriptExpression()
         {

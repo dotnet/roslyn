@@ -113,8 +113,8 @@ namespace Microsoft.CodeAnalysis
 
             Debug.Assert(reference.ContentType == definition.ContentType);
 
-            bool isFxAssembly;
-            if (!ApplyUnificationPolicies(ref reference, ref definition, parts, out isFxAssembly))
+            bool isDefinitionFxAssembly;
+            if (!ApplyUnificationPolicies(ref reference, ref definition, parts, out isDefinitionFxAssembly))
             {
                 return ComparisonResult.NotEquivalent;
             }
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis
                     return ComparisonResult.Equivalent;
                 }
 
-                isFxAssembly = false;
+                isDefinitionFxAssembly = false;
             }
 
             if (!SimpleNameComparer.Equals(reference.Name, definition.Name))
@@ -177,7 +177,16 @@ namespace Microsoft.CodeAnalysis
                 hasSomeVersionParts &&
                 (hasPartialVersion || reference.Version != definition.Version))
             {
-                if (isFxAssembly)
+                // Note:
+                // System.Numerics.Vectors, Version=4.0 is an FX assembly
+                // System.Numerics.Vectors, Version=4.1+ is not an FX assembly
+                //
+                // It seems like a bug in Fusion: it only determines whether the definition is an FX assembly 
+                // and calculates the result based upon that, regardless of whether the reference is an FX assembly or not.
+                // We do replicate the behavior.
+                //
+                // As a result unification is asymmetric when comparing the above identities.
+                if (isDefinitionFxAssembly)
                 {
                     unificationApplied = true;
                     return ComparisonResult.Equivalent;
@@ -211,9 +220,9 @@ namespace Microsoft.CodeAnalysis
             return AssemblyIdentity.MemberwiseEqual(x, y);
         }
 
-        internal virtual bool ApplyUnificationPolicies(ref AssemblyIdentity reference, ref AssemblyIdentity definition, AssemblyIdentityParts referenceParts, out bool isFxAssembly)
+        internal virtual bool ApplyUnificationPolicies(ref AssemblyIdentity reference, ref AssemblyIdentity definition, AssemblyIdentityParts referenceParts, out bool isDefinitionFxAssembly)
         {
-            isFxAssembly = false;
+            isDefinitionFxAssembly = false;
             return true;
         }
     }

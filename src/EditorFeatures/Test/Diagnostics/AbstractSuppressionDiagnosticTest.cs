@@ -2,15 +2,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
@@ -18,9 +17,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     {
         protected abstract int CodeActionIndex { get; }
 
-        protected void Test(string initial, string expected, bool isLine = true, bool isAddedDocument = false)
+        protected void Test(string initial, string expected)
         {
-            Test(initial, expected, parseOptions: null, index: CodeActionIndex, compareTokens: false, isLine: isLine, isAddedDocument: isAddedDocument);
+            Test(initial, expected, parseOptions: null, index: CodeActionIndex, compareTokens: false);
         }
 
         protected void TestMissing(string initial)
@@ -45,22 +44,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var providerAndFixer = CreateDiagnosticProviderAndFixer(workspace);
 
             var provider = providerAndFixer.Item1;
+            Document document;
             TextSpan span;
-            var document = GetDocumentAndSelectSpan(workspace, out span);
-            var diagnostics = DiagnosticProviderTestUtilities.GetAllDiagnostics(provider, document, span);
-
-            var fixer = providerAndFixer.Item2;
-            foreach (var diagnostic in diagnostics)
+            string annotation = null;
+            if (!TryGetDocumentAndSelectSpan(workspace, out document, out span))
             {
-                if (fixer.CanBeSuppressed(diagnostic))
-                {
-                    var fixes = fixer.GetSuppressionsAsync(document, diagnostic.Location.SourceSpan, SpecializedCollections.SingletonEnumerable(diagnostic), CancellationToken.None).Result;
-                    if (fixes != null && fixes.Any())
-                    {
-                        yield return Tuple.Create(diagnostic,
-                            new CodeFixCollection(fixer, diagnostic.Location.SourceSpan, fixes));
-                    }
-                }
+                document = GetDocumentAndAnnotatedSpan(workspace, out annotation, out span);
+            }           
+
+            using (var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, provider))
+            {
+                var fixer = providerAndFixer.Item2;
+                var diagnostics = testDriver.GetAllDiagnostics(provider, document, span)
+                    .Where(d => fixer.CanBeSuppressed(d))
+                    .ToImmutableArray();
+
+                var wrapperCodeFixer = new WrapperCodeFixProvider(fixer, diagnostics);
+                return GetDiagnosticAndFixes(diagnostics, provider, wrapperCodeFixer, testDriver, document, span, annotation, fixAllActionId);
             }
         }
     }

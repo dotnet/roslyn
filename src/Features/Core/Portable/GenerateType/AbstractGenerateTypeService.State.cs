@@ -111,6 +111,16 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     return false;
                 }
 
+                if (char.IsLower(name[0]) && !document.SemanticModel.Compilation.IsCaseSensitive)
+                {
+                    // It's near universal in .Net that types start with a capital letter.  As such,
+                    // if this name starts with a lowercase letter, don't even bother to offer 
+                    // "generate type".  The user most likely wants to run 'Add Import' (which will
+                    // then fix up a case where they typed an existing type name in lowercase, 
+                    // intending the fix to case correct it).
+                    return false;
+                }
+
                 this.NameOrMemberAccessExpression = generateTypeServiceStateOptions.NameOrMemberAccessExpression;
                 this.ObjectCreationExpressionOpt = generateTypeServiceStateOptions.ObjectCreationExpressionOpt;
 

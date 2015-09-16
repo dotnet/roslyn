@@ -9,6 +9,7 @@
     <Import_RootNamespace>Roslyn.Test.Utilities</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Assert\ClrOnlyFactAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Assert\EqualityTesting.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Assert\TestExceptionUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Assert\AssertEx.cs" />
@@ -50,6 +51,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Metadata\MetadataValidation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Metadata\TypeAttributesMissing.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Metadata\PEModuleTestHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Mocks\TestDocumentationCommentProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Mocks\VirtualizedRelativePathResolver.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Pdb\MockSymWriter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Pdb\PdbTestUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Pdb\PdbValidation.cs" />

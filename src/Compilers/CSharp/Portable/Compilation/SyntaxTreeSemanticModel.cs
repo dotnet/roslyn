@@ -91,40 +91,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return _ignoresAccessibility; }
         }
 
-        private void VerifySpanForGetDiagnostics(TextSpan? span)
-        {
-            if (span.HasValue && !this.Root.FullSpan.Contains(span.Value))
-            {
-                throw new ArgumentException("span");
-            }
-        }
-
         public override ImmutableArray<Diagnostic> GetSyntaxDiagnostics(TextSpan? span = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             VerifySpanForGetDiagnostics(span);
             return Compilation.GetDiagnosticsForSyntaxTree(
-                CompilationStage.Parse, this.SyntaxTree, span, false, cancellationToken);
+                CompilationStage.Parse, this.SyntaxTree, span, includeEarlierStages: false, includeDiagnosticsWithSourceSuppression: false, cancellationToken: cancellationToken);
         }
 
         public override ImmutableArray<Diagnostic> GetDeclarationDiagnostics(TextSpan? span = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             VerifySpanForGetDiagnostics(span);
             return Compilation.GetDiagnosticsForSyntaxTree(
-                CompilationStage.Declare, this.SyntaxTree, span, false, cancellationToken);
+                CompilationStage.Declare, this.SyntaxTree, span, includeEarlierStages: false, includeDiagnosticsWithSourceSuppression: false, cancellationToken: cancellationToken);
         }
 
         public override ImmutableArray<Diagnostic> GetMethodBodyDiagnostics(TextSpan? span = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             VerifySpanForGetDiagnostics(span);
             return Compilation.GetDiagnosticsForSyntaxTree(
-                CompilationStage.Compile, this.SyntaxTree, span, false, cancellationToken);
+                CompilationStage.Compile, this.SyntaxTree, span, includeEarlierStages: false, includeDiagnosticsWithSourceSuppression: false, cancellationToken: cancellationToken);
         }
 
         public override ImmutableArray<Diagnostic> GetDiagnostics(TextSpan? span = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             VerifySpanForGetDiagnostics(span);
             return Compilation.GetDiagnosticsForSyntaxTree(
-                CompilationStage.Compile, this.SyntaxTree, span, true, cancellationToken);
+                CompilationStage.Compile, this.SyntaxTree, span, includeEarlierStages: true, includeDiagnosticsWithSourceSuppression: false, cancellationToken: cancellationToken);
         }
 
         /// <summary>

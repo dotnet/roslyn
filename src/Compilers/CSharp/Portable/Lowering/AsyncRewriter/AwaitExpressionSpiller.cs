@@ -1107,11 +1107,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     Debug.Assert(_F.Syntax.IsKind(SyntaxKind.AwaitExpression));
-
-                    SynthesizedLocal shortLived = (SynthesizedLocal)local;
-                    SynthesizedLocal longLived = shortLived.WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind.AwaitSpill, _F.Syntax);
-                    _tempSubstitution.Add(shortLived, longLived);
-
+                    LocalSymbol longLived = local.WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind.AwaitSpill, _F.Syntax);
+                    _tempSubstitution.Add(local, longLived);
                     builder.AddLocal(longLived, _F.Diagnostics);
                 }
             }

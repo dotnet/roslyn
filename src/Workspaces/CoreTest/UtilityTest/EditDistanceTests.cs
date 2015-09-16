@@ -1,11 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -66,6 +60,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(EditDistance.GetLongestCommonSubsequenceLength("a", "b"), 0);
         }
 
+        [Fact]
         public void LongestCommonSubstring1()
         {
             Assert.Equal(EditDistance.GetLongestCommonSubsequenceLength("a", "a"), 1);
@@ -75,11 +70,38 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(EditDistance.GetLongestCommonSubsequenceLength("foo", "arf"), 1);
         }
 
+        [Fact]
         public void MoreLongestCommonSubstring()
         {
             Assert.Equal(EditDistance.GetLongestCommonSubsequenceLength("aabaaab", "aaa"), 3);
             Assert.Equal(EditDistance.GetLongestCommonSubsequenceLength("kangaroo", "schoolbus"), 2);
             Assert.Equal(EditDistance.GetLongestCommonSubsequenceLength("inexorable", "exorcism"), 4);
+        }
+
+        [Fact]
+        public void TestCloseMatch()
+        {
+            Assert.True(EditDistance.IsCloseMatch("variabledeclaratorsyntax", "variabledeclaratorsyntaxextensions"));
+
+            Assert.True(EditDistance.IsCloseMatch("expressionsyntax", "expressionsyntaxextensions"));
+            Assert.True(EditDistance.IsCloseMatch("expressionsyntax", "expressionsyntaxgeneratorvisitor"));
+        }
+
+        [Fact]
+        public void TestNotCloseMatch()
+        {
+            Assert.False(EditDistance.IsCloseMatch("propertyblocksyntax", "ipropertysymbol"));
+            Assert.False(EditDistance.IsCloseMatch("propertyblocksyntax", "ipropertysymbolextensions"));
+            Assert.False(EditDistance.IsCloseMatch("propertyblocksyntax", "typeblocksyntaxextensions"));
+
+            Assert.False(EditDistance.IsCloseMatch("fielddeclarationsyntax", "declarationinfo"));
+            Assert.False(EditDistance.IsCloseMatch("fielddeclarationsyntax", "declarationcomputer"));
+            Assert.False(EditDistance.IsCloseMatch("fielddeclarationsyntax", "filelinepositionspan"));
+
+            Assert.False(EditDistance.IsCloseMatch("variabledeclaratorsyntax", "visualbasicdeclarationcomputer"));
+            Assert.False(EditDistance.IsCloseMatch("variabledeclaratorsyntax", "ilineseparatorservice"));
+
+            Assert.False(EditDistance.IsCloseMatch("expressionsyntax", "awaitexpressioninfo"));
         }
     }
 }

@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
@@ -180,11 +181,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             var sourceSearchPaths = ImmutableArray<string>.Empty;
 
             MetadataReferenceResolver referenceResolver;
-            if (this.Workspace != null)
+            if (Workspace != null)
             {
-                referenceResolver = new AssemblyReferenceResolver(
-                    new RelativePathReferenceResolver(referenceSearchPaths, projectDirectory),
-                    this.Workspace.CurrentSolution.Services.MetadataService.GetProvider());
+                referenceResolver = new WorkspaceMetadataFileReferenceResolver(
+                    Workspace.CurrentSolution.Services.MetadataService,
+                    new RelativePathResolver(referenceSearchPaths, projectDirectory));
             }
             else
             {

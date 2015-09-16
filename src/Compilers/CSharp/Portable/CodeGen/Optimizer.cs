@@ -1756,6 +1756,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             get { return SynthesizedLocalKind.OptimizerTemp; }
         }
 
+        internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)
+        {
+            throw new NotImplementedException();
+        }
+
         internal override SyntaxToken IdentifierToken
         {
             get { return default(SyntaxToken); }

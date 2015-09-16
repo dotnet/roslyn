@@ -119,6 +119,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 get { return DiagnosticSeverity.Error; }
             }
 
+            public override bool IsSuppressed
+            {
+                get { return false; }
+            }
+
             public override int WarningLevel
             {
                 get { throw new NotImplementedException(); }
@@ -150,6 +155,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             internal override Diagnostic WithSeverity(DiagnosticSeverity severity)
+            {
+                throw new NotImplementedException();
+            }
+
+            internal override Diagnostic WithIsSuppressed(bool isSuppressed)
             {
                 throw new NotImplementedException();
             }

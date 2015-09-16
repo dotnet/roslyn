@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
 
             var fileSystem = CurrentWorkingDirectoryDiscoveryService.GetService(snapshot);
 
-            var searchPaths = ImmutableArray.Create(fileSystem.CurrentDirectory);
+            var searchPaths = ImmutableArray.Create(fileSystem.WorkingDirectory);
 
             var helper = new FileSystemCompletionHelper(
                 this,

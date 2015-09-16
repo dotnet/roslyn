@@ -105,10 +105,16 @@
     <Compile Include="CodeFixes\FixAllOccurrences\IFixAllGetFixesService.cs" />
     <Compile Include="CodeFixes\Iterator\AbstractIteratorCodeFixProvider.cs" />
     <Compile Include="CodeFixes\PredefinedCodeFixProviderNames.cs" />
-    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.PragmaWarningCodeAction.cs" />
-    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.LocalSuppressMessageCodeAction.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.AbstractSuppressionCodeAction.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.FixAllProvider.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.AbstractGlobalSuppressMessageCodeAction.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.GlobalSuppressMessageCodeAction.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.PragmaWarningBatchFixAllProvider.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.PragmaWarningCodeAction.cs" />
+    <Compile Include="CodeFixes\Suppression\NestedSuppressionCodeAction.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.GlobalSuppressMessageFixAllCodeAction.cs" />
     <Compile Include="CodeFixes\Suppression\ExportSuppressionFixProviderAttribute.cs" />
+    <Compile Include="CodeFixes\Suppression\WrapperCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Suppression\ISuppressionFixProvider.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.cs" />
     <Compile Include="CodeRefactorings\CodeRefactoringContextExtensions.cs" />
@@ -135,8 +141,7 @@
     <Compile Include="Completion\CompletionTriggerInfo.cs" />
     <Compile Include="Completion\CompletionTriggerReason.cs" />
     <Compile Include="Completion\ICompletionService.cs" />
-    <Compile Include="Completion\Providers\AbstractCompletionProvider.cs" />
-    <Compile Include="Completion\Providers\AbstractCompletionProvider.UnionCompletionitemComparer.cs" />
+    <Compile Include="Completion\Providers\UnionCompletionItemComparer.cs" />
     <Compile Include="Completion\Providers\AbstractKeywordCompletionProvider.cs" />
     <Compile Include="Completion\Providers\AbstractObjectCreationCompletionProvider.cs" />
     <Compile Include="Completion\Providers\AbstractObjectInitializerCompletionProvider.cs" />
@@ -511,6 +516,7 @@
     <Compile Include="SolutionCrawler\WorkCoordinator.SemanticChangeProcessor.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.WorkItem.cs" />
     <Compile Include="SolutionCrawler\SolutionCrawlerRegistrationService.cs" />
+    <Compile Include="SpellCheck\AbstractSpellCheckCodeFixProvider.cs" />
     <Compile Include="UseAutoProperty\AbstractUseAutoPropertyCodeFixProvider.cs" />
     <Compile Include="UseAutoProperty\AbstractUseAutoPropertyAnalyzer.cs" />
     <Compile Include="Workspace\BackgroundCompiler.cs" />

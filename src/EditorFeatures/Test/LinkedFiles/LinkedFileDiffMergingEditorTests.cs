@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
         {
             using (var workspace = TestWorkspaceFactory.CreateWorkspace(WorkspaceXml))
             {
-                var codeIssueOrRefactoring = GetCodeRefactoring(workspace, null);
+                var codeIssueOrRefactoring = GetCodeRefactoring(workspace);
 
                 var expectedCode = "private class D { }";
 

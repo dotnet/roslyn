@@ -2,9 +2,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
-Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -86,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return text(characterPosition) = "."c
         End Function
 
-        Protected Overrides Function IsExclusiveAsync(documentOpt As Document, caretPosition As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of Boolean)
+        Protected Overrides Function IsExclusiveAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of Boolean)
             ' Object initializers are explicitly indicated by "With", so we're always exclusive.
             Return SpecializedTasks.True
         End Function

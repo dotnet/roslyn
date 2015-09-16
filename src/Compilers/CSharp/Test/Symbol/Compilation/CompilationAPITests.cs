@@ -1586,8 +1586,7 @@ public class TestClass
         {
             var c1 = CSharpCompilation.Create("c", options: TestOptions.ReleaseDll);
 
-            var c2 = c1.WithOptions(TestOptions.ReleaseDll.WithMetadataReferenceResolver(
-                new AssemblyReferenceResolver(MetadataFileReferenceResolver.Default, MetadataFileReferenceProvider.Default)));
+            var c2 = c1.WithOptions(TestOptions.ReleaseDll.WithMetadataReferenceResolver(new TestMetadataReferenceResolver()));
 
             Assert.False(c1.ReferenceManagerEquals(c2));
 
