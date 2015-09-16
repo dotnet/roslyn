@@ -263,5 +263,14 @@ index: 0);
 @"interface I { int Foo { get; } } class C : I { public int Foo { get { } } }",
 index: 0);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestWithPartialClasses()
+        {
+            Test(
+@"partial class C { int [||]GetFoo() { } } partial class C { void SetFoo(int i) { } }",
+@"partial class C { int Foo { get { } set { } } } partial class C { }",
+index: 1);
+        }
     }
 }
