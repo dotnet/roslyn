@@ -62,6 +62,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "asdf").WithArguments("asdf").WithLocation(3, 21));
         }
 
+        [Fact]
+        void NoSourceReferenceResolver()
+        {
+            var code = "#load \"test\"";
+            var compilation = CreateCompilationWithMscorlib(code, parseOptions: TestOptions.Script);
+
+            Assert.Single(compilation.SyntaxTrees);
+            compilation.GetDiagnostics().Verify(
+                // (1,1): error CS8099: Source file references are not supported.
+                // #load "test"
+                Diagnostic(ErrorCode.ERR_SourceFileReferencesNotSupported, @"#load ""test""").WithLocation(1, 1));
+        }
+
         private static CSharpCompilation CreateCompilation(string code, SourceReferenceResolver sourceReferenceResolver = null)
         {
             var options = new CSharpCompilationOptions(

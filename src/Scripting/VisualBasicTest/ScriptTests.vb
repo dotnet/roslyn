@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
@@ -27,24 +28,24 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests
         End Sub
 
         <Fact>
-        Public Async Sub TestRunScript()
+        Public Async Function TestRunScript() As Task
             Dim state = Await VisualBasicScript.RunAsync("? 1 + 2", DefaultOptions)
             Assert.Equal(3, state.ReturnValue)
-        End Sub
+        End Function
 
         <Fact>
-        Public Async Sub TestCreateAndRunScript()
+        Public Async Function TestCreateAndRunScript() As Task
             Dim script = VisualBasicScript.Create("? 1 + 2", DefaultOptions)
             Dim state = Await script.RunAsync()
             Assert.Same(script, state.Script)
             Assert.Equal(3, state.ReturnValue)
-        End Sub
+        End Function
 
         <Fact>
-        Public Async Sub TestRunScriptWithSpecifiedReturnType()
+        Public Async Function TestRunScriptWithSpecifiedReturnType() As Task
             Dim state = Await VisualBasicScript.RunAsync("? 1 + 2", DefaultOptions)
             Assert.Equal(3, state.ReturnValue)
-        End Sub
+        End Function
 
         <Fact>
         Public Sub TestGetCompilation()
@@ -54,10 +55,10 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests
         End Sub
 
         <Fact>
-        Public Async Sub TestRunVoidScript()
+        Public Async Function TestRunVoidScript() As Task
             Dim state = Await VisualBasicScript.RunAsync("System.Console.WriteLine(0)", DefaultOptions)
             Assert.Null(state.ReturnValue)
-        End Sub
+        End Function
 
         <Fact>
         Public Sub TestDefaultNamespaces()

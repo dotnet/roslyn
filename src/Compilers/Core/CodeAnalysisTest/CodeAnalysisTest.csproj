@@ -106,7 +106,7 @@
     <Compile Include="DiffUtilTests.cs" />
     <Compile Include="Emit\EmitBaselineTests.cs" />
     <Compile Include="FileLinePositionSpanTests.cs" />
-    <Compile Include="MetadataFileReferenceResolverTests.cs" />
+    <Compile Include="FileSystem\RelativePathResolverTests.cs" />
     <Compile Include="FileUtilitiesTests.cs" />
     <Compile Include="InternalUtilities\ConcurrentLruCacheTests.cs" />
     <Compile Include="InternalUtilities\EnumerableExtensionsTests.cs" />

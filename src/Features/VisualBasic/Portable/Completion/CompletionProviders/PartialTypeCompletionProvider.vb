@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class PartialTypeCompletionProvider
-        Inherits AbstractCompletionProvider
+        Inherits CompletionListProvider
 
         Private ReadOnly _partialNameFormat As SymbolDisplayFormat =
             New SymbolDisplayFormat(
@@ -30,10 +30,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
 
-        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CompletionItem))
+        Public Overrides Async Function ProduceCompletionListAsync(context As CompletionListContext) As Task
+            Dim document = context.Document
+            Dim position = context.Position
+            Dim cancellationToken = context.CancellationToken
+
             Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             If tree.IsInNonUserCode(position, cancellationToken) OrElse tree.IsInSkippedText(position, cancellationToken) Then
-                Return Nothing
+                Return
             End If
 
             Dim token = tree.FindTokenOnLeftOfPosition(position, cancellationToken).GetPreviousTokenIfTouchingWord(position)
@@ -43,11 +47,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                token.IsChildToken(Of ModuleStatementSyntax)(Function(stmt) stmt.DeclarationKeyword) Then
 
                 If token.GetAncestor(Of TypeStatementSyntax).Modifiers.Any(SyntaxKind.PartialKeyword) Then
-                    Return Await CreateItemsAsync(document, position, token, cancellationToken).ConfigureAwait(False)
+                    Dim items = Await CreateItemsAsync(document, position, token, cancellationToken).ConfigureAwait(False)
+
+                    If items?.Any() Then
+                        context.AddItems(items)
+                    End If
                 End If
             End If
-
-            Return Nothing
         End Function
 
         Private Async Function CreateItemsAsync(document As Document, position As Integer, token As SyntaxToken, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CompletionItem))

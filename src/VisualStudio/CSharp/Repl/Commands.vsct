@@ -20,6 +20,7 @@
         </Strings>
       </Button>
 
+      <!-- https://github.com/dotnet/roslyn/issues/4688
       <Button guid="guidCSharpInteractiveCommandSet" id="cmdidResetInteractiveFromProject" priority="0x0100" type="Button">
         <Parent guid="guidCSharpInteractiveCommandSet" id="IDG_INTERACTIVE_PROJECT"/>
         <CommandFlag>DynamicVisibility</CommandFlag>
@@ -30,6 +31,7 @@
           <LocCanonicalName>ResetC#InteractiveFromProject</LocCanonicalName>
         </Strings>
       </Button>
+      -->
     </Buttons>
 
     <Bitmaps>

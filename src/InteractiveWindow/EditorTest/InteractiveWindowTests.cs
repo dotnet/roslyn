@@ -350,6 +350,21 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         }
 
         [Fact]
+        public void ScrollToCursorOnHomeAndEndOnNonUIThread()
+        {
+            Window.InsertCode(new string('1', 512));    // a long input string 
+
+            var textView = Window.TextView;
+
+            Window.Operations.Home(false);
+            Assert.True(textView.TextViewModel.IsPointInVisualBuffer(textView.Caret.Position.BufferPosition,
+                                                                     textView.Caret.Position.Affinity));
+            Window.Operations.End(false);
+            Assert.True(textView.TextViewModel.IsPointInVisualBuffer(textView.Caret.Position.BufferPosition,
+                                                                     textView.Caret.Position.Affinity));
+        }
+
+        [Fact]
         public void CallSelectAllOnNonUIThread()
         {
             Window.InsertCode("1"); // Something to select.

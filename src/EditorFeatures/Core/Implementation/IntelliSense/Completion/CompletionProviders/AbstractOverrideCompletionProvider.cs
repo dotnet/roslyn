@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -29,10 +29,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         public abstract bool TryDetermineModifiers(SyntaxToken startToken, SourceText text, int startLine, out Accessibility seenAccessibility, out DeclarationModifiers modifiers);
         protected abstract TextSpan GetTextChangeSpan(SourceText text, int position);
 
-        protected override Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        public override async Task ProduceCompletionListAsync(CompletionListContext context)
         {
-            var state = new ItemGetter(this, document, position, cancellationToken);
-            return state.GetItemsAsync();
+            var state = new ItemGetter(this, context.Document, context.Position, context.CancellationToken);
+            var items = await state.GetItemsAsync().ConfigureAwait(false);
+
+            if (items?.Any() == true)
+            {
+                context.MakeExclusive(true);
+                context.AddItems(items);
+            }
         }
 
         protected override ISymbol GenerateMember(ISymbol newOverriddenMember, INamedTypeSymbol newContainingType, Document newDocument, MemberInsertionCompletionItem completionItem, CancellationToken cancellationToken)

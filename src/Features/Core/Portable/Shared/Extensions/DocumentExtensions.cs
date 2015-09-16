@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return document.WithSyntaxRoot(newRoot);
         }
 
-        public static async Task<IEnumerable<T>> GetUnionResultsFromDocumentAndLinks<T>(
+        public static async Task<IEnumerable<T>> GetUnionItemsFromDocumentAndLinkedDocumentsAsync<T>(
             this Document document,
             IEqualityComparer<T> comparer,
             Func<Document, CancellationToken, Task<IEnumerable<T>>> getItemsWorker,
@@ -60,6 +60,29 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return totalItems;
+        }
+
+        public static async Task<bool> IsValidContextForDocumentOrLinkedDocumentsAsync(
+            this Document document,
+            Func<Document, CancellationToken, Task<bool>> contextChecker,
+            CancellationToken cancellationToken)
+        {
+            if (await contextChecker(document, cancellationToken).ConfigureAwait(false))
+            {
+                return true;
+            }
+
+            var solution = document.Project.Solution;
+            foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
+            {
+                var linkedDocument = solution.GetDocument(linkedDocumentId);
+                if (await contextChecker(linkedDocument, cancellationToken).ConfigureAwait(false))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -19,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal partial class NamedParameterCompletionProvider : AbstractCompletionProvider, IEqualityComparer<IParameterSymbol>
+    internal partial class NamedParameterCompletionProvider : CompletionListProvider, IEqualityComparer<IParameterSymbol>
     {
         private const string ColonString = ":";
 
@@ -28,45 +27,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
 
-        protected override async Task<bool> IsExclusiveAsync(Document document, int caretPosition, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        public override async Task ProduceCompletionListAsync(CompletionListContext context)
         {
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var token = syntaxTree.FindTokenOnLeftOfPosition(caretPosition, cancellationToken)
-                                  .GetPreviousTokenIfTouchingWord(caretPosition);
+            var document = context.Document;
+            var position = context.Position;
+            var cancellationToken = context.CancellationToken;
 
-            return token.IsMandatoryNamedParameterPosition();
-        }
-
-        protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(
-            Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
-        {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             if (syntaxTree.IsInNonUserCode(position, cancellationToken))
             {
-                return null;
+                return;
             }
 
-            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            token = token.GetPreviousTokenIfTouchingWord(position);
+            var token = syntaxTree
+                .FindTokenOnLeftOfPosition(position, cancellationToken)
+                .GetPreviousTokenIfTouchingWord(position);
 
-            if (token.Kind() != SyntaxKind.OpenParenToken &&
-                token.Kind() != SyntaxKind.OpenBracketToken &&
-                token.Kind() != SyntaxKind.CommaToken)
+            if (!token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.OpenBracketToken, SyntaxKind.CommaToken))
             {
-                return null;
+                return;
             }
 
             var argumentList = token.Parent as BaseArgumentListSyntax;
             if (argumentList == null)
             {
-                return null;
+                return;
             }
 
             var semanticModel = await document.GetSemanticModelForNodeAsync(argumentList, cancellationToken).ConfigureAwait(false);
             var parameterLists = GetParameterLists(semanticModel, position, argumentList.Parent, cancellationToken);
             if (parameterLists == null)
             {
-                return null;
+                return;
             }
 
             var existingNamedParameters = GetExistingNamedParameters(argumentList, position);
@@ -76,26 +68,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                                       .Where(p => !existingNamedParameters.Contains(p.Name))
                                                       .Distinct(this);
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            if (!unspecifiedParameters.Any())
+            {
+                return;
+            }
 
-            return unspecifiedParameters.Select(
-                p =>
-                {
-                    // Note: the filter text does not include the ':'.  We want to ensure that if 
-                    // the user types the name exactly (up to the colon) that it is selected as an
-                    // exact match.
-                    var workspace = document.Project.Solution.Workspace;
-                    var escaped = p.Name.ToIdentifierToken().ToString();
-                    return new CompletionItem(
-                        this,
-                        escaped + ColonString,
-                        CompletionUtilities.GetTextChangeSpan(text, position),
-                        CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, token.SpanStart, p),
-                        p.GetGlyph(),
-                        sortText: p.Name,
-                        filterText: escaped,
-                        rules: ItemRules.Instance);
-                });
+            if (token.IsMandatoryNamedParameterPosition())
+            {
+                context.MakeExclusive(true);
+            }
+
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var filterSpan = CompletionUtilities.GetTextChangeSpan(text, position);
+
+            var workspace = document.Project.Solution.Workspace;
+
+            foreach (var parameter in unspecifiedParameters)
+            {
+                // Note: the filter text does not include the ':'.  We want to ensure that if 
+                // the user types the name exactly (up to the colon) that it is selected as an
+                // exact match.
+                var escapedName = parameter.Name.ToIdentifierToken().ToString();
+
+                context.AddItem(new CompletionItem(
+                    this,
+                    escapedName + ColonString,
+                    filterSpan,
+                    CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, token.SpanStart, parameter),
+                    parameter.GetGlyph(),
+                    sortText: parameter.Name,
+                    filterText: escapedName,
+                    rules: ItemRules.Instance));
+            }
         }
 
         private bool IsValid(ImmutableArray<IParameterSymbol> parameterList, ISet<string> existingNamedParameters)

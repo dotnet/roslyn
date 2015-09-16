@@ -18,6 +18,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         NullPropagatingOperator
         NameOfExpressions
         InterpolatedStrings
+        ReadonlyAutoProperties
+        RegionsEverywhere
+        MultilineStringLiterals
+        CObjInAttributeArguments
+        LineContinuationComments
+        TypeOfIsNot
+        YearFirstDateLiterals
+        WarningDirectives
+        PartialModules
+        PartialInterfaces
+        ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
         DigitSeparators
         BinaryLiterals
     End Enum
@@ -57,7 +68,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case Feature.NullPropagatingOperator,
                      Feature.NameOfExpressions,
-                     Feature.InterpolatedStrings
+                     Feature.InterpolatedStrings,
+                     Feature.ReadonlyAutoProperties,
+                     Feature.RegionsEverywhere,
+                     Feature.MultilineStringLiterals,
+                     Feature.CObjInAttributeArguments,
+                     Feature.LineContinuationComments,
+                     Feature.TypeOfIsNot,
+                     Feature.YearFirstDateLiterals,
+                     Feature.WarningDirectives,
+                     Feature.PartialModules,
+                     Feature.PartialInterfaces,
+                     Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
                     Return LanguageVersion.VisualBasic14
 
                 Case Else
@@ -71,6 +93,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Select Case feature
                 Case Feature.AutoProperties
                     Return ERRID.FEATURE_AutoProperties
+                Case Feature.ReadonlyAutoProperties
+                    Return ERRID.FEATURE_ReadonlyAutoProperties
                 Case Feature.LineContinuation
                     Return ERRID.FEATURE_LineContinuation
                 Case Feature.StatementLambdas
@@ -93,6 +117,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_NullPropagatingOperator
                 Case Feature.NameOfExpressions
                     Return ERRID.FEATURE_NameOfExpressions
+                Case Feature.RegionsEverywhere
+                    Return ERRID.FEATURE_RegionsEverywhere
+                Case Feature.MultilineStringLiterals
+                    Return ERRID.FEATURE_MultilineStringLiterals
+                Case Feature.CObjInAttributeArguments
+                    Return ERRID.FEATURE_CObjInAttributeArguments
+                Case Feature.LineContinuationComments
+                    Return ERRID.FEATURE_LineContinuationComments
+                Case Feature.TypeOfIsNot
+                    Return ERRID.FEATURE_TypeOfIsNot
+                Case Feature.YearFirstDateLiterals
+                    Return ERRID.FEATURE_YearFirstDateLiterals
+                Case Feature.WarningDirectives
+                    Return ERRID.FEATURE_WarningDirectives
+                Case Feature.PartialModules
+                    Return ERRID.FEATURE_PartialModules
+                Case Feature.PartialInterfaces
+                    Return ERRID.FEATURE_PartialInterfaces
+                Case Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
+                    Return ERRID.FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
                 Case Feature.DigitSeparators
                     Return ERRID.FEATURE_DigitSeparators
                 Case Feature.BinaryLiterals

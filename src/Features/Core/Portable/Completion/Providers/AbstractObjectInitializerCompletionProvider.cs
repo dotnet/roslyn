@@ -8,32 +8,40 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract class AbstractObjectInitializerCompletionProvider : AbstractCompletionProvider
+    internal abstract class AbstractObjectInitializerCompletionProvider : CompletionListProvider
     {
         protected abstract TextSpan GetTextChangeSpan(SourceText text, int position);
         protected abstract Tuple<ITypeSymbol, Location> GetInitializedType(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         protected abstract HashSet<string> GetInitializedMembers(SyntaxTree tree, int position, CancellationToken cancellationToken);
 
-        protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        public override async Task ProduceCompletionListAsync(CompletionListContext context)
         {
+            var document = context.Document;
+            var position = context.Position;
+            var cancellationToken = context.CancellationToken;
+
             var workspace = document.Project.Solution.Workspace;
-            var semanticModel = await document.GetSemanticModelForSpanAsync(new TextSpan(position, 0), cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelForSpanAsync(new TextSpan(position, length: 0), cancellationToken).ConfigureAwait(false);
             var typeAndLocation = GetInitializedType(document, semanticModel, position, cancellationToken);
 
             if (typeAndLocation == null)
             {
-                return null;
+                return;
             }
 
             var initializedType = typeAndLocation.Item1 as INamedTypeSymbol;
             var initializerLocation = typeAndLocation.Item2;
             if (initializedType == null)
             {
-                return null;
+                return;
+            }
+
+            if (await IsExclusiveAsync(document, position, cancellationToken).ConfigureAwait(false))
+            {
+                context.MakeExclusive(true);
             }
 
             // Find the members that can be initialized. If we have a NamedTypeSymbol, also get the overridden members.
@@ -50,14 +58,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             uninitializedMembers = uninitializedMembers.Where(m => m.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation));
 
             var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var changes = GetTextChangeSpan(text, position);
+            var filterSpan = GetTextChangeSpan(text, position);
 
-            // Return the members
-            return uninitializedMembers.Select(
-                m => CreateItem(workspace, m.Name, changes,
-                    CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, initializerLocation.SourceSpan.Start, m),
-                    m.GetGlyph()));
+            foreach (var uninitializedMember in uninitializedMembers)
+            {
+                context.AddItem(CreateItem(
+                    workspace, 
+                    uninitializedMember.Name,
+                    filterSpan,
+                    CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, initializerLocation.SourceSpan.Start, uninitializedMember),
+                    uninitializedMember.GetGlyph()));
+            }
         }
+
+        protected abstract Task<bool> IsExclusiveAsync(Document document, int position, CancellationToken cancellationToken);
 
         private bool IsLegalFieldOrProperty(ISymbol symbol)
         {
@@ -73,11 +87,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected CompletionItem CreateItem(
             Workspace workspace,
             string displayText,
-            TextSpan textSpan,
+            TextSpan filterSpan,
             Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>> descriptionFactory,
             Glyph? glyph)
         {
-            return new CompletionItem(this, displayText, textSpan, descriptionFactory, glyph, rules: ObjectInitializerCompletionItemRules.Instance);
+            return new CompletionItem(this, displayText, filterSpan, descriptionFactory, glyph, rules: ObjectInitializerCompletionItemRules.Instance);
         }
 
         protected virtual bool IsInitializable(ISymbol member, INamedTypeSymbol containingType)

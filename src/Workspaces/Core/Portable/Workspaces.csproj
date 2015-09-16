@@ -43,8 +43,8 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\CorLightup.cs">
       <Link>InternalUtilities\CorLightup.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\MetadataReference\MetadataFileReferenceProvider.cs">
-      <Link>MetadataReference\MetadataFileReferenceProvider.cs</Link>
+    <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs">
+      <Link>InternalUtilities\RelativePathResolver.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\BitArithmeticUtilities.cs">
       <Link>InternalUtilities\BitArithmeticUtilities.cs</Link>
@@ -219,15 +219,6 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\PathUtilities.cs">
       <Link>InternalUtilities\PathUtilities.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\AssemblyReferenceResolver.cs">
-      <Link>InternalUtilities\AssemblyReferenceResolver.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\MetadataFileReferenceResolver.cs">
-      <Link>InternalUtilities\MetadataFileReferenceResolver.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\RelativePathReferenceResolver.cs">
-      <Link>InternalUtilities\RelativePathReferenceResolver.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
       <Link>InternalUtilities\ReflectionUtilities.cs</Link>
@@ -579,6 +570,7 @@
     <Compile Include="Workspace\Host\Documentation\IDocumentationProviderService.cs" />
     <Compile Include="Workspace\Host\Metadata\IAnalyzerService.cs" />
     <Compile Include="Workspace\Host\Metadata\MetadataReferenceCache.cs" />
+    <Compile Include="Workspace\Host\Metadata\WorkspaceMetadataFileReferenceResolver.cs" />
     <Compile Include="Workspace\Host\PersistentStorage\PersistentStorageOptionsProvider.cs" />
     <Compile Include="Workspace\Host\SyntaxTreeFactory\AbstractSyntaxTreeFactoryService.AbstractRecoverableSyntaxRoot.cs" />
     <Compile Include="Workspace\Host\SyntaxTreeFactory\AbstractSyntaxTreeFactoryService.cs" />

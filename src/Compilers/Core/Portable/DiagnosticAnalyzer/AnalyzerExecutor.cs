@@ -245,9 +245,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="symbolActions">Symbol actions to be executed.</param>
         /// <param name="analyzer">Analyzer whose actions are to be executed.</param>
         /// <param name="symbol">Symbol to be analyzed.</param>
-        /// <param name="overriddenAddDiagnostic">Overridden add diagnostic delegate.</param>
-        /// <param name="overriddenAddLocalDiagnostic">Overridden add local diagnostic delegate.</param>
-        /// <param name="overriddenAddNonLocalDiagnostic">Overridden add non-local diagnostic delegate.</param>
         /// <param name="getTopMostNodeForAnalysis">Delegate to get topmost declaration node for a symbol declaration reference.</param>
         /// <param name="analysisScope">Scope for analyzer execution.</param>
         /// <param name="analysisStateOpt">An optional object to track analysis state.</param>
@@ -255,9 +252,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<SymbolAnalyzerAction> symbolActions,
             DiagnosticAnalyzer analyzer,
             ISymbol symbol,
-            Action<Diagnostic> overriddenAddDiagnostic,
-            Action<Diagnostic, DiagnosticAnalyzer, bool> overriddenAddLocalDiagnostic,
-            Action<Diagnostic, DiagnosticAnalyzer> overriddenAddNonLocalDiagnostic,
             Func<ISymbol, SyntaxReference, Compilation, SyntaxNode> getTopMostNodeForAnalysis,
             AnalysisScope analysisScope,
             AnalysisState analysisStateOpt)
@@ -268,8 +262,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (TryStartAnalyzingSymbol(symbol, analyzer, analysisScope, analysisStateOpt, out analyzerStateOpt))
                 {
-                    ExecuteSymbolActionsCore(symbolActions, analyzer, symbol, overriddenAddDiagnostic,
-                        overriddenAddLocalDiagnostic, overriddenAddNonLocalDiagnostic, getTopMostNodeForAnalysis, analyzerStateOpt);
+                    ExecuteSymbolActionsCore(symbolActions, analyzer, symbol, getTopMostNodeForAnalysis, analyzerStateOpt);
                     analysisStateOpt?.MarkSymbolComplete(symbol, analyzer);
                 }
             }
@@ -283,16 +276,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<SymbolAnalyzerAction> symbolActions,
             DiagnosticAnalyzer analyzer,
             ISymbol symbol,
-            Action<Diagnostic> overriddenAddDiagnostic,
-            Action<Diagnostic, DiagnosticAnalyzer, bool> overriddenAddLocalDiagnostic,
-            Action<Diagnostic, DiagnosticAnalyzer> overriddenAddNonLocalDiagnostic,
             Func<ISymbol, SyntaxReference, Compilation, SyntaxNode> getTopMostNodeForAnalysis,
             AnalyzerStateData analyzerStateOpt)
         {
-            Debug.Assert(overriddenAddLocalDiagnostic == null || overriddenAddDiagnostic != null);
             Debug.Assert(getTopMostNodeForAnalysis != null);
 
-            var addDiagnostic = GetAddDiagnostic(symbol, _compilation, analyzer, overriddenAddDiagnostic ?? _addDiagnostic, overriddenAddLocalDiagnostic ?? _addLocalDiagnosticOpt, overriddenAddNonLocalDiagnostic ?? _addNonLocalDiagnosticOpt, getTopMostNodeForAnalysis);
+            var addDiagnostic = GetAddDiagnostic(symbol, _compilation, analyzer, _addDiagnostic, _addLocalDiagnosticOpt, _addNonLocalDiagnosticOpt, getTopMostNodeForAnalysis);
 
             foreach (var symbolAction in symbolActions)
             {

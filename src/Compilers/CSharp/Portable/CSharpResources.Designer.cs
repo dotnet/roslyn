@@ -5615,7 +5615,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Metadata references not supported..
+        ///   Looks up a localized string similar to Metadata references are not supported..
         /// </summary>
         internal static string ERR_MetadataReferencesNotSupported {
             get {
@@ -7798,6 +7798,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_SizeofUnsafe {
             get {
                 return ResourceManager.GetString("ERR_SizeofUnsafe", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Source file references are not supported..
+        /// </summary>
+        internal static string ERR_SourceFileReferencesNotSupported {
+            get {
+                return ResourceManager.GetString("ERR_SourceFileReferencesNotSupported", resourceCulture);
             }
         }
         

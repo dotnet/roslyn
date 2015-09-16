@@ -6,21 +6,12 @@ using Microsoft.CodeAnalysis.CodeActions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal sealed class SuppressionCodeAction : CodeAction
+    internal sealed class SuppressionCodeAction : CodeAction.SimpleCodeAction
     {
-        private readonly string _title;
-        private readonly string _equivalenceKey;
-        public readonly IEnumerable<CodeAction> NestedActions;
-
         public SuppressionCodeAction(Diagnostic diagnostic, IEnumerable<CodeAction> nestedActions)
+            : base(string.Format(FeaturesResources.SuppressionCodeActionTitle, diagnostic.Id), nestedActions.AsImmutableOrEmpty(), ComputeEquivalenceKey(nestedActions))
         {
-            _title = string.Format(FeaturesResources.SuppressionCodeActionTitle, diagnostic.Id);
-            _equivalenceKey = ComputeEquivalenceKey(nestedActions);
-            this.NestedActions = nestedActions;
         }
-
-        public override string Title => _title;
-        public override string EquivalenceKey => _equivalenceKey;
 
         private static string ComputeEquivalenceKey(IEnumerable<CodeAction> nestedActions)
         {

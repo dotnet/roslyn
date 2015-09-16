@@ -6,6 +6,7 @@ Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Scripting
+Imports Microsoft.CodeAnalysis.Scripting.Hosting
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.Shell.Interop
 
@@ -28,12 +29,15 @@ Friend NotInheritable Class Vbi
         End Try
     End Function
 
-    Friend Overrides Function GetExternalMetadataResolver(touchedFiles As TouchedFileLogger) As MetadataFileReferenceResolver
-        ' We don't log touched files atm.
-        Return New DesktopMetadataReferenceResolver(
-            New RelativePathReferenceResolver(Arguments.ReferencePaths, Arguments.BaseDirectory),
+    Friend Overrides Function GetCommandLineMetadataReferenceResolver(loggerOpt As TouchedFileLogger) As MetadataReferenceResolver
+        Return New RuntimeMetadataReferenceResolver(
+            New RelativePathResolver(Arguments.ReferencePaths, Arguments.BaseDirectory),
             Nothing,
-            New GacFileResolver(GacFileResolver.Default.Architectures, CultureInfo.CurrentCulture))
+            New GacFileResolver(GacFileResolver.Default.Architectures, CultureInfo.CurrentCulture),
+            Function(path, properties)
+                loggerOpt?.AddRead(path)
+                Return MetadataReference.CreateFromFile(path)
+            End Function)
     End Function
 
     Public Overrides Sub PrintLogo(consoleOutput As TextWriter)

@@ -78,6 +78,8 @@
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />  
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
   </ItemGroup>
