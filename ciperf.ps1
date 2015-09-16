@@ -165,11 +165,15 @@ try {
     }
 
     $StorageContainerRSAS = New-AzureStorageContainerSASToken -Context $StorageContext -Permission r -Container $StorageContainer -StartTime ([System.DateTime]::UtcNow.Date) -ExpiryTime ([System.DateTime]::UtcNow.Date + [System.TimeSpan]::FromDays(7))
+    # SAS tokens in Helix should not include the query char
+    if ($StorageContainerRSAS[0] -eq '?') {
+      $StorageContainerRSAS = $StorageContainerRSAS.Substring(1)
+    }
 
     $ub = New-Object System.UriBuilder -ArgumentList $StorageContext.BlobEndPoint
     $ub.Path += $StorageContainer + "/" + $BlobName
-    $ub.Query = $StorageContainerRSAS.Substring(1)
-    $PayloadUri = $ub.Uri.OriginalString
+    $ub.Query = $StorageContainerRSAS
+    $DropUri = $ub.Uri.OriginalString
 
     Write-Host "Creating work item list"
 
@@ -205,8 +209,8 @@ try {
 
     $ub = New-Object System.UriBuilder -ArgumentList $StorageContext.BlobEndPoint
     $ub.Path += $StorageContainer + "/" + $BlobName
-    $ub.Query = $StorageContainerRSAS.Substring(1)
-    $CorrelationPayloadUri = $ub.Uri.OriginalString
+    $ub.Query = $StorageContainerRSAS
+    $XunitFixtureUri = $ub.Uri.OriginalString
     
     $sb = New-Object -TypeName System.Text.StringBuilder
     [void] $sb.AppendLine("[")
@@ -219,9 +223,9 @@ try {
         [void] $sb.AppendLine("  {")
         [void] $sb.AppendLine("    ""Command"": ""Performance\\Perf-Test.cmd $TestAssembly"",")
         [void] $sb.AppendLine("    ""CorrelationPayloadUris"": [")
-        [void] $sb.AppendLine("        ""$CorrelationPayloadUri""")
+        [void] $sb.AppendLine("        ""$XunitFixtureUri""")
         [void] $sb.AppendLine("    ],")
-        [void] $sb.AppendLine("    ""PayloadUri"": ""$PayloadUri"",")
+        [void] $sb.AppendLine("    ""PayloadUri"": ""$DropUri"",")
         [void] $sb.AppendLine("    ""WorkItemId"": ""$WorkItemId""")
         [void] $sb.Append("  }")
     }
@@ -240,7 +244,7 @@ try {
 
     $ub = New-Object System.UriBuilder -ArgumentList $StorageContext.BlobEndPoint
     $ub.Path = $StorageContainer + "/" + $BlobName
-    $ub.Query = $StorageContainerRSAS.Substring(1)
+    $ub.Query = $StorageContainerRSAS
     $ListUri = $ub.Uri.OriginalString
     
     # Using the same storage account and container for results as for the payload
@@ -250,6 +254,10 @@ try {
 
     $ResultsUriRSAS =  $StorageContainerRSAS
     $ResultsUriWSAS = New-AzureStorageContainerSASToken -Context $StorageContext -Permission w -Container $StorageContainer -StartTime ([System.DateTime]::UtcNow.Date) -ExpiryTime ([System.DateTime]::UtcNow.Date + [System.TimeSpan]::FromDays(7))
+    # SAS tokens in Helix should not include the query char
+    if ($ResultsUriWSAS[0] -eq '?') {
+      $ResultsUriWSAS = $ResultsUriWSAS.Substring(1)
+    }
 
     # Create and upload Job.json
     Write-Host "Creating job event"
@@ -275,7 +283,7 @@ try {
         Set-AzureStorageBlobContent -File $JobJson -Container $StorageContainer -Blob $BlobName -Context $StorageContext
     }
 
-    # Submit event to the EventBus
+    # Submit event to the Helix Event Hub
     if (!$NoSubmit) {
         Write-Host "Submitting job to event hub."
         $EventHubClient = [Microsoft.ServiceBus.Messaging.EventHubClient]::CreateFromConnectionString($SubmitConnectionString)

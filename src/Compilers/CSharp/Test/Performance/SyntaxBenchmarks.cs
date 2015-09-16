@@ -7,7 +7,10 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceTests
         [Benchmark]
         public void EmptyParse()
         {
-            var tree = CSharpSyntaxTree.ParseText("");
+            Benchmark.Iterate(() =>
+            {
+                var tree = CSharpSyntaxTree.ParseText("");
+            });
         }
 
         [Benchmark]
@@ -26,7 +29,10 @@ namespace HelloApplication
     }
 }
 ";
-            var tree = CSharpSyntaxTree.ParseText(helloCs);
+            Benchmark.Iterate(() =>
+            {
+                var tree = CSharpSyntaxTree.ParseText(helloCs);
+            });
         }
     }
 }
