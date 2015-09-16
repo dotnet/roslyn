@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        private static IEnumerable<IKeywordRecommender<CSharpSyntaxContext>> GetKeywordRecommenders()
+        private static ImmutableArray<IKeywordRecommender<CSharpSyntaxContext>> GetKeywordRecommenders()
         {
             return new IKeywordRecommender<CSharpSyntaxContext>[]
             {
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new WhereKeywordRecommender(),
                 new WhileKeywordRecommender(),
                 new YieldKeywordRecommender(),
-            };
+            }.ToImmutableArray();
         }
 
         protected override TextSpan GetTextChangeSpan(SourceText text, int position)
@@ -167,18 +167,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override async Task<CSharpSyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var span = new TextSpan(position, 0);
+            var span = new TextSpan(position, length: 0);
             var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
             return CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
         }
 
-        protected override CompletionItem CreateItem(TextSpan span, RecommendedKeyword keyword)
+        protected override CompletionItem CreateItem(RecommendedKeyword keyword, TextSpan filterSpan)
         {
             return new CompletionItem(
                 this,
                 displayText: keyword.Keyword,
-                filterSpan: span,
-                descriptionFactory: (c) => Task.FromResult(keyword.DescriptionFactory(c)),
+                filterSpan: filterSpan,
+                descriptionFactory: c => Task.FromResult(keyword.DescriptionFactory(c)),
                 glyph: Glyph.Keyword,
                 shouldFormatOnCommit: keyword.ShouldFormatOnCommit);
         }

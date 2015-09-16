@@ -349,6 +349,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Task.Run(() => Window.Operations.End(true)).PumpingWait();
         }
 
+        [Fact]
         public void ScrollToCursorOnHomeAndEndOnNonUIThread()
         {
             Window.InsertCode(new string('1', 512));    // a long input string 

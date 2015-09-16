@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
             }
 
-            var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken)
+            var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDocumentationComments: true)
                             .GetPreviousTokenIfTouchingWord(position);
 
             // To get a Speculative SemanticModel (which is much faster), we need to 

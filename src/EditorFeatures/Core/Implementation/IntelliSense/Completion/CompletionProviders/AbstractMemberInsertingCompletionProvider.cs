@@ -2,10 +2,8 @@
 
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -19,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
-    internal abstract class AbstractMemberInsertingCompletionProvider : AbstractCompletionProvider, ICustomCommitCompletionProvider
+    internal abstract class AbstractMemberInsertingCompletionProvider : CompletionListProvider, ICustomCommitCompletionProvider
     {
         private IWaitIndicator _waitIndicator;
         private readonly SyntaxAnnotation _annotation = new SyntaxAnnotation();
@@ -35,11 +33,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             IWaitIndicator waitIndicator)
         {
             _waitIndicator = waitIndicator;
-        }
-
-        protected override Task<bool> IsExclusiveAsync(Document documentOpt, int caretPosition, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.True;
         }
 
         public void Commit(CompletionItem completionItem, ITextView textView, ITextBuffer subjectBuffer, ITextSnapshot triggerSnapshot, char? commitChar)
