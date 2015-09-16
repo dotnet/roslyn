@@ -60,14 +60,34 @@ param (
     [String] $Platform = "Windows",
     [String] $Queue = "Windows",
     [String] $Repository = "Roslyn",
-    [String] $StorageAccountKey,
-    [parameter(Mandatory = $true)]
+    [Parameter(ParameterSetName='devStorage_Submit_SCRAM', Mandatory = $true)]
+    [Parameter(ParameterSetName='devStorage_Submit_NoSCRAM', Mandatory = $true)]
+    [Parameter(ParameterSetName='devStorage_NoSubmit_SCRAM', Mandatory = $true)]
+    [Parameter(ParameterSetName='devStorage_NoSubmit_NoSCRAM', Mandatory = $true)]
+    [switch] $UseDevelopmentStorage,
+    [Parameter(ParameterSetName='namedStorage_Submit_SCRAM', Mandatory = $true)]
+    [Parameter(ParameterSetName='namedStorage_Submit_NoSCRAM', Mandatory = $true)]
+    [Parameter(ParameterSetName='namedStorage_NoSubmit_SCRAM', Mandatory = $true)]
+    [Parameter(ParameterSetName='namedStorage_NoSubmit_NoSCRAM', Mandatory = $true)]
     [String] $StorageAccountName,
+    [Parameter(ParameterSetName='namedStorage_Submit_NoSCRAM', Mandatory = $true)]
+    [Parameter(ParameterSetName='namedStorage_NoSubmit_NoSCRAM', Mandatory = $true)]
+    [String] $StorageAccountKey,
     [parameter(Mandatory = $true)]
     [String] $StorageContainer,
     [switch] $NoUpload,
+    [Parameter(ParameterSetName='devStorage_NoSubmit_SCRAM', Mandatory = $true)]
+    [Parameter(ParameterSetName='devStorage_NoSubmit_NoSCRAM', Mandatory = $true)]
+    [Parameter(ParameterSetName='namedStorage_NoSubmit_SCRAM', Mandatory = $true)]
+    [Parameter(ParameterSetName='namedStorage_NoSubmit_NoSCRAM', Mandatory = $true)]
     [switch] $NoSubmit,
+    [Parameter(ParameterSetName='devStorage_Submit_NoSCRAM', Mandatory = $true)]
+    [Parameter(ParameterSetName='namedStorage_Submit_NoSCRAM', Mandatory = $true)]
     [String] $SubmitConnectionString,
+    [Parameter(ParameterSetName='devStorage_Submit_SCRAM', Mandatory = $true)]
+    [Parameter(ParameterSetName='devStorage_NoSubmit_SCRAM', Mandatory = $true)]
+    [Parameter(ParameterSetName='namedStorage_Submit_SCRAM', Mandatory = $true)]
+    [Parameter(ParameterSetName='namedStorage_NoSubmit_SCRAM', Mandatory = $true)]
     [String] $SCRAMScope
 )
 
@@ -80,8 +100,8 @@ try {
 
     if ([System.String]::IsNullOrEmpty($SCRAMScope)) {
         # Credentials must be passed on the command line
-        if ([System.String]::IsNullOrEmpty($StorageAccountKey)) {
-            Write-Error "If SCRAMScope is not specified, you must supply the StorageAccountKey parameter"
+        if ([System.String]::IsNullOrEmpty($StorageAccountKey) -and !$UseDevelopmentStorage) {
+            Write-Error "If SCRAMScope is not specified, you must supply the StorageAccountKey parameter or use development storage."
             exit 1
         }
 
@@ -141,7 +161,12 @@ try {
     Write-Host "Creating Helix job with CorrelationId $CorrelationId"
 
     Write-Host "Connecting to Azure storage account"
-    $StorageContext = New-AzureStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $StorageAccountKey
+    if ($UseDevelopmentStorage) {
+        $StorageContext = New-AzureStorageContext -Local
+    }
+    else {
+        $StorageContext = New-AzureStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $StorageAccountKey
+    }
 
     $HelixStage = Join-Path $env:TEMP -ChildPath Helix
     if (Test-Path $HelixStage) {
