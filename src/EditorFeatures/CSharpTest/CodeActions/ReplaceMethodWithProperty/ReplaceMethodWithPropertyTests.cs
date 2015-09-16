@@ -68,11 +68,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        public void TestExplicitInterfaceMethod()
+        public void TestExplicitInterfaceMethod_1()
         {
             Test(
 @"class C { int [||]I.GetFoo() { } }",
 @"class C { int I.Foo { get { } } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestExplicitInterfaceMethod_2()
+        {
+            Test(
+@"interface I { int GetFoo(); } class C : I { int [||]I.GetFoo() { } }",
+@"interface I { int Foo { get; } } class C : I { int I.Foo { get { } } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
