@@ -202,5 +202,41 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
                 }
             }
         }
+
+        public V GetOrAdd(K key, Func<V> creator)
+        {
+            lock (_lockObject)
+            {
+                V result;
+                if (UnsafeTryGetValue(key, out result))
+                {
+                    return result;
+                }
+                else
+                {
+                    var value = creator();
+                    UnsafeAdd(key, value, true);
+                    return value;
+                }
+            }
+        }
+
+        public V GetOrAdd<T>(K key, T arg, Func<T, V> creator)
+        {
+            lock (_lockObject)
+            {
+                V result;
+                if (UnsafeTryGetValue(key, out result))
+                {
+                    return result;
+                }
+                else
+                {
+                    var value = creator(arg);
+                    UnsafeAdd(key, value, true);
+                    return value;
+                }
+            }
+        }
     }
 }

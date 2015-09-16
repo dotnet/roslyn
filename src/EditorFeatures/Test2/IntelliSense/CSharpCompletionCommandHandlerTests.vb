@@ -1557,12 +1557,16 @@ class C
                 Dim projection = projectionBufferFactory.CreateProjectionBuffer(Nothing, New Object() {otherExposedSpan, subjectBufferExposedSpan}.ToList(), ProjectionBufferOptions.None)
 
                 Dim view = textViewFactory.CreateTextView(projection)
-                view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, 0))
+                Try
+                    view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, 0))
 
-                Dim editorOperations = editorOperationsFactory.GetEditorOperations(view)
-                state.CompletionCommandHandler.ExecuteCommand(New DeleteKeyCommandArgs(view, state.SubjectBuffer), Sub() editorOperations.Delete())
+                    Dim editorOperations = editorOperationsFactory.GetEditorOperations(view)
+                    state.CompletionCommandHandler.ExecuteCommand(New DeleteKeyCommandArgs(view, state.SubjectBuffer), Sub() editorOperations.Delete())
 
-                state.AssertNoCompletionSession()
+                    state.AssertNoCompletionSession()
+                Finally
+                    view.Close()
+                End Try
             End Using
         End Sub
     End Class

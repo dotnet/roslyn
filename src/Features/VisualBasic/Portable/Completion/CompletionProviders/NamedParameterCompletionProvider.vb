@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class NamedParameterCompletionProvider
-        Inherits AbstractCompletionProvider
+        Inherits CompletionListProvider
 
         Friend Const s_colonEquals As String = ":="
 
@@ -20,52 +20,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
 
-        Protected Overrides Async Function IsExclusiveAsync(document As Document, caretPosition As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of Boolean)
-            Dim syntaxTree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
-            Dim token = syntaxTree.FindTokenOnLeftOfPosition(caretPosition, cancellationToken).
-                                   GetPreviousTokenIfTouchingWord(caretPosition)
+        Public Overrides Async Function ProduceCompletionListAsync(context As CompletionListContext) As Task
+            Dim document = context.Document
+            Dim position = context.Position
+            Dim cancellationToken = context.CancellationToken
 
-            If token.Kind = SyntaxKind.CommaToken Then
-                Dim argumentList = TryCast(token.Parent, ArgumentListSyntax)
-                If argumentList IsNot Nothing Then
-                    For Each n In argumentList.Arguments.GetWithSeparators()
-                        If n.IsToken AndAlso n.AsToken() = token Then
-                            Return False
-                        End If
-
-                        If n.IsNode AndAlso DirectCast(n.AsNode(), ArgumentSyntax).IsNamed Then
-                            Return True
-                        End If
-                    Next
-                End If
-            End If
-
-            Return False
-        End Function
-
-        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CompletionItem))
             Dim syntaxTree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             If syntaxTree.IsInNonUserCode(position, cancellationToken) OrElse
                 syntaxTree.IsInSkippedText(position, cancellationToken) Then
-                Return Nothing
+                Return
             End If
 
-            Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
-            token = token.GetPreviousTokenIfTouchingWord(position)
+            Dim token = syntaxTree.GetTargetToken(position, cancellationToken)
 
-            If token.Kind <> SyntaxKind.OpenParenToken AndAlso token.Kind <> SyntaxKind.CommaToken Then
-                Return Nothing
+            If Not token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken) Then
+                Return
             End If
 
             Dim argumentList = TryCast(token.Parent, ArgumentListSyntax)
             If argumentList Is Nothing Then
-                Return Nothing
+                Return
+            End If
+
+            If token.Kind = SyntaxKind.CommaToken Then
+                For Each n In argumentList.Arguments.GetWithSeparators()
+                    If n.IsNode AndAlso DirectCast(n.AsNode(), ArgumentSyntax).IsNamed Then
+                        context.MakeExclusive(True)
+                        Exit For
+                    End If
+                Next
             End If
 
             Dim semanticModel = Await document.GetSemanticModelForNodeAsync(argumentList, cancellationToken).ConfigureAwait(False)
             Dim parameterLists = GetParameterLists(semanticModel, position, argumentList.Parent, cancellationToken)
             If parameterLists Is Nothing Then
-                Return Nothing
+                Return
             End If
 
             Dim existingNamedParameters = GetExistingNamedParameters(argumentList, position)
@@ -75,13 +64,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                                                        Where(Function(p) Not existingNamedParameters.Contains(p.Name))
 
             Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
-            Dim context = VisualBasicSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken)
 
-            Return unspecifiedParameters.Select(
-                Function(p) New SymbolCompletionItem(
-                    Me, p.Name & s_colonEquals, p.Name.ToIdentifierToken().ToString() & s_colonEquals,
-                    CompletionUtilities.GetTextChangeSpan(text, position), position, SpecializedCollections.SingletonEnumerable(p).ToList(), context,
-                    rules:=ItemRules.Instance))
+            For Each parameter In unspecifiedParameters
+                context.AddItem(
+                    New SymbolCompletionItem(
+                        Me,
+                        parameter.Name & s_colonEquals,
+                        parameter.Name.ToIdentifierToken().ToString() & s_colonEquals,
+                        CompletionUtilities.GetTextChangeSpan(text, position),
+                        position,
+                        {parameter}.ToList(),
+                        VisualBasicSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken),
+                        rules:=ItemRules.Instance))
+            Next
         End Function
 
         Private Function IsValid(parameterList As ImmutableArray(Of ISymbol), existingNamedParameters As ISet(Of String)) As Boolean

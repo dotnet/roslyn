@@ -81,11 +81,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (string V_0, //b
-                int& V_1,
-                int V_2,
-                C V_3,
-                bool V_4,
-                int V_5) //c
+                C V_1,
+                bool V_2,
+                int V_3) //c
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
@@ -94,11 +92,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (string V_0, //b
-                int& V_1,
-                int V_2,
-                C V_3,
-                bool V_4,
-                int V_5) //c
+                C V_1,
+                bool V_2,
+                int V_3) //c
   IL_0000:  ldarg.1
   IL_0001:  ret
 }");
@@ -107,26 +103,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (string V_0, //b
-                int& V_1,
-                int V_2,
-                C V_3,
-                bool V_4,
-                int V_5) //c
+                C V_1,
+                bool V_2,
+                int V_3) //c
   IL_0000:  ldloc.0
   IL_0001:  ret
-}");
+}
+");
             VerifyLocal(testData, typeName, locals[3], "<>m3", "c", expectedILOpt:
 @"{
-  // Code size        3 (0x3)
+  // Code size        2 (0x2)
   .maxstack  1
   .locals init (string V_0, //b
-                int& V_1,
-                int V_2,
-                C V_3,
-                bool V_4,
-                int V_5) //c
-  IL_0000:  ldloc.s    V_5
-  IL_0002:  ret
+                C V_1,
+                bool V_2,
+                int V_3) //c
+  IL_0000:  ldloc.3
+  IL_0001:  ret
 }");
             locals.Free();
         }

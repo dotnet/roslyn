@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Change &apos;{0}&apos; to &apos;{1}.{2}&apos;..
+        ///   Looks up a localized string similar to &gt;&gt;&gt;&gt;&gt;&gt;&gt; master.
         /// </summary>
         internal static string ChangeTo {
             get {
@@ -818,6 +818,42 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Generate {0} &apos;{1}&apos;.
+        /// </summary>
+        internal static string Generate_0_1 {
+            get {
+                return ResourceManager.GetString("Generate_0_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate {0} &apos;{1}&apos; in new file.
+        /// </summary>
+        internal static string Generate_0_1_in_new_file {
+            get {
+                return ResourceManager.GetString("Generate_0_1_in_new_file", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate nested {0} &apos;{1}&apos;.
+        /// </summary>
+        internal static string Generate_nested_0_1 {
+            get {
+                return ResourceManager.GetString("Generate_nested_0_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate type.
+        /// </summary>
+        internal static string Generate_type {
+            get {
+                return ResourceManager.GetString("Generate_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Generate abstract method &apos;{0}&apos; in &apos;{1}&apos;.
         /// </summary>
         internal static string GenerateAbstractMethod {
@@ -922,24 +958,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string GenerateFieldIn {
             get {
                 return ResourceManager.GetString("GenerateFieldIn", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generate {0} for &apos;{1}&apos; in &apos;{2}&apos;.
-        /// </summary>
-        internal static string GenerateForIn {
-            get {
-                return ResourceManager.GetString("GenerateForIn", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generate {0} for &apos;{1}&apos; in &apos;{2}&apos; (in new file).
-        /// </summary>
-        internal static string GenerateForInNewFile {
-            get {
-                return ResourceManager.GetString("GenerateForInNewFile", resourceCulture);
             }
         }
         
@@ -1322,6 +1340,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Method referenced implicitly.
+        /// </summary>
+        internal static string MethodReferencedImplicitly {
+            get {
+                return ResourceManager.GetString("MethodReferencedImplicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Modifying a catch/finally handler with an active statement in the try block will prevent the debug session from continuing..
         /// </summary>
         internal static string ModifyingACatchFinallyHandler {
@@ -1646,6 +1673,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Replace &apos;{0}&apos; and &apos;{1}&apos; with property.
+        /// </summary>
+        internal static string Replace0and1WithProperty {
+            get {
+                return ResourceManager.GetString("Replace0and1WithProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Replace &apos;{0}&apos; with property.
+        /// </summary>
+        internal static string Replace0WithProperty {
+            get {
+                return ResourceManager.GetString("Replace0WithProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Represents an object whose operations will be resolved at runtime..
         /// </summary>
         internal static string RepresentsAnObjectWhoseOperations {
@@ -1772,7 +1817,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to with SuppressMessageAttribute (separate file).
+        ///   Looks up a localized string similar to in Suppression File.
         /// </summary>
         internal static string SuppressWithGlobalSuppressMessage {
             get {
@@ -1781,11 +1826,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to with SuppressMessageAttribute.
+        ///   Looks up a localized string similar to in Source.
         /// </summary>
-        internal static string SuppressWithLocalSuppressMessage {
+        internal static string SuppressWithPragma {
             get {
-                return ResourceManager.GetString("SuppressWithLocalSuppressMessage", resourceCulture);
+                return ResourceManager.GetString("SuppressWithPragma", resourceCulture);
             }
         }
         
@@ -1851,6 +1896,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string ToDetectRedundantCalls {
             get {
                 return ResourceManager.GetString("ToDetectRedundantCalls", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Re-triage {0}(currently &apos;{1}&apos;).
+        /// </summary>
+        internal static string TriageCodeActionTitleForTriagedDiagnostic {
+            get {
+                return ResourceManager.GetString("TriageCodeActionTitleForTriagedDiagnostic", resourceCulture);
             }
         }
         

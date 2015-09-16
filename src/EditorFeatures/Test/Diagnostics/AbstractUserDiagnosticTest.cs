@@ -2,11 +2,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -14,6 +17,7 @@ using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
+using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Microsoft.VisualStudio.Text.Differencing;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -26,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         internal abstract IEnumerable<Tuple<Diagnostic, CodeFixCollection>> GetDiagnosticAndFixes(TestWorkspace workspace, string fixAllActionEquivalenceKey);
         internal abstract IEnumerable<Diagnostic> GetDiagnostics(TestWorkspace workspace);
 
-        protected override IList<CodeAction> GetCodeActions(TestWorkspace workspace, string fixAllActionEquivalenceKey)
+        protected override IList<CodeAction> GetCodeActionsWorker(TestWorkspace workspace, string fixAllActionEquivalenceKey)
         {
             var diagnostics = GetDiagnosticAndFix(workspace, fixAllActionEquivalenceKey);
             return diagnostics?.Item2?.Fixes.Select(f => f.Action).ToList();
@@ -83,6 +87,67 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
 
             throw new InvalidProgramException("Incorrect FixAll annotation in test");
+        }
+
+        internal IEnumerable<Tuple<Diagnostic, CodeFixCollection>> GetDiagnosticAndFixes(
+            IEnumerable<Diagnostic> diagnostics,
+            DiagnosticAnalyzer provider,
+            CodeFixProvider fixer,
+            TestDiagnosticAnalyzerDriver testDriver,
+            Document document,
+            TextSpan span,
+            string annotation,
+            string fixAllActionId)
+        {
+            foreach (var diagnostic in diagnostics)
+            {
+                if (annotation == null)
+                {
+                    var fixes = new List<CodeFix>();
+                    var context = new CodeFixContext(document, diagnostic, (a, d) => fixes.Add(new CodeFix(a, d)), CancellationToken.None);
+                    fixer.RegisterCodeFixesAsync(context).Wait();
+                    if (fixes.Any())
+                    {
+                        var codeFix = new CodeFixCollection(fixer, diagnostic.Location.SourceSpan, fixes);
+                        yield return Tuple.Create(diagnostic, codeFix);
+                    }
+                }
+                else
+                {
+                    var fixAllProvider = fixer.GetFixAllProvider();
+                    Assert.NotNull(fixAllProvider);
+                    FixAllScope scope = GetFixAllScope(annotation);
+
+                    Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDocumentDiagnosticsAsync =
+                        (d, diagIds, c) =>
+                        {
+                            var root = d.GetSyntaxRootAsync().Result;
+                            var diags = testDriver.GetDocumentDiagnostics(provider, d, root.FullSpan);
+                            diags = diags.Where(diag => diagIds.Contains(diag.Id));
+                            return Task.FromResult(diags);
+                        };
+
+                    Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getProjectDiagnosticsAsync =
+                        (p, includeAllDocumentDiagnostics, diagIds, c) =>
+                        {
+                            var diags = includeAllDocumentDiagnostics ?
+                                testDriver.GetAllDiagnostics(provider, p) :
+                                testDriver.GetProjectDiagnostics(provider, p);
+                            diags = diags.Where(diag => diagIds.Contains(diag.Id));
+                            return Task.FromResult(diags);
+                        };
+
+                    var diagnosticIds = ImmutableHashSet.Create(diagnostic.Id);
+                    var fixAllDiagnosticProvider = new FixAllCodeActionContext.FixAllDiagnosticProvider(diagnosticIds, getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync);
+                    var fixAllContext = new FixAllContext(document, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider, CancellationToken.None);
+                    var fixAllFix = fixAllProvider.GetFixAsync(fixAllContext).WaitAndGetResult(CancellationToken.None);
+                    if (fixAllFix != null)
+                    {
+                        var codeFix = new CodeFixCollection(fixAllProvider, diagnostic.Location.SourceSpan, ImmutableArray.Create(new CodeFix(fixAllFix, diagnostic)));
+                        yield return Tuple.Create(diagnostic, codeFix);
+                    }
+                }
+            }
         }
 
         protected void TestEquivalenceKey(string initialMarkup, string equivalenceKey)
@@ -159,9 +224,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             using (var workspace = isLine ? CreateWorkspaceFromFile(initialMarkup, parseOptions, compilationOptions) : TestWorkspaceFactory.CreateWorkspace(initialMarkup))
             {
-                var diagnosticAndFix = GetDiagnosticAndFix(workspace);
+                var codeActions = GetCodeActions(workspace, fixAllActionEquivalenceKey: null);
                 TestAddDocument(workspace, expectedMarkup, index, expectedContainers, expectedDocumentName,
-                    diagnosticAndFix.Item2.Fixes.Select(f => f.Action).ToList(), compareTokens);
+                    codeActions, compareTokens);
             }
         }
 
@@ -314,7 +379,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var fixes = generateTypeDiagFixes.Item2.Fixes;
                 Assert.NotNull(fixes);
 
-                var fixActions = fixes.Select(f => f.Action);
+                var fixActions = MassageActions(fixes.Select(f => f.Action).ToList());
                 Assert.NotNull(fixActions);
 
                 // Since the dialog option is always fed as the last CodeAction
@@ -328,8 +393,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 if (!isNewFile)
                 {
                     oldSolutionAndNewSolution = TestOperations(
-                        testState.Workspace, expected, operations, 
-                        conflictSpans: null, renameSpans: null, warningSpans: null, 
+                        testState.Workspace, expected, operations,
+                        conflictSpans: null, renameSpans: null, warningSpans: null,
                         compareTokens: false, expectedChangedDocumentId: testState.ExistingDocument.Id);
                 }
                 else

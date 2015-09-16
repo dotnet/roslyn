@@ -566,6 +566,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Non-invoked method cannot be replaced with property..
+        /// </summary>
+        internal static string NonInvokedMethodCannotBeReplacedWithProperty {
+            get {
+                return ResourceManager.GetString("NonInvokedMethodCannotBeReplacedWithProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Not all code paths return.
         /// </summary>
         internal static string NotAllCodePathReturns {
@@ -589,6 +598,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string NoValidStatementRangeToExtractOut {
             get {
                 return ResourceManager.GetString("NoValidStatementRangeToExtractOut", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only methods with a single argument can be replaced with a property..
+        /// </summary>
+        internal static string OnlyMethodsWithASingleArgumentCanBeReplacedWithAProperty {
+            get {
+                return ResourceManager.GetString("OnlyMethodsWithASingleArgumentCanBeReplacedWithAProperty", resourceCulture);
             }
         }
         
@@ -841,15 +859,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Struct {
             get {
                 return ResourceManager.GetString("Struct", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to with #pragma directive.
-        /// </summary>
-        internal static string SuppressWithPragma {
-            get {
-                return ResourceManager.GetString("SuppressWithPragma", resourceCulture);
             }
         }
         

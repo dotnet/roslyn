@@ -101,6 +101,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         private string GetErrorTypeFromDiagnostic(DiagnosticData diagnostic)
         {
+            if (diagnostic.IsSuppressed)
+            {
+                // Don't squiggle suppressed diagnostics.
+                return null;
+            }
+
             return GetErrorTypeFromDiagnosticTags(diagnostic) ??
                    GetErrorTypeFromDiagnosticProperty(diagnostic) ??
                    GetErrorTypeFromDiagnosticSeverity(diagnostic);

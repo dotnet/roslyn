@@ -838,7 +838,7 @@ Class C
 End Class
 </File>
 
-            TestExactActionSetOffered(code.ConvertTestSourceTag(), {String.Format(VBFeaturesResources.ChangeTo, "Function", "Sub"), String.Format(VBFeaturesResources.DeleteTheStatement, "Exit Function")})
+            TestExactActionSetOffered(code.ConvertTestSourceTag(), {String.Format(FeaturesResources.ChangeTo, "Function", "Sub"), String.Format(VBFeaturesResources.DeleteTheStatement, "Exit Function")})
         End Sub
 
         <WorkItem(531354)>

@@ -181,6 +181,7 @@
     <Compile Include="CodeActions\Preview\ErrorCases\ExceptionInCodeAction.cs" />
     <Compile Include="CodeActions\Preview\PreviewExceptionTests.cs" />
     <Compile Include="CodeActions\Preview\PreviewTests.cs" />
+    <Compile Include="CodeActions\ReplaceMethodWithProperty\ReplaceMethodWithPropertyTests.cs" />
     <Compile Include="Diagnostics\UseAutoProperty\UseAutoPropertyTests.cs" />
     <Compile Include="CommentSelection\CSharpCommentSelectionTests.cs" />
     <Compile Include="Completion\CompletionProviders\AbstractCSharpCompletionProviderTests.cs" />
@@ -233,6 +234,7 @@
     <Compile Include="Diagnostics\RemoveUnnecessaryUsings\RemoveUnnecessaryUsingsTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\SimplifyTypeNames\SimplifyTypeNamesTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\SimplifyTypeNames\SimplifyTypeNamesTests.cs" />
+    <Compile Include="Diagnostics\Suppression\SuppressionTest_FixAllTests.cs" />
     <Compile Include="Diagnostics\Suppression\SuppressionAllCodeTests.cs" />
     <Compile Include="Diagnostics\Suppression\SuppressionTests.cs" />
     <Compile Include="DocumentationComments\DocumentationCommentTests.cs" />

@@ -276,9 +276,6 @@
   <data name="ChangeToYieldReturn" xml:space="preserve">
     <value>Replace return with yield return</value>
   </data>
-  <data name="SuppressWithPragma" xml:space="preserve">
-    <value>with #pragma directive</value>
-  </data>
   <data name="ExplicitConversionDisplayText" xml:space="preserve">
     <value>Generate explicit conversion operator in '{0}'</value>
   </data>
@@ -436,5 +433,11 @@
   </data>
   <data name="ERR_NameNotInContext" xml:space="preserve">
     <value>The name '{0}' does not exist in the current context.</value>
+  </data>
+  <data name="NonInvokedMethodCannotBeReplacedWithProperty" xml:space="preserve">
+    <value>Non-invoked method cannot be replaced with property.</value>
+  </data>
+  <data name="OnlyMethodsWithASingleArgumentCanBeReplacedWithAProperty" xml:space="preserve">
+    <value>Only methods with a single argument can be replaced with a property.</value>
   </data>
 </root>

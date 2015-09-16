@@ -770,7 +770,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     mappedEndLine: mappedLineInfo.EndLinePosition.Line,
                     mappedEndColumn: mappedLineInfo.EndLinePosition.Character),
                 description: diagnostic.Description,
-                helpLink: diagnostic.HelpLink);
+                helpLink: diagnostic.HelpLink,
+                isSuppressed: diagnostic.IsSuppressed);
         }
 
         private static IEnumerable<DiagnosticData> GetDiagnosticData(Document document, SyntaxTree tree, TextSpan? span, IEnumerable<Diagnostic> diagnostics)
