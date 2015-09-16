@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
             Assert.Throws<ArgumentNullException>(() => builder.WriteUTF16((string)null));
             Assert.Throws<ArgumentNullException>(() => builder.WriteUTF8(null, allowUnpairedSurrogates: true));
             Assert.Throws<ArgumentNullException>(() => builder.WriteUTF8(null, allowUnpairedSurrogates: true));
-            Assert.Throws<ArgumentNullException>(() => builder.WriteBytes((Stream)null, 0));
+            Assert.Throws<ArgumentNullException>(() => builder.TryWriteBytes((Stream)null, 0));
             Assert.Throws<ArgumentNullException>(() => builder.WriteBytes(null));
             Assert.Throws<ArgumentNullException>(() => builder.WriteBytes(null, 0, 0));
             Assert.Throws<ArgumentNullException>(() => builder.WriteBytes((byte*)null, 0));
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
             Assert.Throws<ArgumentNullException>(() => builder.WriteContentTo((Stream)null));
             Assert.Throws<ArgumentNullException>(() => builder.WriteContentTo((BlobBuilder)null));
 
-            Assert.Throws<ArgumentOutOfRangeException>(() => builder.WriteBytes(new MemoryStream(), -1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => builder.TryWriteBytes(new MemoryStream(), -1));
             Assert.Throws<ArgumentOutOfRangeException>(() => builder.WriteBytes(0, -1));
             Assert.Throws<ArgumentOutOfRangeException>(() => builder.WriteBytes(new byte[] { }, 1, 0));
             Assert.Throws<ArgumentOutOfRangeException>(() => builder.WriteBytes(new byte[] { }, 0, 1));
@@ -857,88 +857,28 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
             builder2.Free();
         }
 
-        /// <summary>
-        /// This stream requires at least two calls to Read() to read all elements.
-        /// </summary>
-        private class TwoReadStream : Stream
-        {
-            public static byte[] BackingData { get; } = { 1, 2, 3, 4, 5 };
-
-            public override bool CanRead
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-            }
-
-            public override bool CanSeek
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-            }
-
-            public override bool CanWrite
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-            }
-
-            public override long Length => BackingData.Length;
-
-            public override long Position { get; set; } = 0;
-
-            public override void Flush()
-            {
-                throw new NotImplementedException();
-            }
-
-            private bool _firstRead = true;
-
-            public override int Read(byte[] buffer, int offset, int count)
-            {
-
-                // No matter what the client asks for, only give them half the first time
-                // Unless they only ask for 1 byte
-                if (_firstRead)
-                {
-                    count = (int)Math.Ceiling(count / 2.0);
-                    _firstRead = false;
-                }
-                for (int i = offset; i < offset + count; i++)
-                {
-                    buffer[i] = BackingData[Position++];
-                }
-                return count;
-            }
-
-            public override long Seek(long offset, SeekOrigin origin)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override void SetLength(long value)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override void Write(byte[] buffer, int offset, int count)
-            {
-                throw new NotImplementedException();
-            }
-        }
-
         [Fact]
         public void ProperStreamRead()
         {
-            var stream = new TwoReadStream();
-            var builder = PooledBlobBuilder.GetInstance((int)stream.Length);
-            builder.WriteBytes(stream, (int)stream.Length);
-            AssertEx.Equal(TwoReadStream.BackingData, builder.ToArray());
+            var firstRead = true;
+            var sourceArray = new byte[] { 1, 2, 3, 4 };
+            int sourceOffset = 0;
+
+            var stream = new TestStream(readFunc: (buf, offset, count) =>
+            {
+                if (firstRead)
+                {
+                    count = count / 2;
+                    firstRead = false;
+                }
+                Array.Copy(sourceArray, sourceOffset, buf, offset, count);
+                sourceOffset += count;
+                return count;
+            });
+
+            var builder = PooledBlobBuilder.GetInstance(sourceArray.Length);
+            builder.TryWriteBytes(stream, sourceArray.Length);
+            Assert.Equal(sourceArray, builder.ToArray());
 
             builder.Free();
         }

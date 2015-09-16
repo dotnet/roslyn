@@ -51,7 +51,8 @@ namespace Microsoft.Cci
                         int bytesWritten = resourceWriter.TryWriteBytes(stream, count);
                         if (bytesWritten != count)
                         {
-                            throw new EndOfStreamException($"Resource stream ended at {bytesWritten} bytes, expected {count} bytes");
+                            throw new EndOfStreamException(
+                                    string.Format(CodeAnalysisResources.ResourceStreamEndedUnexpectedly, bytesWritten, count));
                         }
                         resourceWriter.Align(8);
                     }

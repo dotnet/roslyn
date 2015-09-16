@@ -677,6 +677,11 @@ namespace Microsoft.Cci
                 throw new ArgumentOutOfRangeException(nameof(byteCount));
             }
 
+            if (byteCount == 0)
+            {
+                return 0;
+            }
+
             int bytesToCurrent = Math.Min(FreeBytes, byteCount);
 
             int bytesRead = source.TryReadAll(_buffer, Length, bytesToCurrent);
@@ -693,13 +698,10 @@ namespace Microsoft.Cci
                 Expand(remaining);
                 bytesRead = source.TryReadAll(_buffer, 0, remaining);
                 AddLength(bytesRead);
-                
-                if (bytesRead != remaining)
-                {
-                    return bytesToCurrent + bytesRead;
-                }
+
+                bytesRead += bytesToCurrent;
             }
-            return byteCount;
+            return bytesRead;
         }
 
         /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
