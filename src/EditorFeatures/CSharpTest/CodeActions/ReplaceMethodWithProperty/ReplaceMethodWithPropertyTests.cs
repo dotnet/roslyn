@@ -87,6 +87,31 @@ compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestIfDefMethod()
+        {
+            Test(
+@"class C
+{
+#if true
+    int [||]GetFoo()
+    {
+    }
+#endif
+}",
+@"class C
+{
+#if true
+    int Foo
+    {
+        get
+        {
+        }
+    }
+#endif
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestMethodWithTrivia_2()
         {
             Test(

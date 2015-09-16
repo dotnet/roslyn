@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             {
                 trivia = trivia.Concat(setMethodDeclaration.GetLeadingTrivia());
             }
-            property = property.WithLeadingTrivia(trivia);
+            property = property.WithLeadingTrivia(trivia.Where(t => !t.IsDirective));
 
             if (getMethodDeclaration.ExpressionBody != null && setMethodDeclaration == null)
             {
