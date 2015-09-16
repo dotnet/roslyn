@@ -162,6 +162,28 @@ compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestExplicitInterfaceMethod_3()
+        {
+            Test(
+@"interface I { int [||]GetFoo(); } class C : I { int I.GetFoo() { } }",
+@"interface I { int Foo { get; } } class C : I { int I.Foo { get { } } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestInAttribute()
+        {
+            TestMissing(
+@"class C { [At[||]tr]int GetFoo() { } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestInMethod()
+        {
+            TestMissing(
+@"class C { int GetFoo() { [||] } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestVoidMethod()
         {
             TestMissing(
