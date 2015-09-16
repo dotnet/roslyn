@@ -525,16 +525,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument)
+                base(title, createChangedDocument, equivalenceKey: title)
             {
-            }
-
-            public override string EquivalenceKey
-            {
-                get
-                {
-                    return Title;
-                }
             }
         }
     }

@@ -234,11 +234,11 @@
   <data name="GenerateLocal" xml:space="preserve">
     <value>Generate local '{0}'</value>
   </data>
-  <data name="GenerateForInNewFile" xml:space="preserve">
-    <value>Generate {0} for '{1}' in '{2}' (in new file)</value>
+  <data name="Generate_0_1_in_new_file" xml:space="preserve">
+    <value>Generate {0} '{1}' in new file</value>
   </data>
-  <data name="GenerateForIn" xml:space="preserve">
-    <value>Generate {0} for '{1}' in '{2}'</value>
+  <data name="Generate_nested_0_1" xml:space="preserve">
+    <value>Generate nested {0} '{1}'</value>
   </data>
   <data name="GlobalNamespace" xml:space="preserve">
     <value>Global Namespace</value>
@@ -365,9 +365,6 @@
   </data>
   <data name="ExtractInterface" xml:space="preserve">
     <value>Extract Interface...</value>
-  </data>
-  <data name="ChangeTo" xml:space="preserve">
-    <value>Change '{0}' to '{1}.{2}'.</value>
   </data>
   <data name="UpdatingAWillPrevent" xml:space="preserve">
     <value>Updating '{0}' will prevent the debug session from continuing.</value>
@@ -842,5 +839,14 @@ Do you want to continue?</value>
   </data>
   <data name="UseAutoProperty" xml:space="preserve">
     <value>Use auto property</value>
+  </data>
+  <data name="Generate_type" xml:space="preserve">
+    <value>Generate type</value>
+  </data>
+  <data name="Generate_0_1" xml:space="preserve">
+    <value>Generate {0} '{1}'</value>
+  </data>
+  <data name="ChangeTo" xml:space="preserve">
+    <value>Change '{0}' to '{1}'.</value>
   </data>
 </root>

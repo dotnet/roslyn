@@ -161,7 +161,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
             }
 
-            public override bool SupportsFixAllOccurrences => true;
             public SyntaxToken StartToken_TestOnly => _startToken;
             public SyntaxToken EndToken_TestOnly => _endToken;
         }

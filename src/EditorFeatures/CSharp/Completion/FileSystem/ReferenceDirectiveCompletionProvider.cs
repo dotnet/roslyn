@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.FileSystem;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
@@ -74,9 +75,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
                 return null;
             }
 
-            // TODO: avoid dependency on a specific resolver
-            var desktopReferenceResolver = document.Project.CompilationOptions.MetadataReferenceResolver as RuntimeMetadataReferenceResolver;
-            if (desktopReferenceResolver == null)
+            var referenceResolver = document.Project.CompilationOptions.MetadataReferenceResolver;
+
+            // TODO: https://github.com/dotnet/roslyn/issues/5263
+            // Avoid dependency on a specific resolvers.
+            // The search paths should be provided by specialized workspaces:
+            // - InteractiveWorkspace for interactive window 
+            // - ScriptWorkspace for loose .csx files (we don't have such workspace today)
+            var pathResolver =
+                (referenceResolver as RuntimeMetadataReferenceResolver)?.PathResolver ??
+                (referenceResolver as WorkspaceMetadataFileReferenceResolver)?.PathResolver;
+
+            if (pathResolver == null)
             {
                 return null;
             }
@@ -86,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
                 GetFileSystemDiscoveryService(snapshot),
                 Glyph.OpenFolder,
                 Glyph.Assembly,
-                searchPaths: desktopReferenceResolver.PathResolver.SearchPaths,
+                searchPaths: pathResolver.SearchPaths,
                 allowableExtensions: new[] { ".dll", ".exe" },
                 exclude: path => path.Contains(","),
                 itemRules: ItemRules.Instance);

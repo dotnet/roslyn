@@ -1,4 +1,6 @@
-﻿Imports System.Collections.Concurrent
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Concurrent
 Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -46,10 +48,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
 
         Protected Overrides Function GetGetterExpression(getMethod As IMethodSymbol, cancellationToken As CancellationToken) As ExpressionSyntax
             Dim accessor = TryCast(TryCast(getMethod.DeclaringSyntaxReferences(0).GetSyntax(cancellationToken), AccessorStatementSyntax)?.Parent, AccessorBlockSyntax)
-            Dim firstStatement = accessor?.Statements.SingleOrDefault()
-            If firstStatement?.Kind() = SyntaxKind.ReturnStatement Then
-                Dim expr = DirectCast(firstStatement, ReturnStatementSyntax).Expression
-                Return If(CheckExpressionSyntactically(expr), expr, Nothing)
+            Dim statements = accessor?.Statements
+            If statements?.Count = 1 Then
+                ' this only works with a getter body with exactly one statement
+                Dim firstStatement = statements.Value(0)
+                If firstStatement.Kind() = SyntaxKind.ReturnStatement Then
+                    Dim expr = DirectCast(firstStatement, ReturnStatementSyntax).Expression
+                    Return If(CheckExpressionSyntactically(expr), expr, Nothing)
+                End If
             End If
 
             Return Nothing

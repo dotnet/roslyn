@@ -28,14 +28,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         protected readonly ICodeActionEditHandlerService EditHandler;
 
         protected readonly object Provider;
-        protected readonly CodeAction CodeAction;
+        internal readonly CodeAction CodeAction;
+        private readonly ImmutableArray<SuggestedActionSet> _actionSets;
 
-        protected SuggestedAction(
+        internal SuggestedAction(
             Workspace workspace,
             ITextBuffer subjectBuffer,
             ICodeActionEditHandlerService editHandler,
             CodeAction codeAction,
-            object provider)
+            object provider,
+            IEnumerable<SuggestedActionSet> actionSets = null)
         {
             Contract.ThrowIfTrue(provider == null);
 
@@ -44,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             this.CodeAction = codeAction;
             this.EditHandler = editHandler;
             this.Provider = provider;
+            _actionSets = actionSets.AsImmutableOrEmpty();
         }
 
         public bool TryGetTelemetryId(out Guid telemetryId)
@@ -215,33 +218,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return null;
         }
 
+        public virtual bool HasActionSets => _actionSets.Length > 0;
+
+        public virtual Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
+        {
+            return Task.FromResult<IEnumerable<SuggestedActionSet>>(GetActionSets());
+        }
+
+        internal ImmutableArray<SuggestedActionSet> GetActionSets()
+        {
+            return _actionSets;
+        }
+
         #region not supported
+
         void IDisposable.Dispose()
         {
             // do nothing
         }
 
-        public virtual bool HasActionSets
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        public virtual Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.Default<IEnumerable<SuggestedActionSet>>();
-        }
-
-        string ISuggestedAction.IconAutomationText
-        {
-            get
-            {
-                // same as display text
-                return DisplayText;
-            }
-        }
+        // same as display text
+        string ISuggestedAction.IconAutomationText => DisplayText;
 
         ImageMoniker ISuggestedAction.IconMoniker
         {
@@ -260,9 +257,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return null;
             }
         }
+
         #endregion
 
         #region IEquatable<ISuggestedAction>
+
         public bool Equals(ISuggestedAction other)
         {
             return Equals(other as SuggestedAction);
@@ -273,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return Equals(obj as SuggestedAction);
         }
 
-        public bool Equals(SuggestedAction otherSuggestedAction)
+        internal bool Equals(SuggestedAction otherSuggestedAction)
         {
             if (otherSuggestedAction == null)
             {
@@ -308,6 +307,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             return Hash.Combine(Provider.GetHashCode(), CodeAction.EquivalenceKey.GetHashCode());
         }
+
         #endregion
     }
 }
