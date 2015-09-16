@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result = LookupResult.GetInstance();
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            this.LookupSymbolsWithFallback(result, node.Identifier.ValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, options: LookupOptions.LabelsOnly);
+            var binder = this.LookupSymbolsWithFallback(result, node.Identifier.ValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, options: LookupOptions.LabelsOnly);
 
             // result.Symbols can be empty in some malformed code, e.g. when a labeled statement is used an embedded statement in an if or foreach statement    
             // In this case we create new label symbol on the fly, and an error is reported by parser
@@ -357,14 +357,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // check to see if this label (illegally) hides a label from an enclosing scope
-            result.Clear();
-            this.Next.LookupSymbolsWithFallback(result, node.Identifier.ValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, options: LookupOptions.LabelsOnly);
-            if (result.IsMultiViable)
+            if (binder != null)
             {
-                // The label '{0}' shadows another label by the same name in a contained scope
-                Error(diagnostics, ErrorCode.ERR_LabelShadow, node.Identifier, node.Identifier.ValueText);
-                hasError = true;
+                result.Clear();
+                binder.Next.LookupSymbolsWithFallback(result, node.Identifier.ValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, options: LookupOptions.LabelsOnly);
+                if (result.IsMultiViable)
+                {
+                    // The label '{0}' shadows another label by the same name in a contained scope
+                    Error(diagnostics, ErrorCode.ERR_LabelShadow, node.Identifier, node.Identifier.ValueText);
+                    hasError = true;
+                }
             }
+
             diagnostics.Add(node, useSiteDiagnostics);
             result.Free();
 
