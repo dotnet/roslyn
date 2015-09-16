@@ -1,7 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.ComponentModel.Composition
-Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
@@ -28,22 +27,29 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             Me._editorAdaptersFactoryService = editorAdaptersFactoryService
         End Sub
 
-        Protected Overrides Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CompletionItem))
+        Public Overrides Function ProduceCompletionListAsync(context As CompletionListContext) As Task
+            Dim document = context.Document
+            Dim position = context.Position
+            Dim cancellationToken = context.CancellationToken
+
             Dim snippetInfoService = document.GetLanguageService(Of ISnippetInfoService)()
 
             If snippetInfoService Is Nothing Then
-                Return SpecializedTasks.EmptyEnumerable(Of CompletionItem)()
+                Return SpecializedTasks.EmptyTask
             End If
 
             Dim snippets = snippetInfoService.GetSnippetsIfAvailable()
 
-            Dim textChangeSpan = CommonCompletionUtilities.GetTextChangeSpan(
+            Dim filterSpan = CommonCompletionUtilities.GetTextChangeSpan(
                 document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken),
                 position,
                 AddressOf Char.IsLetterOrDigit,
                 AddressOf Char.IsLetterOrDigit)
 
-            Return Task.FromResult(CreateCompletionItems(snippets, textChangeSpan))
+            context.MakeExclusive(True)
+            context.AddItems(CreateCompletionItems(snippets, filterSpan))
+
+            Return SpecializedTasks.EmptyTask
         End Function
 
         Private Function CreateCompletionItems(snippets As IEnumerable(Of SnippetInfo), span As TextSpan) As IEnumerable(Of CompletionItem)
@@ -59,10 +65,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return Char.IsLetterOrDigit(text(characterPosition)) AndAlso
                 options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.VisualBasic)
-        End Function
-
-        Protected Overrides Function IsExclusiveAsync(document As Document, position As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of Boolean)
-            Return SpecializedTasks.True
         End Function
 
         Public Overrides Sub Commit(completionItem As CompletionItem, textView As ITextView, subjectBuffer As ITextBuffer, triggerSnapshot As ITextSnapshot, commitChar As Char?)

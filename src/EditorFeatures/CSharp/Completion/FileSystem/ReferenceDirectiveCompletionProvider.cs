@@ -1,12 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.FileSystem;
@@ -16,13 +12,12 @@ using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
 {
     // TODO(cyrusn): Use a predefined name here.
     [ExportCompletionProvider("ReferenceDirectiveCompletionProvider", LanguageNames.CSharp)]
-    internal partial class ReferenceDirectiveCompletionProvider : AbstractCompletionProvider
+    internal partial class ReferenceDirectiveCompletionProvider : CompletionListProvider
     {
         public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
         {
@@ -50,8 +45,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
                 position: position);
         }
 
-        protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        public override async Task ProduceCompletionListAsync(CompletionListContext context)
         {
+            var document = context.Document;
+            var position = context.Position;
+            var cancellationToken = context.CancellationToken;
+
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
             // first try to get the #r string literal token.  If we couldn't, then we're not in a #r
@@ -59,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
             SyntaxToken stringLiteral;
             if (!TryGetStringLiteralToken(tree, position, out stringLiteral, cancellationToken))
             {
-                return null;
+                return;
             }
 
             var documentPath = document.Project.IsSubmission ? null : document.FilePath;
@@ -72,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
             {
                 // Passing null to GetFileSystemDiscoveryService raises an exception.
                 // Instead, return here since there is no longer snapshot for this document.
-                return null;
+                return;
             }
 
             var referenceResolver = document.Project.CompilationOptions.MetadataReferenceResolver;
@@ -88,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
 
             if (pathResolver == null)
             {
-                return null;
+                return;
             }
 
             var fileSystemHelper = new FileSystemCompletionHelper(
@@ -102,8 +101,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
                 itemRules: ItemRules.Instance);
 
             var pathThroughLastSlash = this.GetPathThroughLastSlash(stringLiteral, position);
-            return gacHelper.GetItems(pathThroughLastSlash, documentPath).Concat(
-                fileSystemHelper.GetItems(pathThroughLastSlash, documentPath));
+
+            context.AddItems(gacHelper.GetItems(pathThroughLastSlash, documentPath));
+            context.AddItems(fileSystemHelper.GetItems(pathThroughLastSlash, documentPath));
         }
 
         private bool TryGetStringLiteralToken(SyntaxTree tree, int position, out SyntaxToken stringLiteral, CancellationToken cancellationToken)

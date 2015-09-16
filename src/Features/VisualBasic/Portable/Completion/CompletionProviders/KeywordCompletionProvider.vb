@@ -1,7 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Completion
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
@@ -16,7 +16,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Sub
 
         Protected Overrides Async Function CreateContextAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of VisualBasicSyntaxContext)
-            Dim semanticModel = Await document.GetSemanticModelForSpanAsync(New TextSpan(position, 0), cancellationToken).ConfigureAwait(False)
+            Dim span = New TextSpan(position, length:=0)
+            Dim semanticModel = Await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(False)
             Return VisualBasicSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken)
         End Function
 
@@ -29,8 +30,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return CompletionUtilities.IsDefaultTriggerCharacterOrParen(text, characterPosition, options)
         End Function
 
-        Private Shared Function GetKeywordRecommenders() As IEnumerable(Of IKeywordRecommender(Of VisualBasicSyntaxContext))
-            Return {
+        Private Shared Function GetKeywordRecommenders() As ImmutableArray(Of IKeywordRecommender(Of VisualBasicSyntaxContext))
+            Return New IKeywordRecommender(Of VisualBasicSyntaxContext)() {
                 New KeywordRecommenders.ArrayStatements.EraseKeywordRecommender(),
                 New KeywordRecommenders.ArrayStatements.PreserveKeywordRecommender(),
                 New KeywordRecommenders.ArrayStatements.ReDimKeywordRecommender(),
@@ -170,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 New KeywordRecommenders.Statements.WithKeywordRecommender(),
                 New KeywordRecommenders.Statements.YieldKeywordRecommender(),
                 New KeywordRecommenders.Types.BuiltInTypesKeywordRecommender()
-            }
+            }.ToImmutableArray()
         End Function
 
     End Class
