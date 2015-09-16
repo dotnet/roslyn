@@ -1,0 +1,85 @@
+{
+  "locked": false,
+  "version": 1,
+  "targets": {
+    ".NETFramework,Version=v4.6": {
+      "Microsoft.DotNet.xunit.performance.runner.Windows/1.0.0-alpha-build0013": {
+        "dependencies": {
+          "xunit.runner.console": "[2.1.0-beta4-build3109, )"
+        }
+      },
+      "xunit.runner.console/2.1.0-beta4-build3109": {}
+    },
+    ".NETFramework,Version=v4.6/win-": {
+      "Microsoft.DotNet.xunit.performance.runner.Windows/1.0.0-alpha-build0013": {
+        "dependencies": {
+          "xunit.runner.console": "[2.1.0-beta4-build3109, )"
+        }
+      },
+      "xunit.runner.console/2.1.0-beta4-build3109": {}
+    }
+  },
+  "libraries": {
+    "Microsoft.DotNet.xunit.performance.runner.Windows/1.0.0-alpha-build0013": {
+      "sha512": "CRCx/9vsiCff638U3Kgmp/uWSrF5Y5c3L/bxKRMFTBSeGnSYs/P0rtehyb2nrT4venNXj92yEE6mtHCSHYfoAg==",
+      "type": "Package",
+      "files": [
+        "_rels/.rels",
+        "Microsoft.DotNet.xunit.performance.runner.Windows.nuspec",
+        "tools/Microsoft.Diagnostics.Tracing.TraceEvent.dll",
+        "tools/ProcDomain.dll",
+        "tools/ProcDomain.pdb",
+        "tools/xunit.abstractions.dll",
+        "tools/xunit.core.dll",
+        "tools/xunit.core.pdb",
+        "tools/xunit.execution.desktop.dll",
+        "tools/xunit.performance.metrics.dll",
+        "tools/xunit.performance.metrics.pdb",
+        "tools/xunit.performance.logger.exe",
+        "tools/xunit.performance.logger.pdb",
+        "tools/xunit.performance.core.dll",
+        "tools/xunit.performance.core.pdb",
+        "tools/xunit.performance.execution.desktop.dll",
+        "tools/xunit.performance.execution.desktop.pdb",
+        "tools/xunit.performance.run.exe",
+        "tools/xunit.performance.run.exe.config",
+        "tools/xunit.performance.run.pdb",
+        "tools/xunit.runner.utility.desktop.dll",
+        "tools/xunit.runner.utility.desktop.pdb",
+        "tools/x86/KernelTraceControl.dll",
+        "tools/x86/msdia120.dll",
+        "tools/amd64/KernelTraceControl.dll",
+        "tools/amd64/msdia120.dll",
+        "package/services/metadata/core-properties/79ed7e8387814017adbde831707a71bb.psmdcp",
+        "[Content_Types].xml"
+      ]
+    },
+    "xunit.runner.console/2.1.0-beta4-build3109": {
+      "sha512": "lz+sZtqfQhD6CA+u1KhahQD8ijyL64HNqiiPK4eplvM9r5f6C2OP9EiWS6nVT3rZlPCUXmGzf5kCCWh45kFf6w==",
+      "type": "Package",
+      "files": [
+        "_rels/.rels",
+        "xunit.runner.console.nuspec",
+        "tools/HTML.xslt",
+        "tools/NUnitXml.xslt",
+        "tools/xUnit1.xslt",
+        "tools/xunit.abstractions.dll",
+        "tools/xunit.runner.reporters.desktop.dll",
+        "tools/xunit.runner.utility.desktop.dll",
+        "tools/xunit.console.exe",
+        "tools/xunit.console.exe.config",
+        "tools/xunit.console.x86.exe",
+        "tools/xunit.console.x86.exe.config",
+        "package/services/metadata/core-properties/23dac145d7e04a5fac9971b73d372c76.psmdcp",
+        "[Content_Types].xml"
+      ]
+    }
+  },
+  "projectFileDependencyGroups": {
+    "": [
+      "xunit.runner.console >= 2.1.0-beta4-build3109",
+      "Microsoft.DotNet.xunit.performance.runner.Windows >= 1.0.0-alpha-build0013"
+    ],
+    ".NETFramework,Version=v4.6": []
+  }
+}

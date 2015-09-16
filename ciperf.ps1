@@ -207,7 +207,7 @@ try {
     $ub.Path += $StorageContainer + "/" + $BlobName
     $ub.Query = $StorageContainerRSAS.Substring(1)
     $CorrelationPayloadUri = $ub.Uri.OriginalString
-
+    
     $sb = New-Object -TypeName System.Text.StringBuilder
     [void] $sb.AppendLine("[")
 
@@ -217,7 +217,7 @@ try {
         if ($sb.Length -gt 3) { $sb.AppendLine(",") }
         
         [void] $sb.AppendLine("  {")
-        [void] $sb.AppendLine("    ""Command"": ""Perf-Run.cmd $TestAssembly"",")
+        [void] $sb.AppendLine("    ""Command"": ""Performance\\Perf-Test.cmd $TestAssembly"",")
         [void] $sb.AppendLine("    ""CorrelationPayloadUris"": [")
         [void] $sb.AppendLine("        ""$CorrelationPayloadUri""")
         [void] $sb.AppendLine("    ],")

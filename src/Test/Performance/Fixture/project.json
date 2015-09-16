@@ -1,0 +1,12 @@
+﻿{
+  "dependencies": {
+    "xunit.runner.console": "2.1.0-beta4-build3109",
+    "Microsoft.DotNet.xunit.performance.runner.Windows": "1.0.0-alpha-build0013"
+  },
+  "frameworks": {
+    "net46": { }
+  },
+  "runtimes": {
+    "win-": { }
+  }
+}
