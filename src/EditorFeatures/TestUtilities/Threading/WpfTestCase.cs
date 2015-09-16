@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Threading;
 
 using Xunit.Abstractions;
@@ -35,7 +36,13 @@ namespace Roslyn.Test.Utilities
                     SynchronizationContext.SetSynchronizationContext(dispatcherSynchronizationContext);
 
                     // Just call back into the normal xUnit dispatch process now that we are on an STA Thread with no synchronization context.
-                    return base.RunAsync(diagnosticMessageSink, messageBus, constructorArguments, aggregator, cancellationTokenSource).Result;
+                    var baseTask = base.RunAsync(diagnosticMessageSink, messageBus, constructorArguments, aggregator, cancellationTokenSource);
+                    while (!baseTask.IsCompleted)
+                    {
+                        new FrameworkElement().Dispatcher.DoEvents();
+                    }
+
+                    return baseTask.Result;
                 }
                 finally
                 {
