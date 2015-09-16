@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Host
     internal sealed class WorkspaceMetadataFileReferenceResolver : MetadataReferenceResolver, IEquatable<WorkspaceMetadataFileReferenceResolver>
     {
         private readonly IMetadataService _metadataService;
-        private readonly RelativePathResolver _pathResolver;
+        internal readonly RelativePathResolver PathResolver;
 
         public WorkspaceMetadataFileReferenceResolver(IMetadataService metadataService, RelativePathResolver pathResolver)
         {
@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.Host
             Debug.Assert(pathResolver != null);
 
             _metadataService = metadataService;
-            _pathResolver = pathResolver;
+            PathResolver = pathResolver;
         }
 
         public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
         {
-            string path = _pathResolver.ResolvePath(reference, baseFilePath);
+            string path = PathResolver.ResolvePath(reference, baseFilePath);
             if (path == null)
             {
                 return ImmutableArray<PortableExecutableReference>.Empty;
@@ -35,12 +35,12 @@ namespace Microsoft.CodeAnalysis.Host
         public bool Equals(WorkspaceMetadataFileReferenceResolver other)
         {
             return _metadataService == other._metadataService &&
-                   _pathResolver.Equals(other._pathResolver);
+                   PathResolver.Equals(other.PathResolver);
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(_metadataService, Hash.Combine(_pathResolver, 0));
+            return Hash.Combine(_metadataService, Hash.Combine(PathResolver, 0));
         }
 
         public override bool Equals(object other) => Equals(other as WorkspaceMetadataFileReferenceResolver);
