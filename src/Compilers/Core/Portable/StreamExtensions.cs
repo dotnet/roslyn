@@ -4,7 +4,14 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class StreamExtensions
     {
-        public static void ReadAll(
+        /// <summary>
+        /// Attempts to read all of the requested bytes from the stream into the buffer
+        /// </summary>
+        /// <returns>
+        /// The number of bytes read. Less than <paramref name="count" /> will
+        /// only be returned if the end of stream is reached before all bytes can be read.
+        /// </returns>
+        public static int TryReadAll(
             this Stream stream,
             byte[] buffer,
             int offset,
@@ -18,9 +25,10 @@ namespace Microsoft.CodeAnalysis
                                         count - totalBytesRead);
                 if (bytesRead == 0)
                 {
-                    throw new EndOfStreamException("Reached end of stream before end of read.");
+                    return totalBytesRead;
                 }
             }
+            return count;
         }
     }
 }

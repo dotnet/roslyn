@@ -664,7 +664,8 @@ namespace Microsoft.Cci
         /// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="byteCount"/> is negative.</exception>
         /// <exception cref="InvalidOperationException">Builder is not writable, it has been linked with another one.</exception>
-        public void WriteBytes(Stream source, int byteCount)
+        /// <returns>Bytes succesfully written from the <paramref name="source" />.</returns>
+        public int TryWriteBytes(Stream source, int byteCount)
         {
             if (source == null)
             {
@@ -678,16 +679,27 @@ namespace Microsoft.Cci
 
             int bytesToCurrent = Math.Min(FreeBytes, byteCount);
 
-            source.ReadAll(_buffer, Length, bytesToCurrent);
-            AddLength(bytesToCurrent);
+            int bytesRead = source.TryReadAll(_buffer, Length, bytesToCurrent);
+            AddLength(bytesRead);
+
+            if (bytesRead != bytesToCurrent)
+            {
+                return bytesRead;
+            }
 
             int remaining = byteCount - bytesToCurrent;
             if (remaining > 0)
             {
                 Expand(remaining);
-                source.ReadAll(_buffer, 0, remaining);
-                AddLength(remaining);
+                bytesRead = source.TryReadAll(_buffer, 0, remaining);
+                AddLength(bytesRead);
+                
+                if (bytesRead != remaining)
+                {
+                    return bytesToCurrent + bytesRead;
+                }
             }
+            return byteCount;
         }
 
         /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>

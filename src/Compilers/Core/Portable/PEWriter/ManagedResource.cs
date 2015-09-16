@@ -48,7 +48,11 @@ namespace Microsoft.Cci
                         var count = (int)(stream.Length - stream.Position);
                         resourceWriter.WriteInt32(count);
 
-                        resourceWriter.WriteBytes(stream, count);
+                        int bytesWritten = resourceWriter.TryWriteBytes(stream, count);
+                        if (bytesWritten != count)
+                        {
+                            throw new EndOfStreamException($"Resource stream ended at {bytesWritten} bytes, expected {count} bytes");
+                        }
                         resourceWriter.Align(8);
                     }
                 }
