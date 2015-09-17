@@ -200,10 +200,9 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                ErrorLogger.LogDiagnostic(diag, this.Culture, errorLogger);
-
                 // We want to report diagnostics with source suppression in the error log file.
                 // However, these diagnostics should not be reported on the console output.
+                ErrorLogger.LogDiagnostic(diag, this.Culture, errorLogger);
                 if (diag.IsSuppressed)
                 {
                     continue;
@@ -343,6 +342,7 @@ namespace Microsoft.CodeAnalysis
                 return Failed;
             }
 
+
             var diagnostics = new List<DiagnosticInfo>();
             var analyzers = ResolveAnalyzersFromArguments(diagnostics, MessageProvider, touchedFilesLogger);
             var additionalTextFiles = ResolveAdditionalFilesFromArguments(diagnostics, MessageProvider, touchedFilesLogger);
@@ -368,11 +368,7 @@ namespace Microsoft.CodeAnalysis
                     Action<Diagnostic> addExceptionDiagnostic = diagnostic => analyzerExceptionDiagnostics.Add(diagnostic);
                     var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.CastUp(additionalTextFiles));
                     
-                    // We want to report diagnostics with source suppression in the error log file.
-                    // However, these diagnostics won't be reported on the command line.
-                    var reportDiagnosticsWithSourceSuppression = errorLogger != null;
-
-                    analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(compilation, analyzers, analyzerOptions, analyzerManager, addExceptionDiagnostic, Arguments.ReportAnalyzer, reportDiagnosticsWithSourceSuppression, out compilation, analyzerCts.Token);
+                    analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(compilation, analyzers, analyzerOptions, analyzerManager, addExceptionDiagnostic, Arguments.ReportAnalyzer, out compilation, analyzerCts.Token);
                     getAnalyzerDiagnostics = () => analyzerDriver.GetDiagnosticsAsync(compilation).Result;
                 }
 
