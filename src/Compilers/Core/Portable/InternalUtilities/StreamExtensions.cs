@@ -3,7 +3,7 @@
 using System.Diagnostics;
 using System.IO;
 
-namespace Microsoft.CodeAnalysis
+namespace Roslyn.Utilities
 {
     internal static class StreamExtensions
     {

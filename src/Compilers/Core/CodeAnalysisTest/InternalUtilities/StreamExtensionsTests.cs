@@ -1,10 +1,11 @@
 ﻿
+using Microsoft.CodeAnalysis;
 using Roslyn.Test.Utilities;
 using System;
 using System.IO;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
+namespace Roslyn.Utilities.UnitTests.InternalUtilities
 {
     public class StreamExtensionsTests
     {

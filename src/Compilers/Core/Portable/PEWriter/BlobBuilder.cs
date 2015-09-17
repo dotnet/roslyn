@@ -682,14 +682,18 @@ namespace Microsoft.Cci
                 return 0;
             }
 
+            int bytesRead = 0;
             int bytesToCurrent = Math.Min(FreeBytes, byteCount);
 
-            int bytesRead = source.TryReadAll(_buffer, Length, bytesToCurrent);
-            AddLength(bytesRead);
-
-            if (bytesRead != bytesToCurrent)
+            if (bytesToCurrent > 0)
             {
-                return bytesRead;
+                bytesRead = source.TryReadAll(_buffer, Length, bytesToCurrent);
+                AddLength(bytesRead);
+
+                if (bytesRead != bytesToCurrent)
+                {
+                    return bytesRead;
+                }
             }
 
             int remaining = byteCount - bytesToCurrent;
@@ -701,6 +705,7 @@ namespace Microsoft.Cci
 
                 bytesRead += bytesToCurrent;
             }
+
             return bytesRead;
         }
 
