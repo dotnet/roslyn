@@ -105,5 +105,18 @@ namespace Roslyn.Utilities.UnitTests.InternalUtilities
             Assert.Throws<IOException>(() => stream.TryReadAll(destArray, 0, sourceArray.Length));
             Assert.Equal(2, backingStream.Position);
         }
+
+        [Fact]
+        public void PrematureEndOfStream()
+        {
+            var sourceArray = new byte[] { 1, 2, 3, 4 };
+            var stream = new MemoryStream(sourceArray);
+
+            var destArray = new byte[6];
+            // Try to read more bytes than exist in the stream
+            Assert.Equal(4, stream.TryReadAll(destArray, 0, 6));
+            var expected = new byte[] { 1, 2, 3, 4, 0, 0 };
+            Assert.Equal(expected, destArray);
+        }
     }
 }

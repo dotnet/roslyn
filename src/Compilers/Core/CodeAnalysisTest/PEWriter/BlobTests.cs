@@ -877,7 +877,24 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
             });
 
             var builder = PooledBlobBuilder.GetInstance(sourceArray.Length);
-            builder.TryWriteBytes(stream, sourceArray.Length);
+            Assert.Equal(sourceArray.Length, builder.TryWriteBytes(stream, sourceArray.Length));
+            Assert.Equal(sourceArray, builder.ToArray());
+
+            builder.Free();
+        }
+
+        [Fact]
+        public void PrematureEndOfStream()
+        {
+            var sourceArray = new byte[] { 1, 2, 3, 4 };
+            var stream = new MemoryStream(sourceArray);
+
+            var destArray = new byte[6];
+            var builder = PooledBlobBuilder.GetInstance(destArray.Length);
+
+            // Try to write more bytes than exist in the stream
+            Assert.Equal(4, builder.TryWriteBytes(stream, 6));
+
             Assert.Equal(sourceArray, builder.ToArray());
 
             builder.Free();
