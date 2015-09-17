@@ -1,12 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Globalization
 Imports System.Reflection
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Scripting.Hosting
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
-    Friend Class VisualBasicScriptCompiler
+    Friend NotInheritable Class VisualBasicScriptCompiler
         Inherits ScriptCompiler
 
         Public Shared ReadOnly Instance As ScriptCompiler = New VisualBasicScriptCompiler()
@@ -23,6 +24,15 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
                 Return VisualBasicDiagnosticFormatter.Instance
             End Get
         End Property
+
+        Public Overrides Function IsCompleteSubmission(tree As SyntaxTree) As Boolean
+            ' TODO: https://github.com/dotnet/roslyn/issues/5235
+            Return True
+        End Function
+
+        Public Overrides Function ParseSubmission(text As SourceText, cancellationToken As CancellationToken) As SyntaxTree
+            Return SyntaxFactory.ParseSyntaxTree(text, s_defaultInteractive, cancellationToken:=cancellationToken)
+        End Function
 
         Private Shared Function GetGlobalImportsForCompilation(script As Script) As IEnumerable(Of GlobalImport)
             ' TODO: remember these per options instance so we don't need to reparse each submission

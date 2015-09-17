@@ -108,47 +108,6 @@ a.cs
             CleanupAllGeneratedFiles(rsp);
         }
 
-        [Fact]
-        public void ResponseFiles2()
-        {
-            string rsp = Temp.CreateFile().WriteAllText(@"
-/r:System
-/r:System.Core
-/r:System.Data
-/r:System.Data.DataSetExtensions
-/r:System.Xml
-/r:System.Xml.Linq
-/r:Microsoft.CSharp
-/u:System
-/u:System.Collections.Generic
-/u:System.Linq
-/u:System.Text").Path;
-
-            var cmd = new MockCsi(rsp, _baseDirectory, new[] { "b.csx" });
-
-            AssertEx.Equal(new[]
-            {
-                typeof(object).Assembly.Location,
-                "System",
-                "System.Core",
-                "System.Data",
-                "System.Data.DataSetExtensions",
-                "System.Xml",
-                "System.Xml.Linq",
-                "Microsoft.CSharp",
-            }, cmd.Arguments.MetadataReferences.Select(r => r.Reference));
-
-            AssertEx.Equal(new[]
-            {
-                "System",
-                "System.Collections.Generic",
-                "System.Linq",
-                "System.Text",
-            }, cmd.Arguments.CompilationOptions.Usings.AsEnumerable());
-
-            CleanupAllGeneratedFiles(rsp);
-        }
-
         [ConditionalFact(typeof(WindowsOnly))]
         public void ResponseFiles_RelativePaths()
         {

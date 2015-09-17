@@ -4340,8 +4340,8 @@
   <data name="WRN_PrefixAndXmlnsLocalName_Title" xml:space="preserve">
     <value>It is not recommended to have attributes named xmlns</value>
   </data>
-  <data name="ERR_NoScriptsSpecified" xml:space="preserve">
-    <value>Expected at least one script (.vbx file) but none specified</value>
+  <data name="ERR_ExpectedSingleScript" xml:space="preserve">
+    <value>Expected a single script (.vbx file)</value>
   </data>
   <data name="ERR_ReservedAssemblyName" xml:space="preserve">
     <value>The assembly name '{0}' is reserved and cannot be used as a reference in an interactive session</value>

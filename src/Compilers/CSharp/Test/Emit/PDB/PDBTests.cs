@@ -1453,8 +1453,7 @@ class C
     }
 }";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb("C.M", @"
-<symbols>
+            c.VerifyPdb("C.M", @"<symbols>
   <methods>
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
@@ -1463,7 +1462,6 @@ class C
         </using>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""15"" />
-          <slot kind=""temp"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -1474,15 +1472,14 @@ class C
         <entry offset=""0x6"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""41"" />
         <entry offset=""0xd"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" />
         <entry offset=""0xe"" startLine=""7"" startColumn=""16"" endLine=""7"" endColumn=""19"" />
-        <entry offset=""0x14"" hidden=""true"" />
+        <entry offset=""0x12"" hidden=""true"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x16"">
-        <local name=""i"" il_index=""0"" il_start=""0x0"" il_end=""0x16"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x14"">
+        <local name=""i"" il_index=""0"" il_start=""0x0"" il_end=""0x14"" attributes=""0"" />
       </scope>
     </method>
   </methods>
-</symbols>
-");
+</symbols>");
         }
 
         #endregion
@@ -3747,8 +3744,7 @@ unsafe class C
 }
 ";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugExe);
-            c.VerifyPdb(@"
-<symbols>
+            c.VerifyPdb(@"<symbols>
   <entryPoint declaringType=""C"" methodName=""Main"" />
   <methods>
     <method containingType=""C"" name=""Main"">
@@ -3760,8 +3756,6 @@ unsafe class C
           <slot kind=""0"" offset=""13"" />
           <slot kind=""0"" offset=""79"" />
           <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -3771,16 +3765,16 @@ unsafe class C
         <entry offset=""0x15"" startLine=""12"" startColumn=""16"" endLine=""12"" endColumn=""28"" />
         <entry offset=""0x31"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
         <entry offset=""0x32"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""20"" />
-        <entry offset=""0x3f"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" />
-        <entry offset=""0x40"" hidden=""true"" />
-        <entry offset=""0x43"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""31"" />
-        <entry offset=""0x51"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" />
+        <entry offset=""0x39"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" />
+        <entry offset=""0x3a"" hidden=""true"" />
+        <entry offset=""0x3d"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""31"" />
+        <entry offset=""0x4b"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x52"">
+      <scope startOffset=""0x0"" endOffset=""0x4c"">
         <namespace name=""System"" />
-        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x52"" attributes=""0"" />
-        <scope startOffset=""0x15"" endOffset=""0x43"">
-          <local name=""p"" il_index=""1"" il_start=""0x15"" il_end=""0x43"" attributes=""0"" />
+        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x4c"" attributes=""0"" />
+        <scope startOffset=""0x15"" endOffset=""0x3d"">
+          <local name=""p"" il_index=""1"" il_start=""0x15"" il_end=""0x3d"" attributes=""0"" />
         </scope>
       </scope>
     </method>
