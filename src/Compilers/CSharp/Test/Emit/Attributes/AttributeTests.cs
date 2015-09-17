@@ -90,7 +90,7 @@ public unsafe partial class A : C, I
             var source = CreateCompilationWithMscorlibAndSystemCore(code);
 
             // the following should not crash
-            source.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, source.SyntaxTrees[0], null, true, includeDiagnosticsWithSourceSuppression: false, cancellationToken: CancellationToken.None);
+            source.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, source.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true);
         }
 
 

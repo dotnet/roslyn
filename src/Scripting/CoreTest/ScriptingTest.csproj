@@ -62,6 +62,7 @@
     <Compile Include="ScriptingTestHelpers.cs" />
     <Compile Include="ScriptOptionsTests.cs" />
     <Compile Include="ScriptTaskExtensions.cs" />
+    <Compile Include="TestConsoleIO.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests" />
