@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -199,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestNotWithFieldWithAttirbute()
+        public void TestNotWithFieldWithAttribute()
         {
             TestMissing(
 @"class Class { [|[A]int i|]; int P { get { return i; } } }");
@@ -243,6 +245,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
             Test(
 @"class Class { [|int i|]; public int P { get { return i; } } public Foo() { i = 1; } }",
 @"class Class { public int P { get; private set; } public Foo() { P = 1; } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public void TestAlreadyAutoPropertyWithGetterWithNoBody()
+        {
+            TestMissing(@"class Class { public int [|P|] { get; } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public void TestAlreadyAutoPropertyWithGetterAndSetterWithNoBody()
+        {
+            TestMissing(@"class Class { public int [|P|] { get; set; } }");
         }
     }
 }

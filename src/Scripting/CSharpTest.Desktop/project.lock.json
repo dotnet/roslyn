@@ -4,12 +4,34 @@
   "targets": {
     ".NETFramework,Version=v4.6": {
       "Microsoft.NETCore.Platforms/1.0.0": {},
+      "Microsoft.NETCore.Portable.Compatibility/1.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
       "Newtonsoft.Json/6.0.4": {
         "compile": {
           "lib/net45/Newtonsoft.Json.dll": {}
         },
         "runtime": {
           "lib/net45/Newtonsoft.Json.dll": {}
+        }
+      },
+      "System.AppContext/4.0.0": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )"
+        },
+        "frameworkAssemblies": [
+          "mscorlib"
+        ],
+        "compile": {
+          "ref/net46/System.AppContext.dll": {}
+        },
+        "runtime": {
+          "lib/net46/System.AppContext.dll": {}
         }
       },
       "System.Collections/4.0.10": {
@@ -68,6 +90,21 @@
         },
         "runtime": {
           "lib/net46/System.Diagnostics.Process.dll": {}
+        }
+      },
+      "System.Diagnostics.StackTrace/4.0.0": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )",
+          "System.Reflection": "[4.0.0, )"
+        },
+        "frameworkAssemblies": [
+          "mscorlib"
+        ],
+        "compile": {
+          "ref/net46/System.Diagnostics.StackTrace.dll": {}
+        },
+        "runtime": {
+          "lib/net46/System.Diagnostics.StackTrace.dll": {}
         }
       },
       "System.Diagnostics.Tools/4.0.0": {
@@ -373,6 +410,87 @@
         "[Content_Types].xml"
       ]
     },
+    "Microsoft.NETCore.Portable.Compatibility/1.0.0": {
+      "sha512": "5/IFqf2zN1jzktRJitxO+5kQ+0AilcIbPvSojSJwDG3cGNSMZg44LXLB5E9RkSETE0Wh4QoALdNh1koKoF7/mA==",
+      "type": "Package",
+      "files": [
+        "_rels/.rels",
+        "Microsoft.NETCore.Portable.Compatibility.nuspec",
+        "lib/netcore50/System.ComponentModel.DataAnnotations.dll",
+        "lib/netcore50/System.Core.dll",
+        "lib/netcore50/System.dll",
+        "lib/netcore50/System.Net.dll",
+        "lib/netcore50/System.Numerics.dll",
+        "lib/netcore50/System.Runtime.Serialization.dll",
+        "lib/netcore50/System.ServiceModel.dll",
+        "lib/netcore50/System.ServiceModel.Web.dll",
+        "lib/netcore50/System.Windows.dll",
+        "lib/netcore50/System.Xml.dll",
+        "lib/netcore50/System.Xml.Linq.dll",
+        "lib/netcore50/System.Xml.Serialization.dll",
+        "lib/dnxcore50/System.ComponentModel.DataAnnotations.dll",
+        "lib/dnxcore50/System.Core.dll",
+        "lib/dnxcore50/System.dll",
+        "lib/dnxcore50/System.Net.dll",
+        "lib/dnxcore50/System.Numerics.dll",
+        "lib/dnxcore50/System.Runtime.Serialization.dll",
+        "lib/dnxcore50/System.ServiceModel.dll",
+        "lib/dnxcore50/System.ServiceModel.Web.dll",
+        "lib/dnxcore50/System.Windows.dll",
+        "lib/dnxcore50/System.Xml.dll",
+        "lib/dnxcore50/System.Xml.Linq.dll",
+        "lib/dnxcore50/System.Xml.Serialization.dll",
+        "lib/net45/_._",
+        "lib/win8/_._",
+        "lib/wp80/_._",
+        "lib/wpa81/_._",
+        "ref/dotnet/mscorlib.dll",
+        "ref/dotnet/System.ComponentModel.DataAnnotations.dll",
+        "ref/dotnet/System.Core.dll",
+        "ref/dotnet/System.dll",
+        "ref/dotnet/System.Net.dll",
+        "ref/dotnet/System.Numerics.dll",
+        "ref/dotnet/System.Runtime.Serialization.dll",
+        "ref/dotnet/System.ServiceModel.dll",
+        "ref/dotnet/System.ServiceModel.Web.dll",
+        "ref/dotnet/System.Windows.dll",
+        "ref/dotnet/System.Xml.dll",
+        "ref/dotnet/System.Xml.Linq.dll",
+        "ref/dotnet/System.Xml.Serialization.dll",
+        "runtimes/aot/lib/netcore50/mscorlib.dll",
+        "runtimes/aot/lib/netcore50/System.ComponentModel.DataAnnotations.dll",
+        "runtimes/aot/lib/netcore50/System.Core.dll",
+        "runtimes/aot/lib/netcore50/System.dll",
+        "runtimes/aot/lib/netcore50/System.Net.dll",
+        "runtimes/aot/lib/netcore50/System.Numerics.dll",
+        "runtimes/aot/lib/netcore50/System.Runtime.Serialization.dll",
+        "runtimes/aot/lib/netcore50/System.ServiceModel.dll",
+        "runtimes/aot/lib/netcore50/System.ServiceModel.Web.dll",
+        "runtimes/aot/lib/netcore50/System.Windows.dll",
+        "runtimes/aot/lib/netcore50/System.Xml.dll",
+        "runtimes/aot/lib/netcore50/System.Xml.Linq.dll",
+        "runtimes/aot/lib/netcore50/System.Xml.Serialization.dll",
+        "ref/net45/_._",
+        "ref/win8/_._",
+        "ref/netcore50/mscorlib.dll",
+        "ref/netcore50/System.ComponentModel.DataAnnotations.dll",
+        "ref/netcore50/System.Core.dll",
+        "ref/netcore50/System.dll",
+        "ref/netcore50/System.Net.dll",
+        "ref/netcore50/System.Numerics.dll",
+        "ref/netcore50/System.Runtime.Serialization.dll",
+        "ref/netcore50/System.ServiceModel.dll",
+        "ref/netcore50/System.ServiceModel.Web.dll",
+        "ref/netcore50/System.Windows.dll",
+        "ref/netcore50/System.Xml.dll",
+        "ref/netcore50/System.Xml.Linq.dll",
+        "ref/netcore50/System.Xml.Serialization.dll",
+        "ref/wp80/_._",
+        "ref/wpa81/_._",
+        "package/services/metadata/core-properties/8131b8ae030a45e7986737a0c1d04ef5.psmdcp",
+        "[Content_Types].xml"
+      ]
+    },
     "Newtonsoft.Json/6.0.4": {
       "sha512": "FyQLmEpjsCrEP+znauLDGAi+h6i9YnaMkITlfIoiM4RYyX3nki306bTHsr/0okiIvIc7BJhQTbOAIZVocccFUw==",
       "type": "Package",
@@ -395,6 +513,39 @@
         "lib/portable-net45+wp80+win8+wpa81/Newtonsoft.Json.xml",
         "tools/install.ps1",
         "package/services/metadata/core-properties/87a0a4e28d50417ea282e20f81bc6477.psmdcp",
+        "[Content_Types].xml"
+      ]
+    },
+    "System.AppContext/4.0.0": {
+      "sha512": "gUoYgAWDC3+xhKeU5KSLbYDhTdBYk9GssrMSCcWUADzOglW+s0AmwVhOUGt2tL5xUl7ZXoYTPdA88zCgKrlG0A==",
+      "type": "Package",
+      "files": [
+        "_rels/.rels",
+        "System.AppContext.nuspec",
+        "lib/netcore50/System.AppContext.dll",
+        "lib/DNXCore50/System.AppContext.dll",
+        "lib/net46/System.AppContext.dll",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "ref/dotnet/System.AppContext.dll",
+        "ref/dotnet/System.AppContext.xml",
+        "ref/dotnet/zh-hant/System.AppContext.xml",
+        "ref/dotnet/de/System.AppContext.xml",
+        "ref/dotnet/fr/System.AppContext.xml",
+        "ref/dotnet/it/System.AppContext.xml",
+        "ref/dotnet/ja/System.AppContext.xml",
+        "ref/dotnet/ko/System.AppContext.xml",
+        "ref/dotnet/ru/System.AppContext.xml",
+        "ref/dotnet/zh-hans/System.AppContext.xml",
+        "ref/dotnet/es/System.AppContext.xml",
+        "ref/net46/System.AppContext.dll",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "package/services/metadata/core-properties/3b390478e0cd42eb8818bbab19299738.psmdcp",
         "[Content_Types].xml"
       ]
     },
@@ -540,6 +691,40 @@
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
         "package/services/metadata/core-properties/62bb66ff8fc94426b267bb086f8f7d40.psmdcp",
+        "[Content_Types].xml"
+      ]
+    },
+    "System.Diagnostics.StackTrace/4.0.0": {
+      "sha512": "PItgenqpRiMqErvQONBlfDwctKpWVrcDSW5pppNZPJ6Bpiyz+KjsWoSiaqs5dt03HEbBTMNCrZb8KCkh7YfXmw==",
+      "type": "Package",
+      "files": [
+        "_rels/.rels",
+        "System.Diagnostics.StackTrace.nuspec",
+        "lib/DNXCore50/System.Diagnostics.StackTrace.dll",
+        "lib/netcore50/System.Diagnostics.StackTrace.dll",
+        "lib/net46/System.Diagnostics.StackTrace.dll",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "ref/dotnet/System.Diagnostics.StackTrace.dll",
+        "ref/dotnet/System.Diagnostics.StackTrace.xml",
+        "ref/dotnet/zh-hant/System.Diagnostics.StackTrace.xml",
+        "ref/dotnet/de/System.Diagnostics.StackTrace.xml",
+        "ref/dotnet/fr/System.Diagnostics.StackTrace.xml",
+        "ref/dotnet/it/System.Diagnostics.StackTrace.xml",
+        "ref/dotnet/ja/System.Diagnostics.StackTrace.xml",
+        "ref/dotnet/ko/System.Diagnostics.StackTrace.xml",
+        "ref/dotnet/ru/System.Diagnostics.StackTrace.xml",
+        "ref/dotnet/zh-hans/System.Diagnostics.StackTrace.xml",
+        "ref/dotnet/es/System.Diagnostics.StackTrace.xml",
+        "runtimes/win8-aot/lib/netcore50/System.Diagnostics.StackTrace.dll",
+        "ref/net46/System.Diagnostics.StackTrace.dll",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "package/services/metadata/core-properties/5c7ca489a36944d895c628fced7e9107.psmdcp",
         "[Content_Types].xml"
       ]
     },

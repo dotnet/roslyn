@@ -505,13 +505,13 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// <summary>
         /// Sets the current session's search paths and base directory.
         /// </summary>
-        public Task SetPathsAsync(string[] referenceSearchPaths, string[] sourceSearchPaths, string baseDirectory)
+        public Task<RemoteExecutionResult> SetPathsAsync(string[] referenceSearchPaths, string[] sourceSearchPaths, string baseDirectory)
         {
             Debug.Assert(referenceSearchPaths != null);
             Debug.Assert(sourceSearchPaths != null);
             Debug.Assert(baseDirectory != null);
 
-            return Async<object>((service, operation) => service.SetPathsAsync(operation, referenceSearchPaths, sourceSearchPaths, baseDirectory));
+            return Async<RemoteExecutionResult>((service, operation) => service.SetPathsAsync(operation, referenceSearchPaths, sourceSearchPaths, baseDirectory));
         }
 
         #endregion

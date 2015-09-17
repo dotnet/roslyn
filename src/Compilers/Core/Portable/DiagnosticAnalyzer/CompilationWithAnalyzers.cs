@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             _analysisState = new AnalysisState(analyzers);
             _analysisResult = new AnalysisResult(analysisOptions.LogAnalyzerExecutionTime, analyzers);
-            _driverPool = new ObjectPool<AnalyzerDriver>(() => compilation.AnalyzerForLanguage(analyzers, AnalyzerManager.Instance));
+            _driverPool = new ObjectPool<AnalyzerDriver>(() => compilation.AnalyzerForLanguage(analyzers, AnalyzerManager.Instance, analysisOptions.ReportDiagnosticsWithSourceSuppression));
             _executingConcurrentTreeTasksOpt = analysisOptions.ConcurrentAnalysis ? new Dictionary<SyntaxTree, Tuple<Task, CancellationTokenSource>>() : null;
             _concurrentTreeTaskTokensOpt = analysisOptions.ConcurrentAnalysis ? new Dictionary<Task, int>() : null;
             _executingCompilationOrNonConcurrentTreeTask = null;
@@ -688,7 +688,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     finally
                     {
                         // Update the diagnostic results based on the diagnostics reported on the driver.
-                        _analysisResult.StoreAnalysisResult(analysisScope, driver);
+                        _analysisResult.StoreAnalysisResult(analysisScope, driver, _compilation);
                     }
                 }
             }
@@ -963,14 +963,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentNullException(nameof(compilation));
             }
 
-            var suppressMessageState = AnalyzerDriver.GetCachedCompilationData(compilation).SuppressMessageAttributeState;
             foreach (var diagnostic in diagnostics.ToImmutableArray())
             {
                 if (diagnostic != null)
                 {
                     var effectiveDiagnostic = compilation.Options.FilterDiagnostic(diagnostic);
-                    if (effectiveDiagnostic != null && !suppressMessageState.IsDiagnosticSuppressed(effectiveDiagnostic))
+                    if (effectiveDiagnostic != null)
                     {
+                        effectiveDiagnostic = SuppressMessageAttributeState.ApplySourceSuppressions(effectiveDiagnostic, compilation);
                         yield return effectiveDiagnostic;
                     }
                 }

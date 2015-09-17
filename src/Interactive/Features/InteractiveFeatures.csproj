@@ -22,6 +22,7 @@
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
       <Name>Workspaces.Desktop</Name>
+      <Aliases>global,WORKSPACES</Aliases>
     </ProjectReference>
     <ProjectReference Include="..\..\Scripting\Core\Scripting.csproj">
       <Project>{12A68549-4E8C-42D6-8703-A09335F97997}</Project>

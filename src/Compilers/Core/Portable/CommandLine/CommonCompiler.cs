@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract void CompilerSpecificSqm(IVsSqmMulti sqm, uint sqmSession);
         protected abstract ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles);
 
-        public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, string clientDirectory, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories, IAnalyzerAssemblyLoader analyzerLoader)
+        public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, string clientDirectory, string baseDirectory, string sdkDirectoryOpt, string additionalReferenceDirectories, IAnalyzerAssemblyLoader analyzerLoader)
         {
             IEnumerable<string> allArgs = args;
             _clientDirectory = clientDirectory;
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis
                 allArgs = new[] { "@" + responseFile }.Concat(allArgs);
             }
 
-            this.Arguments = parser.Parse(allArgs, baseDirectory, sdkDirectory, additionalReferenceDirectories);
+            this.Arguments = parser.Parse(allArgs, baseDirectory, sdkDirectoryOpt, additionalReferenceDirectories);
             this.MessageProvider = parser.MessageProvider;
             this.AnalyzerLoader = analyzerLoader;
         }
@@ -79,64 +79,53 @@ namespace Microsoft.CodeAnalysis
             return typeof(CommonCompiler).GetTypeInfo().Assembly.GetName().Version;
         }
 
-        internal virtual MetadataFileReferenceProvider GetMetadataProvider()
+        internal virtual Func<string, MetadataReferenceProperties, PortableExecutableReference> GetMetadataProvider()
         {
-            return MetadataFileReferenceProvider.Default;
+            return (path, properties) => MetadataReference.CreateFromFile(path, properties);
         }
 
-        internal virtual MetadataFileReferenceResolver GetExternalMetadataResolver(TouchedFileLogger touchedFiles)
+        internal virtual MetadataReferenceResolver GetCommandLineMetadataReferenceResolver(TouchedFileLogger loggerOpt)
         {
-            return CreateLoggingMetadataResolver(touchedFiles);
+            var pathResolver = new RelativePathResolver(Arguments.ReferencePaths, Arguments.BaseDirectory);
+            return new LoggingMetadataFileReferenceResolver(pathResolver, GetMetadataProvider(), loggerOpt);
         }
 
         /// <summary>
         /// Resolves metadata references stored in command line arguments and reports errors for those that can't be resolved.
         /// </summary>
         internal List<MetadataReference> ResolveMetadataReferences(
-            MetadataFileReferenceResolver externalReferenceResolver,
-            MetadataFileReferenceProvider metadataProvider,
             List<DiagnosticInfo> diagnostics,
-            AssemblyIdentityComparer assemblyIdentityComparer,
             TouchedFileLogger touchedFiles,
-            out MetadataFileReferenceResolver referenceDirectiveResolver)
+            out MetadataReferenceResolver referenceDirectiveResolver)
         {
+            var commandLineReferenceResolver = GetCommandLineMetadataReferenceResolver(touchedFiles);
+
             List<MetadataReference> resolved = new List<MetadataReference>();
-            Arguments.ResolveMetadataReferences(new AssemblyReferenceResolver(externalReferenceResolver, metadataProvider), diagnostics, this.MessageProvider, resolved);
+            Arguments.ResolveMetadataReferences(commandLineReferenceResolver, diagnostics, this.MessageProvider, resolved);
 
             if (Arguments.IsInteractive)
             {
-                referenceDirectiveResolver = externalReferenceResolver;
+                referenceDirectiveResolver = commandLineReferenceResolver;
             }
             else
             {
                 // when compiling into an assembly (csc/vbc) we only allow #r that match references given on command line:
-                referenceDirectiveResolver = new ExistingReferencesResolver(
-                    CreateLoggingMetadataResolver(touchedFiles),
-                    resolved.Where(r => r.Properties.Kind == MetadataImageKind.Assembly).OfType<PortableExecutableReference>().AsImmutable(),
-                    assemblyIdentityComparer);
+                referenceDirectiveResolver = new ExistingReferencesResolver(commandLineReferenceResolver, resolved.ToImmutableArray());
             }
 
             return resolved;
         }
 
-        private MetadataFileReferenceResolver CreateLoggingMetadataResolver(TouchedFileLogger logger)
-        {
-            MetadataFileReferenceResolver resolver = new RelativePathReferenceResolver(Arguments.ReferencePaths, Arguments.BaseDirectory);
-            return (logger == null) ? resolver : new LoggingMetadataReferencesResolver(resolver, logger);
-        }
-
         /// <summary>
         /// Reads content of a source file.
         /// </summary>
         /// <param name="file">Source file information.</param>
         /// <param name="diagnostics">Storage for diagnostics.</param>
-        /// <param name="encoding">Encoding to use or 'null' for autodetect/default</param>
-        /// <param name="checksumAlgorithm">Hash algorithm used to calculate file checksum.</param>
         /// <returns>File content or null on failure.</returns>
-        internal SourceText ReadFileContent(CommandLineSourceFile file, IList<DiagnosticInfo> diagnostics, Encoding encoding, SourceHashAlgorithm checksumAlgorithm)
+        internal SourceText ReadFileContent(CommandLineSourceFile file, IList<DiagnosticInfo> diagnostics)
         {
             string discarded;
-            return ReadFileContent(file, diagnostics, encoding, checksumAlgorithm, out discarded);
+            return ReadFileContent(file, diagnostics, out discarded);
         }
 
         /// <summary>
@@ -144,24 +133,22 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="file">Source file information.</param>
         /// <param name="diagnostics">Storage for diagnostics.</param>
-        /// <param name="encoding">Encoding to use or 'null' for autodetect/default</param>
-        /// <param name="checksumAlgorithm">Hash algorithm used to calculate file checksum.</param>
         /// <param name="normalizedFilePath">If given <paramref name="file"/> opens successfully, set to normalized absolute path of the file, null otherwise.</param>
         /// <returns>File content or null on failure.</returns>
-        internal SourceText ReadFileContent(CommandLineSourceFile file, IList<DiagnosticInfo> diagnostics, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, out string normalizedFilePath)
+        internal SourceText ReadFileContent(CommandLineSourceFile file, IList<DiagnosticInfo> diagnostics, out string normalizedFilePath)
         {
             var filePath = file.Path;
             try
             {
-                // PERF: Using a very small buffer size for the FileStream opens up an optimization within EncodedStringText where
-                // we read the entire FileStream into a byte array in one shot. For files that are actually smaller than the buffer
-                // size, FileStream.Read still allocates the internal buffer.
-                using (var data = PortableShim.FileStream.Create(filePath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.ReadWrite, bufferSize: 1, options: PortableShim.FileOptions.None))
-                {
-                    normalizedFilePath = (string)PortableShim.FileStream.Name.GetValue(data);
-                    return EncodedStringText.Create(data, encoding, checksumAlgorithm);
-                }
+            // PERF: Using a very small buffer size for the FileStream opens up an optimization within EncodedStringText where
+            // we read the entire FileStream into a byte array in one shot. For files that are actually smaller than the buffer
+            // size, FileStream.Read still allocates the internal buffer.
+            using (var data = PortableShim.FileStream.Create(filePath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.ReadWrite, bufferSize: 1, options: PortableShim.FileOptions.None))
+            {
+                normalizedFilePath = (string)PortableShim.FileStream.Name.GetValue(data);
+                return EncodedStringText.Create(data, Arguments.Encoding, Arguments.ChecksumAlgorithm);
             }
+        }
             catch (Exception e)
             {
                 diagnostics.Add(ToFileReadDiagnostics(this.MessageProvider, e, filePath));
@@ -213,8 +200,16 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                consoleOutput.WriteLine(DiagnosticFormatter.Format(diag, this.Culture));
                 ErrorLogger.LogDiagnostic(diag, this.Culture, errorLogger);
+
+                // We want to report diagnostics with source suppression in the error log file.
+                // However, these diagnostics should not be reported on the console output.
+                if (diag.IsSuppressed)
+                {
+                    continue;
+                }
+
+                consoleOutput.WriteLine(DiagnosticFormatter.Format(diag, this.Culture));
 
                 if (diag.Severity == DiagnosticSeverity.Error)
                 {
@@ -372,8 +367,13 @@ namespace Microsoft.CodeAnalysis
                     analyzerExceptionDiagnostics = new ConcurrentSet<Diagnostic>();
                     Action<Diagnostic> addExceptionDiagnostic = diagnostic => analyzerExceptionDiagnostics.Add(diagnostic);
                     var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.CastUp(additionalTextFiles));
-                    analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(compilation, analyzers, analyzerOptions, analyzerManager, addExceptionDiagnostic, Arguments.ReportAnalyzer, out compilation, analyzerCts.Token);
-                    getAnalyzerDiagnostics = () => analyzerDriver.GetDiagnosticsAsync().Result;
+                    
+                    // We want to report diagnostics with source suppression in the error log file.
+                    // However, these diagnostics won't be reported on the command line.
+                    var reportDiagnosticsWithSourceSuppression = errorLogger != null;
+
+                    analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(compilation, analyzers, analyzerOptions, analyzerManager, addExceptionDiagnostic, Arguments.ReportAnalyzer, reportDiagnosticsWithSourceSuppression, out compilation, analyzerCts.Token);
+                    getAnalyzerDiagnostics = () => analyzerDriver.GetDiagnosticsAsync(compilation).Result;
                 }
 
                 // Print the diagnostics produced during the parsing stage and exit if there were any errors.
@@ -851,135 +851,5 @@ namespace Microsoft.CodeAnalysis
                 return Arguments.PreferredUILang ?? CultureInfo.CurrentUICulture;
             }
         }
-#if REPL
-
-        // let the assembly loader know about location of all files referenced by the compilation:
-        foreach (AssemblyIdentity reference in compilation.ReferencedAssemblyNames)
-        {
-            if (reference.Location != null)
-            {
-                assemblyLoader.RegisterDependency(reference);
-            }
-}
-
-
-        private void RunInteractiveLoop()
-        {
-            ShowLogo();
-
-            var interactiveParseOptions = arguments.ParseOptions.Copy(languageVersion: LanguageVersion.CSharp6, kind: SourceCodeKind.Interactive);
-            var engine = new Engine(referenceResolver: assemblyLoader.GetReferenceResolver());
-
-            // TODO: parse options, references, ...
-
-            Session session = Session.Create();
-            ObjectFormatter formatter = new ObjectFormatter(maxLineLength: Console.BufferWidth, memberIndentation: "  ");
-
-            while (true)
-            {
-                Console.Write("> ");
-                var input = new StringBuilder();
-                string line;
-
-                while (true)
-                {
-                    line = Console.ReadLine();
-                    if (line == null)
-                    {
-                        return;
-                    }
-
-                    input.AppendLine(line);
-                    if (Syntax.IsCompleteSubmission(input.ToString(), interactiveParseOptions))
-                    {
-                        break;
-                    }
-
-                    Console.Write("| ");
-                }
-
-                Submission<object> submission;
-                object result;
-                try
-                {
-                    submission = Compile(engine, session, input.ToString());
-                    result = submission.Execute();
-                }
-                catch (CompilationErrorException e)
-                {
-                    DisplayInteractiveErrors(e.Diagnostics);
-                    continue;
-                }
-                catch (Exception e)
-                {
-                    // TODO (tomat): stack pretty printing
-                    Console.WriteLine(e);
-                    continue;
-                }
-
-                bool hasValue;
-                ITypeSymbol resultType = submission.Compilation.GetSubmissionResultType(out hasValue);
-                if (hasValue)
-                {
-                    if (resultType != null && resultType.SpecialType == SpecialType.System_Void)
-                    {
-                        Console.Out.WriteLine(formatter.VoidDisplayString);
-                    }
-                    else
-                    {
-                        Console.Out.WriteLine(formatter.FormatObject(result));
-                    }
-                }
-            }
-        }
-
-        private Submission<object> Compile(Engine engine, Session session, string text)
-        {
-            Submission<object> submission = engine.CompileSubmission<object>(text, session);
-
-            foreach (MetadataReference reference in submission.Compilation.GetDirectiveReferences())
-            {
-                assemblyLoader.LoadReference(reference);
-            }
-
-            return submission;
-        }
-
-        private static void DisplayInteractiveErrors(ImmutableArray<IDiagnostic> diagnostics)
-        {
-            var oldColor = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Red;
-            try
-            {
-                DisplayInteractiveErrors(diagnostics, Console.Out);
-            }
-            finally
-            {
-                Console.ForegroundColor = oldColor;
-            }
-        }
-
-        private static void DisplayInteractiveErrors(ImmutableArray<IDiagnostic> diagnostics, TextWriter output)
-        {
-            var displayedDiagnostics = new List<IDiagnostic>();
-            const int MaxErrorCount = 5;
-            for (int i = 0, n = Math.Min(diagnostics.Count, MaxErrorCount); i < n; i++)
-            {
-                displayedDiagnostics.Add(diagnostics[i]);
-            }
-            displayedDiagnostics.Sort((d1, d2) => d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start);
-
-            foreach (var diagnostic in displayedDiagnostics)
-            {
-                output.WriteLine(diagnostic.ToString(Culture));
-            }
-
-            if (diagnostics.Count > MaxErrorCount)
-            {
-                int notShown = diagnostics.Count - MaxErrorCount;
-                output.WriteLine(" + additional {0} {1}", notShown, (notShown == 1) ? "error" : "errors");
-            }
-        }
-#endif
     }
 }

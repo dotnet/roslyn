@@ -117,17 +117,11 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Import" xml:space="preserve">
-    <value>Import '{0}'.</value>
-  </data>
   <data name="Insert" xml:space="preserve">
     <value>Insert '{0}'.</value>
   </data>
   <data name="DeleteTheStatement" xml:space="preserve">
     <value>Delete the '{0}' statement.</value>
-  </data>
-  <data name="ChangeTo" xml:space="preserve">
-    <value>Change '{0}' to '{1}'.</value>
   </data>
   <data name="GeneratedeventnameTargets" xml:space="preserve">
     <value>Create event {0} in {1}</value>
@@ -1020,9 +1014,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   </data>
   <data name="CorrectNextControlVariable" xml:space="preserve">
     <value>Use the correct control variable</value>
-  </data>
-  <data name="SuppressWithPragma" xml:space="preserve">
-    <value>with #Disable directive</value>
   </data>
   <data name="NameOfFunction" xml:space="preserve">
     <value>NameOf function</value>

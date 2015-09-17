@@ -16,14 +16,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
     internal class Optimizer
     {
-        public static BoundStatement Optimize(BoundStatement src, out HashSet<LocalSymbol> stackLocals)
+        public static BoundStatement Optimize(
+            BoundStatement src, bool debugFriendly,
+            out HashSet<LocalSymbol> stackLocals)
         {
             //TODO: run other optimizing passes here.
             //      stack scheduler must be the last one.
 
             var locals = PooledDictionary<LocalSymbol, LocalDefUseInfo>.GetInstance();
             var evalStack = ArrayBuilder<ValueTuple<BoundExpression, ExprContext>>.GetInstance();
-            src = (BoundStatement)StackOptimizerPass1.Analyze(src, locals, evalStack);
+            src = (BoundStatement)StackOptimizerPass1.Analyze(src, locals, evalStack, debugFriendly);
             evalStack.Free();
 
             FilterValidStackLocals(locals);
@@ -294,9 +296,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     //
     internal class StackOptimizerPass1 : BoundTreeRewriter
     {
-        private int _counter;
+        private readonly bool _debugFriendly;
         private readonly ArrayBuilder<ValueTuple<BoundExpression, ExprContext>> _evalStack;
 
+        private int _counter;
         private ExprContext _context;
         private BoundLocal _assignmentLocal;
 
@@ -315,10 +318,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public static readonly DummyLocal empty = new DummyLocal();
 
         private StackOptimizerPass1(Dictionary<LocalSymbol, LocalDefUseInfo> locals,
-            ArrayBuilder<ValueTuple<BoundExpression, ExprContext>> evalStack)
+            ArrayBuilder<ValueTuple<BoundExpression, ExprContext>> evalStack,
+            bool debugFriendly)
         {
             _locals = locals;
             _evalStack = evalStack;
+            _debugFriendly = debugFriendly;
 
             // this is the top of eval stack
             DeclareLocal(empty, 0);
@@ -328,9 +333,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public static BoundNode Analyze(
             BoundNode node, 
             Dictionary<LocalSymbol, LocalDefUseInfo> locals,
-            ArrayBuilder<ValueTuple<BoundExpression, ExprContext>> evalStack)
+            ArrayBuilder<ValueTuple<BoundExpression, ExprContext>> evalStack,
+            bool debugFriendly)
         {
-            var analyzer = new StackOptimizerPass1(locals, evalStack);
+            var analyzer = new StackOptimizerPass1(locals, evalStack, debugFriendly);
             var rewritten = analyzer.Visit(node);
 
             return rewritten;
@@ -429,6 +435,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var prevContext = _context;
 
             var result = base.Visit(node);
+
+            // prevent cross-statement local optimizations
+            // when emitting debug-friendly code.
+            if (_debugFriendly)
+            {
+                EnsureOnlyEvalStack();
+            }
 
             _context = prevContext;
             SetStackDepth(origStack);
@@ -795,7 +808,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     assignmentLocal.Type.IsPointerType() && right.Kind == BoundKind.Conversion &&
                     ((BoundConversion)right).ConversionKind.IsPointerConversion())
                 {
-                    _locals[localSymbol].ShouldNotSchedule();
+                    ShouldNotSchedule(localSymbol);
                 }
 
                 RecordVarWrite(localSymbol);
@@ -1190,7 +1203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 var localSym = ((BoundLocal)boundExpression).LocalSymbol;
                 if (localSym.RefKind == RefKind.None)
                 {
-                    _locals[localSym].ShouldNotSchedule();
+                    ShouldNotSchedule(localSym);
                 }
             }
 
@@ -1422,6 +1435,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
+        private void ShouldNotSchedule(LocalSymbol localSymbol)
+        {
+            LocalDefUseInfo localDefInfo;
+            if (_locals.TryGetValue(localSymbol, out localDefInfo))
+            {
+                localDefInfo.ShouldNotSchedule();
+            }
+        }
+
         private void RecordVarRef(LocalSymbol local)
         {
             Debug.Assert(local.RefKind == RefKind.None, "cannot take a ref of a ref");
@@ -1432,7 +1454,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             // if we ever take a reference of a local, it must be a real local.
-            _locals[local].ShouldNotSchedule();
+            ShouldNotSchedule(local);
         }
 
         private void RecordVarRead(LocalSymbol local)
@@ -1525,9 +1547,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             locInfo.LocalDefs.Add(locDef);
         }
 
-        private static bool CanScheduleToStack(LocalSymbol local)
+        private bool CanScheduleToStack(LocalSymbol local)
         {
-            return local.CanScheduleToStack;
+            return local.CanScheduleToStack &&
+                (!this._debugFriendly || !local.SynthesizedKind.IsLongLived());
         }
 
         private void DeclareLocals(ImmutableArray<LocalSymbol> locals, int stack)
@@ -1754,6 +1777,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         internal override SynthesizedLocalKind SynthesizedKind
         {
             get { return SynthesizedLocalKind.OptimizerTemp; }
+        }
+
+        internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)
+        {
+            throw new NotImplementedException();
         }
 
         internal override SyntaxToken IdentifierToken

@@ -350,6 +350,21 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         }
 
         [Fact]
+        public void ScrollToCursorOnHomeAndEndOnNonUIThread()
+        {
+            Window.InsertCode(new string('1', 512));    // a long input string 
+
+            var textView = Window.TextView;
+
+            Window.Operations.Home(false);
+            Assert.True(textView.TextViewModel.IsPointInVisualBuffer(textView.Caret.Position.BufferPosition,
+                                                                     textView.Caret.Position.Affinity));
+            Window.Operations.End(false);
+            Assert.True(textView.TextViewModel.IsPointInVisualBuffer(textView.Caret.Position.BufferPosition,
+                                                                     textView.Caret.Position.Affinity));
+        }
+
+        [Fact]
         public void CallSelectAllOnNonUIThread()
         {
             Window.InsertCode("1"); // Something to select.
@@ -724,6 +739,21 @@ System.Console.WriteLine();",
             // Text after cancel.
             snapshot = buffer.CurrentSnapshot;
             Assert.Equal("> ", snapshot.GetText());
+        }
+
+        [Fact]
+        public void SelectAllInHeader()
+        {
+            Window.WriteLine("Header");
+            Window.FlushOutput();
+            var fullText = Window.TextView.TextBuffer.CurrentSnapshot.GetText();
+            Assert.Equal("Header\r\n> ", fullText);
+
+            Window.TextView.Caret.MoveTo(new SnapshotPoint(Window.TextView.TextBuffer.CurrentSnapshot, 1));
+            Window.Operations.SelectAll(); // Used to throw.
+
+            // Everything is selected.
+            Assert.Equal(new Span(0, fullText.Length), Window.TextView.Selection.SelectedSpans.Single().Span);
         }
 
         private void Submit(string submission, string output)

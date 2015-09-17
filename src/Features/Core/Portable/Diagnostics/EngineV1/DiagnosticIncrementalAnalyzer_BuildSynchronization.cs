@@ -197,7 +197,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 diagnostic.AdditionalLocations,
                 descriptor.Title.ToString(CultureInfo.CurrentUICulture),
                 descriptor.Description.ToString(CultureInfo.CurrentUICulture),
-                descriptor.HelpLinkUri);
+                descriptor.HelpLinkUri,
+                isSuppressed: diagnostic.IsSuppressed);
         }
     }
 }

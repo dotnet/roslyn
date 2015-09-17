@@ -114,8 +114,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return node.IsFoundUnder((PropertyDeclarationSyntax p) => p.Initializer);
 
                 case SyntaxKind.FieldDeclaration:
-                    // Inside a field one can only access static members of a type.
-                    return true;
+                case SyntaxKind.EventFieldDeclaration:
+                    // Inside a field one can only access static members of a type (unless it's top-level).
+                    return !memberDeclaration.Parent.IsKind(SyntaxKind.CompilationUnit);
 
                 case SyntaxKind.DestructorDeclaration:
                     return false;

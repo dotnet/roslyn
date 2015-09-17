@@ -2,11 +2,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
-using System.Globalization;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -18,13 +16,15 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly DiagnosticInfo _info;
         private readonly Location _location;
+        private readonly bool _isSuppressed;
 
-        internal DiagnosticWithInfo(DiagnosticInfo info, Location location)
+        internal DiagnosticWithInfo(DiagnosticInfo info, Location location, bool isSuppressed = false)
         {
             Debug.Assert(info != null);
             Debug.Assert(location != null);
             _info = info;
             _location = location;
+            _isSuppressed = isSuppressed;
         }
 
         public override Location Location
@@ -83,6 +83,11 @@ namespace Microsoft.CodeAnalysis
         {
             // All compiler errors and warnings are enabled by default.
             get { return true; }
+        }
+
+        public override bool IsSuppressed
+        {
+            get { return _isSuppressed; }
         }
 
         public sealed override int WarningLevel
@@ -188,7 +193,7 @@ namespace Microsoft.CodeAnalysis
 
             if (location != _location)
             {
-                return new DiagnosticWithInfo(_info, location);
+                return new DiagnosticWithInfo(_info, location, _isSuppressed);
             }
 
             return this;
@@ -198,7 +203,17 @@ namespace Microsoft.CodeAnalysis
         {
             if (this.Severity != severity)
             {
-                return new DiagnosticWithInfo(this.Info.GetInstanceWithSeverity(severity), _location);
+                return new DiagnosticWithInfo(this.Info.GetInstanceWithSeverity(severity), _location, _isSuppressed);
+            }
+
+            return this;
+        }
+
+        internal override Diagnostic WithIsSuppressed(bool isSuppressed)
+        {
+            if (this.IsSuppressed != isSuppressed)
+            {
+                return new DiagnosticWithInfo(this.Info, _location, isSuppressed);
             }
 
             return this;

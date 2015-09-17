@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -570,7 +571,7 @@ Environment.ProcessorCount
         }
 
         [Fact]
-        public async void Submissions_ExecutionOrder2()
+        public async Task Submissions_ExecutionOrder2()
         {
             var s0 = await CSharpScript.RunAsync("int x = 1;");
 
@@ -597,7 +598,7 @@ Environment.ProcessorCount
         }
 
         [Fact]
-        public async void ObjectOverrides1()
+        public async Task ObjectOverrides1()
         {
             var state0 = await CSharpScript.RunAsync("", OptionsWithFacades, new HostObjectWithOverrides());
 
@@ -612,7 +613,7 @@ Environment.ProcessorCount
         }
 
         [Fact]
-        public async void ObjectOverrides2()
+        public async Task ObjectOverrides2()
         {
             var state0 = await CSharpScript.RunAsync("", OptionsWithFacades, new object());
             var state1 = await state0.ContinueWithAsync<bool>(@"
@@ -822,7 +823,7 @@ TestDelegate testDelB = delegate (string s) { Console.WriteLine(s); };
 
             using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
             {
-                s.ContinueWith(@"testDelB(""hello"");");
+                s.ContinueWith(@"testDelB(""hello"");").Wait();
                 Assert.Equal("hello", redirect.Output.Trim());
             }
         }
@@ -994,7 +995,7 @@ new object[] { x, y, z }
         [WorkItem(9229, "DevDiv_Projects/Roslyn")]
         [WorkItem(2721, "https://github.com/dotnet/roslyn/issues/2721")]
         [Fact]
-        public async void PrivateImplementationDetailsType()
+        public async Task PrivateImplementationDetailsType()
         {
             var result1 = await CSharpScript.EvaluateAsync<int[]>("new int[] { 1,2,3,4 }");
             AssertEx.Equal(new[] { 1, 2, 3, 4 }, result1);
@@ -1050,7 +1051,7 @@ new object[] { x, y, z }
         /// 'await' in lambda should be ignored.
         /// </summary>
         [Fact]
-        public async void AwaitInLambda()
+        public async Task AwaitInLambda()
         {
             var s0 = await CSharpScript.RunAsync(@"
 using System;
@@ -1125,6 +1126,34 @@ static T G<T>(T t, Func<T, Task<T>> f)
 new Metadata.ICSPropImpl()
 ").Result;
             Assert.NotNull(result);
+        }
+
+        [Fact]
+        public void ReferenceDirective_RelativeToBaseParent()
+        {
+            string path = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSClasses01).Path;
+            string fileName = Path.GetFileName(path);
+            string dir = Path.Combine(Path.GetDirectoryName(path), "subdir");
+
+            var script = CSharpScript.Create($@"#r ""..\{fileName}""", 
+                ScriptOptions.Default.WithPath(Path.Combine(dir, "a.csx")));
+
+            script.GetCompilation().VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReferenceDirective_RelativeToBaseRoot()
+        {
+            string path = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSClasses01).Path;
+            string root = Path.GetPathRoot(path);
+            string unrooted = path.Substring(root.Length);
+
+            string dir = Path.Combine(root, "foo", "bar", "baz");
+
+            var script = CSharpScript.Create($@"#r ""\{unrooted}""",
+                ScriptOptions.Default.WithPath(Path.Combine(dir, "a.csx")));
+
+            script.GetCompilation().VerifyDiagnostics();
         }
 
         #endregion
@@ -1332,7 +1361,7 @@ new List<ArgumentException>()
         }
 
         [Fact]
-        public async void HostObjectBinding_Interface()
+        public async Task HostObjectBinding_Interface()
         {
             var c = new C();
             

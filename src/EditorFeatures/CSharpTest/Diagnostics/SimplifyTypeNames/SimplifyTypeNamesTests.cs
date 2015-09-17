@@ -1853,12 +1853,17 @@ class A { }");
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public void TestMissingNullableSimplificationInsideCref4()
+        public void TestNullableInsideCref_AllowedIfReferencingActualTypeParameter()
         {
-            TestMissing(
+            Test(
 @"using System;
 /// <summary>
 /// <see cref=""C{[|Nullable{T}|]}""/>
+/// </summary>
+class C<T> {  }",
+@"using System;
+/// <summary>
+/// <see cref=""C{T?}""/>
 /// </summary>
 class C<T> {  }");
         }
@@ -1879,25 +1884,34 @@ class A
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public void TestMissingNullableSimplificationInsideCref6()
+        public void TestNullableInsideCref_AllowedIfReferencingActualType()
         {
-            TestMissing(
+            Test(
 @"using System;
 /// <summary>
 /// <see cref=""[|Nullable{int}|]""/>
 /// </summary>
+class A { }",
+@"using System;
+/// <summary>
+/// <see cref=""int?""/>
+/// </summary>
 class A { }");
         }
 
-
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public void TestMissingNullableSimplificationInsideCref7()
+        public void TestNullableInsideCref_AllowedIfReferencingActualType_AsTypeArgument()
         {
-            TestMissing(
+            Test(
 @"using System;
 /// <summary>
 /// <see cref=""C{[|Nullable{int}|]}""/>
+/// </summary>
+class C<T> { }",
+@"using System;
+/// <summary>
+/// <see cref=""C{int?}""/>
 /// </summary>
 class C<T> { }");
         }

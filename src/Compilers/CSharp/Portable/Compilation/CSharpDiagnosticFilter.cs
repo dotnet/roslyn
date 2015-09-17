@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //specifying warnaserror:1607 and getting a message saying "warning as error CS8012..."
             //We don't permit configuring 1607 and independently configuring the new warnings.
             ReportDiagnostic reportAction;
+            bool hasPragmaSuppression;
             if (s_alinkWarnings.Contains((ErrorCode)d.Code) &&
                 specificDiagnosticOptions.Keys.Contains(CSharp.MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn)))
             {
@@ -70,11 +71,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     d.Category,
                     warningLevelOption,
                     generalDiagnosticOption,
-                    specificDiagnosticOptions);
+                    specificDiagnosticOptions,
+                    out hasPragmaSuppression);
             }
             else
             {
-                reportAction = GetDiagnosticReport(d.Severity, d.IsEnabledByDefault, d.Id, d.WarningLevel, d.Location as Location, d.Category, warningLevelOption, generalDiagnosticOption, specificDiagnosticOptions);
+                reportAction = GetDiagnosticReport(d.Severity, d.IsEnabledByDefault, d.Id, d.WarningLevel, d.Location as Location,
+                    d.Category, warningLevelOption, generalDiagnosticOption, specificDiagnosticOptions, out hasPragmaSuppression);
+            }
+
+            if (hasPragmaSuppression)
+            {
+                d = d.WithIsSuppressed(true);
             }
 
             return d.WithReportDiagnostic(reportAction);
@@ -82,8 +90,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Take a warning and return the final deposition of the given warning,
         // based on both command line options and pragmas.
-        internal static ReportDiagnostic GetDiagnosticReport(DiagnosticSeverity severity, bool isEnabledByDefault, string id, int diagnosticWarningLevel, Location location, string category, int warningLevelOption, ReportDiagnostic generalDiagnosticOption, IDictionary<string, ReportDiagnostic> specificDiagnosticOptions)
+        internal static ReportDiagnostic GetDiagnosticReport(
+            DiagnosticSeverity severity,
+            bool isEnabledByDefault,
+            string id,
+            int diagnosticWarningLevel,
+            Location location,
+            string category,
+            int warningLevelOption,
+            ReportDiagnostic generalDiagnosticOption,
+            IDictionary<string, ReportDiagnostic> specificDiagnosticOptions,
+            out bool hasPragmaSuppression)
         {
+            hasPragmaSuppression = false;
+
             // Read options (e.g., /nowarn or /warnaserror)
             ReportDiagnostic report = ReportDiagnostic.Default;
             var isSpecified = specificDiagnosticOptions.TryGetValue(id, out report);
@@ -104,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 location.SourceTree != null &&
                 ((SyntaxTree)location.SourceTree).GetPragmaDirectiveWarningState(id, location.SourceSpan.Start) == ReportDiagnostic.Suppress)
             {
-                return ReportDiagnostic.Suppress;
+                hasPragmaSuppression = true;
             }
 
             // Unless specific warning options are defined (/warnaserror[+|-]:<n> or /nowarn:<n>, 

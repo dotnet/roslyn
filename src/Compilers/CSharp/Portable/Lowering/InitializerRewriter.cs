@@ -36,15 +36,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (initializer == boundInitializers.Last()) &&
                     (initializer.Kind == BoundKind.GlobalStatementInitializer))
                 {
-                    var statement = ((BoundGlobalStatementInitializer)initializer).Statement;
-                    if (statement.Kind == BoundKind.ExpressionStatement)
+                    var expr = GetTrailingScriptExpression(((BoundGlobalStatementInitializer)initializer).Statement);
+                    if (expr != null &&
+                        (object)expr.Type != null &&
+                        expr.Type.SpecialType != SpecialType.System_Void)
                     {
-                        var expr = ((BoundExpressionStatement)statement).Expression;
-                        if ((object)expr.Type != null && expr.Type.SpecialType != SpecialType.System_Void)
-                        {
-                            submissionResult = expr;
-                            continue;
-                        }
+                        submissionResult = expr;
+                        continue;
                     }
                 }
                 boundStatements.Add(RewriteInitializersAsStatements(initializer));
@@ -65,6 +63,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundTypeOrInstanceInitializers(syntax, boundStatements.ToImmutableAndFree());
+        }
+
+        /// <summary>
+        /// Returns the expression if the statement is actually an
+        /// expression (ExpressionStatementSyntax with no trailing semicolon).
+        /// </summary>
+        internal static BoundExpression GetTrailingScriptExpression(BoundStatement statement)
+        {
+            return (statement.Kind == BoundKind.ExpressionStatement) && ((ExpressionStatementSyntax)statement.Syntax).SemicolonToken.IsMissing ?
+                ((BoundExpressionStatement)statement).Expression :
+                null;
         }
 
         private static BoundStatement RewriteFieldInitializer(BoundFieldInitializer fieldInit)

@@ -435,7 +435,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Function GetExpressionOfMemberAccessExpression(node As SyntaxNode) As Microsoft.CodeAnalysis.SyntaxNode Implements ISyntaxFactsService.GetExpressionOfMemberAccessExpression
-            Return DirectCast(node, MemberAccessExpressionSyntax).GetExpressionOfMemberAccessExpression()
+            Return TryCast(node, MemberAccessExpressionSyntax)?.GetExpressionOfMemberAccessExpression()
         End Function
 
         Public Function GetExpressionOfConditionalMemberAccessExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfConditionalMemberAccessExpression

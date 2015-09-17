@@ -23,7 +23,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
 {
-    public abstract class CSharpSuppressionTests : AbstractSuppressionDiagnosticTest
+    public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagnosticTest
     {
         protected override ParseOptions GetScriptOptions()
         {
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
 
         #region "Pragma disable tests"
 
-        public abstract class CSharpPragmaWarningDisableSuppressionTests : CSharpSuppressionTests
+        public abstract partial class CSharpPragmaWarningDisableSuppressionTests : CSharpSuppressionTests
         {
             protected sealed override int CodeActionIndex
             {
@@ -416,18 +416,18 @@ int Method()
                 }
             }
 
-            public class UserInfoDiagnosticSuppressionTests : CSharpPragmaWarningDisableSuppressionTests
+            public partial class UserInfoDiagnosticSuppressionTests : CSharpPragmaWarningDisableSuppressionTests
             {
                 private class UserDiagnosticAnalyzer : DiagnosticAnalyzer
                 {
-                    private DiagnosticDescriptor _descriptor =
+                    public static readonly DiagnosticDescriptor Decsciptor =
                         new DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic Title", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
 
                     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
                     {
                         get
                         {
-                            return ImmutableArray.Create(_descriptor);
+                            return ImmutableArray.Create(Decsciptor);
                         }
                     }
 
@@ -439,7 +439,7 @@ int Method()
                     public void AnalyzeNode(SyntaxNodeAnalysisContext context)
                     {
                         var classDecl = (ClassDeclarationSyntax)context.Node;
-                        context.ReportDiagnostic(Diagnostic.Create(_descriptor, classDecl.Identifier.GetLocation()));
+                        context.ReportDiagnostic(Diagnostic.Create(Decsciptor, classDecl.Identifier.GetLocation()));
                     }
                 }
 
@@ -584,11 +584,11 @@ using System;
 
         #region "SuppressMessageAttribute tests"
 
-        public abstract class CSharpGlobalSuppressMessageSuppressionTests : CSharpSuppressionTests
+        public abstract partial class CSharpGlobalSuppressMessageSuppressionTests : CSharpSuppressionTests
         {
             protected sealed override int CodeActionIndex
             {
-                get { return 2; }
+                get { return 1; }
             }
 
             public class CompilerDiagnosticSuppressionTests : CSharpGlobalSuppressMessageSuppressionTests
@@ -638,18 +638,18 @@ class Class
                 }
             }
 
-            public class UserInfoDiagnosticSuppressionTests : CSharpGlobalSuppressMessageSuppressionTests
+            public partial class UserInfoDiagnosticSuppressionTests : CSharpGlobalSuppressMessageSuppressionTests
             {
                 private class UserDiagnosticAnalyzer : DiagnosticAnalyzer
                 {
-                    private DiagnosticDescriptor _descriptor =
+                    public static readonly DiagnosticDescriptor Descriptor =
                         new DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
 
                     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
                     {
                         get
                         {
-                            return ImmutableArray.Create(_descriptor);
+                            return ImmutableArray.Create(Descriptor);
                         }
                     }
 
@@ -664,32 +664,32 @@ class Class
                         {
                             case SyntaxKind.ClassDeclaration:
                                 var classDecl = (ClassDeclarationSyntax)context.Node;
-                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, classDecl.Identifier.GetLocation()));
+                                context.ReportDiagnostic(Diagnostic.Create(Descriptor, classDecl.Identifier.GetLocation()));
                                 break;
 
                             case SyntaxKind.NamespaceDeclaration:
                                 var ns = (NamespaceDeclarationSyntax)context.Node;
-                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, ns.Name.GetLocation()));
+                                context.ReportDiagnostic(Diagnostic.Create(Descriptor, ns.Name.GetLocation()));
                                 break;
 
                             case SyntaxKind.MethodDeclaration:
                                 var method = (MethodDeclarationSyntax)context.Node;
-                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, method.Identifier.GetLocation()));
+                                context.ReportDiagnostic(Diagnostic.Create(Descriptor, method.Identifier.GetLocation()));
                                 break;
 
                             case SyntaxKind.PropertyDeclaration:
                                 var property = (PropertyDeclarationSyntax)context.Node;
-                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, property.Identifier.GetLocation()));
+                                context.ReportDiagnostic(Diagnostic.Create(Descriptor, property.Identifier.GetLocation()));
                                 break;
 
                             case SyntaxKind.FieldDeclaration:
                                 var field = (FieldDeclarationSyntax)context.Node;
-                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, field.Declaration.Variables.First().Identifier.GetLocation()));
+                                context.ReportDiagnostic(Diagnostic.Create(Descriptor, field.Declaration.Variables.First().Identifier.GetLocation()));
                                 break;
 
                             case SyntaxKind.EventDeclaration:
                                 var e = (EventDeclarationSyntax)context.Node;
-                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, e.Identifier.GetLocation()));
+                                context.ReportDiagnostic(Diagnostic.Create(Descriptor, e.Identifier.GetLocation()));
                                 break;
                         }
                     }
@@ -723,7 +723,7 @@ using System;
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""type"", Target = ""~T:Class"")]
 
-", isAddedDocument: true);
+");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
                     TestMissing(
@@ -766,7 +766,7 @@ using System;
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""namespace"", Target = ""~N:N"")]
 
-", index: 1, isAddedDocument: true);
+", index: 1);
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
                     TestMissing(
@@ -815,7 +815,7 @@ namespace N1
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""type"", Target = ""~T:N1.N2.Class"")]
 
-", isAddedDocument: true);
+");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
                     TestMissing(
@@ -867,7 +867,7 @@ namespace N
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""type"", Target = ""~T:N.Generic`1.Class"")]
 
-", isAddedDocument: true);
+");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
                     TestMissing(
@@ -919,7 +919,7 @@ namespace N
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~M:N.Generic`1.Class.Method~System.Int32"")]
 
-", isAddedDocument: true);
+");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
                     TestMissing(
@@ -976,7 +976,7 @@ namespace N
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~M:N.Generic`1.Class.Method(System.Int32,System.Char@)~System.Int32"")]
 
-", isAddedDocument: true);
+");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
                     TestMissing(
@@ -1036,7 +1036,7 @@ namespace N
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~M:N.Generic`1.Class.Method~System.Int32"")]
 
-", isAddedDocument: true);
+");
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
@@ -1067,7 +1067,7 @@ namespace N
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~M:N.Generic`1.Class.Method``1(``0)~System.Int32"")]
 
-", isAddedDocument: true);
+");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
                     TestMissing(
@@ -1119,7 +1119,7 @@ namespace N
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~P:N.Generic.Class.Property"")]
 
-", isAddedDocument: true);
+");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
                     TestMissing(
@@ -1162,7 +1162,7 @@ class Class
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~F:Class.field"")]
 
-", isAddedDocument: true);
+");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
                     TestMissing(
@@ -1196,7 +1196,7 @@ class Class
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~F:Class.field"")]
 
-", isAddedDocument: true);
+");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
                     TestMissing(
@@ -1244,7 +1244,7 @@ class Class
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~E:Class.SampleEvent"")]
 
-", isAddedDocument: true);
+");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
                     TestMissing(
@@ -1309,7 +1309,7 @@ class Class { }
 
 ";
 
-                    Test(initialMarkup, expectedText, isLine: false);
+                    Test(initialMarkup, expectedText);
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
@@ -1345,7 +1345,7 @@ class Class { }
 
 ";
 
-                    Test(initialMarkup, expectedText, isLine: false, isAddedDocument: true);
+                    Test(initialMarkup, expectedText);
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
@@ -1391,305 +1391,7 @@ class Class { }
 
 ";
 
-                    Test(initialMarkup, expectedText, isLine: false, isAddedDocument: false);
-                }
-            }
-        }
-
-        public abstract class CSharpLocalSuppressMessageSuppressionTests : CSharpSuppressionTests
-        {
-            protected sealed override int CodeActionIndex
-            {
-                get { return 1; }
-            }
-
-            public class UserInfoDiagnosticSuppressionTests : CSharpLocalSuppressMessageSuppressionTests
-            {
-                private class UserDiagnosticAnalyzer : DiagnosticAnalyzer
-                {
-                    private DiagnosticDescriptor _descriptor =
-                        new DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
-
-                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-                    {
-                        get
-                        {
-                            return ImmutableArray.Create(_descriptor);
-                        }
-                    }
-
-                    public override void Initialize(AnalysisContext context)
-                    {
-                        context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration, SyntaxKind.NamespaceDeclaration, SyntaxKind.MethodDeclaration);
-                    }
-
-                    public void AnalyzeNode(SyntaxNodeAnalysisContext context)
-                    {
-                        switch (context.Node.Kind())
-                        {
-                            case SyntaxKind.ClassDeclaration:
-                                var classDecl = (ClassDeclarationSyntax)context.Node;
-                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, classDecl.Identifier.GetLocation()));
-                                break;
-
-                            case SyntaxKind.NamespaceDeclaration:
-                                var ns = (NamespaceDeclarationSyntax)context.Node;
-                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, ns.Name.GetLocation()));
-                                break;
-
-                            case SyntaxKind.MethodDeclaration:
-                                var method = (MethodDeclarationSyntax)context.Node;
-                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, method.Identifier.GetLocation()));
-                                break;
-                        }
-                    }
-                }
-
-                internal override Tuple<DiagnosticAnalyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-                {
-                    return new Tuple<DiagnosticAnalyzer, ISuppressionFixProvider>(
-                        new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
-                }
-
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestSuppressionOnSimpleType()
-                {
-                    var initial = @"
-using System;
-
-// Some trivia
-/* More Trivia */ [|class Class|]
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}";
-                    var expected = $@"
-using System;
-
-// Some trivia
-/* More Trivia */
-[System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"")]
-class Class
-{{
-    int Method()
-    {{
-        int x = 0;
-    }}
-}}";
-                    Test(initial, expected);
-
-                    // Also verify that the added attribute does indeed suppress the diagnostic.
-                    expected = expected.Replace("class Class", "[|class Class|]");
-                    TestMissing(expected);
-                }
-
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestSuppressionOnSimpleType2()
-                {
-                    // Type already has attributes.
-                    var initial = @"
-using System;
-
-// Some trivia
-/* More Trivia */
-[System.Diagnostics.CodeAnalysis.SuppressMessage(""SomeOtherDiagnostic"", ""SomeOtherDiagnostic:Title"", Justification = ""<Pending>"")]
-[|class Class|]
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}";
-                    var expected = $@"
-using System;
-
-// Some trivia
-/* More Trivia */
-[System.Diagnostics.CodeAnalysis.SuppressMessage(""SomeOtherDiagnostic"", ""SomeOtherDiagnostic:Title"", Justification = ""<Pending>"")]
-[System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"")]
-class Class
-{{
-    int Method()
-    {{
-        int x = 0;
-    }}
-}}";
-                    Test(initial, expected);
-
-                    // Also verify that the added attribute does indeed suppress the diagnostic.
-                    expected = expected.Replace("class Class", "[|class Class|]");
-                    TestMissing(expected);
-                }
-
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestSuppressionOnSimpleType3()
-                {
-                    // Type already has attributes with trailing trivia.
-                    var initial = @"
-using System;
-
-// Some trivia
-/* More Trivia */
-[System.Diagnostics.CodeAnalysis.SuppressMessage(""SomeOtherDiagnostic"", ""SomeOtherDiagnostic:Title"", Justification = ""<Pending>"")]
-/* Some More Trivia */
-[|class Class|]
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}";
-                    var expected = $@"
-using System;
-
-// Some trivia
-/* More Trivia */
-[System.Diagnostics.CodeAnalysis.SuppressMessage(""SomeOtherDiagnostic"", ""SomeOtherDiagnostic:Title"", Justification = ""<Pending>"")]
-[System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"")]
-/* Some More Trivia */
-class Class
-{{
-    int Method()
-    {{
-        int x = 0;
-    }}
-}}";
-                    Test(initial, expected);
-
-                    // Also verify that the added attribute does indeed suppress the diagnostic.
-                    expected = expected.Replace("class Class", "[|class Class|]");
-                    TestMissing(expected);
-                }
-
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestSuppressionOnTypeInsideNamespace()
-                {
-                    var initial = @"
-using System;
-
-namespace N1
-{
-    namespace N2
-    {
-        [|class Class|]
-        {
-            int Method()
-            {
-                int x = 0;
-            }
-        }
-    }
-}";
-                    var expected = $@"
-using System;
-
-namespace N1
-{{
-    namespace N2
-    {{
-        [System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"")]
-        class Class
-        {{
-            int Method()
-            {{
-                int x = 0;
-            }}
-        }}
-    }}
-}}";
-                    Test(initial, expected);
-
-                    // Also verify that the added attribute does indeed suppress the diagnostic.
-                    expected = expected.Replace("class Class", "[|class Class|]");
-                    TestMissing(expected);
-                }
-
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestSuppressionOnNestedType()
-                {
-                    var initial = @"
-using System;
-
-namespace N
-{
-    class Generic<T>
-    {
-        [|class Class|]
-        {
-            int Method()
-            {
-                int x = 0;
-            }
-        }
-    }
-}";
-                    var expected = $@"
-using System;
-
-namespace N
-{{
-    class Generic<T>
-    {{
-        [System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"")]
-        class Class
-        {{
-            int Method()
-            {{
-                int x = 0;
-            }}
-        }}
-    }}
-}}";
-                    Test(initial, expected);
-
-                    // Also verify that the added attribute does indeed suppress the diagnostic.
-                    expected = expected.Replace("class Class", "[|class Class|]");
-                    TestMissing(expected);
-                }
-
-                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestSuppressionOnMethod()
-                {
-                    var initial = @"
-using System;
-
-namespace N
-{
-    class Generic<T>
-    {
-        class Class
-        {
-            [|int Method()|]
-            {
-                int x = 0;
-            }
-        }
-    }
-}";
-                    var expected = $@"
-using System;
-
-namespace N
-{{
-    class Generic<T>
-    {{
-        class Class
-        {{
-            [System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"")]
-            int Method()
-            {{
-                int x = 0;
-            }}
-        }}
-    }}
-}}";
-                    Test(initial, expected);
-
-                    // Also verify that the added attribute does indeed suppress the diagnostic.
-                    expected = expected.Replace("int Method()", "[|int Method()|]");
-                    TestMissing(expected);
+                    Test(initialMarkup, expectedText);
                 }
             }
         }

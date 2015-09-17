@@ -119,7 +119,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Test(input, expected, isLine:=False, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
+            Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
         End Sub
 
         <Fact>
@@ -242,7 +242,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Test(input, expected, isLine:=False, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
+            Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
         End Sub
 
         <Fact>
@@ -373,7 +373,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Test(input, expected, isLine:=False, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
+            Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
         End Sub
 
         <Fact>
@@ -510,7 +510,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Test(input, expected, isLine:=False, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
+            Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
         End Sub
     End Class
 End Namespace

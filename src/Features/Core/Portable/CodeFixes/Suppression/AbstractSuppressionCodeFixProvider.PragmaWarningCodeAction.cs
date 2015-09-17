@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -10,10 +11,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
     internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
     {
-        internal sealed class PragmaWarningCodeAction : CodeAction
+        internal sealed class PragmaWarningCodeAction : AbstractSuppressionCodeAction
         {
-            private readonly AbstractSuppressionCodeFixProvider _fixer;
-            private readonly string _title;
             private readonly SyntaxToken _startToken;
             private readonly SyntaxToken _endToken;
             private readonly SyntaxNode _nodeWithTokens;
@@ -27,21 +26,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 SyntaxNode nodeWithTokens,
                 Document document,
                 Diagnostic diagnostic)
+                : base (fixer, title: FeaturesResources.SuppressWithPragma)
             {
-                _fixer = fixer;
                 _startToken = startToken;
                 _endToken = endToken;
                 _nodeWithTokens = nodeWithTokens;
                 _document = document;
                 _diagnostic = diagnostic;
-
-                _title = fixer.TitleForPragmaWarningSuppressionFix;
             }
+
+            protected override string DiagnosticIdForEquivalenceKey => _diagnostic.Id;
 
             protected async override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
                 var startAndEndTokenAreTheSame = _startToken == _endToken;
-                SyntaxToken newStartToken = GetNewStartToken(_startToken, _diagnostic, _fixer);
+                SyntaxToken newStartToken = GetNewStartToken(_startToken, _diagnostic, Fixer);
 
                 SyntaxToken newEndToken = _endToken;
                 if (startAndEndTokenAreTheSame)
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     newEndToken = newStartToken;
                 }
 
-                newEndToken = GetNewEndToken(newEndToken, _diagnostic, _fixer);
+                newEndToken = GetNewEndToken(newEndToken, _diagnostic, Fixer);
 
                 SyntaxNode newNode;
                 if (startAndEndTokenAreTheSame)
@@ -152,9 +151,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     return endToken.WithTrailingTrivia(trivia.InsertRange(index, pragmaRestoreTrivia));
                 }
             }
-
-            public override string Title => _title;
-            public override string EquivalenceKey => _title + _diagnostic.Id;
 
             public SyntaxToken StartToken_TestOnly => _startToken;
             public SyntaxToken EndToken_TestOnly => _endToken;

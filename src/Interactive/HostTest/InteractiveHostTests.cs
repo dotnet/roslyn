@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -12,12 +13,10 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.CSharp.Interactive;
 using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Scripting;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Traits = Roslyn.Test.Utilities.Traits;
-using Microsoft.CodeAnalysis.Scripting.Hosting;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
@@ -32,6 +31,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         private readonly InteractiveHost Host;
 
+        private static readonly string s_fxDir = FileUtilities.NormalizeDirectoryPath(RuntimeEnvironment.GetRuntimeDirectory());
+        private static readonly string s_homeDir = FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+
         public InteractiveHostTests()
         {
             Host = new InteractiveHost(typeof(CSharpReplServiceProvider), GetInteractiveHostPath(), ".", millisecondsTimeout: -1);
@@ -44,6 +46,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             Assert.NotNull(remoteService);
 
             remoteService.SetTestObjectFormattingOptions();
+
+            Host.SetPathsAsync(new[] { s_fxDir }, new[] { s_homeDir }, s_homeDir).Wait();
 
             // assert and remove logo:
             var output = SplitLines(ReadOutputToEnd());
@@ -90,9 +94,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             Host.ErrorOutput = _synchronizedErrorOutput;
         }
 
-        private AssemblyLoadResult LoadReference(string reference)
+        private bool LoadReference(string reference)
         {
-            return Host.TryGetService().LoadReferenceThrowing(reference, addReference: true);
+            return Execute($"#r \"{reference}\"");
         }
 
         private bool Execute(string code)
@@ -171,7 +175,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         #endregion
 
-        [Fact] // Bugs #5018, #5344
+        [Fact]
         public void OutputRedirection()
         {
             Execute(@"
@@ -364,8 +368,8 @@ while(true) {}
             Assert.False(task.Result.Success);
 
             var errorOut = ReadErrorOutputToEnd().Trim();
-            Assert.Contains("Specified file not found.", errorOut, StringComparison.Ordinal);
-            Assert.Contains("Searched in directories:", errorOut, StringComparison.Ordinal);
+            Assert.Contains(FeaturesResources.SpecifiedFileNotFound, errorOut, StringComparison.Ordinal);
+            Assert.Contains(FeaturesResources.SearchedInDirectory, errorOut, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -452,7 +456,7 @@ WriteLine(5);
         {
             Assert.False(Execute("System.Diagnostics.Process.GetCurrentProcess().HasExited"));
 
-            Assert.True(LoadReference("System").IsSuccessful);
+            Assert.True(LoadReference("System"));
             Assert.True(Execute("System.Diagnostics.Process.GetCurrentProcess().HasExited"));
         }
 
@@ -460,9 +464,9 @@ WriteLine(5);
         public void AddReference_PartialName_LatestVersion()
         {
             // there might be two versions of System.Data - v2 and v4, we should get the latter:
-            Assert.True(LoadReference("System.Data").IsSuccessful);
-            Assert.True(LoadReference("System").IsSuccessful);
-            Assert.True(LoadReference("System.Xml").IsSuccessful);
+            Assert.True(LoadReference("System.Data"));
+            Assert.True(LoadReference("System"));
+            Assert.True(LoadReference("System.Xml"));
             Execute(@"new System.Data.DataSet().GetType().Assembly.GetName().Version");
             var output = ReadOutputToEnd();
             Assert.Equal("[4.0.0.0]\r\n", output);
@@ -473,47 +477,42 @@ WriteLine(5);
         {
             Assert.False(Execute("System.Diagnostics.Process.GetCurrentProcess().HasExited"));
 
-            Assert.True(LoadReference(typeof(Process).Assembly.FullName).IsSuccessful);
+            Assert.True(LoadReference(typeof(Process).Assembly.FullName));
             Assert.True(Execute("System.Diagnostics.Process.GetCurrentProcess().HasExited"));
         }
-
-        [ConditionalFact(typeof(Framework35Installed))]
+                
+        [ConditionalFact(typeof(Framework35Installed), Skip="https://github.com/dotnet/roslyn/issues/5167")]
         public void AddReference_VersionUnification1()
         {
-            var location = typeof(Enumerable).Assembly.Location;
-
             // V3.5 unifies with the current Framework version:
             var result = LoadReference("System.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
-            Assert.True(result.IsSuccessful, "First load");
-            Assert.Equal(location, result.Path, StringComparer.OrdinalIgnoreCase);
-            Assert.Equal(location, result.OriginalPath);
+            Assert.Equal("", ReadErrorOutputToEnd().Trim());
+            Assert.Equal("", ReadOutputToEnd().Trim());
+            Assert.True(result);
 
             result = LoadReference("System.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
-            Assert.False(result.IsSuccessful, "Already loaded");
-            Assert.Equal(location, result.Path, StringComparer.OrdinalIgnoreCase);
-            Assert.Equal(location, result.OriginalPath);
+            Assert.Equal("", ReadErrorOutputToEnd().Trim());
+            Assert.Equal("", ReadOutputToEnd().Trim());
+            Assert.True(result);
 
             result = LoadReference("System.Core");
-            Assert.False(result.IsSuccessful, "Already loaded");
-            Assert.Equal(location, result.Path, StringComparer.OrdinalIgnoreCase);
-            Assert.Equal(location, result.OriginalPath);
+            Assert.Equal("", ReadErrorOutputToEnd().Trim());
+            Assert.Equal("", ReadOutputToEnd().Trim());
+            Assert.True(result);
         }
 
-        // TODO: merge with previous test
         [Fact]
-        public void AddReference_VersionUnification2()
+        public void AddReference_AssemblyAlreadyLoaded()
         {
-            var location = typeof(Enumerable).Assembly.Location;
-
             var result = LoadReference("System.Core");
-            Assert.True(result.IsSuccessful, "First load");
-            Assert.Equal(location, result.Path, StringComparer.OrdinalIgnoreCase);
-            Assert.Equal(location, result.OriginalPath);
+            Assert.Equal("", ReadErrorOutputToEnd().Trim());
+            Assert.Equal("", ReadOutputToEnd().Trim());
+            Assert.True(result);
 
             result = LoadReference("System.Core.dll");
-            Assert.False(result.IsSuccessful, "Already loaded");
-            Assert.Equal(location, result.Path, StringComparer.OrdinalIgnoreCase);
-            Assert.Equal(location, result.OriginalPath);
+            Assert.Equal("", ReadErrorOutputToEnd().Trim());
+            Assert.Equal("", ReadOutputToEnd().Trim());
+            Assert.True(result);
         }
 
         [Fact]
@@ -521,7 +520,7 @@ WriteLine(5);
         {
             Assert.False(Execute("System.Diagnostics.Process.GetCurrentProcess().HasExited"));
 
-            Assert.True(LoadReference(typeof(Process).Assembly.Location).IsSuccessful);
+            Assert.True(LoadReference(typeof(Process).Assembly.Location));
             Assert.True(Execute("System.Diagnostics.Process.GetCurrentProcess().HasExited"));
         }
 
@@ -534,7 +533,7 @@ WriteLine(5);
             var c = CompileLibrary(dir, "c.dll", "c", @"public class C { }");
 
             // load C.dll: 
-            Assert.True(LoadReference(c.Path).IsSuccessful);
+            Assert.True(LoadReference(c.Path));
             Assert.True(Execute("new C()"));
             Assert.Equal("C { }", ReadOutputToEnd().Trim());
 
@@ -547,7 +546,7 @@ WriteLine(5);
             Assert.Equal("C { }", ReadOutputToEnd().Trim());
             Assert.True(result);
         }
-
+#if TODO
         /// <summary>
         /// Tests that a dependency is correctly resolved and loaded at runtime.
         /// A depends on B, which depends on C. When CallB is jitted B is loaded. When CallC is jitted C is loaded.
@@ -585,7 +584,7 @@ WriteLine(5);
             Assert.Equal("", ReadErrorOutputToEnd().Trim());
             Assert.Equal("1", ReadOutputToEnd().Trim());
         }
-
+#endif
         /// <summary>
         /// When two files of the same version are in the same directory, prefer .dll over .exe.
         /// </summary>
@@ -600,7 +599,7 @@ WriteLine(5);
             var main = CompileLibrary(dir, "main.exe", "Main", @"public class Program { public static int Main() { return C.Main(); } }",
                 MetadataReference.CreateFromImage(dll.Image));
 
-            Assert.True(LoadReference(main.Path).IsSuccessful);
+            Assert.True(LoadReference(main.Path));
             Assert.True(Execute("Program.Main()"));
 
             Assert.Equal("", ReadErrorOutputToEnd().Trim());
@@ -620,13 +619,13 @@ WriteLine(5);
             // [assembly:AssemblyVersion("2.0.0.0")] public class C { public static int Main() { return 2; } }");
             var file2 = dir2.CreateFile("c.dll").WriteAllBytes(TestResources.General.C2);
 
-            Assert.True(LoadReference(file1.Path).IsSuccessful);
-            Assert.True(LoadReference(file2.Path).IsSuccessful);
+            Assert.True(LoadReference(file1.Path));
+            Assert.True(LoadReference(file2.Path));
 
             var main = CompileLibrary(dir3, "main.exe", "Main", @"public class Program { public static int Main() { return C.Main(); } }",
                 MetadataReference.CreateFromImage(TestResources.General.C2.AsImmutableOrNull()));
 
-            Assert.True(LoadReference(main.Path).IsSuccessful);
+            Assert.True(LoadReference(main.Path));
             Assert.True(Execute("Program.Main()"));
 
             Assert.Equal("", ReadErrorOutputToEnd().Trim());
@@ -904,11 +903,11 @@ new object[] { new Class1(), new Class2(), new Class3() }
             // print default:
             Host.ExecuteAsync(@"ReferencePaths").Wait();
             var output = ReadOutputToEnd();
-            Assert.Equal("SearchPaths { \"" + normalizeSeparatorsAndFrameworkFolders(string.Join("\", \"", InteractiveHost.Service.DefaultReferenceSearchPaths)) + "\" }\r\n", output);
+            Assert.Equal("SearchPaths { \"" + normalizeSeparatorsAndFrameworkFolders(string.Join("\", \"", new[] { s_fxDir })) + "\" }\r\n", output);
 
             Host.ExecuteAsync(@"SourcePaths").Wait();
             output = ReadOutputToEnd();
-            Assert.Equal("SearchPaths { \"" + normalizeSeparatorsAndFrameworkFolders(string.Join("\", \"", InteractiveHost.Service.DefaultSourceSearchPaths)) + "\" }\r\n", output);
+            Assert.Equal("SearchPaths { \"" + normalizeSeparatorsAndFrameworkFolders(string.Join("\", \"", new[] { s_homeDir })) + "\" }\r\n", output);
 
             // add and test if added:
             Host.ExecuteAsync("SourcePaths.Add(@\"" + srcDir + "\");").Wait();
@@ -916,7 +915,7 @@ new object[] { new Class1(), new Class2(), new Class3() }
             Host.ExecuteAsync(@"SourcePaths").Wait();
 
             output = ReadOutputToEnd();
-            Assert.Equal("SearchPaths { \"" + normalizeSeparatorsAndFrameworkFolders(string.Join("\", \"", InteractiveHost.Service.DefaultSourceSearchPaths.Concat(new[] { srcDir.Path }))) + "\" }\r\n", output);
+            Assert.Equal("SearchPaths { \"" + normalizeSeparatorsAndFrameworkFolders(string.Join("\", \"", new[] { s_homeDir, srcDir.Path })) + "\" }\r\n", output);
 
             // execute file (uses modified search paths), the file adds a reference path
             Host.ExecuteFileAsync("foo.csx").Wait();
@@ -924,7 +923,7 @@ new object[] { new Class1(), new Class2(), new Class3() }
             Host.ExecuteAsync(@"ReferencePaths").Wait();
 
             output = ReadOutputToEnd();
-            Assert.Equal("SearchPaths { \"" + normalizeSeparatorsAndFrameworkFolders(string.Join("\", \"", InteractiveHost.Service.DefaultReferenceSearchPaths.Concat(new[] { dllDir }))) + "\" }\r\n", output);
+            Assert.Equal("SearchPaths { \"" + normalizeSeparatorsAndFrameworkFolders(string.Join("\", \"", new[] { s_fxDir, dllDir })) + "\" }\r\n", output);
 
             Host.AddReferenceAsync(Path.GetFileName(dll.Path)).Wait();
 
@@ -937,24 +936,7 @@ new object[] { new Class1(), new Class2(), new Class3() }
             Assert.Equal("[Metadata.ICSProp]\r\n", output);
         }
 
-        [Fact]
-        public void InvalidArguments()
-        {
-            Assert.Throws<FileNotFoundException>(() => LoadReference(""));
-            Assert.Throws<FileNotFoundException>(() => LoadReference("\0"));
-            Assert.Throws<FileNotFoundException>(() => LoadReference("blah \0"));
-            Assert.Throws<FileNotFoundException>(() => LoadReference("*.dll"));
-            Assert.Throws<FileNotFoundException>(() => LoadReference("*.exe"));
-            Assert.Throws<FileNotFoundException>(() => LoadReference("http://foo.dll"));
-            Assert.Throws<FileNotFoundException>(() => LoadReference("blah:foo.dll"));
-            Assert.Throws<FileNotFoundException>(() => LoadReference("C:\\" + new string('x', 10000) + "\\foo.dll"));
-            Assert.Throws<FileNotFoundException>(() => LoadReference("system,mscorlib"));
-            Assert.Throws<FileNotFoundException>(() => LoadReference(@"\\sample\sample1.dll"));
-
-            Assert.Throws<FileNotFoundException>(() => LoadReference(typeof(string).Assembly.Location + " " + typeof(string).Assembly.Location));
-        }
-
-#region Submission result printing - null/void/value.
+        #region Submission result printing - null/void/value.
 
         [Fact]
         public void SubmissionResult_PrintingNull()
@@ -986,7 +968,7 @@ foo()
             Assert.Equal("<void>\r\n", output);
         }
 
-#endregion
+        #endregion
 
         private static ImmutableArray<string> SplitLines(string text)
         {

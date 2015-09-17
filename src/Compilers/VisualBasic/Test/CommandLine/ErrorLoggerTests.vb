@@ -115,6 +115,7 @@ End Class
         ""title"": ""Unused local variable"",
         ""category"": ""Compiler"",
         ""isEnabledByDefault"": ""True"",
+        ""isSuppressedInSource"": ""False"",
         ""customTags"": ""Compiler;Telemetry""
       }}
     }},
@@ -128,6 +129,7 @@ End Class
         ""defaultSeverity"": ""Error"",
         ""category"": ""Compiler"",
         ""isEnabledByDefault"": ""True"",
+        ""isSuppressedInSource"": ""False"",
         ""customTags"": ""Compiler;Telemetry;NotConfigurable""
       }}
     }}

@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using Roslyn.Utilities;
 
@@ -15,90 +17,65 @@ namespace Microsoft.CodeAnalysis
         /// When scripts are included into a project we don't want #r's to reference other assemblies than those 
         /// specified explicitly in the project references.
         /// </summary>
-        internal sealed class ExistingReferencesResolver : MetadataFileReferenceResolver
+        internal sealed class ExistingReferencesResolver : MetadataReferenceResolver, IEquatable<ExistingReferencesResolver>
         {
-            private readonly MetadataFileReferenceResolver _resolver;
-            private readonly ImmutableArray<PortableExecutableReference> _availableReferences;
-            private readonly AssemblyIdentityComparer _assemblyIdentityComparer;
+            private readonly MetadataReferenceResolver _resolver;
+            private readonly ImmutableArray<MetadataReference> _availableReferences;
+            private readonly Lazy<HashSet<AssemblyIdentity>> _lazyAvailableReferences;
 
-            public ExistingReferencesResolver(
-                MetadataFileReferenceResolver resolver,
-                ImmutableArray<PortableExecutableReference> availableReferences,
-                AssemblyIdentityComparer assemblyIdentityComparer)
+            public ExistingReferencesResolver(MetadataReferenceResolver resolver, ImmutableArray<MetadataReference> availableReferences)
             {
-                Debug.Assert(!availableReferences.Any(r => r.Properties.Kind != MetadataImageKind.Assembly));
+                Debug.Assert(resolver != null);
+                Debug.Assert(availableReferences != null);
 
                 _resolver = resolver;
                 _availableReferences = availableReferences;
-                _assemblyIdentityComparer = assemblyIdentityComparer;
+
+                // Delay reading assembly identities until they are actually needed (only when #r is encountered).
+                _lazyAvailableReferences = new Lazy<HashSet<AssemblyIdentity>>(() => new HashSet<AssemblyIdentity>(
+                    from reference in _availableReferences
+                    let identity = TryGetIdentity(reference)
+                    where identity != null
+                    select identity));
             }
 
-            public override ImmutableArray<string> SearchPaths
+            public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
             {
-                get { return _resolver.SearchPaths; }
+                var resolvedReferences = _resolver.ResolveReference(reference, baseFilePath, properties);
+                return resolvedReferences.WhereAsArray(r => _lazyAvailableReferences.Value.Contains(TryGetIdentity(r)));
             }
 
-            public override string BaseDirectory
+            private static AssemblyIdentity TryGetIdentity(MetadataReference metadataReference)
             {
-                get { return _resolver.BaseDirectory; }
-            }
-
-            internal override MetadataFileReferenceResolver WithSearchPaths(ImmutableArray<string> searchPaths)
-            {
-                return new ExistingReferencesResolver(_resolver.WithSearchPaths(searchPaths), _availableReferences, _assemblyIdentityComparer);
-            }
-
-            internal override MetadataFileReferenceResolver WithBaseDirectory(string baseDirectory)
-            {
-                return new ExistingReferencesResolver(_resolver.WithBaseDirectory(baseDirectory), _availableReferences, _assemblyIdentityComparer);
-            }
-
-            public override string ResolveReference(string reference, string baseFilePath)
-            {
-                if (PathUtilities.IsFilePath(reference))
+                var peReference = metadataReference as PortableExecutableReference;
+                if (peReference == null || peReference.Properties.Kind != MetadataImageKind.Assembly)
                 {
-                    return ResolveMetadataFile(reference, baseFilePath);
-                }
-                else
-                {
-                    return ResolveAssemblyName(reference);
-                }
-            }
-
-            /// <summary>
-            /// When compiling to a file all unresolved assembly names have to match one of the file references specified on command line.
-            /// </summary>
-            private string ResolveAssemblyName(string displayName)
-            {
-                foreach (var fileReference in _availableReferences)
-                {
-                    var identity = ((AssemblyMetadata)fileReference.GetMetadata()).GetAssembly().Identity;
-                    if (_assemblyIdentityComparer.ReferenceMatchesDefinition(displayName, identity))
-                    {
-                        return fileReference.FilePath;
-                    }
+                    return null;
                 }
 
-                return null;
-            }
-
-            /// <summary>
-            /// When compiling to a file all relative paths have to match one of the file references specified on command line.
-            /// </summary>
-            private string ResolveMetadataFile(string path, string basePath)
-            {
-                var fullPath = _resolver.ResolveReference(path, basePath);
-
-                foreach (var fileReference in _availableReferences)
+                try
                 {
-                    if (string.Equals(fileReference.FilePath, fullPath, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return fullPath;
-                    }
+                    return ((AssemblyMetadata)peReference.GetMetadata()).GetAssembly().Identity;
                 }
-
-                return null;
+                catch (Exception e) when (e is BadImageFormatException || e is IOException)
+                {
+                    // ignore, metadata reading errors are reported by the complier for the existing references
+                    return null;
+                }
             }
+
+            public override int GetHashCode()
+            {
+                return _resolver.GetHashCode();
+            }
+
+            public bool Equals(ExistingReferencesResolver other)
+            {
+                return _resolver.Equals(other._resolver) && 
+                       _availableReferences.SequenceEqual(other._availableReferences);
+            }
+
+            public override bool Equals(object other) => Equals(other as ExistingReferencesResolver);
         }
     }
 }

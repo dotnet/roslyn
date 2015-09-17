@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestProperty((old, value) => old.WithExtendedCustomDebugInformation(value), opt => opt.ExtendedCustomDebugInformation, false);
 
             TestProperty((old, value) => old.WithXmlReferenceResolver(value), opt => opt.XmlReferenceResolver, new XmlFileResolver(null));
-            TestProperty((old, value) => old.WithMetadataReferenceResolver(value), opt => opt.MetadataReferenceResolver, new AssemblyReferenceResolver(MetadataFileReferenceResolver.Default, new MetadataFileReferenceProvider()));
+            TestProperty((old, value) => old.WithMetadataReferenceResolver(value), opt => opt.MetadataReferenceResolver, new TestMetadataReferenceResolver());
             TestProperty((old, value) => old.WithAssemblyIdentityComparer(value), opt => opt.AssemblyIdentityComparer, new DesktopAssemblyIdentityComparer(new AssemblyPortabilityPolicy()));
             TestProperty((old, value) => old.WithStrongNameProvider(value), opt => opt.StrongNameProvider, new DesktopStrongNameProvider());
         }
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             bool extendedCustomDebugInformation = true;
             XmlReferenceResolver xmlReferenceResolver = new XmlFileResolver(null);
             SourceReferenceResolver sourceReferenceResolver = new SourceFileResolver(ImmutableArray<string>.Empty, null);
-            MetadataReferenceResolver metadataReferenceResolver = new AssemblyReferenceResolver(MetadataFileReferenceResolver.Default, MetadataFileReferenceProvider.Default);
+            MetadataReferenceResolver metadataReferenceResolver = new MetadataReferenceResolverWithEquality();
             AssemblyIdentityComparer assemblyIdentityComparer = AssemblyIdentityComparer.Default;           // Currently uses reference equality
             StrongNameProvider strongNameProvider = new DesktopStrongNameProvider();
             MetadataImportOptions metadataImportOptions = 0;
@@ -356,6 +356,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions,
                 concurrentBuild, extendedCustomDebugInformation, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
                 assemblyIdentityComparer, strongNameProvider, metadataImportOptions);
+        }
+
+        private sealed class MetadataReferenceResolverWithEquality : MetadataReferenceResolver
+        {
+            public override bool Equals(object other) => true;
+            public override int GetHashCode() => 1;
+
+            public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         [Fact]
