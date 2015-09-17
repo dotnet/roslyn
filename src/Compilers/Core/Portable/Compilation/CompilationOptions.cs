@@ -162,6 +162,11 @@ namespace Microsoft.CodeAnalysis
         public ImmutableDictionary<string, ReportDiagnostic> SpecificDiagnosticOptions { get; protected set; }
 
         /// <summary>
+        /// Whether diagnostics suppressed in source, i.e. <see cref="Diagnostic.IsSuppressed"/> is true, should be reported.
+        /// </summary>
+        public bool ReportSuppressedDiagnostics { get; protected set; }
+
+        /// <summary>
         /// Resolves paths to metadata references specified in source via #r directives.
         /// Null if the compilation can't contain references to metadata other than those explicitly passed to its factory (such as #r directives in sources). 
         /// </summary>
@@ -212,6 +217,7 @@ namespace Microsoft.CodeAnalysis
         // Expects correct arguments.
         internal CompilationOptions(
             OutputKind outputKind,
+            bool reportSuppressedDiagnostics,
             string moduleName,
             string mainTypeName,
             string scriptClassName,
@@ -247,6 +253,7 @@ namespace Microsoft.CodeAnalysis
             this.GeneralDiagnosticOption = generalDiagnosticOption;
             this.WarningLevel = warningLevel;
             this.SpecificDiagnosticOptions = specificDiagnosticOptions;
+            this.ReportSuppressedDiagnostics = reportSuppressedDiagnostics;
             this.OptimizationLevel = optimizationLevel;
             this.ConcurrentBuild = concurrentBuild;
             this.ExtendedCustomDebugInformation = extendedCustomDebugInformation;
@@ -327,6 +334,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new options instance with the specified suppressed diagnostics reporting option.
+        /// </summary>
+        public CompilationOptions WithReportSuppressedDiagnostics(bool value)
+        {
+            return CommonWithReportSuppressedDiagnostics(value);
+        }
+
+        /// <summary>
         /// Creates a new options instance with the specified output kind.
         /// </summary>
         public CompilationOptions WithOutputKind(OutputKind kind)
@@ -386,6 +401,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract CompilationOptions CommonWithGeneralDiagnosticOption(ReportDiagnostic generalDiagnosticOption);
         protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions);
         protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions);
+        protected abstract CompilationOptions CommonWithReportSuppressedDiagnostics(bool reportSuppressedDiagnostics);
         [Obsolete]
         protected abstract CompilationOptions CommonWithFeatures(ImmutableArray<string> features);
 
@@ -428,6 +444,7 @@ namespace Microsoft.CodeAnalysis
                    this.OptimizationLevel == other.OptimizationLevel &&
                    this.OutputKind == other.OutputKind &&
                    this.Platform == other.Platform &&
+                   this.ReportSuppressedDiagnostics == other.ReportSuppressedDiagnostics &&
                    string.Equals(this.ScriptClassName, other.ScriptClassName, StringComparison.Ordinal) &&
                    this.SpecificDiagnosticOptions.SequenceEqual(other.SpecificDiagnosticOptions, (left, right) => (left.Key == right.Key) && (left.Value == right.Value)) &&
                    this.WarningLevel == other.WarningLevel &&
@@ -457,6 +474,7 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine((int)this.OptimizationLevel,
                    Hash.Combine((int)this.OutputKind,
                    Hash.Combine((int)this.Platform,
+                   Hash.Combine(this.ReportSuppressedDiagnostics,
                    Hash.Combine(this.ScriptClassName != null ? StringComparer.Ordinal.GetHashCode(this.ScriptClassName) : 0,
                    Hash.Combine(Hash.CombineValues(this.SpecificDiagnosticOptions),
                    Hash.Combine(this.WarningLevel,
@@ -464,7 +482,7 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(this.XmlReferenceResolver,
                    Hash.Combine(this.SourceReferenceResolver,
                    Hash.Combine(this.StrongNameProvider,
-                   Hash.Combine(this.AssemblyIdentityComparer, 0)))))))))))))))))))));
+                   Hash.Combine(this.AssemblyIdentityComparer, 0))))))))))))))))))))));
         }
 
         public static bool operator ==(CompilationOptions left, CompilationOptions right)
