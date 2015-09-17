@@ -102,8 +102,8 @@ function CreateSASToken(
     [System.TimeSpan] $Duration = [System.TimeSpan]::FromDays(7)
     ) {
 
-    $startTime = [System.DateTime]::UtcNow.Date
-    $token = New-AzureStorageContainerSASToken -Context $Context -Permission $Permission -Container $Container -StartTime $startTime -ExpiryTime ($startTime + $Duration)
+    $expiryTime = [System.DateTime]::UtcNow.Date + $Duration
+    $token = New-AzureStorageContainerSASToken -Context $Context -Permission $Permission -Container $Container -ExpiryTime $expiryTime
 
     # SAS tokens in Helix should not include the query char
     if ($token[0] -eq '?') {
