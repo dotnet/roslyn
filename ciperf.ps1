@@ -193,7 +193,7 @@ function GetXUnitFixtureUri(
         $FixturesStagingPath = Join-Path -Path $HelixStage -ChildPath fixtures
         $xunitZip = Join-Path $FixturesStagingPath -ChildPath xunit.zip
 
-        CreateXUnitFixture -StagingPath $FixturesStagingPath -ZipFile $xunitZip
+        CreateXUnitFixture -StagingPath $FixturesStagingPath -ZipFile $xunitZip > $null
 
         if (!$NoUpload) {
             Write-Host "Uploading xunit fixture"
@@ -201,7 +201,7 @@ function GetXUnitFixtureUri(
         }
     }
 
-    $XunitFixtureUri = BuildUri -Context $StorageContext -Container $StorageContainer -BlobName $BlobName -SASToken $StorageContainerRSAS
+    return BuildUri -Context $StorageContext -Container $StorageContainer -BlobName $BlobName -SASToken $StorageContainerRSAS
 }
 
 function SubmitJobToHelix(
