@@ -33,7 +33,12 @@ REM Kill any instances of VBCSCompiler.exe to release locked files;
 REM otherwise future CI runs may fail while trying to delete those files.
 taskkill /F /IM vbcscompiler.exe
 
-powershell .\ciperf.ps1 -BinariesDirectory %RoslynRoot%Binaries\%BuildConfiguration% -StorageAccountName roslynscratch -StorageContainer drops -SCRAMScope "Roslyn\Azure" -NoSubmit
+if DEFINED JenkinsCIPerfCredentials (
+  powershell .\ciperf.ps1 -BinariesDirectory %RoslynRoot%Binaries\%BuildConfiguration% %JenkinsCIPerfCredentials%
+  ) else (
+  powershell .\ciperf.ps1 -BinariesDirectory %RoslynRoot%Binaries\%BuildConfiguration% -StorageAccountName roslynscratch -StorageContainer drops -SCRAMScope 'Roslyn\Azure'
+  )
+
 
 REM It is okay and expected for taskkill to fail (it's a cleanup routine).  Ensure
 REM caller sees successful exit.

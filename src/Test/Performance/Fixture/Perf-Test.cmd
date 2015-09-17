@@ -43,7 +43,7 @@ if '%PYTHONPATH:~-4%' == '.exe' (
 rem ========================================================
 rem Prepare to run XUNIT tests
 rem ========================================================
-if not '%HELIX_CORRELATION_PAYLOAD%' == '' (
+if DEFINED HELIX_CORRELATION_PAYLOAD (
   rem The HELIX_CORRELATION_PAYLOAD contains the extended path prefix \\?\
   if '%HELIX_CORRELATION_PAYLOAD:~0,4%' == '\\?\' (
     set XUNIT_CONSOLE=%HELIX_CORRELATION_PAYLOAD:~4%\xunit.console.exe
@@ -88,7 +88,7 @@ echo All tests done.
 rem ========================================================
 rem Upload Results if running under HELIX
 rem ========================================================
-if not '%HELIX_RESULTS_CONTAINER_URI%' == '' (
+if DEFINED HELIX_RESULTS_CONTAINER_URI (
   for %%f in (%LOCALRESULTS%\*) do (
      echo Uploading %%f
      %PYTHONTOOLPATH% %~dp0UploadResult.py %%f %%~nxf
