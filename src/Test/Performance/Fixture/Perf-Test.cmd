@@ -35,8 +35,12 @@ rem Workaround for PYTHONPATH
 rem Helix sets PYTHONPATH to the path to python.exe
 rem However, Python uses PYTHONPATH to locate additional imports
 rem ========================================================
-if '%PYTHONPATH:~-4%' == '.exe' (
-  set PYTHONTOOLPATH=%PYTHONPATH%
+if DEFINED PYTHONPATH (
+  if "%PYTHONPATH:~-4%" == ".exe" (
+    set PYTHONTOOLPATH=%PYTHONPATH%
+    set PYTHONPATH=%HELIX_SCRIPT_ROOT%
+  )
+) else (
   set PYTHONPATH=%HELIX_SCRIPT_ROOT%
 )
 
@@ -45,7 +49,7 @@ rem Prepare to run XUNIT tests
 rem ========================================================
 if DEFINED HELIX_CORRELATION_PAYLOAD (
   rem The HELIX_CORRELATION_PAYLOAD contains the extended path prefix \\?\
-  if '%HELIX_CORRELATION_PAYLOAD:~0,4%' == '\\?\' (
+  if "%HELIX_CORRELATION_PAYLOAD:~0,4%" == "\\?\" (
     set XUNIT_CONSOLE=%HELIX_CORRELATION_PAYLOAD:~4%\xunit.console.exe
     set XUNIT_RUNNER=%HELIX_CORRELATION_PAYLOAD:~4%\xunit.performance.run.exe
   ) else (
