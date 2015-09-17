@@ -1056,6 +1056,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script);
 
+            // We want to report diagnostics with source suppression in the error log file.
+            // However, these diagnostics won't be reported on the command line.
+            var reportSuppressedDiagnostics = errorLogPath != null;
+
             var options = new CSharpCompilationOptions
             (
                 outputKind: outputKind,
@@ -1073,7 +1077,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 platform: platform,
                 generalDiagnosticOption: generalDiagnosticOption,
                 warningLevel: warningLevel,
-                specificDiagnosticOptions: diagnosticOptions
+                specificDiagnosticOptions: diagnosticOptions,
+                reportSuppressedDiagnostics: reportSuppressedDiagnostics
             );
 
             var emitOptions = new EmitOptions

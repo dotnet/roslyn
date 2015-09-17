@@ -3136,7 +3136,7 @@ public class D
             var libRef = CreateCompilationWithMscorlib(libSource).EmitToImageReference();
             var comp = CreateCompilationWithMscorlib(source, new[] { libRef });
             var tree = comp.SyntaxTrees.Single();
-            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Declare, tree, null, includeEarlierStages: false, includeDiagnosticsWithSourceSuppression: false, cancellationToken: CancellationToken.None);
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Declare, tree, null, includeEarlierStages: false, cancellationToken: CancellationToken.None);
         }
 
         [WorkItem(709317, "DevDiv")]
@@ -3231,7 +3231,7 @@ namespace N{0}
                 // [assembly:CLSCompliant(true)]
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "CLSCompliant").WithArguments("CLSCompliant"));
 
-            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Declare, tree1, null, includeEarlierStages: false, includeDiagnosticsWithSourceSuppression: false, cancellationToken: CancellationToken.None).Verify(
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Declare, tree1, null, includeEarlierStages: false, cancellationToken: CancellationToken.None).Verify(
                 // a.cs(21,6): warning CS3016: Arrays as attribute arguments is not CLS-compliant
                 //     [My(new int[] { 1 })]
                 Diagnostic(ErrorCode.WRN_CLS_ArrayArgumentToAttribute, "My(new int[] { 1 })"),

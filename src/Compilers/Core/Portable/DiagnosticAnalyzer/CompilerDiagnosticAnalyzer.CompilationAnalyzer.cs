@@ -30,22 +30,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
             {
                 var semanticModel = _compilation.GetSemanticModel(context.Tree);
-                var diagnostics = semanticModel.GetSyntaxDiagnosticsIncludingSuppressions(cancellationToken: context.CancellationToken);
+                var diagnostics = semanticModel.GetSyntaxDiagnostics(cancellationToken: context.CancellationToken);
                 ReportDiagnostics(diagnostics, context.ReportDiagnostic, IsSourceLocation, s_syntactic);
             }
 
             public static void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
             {
-                var declDiagnostics = context.SemanticModel.GetDeclarationDiagnosticsIncludingSuppressions(cancellationToken: context.CancellationToken);
+                var declDiagnostics = context.SemanticModel.GetDeclarationDiagnostics(cancellationToken: context.CancellationToken);
                 ReportDiagnostics(declDiagnostics, context.ReportDiagnostic, IsSourceLocation, s_declaration);
 
-                var bodyDiagnostics = context.SemanticModel.GetMethodBodyDiagnosticsIncludingSuppressions(cancellationToken: context.CancellationToken);
+                var bodyDiagnostics = context.SemanticModel.GetMethodBodyDiagnostics(cancellationToken: context.CancellationToken);
                 ReportDiagnostics(bodyDiagnostics, context.ReportDiagnostic, IsSourceLocation);
             }
 
             public static void AnalyzeCompilation(CompilationAnalysisContext context)
             {
-                var diagnostics = context.Compilation.GetDeclarationDiagnosticsIncludingSuppressions(cancellationToken: context.CancellationToken);
+                var diagnostics = context.Compilation.GetDeclarationDiagnostics(cancellationToken: context.CancellationToken);
                 ReportDiagnostics(diagnostics, context.ReportDiagnostic, location => !IsSourceLocation(location), s_declaration);
             }
 
