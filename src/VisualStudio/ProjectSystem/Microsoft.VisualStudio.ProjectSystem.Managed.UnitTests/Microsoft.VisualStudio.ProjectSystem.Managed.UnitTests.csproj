@@ -18,7 +18,9 @@
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.CSharp.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.CSharp.VS.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic.VS.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
@@ -120,6 +122,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Testing\ProjectSystemTraitDiscover.cs" />
+    <Compile Include="Trait.cs" />
+    <Compile Include="UnitTestAttribute.cs" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
   <Import Project="..\..\..\..\packages\Microsoft.VisualStudio.ProjectSystem.SDK.Tools.14.0.50729-pre\build\Microsoft.VisualStudio.ProjectSystem.Sdk.Tools.targets" Condition="Exists('..\..\..\..\packages\Microsoft.VisualStudio.ProjectSystem.SDK.Tools.14.0.50729-pre\build\Microsoft.VisualStudio.ProjectSystem.Sdk.Tools.targets')" />
