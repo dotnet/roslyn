@@ -893,8 +893,6 @@ public class Maine
 
             using (new EnsureEnglishUICulture())
             {
-                Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
-
                 var result = c1.Emit(new MemoryStream(), manifestResources:
                     new[]
                     {
