@@ -18,7 +18,7 @@
     <OutDir>$(OutDir)\ProjectSystem\VisualBasic\</OutDir>
   </PropertyGroup>
   <ItemGroup>
-    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic.VS.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
@@ -142,7 +142,9 @@
     <Compile Include="ProjectSystem\Designers\Imaging\VisualBasicProjectImageProvider.cs" />
     <Compile Include="ProjectSystem\Designers\VisualBasicProjectDesignerPage.cs" />
     <Compile Include="ProjectSystem\Designers\VisualBasicProjectDesignerPageProvider.cs" />
-    <Compile Include="ProjectSystem\LanguageServices\VisualBasicCodeDomProvider.cs" />
+    <Compile Include="ProjectSystem\LanguageServices\VisualBasicCodeDomProvider.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="ProjectSystem\Templating\VisualBasicItemTemplatesGuidProvider.cs" />
     <Compile Include="ProjectSystem\Templating\VisualBasicItemTypeGuidProvider.cs" />
   </ItemGroup>
