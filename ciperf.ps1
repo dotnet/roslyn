@@ -47,24 +47,20 @@ The connection string to use when submitting the final job to Helix
 .PARAMETER SCRAMScope
 The scope to use if connection strings and account keys are to be retrieved from SCRAM
 
-.EXAMPLE 1
-C:\PS> .\CIPerf.ps1 -BinariesDirectory "Open\Binaries\Release" -JobId "PR1234" -Queue "RoslynAzureWindows10x86"
+.PARAMETER UseDevelopmentStorage
+Use the Azure Storage Emulator on the local machine for storage. Useful for testing. The job cannot be submitted.
+
+.EXAMPLE
+C:\PS> .\CIPerf.ps1 -BinariesDirectory D:\Roslyn\Open\Binaries\Release -StorageAccountName roslyn -StorageContainer drops -SCRAMScope Azure
+Typical usage. Uses SCRAM to Azure credentials. Packages up the drop, uploads it to Azure storage, and kicks off a performance run.
+
+.EXAMPLE
+C:\PS> .\CIPerf.ps1 -UseDevelopmentStorage -BinariesDirectory D:\Roslyn\Open\Binaries\Release -StorageContainer test
+Test this script using the Azure Storage Emulator. All generated artifacts are uploaded to development storage but no job is submitted
+to Helix.
 #>
 
 param (
-    [parameter(Mandatory = $true)]
-    [String] $BinariesDirectory,
-    [String] $Branch = "master",
-    [String] $JobId = $env:USERNAME + "_" + [System.DateTime]::UtcNow.ToString("yyyyMMddTHHmmss"),
-    [String] $JobType = "CIPerf",
-    [String] $Platform = "Windows",
-    [String] $Queue = "Windows",
-    [String] $Repository = "Roslyn",
-    [Parameter(ParameterSetName='devStorage_Submit_SCRAM', Mandatory = $true)]
-    [Parameter(ParameterSetName='devStorage_Submit_NoSCRAM', Mandatory = $true)]
-    [Parameter(ParameterSetName='devStorage_NoSubmit_SCRAM', Mandatory = $true)]
-    [Parameter(ParameterSetName='devStorage_NoSubmit_NoSCRAM', Mandatory = $true)]
-    [switch] $UseDevelopmentStorage,
     [Parameter(ParameterSetName='namedStorage_Submit_SCRAM', Mandatory = $true)]
     [Parameter(ParameterSetName='namedStorage_Submit_NoSCRAM', Mandatory = $true)]
     [Parameter(ParameterSetName='namedStorage_NoSubmit_SCRAM', Mandatory = $true)]
@@ -73,29 +69,165 @@ param (
     [Parameter(ParameterSetName='namedStorage_Submit_NoSCRAM', Mandatory = $true)]
     [Parameter(ParameterSetName='namedStorage_NoSubmit_NoSCRAM', Mandatory = $true)]
     [String] $StorageAccountKey,
+    [Parameter(ParameterSetName='namedStorage_Submit_SCRAM', Mandatory = $true)]
+    [Parameter(ParameterSetName='namedStorage_NoSubmit_SCRAM', Mandatory = $true)]
+    [String] $SCRAMScope,
+    [Parameter(ParameterSetName='devStorage', Mandatory = $true)]
+    [switch] $UseDevelopmentStorage,
     [parameter(Mandatory = $true)]
     [String] $StorageContainer,
     [switch] $NoUpload,
-    [Parameter(ParameterSetName='devStorage_NoSubmit_SCRAM', Mandatory = $true)]
-    [Parameter(ParameterSetName='devStorage_NoSubmit_NoSCRAM', Mandatory = $true)]
     [Parameter(ParameterSetName='namedStorage_NoSubmit_SCRAM', Mandatory = $true)]
     [Parameter(ParameterSetName='namedStorage_NoSubmit_NoSCRAM', Mandatory = $true)]
     [switch] $NoSubmit,
-    [Parameter(ParameterSetName='devStorage_Submit_NoSCRAM', Mandatory = $true)]
     [Parameter(ParameterSetName='namedStorage_Submit_NoSCRAM', Mandatory = $true)]
     [String] $SubmitConnectionString,
-    [Parameter(ParameterSetName='devStorage_Submit_SCRAM', Mandatory = $true)]
-    [Parameter(ParameterSetName='devStorage_NoSubmit_SCRAM', Mandatory = $true)]
-    [Parameter(ParameterSetName='namedStorage_Submit_SCRAM', Mandatory = $true)]
-    [Parameter(ParameterSetName='namedStorage_NoSubmit_SCRAM', Mandatory = $true)]
-    [String] $SCRAMScope
+    [parameter(Mandatory = $true)]
+    [String] $BinariesDirectory,
+    [String] $Repository = "Roslyn",
+    [String] $Branch = "master",
+    [String] $JobId = $env:USERNAME + "_" + [System.DateTime]::UtcNow.ToString("yyyyMMddTHHmmss"),
+    [String] $JobType = "CIPerf",
+    [String] $Platform = "Windows",
+    [String] $Queue = "Windows"
 )
+
+# Create a new SAS token, but don't include the leading question mark
+function CreateSASToken(
+    [Parameter(Mandatory = $true)]
+    [Microsoft.WindowsAzure.Commands.Common.Storage.AzureStorageContext] $Context,
+    [Parameter(Mandatory = $true)]
+    [String] $Container,
+    [String] $Permission = "r",
+    [System.TimeSpan] $Duration = [System.TimeSpan]::FromDays(7)
+    ) {
+
+    $startTime = [System.DateTime]::UtcNow.Date
+    $token = New-AzureStorageContainerSASToken -Context $Context -Permission $Permission -Container $Container -StartTime $startTime -ExpiryTime ($startTime + $Duration)
+
+    # SAS tokens in Helix should not include the query char
+    if ($token[0] -eq '?') {
+      $token = $token.Substring(1)
+    }
+
+    return $token
+}
+
+# Construct a full URI with a SAS token for the given storage context and blob name
+function BuildUri(
+    [Parameter(Mandatory = $true)]
+    [Microsoft.WindowsAzure.Commands.Common.Storage.AzureStorageContext] $Context,
+    [Parameter(Mandatory = $true)]
+    [String] $Container,
+    [String] $BlobName,
+    [String] $SASToken
+) {
+
+    $ub = New-Object System.UriBuilder -ArgumentList $Context.BlobEndPoint
+    if ([System.String]::IsNullOrEmpty($BlobName)) {
+        $ub.Path = $Container
+    } else {
+        $ub.Path += $Container + "/" + $BlobName
+    }
+    $ub.Query = $SASToken
+    
+    # Using OriginalString because that preserves escaping in the query string
+    return $ub.Uri.OriginalString
+}
+
+
+function CreateDrop(
+    [Parameter(Mandatory = $true)]
+    [String] $Binaries,
+    [Parameter(Mandatory = $true)]
+    [String] $ZipFile
+    ) {
+
+    Write-Host "Zipping $Binaries to $ZipFile"
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
+    [System.IO.Compression.ZipFile]::CreateFromDirectory($Binaries, $ZipFile, $compressionLevel, $false)
+}
+
+function CreateXUnitFixture(
+    [Parameter(Mandatory = $true)]
+    [String] $StagingPath,
+    [Parameter(Mandatory = $true)]
+    [String] $ZipFile
+    ) {
+    
+    $PackagesPath = Join-Path -Path $StagingPath -ChildPath Packages
+    & $NuGetExe install -OutputDirectory $PackagesPath -NonInteractive -ExcludeVersion xunit.runner.console -Version 2.1.0-beta4-build3109 -Source https://www.nuget.org/api/v2/
+    & $NuGetExe install -OutputDirectory $PackagesPath -NonInteractive -ExcludeVersion Microsoft.DotNet.xunit.performance.runner.Windows -Version 1.0.0-alpha-build0013 -Source https://www.myget.org/F/dotnet-buildtools/
+
+    $ToZipPath = Join-Path $StagingPath -ChildPath ToZip
+    mkdir $ToZipPath > $null
+
+    # Move the contents of all "Tools" folders into the root of the archive (overwriting any duplicates)
+    (Get-ChildItem -Path $PackagesPath -Recurse -Directory -Include "Tools").FullName | Get-ChildItem | Move-Item -Destination $ToZipPath -Force
+
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
+    [System.IO.Compression.ZipFile]::CreateFromDirectory($ToZipPath, $ZipFile, $compressionLevel, $false)
+}
+
+function GetXUnitFixtureUri(
+    [Parameter(Mandatory = $true)]
+    [string] $BlobName,
+    [Parameter(Mandatory = $true)]
+    [Microsoft.WindowsAzure.Commands.Common.Storage.AzureStorageContext] $StorageContext,
+    [Parameter(Mandatory = $true)]
+    [String] $StorageContainer,
+    [Parameter(Mandatory = $true)]
+    [String] $StorageContainerRSAS,
+    [Parameter(Mandatory = $true)]
+    [String] $HelixStage
+   ) {
+
+    # Look for xunit.zip in the "fixtures" folder and create it if it doesn't already exist
+    $xunitBlob = Get-AzureStorageBlob -Container $StorageContainer -Blob $BlobName -Context $StorageContext -ErrorAction Ignore
+    if ($xunitBlob -eq $null) {
+
+        Write-Host "Xunit fixture is missing. Creating it and uploading to storage..."
+        
+        $FixturesStagingPath = Join-Path -Path $HelixStage -ChildPath fixtures
+        $xunitZip = Join-Path $FixturesStagingPath -ChildPath xunit.zip
+
+        CreateXUnitFixture -StagingPath $FixturesStagingPath -ZipFile $xunitZip
+
+        if (!$NoUpload) {
+            Write-Host "Uploading xunit fixture"
+            Set-AzureStorageBlobContent -File $xunitZip -Container $StorageContainer -Blob $BlobName -Context $StorageContext
+        }
+    }
+
+    $XunitFixtureUri = BuildUri -Context $StorageContext -Container $StorageContainer -BlobName $BlobName -SASToken $StorageContainerRSAS
+}
+
+function SubmitJobToHelix(
+    [Parameter(Mandatory = $true)]
+    [string] $JobJsonPath,
+    [Parameter(Mandatory = $true)]
+    [string] $EventHubConnectionString
+    ) {
+
+    Write-Host "Submitting job to event hub."
+    $EventHubClient = [Microsoft.ServiceBus.Messaging.EventHubClient]::CreateFromConnectionString($EventHubConnectionString)
+    $JobJsonStream = [System.IO.File]::Open($JobJsonPath, [System.IO.FileMode]::Open)
+    $EventData = New-Object Microsoft.ServiceBus.Messaging.EventData -ArgumentList $JobJsonStream
+    $EventHubClient.Send($EventData)
+    $JobJsonStream.Dispose()
+}
 
 try {
 
     if (!(Test-Path $BinariesDirectory)) {
         Write-Error "Could not find binaries directory ($BinariesDirectory)"
         exit 1
+    }
+
+    if ($UseDevelopmentStorage) {
+        $NoSubmit = $true
     }
 
     if ([System.String]::IsNullOrEmpty($SCRAMScope)) {
@@ -133,21 +265,23 @@ try {
         exit 1
     }
 
-    try {
-        # Reference the latest version of Microsoft.ServiceBus.dll
-        Write-Output "Adding the [Microsoft.ServiceBus.dll] assembly to the script..."
+    if (!$NoSubmit) {
+        try {
+            # Reference the latest version of Microsoft.ServiceBus.dll
+            Write-Output "Adding the [Microsoft.ServiceBus.dll] assembly to the script..."
 
-        & $NuGetExe install WindowsAzure.ServiceBus -Version 3.0.2 -NonInteractive -ExcludeVersion -Source https://www.nuget.org/api/v2/ -OutputDirectory $env:TEMP
+            & $NuGetExe install WindowsAzure.ServiceBus -Version 3.0.2 -NonInteractive -ExcludeVersion -Source https://www.nuget.org/api/v2/ -OutputDirectory $env:TEMP
 
-        $packagesFolder = Join-Path $env:TEMP -ChildPath WindowsAzure.ServiceBus
-        $assembly = Get-ChildItem $packagesFolder -Include "Microsoft.ServiceBus.dll" -Recurse
-        Add-Type -Path $assembly.FullName
+            $packagesFolder = Join-Path $env:TEMP -ChildPath WindowsAzure.ServiceBus
+            $assembly = Get-ChildItem $packagesFolder -Include "Microsoft.ServiceBus.dll" -Recurse
+            Add-Type -Path $assembly.FullName
 
-        Write-Output "The [Microsoft.ServiceBus.dll] assembly has been successfully added to the script."
-    }
-    catch [exception] {
-        Write-Error "Could not add the Microsoft.ServiceBus.dll assembly to the script."
-        exit 1
+            Write-Output "The [Microsoft.ServiceBus.dll] assembly has been successfully added to the script."
+        }
+        catch [exception] {
+            Write-Error "Could not add the Microsoft.ServiceBus.dll assembly to the script."
+            exit 1
+        }
     }
 
     Write-Host "Scanning for performance test assemblies"
@@ -177,10 +311,7 @@ try {
 
     $DropZip = Join-Path $HelixStage -ChildPath Drop.zip
 
-    Write-Host "Zipping $BinariesDirectory to $DropZip"
-    Add-Type -AssemblyName System.IO.Compression.FileSystem
-    $compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
-    [System.IO.Compression.ZipFile]::CreateFromDirectory($BinariesDirectory, $DropZip, $compressionLevel, $false)
+    CreateDrop -Binaries $BinariesDirectory -ZipFile $DropZip
 
     $BlobRootName = "$Repository/$Branch/$JobId/$JobType"
     $BlobName = $BlobRootName + "_Drop.zip"
@@ -189,54 +320,15 @@ try {
         Set-AzureStorageBlobContent -File $DropZip -Container $StorageContainer -Blob $BlobName -Context $StorageContext
     }
 
-    $StorageContainerRSAS = New-AzureStorageContainerSASToken -Context $StorageContext -Permission r -Container $StorageContainer -StartTime ([System.DateTime]::UtcNow.Date) -ExpiryTime ([System.DateTime]::UtcNow.Date + [System.TimeSpan]::FromDays(7))
-    # SAS tokens in Helix should not include the query char
-    if ($StorageContainerRSAS[0] -eq '?') {
-      $StorageContainerRSAS = $StorageContainerRSAS.Substring(1)
-    }
+    $StorageContainerRSAS = CreateSASToken -Context $StorageContext -Container $StorageContainer -Permission r
 
-    $ub = New-Object System.UriBuilder -ArgumentList $StorageContext.BlobEndPoint
-    $ub.Path += $StorageContainer + "/" + $BlobName
-    $ub.Query = $StorageContainerRSAS
-    $DropUri = $ub.Uri.OriginalString
+    $DropUri = BuildUri -Context $StorageContext -Container $StorageContainer -BlobName $BlobName -SASToken $StorageContainerRSAS
 
+    # Look for xunit.zip in the "fixtures/xunit2.1" folder and create it if it doesn't already exist
+    $XunitFixtureUri = GetXUnitFixtureUri -BlobName "$Repository/$Branch/fixtures/xunit2.1/xunit.zip" -StorageContext $StorageContext -StorageContainer $StorageContainer -StorageContainerRSAS $StorageContainerRSAS -HelixStage $HelixStage
+    
     Write-Host "Creating work item list"
 
-    # Look for xunit.zip in the "fixtures" folder and create it if it doesn't already exist
-    $BlobName = "$Repository/$Branch/fixtures/xunit2.1/xunit.zip"
-    $xunitBlob = Get-AzureStorageBlob -Container $StorageContainer -Blob $BlobName -Context $StorageContext -ErrorAction Ignore
-    if ($xunitBlob -eq $null) {
-
-        Write-Host "Xunit fixture is missing. Creating it and uploading to storage..."
-        $FixturesStage = Join-Path -Path $HelixStage -ChildPath fixtures
-
-        $FixturesStagePackages = Join-Path -Path $FixturesStage -ChildPath Packages
-        & $NuGetExe install -OutputDirectory $FixturesStagePackages -NonInteractive -ExcludeVersion xunit.runner.console -Version 2.1.0-beta4-build3109 -Source https://www.nuget.org/api/v2/
-        & $NuGetExe install -OutputDirectory $FixturesStagePackages -NonInteractive -ExcludeVersion Microsoft.DotNet.xunit.performance.runner.Windows -Version 1.0.0-alpha-build0013 -Source https://www.myget.org/F/dotnet-buildtools/
-
-        $FixturesStageToZip = Join-Path $FixturesStage -ChildPath ToZip
-        mkdir $FixturesStageToZip > $null
-
-        # Move the contents of all "Tools" folders into the root of the archive (overwriting any duplicates)
-        (Get-ChildItem -Path $FixturesStagePackages -Recurse -Directory -Include "Tools").FullName | Get-ChildItem | Move-Item -Destination $FixturesStageToZip -Force
-
-        $xunitZip = Join-Path $FixturesStage -ChildPath xunit.zip
-        Write-Host "Zipping $FixturesStageToZip to $xunitZip"
-        Add-Type -AssemblyName System.IO.Compression.FileSystem
-        $compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
-        [System.IO.Compression.ZipFile]::CreateFromDirectory($FixturesStageToZip, $xunitZip, $compressionLevel, $false)
-
-        if (!$NoUpload) {
-            Write-Host "Uploading xunit fixture"
-            Set-AzureStorageBlobContent -File $xunitZip -Container $StorageContainer -Blob $BlobName -Context $StorageContext
-        }
-    }
-
-    $ub = New-Object System.UriBuilder -ArgumentList $StorageContext.BlobEndPoint
-    $ub.Path += $StorageContainer + "/" + $BlobName
-    $ub.Query = $StorageContainerRSAS
-    $XunitFixtureUri = $ub.Uri.OriginalString
-    
     $sb = New-Object -TypeName System.Text.StringBuilder
     [void] $sb.AppendLine("[")
 
@@ -267,22 +359,13 @@ try {
         Set-AzureStorageBlobContent -File $WorkItemListJson -Container $StorageContainer -Blob $BlobName -Context $StorageContext
     }
 
-    $ub = New-Object System.UriBuilder -ArgumentList $StorageContext.BlobEndPoint
-    $ub.Path = $StorageContainer + "/" + $BlobName
-    $ub.Query = $StorageContainerRSAS
-    $ListUri = $ub.Uri.OriginalString
+    $ListUri = BuildUri -Context $StorageContext -Container $StorageContainer -BlobName $BlobName -SASToken $StorageContainerRSAS
     
     # Using the same storage account and container for results as for the payload
-    $ub = New-Object System.UriBuilder -ArgumentList $StorageContext.BlobEndPoint
-    $ub.Path = $StorageContainer
-    $ResultsUri = $ub.Uri.OriginalString
-
+    # In the future, we may want to put results elsewhere
+    $ResultsUri = BuildUri -Context $StorageContext -Container $StorageContainer
     $ResultsUriRSAS =  $StorageContainerRSAS
-    $ResultsUriWSAS = New-AzureStorageContainerSASToken -Context $StorageContext -Permission w -Container $StorageContainer -StartTime ([System.DateTime]::UtcNow.Date) -ExpiryTime ([System.DateTime]::UtcNow.Date + [System.TimeSpan]::FromDays(7))
-    # SAS tokens in Helix should not include the query char
-    if ($ResultsUriWSAS[0] -eq '?') {
-      $ResultsUriWSAS = $ResultsUriWSAS.Substring(1)
-    }
+    $ResultsUriWSAS = CreateSASToken -Context $StorageContext -Container $StorageContainer -Permission w
 
     # Create and upload Job.json
     Write-Host "Creating job event"
@@ -310,12 +393,7 @@ try {
 
     # Submit event to the Helix Event Hub
     if (!$NoSubmit) {
-        Write-Host "Submitting job to event hub."
-        $EventHubClient = [Microsoft.ServiceBus.Messaging.EventHubClient]::CreateFromConnectionString($SubmitConnectionString)
-        $JobJsonStream = [System.IO.File]::Open($JobJson, [System.IO.FileMode]::Open)
-        $EventData = New-Object Microsoft.ServiceBus.Messaging.EventData -ArgumentList $JobJsonStream
-        $EventHubClient.Send($EventData)
-        $JobJsonStream.Dispose()
+        SubmitJobToHelix -JobJsonPath $JobJson -EventHubConnectionString $SubmitConnectionString
     }
 
     exit 0
