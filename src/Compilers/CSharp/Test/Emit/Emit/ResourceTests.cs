@@ -891,8 +891,7 @@ public class Maine
 
             var c1 = CreateCompilationWithMscorlib("");
 
-            var tmpCulture = CultureInfo.CurrentUICulture;
-            try
+            using (new EnsureEnglishUICulture())
             {
                 Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
 
@@ -905,10 +904,6 @@ public class Maine
                 result.Diagnostics.Verify(
     // error CS1566: Error reading resource 'res' -- 'Resource stream ended at 4 bytes, expected 6 bytes.'
     Diagnostic(ErrorCode.ERR_CantReadResource).WithArguments("res", "Resource stream ended at 4 bytes, expected 6 bytes.").WithLocation(1, 1));
-            }
-            finally
-            {
-                Thread.CurrentThread.CurrentUICulture = tmpCulture;
             }
         }
     }
