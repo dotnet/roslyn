@@ -29,12 +29,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (method.IsAsync && compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) == method.ReturnType))
             {
                 // we don't analyze synthesized void methods.
-                if (method.IsImplicitlyDeclared || Analyze(compilation, method, block, diagnostics))
+                if ((method.IsImplicitlyDeclared && !method.IsScriptInitializer) || Analyze(compilation, method, block, diagnostics))
                 {
                     block = AppendImplicitReturn(block, method, (CSharpSyntaxNode)(method as SourceMethodSymbol)?.BodySyntax);
                 }
             }
-            else if (!method.IsScriptInitializer && Analyze(compilation, method, block, diagnostics))
+            else if (Analyze(compilation, method, block, diagnostics))
             {
                 // If the method is a lambda expression being converted to a non-void delegate type
                 // and the end point is reachable then suppress the error here; a special error
