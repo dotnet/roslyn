@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &gt;&gt;&gt;&gt;&gt;&gt;&gt; master.
+        ///   Looks up a localized string similar to Change &apos;{0}&apos; to &apos;{1}&apos;..
         /// </summary>
         internal static string ChangeTo {
             get {
@@ -1502,6 +1502,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Non-invoked method cannot be replaced with property..
+        /// </summary>
+        internal static string NonInvokedMethodCannotBeReplacedWithProperty {
+            get {
+                return ResourceManager.GetString("NonInvokedMethodCannotBeReplacedWithProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Ceasing to access captured variable &apos;{0}&apos; in {1} will prevent the debug session from continuing..
         /// </summary>
         internal static string NotAccessingCapturedVariableInLambda {
@@ -1534,6 +1543,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string NoteTabTwiceToInsertTheSnippet {
             get {
                 return ResourceManager.GetString("NoteTabTwiceToInsertTheSnippet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only methods with a single argument can be replaced with a property..
+        /// </summary>
+        internal static string OnlyMethodsWithASingleArgumentCanBeReplacedWithAProperty {
+            get {
+                return ResourceManager.GetString("OnlyMethodsWithASingleArgumentCanBeReplacedWithAProperty", resourceCulture);
             }
         }
         
