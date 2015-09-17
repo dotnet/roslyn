@@ -377,6 +377,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Hide base member.
+        /// </summary>
+        internal static string HideBase {
+            get {
+                return ResourceManager.GetString("HideBase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Implement Abstract Class.
         /// </summary>
         internal static string ImplementAbstractClass {

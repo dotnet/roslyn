@@ -124,6 +124,8 @@ namespace Roslyn.Test.Utilities
             public const string Venus = "Venus";
             public const string VsLanguageBlock = "VsLanguageBlock";
             public const string XmlTagCompletion = "XmlTagCompletion";
+            public const string CodeActionsAddOverload = "CodeActions.AddOverloads";
+            public const string CodeActionsAddNew = "CodeActions.AddNew";
         }
     }
 }

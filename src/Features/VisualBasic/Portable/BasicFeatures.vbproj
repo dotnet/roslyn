@@ -150,6 +150,8 @@
     <Compile Include="CodeFixes\IncorrectFunctionReturnType\IncorrectFunctionReturnTypeCodeFixProvider.vb" />
     <Compile Include="CodeFixes\MoveToTopOfFile\MoveToTopOfFileCodeFixProvider.MoveToLineCodeAction.vb" />
     <Compile Include="CodeFixes\MoveToTopOfFile\MoveToTopOfFileCodeFixProvider.vb" />
+    <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.AddOverloads.vb" />
+    <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.vb" />
     <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.RemoveUnnecessaryCastFixAllProvider.vb" />
     <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.Rewriter.vb" />
     <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.vb" />

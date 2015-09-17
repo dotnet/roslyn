@@ -1207,4 +1207,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="ERR_UndefinedType1" xml:space="preserve">
     <value>Type '{0}' is not defined.</value>
   </data>
+  <data name="AddOverloadsKeyword" xml:space="preserve">
+    <value>Add Overloads</value>
+  </data>
 </root>

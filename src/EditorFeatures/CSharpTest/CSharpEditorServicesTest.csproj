@@ -256,6 +256,7 @@
     <Compile Include="Diagnostics\GenerateType\GenerateTypeTests.cs" />
     <Compile Include="Diagnostics\GenerateType\GenerateTypeTests_Dialog.cs" />
     <Compile Include="Diagnostics\GenerateVariable\GenerateVariableTests.cs" />
+    <Compile Include="Diagnostics\HideBase\HideBaseTests.cs" />
     <Compile Include="Diagnostics\ImplementAbstractClass\ImplementAbstractClassTests.cs" />
     <Compile Include="Diagnostics\ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceTests_FixAllTests.cs" />

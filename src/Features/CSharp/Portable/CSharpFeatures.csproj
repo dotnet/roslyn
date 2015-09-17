@@ -99,6 +99,8 @@
     <Compile Include="CodeFixes\GenerateMethod\GenerateMethodCodeFixProvider.cs" />
     <Compile Include="CodeFixes\GenerateType\GenerateTypeCodeFixProvider.cs" />
     <Compile Include="CodeFixes\GenerateVariable\GenerateVariableCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\HideBase\HideBaseCodeFixProvider.AddNewKeywordAction.cs" />
+    <Compile Include="CodeFixes\HideBase\HideBaseCodeFixProvider.cs" />
     <Compile Include="CodeFixes\ImplementAbstractClass\ImplementAbstractClassCodeFixProvider.cs" />
     <Compile Include="CodeFixes\ImplementInterface\ImplementInterfaceCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Iterator\CSharpAddYieldCodeFixProvider.cs" />
@@ -384,6 +386,7 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="..\..\..\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />

@@ -437,4 +437,7 @@
   <data name="ERR_NameNotInContext" xml:space="preserve">
     <value>The name '{0}' does not exist in the current context.</value>
   </data>
+  <data name="HideBase" xml:space="preserve">
+    <value>Hide base member</value>
+  </data>
 </root>

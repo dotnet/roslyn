@@ -34,14 +34,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             // ExtensionOrderer.Order() will not throw even if cycle is detected. However, it will
             // break the cycle and the resulting order will end up being unpredictable.
             var actualOrder = ExtensionOrderer.Order(csharpProviders).ToArray();
-            Assert.Equal(20, actualOrder.Length);
+            Assert.Equal(21, actualOrder.Length);
             Assert.Equal(PredefinedCodeFixProviderNames.AddUsingOrImport, actualOrder[0].Metadata.Name);
             Assert.Equal(PredefinedCodeFixProviderNames.RenameTracking, actualOrder[1].Metadata.Name);
 
             var vbProviders = providersPerLanguage[LanguageNames.VisualBasic];
             Assert.DoesNotThrow(() => ExtensionOrderer.CheckForCycles(vbProviders));
             actualOrder = ExtensionOrderer.Order(vbProviders).ToArray();
-            Assert.Equal(28, actualOrder.Length);
+            Assert.Equal(29, actualOrder.Length);
             Assert.Equal(PredefinedCodeFixProviderNames.AddUsingOrImport, actualOrder[0].Metadata.Name);
             Assert.Equal(PredefinedCodeFixProviderNames.RenameTracking, actualOrder[1].Metadata.Name);
         }
