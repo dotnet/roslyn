@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Scripting.CSharp
 {
@@ -16,6 +18,11 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
         }
 
         public override DiagnosticFormatter DiagnosticFormatter => CSharpDiagnosticFormatter.Instance;
+
+        public override bool IsCompleteSubmission(SyntaxTree tree) => SyntaxFactory.IsCompleteSubmission(tree);
+
+        public override SyntaxTree ParseSubmission(SourceText text, CancellationToken cancellationToken) =>
+            SyntaxFactory.ParseSyntaxTree(text, s_defaultInteractive, cancellationToken: cancellationToken);
 
         public override Compilation CreateSubmission(Script script)
         {

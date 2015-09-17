@@ -55,6 +55,14 @@
           "lib/portable-net45+wp80+win8+wpa81/Newtonsoft.Json.dll": {}
         }
       },
+      "System.AppContext/4.0.0": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.AppContext.dll": {}
+        }
+      },
       "System.Collections/4.0.10": {
         "dependencies": {
           "System.Runtime": "[4.0.0, )"
@@ -95,6 +103,15 @@
         },
         "compile": {
           "ref/dotnet/System.Diagnostics.Debug.dll": {}
+        }
+      },
+      "System.Diagnostics.StackTrace/4.0.0": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )",
+          "System.Reflection": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Diagnostics.StackTrace.dll": {}
         }
       },
       "System.Diagnostics.Tools/4.0.0": {
@@ -666,6 +683,39 @@
         "[Content_Types].xml"
       ]
     },
+    "System.AppContext/4.0.0": {
+      "sha512": "gUoYgAWDC3+xhKeU5KSLbYDhTdBYk9GssrMSCcWUADzOglW+s0AmwVhOUGt2tL5xUl7ZXoYTPdA88zCgKrlG0A==",
+      "type": "Package",
+      "files": [
+        "_rels/.rels",
+        "System.AppContext.nuspec",
+        "lib/netcore50/System.AppContext.dll",
+        "lib/DNXCore50/System.AppContext.dll",
+        "lib/net46/System.AppContext.dll",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "ref/dotnet/System.AppContext.dll",
+        "ref/dotnet/System.AppContext.xml",
+        "ref/dotnet/zh-hant/System.AppContext.xml",
+        "ref/dotnet/de/System.AppContext.xml",
+        "ref/dotnet/fr/System.AppContext.xml",
+        "ref/dotnet/it/System.AppContext.xml",
+        "ref/dotnet/ja/System.AppContext.xml",
+        "ref/dotnet/ko/System.AppContext.xml",
+        "ref/dotnet/ru/System.AppContext.xml",
+        "ref/dotnet/zh-hans/System.AppContext.xml",
+        "ref/dotnet/es/System.AppContext.xml",
+        "ref/net46/System.AppContext.dll",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "package/services/metadata/core-properties/3b390478e0cd42eb8818bbab19299738.psmdcp",
+        "[Content_Types].xml"
+      ]
+    },
     "System.Collections/4.0.10": {
       "sha512": "ux6ilcZZjV/Gp7JEZpe+2V1eTueq6NuoGRM3eZCFuPM25hLVVgCRuea6STW8hvqreIOE59irJk5/ovpA5xQipw==",
       "type": "Package",
@@ -823,6 +873,40 @@
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
         "package/services/metadata/core-properties/bfb05c26051f4a5f9015321db9cb045c.psmdcp",
+        "[Content_Types].xml"
+      ]
+    },
+    "System.Diagnostics.StackTrace/4.0.0": {
+      "sha512": "PItgenqpRiMqErvQONBlfDwctKpWVrcDSW5pppNZPJ6Bpiyz+KjsWoSiaqs5dt03HEbBTMNCrZb8KCkh7YfXmw==",
+      "type": "Package",
+      "files": [
+        "_rels/.rels",
+        "System.Diagnostics.StackTrace.nuspec",
+        "lib/DNXCore50/System.Diagnostics.StackTrace.dll",
+        "lib/netcore50/System.Diagnostics.StackTrace.dll",
+        "lib/net46/System.Diagnostics.StackTrace.dll",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "ref/dotnet/System.Diagnostics.StackTrace.dll",
+        "ref/dotnet/System.Diagnostics.StackTrace.xml",
+        "ref/dotnet/zh-hant/System.Diagnostics.StackTrace.xml",
+        "ref/dotnet/de/System.Diagnostics.StackTrace.xml",
+        "ref/dotnet/fr/System.Diagnostics.StackTrace.xml",
+        "ref/dotnet/it/System.Diagnostics.StackTrace.xml",
+        "ref/dotnet/ja/System.Diagnostics.StackTrace.xml",
+        "ref/dotnet/ko/System.Diagnostics.StackTrace.xml",
+        "ref/dotnet/ru/System.Diagnostics.StackTrace.xml",
+        "ref/dotnet/zh-hans/System.Diagnostics.StackTrace.xml",
+        "ref/dotnet/es/System.Diagnostics.StackTrace.xml",
+        "runtimes/win8-aot/lib/netcore50/System.Diagnostics.StackTrace.dll",
+        "ref/net46/System.Diagnostics.StackTrace.dll",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "package/services/metadata/core-properties/5c7ca489a36944d895c628fced7e9107.psmdcp",
         "[Content_Types].xml"
       ]
     },

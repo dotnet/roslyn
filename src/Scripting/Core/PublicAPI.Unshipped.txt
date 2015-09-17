@@ -5,6 +5,10 @@ Microsoft.CodeAnalysis.Scripting.Hosting.AssemblyLoadResult.AssemblyLoadResult(s
 Microsoft.CodeAnalysis.Scripting.Hosting.AssemblyLoadResult.IsSuccessful.get -> bool
 Microsoft.CodeAnalysis.Scripting.Hosting.AssemblyLoadResult.OriginalPath.get -> string
 Microsoft.CodeAnalysis.Scripting.Hosting.AssemblyLoadResult.Path.get -> string
+Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineHostObject
+Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineHostObject.Args -> string[]
+Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineHostObject.ExitCode -> int
+Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineHostObject.Print(object value) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader.InteractiveAssemblyLoader(Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider shadowCopyProvider = null) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader.LoadFromPath(string path) -> Microsoft.CodeAnalysis.Scripting.Hosting.AssemblyLoadResult
@@ -149,6 +153,8 @@ abstract Microsoft.CodeAnalysis.Scripting.ObjectFormatter.NullLiteral.get -> str
 abstract Microsoft.CodeAnalysis.Scripting.ObjectFormatter.VoidDisplayString.get -> object
 abstract Microsoft.CodeAnalysis.Scripting.Script.ReturnType.get -> System.Type
 override Microsoft.CodeAnalysis.Scripting.Script<T>.ReturnType.get -> System.Type
+readonly Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineHostObject.CancellationToken -> System.Threading.CancellationToken
 static readonly Microsoft.CodeAnalysis.Scripting.ObjectFormattingOptions.Default -> Microsoft.CodeAnalysis.Scripting.ObjectFormattingOptions
 static readonly Microsoft.CodeAnalysis.Scripting.ScriptOptions.Default -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
+virtual Microsoft.CodeAnalysis.Scripting.ObjectFormatter.FormatMethodSignature(System.Reflection.MethodBase method) -> string
 virtual Microsoft.CodeAnalysis.Scripting.ObjectFormatter.IsHiddenMember(System.Reflection.MemberInfo member) -> bool

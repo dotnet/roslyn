@@ -7,9 +7,12 @@
 //     the code is regenerated.
 // </auto-generated>
 //------------------------------------------------------------------------------
-using System.Reflection;
+
 namespace Microsoft.CodeAnalysis.Scripting {
-    
+    using System;
+    using System.Reflection;
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -37,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Scripting {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new System.Resources.ResourceManager("Microsoft.CodeAnalysis.Scripting.ScriptingResources", typeof(ScriptingResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.Scripting.ScriptingResources", typeof(ScriptingResources).GetTypeInfo().Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -64,6 +67,15 @@ namespace Microsoft.CodeAnalysis.Scripting {
         internal static string AbsolutePathExpected {
             get {
                 return ResourceManager.GetString("AbsolutePathExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  at {0} : {1}.
+        /// </summary>
+        internal static string AtFileLine {
+            get {
+                return ResourceManager.GetString("AtFileLine", resourceCulture);
             }
         }
         
@@ -127,6 +139,24 @@ namespace Microsoft.CodeAnalysis.Scripting {
         internal static string InvalidCharactersInAssemblyName {
             get {
                 return ResourceManager.GetString("InvalidCharactersInAssemblyName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to + additional {0} error.
+        /// </summary>
+        internal static string PlusAdditionalError {
+            get {
+                return ResourceManager.GetString("PlusAdditionalError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to + additional {0} errors.
+        /// </summary>
+        internal static string PlusAdditionalErrors {
+            get {
+                return ResourceManager.GetString("PlusAdditionalErrors", resourceCulture);
             }
         }
         

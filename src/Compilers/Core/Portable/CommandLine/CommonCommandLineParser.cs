@@ -61,14 +61,14 @@ namespace Microsoft.CodeAnalysis
             return PortableShim.Directory.EnumerateFiles(directory, fileNamePattern, searchOption);
         }
 
-        internal abstract CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories);
+        internal abstract CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string sdkDirectoryOpt, string additionalReferenceDirectories);
 
         /// <summary>
         /// Parses a command line.
         /// </summary>
         /// <param name="args">A collection of strings representing the command line arguments.</param>
         /// <param name="baseDirectory">The base directory used for qualifying file locations.</param>
-        /// <param name="sdkDirectory">The directory to search for mscorlib.</param>
+        /// <param name="sdkDirectory">The directory to search for mscorlib, or null if not available.</param>
         /// <param name="additionalReferenceDirectories">A string representing additional reference paths.</param>
         /// <returns>a <see cref="CommandLineArguments"/> object representing the parsed command line.</returns>
         public CommandLineArguments Parse(IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories)

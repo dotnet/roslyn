@@ -148,9 +148,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ' command line:
-        Public Overrides ReadOnly Property ERR_NoScriptsSpecified As Integer
+        Public Overrides ReadOnly Property ERR_ExpectedSingleScript As Integer
             Get
-                Return ERRID.ERR_NoScriptsSpecified
+                Return ERRID.ERR_ExpectedSingleScript
             End Get
         End Property
 

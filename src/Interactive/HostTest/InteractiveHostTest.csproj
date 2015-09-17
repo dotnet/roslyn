@@ -113,7 +113,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AbstractInteractiveHostTests.cs" />
-    <Compile Include="CommandLineTests.cs" />
     <Compile Include="InteractiveHostTests.cs" />
     <Compile Include="NuGetPackageResolverTests.cs" />
     <Compile Include="StressTests.cs" />

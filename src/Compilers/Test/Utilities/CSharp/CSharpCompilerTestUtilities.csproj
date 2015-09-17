@@ -72,7 +72,6 @@
     <Compile Include="LocalVariableDeclaratorsCollector.cs" />
     <Compile Include="MetadataTestHelpers.cs" />
     <Compile Include="MockCSharpCompiler.cs" />
-    <Compile Include="MockCsi.cs" />
     <Compile Include="ScriptTestFixtures.cs" />
     <Compile Include="SemanticModelTestBase.cs" />
     <Compile Include="SymbolUtilities.cs" />

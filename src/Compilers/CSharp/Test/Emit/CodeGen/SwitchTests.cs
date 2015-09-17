@@ -4796,7 +4796,7 @@ namespace ConsoleApplication24
             ERR_ExternAliasNotAllowed = 7015,
             ERR_ConflictingAliasAndDefinition = 7016,
             ERR_GlobalDefinitionOrStatementExpected = 7017,
-            ERR_NoScriptsSpecified = 7018,
+            ERR_ExpectedSingleScript = 7018,
             ERR_RecursivelyTypedVariable = 7019,
             ERR_ReturnNotAllowedInScript = 7020,
             ERR_NamespaceNotAllowedInScript = 7021,

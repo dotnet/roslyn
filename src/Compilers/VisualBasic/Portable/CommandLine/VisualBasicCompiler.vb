@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                    errorLogger As ErrorLogger) As SyntaxTree
 
             Dim fileReadDiagnostics As New List(Of DiagnosticInfo)()
-            Dim content = ReadFileContent(file, fileReadDiagnostics, Arguments.Encoding, Arguments.ChecksumAlgorithm)
+            Dim content = ReadFileContent(file, fileReadDiagnostics)
 
             If content Is Nothing Then
                 ReportErrors(fileReadDiagnostics, consoleOutput, errorLogger)

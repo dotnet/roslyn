@@ -3,7 +3,7 @@
 using System;
 using System.Reflection;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
     internal sealed class NotImplementedAnalyzerLoader : IAnalyzerAssemblyLoader
     {

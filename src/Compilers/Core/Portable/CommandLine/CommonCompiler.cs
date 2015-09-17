@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract void CompilerSpecificSqm(IVsSqmMulti sqm, uint sqmSession);
         protected abstract ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles);
 
-        public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, string clientDirectory, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories, IAnalyzerAssemblyLoader analyzerLoader)
+        public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, string clientDirectory, string baseDirectory, string sdkDirectoryOpt, string additionalReferenceDirectories, IAnalyzerAssemblyLoader analyzerLoader)
         {
             IEnumerable<string> allArgs = args;
             _clientDirectory = clientDirectory;
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis
                 allArgs = new[] { "@" + responseFile }.Concat(allArgs);
             }
 
-            this.Arguments = parser.Parse(allArgs, baseDirectory, sdkDirectory, additionalReferenceDirectories);
+            this.Arguments = parser.Parse(allArgs, baseDirectory, sdkDirectoryOpt, additionalReferenceDirectories);
             this.MessageProvider = parser.MessageProvider;
             this.AnalyzerLoader = analyzerLoader;
         }
@@ -121,13 +121,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="file">Source file information.</param>
         /// <param name="diagnostics">Storage for diagnostics.</param>
-        /// <param name="encoding">Encoding to use or 'null' for autodetect/default</param>
-        /// <param name="checksumAlgorithm">Hash algorithm used to calculate file checksum.</param>
         /// <returns>File content or null on failure.</returns>
-        internal SourceText ReadFileContent(CommandLineSourceFile file, IList<DiagnosticInfo> diagnostics, Encoding encoding, SourceHashAlgorithm checksumAlgorithm)
+        internal SourceText ReadFileContent(CommandLineSourceFile file, IList<DiagnosticInfo> diagnostics)
         {
             string discarded;
-            return ReadFileContent(file, diagnostics, encoding, checksumAlgorithm, out discarded);
+            return ReadFileContent(file, diagnostics, out discarded);
         }
 
         /// <summary>
@@ -135,11 +133,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="file">Source file information.</param>
         /// <param name="diagnostics">Storage for diagnostics.</param>
-        /// <param name="encoding">Encoding to use or 'null' for autodetect/default</param>
-        /// <param name="checksumAlgorithm">Hash algorithm used to calculate file checksum.</param>
         /// <param name="normalizedFilePath">If given <paramref name="file"/> opens successfully, set to normalized absolute path of the file, null otherwise.</param>
         /// <returns>File content or null on failure.</returns>
-        internal SourceText ReadFileContent(CommandLineSourceFile file, IList<DiagnosticInfo> diagnostics, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, out string normalizedFilePath)
+        internal SourceText ReadFileContent(CommandLineSourceFile file, IList<DiagnosticInfo> diagnostics, out string normalizedFilePath)
         {
             var filePath = file.Path;
             try
@@ -150,7 +146,7 @@ namespace Microsoft.CodeAnalysis
             using (var data = PortableShim.FileStream.Create(filePath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.ReadWrite, bufferSize: 1, options: PortableShim.FileOptions.None))
             {
                 normalizedFilePath = (string)PortableShim.FileStream.Name.GetValue(data);
-                return EncodedStringText.Create(data, encoding, checksumAlgorithm);
+                return EncodedStringText.Create(data, Arguments.Encoding, Arguments.ChecksumAlgorithm);
             }
         }
             catch (Exception e)
@@ -855,135 +851,5 @@ namespace Microsoft.CodeAnalysis
                 return Arguments.PreferredUILang ?? CultureInfo.CurrentUICulture;
             }
         }
-#if REPL
-
-        // let the assembly loader know about location of all files referenced by the compilation:
-        foreach (AssemblyIdentity reference in compilation.ReferencedAssemblyNames)
-        {
-            if (reference.Location != null)
-            {
-                assemblyLoader.RegisterDependency(reference);
-            }
-}
-
-
-        private void RunInteractiveLoop()
-        {
-            ShowLogo();
-
-            var interactiveParseOptions = arguments.ParseOptions.Copy(languageVersion: LanguageVersion.CSharp6, kind: SourceCodeKind.Interactive);
-            var engine = new Engine(referenceResolver: assemblyLoader.GetReferenceResolver());
-
-            // TODO: parse options, references, ...
-
-            Session session = Session.Create();
-            ObjectFormatter formatter = new ObjectFormatter(maxLineLength: Console.BufferWidth, memberIndentation: "  ");
-
-            while (true)
-            {
-                Console.Write("> ");
-                var input = new StringBuilder();
-                string line;
-
-                while (true)
-                {
-                    line = Console.ReadLine();
-                    if (line == null)
-                    {
-                        return;
-                    }
-
-                    input.AppendLine(line);
-                    if (Syntax.IsCompleteSubmission(input.ToString(), interactiveParseOptions))
-                    {
-                        break;
-                    }
-
-                    Console.Write("| ");
-                }
-
-                Submission<object> submission;
-                object result;
-                try
-                {
-                    submission = Compile(engine, session, input.ToString());
-                    result = submission.Execute();
-                }
-                catch (CompilationErrorException e)
-                {
-                    DisplayInteractiveErrors(e.Diagnostics);
-                    continue;
-                }
-                catch (Exception e)
-                {
-                    // TODO (tomat): stack pretty printing
-                    Console.WriteLine(e);
-                    continue;
-                }
-
-                bool hasValue;
-                ITypeSymbol resultType = submission.Compilation.GetSubmissionResultType(out hasValue);
-                if (hasValue)
-                {
-                    if (resultType != null && resultType.SpecialType == SpecialType.System_Void)
-                    {
-                        Console.Out.WriteLine(formatter.VoidDisplayString);
-                    }
-                    else
-                    {
-                        Console.Out.WriteLine(formatter.FormatObject(result));
-                    }
-                }
-            }
-        }
-
-        private Submission<object> Compile(Engine engine, Session session, string text)
-        {
-            Submission<object> submission = engine.CompileSubmission<object>(text, session);
-
-            foreach (MetadataReference reference in submission.Compilation.GetDirectiveReferences())
-            {
-                assemblyLoader.LoadReference(reference);
-            }
-
-            return submission;
-        }
-
-        private static void DisplayInteractiveErrors(ImmutableArray<IDiagnostic> diagnostics)
-        {
-            var oldColor = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Red;
-            try
-            {
-                DisplayInteractiveErrors(diagnostics, Console.Out);
-            }
-            finally
-            {
-                Console.ForegroundColor = oldColor;
-            }
-        }
-
-        private static void DisplayInteractiveErrors(ImmutableArray<IDiagnostic> diagnostics, TextWriter output)
-        {
-            var displayedDiagnostics = new List<IDiagnostic>();
-            const int MaxErrorCount = 5;
-            for (int i = 0, n = Math.Min(diagnostics.Count, MaxErrorCount); i < n; i++)
-            {
-                displayedDiagnostics.Add(diagnostics[i]);
-            }
-            displayedDiagnostics.Sort((d1, d2) => d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start);
-
-            foreach (var diagnostic in displayedDiagnostics)
-            {
-                output.WriteLine(diagnostic.ToString(Culture));
-            }
-
-            if (diagnostics.Count > MaxErrorCount)
-            {
-                int notShown = diagnostics.Count - MaxErrorCount;
-                output.WriteLine(" + additional {0} {1}", notShown, (notShown == 1) ? "error" : "errors");
-            }
-        }
-#endif
     }
 }
