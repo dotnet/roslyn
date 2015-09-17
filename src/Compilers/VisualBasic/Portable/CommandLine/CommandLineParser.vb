@@ -59,8 +59,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend NotOverridable Overrides Function CommonParse(args As IEnumerable(Of String), baseDirectory As String, sdkDirectory As String, additionalReferenceDirectories As String) As CommandLineArguments
-            Return Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories)
+        Friend NotOverridable Overrides Function CommonParse(args As IEnumerable(Of String), baseDirectory As String, sdkDirectoryOpt As String, additionalReferenceDirectories As String) As CommandLineArguments
+            Return Parse(args, baseDirectory, sdkDirectoryOpt, additionalReferenceDirectories)
         End Function
 
         ''' <summary>
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="args">A collection of strings representing the command line arguments.</param>
         ''' <param name="baseDirectory">The base directory used for qualifying file locations.</param>
-        ''' <param name="sdkDirectory">The directory to search for mscorlib.</param>
+        ''' <param name="sdkDirectory">The directory to search for mscorlib, or Nothing if not available.</param>
         ''' <param name="additionalReferenceDirectories">A string representing additional reference paths.</param>
         ''' <returns>A CommandLineArguments object representing the parsed command line.</returns>
         Public Shadows Function Parse(args As IEnumerable(Of String), baseDirectory As String, sdkDirectory As String, Optional additionalReferenceDirectories As String = Nothing) As VisualBasicCommandLineArguments
@@ -1059,17 +1059,17 @@ lVbRuntimePlus:
             End If
 
             ' Prepare SDK PATH
-            If sdkPaths.Count = 0 Then
+            If sdkDirectory IsNot Nothing AndAlso sdkPaths.Count = 0 Then
                 sdkPaths.Add(sdkDirectory)
             End If
 
             ' Locate default 'mscorlib.dll' or 'System.Runtime.dll', if any.
-            Dim defaultCoreLibraryReference As CommandLineReference? = LoadCoreLibraryReference(sdkPaths, baseDirectory, sdkDirectory)
+            Dim defaultCoreLibraryReference As CommandLineReference? = LoadCoreLibraryReference(sdkPaths, baseDirectory)
 
             ' If /nostdlib is not specified, load System.dll
             ' Dev12 does it through combination of CompilerHost::InitStandardLibraryList and CompilerProject::AddStandardLibraries.
             If Not noStdLib Then
-                Dim systemDllPath As String = FindFileInSdkPath(sdkPaths, "System.dll", baseDirectory, sdkDirectory)
+                Dim systemDllPath As String = FindFileInSdkPath(sdkPaths, "System.dll", baseDirectory)
                 If systemDllPath Is Nothing Then
                     AddDiagnostic(diagnostics, ERRID.WRN_CannotFindStandardLibrary1, "System.dll")
                 Else
@@ -1082,7 +1082,7 @@ lVbRuntimePlus:
             ' Add reference to 'Microsoft.VisualBasic.dll' if needed
             If includeVbRuntimeReference Then
                 If vbRuntimePath Is Nothing Then
-                    Dim msVbDllPath As String = FindFileInSdkPath(sdkPaths, "Microsoft.VisualBasic.dll", baseDirectory, sdkDirectory)
+                    Dim msVbDllPath As String = FindFileInSdkPath(sdkPaths, "Microsoft.VisualBasic.dll", baseDirectory)
                     If msVbDllPath Is Nothing Then
                         AddDiagnostic(diagnostics, ERRID.ERR_LibNotFound, "Microsoft.VisualBasic.dll")
                     Else
@@ -1238,7 +1238,7 @@ lVbRuntimePlus:
             }
         End Function
 
-        Private Function LoadCoreLibraryReference(sdkPaths As List(Of String), baseDirectory As String, sdkDirectory As String) As CommandLineReference?
+        Private Function LoadCoreLibraryReference(sdkPaths As List(Of String), baseDirectory As String) As CommandLineReference?
             ' Load Core library in Dev11:
             ' Traditionally VB compiler has hard-coded the name of mscorlib.dll. In the Immersive profile the
             ' library is called System.Runtime.dll. Ideally we should get rid of the dependency on the name and
@@ -1248,8 +1248,8 @@ lVbRuntimePlus:
             ' There is an extra check to only pick an assembly with no other assembly refs. This is so that is an 
             ' user drops a user-defined binary called System.runtime.dll into the fx directory we still want to pick 
             ' mscorlib. 
-            Dim msCorLibPath As String = FindFileInSdkPath(sdkPaths, "mscorlib.dll", baseDirectory, sdkDirectory)
-            Dim systemRuntimePath As String = FindFileInSdkPath(sdkPaths, "System.Runtime.dll", baseDirectory, sdkDirectory)
+            Dim msCorLibPath As String = FindFileInSdkPath(sdkPaths, "mscorlib.dll", baseDirectory)
+            Dim systemRuntimePath As String = FindFileInSdkPath(sdkPaths, "System.Runtime.dll", baseDirectory)
 
             If systemRuntimePath IsNot Nothing Then
                 If msCorLibPath Is Nothing Then
@@ -1281,9 +1281,11 @@ lVbRuntimePlus:
             Return Nothing
         End Function
 
-        Private Function FindFileInSdkPath(sdkPaths As List(Of String), fileName As String, baseDirectory As String, sdkDirectory As String) As String
+        Private Shared Function FindFileInSdkPath(sdkPaths As List(Of String), fileName As String, baseDirectory As String) As String
             For Each path In sdkPaths
-                Dim absolutePath = FileUtilities.ResolveRelativePath(If(path, sdkDirectory), baseDirectory)
+                Debug.Assert(path IsNot Nothing)
+
+                Dim absolutePath = FileUtilities.ResolveRelativePath(path, baseDirectory)
                 If absolutePath IsNot Nothing Then
                     Dim filePath = PathUtilities.CombineAbsoluteAndRelativePaths(absolutePath, fileName)
                     If PortableShim.File.Exists(filePath) Then
@@ -1294,12 +1296,12 @@ lVbRuntimePlus:
             Return Nothing
         End Function
 
-        Private Function GetWin32Setting(arg As String, value As String, diagnostics As List(Of Diagnostic)) As String
-            If (value = Nothing) Then
+        Private Shared Function GetWin32Setting(arg As String, value As String, diagnostics As List(Of Diagnostic)) As String
+            If value Is Nothing Then
                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, arg, ":<file>")
             Else
                 Dim noQuotes As String = RemoveAllQuotes(value)
-                If (String.IsNullOrWhiteSpace(noQuotes)) Then
+                If String.IsNullOrWhiteSpace(noQuotes) Then
                     AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, arg, ":<file>")
                 Else
                     Return noQuotes

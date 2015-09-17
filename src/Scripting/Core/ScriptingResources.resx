@@ -131,4 +131,13 @@
   <data name="GlobalVariablesWithoutGlobalType" xml:space="preserve">
     <value>Global variables passed to a script without a global type</value>
   </data>
+  <data name="PlusAdditionalError" xml:space="preserve">
+    <value>+ additional {0} error</value>
+  </data>
+  <data name="PlusAdditionalErrors" xml:space="preserve">
+    <value>+ additional {0} errors</value>
+  </data>
+  <data name="AtFileLine" xml:space="preserve">
+    <value> at {0} : {1}</value>
+  </data>
 </root>
