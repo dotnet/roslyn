@@ -2861,7 +2861,7 @@ class Class1
             }
 
             [WorkItem(774321)]
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+            [WpfFact(Skip = "xunit2"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
             public void TestEquivalenceKey()
             {
                 TestEquivalenceKey(
