@@ -17,8 +17,9 @@
     <Nonshipping>true</Nonshipping>
   </PropertyGroup>
   <ItemGroup>
-    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.CSharp.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.CSharp.VS.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic.VS.UnitTests" />
+    <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
@@ -159,7 +160,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Mocks\IUnconfiguredProjectVsServicesFactory.cs" />
+    <Compile Include="Mocks\IVsHierarchyFactory.cs" />
     <Compile Include="ProjectSystem\Designers\ProjectDesignerPageMetadataTests.cs" />
+    <Compile Include="ProjectSystem\VsProjectFeaturesTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
