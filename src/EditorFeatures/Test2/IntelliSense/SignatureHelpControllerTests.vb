@@ -21,6 +21,11 @@ Imports Moq
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
     Public Class SignatureHelpControllerTests
+        Public Sub New()
+            ' The controller expects to be on a UI thread
+            TestWorkspace.ResetThreadAffinity()
+        End Sub
+
         <WpfFact>
         Public Sub InvokeSignatureHelpWithoutDocumentShouldNotStartNewSession()
             Dim emptyProvider = New Mock(Of IDocumentProvider)
