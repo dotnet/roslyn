@@ -31,16 +31,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         {
         }
 
-        private static bool IsNotConfigurableDiagnostic(Diagnostic diagnostic)
-        {
-            return diagnostic.Descriptor.CustomTags.Any(c => CultureInfo.InvariantCulture.CompareInfo.Compare(c, WellKnownDiagnosticTags.NotConfigurable) == 0);
-        }
-
-        private static bool IsCompilerDiagnostic(Diagnostic diagnostic)
-        {
-            return diagnostic.Descriptor.CustomTags.Any(c => CultureInfo.InvariantCulture.CompareInfo.Compare(c, WellKnownDiagnosticTags.Compiler) == 0);
-        }
-
         public FixAllProvider GetFixAllProvider()
         {
             return SuppressionFixAllProvider.Instance;
@@ -48,28 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
         public bool CanBeSuppressed(Diagnostic diagnostic)
         {
-            if (diagnostic.Location.Kind != LocationKind.SourceFile || diagnostic.IsSuppressed || IsNotConfigurableDiagnostic(diagnostic))
-            {
-                // Don't offer suppression fixes for:
-                //   1. Diagnostics without a source location.
-                //   2. Diagnostics with a source suppression.
-                //   3. Non-configurable diagnostics.
-                return false;
-            }
-
-            switch (diagnostic.Severity)
-            {
-                case DiagnosticSeverity.Error:
-                case DiagnosticSeverity.Hidden:
-                    return false;
-
-                case DiagnosticSeverity.Warning:
-                case DiagnosticSeverity.Info:
-                    return true;
-
-                default:
-                    throw ExceptionUtilities.Unreachable;
-            }
+            return SuppressionHelpers.CanBeSuppressed(diagnostic);
         }
 
         protected abstract SyntaxTriviaList CreatePragmaDisableDirectiveTrivia(Diagnostic diagnostic, bool needsLeadingEndOfLine);
@@ -143,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 nestedActions.Add(new PragmaWarningCodeAction(this, suppressionTargetInfo.StartToken, suppressionTargetInfo.EndToken, suppressionTargetInfo.NodeWithTokens, document, diagnostic));
 
                 // SuppressMessageAttribute suppression is not supported for compiler diagnostics.
-                if (!skipSuppressMessage && !IsCompilerDiagnostic(diagnostic))
+                if (!skipSuppressMessage && !SuppressionHelpers.IsCompilerDiagnostic(diagnostic))
                 {
                     // global assembly-level suppress message attribute.
                     nestedActions.Add(new GlobalSuppressMessageCodeAction(this, suppressionTargetInfo.TargetSymbol, document.Project, diagnostic));

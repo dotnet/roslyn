@@ -262,12 +262,21 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 // Metadata as source generates complete declarations and doesn't modify
                 // existing ones. We can take the members to generate, sort them once,
                 // and then add them in that order to the end of the destination.
-                newMembers.Sort(GetMemberComparer());
+                if (!GeneratingEnum(members))
+                {
+                    newMembers.Sort(GetMemberComparer());
+                }
 
                 currentDestination = this.AddMembers(currentDestination, newMembers);
             }
 
             return currentDestination;
+        }
+
+        private bool GeneratingEnum(IEnumerable<ISymbol> members)
+        {
+            var field = members.OfType<IFieldSymbol>().FirstOrDefault();
+            return field != null && field.ContainingType.IsEnumType();
         }
 
         protected abstract IComparer<SyntaxNode> GetMemberComparer();
