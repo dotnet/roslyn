@@ -33,23 +33,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
 
         Protected Overrides Function GetNewRoot(root As SyntaxNode, oldNode As SyntaxNode, semanticModel As SemanticModel, diagnostic As Diagnostic, document As Document, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
             Dim expression = TryCast(oldNode, ExpressionSyntax)
+            If expression Is Nothing Then
+                Return SpecializedTasks.Default(Of SyntaxNode)()
+            End If
 
             Select Case diagnostic.Id
                 Case BC37055
-                    If expression Is Nothing Then
-                        Return Task.FromResult(Of SyntaxNode)(Nothing)
-                    End If
                     If Not IsCorrectReturnType(expression, semanticModel) Then
-                        Return Task.FromResult(Of SyntaxNode)(Nothing)
+                        Return SpecializedTasks.Default(Of SyntaxNode)()
                     End If
                     Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression)))
                 Case BC42358
-                    If expression Is Nothing Then
-                        Return Task.FromResult(Of SyntaxNode)(Nothing)
-                    End If
                     Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression)))
                 Case Else
-                    Return Task.FromResult(Of SyntaxNode)(Nothing)
+                    Return SpecializedTasks.Default(Of SyntaxNode)()
             End Select
         End Function
 
@@ -61,7 +58,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
         End Function
 
         Private Function ConverToAwaitExpression(expression As ExpressionSyntax) As ExpressionSyntax
-            Return SyntaxFactory.AwaitExpression(expression).WithAdditionalAnnotations(Formatter.Annotation)
+            Dim result As AwaitExpressionSyntax
+            If expression.HasLeadingTrivia Then
+                result = SyntaxFactory.AwaitExpression(expression.WithoutLeadingTrivia()).WithLeadingTrivia(expression.GetLeadingTrivia())
+            Else
+                result = SyntaxFactory.AwaitExpression(expression)
+            End If
+            Return result.WithAdditionalAnnotations(Formatter.Annotation)
         End Function
 
     End Class

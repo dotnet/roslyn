@@ -17,12 +17,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
     internal class CSharpAddAwaitCodeFixProvider : AbstractAddAsyncAwaitCodeFixProvider
     {
         /// <summary>
-        /// Since this is an async method, the return expression must be of type 'blah' rather than 'baz'
+        /// Because this call is not awaited, execution of the current method continues before the call is completed.
         /// </summary>
         private const string CS4014 = "CS4014";
 
         /// <summary>
-        /// Because this call is not awaited, execution of the current method continues before the call is completed.
+        /// Since this is an async method, the return expression must be of type 'blah' rather than 'baz'
         /// </summary>
         private const string CS4016 = "CS4016";
 
@@ -39,28 +39,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
         protected override Task<SyntaxNode> GetNewRoot(SyntaxNode root, SyntaxNode oldNode, SemanticModel semanticModel, Diagnostic diagnostic, Document document, CancellationToken cancellationToken)
         {
             var expression = oldNode as ExpressionSyntax;
+            if (expression == null)
+            {
+                return SpecializedTasks.Default<SyntaxNode>();
+            }
 
             switch (diagnostic.Id)
             {
                 case CS4014:
-                    if (expression == null)
-                    {
-                        return Task.FromResult<SyntaxNode>(null);
-                    }
-
                     return Task.FromResult(root.ReplaceNode(oldNode, ConvertToAwaitExpression(expression)));
-                case CS4016:
-                    if (expression == null)
-                    {
-                        return SpecializedTasks.Default<SyntaxNode>();
-                    }
 
+                case CS4016:
                     if (!IsCorrectReturnType(expression, semanticModel))
                     {
                         return SpecializedTasks.Default<SyntaxNode>();
                     }
 
                     return Task.FromResult(root.ReplaceNode(oldNode, ConvertToAwaitExpression(expression)));
+
                 default:
                     return SpecializedTasks.Default<SyntaxNode>();
             }
@@ -76,8 +72,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
 
         private static ExpressionSyntax ConvertToAwaitExpression(ExpressionSyntax expression)
         {
-            return SyntaxFactory.AwaitExpression(expression)
-                                .WithAdditionalAnnotations(Formatter.Annotation);
+            AwaitExpressionSyntax result;
+
+            if (expression.HasLeadingTrivia)
+            {
+                result = SyntaxFactory.AwaitExpression(expression.WithoutLeadingTrivia())
+                                      .WithLeadingTrivia(expression.GetLeadingTrivia());
+            }
+            else
+            {
+                result = SyntaxFactory.AwaitExpression(expression);
+            }
+
+            return result.WithAdditionalAnnotations(Formatter.Annotation);
         }
     }
 }

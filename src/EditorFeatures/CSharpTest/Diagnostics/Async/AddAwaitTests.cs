@@ -49,6 +49,43 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        public void BadAsyncReturnOperand1_WithLeadingTrivia()
+        {
+            var initial =
+@"using System.Threading.Tasks;
+
+class Program
+{
+    async Task<int> Test()
+    {
+        return 3;
+    }
+
+    async Task<int> Test2()
+    {
+        [|return /* dada! */ Test();|]
+    }
+}";
+
+            var expected =
+@"using System.Threading.Tasks;
+
+class Program
+{
+    async Task<int> Test()
+    {
+        return 3;
+    }
+
+    async Task<int> Test2()
+    {
+        return /* dada! */ await Test();
+    }
+}";
+            Test(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public void TaskNotAwaited()
         {
             var initial =
@@ -67,6 +104,35 @@ class Program
 {
     async void Test()
     {
+        await Task.Delay(3);
+    }
+}";
+            Test(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        public void TaskNotAwaited_WithLeadingTrivia()
+        {
+            var initial =
+@"using System.Threading.Tasks;
+class Program
+{
+    async void Test()
+    {
+
+        // Useful comment
+        [|Task.Delay(3);|]
+    }
+}";
+
+            var expected =
+@"using System.Threading.Tasks;
+class Program
+{
+    async void Test()
+    {
+
+        // Useful comment
         await Task.Delay(3);
     }
 }";
@@ -102,6 +168,45 @@ class Program
 
     async void Test()
     {
+        await AwaitableFunction();
+    }
+}";
+            Test(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        public void FunctionNotAwaited_WithLeadingTrivia()
+        {
+            var initial =
+@"using System.Threading.Tasks;
+class Program
+{
+    Task AwaitableFunction()
+    {
+        return Task.FromResult(true);
+    }
+
+    async void Test()
+    {
+
+        // Useful comment
+        [|AwaitableFunction();|]
+    }
+}";
+
+            var expected =
+@"using System.Threading.Tasks;
+class Program
+{
+    Task AwaitableFunction()
+    {
+        return Task.FromResult(true);
+    }
+
+    async void Test()
+    {
+
+        // Useful comment
         await AwaitableFunction();
     }
 }";
