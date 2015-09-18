@@ -1053,7 +1053,7 @@ class $$Test<T, U>
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedTypeParameterSuffix: expectedTypeParameterSuffix);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void ExtractInterfaceCommandDisabledInSubmission()
