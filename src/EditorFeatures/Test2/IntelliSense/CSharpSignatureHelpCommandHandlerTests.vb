@@ -453,7 +453,7 @@ class C
         End Sub
 
         <WorkItem(5174, "https://github.com/dotnet/roslyn/issues/5174")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub DontShowSignatureHelpIfOptionIsTurnedOffUnlessExplicitlyInvoked()
             Using state = TestState.CreateCSharpTestState(
                               <Document>

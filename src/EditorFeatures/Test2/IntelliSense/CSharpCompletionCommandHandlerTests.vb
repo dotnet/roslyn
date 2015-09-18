@@ -1516,7 +1516,7 @@ $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.T
         End Sub
 
         <WorkItem(4978, "https://github.com/dotnet/roslyn/issues/4978")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SessionNotStartedWhenCaretNotMappableIntoSubjectBuffer()
             ' In inline diff view, typing delete next to a "deletion",
             ' can cause our CommandChain to be called with a subjectbuffer
