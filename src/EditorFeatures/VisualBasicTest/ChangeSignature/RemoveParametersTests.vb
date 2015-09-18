@@ -90,7 +90,7 @@ End Module
 
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub ChangeSignatureCommandDisabledInSubmission()
