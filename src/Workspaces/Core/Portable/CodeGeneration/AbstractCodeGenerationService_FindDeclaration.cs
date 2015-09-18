@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -65,9 +66,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 return false;
             }
 
-            // Anything completely hidden is something you can't add to. Anything completely visible
-            // is something you can add to.  Anything that is partially hidden will have to defer to
-            // the underlying language to make a determination.
             var syntaxTree = destination.SyntaxTree;
             var document = solution.GetDocument(syntaxTree);
 
@@ -76,6 +74,18 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 return false;
             }
 
+            // Generated files should not be valid destinations for refactorings to produce code into,
+            // as they may be overwritten by tools.
+            if (solution.Workspace.Services
+                        .GetService<IGeneratedCodeRecognitionService>()
+                        .IsGeneratedCode(document))
+            {
+                return false;
+            }
+
+            // Anything completely hidden is something you can't add to. Anything completely visible
+            // is something you can add to.  Anything that is partially hidden will have to defer to
+            // the underlying language to make a determination.
             var span = GetSpan(destination);
             if (syntaxTree.IsEntirelyHidden(span, cancellationToken))
             {
