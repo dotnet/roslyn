@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
         public static int Main(string[] args)
             => Csc.Run(args: args,
                        clientDirectory: AppContext.BaseDirectory,
-                       sdkDirectory: @"C:\Windows\Microsoft.NET\Framework\v4.0.30319",
+                       sdkDirectory: null,
                        analyzerLoader: new NoOpAnalyzerAssemblyLoader());
     }
 }
