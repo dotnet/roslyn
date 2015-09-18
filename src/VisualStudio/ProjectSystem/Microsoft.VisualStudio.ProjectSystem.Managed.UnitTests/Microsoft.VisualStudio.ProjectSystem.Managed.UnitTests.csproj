@@ -126,7 +126,7 @@
   <ItemGroup>
     <Compile Include="Testing\ProjectSystemTraitDiscover.cs" />
     <Compile Include="Trait.cs" />
-    <Compile Include="UnitTestAttribute.cs" />
+    <Compile Include="UnitTestTraitAttribute.cs" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
   <Import Project="..\..\..\..\packages\Microsoft.VisualStudio.ProjectSystem.SDK.Tools.14.0.50729-pre\build\Microsoft.VisualStudio.ProjectSystem.Sdk.Tools.targets" Condition="Exists('..\..\..\..\packages\Microsoft.VisualStudio.ProjectSystem.SDK.Tools.14.0.50729-pre\build\Microsoft.VisualStudio.ProjectSystem.Sdk.Tools.targets')" />

@@ -12,9 +12,9 @@ namespace Microsoft.VisualStudio
     /// </summary>
     [TraitDiscoverer("Microsoft.VisualStudio.Testing.ProjectSystemTraitDiscoverer", "Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests")]
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
-    public class UnitTestAttribute : Attribute, ITraitAttribute
+    public class UnitTestTraitAttribute : Attribute, ITraitAttribute
     {
-        public UnitTestAttribute()
+        public UnitTestTraitAttribute()
         {
         }
     }
