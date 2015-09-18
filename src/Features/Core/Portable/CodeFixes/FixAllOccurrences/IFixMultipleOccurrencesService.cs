@@ -18,8 +18,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CodeFixProvider fixProvider,
             FixAllProvider fixAllProvider,
             string equivalenceKey,
-            string previewChangesTitle,
+            string waitDialogAndPreviewChangesTitle,
             string waitDialogMessage,
+            bool showPreviewChangesDialog,
             CancellationToken cancellationToken);
 
         /// <summary>
@@ -32,8 +33,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CodeFixProvider fixProvider,
             FixAllProvider fixAllProvider,
             string equivalenceKey,
-            string previewChangesTitle,
+            string waitDialogAndPreviewChangesTitle,
             string waitDialogMessage,
+            bool showPreviewChangesDialog,
             CancellationToken cancellationToken);
     }
 }

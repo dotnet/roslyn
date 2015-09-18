@@ -35,12 +35,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             CodeFixProvider fixProvider,
             FixAllProvider fixAllProvider,
             string equivalenceKey,
-            string previewChangesTitle,
+            string waitDialogAndPreviewChangesTitle,
             string waitDialogMessage,
+            bool showPreviewChangesDialog,
             CancellationToken cancellationToken)
         {
             var fixMultipleContext = FixMultipleContext.Create(diagnosticsToFix, fixProvider, equivalenceKey, cancellationToken);
-            ComputeAndApplyFix(fixMultipleContext, workspace, fixAllProvider, previewChangesTitle, waitDialogMessage, cancellationToken);
+            ComputeAndApplyFix(fixMultipleContext, workspace, fixAllProvider, waitDialogAndPreviewChangesTitle, waitDialogMessage, showPreviewChangesDialog, cancellationToken);
         }
 
         public void ComputeAndApplyFix(
@@ -49,23 +50,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             CodeFixProvider fixProvider,
             FixAllProvider fixAllProvider,
             string equivalenceKey,
-            string previewChangesTitle,
+            string waitDialogAndPreviewChangesTitle,
             string waitDialogMessage,
+            bool showPreviewChangesDialog,
             CancellationToken cancellationToken)
         {
             var fixMultipleContext = FixMultipleContext.Create(diagnosticsToFix, fixProvider, equivalenceKey, cancellationToken);
-            ComputeAndApplyFix(fixMultipleContext, workspace, fixAllProvider, previewChangesTitle, waitDialogMessage, cancellationToken);
+            ComputeAndApplyFix(fixMultipleContext, workspace, fixAllProvider, waitDialogAndPreviewChangesTitle, waitDialogMessage, showPreviewChangesDialog, cancellationToken);
         }
 
         private void ComputeAndApplyFix(
             FixMultipleContext fixMultipleContext,
             Workspace workspace,
             FixAllProvider fixAllProvider,
-            string previewChangesTitle,
+            string waitDialogAndPreviewChangesTitle,
             string waitDialogMessage,
+            bool showPreviewChangesDialog,
             CancellationToken cancellationToken)
         {
-            var fixMultipleCodeAction = new FixMultipleCodeAction(fixMultipleContext, fixAllProvider, title: previewChangesTitle, previewChangesDialogTitle: previewChangesTitle, computingFixWaitDialogMessage: waitDialogMessage);
+            var fixMultipleCodeAction = new FixMultipleCodeAction(fixMultipleContext, fixAllProvider, title: waitDialogAndPreviewChangesTitle, previewChangesDialogTitle: waitDialogAndPreviewChangesTitle, computingFixWaitDialogMessage: waitDialogMessage, showPreviewChangesDialog: showPreviewChangesDialog);
             var fixMultipleSuggestedAction = new FixMultipleSuggestedAction(workspace, _editHandler, fixMultipleCodeAction, fixAllProvider);
             fixMultipleSuggestedAction.Invoke(cancellationToken);
         }

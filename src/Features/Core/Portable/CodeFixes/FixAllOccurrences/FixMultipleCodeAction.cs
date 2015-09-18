@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private readonly string _previewChangesDialogTitle;
         private readonly string _computingFixWaitDialogMessage;
 
-        internal FixMultipleCodeAction(FixMultipleContext fixMultipleContext, FixAllProvider fixAllProvider, string title, string previewChangesDialogTitle, string computingFixWaitDialogMessage)
-            : base (fixMultipleContext, fixAllProvider)
+        internal FixMultipleCodeAction(FixMultipleContext fixMultipleContext, FixAllProvider fixAllProvider, string title, string previewChangesDialogTitle, string computingFixWaitDialogMessage, bool showPreviewChangesDialog)
+            : base (fixMultipleContext, fixAllProvider, showPreviewChangesDialog)
         {
             _title = title;
             _previewChangesDialogTitle = previewChangesDialogTitle;

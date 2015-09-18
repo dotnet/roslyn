@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 owner.GetOnAnalyzerException(project.Id),
                 concurrentAnalysis: false,
                 logAnalyzerExecutionTime: true,
-                reportDiagnosticsWithSourceSuppression: true);
+                reportSuppressedDiagnostics: true);
             _lazyCompilationWithAnalyzers = null;
         }
 

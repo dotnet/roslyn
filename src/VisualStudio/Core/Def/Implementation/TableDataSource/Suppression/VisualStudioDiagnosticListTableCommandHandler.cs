@@ -16,11 +16,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         
         [ImportingConstructor]
         public VisualStudioDiagnosticListTableCommandHandler(
-            VisualStudioSuppressionFixService suppressionFixService,
-            VisualStudioDiagnosticListSuppressionStateService suppressionStateService)
+            IVisualStudioSuppressionFixService suppressionFixService,
+            IVisualStudioDiagnosticListSuppressionStateService suppressionStateService)
         {
-            _suppressionFixService = suppressionFixService;
-            _suppressionStateService = suppressionStateService;
+            _suppressionFixService = (VisualStudioSuppressionFixService)suppressionFixService;
+            _suppressionStateService = (VisualStudioDiagnosticListSuppressionStateService)suppressionStateService;
         }
 
         public void Initialize(IServiceProvider serviceProvider)

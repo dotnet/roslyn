@@ -23,8 +23,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
     /// <summary>
     /// Service to compute and apply bulk suppression fixes.
     /// </summary>
-    [Export(typeof(VisualStudioSuppressionFixService))]
-    internal sealed class VisualStudioSuppressionFixService
+    [Export(typeof(IVisualStudioSuppressionFixService))]
+    internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressionFixService
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IWpfTableControl _tableControl;
@@ -40,18 +40,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             VisualStudioWorkspaceImpl workspace,
             IDiagnosticAnalyzerService diagnosticService,
             ICodeFixService codeFixService,
-            VisualStudioDiagnosticListSuppressionStateService suppressionStateService,
+            IVisualStudioDiagnosticListSuppressionStateService suppressionStateService,
             IWaitIndicator waitIndicator)
         {
             _workspace = workspace;
             _diagnosticService = diagnosticService;
             _codeFixService = codeFixService;
-            _suppressionStateService = suppressionStateService;
+            _suppressionStateService = (VisualStudioDiagnosticListSuppressionStateService)suppressionStateService;
             _waitIndicator = waitIndicator;
             _fixMultipleOccurencesService = workspace.Services.GetService<IFixMultipleOccurrencesService>();
 
             var errorList = serviceProvider.GetService(typeof(SVsErrorList)) as IErrorList;
             _tableControl = errorList?.TableControl;
+        }
+
+        public void AddSuppressions(IVsHierarchy projectHierarchyOpt)
+        {
+            Func<Project, bool> shouldFixInProject = GetShouldFixInProjectDelegate(_workspace, projectHierarchyOpt);
+            
+            // Apply suppressions fix in global suppressions file for non-compiler diagnostics and
+            // in source only for compiler diagnostics.
+            ApplySuppressionFix(shouldFixInProject, selectedEntriesOnly: false, isAddSuppression: true, isSuppressionInSource: false, onlyCompilerDiagnostics: false, showPreviewChangesDialog: false);
+            ApplySuppressionFix(shouldFixInProject, selectedEntriesOnly: false, isAddSuppression: true, isSuppressionInSource: true, onlyCompilerDiagnostics: true, showPreviewChangesDialog: false);
         }
 
         public void AddSuppressions(bool selectedErrorListEntriesOnly, bool suppressInSource, IVsHierarchy projectHierarchyOpt)
@@ -62,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             }
 
             Func<Project, bool> shouldFixInProject = GetShouldFixInProjectDelegate(_workspace, projectHierarchyOpt);
-            ApplySuppressionFix(selectedErrorListEntriesOnly, suppressInSource, shouldFixInProject);
+            ApplySuppressionFix(shouldFixInProject, selectedErrorListEntriesOnly, isAddSuppression: true, isSuppressionInSource: suppressInSource, onlyCompilerDiagnostics: false, showPreviewChangesDialog: true);
         }
 
         private static Func<Project, bool> GetShouldFixInProjectDelegate(VisualStudioWorkspaceImpl workspace, IVsHierarchy projectHierarchyOpt)
@@ -92,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             // TODO
         }
 
-        private void ApplySuppressionFix(bool selectedEntriesOnly, bool suppressInSource, Func<Project, bool> shouldFixInProject)
+        private void ApplySuppressionFix(Func<Project, bool> shouldFixInProject, bool selectedEntriesOnly, bool isAddSuppression, bool isSuppressionInSource, bool onlyCompilerDiagnostics, bool showPreviewChangesDialog)
         {
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsToFixMap = null;
 
@@ -107,9 +117,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     {
                         var diagnosticsToFix = _suppressionStateService.GetItems(
                                 selectedEntriesOnly,
-                                isAddSuppression: true,
-                                isSuppressionInSource: suppressInSource,
-                                cancellationToken: waitContext.CancellationToken);
+                                isAddSuppression,
+                                isSuppressionInSource,
+                                onlyCompilerDiagnostics,
+                                waitContext.CancellationToken);
 
                         if (diagnosticsToFix.IsEmpty)
                         {
@@ -131,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 return;
             }
 
-            var equivalenceKey = suppressInSource ? FeaturesResources.SuppressWithPragma : FeaturesResources.SuppressWithGlobalSuppressMessage;
+            var equivalenceKey = isSuppressionInSource ? FeaturesResources.SuppressWithPragma : FeaturesResources.SuppressWithGlobalSuppressMessage;
 
             // We have different suppression fixers for every language.
             // So we need to group diagnostics by the containing project language and apply fixes separately.
@@ -144,7 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             foreach (var group in groups)
             {
                 var language = group.Key;
-                var previewChangesTitle = hasMultipleLangauges ? string.Format(ServicesVSResources.SuppressMultipleOccurrencesForLanguage, language) : ServicesVSResources.SuppressMultipleOccurrences;
+                var waitDialogAndPreviewChangesTitle = hasMultipleLangauges ? string.Format(ServicesVSResources.SuppressMultipleOccurrencesForLanguage, language) : ServicesVSResources.SuppressMultipleOccurrences;
                 var waitDialogMessage = hasMultipleLangauges ? string.Format(ServicesVSResources.ComputingSuppressionFixForLanguage, language) : ServicesVSResources.ComputingSuppressionFix;
 
                 ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentDiagnosticsPerLanguage = null;
@@ -192,8 +203,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     suppressionFixer,
                     suppressionFixer.GetFixAllProvider(),
                     equivalenceKey,
-                    previewChangesTitle,
+                    waitDialogAndPreviewChangesTitle,
                     waitDialogMessage,
+                    showPreviewChangesDialog,
                     CancellationToken.None);
                 
                 newSolution = _workspace.CurrentSolution;

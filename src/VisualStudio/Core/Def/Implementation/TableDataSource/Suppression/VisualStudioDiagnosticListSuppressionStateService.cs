@@ -18,8 +18,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     /// <summary>
     /// Service to maintain information about the suppression state of specific set of items in the error list.
     /// </summary>
-    [Export(typeof(VisualStudioDiagnosticListSuppressionStateService))]
-    internal class VisualStudioDiagnosticListSuppressionStateService
+    [Export(typeof(IVisualStudioDiagnosticListSuppressionStateService))]
+    internal class VisualStudioDiagnosticListSuppressionStateService : IVisualStudioDiagnosticListSuppressionStateService
     {
         private readonly VisualStudioWorkspace _workspace;
         private readonly IVsUIShell _shellService;
@@ -171,7 +171,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         /// <summary>
         /// Gets <see cref="DiagnosticData"/> objects for error list entries, filtered based on the given parameters.
         /// </summary>
-        public ImmutableArray<DiagnosticData> GetItems(bool selectedEntriesOnly, bool isAddSuppression, bool isSuppressionInSource, CancellationToken cancellationToken)
+        public ImmutableArray<DiagnosticData> GetItems(bool selectedEntriesOnly, bool isAddSuppression, bool isSuppressionInSource, bool onlyCompilerDiagnostics, CancellationToken cancellationToken)
         {
             var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
             var entries = selectedEntriesOnly ? _tableControl.SelectedEntries : _tableControl.Entries;
@@ -187,11 +187,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     diagnosticData = roslynSnapshot.GetItem(index)?.Primary;
                     if (diagnosticData != null && diagnosticData.HasTextSpan)
                     {
+                        var isCompilerDiagnostic = SuppressionHelpers.IsCompilerDiagnostic(diagnosticData);
+                        if (onlyCompilerDiagnostics && !isCompilerDiagnostic)
+                        {
+                            continue;
+                        }
+
                         if (isAddSuppression)
                         {
                             // Compiler diagnostics can only be suppressed in source.
                             if (!diagnosticData.IsSuppressed &&
-                                (isSuppressionInSource || !SuppressionHelpers.IsCompilerDiagnostic(diagnosticData)))
+                                (isSuppressionInSource || !isCompilerDiagnostic))
                             {
                                 builder.Add(diagnosticData);
                             }
