@@ -154,7 +154,7 @@ compile_toolset()
     echo -e "Compiling the C# compiler"
     run_msbuild src/Compilers/CSharp/CscCore/CscCore.csproj /p:Configuration=$BUILD_CONFIGURATION
     echo -e "Compiling the VB compiler"
-    run_msbuild src/Compilers/VisualBasic/Vbc/VbcCore.csproj /p:Configuration=$BUILD_CONFIGURATION
+    run_msbuild src/Compilers/VisualBasic/VbcCore/VbcCore.csproj /p:Configuration=$BUILD_CONFIGURATION
 }
 
 # Save the toolset binaries from Binaries/BUILD_CONFIGURATION to Binaries/Bootstrap
