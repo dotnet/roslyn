@@ -300,6 +300,8 @@
     <Compile Include="CodeCleanup\Providers\SimplificationCodeCleanupProvider.cs" />
     <Compile Include="CodeFixes\CodeFixContext.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\BatchSimplificationFixAllProvider.cs" />
+    <Compile Include="CodeFixes\FixAllOccurrences\FixMultipleContext.DiagnosticProvider.cs" />
+    <Compile Include="CodeFixes\FixAllOccurrences\FixMultipleContext.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllLogger.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllContext.DiagnosticProvider.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\WellKnownFixAllProviders.cs" />

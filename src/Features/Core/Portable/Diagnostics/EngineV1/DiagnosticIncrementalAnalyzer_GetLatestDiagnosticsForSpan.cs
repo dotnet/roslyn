@@ -25,20 +25,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             private readonly TextSpan _range;
             private readonly bool _blockForData;
+            private readonly bool _includeSuppressedDiagnostics;
             private readonly CancellationToken _cancellationToken;
-
+            
             private readonly DiagnosticAnalyzerDriver _spanBasedDriver;
             private readonly DiagnosticAnalyzerDriver _documentBasedDriver;
             private readonly DiagnosticAnalyzerDriver _projectDriver;
 
             public LatestDiagnosticsForSpanGetter(
-                DiagnosticIncrementalAnalyzer owner, Document document, SyntaxNode root, TextSpan range, bool blockForData, CancellationToken cancellationToken) :
-                this(owner, document, root, range, blockForData, new List<DiagnosticData>(), cancellationToken)
+                DiagnosticIncrementalAnalyzer owner, Document document, SyntaxNode root, TextSpan range, bool blockForData, bool includeSuppressedDiagnostics, CancellationToken cancellationToken) :
+                this(owner, document, root, range, blockForData, new List<DiagnosticData>(), includeSuppressedDiagnostics, cancellationToken)
             {
             }
 
             public LatestDiagnosticsForSpanGetter(
-                DiagnosticIncrementalAnalyzer owner, Document document, SyntaxNode root, TextSpan range, bool blockForData, List<DiagnosticData> diagnostics, CancellationToken cancellationToken)
+                DiagnosticIncrementalAnalyzer owner, Document document, SyntaxNode root, TextSpan range, bool blockForData, List<DiagnosticData> diagnostics, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
             {
                 _owner = owner;
 
@@ -47,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 _range = range;
                 _blockForData = blockForData;
+                _includeSuppressedDiagnostics = includeSuppressedDiagnostics;
                 _cancellationToken = cancellationToken;
 
                 Diagnostics = diagnostics;
@@ -256,7 +258,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 Func<DiagnosticAnalyzerDriver, DiagnosticAnalyzer, Task<IEnumerable<DiagnosticData>>> getDiagnostics,
                 DiagnosticAnalyzerDriver analyzerDriverOpt = null)
             {
-                Func<DiagnosticData, bool> shouldInclude = d => d.DocumentId == _document.Id && _range.IntersectsWith(d.TextSpan);
+                Func<DiagnosticData, bool> shouldInclude = d =>
+                    d.DocumentId == _document.Id &&
+                    _range.IntersectsWith(d.TextSpan) &&
+                    (_includeSuppressedDiagnostics || !d.IsSuppressed);
 
                 // make sure we get state even when none of our analyzer has ran yet. 
                 // but this shouldn't create analyzer that doesn't belong to this project (language)

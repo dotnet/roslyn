@@ -5,8 +5,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Roslyn.Utilities;
-using System.Runtime.CompilerServices;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {

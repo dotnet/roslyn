@@ -16,6 +16,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Get current diagnostics stored in IDiagnosticUpdateSource
         /// </summary>
-        IEnumerable<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, CancellationToken cancellationToken);
+        IEnumerable<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken);
     }
 }
