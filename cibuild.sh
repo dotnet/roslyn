@@ -220,7 +220,7 @@ set_mono_path()
 
 test_roslyn()
 {
-    local xunit_runner=~/.nuget/packages/xunit.runners/$XUNIT_VERSION/tools/xunit.console.x86.exe
+    local xunit_runner=~/.nuget/packages/xunit.runner.console/$XUNIT_VERSION/tools/xunit.console.x86.exe
     local test_binaries=(
         Roslyn.Compilers.CSharp.CommandLine.UnitTests
         Roslyn.Compilers.CSharp.Syntax.UnitTests
