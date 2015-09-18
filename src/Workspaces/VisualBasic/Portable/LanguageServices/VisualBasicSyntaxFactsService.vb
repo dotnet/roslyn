@@ -940,6 +940,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.IdentifierName
                     Dim identifier = DirectCast(node, IdentifierNameSyntax).Identifier
                     Return If(identifier.IsMissing, missingTokenPlaceholder, identifier.Text)
+                Case SyntaxKind.IncompleteMember
+                    Return missingTokenPlaceholder
                 Case SyntaxKind.NamespaceBlock
                     Dim nameSyntax = CType(node, NamespaceBlockSyntax).NamespaceStatement.Name
                     If nameSyntax.Kind() = SyntaxKind.GlobalName Then
