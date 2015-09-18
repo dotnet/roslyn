@@ -844,7 +844,7 @@ public class P
             }
 
             [WorkItem(2482, "https://github.com/dotnet/roslyn/issues/2482")]
-            [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
             public void WhereExpressionLooksLikeArrayTypeSyntaxOfQualifiedName()
             {
                 var markup = @"

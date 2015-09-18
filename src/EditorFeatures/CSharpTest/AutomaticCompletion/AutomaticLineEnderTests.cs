@@ -631,7 +631,7 @@ $$
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void NotAfterExisitingSemicolon()
         {
             Test(@"class TestClass
@@ -644,7 +644,7 @@ $$
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void NotAfterCloseBraceInMethod()
         {
             Test(@"class TestClass
@@ -657,7 +657,7 @@ $$
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void NotAfterCloseBraceInStatement()
         {
             Test(@"class TestClass
@@ -676,7 +676,7 @@ $$
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void NotAfterAutoPropertyAccessor()
         {
             Test(@"class TestClass
@@ -689,7 +689,7 @@ $$
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void NotAfterAutoPropertyDeclaration()
         {
             Test(@"class TestClass

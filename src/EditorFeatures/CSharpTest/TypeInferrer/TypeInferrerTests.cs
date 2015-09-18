@@ -1605,7 +1605,7 @@ class C
             Test(text, "global::System.Threading.Tasks.Task<System.Boolean>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(4233, "https://github.com/dotnet/roslyn/issues/4233")]
         public void TestAwaitExpressionWithGenericMethod1()
         {
@@ -1624,7 +1624,7 @@ public class C
             Test(text, "System.Boolean", testPosition: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(4233, "https://github.com/dotnet/roslyn/issues/4233")]
         public void TestAwaitExpressionWithGenericMethod2()
         {
@@ -1643,7 +1643,7 @@ public class C
             Test(text, "System.Boolean");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(4483, "https://github.com/dotnet/roslyn/issues/4483")]
         public void TestNullCoalescingOperator1()
         {
@@ -1658,7 +1658,7 @@ public class C
             Test(text, "System.Object");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(4483, "https://github.com/dotnet/roslyn/issues/4483")]
         public void TestNullCoalescingOperator2()
         {
@@ -1673,7 +1673,7 @@ public class C
             Test(text, "System.Object");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(4483, "https://github.com/dotnet/roslyn/issues/4483")]
         public void TestNullCoalescingOperator3()
         {
@@ -1688,7 +1688,7 @@ public class C
             Test(text, "System.Object");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(5126, "https://github.com/dotnet/roslyn/issues/5126")]
         public void TestSelectLambda()
         {
@@ -1706,7 +1706,7 @@ class C
             Test(text, "System.Object", testPosition: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(5126, "https://github.com/dotnet/roslyn/issues/5126")]
         public void TestSelectLambda2()
         {

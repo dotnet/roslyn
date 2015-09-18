@@ -2867,7 +2867,7 @@ End Module
         End Sub
 
         <WorkItem(5069, "https://github.com/dotnet/roslyn/issues/5069")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InTopLevelFieldInitializer()
             Dim code =
 <Code>
@@ -6646,7 +6646,7 @@ End Class]]>
         End Sub
 
         <WorkItem(4405, "https://github.com/dotnet/roslyn/issues/4405")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub VerifyDelegateEscapedWhenCommitted()
             Dim text =
 <code><![CDATA[
@@ -6667,7 +6667,7 @@ End Module
 
 
         <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SystemFuncExcludedInExpressionContext1()
             Dim text =
 <code><![CDATA[
@@ -6685,7 +6685,7 @@ End Module
         End Sub
 
         <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SystemFuncExcludedInExpressionContext2()
             Dim text =
 <code><![CDATA[
@@ -6721,7 +6721,7 @@ End Module
         End Sub
 
         <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SystemFuncIncludedInGetType()
             Dim text =
 <code><![CDATA[
@@ -6739,7 +6739,7 @@ End Module
         End Sub
 
         <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SystemFuncIncludedInTypeOf()
             Dim text =
 <code><![CDATA[
@@ -6757,7 +6757,7 @@ End Module
         End Sub
 
         <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SystemFuncIncludedInReturnTypeContext()
             Dim text =
 <code><![CDATA[
@@ -6774,7 +6774,7 @@ End Module
         End Sub
 
         <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SystemFuncIncludedInFieldTypeContext()
             Dim text =
 <code><![CDATA[
@@ -6790,7 +6790,7 @@ End Module
         End Sub
 
         <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SystemDelegateInStatementContext()
             Dim text =
 <code><![CDATA[
@@ -6931,7 +6931,7 @@ End Module
         End Sub
 
         <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SystemDelegateInExpressionContext()
             Dim text =
 <code><![CDATA[
@@ -6949,7 +6949,7 @@ End Module
         End Sub
 
         <WorkItem(4750, "https://github.com/dotnet/roslyn/issues/4750")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ConditionalAccessInWith1()
             Dim text =
 <code><![CDATA[
@@ -6968,7 +6968,7 @@ End Module
         End Sub
 
         <WorkItem(4750, "https://github.com/dotnet/roslyn/issues/4750")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ConditionalAccessInWith2()
             Dim text =
 <code><![CDATA[
