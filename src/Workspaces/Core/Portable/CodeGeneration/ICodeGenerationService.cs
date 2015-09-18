@@ -34,12 +34,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <summary>
         /// Returns a newly created named type declaration node from the provided named type.
         /// </summary>
-        SyntaxNode CreateNamedTypeDeclaration(INamedTypeSymbol namedType, CodeGenerationDestination destination = CodeGenerationDestination.Unspecified, CodeGenerationOptions options = null);
+        SyntaxNode CreateNamedTypeDeclaration(INamedTypeSymbol namedType, CodeGenerationDestination destination = CodeGenerationDestination.Unspecified, CodeGenerationOptions options = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Returns a newly created namespace declaration node from the provided namespace.
         /// </summary>
-        SyntaxNode CreateNamespaceDeclaration(INamespaceSymbol @namespace, CodeGenerationDestination destination = CodeGenerationDestination.Unspecified, CodeGenerationOptions options = null);
+        SyntaxNode CreateNamespaceDeclaration(INamespaceSymbol @namespace, CodeGenerationDestination destination = CodeGenerationDestination.Unspecified, CodeGenerationOptions options = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Adds an event into destination.
