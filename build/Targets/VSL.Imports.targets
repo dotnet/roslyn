@@ -59,12 +59,13 @@
       <RemoveAssemblyFoldersIfNoTargetFramework>false</RemoveAssemblyFoldersIfNoTargetFramework>
   </PropertyGroup>
 
+  <!-- Work around issue in dotnet/roslyn issue #5213 -->
   <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == 'DNXCore'">
     <_TargetFrameworkDirectories>$([System.String]::Join(";", $([Microsoft.Build.Utilities.ToolLocationHelper]::GetPathToReferenceAssemblies(".NETPortable", "v5.0", ""))))</_TargetFrameworkDirectories>
     <_FullFrameworkReferenceAssemblyPaths>$(_TargetFrameworkDirectories)</_FullFrameworkReferenceAssemblyPaths>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == 'DNXCore'">
+  <PropertyGroup>
       <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win</BaseNuGetRuntimeIdentifier>
       <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Unix'">linux</BaseNuGetRuntimeIdentifier>
   </PropertyGroup>
