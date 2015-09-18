@@ -579,7 +579,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 if (!TextView.Selection.IsEmpty)
                 {
-                    CutOrDeleteSelectionThenMoveCaret(isCut: false);  
+                    if (CutOrDeleteSelection(isCut: false))
+                    {
+                        MoveCaretToClosestEditableBuffer();
+                    }
                 }
                 else if (IsInActivePrompt(TextView.Caret.Position.BufferPosition))
                 {
@@ -1186,9 +1189,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     return false;   
                 }
 
-                // always has a span following prompt.
+                Debug.Assert(index + 1 < sourceSpans.Count);
                 var followingSpan = sourceSpans[index + 1];
-                // if the following span is in editable buffer, then the prompt must be active.
+                // if the following span is editable, then the prompt is active.
                 return GetPositionInBuffer(followingSpan.Start, editableBuffer) != null;
             }
 
@@ -2148,7 +2151,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 bool handled = false;
                 if (!TextView.Selection.IsEmpty)
                 {
-                    CutOrDeleteSelectionThenMoveCaret(isCut: false);
+                    if (CutOrDeleteSelection(isCut: false))
+                    {
+                        MoveCaretToClosestEditableBuffer();
+                    }
                     handled = true;
                 }
                 else if (IsInActivePrompt(TextView.Caret.Position.BufferPosition))
@@ -2298,15 +2304,17 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 if (!TextView.Selection.IsEmpty)
                 {
-                    CutOrDeleteSelectionThenMoveCaret(isCut: true);
+                    if (CutOrDeleteSelection(isCut: true))
+                    {
+                        MoveCaretToClosestEditableBuffer();
+                    }
                     return;
                 }
 
                 var caretPosition = TextView.Caret.Position.BufferPosition;
 
                 // don't cut and move caret if it's in readonly buffer (except in active prompt)
-                if (GetPositionInLanguageBuffer(caretPosition) != null ||
-                    GetPositionInStandardInputBuffer(caretPosition) != null ||
+                if (MapToEditableBuffer(caretPosition) != null ||
                     IsInActivePrompt(caretPosition))
                 {
                     CutOrDeleteCurrentLine(isCut: true);
@@ -2326,33 +2334,25 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             /// <summary>
-            /// If any of currently selected text is editable, then deletes editable selection, optionally saves it to the clipboard 
-            /// and moves caret to closest location in editable buffer. Otherwise do nothing (and preserve selection).
+            /// If any of currently selected text is editable, then deletes editable selection, optionally saves it 
+            /// to the clipboard. Otherwise do nothing (and preserve selection).
             /// </summary>                 
-            private void CutOrDeleteSelectionThenMoveCaret(bool isCut)
+            private bool CutOrDeleteSelection(bool isCut)
             {
                 if (!TextView.Selection.IsEmpty)
                 {
                     if (TextView.Selection.Mode == TextSelectionMode.Stream ?
                             IsSteamSelectionInEditableBuffer(TextView.Selection) :
                             ReduceBoxSelectionToEditableBox())
-                    {
-                        CutOrDeleteSelection(isCut: false);
-                        MoveCaretToClosestEditableBuffer();
+                    {                               
+                        CutOrDelete(TextView.Selection.SelectedSpans, isCut);
+                        // if the selection spans over prompts the prompts remain selected, so clear manually:
+                        TextView.Selection.Clear();
+                        return true;
                     }
                 }
-            }
-
-            /// <summary>
-            /// Deletes currently selected text from the language buffer and optionally saves it to the clipboard.
-            /// </summary>
-            private void CutOrDeleteSelection(bool isCut)
-            {
-                CutOrDelete(TextView.Selection.SelectedSpans, isCut);
-
-                // if the selection spans over prompts the prompts remain selected, so clear manually:
-                TextView.Selection.Clear(); 
-            }
+                return false;
+            } 
 
             private void CutOrDelete(IEnumerable<SnapshotSpan> projectionSpans, bool isCut)
             {
@@ -2495,7 +2495,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 {
                     if (TextView.Selection.Mode == TextSelectionMode.Stream || ReduceBoxSelectionToEditableBox())
                     {
-                        CutOrDeleteSelectionThenMoveCaret(isCut: false); 
+                        if (CutOrDeleteSelection(isCut: false))
+                        {
+                            MoveCaretToClosestEditableBuffer();
+                        }
                         handled = true;
                     }
                 }
@@ -2661,7 +2664,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                 if (!TextView.Selection.IsEmpty)
                 {
-                    CutOrDeleteSelectionThenMoveCaret(isCut: false);
+                    if (CutOrDeleteSelection(isCut: false))
+                    {
+                        MoveCaretToClosestEditableBuffer();
+                    }
                 }
                 else if (IsInActivePrompt(TextView.Caret.Position.BufferPosition))
                 {
