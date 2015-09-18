@@ -213,6 +213,45 @@ class Program
             Test(initial, expected);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        public void FunctionNotAwaited_WithLeadingTrivia1()
+        {
+            var initial =
+@"using System.Threading.Tasks;
+class Program
+{
+    Task AwaitableFunction()
+    {
+        return Task.FromResult(true);
+    }
+
+    async void Test()
+    {
+        var i = 0;
+
+        [|AwaitableFunction();|]
+    }
+}";
+
+            var expected =
+@"using System.Threading.Tasks;
+class Program
+{
+    Task AwaitableFunction()
+    {
+        return Task.FromResult(true);
+    }
+
+    async void Test()
+    {
+        var i = 0;
+
+        await AwaitableFunction();
+    }
+}";
+            Test(initial, expected);
+        }
+
         internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {
             return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(null, new CSharpAddAwaitCodeFixProvider());
