@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
         private TodoItem CreateItem(Document document, SourceText text, SyntaxTree tree, TodoComment comment)
         {
             // make sure given position is within valid text range.
-            var textSpan = new TextSpan(Math.Min(text.Length - 1, Math.Max(0, comment.Position)), 0);
+            var textSpan = new TextSpan(Math.Min(text.Length, Math.Max(0, comment.Position)), 0);
 
             var location = tree == null ? Location.Create(document.FilePath, textSpan, text.Lines.GetLinePositionSpan(textSpan)) : tree.GetLocation(textSpan);
             var originalLineInfo = location.GetLineSpan();
