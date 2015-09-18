@@ -161,7 +161,7 @@ function CreateXUnitFixture(
     & $NuGetExe install -OutputDirectory $PackagesPath -NonInteractive -ExcludeVersion Microsoft.DotNet.xunit.performance.runner.Windows -Version 1.0.0-alpha-build0013 -Source https://www.myget.org/F/dotnet-buildtools/
 
     $ToZipPath = Join-Path $StagingPath -ChildPath ToZip
-    mkdir $ToZipPath > $null
+    New-Item -ItemType Directory -Path $ToZipPath -ErrorAction SilentlyContinue | Out-Null
 
     # Move the contents of all "Tools" folders into the root of the archive (overwriting any duplicates)
     (Get-ChildItem -Path $PackagesPath -Recurse -Directory -Include "Tools").FullName | Get-ChildItem | Move-Item -Destination $ToZipPath -Force
@@ -193,7 +193,7 @@ function GetXUnitFixtureUri(
         $FixturesStagingPath = Join-Path -Path $HelixStage -ChildPath fixtures
         $xunitZip = Join-Path $FixturesStagingPath -ChildPath xunit.zip
 
-        CreateXUnitFixture -StagingPath $FixturesStagingPath -ZipFile $xunitZip > $null
+        CreateXUnitFixture -StagingPath $FixturesStagingPath -ZipFile $xunitZip | Out-Null
 
         if (!$NoUpload) {
             Write-Host "Uploading xunit fixture"
@@ -307,7 +307,7 @@ try {
         Remove-Item -Recurse -Force $HelixStage
     }
 
-    mkdir $HelixStage > $null
+    New-Item -ItemType Directory -Path $HelixStage -ErrorAction SilentlyContinue | Out-Null
 
     $DropZip = Join-Path $HelixStage -ChildPath Drop.zip
 
