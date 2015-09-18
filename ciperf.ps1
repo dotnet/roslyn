@@ -102,7 +102,7 @@ function CreateSASToken(
     [System.TimeSpan] $Duration = [System.TimeSpan]::FromDays(7)
     ) {
 
-    $expiryTime = [System.DateTime]::UtcNow.Date + $Duration
+    $expiryTime = (Get-Date).Add($Duration)
     $token = New-AzureStorageContainerSASToken -Context $Context -Permission $Permission -Container $Container -ExpiryTime $expiryTime
 
     # SAS tokens in Helix should not include the query char
@@ -122,13 +122,18 @@ function BuildUri(
     [String] $BlobName,
     [String] $SASToken
 ) {
-
     $ub = New-Object System.UriBuilder -ArgumentList $Context.BlobEndPoint
-    if ([System.String]::IsNullOrEmpty($BlobName)) {
-        $ub.Path = $Container
-    } else {
-        $ub.Path += $Container + "/" + $BlobName
+    
+    if (-not $ub.Path.EndsWith('/')) {
+       $ub.Path += "/"
     }
+    
+    $ub.Path += $Container
+
+    if (-not [String]::IsNullOrEmpty($BlobName)) {
+       $ub.Path += "/" + $BlobName
+    }
+
     $ub.Query = $SASToken
     
     # Using OriginalString because that preserves escaping in the query string
