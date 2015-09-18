@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -109,7 +110,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
         private TodoItem CreateItem(Document document, SourceText text, SyntaxTree tree, TodoComment comment)
         {
-            var textSpan = new TextSpan(comment.Position, 0);
+            // make sure given position is within valid text range.
+            var textSpan = new TextSpan(Math.Min(text.Length - 1, Math.Max(0, comment.Position)), 0);
 
             var location = tree == null ? Location.Create(document.FilePath, textSpan, text.Lines.GetLinePositionSpan(textSpan)) : tree.GetLocation(textSpan);
             var originalLineInfo = location.GetLineSpan();
