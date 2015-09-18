@@ -25,10 +25,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(NuGetPackageRoot)\Microsoft.CodeAnalysis.Test.Resources.Proprietary\1.1.0-beta1-20150824-02\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.DiaSymReader">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(NuGetPackageRoot)\Microsoft.DiaSymReader\1.0.5\lib\net45\Microsoft.DiaSymReader.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\Runtime.FX46\TestRuntime.FX46.csproj">
