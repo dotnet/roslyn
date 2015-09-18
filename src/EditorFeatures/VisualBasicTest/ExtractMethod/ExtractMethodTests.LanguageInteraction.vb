@@ -3363,7 +3363,7 @@ End Namespace"
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact>
+            <WpfFact>
             <Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             <Trait(Traits.Feature, Traits.Features.Interactive)>
             Public Sub ExtractMethodCommandDisabledInSubmission()
