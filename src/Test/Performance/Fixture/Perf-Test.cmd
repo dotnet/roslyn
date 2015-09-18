@@ -9,7 +9,7 @@ ver
 rem ========================================================
 rem Create a new local Results folder (delete any existing)
 rem ========================================================
-set LOCALRESULTS=Results
+set LOCALRESULTS=..\Results
 if exist %LOCALRESULTS% rd /s /q %LOCALRESULTS%
 md %LOCALRESULTS%
 
