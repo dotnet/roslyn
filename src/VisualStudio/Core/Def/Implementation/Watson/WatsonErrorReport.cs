@@ -284,10 +284,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Watson
                     string helperArguments;
                     if (PrepareHelperArguments(out helperArguments))
                     {
-                        p.StartInfo = new ProcessStartInfo(dbgHelperPath, helperArguments);
+                        p.StartInfo = new ProcessStartInfo(dbgHelperPath, helperArguments)
+                        {
+                            // Prevent the helper process from spawning a new window
+                            CreateNoWindow = true,
 
-                        // When UseShellExecute is off, the .NET framework will always call CreateProcess with the bInheritHandles true, which is required to trigger the event
-                        p.StartInfo.UseShellExecute = false;
+                            // When UseShellExecute is off, the .NET framework will always call CreateProcess with the bInheritHandles true, which is required to trigger the event
+                            UseShellExecute = false,
+                        };
 
                         p.Start();
 
