@@ -156,7 +156,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ProjectSystem\Designers\VisualBasicProjectDesignerPageProproviderTests.cs" />
+    <Compile Include="ProjectSystem\Designers\VisualBasicProjectDesignerPageProviderTests.cs" />
     <Compile Include="ProjectSystem\LanguageServices\VisualBasicCodeDomProviderTests.cs" />
   </ItemGroup>
   <ItemGroup>
