@@ -59,7 +59,10 @@
       <RemoveAssemblyFoldersIfNoTargetFramework>false</RemoveAssemblyFoldersIfNoTargetFramework>
   </PropertyGroup>
 
-  <!-- Work around issue in dotnet/roslyn issue #5213 -->
+  <!-- Work around issue in dotnet/roslyn issue #5213
+       Since MSBuild wants a reference assembly location and DNXCore doesn't have one,
+       trick MSBuild into using the .NETPortable,v5.0 reference assembly path which happens
+       to have the same set of reference assemblies as DNXCore (i.e., none). -->
   <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == 'DNXCore'">
     <_TargetFrameworkDirectories>$([System.String]::Join(";", $([Microsoft.Build.Utilities.ToolLocationHelper]::GetPathToReferenceAssemblies(".NETPortable", "v5.0", ""))))</_TargetFrameworkDirectories>
     <_FullFrameworkReferenceAssemblyPaths>$(_TargetFrameworkDirectories)</_FullFrameworkReferenceAssemblyPaths>
