@@ -1268,7 +1268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // current folder first -- base directory is searched by default
 
-            // SDK path is specified or current runtime directory
+            // Add SDK directory if it is available
             if (sdkDirectoryOpt != null)
             {
                 builder.Add(sdkDirectoryOpt);
