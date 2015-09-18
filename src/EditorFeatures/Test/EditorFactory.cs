@@ -45,7 +45,6 @@ namespace Roslyn.Test.EditorUtilities
             ExportProvider exportProvider,
             params string[] lines)
         {
-            Contract.ThrowIfFalse(Thread.CurrentThread.GetApartmentState() == ApartmentState.STA);
             TestWorkspace.ResetThreadAffinity();
 
             var buffer = CreateBuffer(contentType, exportProvider, lines);
