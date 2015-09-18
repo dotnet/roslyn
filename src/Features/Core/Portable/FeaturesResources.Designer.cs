@@ -503,6 +503,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Computing fix all occurrences code fix....
+        /// </summary>
+        internal static string ComputingFixAllOccurrences {
+            get {
+                return ResourceManager.GetString("ComputingFixAllOccurrences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to constant.
         /// </summary>
         internal static string Constant {
@@ -787,6 +796,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Field {
             get {
                 return ResourceManager.GetString("Field", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix all occurrences.
+        /// </summary>
+        internal static string FixAllOccurrences {
+            get {
+                return ResourceManager.GetString("FixAllOccurrences", resourceCulture);
             }
         }
         
