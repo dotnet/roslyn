@@ -10229,7 +10229,7 @@ namespace ClassLibrary9
             service.ExtractMethodAsync(document, default(TextSpan)).Wait();
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void ExtractMethodCommandDisabledInSubmission()

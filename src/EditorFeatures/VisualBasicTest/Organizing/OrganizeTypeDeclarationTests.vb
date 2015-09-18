@@ -944,7 +944,7 @@ End Namespace</element>
             Check(initial, final)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Organizing)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub OrganizingCommandsDisabledInSubmission()

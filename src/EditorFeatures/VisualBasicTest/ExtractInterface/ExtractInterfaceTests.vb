@@ -1252,7 +1252,7 @@ End Namespace
                 rootNamespace:="RootNamespace")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub ExtractInterfaceCommandDisabledInSubmission()
