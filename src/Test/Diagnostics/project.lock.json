@@ -123,13 +123,13 @@
         },
         "runtime": {
           "lib/dotnet/xunit.assert.dll": {}
-      }
+        }
       },
       "xunit.core/2.1.0-beta4-build3109": {
         "dependencies": {
           "xunit.extensibility.core": "[2.1.0-beta4-build3109, 2.1.0-beta4-build3109]"
-    }
-  },
+        }
+      },
       "xunit.extensibility.core/2.1.0-beta4-build3109": {
         "dependencies": {
           "xunit.abstractions": "[2.0.0, )"
@@ -193,10 +193,13 @@
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
-        "Microsoft.DiaSymReader.Native.nuspec",
-        "package/services/metadata/core-properties/e2e1c0f9faac4ddb951a90d33184740b.psmdcp",
-        "runtimes/win/native/Microsoft.DiaSymReader.Native.amd64.dll",
-        "runtimes/win/native/Microsoft.DiaSymReader.Native.x86.dll"
+        "Microsoft.DiaSymReader.nuspec",
+        "lib/net45/Microsoft.DiaSymReader.dll",
+        "lib/net45/Microsoft.DiaSymReader.xml",
+        "lib/net20/Microsoft.DiaSymReader.dll",
+        "lib/net20/Microsoft.DiaSymReader.xml",
+        "package/services/metadata/core-properties/08003dc206aa4abfa0c6f00c3f91c002.psmdcp",
+        "[Content_Types].xml"
       ]
     },
     "System.Collections/4.0.10": {

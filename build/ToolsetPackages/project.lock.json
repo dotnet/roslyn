@@ -78,8 +78,7 @@
           "lib/dotnet/xunit.core.dll": {}
         }
       },
-      "xunit.runner.console/2.1.0-beta4-build3109": {},
-      "xunit.runners/2.0.0-alpha-build2576": {}
+      "xunit.runner.console/2.1.0-beta4-build3109": {}
     },
     ".NETFramework,Version=v4.5/win": {
       "FakeSign/0.9.2": {},
@@ -162,8 +161,7 @@
           "lib/dotnet/xunit.core.dll": {}
         }
       },
-      "xunit.runner.console/2.1.0-beta4-build3109": {},
-      "xunit.runners/2.0.0-alpha-build2576": {}
+      "xunit.runner.console/2.1.0-beta4-build3109": {}
     }
   },
   "libraries": {
@@ -1233,26 +1231,6 @@
         "tools/xUnit1.xslt",
         "xunit.runner.console.nuspec"
       ]
-    },
-    "xunit.runners/2.0.0-alpha-build2576": {
-      "sha512": "RvsalduN32Ep8DZ4yHOSzAxF9M5WcNL+J66SCW037xAb01oi6rG8oRxPAMUZhKGJjndENHhUEumUORtXaq5/vQ==",
-      "type": "Package",
-      "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
-        "package/services/metadata/core-properties/4fde90b85e2541ab9652285f3fa8fa34.psmdcp",
-        "tools/HTML.xslt",
-        "tools/xunit.abstractions.dll",
-        "tools/xunit.console.exe",
-        "tools/xunit.console.exe.config",
-        "tools/xunit.console.x86.exe",
-        "tools/xunit.console.x86.exe.config",
-        "tools/xunit.runner.msbuild.dll",
-        "tools/xunit.runner.utility.dll",
-        "tools/xunit.runner.utility.xml",
-        "tools/xUnit1.xslt",
-        "xunit.runners.nuspec"
-      ]
     }
   },
   "projectFileDependencyGroups": {
@@ -1265,8 +1243,7 @@
       "Microsoft.Net.RoslynDiagnostics >= 1.1.1-beta1-20150814-01",
       "FakeSign >= 0.9.2",
       "xunit >= 2.1.0-beta4-build3109",
-      "xunit.runner.console >= 2.1.0-beta4-build3109",
-      "xunit.runners >= 2.0.0-alpha-build2576"
+      "xunit.runner.console >= 2.1.0-beta4-build3109"
     ],
     ".NETFramework,Version=v4.5": []
   }
