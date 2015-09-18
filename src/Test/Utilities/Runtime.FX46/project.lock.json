@@ -12,6 +12,20 @@
           "lib/net45/Newtonsoft.Json.dll": {}
         }
       },
+      "System.AppContext/4.0.0": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )"
+        },
+        "frameworkAssemblies": [
+          "mscorlib"
+        ],
+        "compile": {
+          "ref/net46/System.AppContext.dll": {}
+        },
+        "runtime": {
+          "lib/net46/System.AppContext.dll": {}
+        }
+      },
       "System.Collections/4.0.10": {
         "compile": {
           "ref/net46/_._": {}
@@ -295,6 +309,20 @@
         },
         "runtime": {
           "lib/net45/Newtonsoft.Json.dll": {}
+        }
+      },
+      "System.AppContext/4.0.0": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )"
+        },
+        "frameworkAssemblies": [
+          "mscorlib"
+        ],
+        "compile": {
+          "ref/net46/System.AppContext.dll": {}
+        },
+        "runtime": {
+          "lib/net46/System.AppContext.dll": {}
         }
       },
       "System.Collections/4.0.10": {
@@ -607,6 +635,39 @@
         "lib/portable-net45+wp80+win8+wpa81/Newtonsoft.Json.xml",
         "tools/install.ps1",
         "package/services/metadata/core-properties/87a0a4e28d50417ea282e20f81bc6477.psmdcp",
+        "[Content_Types].xml"
+      ]
+    },
+    "System.AppContext/4.0.0": {
+      "sha512": "gUoYgAWDC3+xhKeU5KSLbYDhTdBYk9GssrMSCcWUADzOglW+s0AmwVhOUGt2tL5xUl7ZXoYTPdA88zCgKrlG0A==",
+      "type": "Package",
+      "files": [
+        "_rels/.rels",
+        "System.AppContext.nuspec",
+        "lib/netcore50/System.AppContext.dll",
+        "lib/DNXCore50/System.AppContext.dll",
+        "lib/net46/System.AppContext.dll",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "ref/dotnet/System.AppContext.dll",
+        "ref/dotnet/System.AppContext.xml",
+        "ref/dotnet/zh-hant/System.AppContext.xml",
+        "ref/dotnet/de/System.AppContext.xml",
+        "ref/dotnet/fr/System.AppContext.xml",
+        "ref/dotnet/it/System.AppContext.xml",
+        "ref/dotnet/ja/System.AppContext.xml",
+        "ref/dotnet/ko/System.AppContext.xml",
+        "ref/dotnet/ru/System.AppContext.xml",
+        "ref/dotnet/zh-hans/System.AppContext.xml",
+        "ref/dotnet/es/System.AppContext.xml",
+        "ref/net46/System.AppContext.dll",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "package/services/metadata/core-properties/3b390478e0cd42eb8818bbab19299738.psmdcp",
         "[Content_Types].xml"
       ]
     },
@@ -1448,6 +1509,7 @@
       "System.Threading.Thread >= 4.0.0-beta-23123",
       "System.Xml.XDocument >= 4.0.10",
       "System.Xml.XmlDocument >= 4.0.0",
+      "System.AppContext >= 4.0.0",
       "xunit >= 2.1.0-beta4-build3109",
       "xunit.extensibility.execution >= 2.1.0-beta4-build3109"
     ],

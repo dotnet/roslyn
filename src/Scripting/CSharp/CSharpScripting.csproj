@@ -45,11 +45,18 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="CommandLine\Csi.cs" />
     <Compile Include="CSharpObjectFormatter.cs" />
     <Compile Include="CSharpScript.cs" />
     <Compile Include="CSharpScriptCompiler.cs" />
+    <Compile Include="CSharpScriptingResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CSharpScriptingResources.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="csi" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Emit.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Emit.UnitTests" />
@@ -62,6 +69,13 @@
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="CSharpScriptingResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CSharpScriptingResources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />

@@ -427,7 +427,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                 // replace previous span w/ a span that won't grow...
                 var oldSpan = sourceSpans[index];
-                var newSpan = new CustomTrackingSpan(oldSpan.Snapshot, oldSpan.Span, PointTrackingMode.Negative, PointTrackingMode.Negative);
+                var newSpan = new CustomTrackingSpan(oldSpan.Snapshot, oldSpan.Span);
 
                 ReplaceProjectionSpan(index, newSpan);
                 ApplyProtection(StandardInputBuffer, _standardInputProtection, allowAppend: true);
@@ -687,8 +687,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 var replSpan = new CustomTrackingSpan(
                     buffer.CurrentSnapshot,
                     new Span(span.Start, span.Length + text.Length),
-                    PointTrackingMode.Negative,
-                    PointTrackingMode.Positive);
+                    canAppend: true);
                 ReplaceProjectionSpan(spanCount - 1, replSpan);
 
                 TextView.Caret.EnsureVisible();
@@ -900,9 +899,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 Debug.Assert(GetSpanKind(sourceSpan) == ReplSpanKind.Output);
                 var nonGrowingSpan = new CustomTrackingSpan(
                     sourceSpan.Snapshot,
-                    sourceSpan.Span,
-                    PointTrackingMode.Negative,
-                    PointTrackingMode.Negative);
+                    sourceSpan.Span);
                 ReplaceProjectionSpan(_currentOutputProjectionSpan, nonGrowingSpan);
 
                 AppendNewOutputProjectionBuffer();
@@ -915,8 +912,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 var trackingSpan = new CustomTrackingSpan(
                     currentSnapshot,
                     new Span(currentSnapshot.Length, 0),
-                    PointTrackingMode.Negative,
-                    PointTrackingMode.Positive);
+                    canAppend: true);
 
                 _currentOutputProjectionSpan = AppendProjectionSpan(trackingSpan);
             }
@@ -1162,13 +1158,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     index--;
                 }
                 // Find the nearest preceding prompt.
-                while (index >=0 && !IsPrompt(sourceSpans[index]))
+                while (index >= 0 && !IsPrompt(sourceSpans[index]))
                 {
                     index--;
                 }
                 return index;
             }
-
+            
             private bool IsInActivePrompt(SnapshotPoint point)
             {
                 var editableBuffer = ReadingStandardInput ? StandardInputBuffer : CurrentLanguageBuffer;
@@ -1372,8 +1368,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 var languageSpan = new CustomTrackingSpan(
                     CurrentLanguageBuffer.CurrentSnapshot,
                     new Span(0, 0),
-                    PointTrackingMode.Negative,
-                    PointTrackingMode.Positive);
+                    canAppend: true);
 
                 // projection buffer update must be the last operation as it might trigger event that accesses prompt line mapping:
                 AppendProjectionSpans(promptSpan, languageSpan);
@@ -1632,7 +1627,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 {
                     return snapshotSpan.GetText();
                 }
-                return new CustomTrackingSpan(snapshot, snapshotSpan.Span, PointTrackingMode.Negative, PointTrackingMode.Negative);
+                return new CustomTrackingSpan(snapshot, snapshotSpan.Span);
             }
 
             private ITrackingSpan CreateLanguageSpanForLine(ITextSnapshotLine languageLine)
@@ -1642,8 +1637,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 return new CustomTrackingSpan(
                     CurrentLanguageBuffer.CurrentSnapshot,
                     span,
-                    PointTrackingMode.Negative,
-                    lastLine ? PointTrackingMode.Positive : PointTrackingMode.Negative);
+                    canAppend: lastLine);
             }
 
             private void ScrollToCaret()
@@ -2637,8 +2631,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 var inputSpan = new CustomTrackingSpan(
                     currentSnapshot,
                     new Span(currentSnapshot.Length, 0),
-                    PointTrackingMode.Negative,
-                    PointTrackingMode.Positive);
+                    canAppend: true);
                 AppendProjectionSpans(promptSpan, inputSpan);
             }
 

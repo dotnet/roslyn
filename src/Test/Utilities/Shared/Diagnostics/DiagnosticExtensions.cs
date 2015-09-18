@@ -119,13 +119,13 @@ namespace Microsoft.CodeAnalysis
                 params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
-            return VerifyAnalyzerDiagnostics(c, analyzers, reportDiagnosticsWithSourceSuppressions: false, options: options, onAnalyzerException: onAnalyzerException, logAnalyzerExceptionAsDiagnostics: logAnalyzerExceptionAsDiagnostics, expected: expected);
+            return VerifyAnalyzerDiagnostics(c, analyzers, reportSuppressedDiagnostics: false, options: options, onAnalyzerException: onAnalyzerException, logAnalyzerExceptionAsDiagnostics: logAnalyzerExceptionAsDiagnostics, expected: expected);
         }
 
         public static TCompilation VerifyAnalyzerDiagnostics<TCompilation>(
                 this TCompilation c,
                 DiagnosticAnalyzer[] analyzers,
-                bool reportDiagnosticsWithSourceSuppressions,
+                bool reportSuppressedDiagnostics,
                 AnalyzerOptions options = null,
                 Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
                 bool logAnalyzerExceptionAsDiagnostics = true,
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis
             where TCompilation : Compilation
         {
             ImmutableArray<Diagnostic> diagnostics;
-            c = c.GetAnalyzerDiagnostics(analyzers, options, onAnalyzerException, logAnalyzerExceptionAsDiagnostics, reportDiagnosticsWithSourceSuppressions, diagnostics: out diagnostics);
+            c = c.GetAnalyzerDiagnostics(analyzers, options, onAnalyzerException, logAnalyzerExceptionAsDiagnostics, reportSuppressedDiagnostics, diagnostics: out diagnostics);
             diagnostics.Verify(expected);
             return c; // note this is a new compilation
         }
@@ -146,20 +146,20 @@ namespace Microsoft.CodeAnalysis
             bool logAnalyzerExceptionAsDiagnostics = true)
             where TCompilation : Compilation
         {
-            return GetAnalyzerDiagnostics(c, analyzers, reportDiagnosticsWithSourceSuppressions: false, options: options, onAnalyzerException: onAnalyzerException, logAnalyzerExceptionAsDiagnostics: logAnalyzerExceptionAsDiagnostics);
+            return GetAnalyzerDiagnostics(c, analyzers, reportSuppressedDiagnostics: false, options: options, onAnalyzerException: onAnalyzerException, logAnalyzerExceptionAsDiagnostics: logAnalyzerExceptionAsDiagnostics);
         }
 
         public static ImmutableArray<Diagnostic> GetAnalyzerDiagnostics<TCompilation>(
             this TCompilation c,
             DiagnosticAnalyzer[] analyzers,
-            bool reportDiagnosticsWithSourceSuppressions,
+            bool reportSuppressedDiagnostics,
             AnalyzerOptions options = null,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
             bool logAnalyzerExceptionAsDiagnostics = true)
             where TCompilation : Compilation
         {
             ImmutableArray<Diagnostic> diagnostics;
-            c = GetAnalyzerDiagnostics(c, analyzers, options, onAnalyzerException, logAnalyzerExceptionAsDiagnostics, reportDiagnosticsWithSourceSuppressions, out diagnostics);
+            c = GetAnalyzerDiagnostics(c, analyzers, options, onAnalyzerException, logAnalyzerExceptionAsDiagnostics, reportSuppressedDiagnostics, out diagnostics);
             return diagnostics;
         }
 
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis
                 AnalyzerOptions options,
                 Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
                 bool logAnalyzerExceptionAsDiagnostics,
-                bool reportDiagnosticsWithSourceSuppressions,
+                bool reportSuppressedDiagnostics,
                 out ImmutableArray<Diagnostic> diagnostics)
             where TCompilation : Compilation
         {
@@ -193,12 +193,17 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            if (reportSuppressedDiagnostics != c.Options.ReportSuppressedDiagnostics)
+            {
+                c = (TCompilation)c.WithOptions(c.Options.WithReportSuppressedDiagnostics(reportSuppressedDiagnostics));
+            }
+
             Compilation newCompilation;
-            var driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, AnalyzerManager.Instance, onAnalyzerException, false, reportDiagnosticsWithSourceSuppressions, out newCompilation, CancellationToken.None);
+            var driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, AnalyzerManager.Instance, onAnalyzerException, false, out newCompilation, CancellationToken.None);
             var discarded = newCompilation.GetDiagnostics();
             diagnostics = driver.GetDiagnosticsAsync(newCompilation).Result.AddRange(exceptionDiagnostics);
 
-            if (!reportDiagnosticsWithSourceSuppressions)
+            if (!reportSuppressedDiagnostics)
             {
                 Assert.True(diagnostics.All(d => !d.IsSuppressed));
             }

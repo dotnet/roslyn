@@ -18,13 +18,8 @@ Namespace Global.Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         <Extension>
-        Friend Function GetDiagnostics(c As VisualBasicCompilation, stage As CompilationStage) As ImmutableArray(Of Diagnostic)
-            Return c.GetDiagnostics(stage, includeEarlierStages:=True, includeDiagnosticsWithSourceSuppression:=False, cancellationToken:=CancellationToken.None)
-        End Function
-
-        <Extension>
         Friend Function GetDiagnosticsForSyntaxTree(c As VisualBasicCompilation, stage As CompilationStage, tree As SyntaxTree, Optional filterSpan As TextSpan? = Nothing) As ImmutableArray(Of Diagnostic)
-            Return c.GetDiagnosticsForSyntaxTree(stage, tree, filterSpan, includeEarlierStages:=True, includeDiagnosticsWithSourceSuppression:=False, cancellationToken:=CancellationToken.None)
+            Return c.GetDiagnosticsForSyntaxTree(stage, tree, filterSpan, includeEarlierStages:=True, cancellationToken:=CancellationToken.None)
         End Function
 
         ' TODO: Figure out how to return a localized message using VB

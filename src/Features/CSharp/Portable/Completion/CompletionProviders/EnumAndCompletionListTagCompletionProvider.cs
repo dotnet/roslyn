@@ -1,12 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -18,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal partial class EnumAndCompletionListTagCompletionProvider : AbstractCompletionProvider
+    internal partial class EnumAndCompletionListTagCompletionProvider : CompletionListProvider
     {
         public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
         {
@@ -36,22 +33,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 (options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp) && CompletionUtilities.IsStartingNewWord(text, characterPosition));
         }
 
-        protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(
-            Document document, int position, CompletionTriggerInfo triggerInfo,
-            CancellationToken cancellationToken)
+        public override async Task ProduceCompletionListAsync(CompletionListContext context)
         {
             try
             {
+                var document = context.Document;
+                var position = context.Position;
+                var options = context.Options;
+                var cancellationToken = context.CancellationToken;
+
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 if (tree.IsInNonUserCode(position, cancellationToken))
                 {
-                    return null;
+                    return;
                 }
 
                 var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
                 if (token.IsMandatoryNamedParameterPosition())
                 {
-                    return null;
+                    return;
                 }
 
                 var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                     if (type == null)
                     {
-                        return null;
+                        return;
                     }
                 }
 
@@ -78,13 +78,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     type = GetCompletionListType(type, semanticModel.GetEnclosingNamedType(position, cancellationToken), semanticModel.Compilation);
                     if (type == null)
                     {
-                        return null;
+                        return;
                     }
                 }
 
-                if (!type.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
+                if (!type.IsEditorBrowsable(options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language), semanticModel.Compilation))
                 {
-                    return null;
+                    return;
                 }
 
                 // Does type have any aliases?
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     preselect: true,
                     rules: ItemRules.Instance);
 
-                return SpecializedCollections.SingletonEnumerable(item);
+                context.AddItem(item);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {

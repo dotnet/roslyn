@@ -88,6 +88,16 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp.Test
             Assert.Null(state.ReturnValue);
         }
 
+        [WorkItem(5279, "https://github.com/dotnet/roslyn/issues/5279")]
+        [Fact]
+        public async void TestRunExpressionStatement()
+        {
+            var state = await CSharpScript.RunAsync(
+@"int F() { return 1; }
+F();");
+            Assert.Null(state.ReturnValue);
+        }
+
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/170")]
         public void TestRunDynamicVoidScriptWithTerminatingSemicolon()
         {

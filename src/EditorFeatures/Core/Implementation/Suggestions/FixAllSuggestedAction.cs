@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             _fixedDiagnostic = originalFixedDiagnostic;
         }
 
-        public string GetDiagnosticID()
+        public virtual string GetDiagnosticID()
         {
             // we log diagnostic id as it is if it is from us
             if (_fixedDiagnostic.Descriptor.CustomTags.Any(t => t == WellKnownDiagnosticTags.Telemetry))
