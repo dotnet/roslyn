@@ -125,7 +125,7 @@ public class Ref<T> where T : Entity
             Assert.True(testObject.CanOverride);
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void FullName()
         {
@@ -197,7 +197,7 @@ public class Ref<T> where T : Entity
             Assert.True(testObject.IsShared);
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Kind()
         {
@@ -206,7 +206,7 @@ public class Ref<T> where T : Entity
             Assert.Equal(vsCMElement.vsCMElementFunction, testObject.Kind);
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Name()
         {
@@ -224,7 +224,7 @@ public class Ref<T> where T : Entity
             Assert.Equal(3, testObject.Parameters.Count);
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Parent()
         {
@@ -235,7 +235,7 @@ public class Ref<T> where T : Entity
             Assert.Equal("A", ((CodeClass)testObject.Parent).FullName);
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Type()
         {
@@ -244,7 +244,7 @@ public class Ref<T> where T : Entity
             Assert.Equal("System.Int32", testObject.Type.AsFullName);
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Comment()
         {
@@ -255,7 +255,7 @@ public class Ref<T> where T : Entity
             Assert.Equal(expected, testObject.Comment);
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void DocComment()
         {
@@ -266,7 +266,7 @@ public class Ref<T> where T : Entity
             Assert.Equal(expected, testObject.DocComment);
         }
 
-        [ConditionalFact(typeof(x86), Skip = "636860")]
+        [ConditionalWpfFact(typeof(x86), Skip = "636860")]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Overloads_Count()
         {
@@ -475,7 +475,7 @@ public class Ref<T> where T : Entity
             Assert.Equal(6, endPoint.LineCharOffset);
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void StartPoint()
         {
@@ -487,7 +487,7 @@ public class Ref<T> where T : Entity
             Assert.Equal(5, startPoint.LineCharOffset);
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void EndPoint()
         {

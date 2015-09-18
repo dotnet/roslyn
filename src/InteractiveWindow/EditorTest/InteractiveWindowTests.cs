@@ -353,7 +353,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Task.Run(() => Window.Operations.End(true)).PumpingWait();
         }
 
-        [Fact]
+        [WpfFact]
         public void ScrollToCursorOnHomeAndEndOnNonUIThread()
         {
             Window.InsertCode(new string('1', 512));    // a long input string 
@@ -819,7 +819,7 @@ System.Console.WriteLine();",
             Assert.Equal("> ", snapshot.GetText());
         }
 
-        [Fact]
+        [WpfFact]
         public void SelectAllInHeader()
         {
             Window.WriteLine("Header");

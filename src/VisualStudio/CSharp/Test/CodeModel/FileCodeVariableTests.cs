@@ -87,7 +87,7 @@ unsafe public struct DevDivBugs70194
             Assert.Equal(1, testObject.Children.Count);
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Comment()
         {
@@ -96,7 +96,7 @@ unsafe public struct DevDivBugs70194
             Assert.Equal("This is a comment.\r\n", testObject.Comment);
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void DocComment()
         {
@@ -116,7 +116,7 @@ unsafe public struct DevDivBugs70194
             Assert.Equal(null, testObject.InitExpression);
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void InitExpression()
         {
@@ -170,7 +170,7 @@ unsafe public struct DevDivBugs70194
             Assert.False(testObject.IsShared);
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Kind()
         {
@@ -179,7 +179,7 @@ unsafe public struct DevDivBugs70194
             Assert.Equal(vsCMElement.vsCMElementVariable, testObject.Kind);
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Parent()
         {
@@ -190,7 +190,7 @@ unsafe public struct DevDivBugs70194
             Assert.Equal("A", testObjectParent.Name);
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Type()
         {
@@ -383,7 +383,7 @@ unsafe public struct DevDivBugs70194
             Assert.Equal(26, endPoint.LineCharOffset);
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void StartPoint()
         {
@@ -395,7 +395,7 @@ unsafe public struct DevDivBugs70194
             Assert.Equal(5, startPoint.LineCharOffset);
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void EndPoint()
         {
