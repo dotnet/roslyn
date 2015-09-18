@@ -17,6 +17,10 @@
     <Nonshipping>true</Nonshipping>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.CSharp.VS.UnitTests" />
+    <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
+  </ItemGroup>
+  <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>

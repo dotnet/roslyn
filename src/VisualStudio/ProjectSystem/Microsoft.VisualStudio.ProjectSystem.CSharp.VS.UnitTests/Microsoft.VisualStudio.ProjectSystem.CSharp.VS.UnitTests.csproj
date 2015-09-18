@@ -17,6 +17,9 @@
     <Nonshipping>true</Nonshipping>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
+  </ItemGroup>
+  <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
