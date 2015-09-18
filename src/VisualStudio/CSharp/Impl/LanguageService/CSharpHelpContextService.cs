@@ -55,13 +55,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             {
                 var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
 
-                var result = TryGetText(token, semanticModel, document, cancellationToken, syntaxFacts);
+                var result = TryGetText(token, semanticModel, document, syntaxFacts, cancellationToken);
                 if (string.IsNullOrEmpty(result))
                 {
                     var previousToken = token.GetPreviousToken();
                     if (IsValid(previousToken, span))
                     {
-                        result = TryGetText(previousToken, semanticModel, document, cancellationToken, syntaxFacts);
+                        result = TryGetText(previousToken, semanticModel, document, syntaxFacts, cancellationToken);
                     }
                 }
 
@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             return token.Kind() == SyntaxKind.EndIfDirectiveTrivia || token.Span.IntersectsWith(span);
         }
 
-        private string TryGetText(SyntaxToken token, SemanticModel semanticModel, Document document, CancellationToken cancellationToken, ISyntaxFactsService syntaxFacts)
+        private string TryGetText(SyntaxToken token, SemanticModel semanticModel, Document document, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
         {
             string text = null;
             if (TryGetTextForContextualKeyword(token, document, syntaxFacts, out text) ||
