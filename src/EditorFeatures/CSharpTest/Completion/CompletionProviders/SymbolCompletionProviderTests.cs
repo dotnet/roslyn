@@ -8317,7 +8317,7 @@ class A {
         }
 
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NoInstanceMembersInFieldLikeEventInitializer()
         {
             var markup = @"
@@ -8329,7 +8329,7 @@ class A {
             VerifyItemIsAbsent(markup, "abc");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void StaticMembersInFieldLikeEventInitializer()
         {
             var markup = @"
@@ -8342,7 +8342,7 @@ class A {
         }
 
         [WorkItem(5069, "https://github.com/dotnet/roslyn/issues/5069")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InstanceMembersInTopLevelFieldInitializer()
         {
             var markup = @"
@@ -8353,7 +8353,7 @@ int bbb = $$
         }
 
         [WorkItem(5069, "https://github.com/dotnet/roslyn/issues/5069")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InstanceMembersInTopLevelFieldLikeEventInitializer()
         {
             var markup = @"
@@ -8403,7 +8403,7 @@ class C
             VerifyNoItemsExist(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CompletionInIncompletePropertyDeclaration()
         {
             var markup = @"
@@ -8420,7 +8420,7 @@ class Class2
             VerifyItemExists(markup, "Property1");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NoCompletionInShebangComments()
         {
             VerifyNoItemsExist("#!$$", sourceCodeKind: SourceCodeKind.Script);

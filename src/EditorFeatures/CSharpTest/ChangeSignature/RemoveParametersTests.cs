@@ -262,7 +262,7 @@ class C{i}
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void ChangeSignatureCommandDisabledInSubmission()

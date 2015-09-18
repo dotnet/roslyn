@@ -184,7 +184,7 @@ class Program
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void EncapsulateFieldCommandDisabledInSubmission()

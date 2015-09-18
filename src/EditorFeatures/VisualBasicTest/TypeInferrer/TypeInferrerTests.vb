@@ -297,7 +297,7 @@ End Class</text>.Value
             TestInMethod("Dim q As String() = New String([|Foo()|])", "System.Char()")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(542837)>
         Public Sub TestArrayRankSpecifier2()
             TestInMethod("Dim q As String() = New String([|Foo()|]) { }", "System.Int32")
