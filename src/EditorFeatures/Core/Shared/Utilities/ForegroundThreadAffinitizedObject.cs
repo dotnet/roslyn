@@ -46,6 +46,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
 
             s_foregroundThread = Thread.CurrentThread;
+#if true
+            s_foregroundTaskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
+#else
             var previousContext = SynchronizationContext.Current;
             try
             {
@@ -59,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             {
                 SynchronizationContext.SetSynchronizationContext(previousContext);
             }
+#endif
 
             return new ForegroundThreadAffinitizedObject();
         }
