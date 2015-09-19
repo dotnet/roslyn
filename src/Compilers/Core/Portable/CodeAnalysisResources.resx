@@ -485,4 +485,7 @@
   <data name="InvalidTree" xml:space="preserve">
     <value>Syntax tree doesn't belong to the underlying 'Compilation'.</value>
   </data>
+  <data name="ResourceStreamEndedUnexpectedly" xml:space="preserve">
+    <value>Resource stream ended at {0} bytes, expected {1} bytes.</value>
+  </data>
 </root>

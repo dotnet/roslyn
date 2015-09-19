@@ -928,6 +928,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Resource stream ended at {0} bytes, expected {1} bytes..
+        /// </summary>
+        internal static string ResourceStreamEndedUnexpectedly {
+            get {
+                return ResourceManager.GetString("ResourceStreamEndedUnexpectedly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Resource stream provider should return non-null stream..
         /// </summary>
         internal static string ResourceStreamProviderShouldReturnNonNullStream {

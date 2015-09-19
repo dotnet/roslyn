@@ -13,8 +13,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     [DataSource(VisualStudioDiagnosticListTable.IdentifierString)]
     [Name(Name)]
     [Order(Before = "default")]
-    internal class DiagnosticTableControlEventProcessorProvider : AbstractTableControlEventProcessorProvider<DiagnosticData>
+    internal partial class DiagnosticTableControlEventProcessorProvider : AbstractTableControlEventProcessorProvider<DiagnosticData>
     {
         internal const string Name = "C#/VB Diagnostic Table Event Processor";
+        private readonly VisualStudioDiagnosticListSuppressionStateService _suppressionStateService;
+        
+        [ImportingConstructor]
+        public DiagnosticTableControlEventProcessorProvider(
+            IVisualStudioDiagnosticListSuppressionStateService suppressionStateService)
+        {
+            _suppressionStateService = (VisualStudioDiagnosticListSuppressionStateService)suppressionStateService;
+        }
+
+        protected override EventProcessor CreateEventProcessor()
+        {
+            var suppressionStateEventProcessor = new SuppressionStateEventProcessor(_suppressionStateService);
+            return new AggregateDiagnosticTableControlEventProcessor(additionalEventProcessors: suppressionStateEventProcessor);
+        }
     }
 }
