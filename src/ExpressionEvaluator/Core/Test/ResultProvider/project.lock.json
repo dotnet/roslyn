@@ -26,29 +26,29 @@
       "sha512": "MOlivTIeAIQPPMUPWIIoMCvZczjFRLYUWSYwqi1szu8QPyeIbsaPeI+hpXe1DzTxNwnRnmfYaoToi6kXIfSPNg==",
       "type": "Package",
       "files": [
+        "[Content_Types].xml",
         "_rels/.rels",
-        "System.Collections.Immutable.nuspec",
-        "License-Stable.rtf",
         "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll",
         "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.xml",
+        "License-Stable.rtf",
         "package/services/metadata/core-properties/c8b7b781850445db852bd2d848380ca6.psmdcp",
-        "[Content_Types].xml"
+        "System.Collections.Immutable.nuspec"
       ]
     },
     "xunit/1.9.2": {
       "sha512": "c1wppJtYPUGPHVP9U1wjmfii4553MuQSXkAt8rudkXW+eUFJxOOfDvhBJ6S0YHHDMFEJwiMN770AT4Lno8EBpw==",
       "type": "Package",
       "files": [
+        "[Content_Types].xml",
         "_rels/.rels",
-        "xunit.nuspec",
         "lib/net20/xunit.dll",
         "lib/net20/xunit.dll.tdnet",
-        "lib/net20/xunit.xml",
         "lib/net20/xunit.runner.msbuild.dll",
         "lib/net20/xunit.runner.tdnet.dll",
         "lib/net20/xunit.runner.utility.dll",
+        "lib/net20/xunit.xml",
         "package/services/metadata/core-properties/cb77589bcde944baab7b67d60ca583c7.psmdcp",
-        "[Content_Types].xml"
+        "xunit.nuspec"
       ]
     }
   },

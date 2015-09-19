@@ -403,15 +403,6 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Computing fix all occurrences code fix....
-        /// </summary>
-        internal static string ComputingFixAllOccurrences {
-            get {
-                return ResourceManager.GetString("ComputingFixAllOccurrences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Computing Rename information....
         /// </summary>
         internal static string ComputingRenameInformation {
@@ -616,15 +607,6 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string FindReferences {
             get {
                 return ResourceManager.GetString("FindReferences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fix all occurrences.
-        /// </summary>
-        internal static string FixAllOccurrences {
-            get {
-                return ResourceManager.GetString("FixAllOccurrences", resourceCulture);
             }
         }
         
