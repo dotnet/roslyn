@@ -10,7 +10,7 @@
     <RootNamespace>Microsoft.VisualStudio.ProjectSystem</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.ProjectSystem.Managed</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <SignAssembly>false</SignAssembly>
+    <SignAssembly>true</SignAssembly>
     <OutDir>$(OutDir)\ProjectSystem\</OutDir>
   </PropertyGroup>
   <ItemGroup>
@@ -25,6 +25,7 @@
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic.VS.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS.UnitTests" />
+    <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
@@ -111,15 +112,15 @@
     <Compile Include="ProjectSystem\Designers\Input\SingeNodeProjectCommandBase.cs" />
     <Compile Include="ProjectSystem\Designers\Input\ProjectCommandBase.cs" />
     <Compile Include="ProjectSystem\Designers\Input\ProjectCommandAttribute.cs" />
+    <Compile Include="ProjectSystem\Designers\ProjectTreeModifierBase.cs" />
     <Compile Include="ProjectSystem\IProjectFeatures.cs" />
-    <Compile Include="ProjectSystem\UnconfiguredProjectCommonServices.cs" />
     <Compile Include="ProjectSystem\IUnconfiguredProjectCommonServices.cs" />
     <Compile Include="ProjectSystem\ProjectCapability.cs" />
     <Compile Include="ProjectSystem\Designers\AppDesignerFolderProjectTreeModifierBase.cs" />
     <Compile Include="ProjectSystem\Designers\ProjectTreeExtensions.cs" />
-    <Compile Include="ProjectSystem\Designers\ProjectTreeModifierBase.cs" />
     <Compile Include="ProjectSystem\Designers\SpecialItemProjectTreeModifierBase.cs" />
     <Compile Include="ProjectSystem\Rules\ProjectProperties.cs" />
+    <Compile Include="ProjectSystem\UnconfiguredProjectCommonServices.cs" />
     <Compile Include="StringComparers.cs" />
     <Compile Include="Threading\Tasks\TaskResult.cs" />
   </ItemGroup>

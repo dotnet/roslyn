@@ -30,10 +30,21 @@ namespace Microsoft.VisualStudio.Shell.Interop
         /// </summary>
         public static T GetProperty<T>(this IVsHierarchy hierarchy, VsHierarchyPropID property, T defaultValue)
         {
+            return GetProperty(hierarchy, HierarchyId.Root, property, defaultValue);
+        }
+
+        /// <summary>
+        ///     Gets the value of the specified property if the hierarchy supports it.
+        /// </summary>
+        public static T GetProperty<T>(this IVsHierarchy hierarchy, HierarchyId item, VsHierarchyPropID property, T defaultValue)
+        {
             Requires.NotNull(hierarchy, nameof(hierarchy));
-            
+
+            if (item.IsNilOrEmpty || item.IsSelection)
+                throw new ArgumentException(null, nameof(item));
+
             object resultObject;
-            HResult hr = hierarchy.GetProperty(HierarchyId.Root, (int)property, out resultObject);
+            HResult hr = hierarchy.GetProperty(item, (int)property, out resultObject);
             if (hr == VSConstants.DISP_E_MEMBERNOTFOUND)
                 return defaultValue;
 

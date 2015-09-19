@@ -14,11 +14,12 @@
     <CreateVsixContainer>false</CreateVsixContainer>
     <DeployExtension>false</DeployExtension>
     <UseCodebase>true</UseCodebase>
-    <SignAssembly>false</SignAssembly>
+    <SignAssembly>true</SignAssembly>
     <OutDir>$(OutDir)\ProjectSystem\CSharp\</OutDir>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.CSharp.VS.UnitTests" />
+    <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
@@ -141,7 +142,9 @@
     <Compile Include="ProjectSystem\Designers\CSharpProjectDesignerPage.cs" />
     <Compile Include="ProjectSystem\Designers\CSharpProjectDesignerPageProvider.cs" />
     <Compile Include="ProjectSystem\Designers\Imaging\CSharpProjectImageProvider.cs" />
-    <Compile Include="ProjectSystem\LanguageServices\CSharpCodeDomProvider.cs" />
+    <Compile Include="ProjectSystem\LanguageServices\CSharpCodeDomProvider.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="ProjectSystem\LanguageServices\CSharpLanguageFeaturesProvider.cs" />
     <Compile Include="ProjectSystem\LanguageServices\CSharpLanguageServiceHost.cs" />
     <Compile Include="ProjectSystem\Templating\CSharpItemTemplatesGuidProvider.cs" />

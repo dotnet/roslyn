@@ -7,7 +7,14 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Imaging
     /// </summary>
     internal static class ProjectImageKey
     {
+        /// <summary>
+        ///     Represents the image key for the root of a project hierarchy.
+        /// </summary>
         public const string ProjectRoot = nameof(ProjectRoot);
+
+        /// <summary>
+        ///     Represents the image key for the AppDesigner folder (called "Properties" in C# and "My Project" in VB).
+        /// </summary>
         public const string AppDesignerFolder = nameof(AppDesignerFolder);
     }
 }

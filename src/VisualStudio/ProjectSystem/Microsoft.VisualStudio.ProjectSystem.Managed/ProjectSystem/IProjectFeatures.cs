@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-
 namespace Microsoft.VisualStudio.ProjectSystem
 {
     /// <summary>
@@ -9,7 +8,7 @@ namespace Microsoft.VisualStudio.ProjectSystem
     internal interface IProjectFeatures
     {
         /// <summary>
-        ///     Returns a value indicating if the current project supports the Project Designer.
+        ///     Gets a value indicating whether the current project supports the Project Designer.
         /// </summary>
         bool SupportsProjectDesigner
         {

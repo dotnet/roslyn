@@ -1,4 +1,4 @@
-﻿// !Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 using System.ComponentModel.Composition;
@@ -23,20 +23,16 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
             _provider = provider;
         }
 
-        public override IProjectTree ApplyModifications(IProjectTree tree, IProjectTree previousTree, IProjectTreeProvider projectTreeProvider)
+        protected override IProjectTree ApplyInitialModifications(IProjectTree node)
         {
-            // We're not initializing, don't update the icon
-            if (previousTree != null)
-                return tree;
-
-            if (!tree.IsProjectRoot())
-                return tree;
+            if (!node.IsProjectRoot())
+                return node;
 
             ProjectImageMoniker icon;
-            if (!_provider.TryGetProjectImage(ProjectImageKey.ProjectRoot, out icon) || tree.Icon == icon)
-                return tree;
+            if (!_provider.TryGetProjectImage(ProjectImageKey.ProjectRoot, out icon) || node.Icon == icon)
+                return node;
 
-            return tree.SetIcon(icon);
+            return node.SetIcon(icon);
         }
     }
 }

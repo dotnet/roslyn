@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
         {
         }
         
-        public override bool IsExpandable
+        public override bool IsExpandableByDefault
         {
             get { return true; }
         }

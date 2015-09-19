@@ -12,6 +12,9 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
     {
         public ProjectDesignerPageMetadata(Guid pageGuid, int pageOrder, bool hasConfigurationCondition)
         {
+            if (pageGuid == Guid.Empty)
+                throw new ArgumentException(null, nameof(pageGuid));
+
             PageGuid = pageGuid;
             PageOrder = pageOrder;
             HasConfigurationCondition = hasConfigurationCondition;

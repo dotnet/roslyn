@@ -2,6 +2,7 @@
 
 using System.CodeDom.Compiler;
 using System.ComponentModel.Composition;
+using Microsoft.CSharp;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 
 namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
@@ -9,25 +10,20 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
     /// <summary>
     ///     Provides the C# <see cref="CodeDomProvider"/> for use by designers and code generators.
     /// </summary>
-    internal class CSharpCodeDomProvider
+    [ExportVsProfferedProjectService(typeof(CodeDomProvider))]
+    [AppliesTo(ProjectCapability.CSharp)]
+    internal class CSharpCodeDomProvider : CSharpCodeProvider
     {
         [ImportingConstructor]
         public CSharpCodeDomProvider()
         {
         }
-
+        
         [Import]
-        protected UnconfiguredProject UnconfiguredProject
+        public UnconfiguredProject UnconfiguredProject   // Put ourselves in the UnconfiguredProject scope
         {
             get;
             private set;
-        }
-
-        [ExportVsProfferedProjectService(typeof(CodeDomProvider))]
-        [AppliesTo(ProjectCapability.CSharp)]
-        private CodeDomProvider CodeDomProviderService
-        {
-            get { return CodeDomProvider.CreateProvider("CSharp"); }
         }
     }
 }

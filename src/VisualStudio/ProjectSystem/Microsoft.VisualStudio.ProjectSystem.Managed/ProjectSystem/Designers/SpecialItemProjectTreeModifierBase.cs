@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.ProjectSystem.Utilities.Designers;
 namespace Microsoft.VisualStudio.ProjectSystem.Designers
 {
     /// <summary>
-    ///     Provides the base class for <see cref="IProjectTreeModifier"/> objects that handle special folders, such as the Properties "AppDesigner" folder.
+    ///     Provides the base class for <see cref="IProjectTreeModifier"/> objects that handle special items, such as the AppDesigner folder.
     /// </summary>
     internal abstract class SpecialItemProjectTreeModifierBase : ProjectTreeModifierBase
     {
@@ -20,11 +20,17 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
             _imageProvider = imageProvider;
         }
 
+        /// <summary>
+        ///     Gets the image key that represents the image that will be applied to the candidate special item.
+        /// </summary>
         public abstract string ImageKey
         {
             get;
         }
 
+        /// <summary>
+        ///     Gets the default capabilities that will be applied to the candidate special item.
+        /// </summary>
         public abstract ImmutableHashSet<string> DefaultCapabilities
         {
             get;
@@ -39,24 +45,21 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
         }
 
         /// <summary>
-        ///     Gets a value indicating whether the special item is expandable if it has children.
+        ///     Gets a value indicating whether the special item is expandable by default.
         /// </summary>
-        public abstract bool IsExpandable
+        public abstract bool IsExpandableByDefault
         {
             get;
         }
 
-        public override sealed IProjectTree ApplyModifications(IProjectTree tree, IProjectTree previousTree, IProjectTreeProvider projectTreeProvider)
+        protected override sealed IProjectTree ApplyModificationsToCompletedTree(IProjectTree projectRoot)
         {
             if (!IsSupported)
-                return tree;
+                return projectRoot;
 
-            if (!tree.IsProjectRoot())
-                return tree;
-
-            IProjectTree item = FindCandidateSpecialItem(tree);
+            IProjectTree item = FindCandidateSpecialItem(projectRoot);
             if (item == null)
-                return tree;
+                return projectRoot;
 
             ProjectImageMoniker icon = GetSpecialItemIcon();
 
@@ -67,7 +70,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
                         resetExpandedIcon: icon == null,
                         capabilities: DefaultCapabilities.Union(item.Capabilities));
 
-            if (!IsExpandable)
+            if (!IsExpandableByDefault)
             {
                 item = HideAllChildren(item);
             }
@@ -76,8 +79,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
         }
 
         /// <summary>
-        ///     Finds the <see cref="IProjectTree"/> that represents the candidate of the special item in the tree, or <see langword="null"/> 
-        ///     if not found or has already been found.
+        ///     Returns a candidate of the special item, or <see langword="null"/> if not found.
         /// </summary>
         protected abstract IProjectTree FindCandidateSpecialItem(IProjectTree projectRoot);
 
@@ -86,7 +88,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
             for (int i = 0; i < tree.Children.Count; i++)
             {
                 var child = tree.Children[i].AddCapability(ProjectTreeCapabilities.VisibleOnlyInShowAllFiles);
-                child = this.HideAllChildren(child);
+                child = HideAllChildren(child);
                 tree = child.Parent;
             }
 
