@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         public UnconfiguredProject UnconfiguredProject   // Put ourselves in the UnconfiguredProject scope
         {
             get;
-            private set;
+            set;
         }
     }
 }
