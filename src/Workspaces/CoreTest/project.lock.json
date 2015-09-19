@@ -80,20 +80,19 @@
       "sha512": "mQa72JIzSdIC7wOcW8vl1izgZ+GSeTRrYYpbPKPvrX/PeygTd4SRxord7PL+fTb1q3YjlwMBSqgJsDXVa99fUA==",
       "type": "Package",
       "files": [
+        "[Content_Types].xml",
         "_rels/.rels",
-        "Microsoft.CodeAnalysis.Test.Resources.Proprietary.nuspec",
         "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll",
-        "package/services/metadata/core-properties/58b0e57bbbed434fb2c05b7ef3a926cc.psmdcp",
-        "[Content_Types].xml"
+        "Microsoft.CodeAnalysis.Test.Resources.Proprietary.nuspec",
+        "package/services/metadata/core-properties/58b0e57bbbed434fb2c05b7ef3a926cc.psmdcp"
       ]
     },
     "Microsoft.Composition/1.0.27": {
       "sha512": "pwu80Ohe7SBzZ6i69LVdzowp6V+LaVRzd5F7A6QlD42vQkX0oT7KXKWWPlM/S00w1gnMQMRnEdbtOV12z6rXdQ==",
       "type": "Package",
       "files": [
+        "[Content_Types].xml",
         "_rels/.rels",
-        "Microsoft.Composition.nuspec",
-        "License-Stable.rtf",
         "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll",
         "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.XML",
         "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.dll",
@@ -104,76 +103,77 @@
         "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.XML",
         "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll",
         "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.XML",
-        "package/services/metadata/core-properties/12e2c94035674b25b911285cc26e3260.psmdcp",
-        "[Content_Types].xml"
+        "License-Stable.rtf",
+        "Microsoft.Composition.nuspec",
+        "package/services/metadata/core-properties/12e2c94035674b25b911285cc26e3260.psmdcp"
       ]
     },
     "Microsoft.DiaSymReader/1.0.5": {
       "sha512": "0Ugv1+34GttdWLdhquMnRCgo4ktDNGQBDDtY+1Jdcuk1jOD0jeeqlR/AZDhxcrV25eOMC3Lwumj353nAYRylqQ==",
       "type": "Package",
       "files": [
+        "[Content_Types].xml",
         "_rels/.rels",
-        "Microsoft.DiaSymReader.nuspec",
-        "lib/net45/Microsoft.DiaSymReader.dll",
-        "lib/net45/Microsoft.DiaSymReader.xml",
         "lib/net20/Microsoft.DiaSymReader.dll",
         "lib/net20/Microsoft.DiaSymReader.xml",
-        "package/services/metadata/core-properties/08003dc206aa4abfa0c6f00c3f91c002.psmdcp",
-        "[Content_Types].xml"
+        "lib/net45/Microsoft.DiaSymReader.dll",
+        "lib/net45/Microsoft.DiaSymReader.xml",
+        "Microsoft.DiaSymReader.nuspec",
+        "package/services/metadata/core-properties/08003dc206aa4abfa0c6f00c3f91c002.psmdcp"
       ]
     },
     "System.Collections.Immutable/1.1.36": {
       "sha512": "MOlivTIeAIQPPMUPWIIoMCvZczjFRLYUWSYwqi1szu8QPyeIbsaPeI+hpXe1DzTxNwnRnmfYaoToi6kXIfSPNg==",
       "type": "Package",
       "files": [
+        "[Content_Types].xml",
         "_rels/.rels",
-        "System.Collections.Immutable.nuspec",
-        "License-Stable.rtf",
         "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll",
         "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.xml",
+        "License-Stable.rtf",
         "package/services/metadata/core-properties/c8b7b781850445db852bd2d848380ca6.psmdcp",
-        "[Content_Types].xml"
+        "System.Collections.Immutable.nuspec"
       ]
     },
     "System.Reflection.Metadata/1.1.0-alpha-00014": {
       "sha512": "rVeIWjVoLQS0aNrGdzndZReskyfxu4EfO9BKqT5GJt0YfGtlsHB1aDPnjl4jIBDTr+WJC9YsnZg8S5sKT1X42g==",
       "type": "Package",
       "files": [
+        "[Content_Types].xml",
         "_rels/.rels",
-        "System.Reflection.Metadata.nuspec",
         "lib/portable-net45+win8/System.Reflection.Metadata.dll",
         "lib/portable-net45+win8/System.Reflection.Metadata.pdb",
         "lib/portable-net45+win8/System.Reflection.Metadata.xml",
         "package/services/metadata/core-properties/a48ecf967b1540bba8edfe9af3a99ea5.psmdcp",
-        "[Content_Types].xml"
+        "System.Reflection.Metadata.nuspec"
       ]
     },
     "xunit/1.9.2": {
       "sha512": "c1wppJtYPUGPHVP9U1wjmfii4553MuQSXkAt8rudkXW+eUFJxOOfDvhBJ6S0YHHDMFEJwiMN770AT4Lno8EBpw==",
       "type": "Package",
       "files": [
+        "[Content_Types].xml",
         "_rels/.rels",
-        "xunit.nuspec",
         "lib/net20/xunit.dll",
         "lib/net20/xunit.dll.tdnet",
-        "lib/net20/xunit.xml",
         "lib/net20/xunit.runner.msbuild.dll",
         "lib/net20/xunit.runner.tdnet.dll",
         "lib/net20/xunit.runner.utility.dll",
+        "lib/net20/xunit.xml",
         "package/services/metadata/core-properties/cb77589bcde944baab7b67d60ca583c7.psmdcp",
-        "[Content_Types].xml"
+        "xunit.nuspec"
       ]
     },
     "xunit.extensions/1.9.2": {
       "sha512": "DJqVmnziilQrW47PW9QMVyrc5hUlIiI3+2cHoAG6pE/bb/dr+IAewUD+rgIUZqwVcMmB+1KfPLHm7TLUB6dtJQ==",
       "type": "Package",
       "files": [
+        "[Content_Types].xml",
         "_rels/.rels",
-        "xunit.extensions.nuspec",
         "lib/net20/xunit.extensions.dll",
         "lib/net20/xunit.extensions.xml",
         "package/services/metadata/core-properties/61bd1c5b04844965915b4c071be67794.psmdcp",
-        "[Content_Types].xml"
+        "xunit.extensions.nuspec"
       ]
     }
   },

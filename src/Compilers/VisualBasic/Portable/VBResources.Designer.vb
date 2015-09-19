@@ -4296,6 +4296,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Expected a single script (.vbx file).
+        '''</summary>
+        Friend ReadOnly Property ERR_ExpectedSingleScript() As String
+            Get
+                Return ResourceManager.GetString("ERR_ExpectedSingleScript", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Expected one of &apos;Dim&apos;, &apos;Const&apos;, &apos;Public&apos;, &apos;Private&apos;, &apos;Protected&apos;, &apos;Friend&apos;, &apos;Shadows&apos;, &apos;ReadOnly&apos; or &apos;Shared&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_ExpectedSpecifier() As String
@@ -7968,15 +7977,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_NoResponseFile() As String
             Get
                 Return ResourceManager.GetString("ERR_NoResponseFile", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Expected at least one script (.vbx file) but none specified.
-        '''</summary>
-        Friend ReadOnly Property ERR_NoScriptsSpecified() As String
-            Get
-                Return ResourceManager.GetString("ERR_NoScriptsSpecified", resourceCulture)
             End Get
         End Property
         

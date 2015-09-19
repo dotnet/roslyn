@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// This can be different than the list of references defined by the <see cref="ScriptOptions"/> instance.
         /// </summary>
         internal ImmutableArray<MetadataReference> GetReferencesForCompilation(
-            CommonMessageProvider messageProvider, 
+            CommonMessageProvider messageProvider,
             DiagnosticBag diagnostics,
             MetadataReference languageRuntimeReferenceOpt = null)
         {

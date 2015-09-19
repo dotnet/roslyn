@@ -79,7 +79,7 @@ restore_nuget()
 {
     acquire_sem_or_wait "restore_nuget"
 
-    local package_name="nuget.9.zip"
+    local package_name="nuget.10.zip"
     local target="/tmp/$package_name"
     echo "Installing NuGet Packages $target"
     if [ -f $target ]; then
@@ -152,31 +152,27 @@ compile_toolset()
 {
     echo Compiling the toolset compilers
     echo -e "Compiling the C# compiler"
-    run_msbuild src/Compilers/CSharp/csc/csc.csproj /p:Configuration=$BUILD_CONFIGURATION
+    run_msbuild src/Compilers/CSharp/CscCore/CscCore.csproj /p:Configuration=$BUILD_CONFIGURATION
     echo -e "Compiling the VB compiler"
-    run_msbuild src/Compilers/VisualBasic/vbc/vbc.csproj /p:Configuration=$BUILD_CONFIGURATION
+    run_msbuild src/Compilers/VisualBasic/VbcCore/VbcCore.csproj /p:Configuration=$BUILD_CONFIGURATION
 }
 
 # Save the toolset binaries from Binaries/BUILD_CONFIGURATION to Binaries/Bootstrap
 save_toolset()
 {
-    local compiler_binaries=(
-        csc.exe
-        Microsoft.CodeAnalysis.dll
-        Microsoft.CodeAnalysis.CSharp.dll
-        System.Collections.Immutable.dll
-        System.Reflection.Metadata.dll
-        vbc.exe
-        Microsoft.CodeAnalysis.VisualBasic.dll)
-
     mkdir Binaries/Bootstrap
-    for i in ${compiler_binaries[@]}; do
-        cp Binaries/$BUILD_CONFIGURATION/${i} Binaries/Bootstrap/${i}
-        if [ $? -ne 0 ]; then
-            echo Saving bootstrap binaries failed
-            exit 1
-        fi
-    done
+    cp Binaries/$BUILD_CONFIGURATION/core-clr/* Binaries/Bootstrap
+
+    if [ "$OS_NAME" == "Linux" ]; then
+      # Copy over the CoreCLR runtime
+      ./build/linux/copy-coreclr-runtime.sh Binaries/Bootstrap
+      if [ $? -ne 0 ]; then
+        echo Saving bootstrap binaries failed
+        exit 1
+      fi
+      chmod +x Binaries/Bootstrap/csc
+      chmod +x Binaries/Bootstrap/vbc
+    fi 
 }
 
 # Clean out all existing binaries.  This ensures the bootstrap phase forces
@@ -190,7 +186,12 @@ clean_roslyn()
 
 build_roslyn()
 {    
-    local bootstrapArg=/p:BootstrapBuildPath=$(pwd)/Binaries/Bootstrap
+    local bootstrapArg=""
+
+    if [ "$OS_NAME" == "Linux" ]; then
+      bootstrapArg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap /p:CscToolExe=csc \
+/p:VbcToolPath=$(pwd)/Binaries/Bootstrap /p:VbcToolExe=vbc"
+    fi
 
     echo Building CrossPlatform.sln
     run_msbuild $bootstrapArg CrossPlatform.sln /p:Configuration=$BUILD_CONFIGURATION

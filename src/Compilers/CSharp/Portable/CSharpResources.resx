@@ -3227,8 +3227,8 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   <data name="WRN_NoSources_Title" xml:space="preserve">
     <value>No source files specified</value>
   </data>
-  <data name="ERR_NoScriptsSpecified" xml:space="preserve">
-    <value>Expected at least one script (.csx file) but none specified</value>
+  <data name="ERR_ExpectedSingleScript" xml:space="preserve">
+    <value>Expected a script (.csx file) but none specified</value>
   </data>
   <data name="ERR_OpenResponseFile" xml:space="preserve">
     <value>Error opening response file '{0}'</value>

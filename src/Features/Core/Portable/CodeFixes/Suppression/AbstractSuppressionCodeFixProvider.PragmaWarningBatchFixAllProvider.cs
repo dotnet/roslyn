@@ -28,7 +28,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     var pragmaSuppressions = await _suppressionFixProvider.GetPragmaSuppressionsAsync(document, span, diagnosticsForSpan, fixAllContext.CancellationToken).ConfigureAwait(false);
                     foreach (var pragmaSuppression in pragmaSuppressions)
                     {
-                        addFix(pragmaSuppression);
+                        if (fixAllContext is FixMultipleContext)
+                        {
+                            addFix(pragmaSuppression.CloneForFixMultipleContext());
+                        }
+                        else
+                        {
+                            addFix(pragmaSuppression);
+                        }
                     }
                 }
             }

@@ -7,6 +7,7 @@
     "Microsoft.NETCore.Portable.Compatibility": "1.0.0",
     "System.Collections": "4.0.10",
     "System.Collections.Immutable": "1.1.36",
+    "System.Console": "4.0.0-beta-23123",
     "System.Diagnostics.Debug": "4.0.10",
     "System.Diagnostics.Tools": "4.0.0",
     "System.Globalization": "4.0.10",
@@ -21,7 +22,9 @@
     "System.Runtime.Extensions": "4.0.10",
     "System.Runtime.InteropServices": "4.0.20",
     "System.Threading": "4.0.10",
-    "System.Threading.Tasks": "4.0.10"
+    "System.Threading.Tasks": "4.0.10",
+    "System.Diagnostics.StackTrace": "4.0.0",
+    "System.AppContext": "4.0.0"
   },
   "frameworks": {
     "dotnet": {
