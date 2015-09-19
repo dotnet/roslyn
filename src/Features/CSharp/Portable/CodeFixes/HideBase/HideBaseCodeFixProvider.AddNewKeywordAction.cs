@@ -3,6 +3,7 @@
 using System.Threading.Tasks;
 using System.Threading;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
 {
@@ -12,7 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
         {
             private Document _document;
             private SyntaxNode _node;
-            private SyntaxNode _newNode;
 
             public override string Title
             {
@@ -22,21 +22,48 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
                 }
             }
 
-            public AddNewKeywordAction(Document document, SyntaxNode node, SyntaxNode newNode)
+            public AddNewKeywordAction(Document document, SyntaxNode node)
             {
                 _document = document;
                 _node = node;
-                _newNode = newNode;
             }
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
                 var root = await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var newRoot = root.ReplaceNode(_node, _newNode);
-                var newDocument = await Formatter.FormatAsync(_document.WithSyntaxRoot(newRoot)).ConfigureAwait(false);
+                var newNode = GetNewNode(_document, _node, cancellationToken);
+                var newRoot = root.ReplaceNode(_node, newNode);
 
-                return newDocument;
+                return _document.WithSyntaxRoot(newRoot);
+            }
+
+            private SyntaxNode GetNewNode(Document document, SyntaxNode node, CancellationToken cancellationToken)
+            {
+                SyntaxNode newNode = null;
+
+                var propertyStatement = node as PropertyDeclarationSyntax;
+                if (propertyStatement != null)
+                {
+                    newNode = propertyStatement.AddModifiers(SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.NewKeyword, SyntaxTriviaList.Create(SyntaxFactory.Whitespace(" ")))) as SyntaxNode;
+                }
+
+                var methodStatement = node as MethodDeclarationSyntax;
+                if (methodStatement != null)
+                {
+                    newNode = methodStatement.AddModifiers(SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.NewKeyword, SyntaxTriviaList.Create(SyntaxFactory.Whitespace(" "))));
+                }
+
+                var fieldDeclaration = node as FieldDeclarationSyntax;
+                if (fieldDeclaration != null)
+                {
+                    newNode = fieldDeclaration.AddModifiers(SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.NewKeyword, SyntaxTriviaList.Create(SyntaxFactory.Whitespace(" "))));
+                }
+
+                //Make sure we preserve any trivia from the original node
+                newNode = newNode.WithTriviaFrom(node);
+
+                return newNode.WithAdditionalAnnotations(Formatter.Annotation);
             }
         }
     }

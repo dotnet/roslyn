@@ -2,8 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -32,31 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
                 Return
             End If
 
-            Dim newNode = GetNewNode(context.Document, token.Parent, context.CancellationToken)
-
-            context.RegisterCodeFix(New AddOverloadsKeywordAction(context.Document, token.Parent, newNode), context.Diagnostics)
-        End Function
-
-        Private Function GetNewNode(document As Document, node As SyntaxNode, cancellationToken As CancellationToken) As SyntaxNode
-            Dim newNode As SyntaxNode = Nothing
-
-            Dim propertyStatement = TryCast(node, PropertyStatementSyntax)
-            If propertyStatement IsNot Nothing Then
-                newNode = propertyStatement.AddModifiers(SyntaxFactory.Token(SyntaxKind.OverloadsKeyword))
-            End If
-
-            Dim methodStatement = TryCast(node, MethodStatementSyntax)
-            If methodStatement IsNot Nothing Then
-                newNode = methodStatement.AddModifiers(SyntaxFactory.Token(SyntaxKind.OverloadsKeyword))
-            End If
-
-            Dim cleanupService = document.GetLanguageService(Of ICodeCleanerService)
-
-            If cleanupService IsNot Nothing AndAlso newNode IsNot Nothing Then
-                newNode = cleanupService.Cleanup(newNode, {newNode.Span}, document.Project.Solution.Workspace, cleanupService.GetDefaultProviders(), cancellationToken)
-            End If
-
-            Return newNode
+            context.RegisterCodeFix(New AddOverloadsKeywordAction(context.Document, token.Parent), context.Diagnostics)
         End Function
     End Class
 End Namespace
