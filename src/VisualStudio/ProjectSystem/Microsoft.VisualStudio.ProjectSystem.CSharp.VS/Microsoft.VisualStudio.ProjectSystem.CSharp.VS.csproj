@@ -14,7 +14,7 @@
     <CreateVsixContainer>false</CreateVsixContainer>
     <DeployExtension>false</DeployExtension>
     <UseCodebase>true</UseCodebase>
-    <SignAssembly>false</SignAssembly>
+    <SignAssembly>true</SignAssembly>
     <OutDir>$(OutDir)\ProjectSystem\CSharp\</OutDir>
   </PropertyGroup>
   <ItemGroup>
