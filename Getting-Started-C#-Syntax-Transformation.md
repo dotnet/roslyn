@@ -23,7 +23,7 @@ This example uses the **SyntaxFactory** class methods to construct a **NameSynta
 
 * **IdentifierNameSyntax** which represents simple single identifier names like **System** and **Microsoft**
 * **GenericNameSyntax** which represents a generic type or method name such as **List<int>**
-* **QualifiedNameSyntax** which represents a qualified name of the form <left-name>.<right-identifier-or-generic-name> such as **System.IO**
+* **QualifiedNameSyntax** which represents a qualified name of the form ```<left-name>.<right-identifier-or-generic-name>``` such as **System.IO**
 * **AliasQualifiedNameSyntax** which represents a name using an assembly extern alias such a **LibraryV2::Foo**
 By composing these names together you can create any name which can appear in the C# language. 
 
@@ -177,7 +177,7 @@ namespace HelloWorld
 ```
 
 ### Transforming Trees using SyntaxRewriters
-The **With*** and **ReplaceNode** methods provide convenient means to transform individual branches of a syntax tree. However, often it may be necessary to perform multiple transformations on a syntax tree in concert. The **SyntaxRewriter** class is a subclass of **SyntaxVisitor** which can be used to apply a transformation to a specific type of **SyntaxNode**. It is also possible to apply a set of transformations to multiple types of **SyntaxNode** wherever they appear in a syntax tree. The following example demonstrates this in a nave implementation of a command-line refactoring which removes explicit types in local variable declarations anywhere where type inference could be used. This example makes use of techniques discussed in this walkthrough as well as the **Getting Started: Syntactic Analysis** and **Getting Started: Semantic Analysis** walkthroughs. 
+The **With*** and **ReplaceNode** methods provide convenient means to transform individual branches of a syntax tree. However, often it may be necessary to perform multiple transformations on a syntax tree in concert. The **SyntaxRewriter** class is a subclass of **SyntaxVisitor** which can be used to apply a transformation to a specific type of **SyntaxNode**. It is also possible to apply a set of transformations to multiple types of **SyntaxNode** wherever they appear in a syntax tree. The following example demonstrates this in a naive implementation of a command-line refactoring which removes explicit types in local variable declarations anywhere where type inference could be used. This example makes use of techniques discussed in this walkthrough as well as the **Getting Started: Syntactic Analysis** and **Getting Started: Semantic Analysis** walkthroughs. 
 
 #### Example - Creating a SyntaxRewriter to transform syntax trees.
 1) Create a new C# **Stand-Alone Code Analysis Tool** project.
@@ -377,7 +377,7 @@ namespace TransformationCS
 ```
 
 16) After pausing a moment you should see an error squiggle appear reporting that no **CreateTestCompilation** method exists. Press **Ctrl+Period** to open the light-bulb and then press Enter to invoke the **Generate Method Stub** command. This will generate a method stub for the **CreateTestCompilation** method in **Program**. You'll come back to fill this in later:
-![C# Code File](images/walkthrough-csharp-syntax-transformation-figure1.png)
+![C# Generate method from usage](images/walkthrough-csharp-syntax-transformation-figure1.png)
 
 17) Next, write the following code to iterate over each **SyntaxTree** in the test **Compilation.** For each one initialize a new **TypeInferenceRewriter** with the **SemanticModel** for that tree:
 ```C#
