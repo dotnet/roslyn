@@ -16,12 +16,9 @@ You can also explore the [source repository](https://github.com/dotnet/roslyn/tr
 Before working through the walkthroughs below, you should first familiarize yourself with the [Roslyn Overview](https://github.com/dotnet/roslyn/wiki/Roslyn-Overview), which sets up some of the key concepts.
 
 ## Getting Started
-* [Getting Started - Semantic Analysis (CSharp).pdf](../blob/master/docs/samples/csharp-semantic.pdf) or [Word docx](../blob/master/docs/samples/csharp-semantic.docx)
-* [Getting Started - Semantic Analysis (VB).pdf](../blob/master/docs/samples/vb-semantic.pdf) or [Word docx](../blob/master/docs/samples/vb-semantic.docx)
-* [Getting Started - Syntax Analysis (CSharp).pdf](../blob/master/docs/samples/csharp-syntax.pdf) or [Word docx](../blob/master/docs/samples/csharp-syntax.docx)
-* [Getting Started - Syntax Analysis (VB).pdf](../blob/master/docs/samples/vb-syntax.pdf) or [Word docx](../blob/master/docs/samples/vb-syntax.docx)
-* [Getting Started - Syntax Transformation (CSharp).pdf](../blob/master/docs/samples/csharp-syntax-transform.pdf) or [Word docx](../blob/master/docs/samples/csharp-syntax-transform.docx)
-* [Getting Started - Syntax Transformation (VB).pdf](../blob/master/docs/samples/vb-syntax-transform.pdf) or [Word docx](../blob/master/docs/samples/vb-syntax-transform.docx)
+* Getting Started - Syntax Analysis ([VB](https://github.com/dotnet/roslyn/wiki/Getting-Started-VB-Syntax-Analysis) | [C#](https://github.com/dotnet/roslyn/wiki/Getting-Started-C%23-Syntax-Analysis))
+* Getting Started - Semantic Analysis ([VB](https://github.com/dotnet/roslyn/wiki/Getting-Started-VB-Semantic-Analysis) | [C#](https://github.com/dotnet/roslyn/wiki/Getting-Started-C%23-Semantic-Analysis))
+* Getting Started - Syntax Transformation ([VB](https://github.com/dotnet/roslyn/wiki/Getting-Started-VB-Syntax-Transformation) | [C#](https://github.com/dotnet/roslyn/wiki/Getting-Started-C%23-Syntax-Transformation))
 
 ## Diagnostics and Code Fixes
 * [How To Write a Diagnostic and Code Fix (CSharp).pdf](../blob/master/docs/samples/csharp-diag.pdf) or [Word docx](../blob/master/docs/samples/csharp-diag.docx)
