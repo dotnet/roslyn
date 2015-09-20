@@ -23,7 +23,7 @@ This example uses the **SyntaxFactory** class methods to construct a **NameSynta
 
 * **IdentifierNameSyntax** which represents simple single identifier names like **System** and **Microsoft**
 * **GenericNameSyntax** which represents a generic type or method name such as **List<int>**
-* **QualifiedNameSyntax** which represents a qualified name of the form <left-name>.<right-identifier-or-generic-name> such as **System.IO**
+* **QualifiedNameSyntax** which represents a qualified name of the form ```<left-name>.<right-identifier-or-generic-name>``` such as **System.IO**
 * **AliasQualifiedNameSyntax** which represents a name using an assembly extern alias such a **LibraryV2::Foo**
 By composing these names together you can create any name which can appear in the C# language. 
 
