@@ -377,7 +377,7 @@ namespace TransformationCS
 ```
 
 16) After pausing a moment you should see an error squiggle appear reporting that no **CreateTestCompilation** method exists. Press **Ctrl+Period** to open the light-bulb and then press Enter to invoke the **Generate Method Stub** command. This will generate a method stub for the **CreateTestCompilation** method in **Program**. You'll come back to fill this in later:
-![C# Code File](images/walkthrough-csharp-syntax-transformation-figure1.png)
+![C# Generate method from usage](images/walkthrough-csharp-syntax-transformation-figure1.png)
 
 17) Next, write the following code to iterate over each **SyntaxTree** in the test **Compilation.** For each one initialize a new **TypeInferenceRewriter** with the **SemanticModel** for that tree:
 ```C#
