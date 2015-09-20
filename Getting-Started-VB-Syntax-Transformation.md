@@ -39,7 +39,7 @@ Option Strict Off
 
   * Some readers may run with **Option Strict** turned **On** by default at the project level. Turning **Option Strict** **Off** in this walkthrough simplifies many of the examples by removing much of the casting required.
 
-4) Add the following Imports statement to the top of the file to import the factory methods of the **SyntaxFactory **and **Syntax** classes so that we can use them later without qualifying them:
+4) Add the following Imports statement to the top of the file to import the factory methods of the **SyntaxFactory** class so that we can use them later without qualifying them:
 ```VB.NET
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory
 ```
