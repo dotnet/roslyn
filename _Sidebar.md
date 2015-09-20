@@ -12,7 +12,7 @@
 
 ***
 #Tool Authors
-[Get Roslyn](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015)
+[Getting Started](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015)
 
 [Samples and Walkthroughs](https://github.com/dotnet/roslyn/wiki/Samples-and-Walkthroughs)
 
