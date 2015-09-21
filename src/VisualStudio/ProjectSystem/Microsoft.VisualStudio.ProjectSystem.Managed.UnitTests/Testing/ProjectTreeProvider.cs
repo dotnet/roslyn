@@ -24,6 +24,11 @@ namespace Microsoft.VisualStudio.Testing
     // Folder1\Folder3|
     internal static partial class ProjectTreeProvider
     {
+        public static IProjectTree CreateRoot()
+        {
+            return Parse("");
+        }
+
         public static IProjectTree Parse(string value)
         {
             MutableProjectTree root = new MutableProjectTree("Root");

@@ -18,6 +18,9 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
 
         public IProjectTree ApplyModifications(IProjectTree tree, IProjectTree previousTree, IProjectTreeProvider projectTreeProvider)
         {
+            Requires.NotNull(tree, nameof(tree));
+            Requires.NotNull(projectTreeProvider, nameof(projectTreeProvider));
+
             if (tree.IsProjectRoot())
                 tree = ApplyModificationsToCompletedTree(tree);
 

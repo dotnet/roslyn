@@ -138,15 +138,25 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Mocks\IProjectImageProviderFactory.cs" />
+    <Compile Include="Mocks\IProjectTreeProviderFactory.cs" />
     <Compile Include="Mocks\IUnconfiguredProjectFactory.cs" />
     <Compile Include="Mocks\IProjectFeaturesFactory.cs" />
     <Compile Include="Mocks\IThreadHandlingFactory.cs" />
     <Compile Include="ProjectSystem\UnconfiguredProjectCommonServicesTests.cs" />
     <Compile Include="Testing\ProjectSystemTraitDiscover.cs" />
+    <Compile Include="Testing\ProjectTreeAssert.cs" />
+    <Compile Include="Testing\ProjectTreeParser.cs" />
+    <Compile Include="Testing\ProjectTreeParserTests.cs" />
     <Compile Include="Testing\ProjectTreeProvider.MutableProjectTree.cs" />
     <Compile Include="Testing\ProjectTreeProvider.cs" />
     <Compile Include="Testing\ProjectTreeProviderTests.cs" />
     <Compile Include="Testing\ProjectTreeWriter.cs" />
+    <Compile Include="Testing\StringReader.cs" />
+    <Compile Include="Testing\Tokenizer.ParseOptions.cs" />
+    <Compile Include="Testing\Tokenizer.TokenType.cs" />
+    <Compile Include="Testing\Tokenizer.Token.cs" />
+    <Compile Include="Testing\Tokenizer.cs" />
     <Compile Include="Trait.cs" />
     <Compile Include="UnitTestTraitAttribute.cs" />
   </ItemGroup>

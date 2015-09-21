@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.Testing
 {
     partial class ProjectTreeProvider
     {
-        private class MutableProjectTree : IProjectTree
+        internal class MutableProjectTree : IProjectTree
         {
             public MutableProjectTree(string caption)
             {
