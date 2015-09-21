@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 descriptor.Id,
                 descriptor.Category,
                 diagnostic.Message,
-                descriptor.MessageFormat.ToString(DiagnosticData.USCultureInfo),
+                descriptor.GetBingHelpMessage(),
                 diagnostic.Severity,
                 descriptor.DefaultSeverity,
                 descriptor.IsEnabledByDefault,
