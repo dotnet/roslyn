@@ -1890,14 +1890,14 @@ FullWidthRepeat2:
                     If TypeCharacter = TypeCharacter.Single OrElse TypeCharacter = TypeCharacter.SingleLiteral Then
                         ' // Attempt to convert to single
                         Dim SingleValue As Single
-                        If Not Single.TryParse(LiteralSpelling, NumberStyles.Float, CultureInfo.InvariantCulture, SingleValue) Then
+                        If Not RealParser.TryParseFloat(LiteralSpelling, SingleValue) Then
                             Overflows = True
                         Else
                             FloatingValue = SingleValue
                         End If
                     Else
                         ' // Attempt to convert to double.
-                        If Not Double.TryParse(LiteralSpelling, NumberStyles.Float, CultureInfo.InvariantCulture, FloatingValue) Then
+                        If Not RealParser.TryParseDouble(LiteralSpelling, FloatingValue) Then
                             Overflows = True
                         End If
                     End If
