@@ -118,6 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 concurrentBuild,
                 suppressEmbeddedDeclarations:=False,
                 extendedCustomDebugInformation:=True,
+                debugPlusMode:=False,
                 xmlReferenceResolver:=xmlReferenceResolver,
                 sourceReferenceResolver:=sourceReferenceResolver,
                 metadataReferenceResolver:=metadataReferenceResolver,
@@ -214,6 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 concurrentBuild,
                 suppressEmbeddedDeclarations:=False,
                 extendedCustomDebugInformation:=True,
+                debugPlusMode:=False,
                 xmlReferenceResolver:=xmlReferenceResolver,
                 sourceReferenceResolver:=sourceReferenceResolver,
                 metadataReferenceResolver:=metadataReferenceResolver,
@@ -249,6 +251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             concurrentBuild As Boolean,
             suppressEmbeddedDeclarations As Boolean,
             extendedCustomDebugInformation As Boolean,
+            debugPlusMode As Boolean,
             xmlReferenceResolver As XmlReferenceResolver,
             sourceReferenceResolver As SourceReferenceResolver,
             metadataReferenceResolver As MetadataReferenceResolver,
@@ -274,6 +277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 specificDiagnosticOptions:=specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(CaseInsensitiveComparison.Comparer), ' Diagnostic ids must be processed in case-insensitive fashion.
                 concurrentBuild:=concurrentBuild,
                 extendedCustomDebugInformation:=extendedCustomDebugInformation,
+                debugPlusMode:=debugPlusMode,
                 xmlReferenceResolver:=xmlReferenceResolver,
                 sourceReferenceResolver:=sourceReferenceResolver,
                 metadataReferenceResolver:=metadataReferenceResolver,
@@ -322,6 +326,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 specificDiagnosticOptions:=other.SpecificDiagnosticOptions,
                 concurrentBuild:=other.ConcurrentBuild,
                 extendedCustomDebugInformation:=other.ExtendedCustomDebugInformation,
+                debugPlusMode:=other.DebugPlusMode,
                 xmlReferenceResolver:=other.XmlReferenceResolver,
                 sourceReferenceResolver:=other.SourceReferenceResolver,
                 metadataReferenceResolver:=other.MetadataReferenceResolver,
@@ -635,6 +640,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return New VisualBasicCompilationOptions(Me) With {.ExtendedCustomDebugInformation_internal_protected_set = extendedCustomDebugInformation}
+        End Function
+
+        ''' <summary>
+        ''' Creates a new VisualBasicCompilationOptions instance with a different extended custom debug information specified.
+        ''' </summary>
+        ''' <param name="debugPlusMode">The extended custom debug information setting. </param>        
+        ''' <returns>A new instance of VisualBasicCompilationOptions, if the extended custom debug information is different; otherwise current instance.</returns>        
+        Friend Function WithDebugPlusMode(debugPlusMode As Boolean) As VisualBasicCompilationOptions
+            If debugPlusMode = Me.DebugPlusMode Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilationOptions(Me) With {.DebugPlusMode_internal_protected_set = debugPlusMode}
         End Function
 
         ''' <summary>

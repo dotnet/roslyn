@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private bool IsDebugPlus()
         {
-            return true;
+            return this._module.Compilation.Options.DebugPlusMode;
         }
 
         private LocalDefinition LazyReturnTemp
