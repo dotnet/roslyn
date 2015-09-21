@@ -3094,6 +3094,61 @@ public class D
         }
 
         [Fact]
+        public void RefInstanceFieldA()
+        {
+            string source = @"
+public class D
+{
+  
+    public class Moo
+    {
+        public int I;
+
+        public Moo()
+        {
+        }
+    }
+
+    public static void Main()
+    {
+        Moo obj = new Moo();
+
+        System.Console.Write(obj.I);
+        obj.I = 42;
+        System.Console.Write(obj.I);
+        obj.I = 7;
+        System.Console.Write(obj.I);
+    }
+}
+";
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseDebugExe ,expectedOutput: "0427");
+
+            compilation.VerifyIL("D.Main",
+@"{
+  // Code size       53 (0x35)
+  .maxstack  3
+  IL_0000:  newobj     ""D.Moo..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldfld      ""int D.Moo.I""
+  IL_000b:  call       ""void System.Console.Write(int)""
+  IL_0010:  dup
+  IL_0011:  ldc.i4.s   42
+  IL_0013:  stfld      ""int D.Moo.I""
+  IL_0018:  dup
+  IL_0019:  ldfld      ""int D.Moo.I""
+  IL_001e:  call       ""void System.Console.Write(int)""
+  IL_0023:  dup
+  IL_0024:  ldc.i4.7
+  IL_0025:  stfld      ""int D.Moo.I""
+  IL_002a:  ldfld      ""int D.Moo.I""
+  IL_002f:  call       ""void System.Console.Write(int)""
+  IL_0034:  ret
+}
+");
+        }
+
+
+        [Fact]
         public void RefStaticField()
         {
             string source = @"
@@ -6808,6 +6863,63 @@ class Program
         }
 
         [Fact]
+        public void TemporariesA()
+        {
+            string source = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+        bool x = true;
+        int y = (x != true).GetType().GetHashCode() - x.GetType().GetHashCode(); // Temps involved
+        Console.Write((y + y).ToString()); // Temp involved
+    }
+    public void test()
+    {
+        this.bar(1).ToString(); // Temp involved
+    }
+    public int bar(int x)
+    {
+        return 0;
+    }
+}";
+
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseDebugExe ,expectedOutput: @"0");
+
+            compilation.VerifyIL("Program.Main",
+@"
+{
+  // Code size       54 (0x36)
+  .maxstack  2
+  .locals init (bool V_0, //x
+                int V_1)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.0
+  IL_0004:  ceq
+  IL_0006:  box        ""bool""
+  IL_000b:  call       ""System.Type object.GetType()""
+  IL_0010:  callvirt   ""int object.GetHashCode()""
+  IL_0015:  ldloc.0
+  IL_0016:  box        ""bool""
+  IL_001b:  call       ""System.Type object.GetType()""
+  IL_0020:  callvirt   ""int object.GetHashCode()""
+  IL_0025:  sub
+  IL_0026:  dup
+  IL_0027:  add
+  IL_0028:  stloc.1
+  IL_0029:  ldloca.s   V_1
+  IL_002b:  call       ""string int.ToString()""
+  IL_0030:  call       ""void System.Console.Write(string)""
+  IL_0035:  ret
+}
+");
+        }
+
+
+        [Fact]
         public void EmitObjectToStringOnSimpleType()
         {
             string source = @"
@@ -8633,6 +8745,76 @@ class A
         }
 
         [Fact]
+        public void PreIncrementUnusedA()
+        {
+            string source = @"
+using System;
+class A
+{
+    public static void Main()
+    {
+        int[] x = new int[3];
+        x[0] = 1;
+        x[1] = 2;
+        x[2] = 3;
+
+        ++x[0];
+
+        Console.WriteLine(x[0]);
+        Console.WriteLine(x[1]);
+        Console.WriteLine(x[2]);
+    }
+}
+";
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseDebugExe,  expectedOutput: @"2
+2
+3");
+
+            compilation.VerifyIL("A.Main",
+@"
+{
+  // Code size       54 (0x36)
+  .maxstack  4
+  IL_0000:  ldc.i4.3
+  IL_0001:  newarr     ""int""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stelem.i4
+  IL_000a:  dup
+  IL_000b:  ldc.i4.1
+  IL_000c:  ldc.i4.2
+  IL_000d:  stelem.i4
+  IL_000e:  dup
+  IL_000f:  ldc.i4.2
+  IL_0010:  ldc.i4.3
+  IL_0011:  stelem.i4
+  IL_0012:  dup
+  IL_0013:  ldc.i4.0
+  IL_0014:  ldelema    ""int""
+  IL_0019:  dup
+  IL_001a:  ldind.i4
+  IL_001b:  ldc.i4.1
+  IL_001c:  add
+  IL_001d:  stind.i4
+  IL_001e:  dup
+  IL_001f:  ldc.i4.0
+  IL_0020:  ldelem.i4
+  IL_0021:  call       ""void System.Console.WriteLine(int)""
+  IL_0026:  dup
+  IL_0027:  ldc.i4.1
+  IL_0028:  ldelem.i4
+  IL_0029:  call       ""void System.Console.WriteLine(int)""
+  IL_002e:  ldc.i4.2
+  IL_002f:  ldelem.i4
+  IL_0030:  call       ""void System.Console.WriteLine(int)""
+  IL_0035:  ret
+}
+");
+        }
+
+
+        [Fact]
         public void PostIncrementUnusedStruct()
         {
             string source = @"
@@ -8700,6 +8882,53 @@ struct S1
 }
 ";
             var compilation = CompileAndVerify(source, expectedOutput: @"42");
+
+            compilation.VerifyIL("A.Main",
+@"
+{
+  // Code size       38 (0x26)
+  .maxstack  4
+  IL_0000:  newobj     ""A..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldflda     ""S1 A.x""
+  IL_000b:  ldflda     ""int S1.y""
+  IL_0010:  dup
+  IL_0011:  ldind.i4
+  IL_0012:  ldc.i4.s   42
+  IL_0014:  add
+  IL_0015:  stind.i4
+  IL_0016:  ldflda     ""S1 A.x""
+  IL_001b:  ldfld      ""int S1.y""
+  IL_0020:  call       ""void System.Console.WriteLine(int)""
+  IL_0025:  ret
+}
+");
+        }
+
+        [Fact]
+        public void PostIncrementUnusedStruct1a()
+        {
+            string source = @"
+using System;
+class A
+{
+    public S1 x = new S1();
+
+    public static void Main()
+    {
+        var v = new A();
+        v.x.y+=42;
+
+        Console.WriteLine(v.x.y);
+    }
+}
+
+struct S1
+{
+    public int y;
+}
+";
+            var compilation = CompileAndVerify(source, expectedOutput: @"42", options: TestOptions.ReleaseDebugExe);
 
             compilation.VerifyIL("A.Main",
 @"
