@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -258,24 +259,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return true;
         }
 
+        [Conditional("DEBUG")]
         private void AssertIfNull(ImmutableArray<DiagnosticData> diagnostics)
         {
-#if DEBUG
             for (var i = 0; i < diagnostics.Length; i++)
             {
                 AssertIfNull(diagnostics[i]);
             }
-#endif
         }
 
+        [Conditional("DEBUG")]
         private void AssertIfNull(DiagnosticData diagnostic)
         {
-#if DEBUG
             if (diagnostic == null)
             {
                 Contract.Requires(false, "who returns invalid data?");
             }
-#endif
         }
 
         private struct Data : IEquatable<Data>
