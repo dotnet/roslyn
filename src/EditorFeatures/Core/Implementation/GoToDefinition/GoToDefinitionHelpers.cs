@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
                 // to a metadata-as-source view.
 
                 var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
-                return symbolNavigationService.TryNavigateToSymbol(symbol, project, usePreviewTab: true);
+                return symbolNavigationService.TryNavigateToSymbol(symbol, project, cancellationToken: cancellationToken, usePreviewTab: true);
             }
 
             // If we have a single location, then just navigate to it.

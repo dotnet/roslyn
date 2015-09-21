@@ -7,6 +7,7 @@ Imports System.Windows.Controls
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 Imports Microsoft.VisualStudio.Shell.TableControl
@@ -454,7 +455,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim helpLink As Object = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.HelpLink, helpLink))
 
-                Assert.True(helpLink.ToString().IndexOf("http://bingdev.cloudapp.net/BingUrl.svc/Get?selectedText=test%20format&mainLanguage=C%23&projectType=%7BFAE04EC0-301F-11D3-BF4B-00C04F79EFBC%7D") = 0)
+                Assert.True(helpLink.ToString().IndexOf("https://bingdev.cloudapp.net/BingUrl.svc/Get?selectedText=test%20format&mainLanguage=C%23&projectType=%7BFAE04EC0-301F-11D3-BF4B-00C04F79EFBC%7D") = 0)
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub TestBingHelpLink_NoCustomType()
+            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines("class A { int 111a; }")
+                Dim diagnostic = workspace.CurrentSolution.Projects.First().GetCompilationAsync().Result.GetDiagnostics().First(Function(d) d.Id = "CS1519")
+
+                Dim helpMessage = diagnostic.GetBingHelpMessage(workspace)
+                Assert.Equal("Invalid token '111' in class, struct, or interface member declaration", helpMessage)
+
+                ' turn off custom type search
+                Dim optionServices = workspace.Services.GetService(Of IOptionService)()
+                optionServices.SetOptions(optionServices.GetOptions().WithChangedOption(InternalDiagnosticsOptions.PutCustomTypeInBingSearch, False))
+
+                Dim helpMessage2 = diagnostic.GetBingHelpMessage(workspace)
+                Assert.Equal("Invalid token '{0}' in class, struct, or interface member declaration", helpMessage2)
             End Using
         End Sub
 
