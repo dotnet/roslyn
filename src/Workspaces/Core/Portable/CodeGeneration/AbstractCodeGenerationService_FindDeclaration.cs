@@ -58,7 +58,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return CanAddTo(destination, solution, cancellationToken, out availableIndices);
         }
 
-        private bool CanAddTo(SyntaxNode destination, Solution solution, CancellationToken cancellationToken, out IList<bool> availableIndices)
+        private bool CanAddTo(SyntaxNode destination, Solution solution, CancellationToken cancellationToken,
+            out IList<bool> availableIndices, Func<Document, bool> isGeneratedCode = null)
         {
             availableIndices = null;
             if (destination == null)
@@ -74,11 +75,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 return false;
             }
 
-            // Generated files should not be valid destinations for refactorings to produce code into,
-            // as they may be overwritten by tools.
-            if (solution.Workspace.Services
-                        .GetService<IGeneratedCodeRecognitionService>()
-                        .IsGeneratedCode(document))
+            // check for generated files if needed.
+            if (isGeneratedCode != null && isGeneratedCode(document))
             {
                 return false;
             }
@@ -174,16 +172,20 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 }
             }
 
-            // Generate into any decl we can find.
+            // If there is a declaration in a non auto-generated file, prefer it.
+            Func<Document,bool> isGeneratedCode = 
+                solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>().IsGeneratedCode;
+
             foreach (var decl in declarations)
             {
                 declaration = await decl.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-                if (CanAddTo(declaration, solution, cancellationToken, out availableIndices))
+                if (CanAddTo(declaration, solution, cancellationToken, out availableIndices, isGeneratedCode))
                 {
                     return Tuple.Create(declaration, availableIndices);
                 }
             }
 
+            // Generate into any declaration we can find.
             availableIndices = null;
             declaration = fallbackDeclaration ?? await SelectFirstOrDefaultAsync(declarations, node => true, cancellationToken).ConfigureAwait(false);
 
