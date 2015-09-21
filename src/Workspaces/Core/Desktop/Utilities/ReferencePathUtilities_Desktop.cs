@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
-    internal static partial class ReferencePathUtilities
+    internal static class ReferencePathUtilities
     {
         public static bool TryGetReferenceFilePath(string filePath, out string referenceFilePath)
         {
