@@ -108,6 +108,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
         {
+            AssertIfNull(e.Diagnostics);
             RaiseDiagnosticsUpdated(sender, e);
         }
 
@@ -167,6 +168,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     foreach (var diagnostic in source.GetDiagnostics(workspace, projectId, documentId, null, cancellationToken))
                     {
+                        AssertIfNull(diagnostic);
                         yield return diagnostic;
                     }
                 }
@@ -180,6 +182,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             foreach (var diagnostic in data.Diagnostics)
                             {
+                                AssertIfNull(diagnostic);
                                 yield return diagnostic;
                             }
                         }
@@ -235,6 +238,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return true;
+        }
+
+        private void AssertIfNull(ImmutableArray<DiagnosticData> diagnostics)
+        {
+#if DEBUG
+            for (var i = 0; i < diagnostics.Length; i++)
+            {
+                AssertIfNull(diagnostics[i]);
+            }
+#endif
+        }
+
+        private void AssertIfNull(DiagnosticData diagnostic)
+        {
+#if DEBUG
+            if (diagnostic == null)
+            {
+                Contract.Requires(false, "who returns invalid data?");
+            }
+#endif
         }
 
         private struct Data : IEquatable<Data>
