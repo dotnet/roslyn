@@ -67,8 +67,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
     internal sealed class DiagnosticData
     {
-        public static readonly CultureInfo USCultureInfo = new CultureInfo("en-US");
-
         public readonly string Id;
         public readonly string Category;
 
@@ -245,8 +243,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var additionalLocations = await ConvertLocationsAsync(project, this.AdditionalLocations, documentIdToTree, cancellationToken).ConfigureAwait(false);
 
             return Diagnostic.Create(
-                this.Id, this.Category, this.Message, this.Severity, this.DefaultSeverity, 
-                this.IsEnabledByDefault, this.WarningLevel, this.IsSuppressed, this.Title, this.Description, this.HelpLink, 
+                this.Id, this.Category, this.Message, this.Severity, this.DefaultSeverity,
+                this.IsEnabledByDefault, this.WarningLevel, this.IsSuppressed, this.Title, this.Description, this.HelpLink,
                 location, additionalLocations, customTags: this.CustomTags, properties: this.Properties);
         }
 
@@ -275,17 +273,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 var document = project.GetDocument(dataLocation?.DocumentId);
                 if (document != null)
-        {
+                {
                     if (document.SupportsSyntaxTree)
-            {
+                    {
                         var syntaxTree = documentIdToTree != null
                             ? documentIdToTree[document.Id]
                             : await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                         var span = dataLocation.SourceSpan ?? GetTextSpan(dataLocation, syntaxTree.GetText());
                         return syntaxTree.GetLocation(span);
-            }
+                    }
                     else if (dataLocation?.OriginalFilePath != null && dataLocation.SourceSpan != null)
-            {
+                    {
                         var span = dataLocation.SourceSpan.Value;
                         return Location.Create(dataLocation?.OriginalFilePath, span, new LinePositionSpan(
                             new LinePosition(dataLocation.OriginalStartLine, dataLocation.OriginalStartColumn),
@@ -374,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 diagnostic.Id,
                 diagnostic.Descriptor.Category,
                 diagnostic.GetMessage(CultureInfo.CurrentUICulture),
-                diagnostic.GetMessage(USCultureInfo), // We use the ENU version of the message for bing search.
+                diagnostic.GetBingHelpMessage(),
                 diagnostic.Severity,
                 diagnostic.DefaultSeverity,
                 diagnostic.Descriptor.IsEnabledByDefault,
@@ -397,7 +395,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 diagnostic.Id,
                 diagnostic.Descriptor.Category,
                 diagnostic.GetMessage(CultureInfo.CurrentUICulture),
-                diagnostic.GetMessage(USCultureInfo), // We use the ENU version of the message for bing search.
+                diagnostic.GetBingHelpMessage(),
                 diagnostic.Severity,
                 diagnostic.DefaultSeverity,
                 diagnostic.Descriptor.IsEnabledByDefault,
@@ -454,7 +452,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 diagnostic.Id,
                 diagnostic.Descriptor.Category,
                 diagnostic.GetMessage(CultureInfo.CurrentUICulture),
-                diagnostic.GetMessage(USCultureInfo), // We use the ENU version of the message for bing search.
+                diagnostic.GetBingHelpMessage(),
                 diagnostic.Severity,
                 diagnostic.DefaultSeverity,
                 diagnostic.Descriptor.IsEnabledByDefault,

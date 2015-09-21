@@ -1156,6 +1156,10 @@ lVbRuntimePlus:
 
             Dim scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script)
 
+            ' We want to report diagnostics with source suppression in the error log file.
+            ' However, these diagnostics won't be reported on the command line.
+            Dim reportSuppressedDiagnostics = errorLogPath IsNot Nothing
+
             Dim options = New VisualBasicCompilationOptions(
                 outputKind:=outputKind,
                 moduleName:=moduleName,
@@ -1177,7 +1181,8 @@ lVbRuntimePlus:
                 generalDiagnosticOption:=generalDiagnosticOption,
                 specificDiagnosticOptions:=specificDiagnosticOptions,
                 optimizationLevel:=If(optimize, OptimizationLevel.Release, OptimizationLevel.Debug),
-                parseOptions:=parseOptions)
+                parseOptions:=parseOptions,
+                reportSuppressedDiagnostics:=reportSuppressedDiagnostics)
 
             Dim emitOptions = New EmitOptions(
                 metadataOnly:=False,

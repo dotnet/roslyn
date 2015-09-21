@@ -55,9 +55,6 @@
     <Compile Include="SymVariable.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="$(NuGetPackageRoot)\Microsoft.DiaSymReader\1.0.5\lib\net45\Microsoft.DiaSymReader.dll" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
