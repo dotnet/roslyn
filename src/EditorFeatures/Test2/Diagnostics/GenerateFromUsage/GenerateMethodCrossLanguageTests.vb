@@ -1118,7 +1118,16 @@ public partial class UserControl1
         throw new NotImplementedException();
     }
 }
-</Text>.Value.Trim()}}
+</Text>.Value.Trim()},
+                    {"UserControl1.Designer.cs",
+<Text>
+// This file is auto-generated
+partial class UserControl1
+{
+    
+}
+</Text>.Value.Trim()}
+                }
 
             Test(input, fileNameToExpected:=expectedFileWithText)
         End Sub
@@ -1247,7 +1256,15 @@ Partial Public Class UserControl1
         Throw New NotImplementedException()
     End Sub
 End Class
-</Text>.Value.Trim()}}
+</Text>.Value.Trim()},
+                    {"UserControl1.Designer.vb",
+<Text>
+' This file is auto-generated
+Partial Class UserControl1
+    
+End Class
+</Text>.Value.Trim()}
+                }
 
             Test(input, fileNameToExpected:=expectedFileWithText)
         End Sub

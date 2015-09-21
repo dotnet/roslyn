@@ -132,12 +132,10 @@ End Class
                 <Document FilePath="UserControl1.Designer.vb">
 ' This file is auto-generated
 Partial Class UserControl1
-    
 End Class
                 </Document>
                 <Document FilePath="UserControl1.vb">
 Partial Public Class UserControl1
-    
 End Class
                 </Document>
             </Project>
@@ -150,7 +148,14 @@ End Class
 Partial Public Class UserControl1
     Public Event Ev(x As Integer)
 End Class
-</Text>.Value.Trim()}}
+</Text>.Value.Trim()},
+                    {"UserControl1.Designer.vb",
+<Text>
+' This file is auto-generated
+Partial Class UserControl1
+End Class
+</Text>.Value.Trim()}
+                }
 
             Test(input, fileNameToExpected:=expectedFileWithText)
         End Sub

@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         private bool CanAddTo(SyntaxNode destination, Solution solution, CancellationToken cancellationToken,
-            out IList<bool> availableIndices, Func<Document, bool> isGeneratedCode = null)
+            out IList<bool> availableIndices, Func<Document, bool> isGeneratedDocument = null)
         {
             availableIndices = null;
             if (destination == null)
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
 
             // check for generated files if needed.
-            if (isGeneratedCode != null && isGeneratedCode(document))
+            if (isGeneratedDocument != null && isGeneratedDocument(document))
             {
                 return false;
             }
@@ -173,13 +173,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
 
             // If there is a declaration in a non auto-generated file, prefer it.
-            Func<Document,bool> isGeneratedCode = 
+            Func<Document,bool> isGeneratedDocument = 
                 solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>().IsGeneratedCode;
 
             foreach (var decl in declarations)
             {
                 declaration = await decl.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-                if (CanAddTo(declaration, solution, cancellationToken, out availableIndices, isGeneratedCode))
+                if (CanAddTo(declaration, solution, cancellationToken, out availableIndices, isGeneratedDocument))
                 {
                     return Tuple.Create(declaration, availableIndices);
                 }
