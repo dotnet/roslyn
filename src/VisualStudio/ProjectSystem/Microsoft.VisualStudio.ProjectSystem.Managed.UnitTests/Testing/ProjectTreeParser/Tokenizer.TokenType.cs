@@ -18,6 +18,7 @@ namespace Microsoft.VisualStudio.Testing
             Colon = ':',
             Comma = ',',
             WhiteSpace = ' ',
+            Quote = '"',
             CarriageReturn = '\r',
         }
     }

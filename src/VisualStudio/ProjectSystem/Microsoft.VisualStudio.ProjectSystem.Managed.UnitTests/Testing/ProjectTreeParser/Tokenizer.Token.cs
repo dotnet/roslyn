@@ -43,11 +43,6 @@ namespace Microsoft.VisualStudio.Testing
                 }
             }
 
-            public bool IsIdentifier
-            {
-                get { return IsWhiteSpace || IsLiteral; }
-            }
-
             public bool IsWhiteSpace
             {
                 get { return _tokenType == TokenType.WhiteSpace; }

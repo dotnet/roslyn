@@ -15,11 +15,11 @@ namespace Microsoft.VisualStudio.Testing
     {
         internal class MutableProjectTree : IProjectTree
         {
-            public MutableProjectTree(string caption)
+            public MutableProjectTree()
             {
                 Children = new Collection<MutableProjectTree>();
                 Capabilities = new Collection<string>();
-                Caption = caption;
+                Visible = true;
             }
 
             public Collection<MutableProjectTree> Children
@@ -30,6 +30,7 @@ namespace Microsoft.VisualStudio.Testing
             public string Caption
             {
                 get;
+                set;
             }
 
             public Collection<string> Capabilities
@@ -40,6 +41,18 @@ namespace Microsoft.VisualStudio.Testing
             public bool IsFolder
             {
                 get { return Capabilities.Contains(ProjectTreeCapabilities.Folder); }
+            }
+
+            public string FilePath
+            {
+                get;
+                set;
+            }
+
+            public bool Visible
+            {
+                get;
+                set;
             }
 
             IRule IProjectTree.BrowseObjectProperties
@@ -61,14 +74,6 @@ namespace Microsoft.VisualStudio.Testing
             }
 
             ProjectImageMoniker IProjectTree.ExpandedIcon
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-            }
-
-            string IProjectTree.FilePath
             {
                 get
                 {
@@ -109,14 +114,6 @@ namespace Microsoft.VisualStudio.Testing
             }
 
             int IProjectTree.Size
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-            }
-
-            bool IProjectTree.Visible
             {
                 get
                 {

@@ -45,12 +45,12 @@ namespace Microsoft.VisualStudio.Testing
             Token token = ReadToken();
             if (token == null)
             {
-                throw new FormatException($"Expected '{expected}' but encountered end of string");
+                throw new FormatException($"Expected '{(char)expected}' but encountered end of string");
             }
 
             if (token.TokenType != expected)
             {
-                throw new FormatException($"Expected '{expected}' but encountered '{token.Value}'");
+                throw new FormatException($"Expected '{(char)expected}' but encountered '{token.Value}'");
             }
         }
 
@@ -70,43 +70,52 @@ namespace Microsoft.VisualStudio.Testing
                 throw new FormatException($"Expected end-of-string, but encountered '{token.Value}'");
         }
 
-        public string ReadId()
+        public string ReadLiteral(LiteralParseOptions options)
         {
-            string identifier = ReadIdCore();
+            string identifier = ReadLiteralCore(options);
 
-            CheckIdentifier(identifier);
+            CheckIdentifier(identifier, options);
 
             identifier = identifier.TrimEnd((char)TokenType.WhiteSpace);
-            CheckIdentifierAfterTrim(identifier);
+            CheckIdentifierAfterTrim(identifier, options);
 
             return identifier;
         }
 
-        private string ReadIdCore()
+        private string ReadLiteralCore(LiteralParseOptions options)
         {
-            // TODO: Use a string builder cache
+            bool allowWhiteSpace = (options & LiteralParseOptions.AllowWhiteSpace) == LiteralParseOptions.AllowWhiteSpace;
+
             StringBuilder identifier = new StringBuilder();
 
             Token token;
-            while ((token = PeekToken(ParseOptions.IncludeWhiteSpace)) != null)
+            while ((token = PeekToken()) != null)
             {
-                if (!token.IsIdentifier)
+                if (!IsIdentifier(token, allowWhiteSpace))
                     break;
 
-                ReadToken(ParseOptions.IncludeWhiteSpace);
+                ReadToken();
                 identifier.Append(token.Value);
             }
 
             return identifier.ToString();
         }
 
-        private void CheckIdentifier(string identifier)
+        private bool IsIdentifier(Token token, bool allowWhiteSpace)
         {
-            if (IsValidIdentifier(identifier))
+            if (allowWhiteSpace && token.IsWhiteSpace)
+                return true;
+
+            return token.IsLiteral;
+        }
+
+        private void CheckIdentifier(string identifier, LiteralParseOptions options)
+        {
+            if (IsValidIdentifier(identifier, options))
                 return;
 
             // Are we at the end of the string?
-            Token token = ReadToken(ParseOptions.IncludeWhiteSpace);    // Consume token, so "position" is correct
+            Token token = ReadToken();    // Consume token, so "position" is correct
             if (token == null)
             {
                 throw new FormatException($"Expected identifier, but encountered end-of-string");
@@ -116,28 +125,33 @@ namespace Microsoft.VisualStudio.Testing
             throw new FormatException($"Expected identifier, but encountered '{token.Value}'");
         }
 
-        private void CheckIdentifierAfterTrim(string identifier)
+        private void CheckIdentifierAfterTrim(string identifier, LiteralParseOptions options)
         {
-            if (!IsValidIdentifier(identifier))
-                throw new FormatException("Expected identifier, but encountered only whitepsace");
+            if (!IsValidIdentifier(identifier, options))
+                throw new FormatException("Expected identifier, but encountered only white space");
         }
 
-        private bool IsValidIdentifier(string identifier)
+        private bool IsValidIdentifier(string identifier, LiteralParseOptions options)
         {
-            return identifier.Length != 0;
+            if ((options & LiteralParseOptions.Required) == LiteralParseOptions.Required)
+            {
+                return identifier.Length != 0;
+            }
+
+            return true;
         }
 
-        private Token PeekToken(ParseOptions options = ParseOptions.None)
+        private Token PeekToken()
         {
-            return PeekToken(1, options);
+            return PeekToken(1);
         }
 
-        private Token PeekToken(int lookAhead, ParseOptions options = ParseOptions.None)
+        private Token PeekToken(int lookAhead)
         {
             StringReader reader = _reader.Clone();
 
             Token token;
-            while ((token = ParseTokenFrom(reader, options)) != null)
+            while ((token = GetTokenFrom(reader)) != null)
             {
                 lookAhead--;
                 if (lookAhead == 0)
@@ -147,23 +161,9 @@ namespace Microsoft.VisualStudio.Testing
             return token;
         }
 
-        private Token ReadToken(ParseOptions options = ParseOptions.None)
+        private Token ReadToken()
         {
-            return ParseTokenFrom(_reader, options);
-        }
-
-        private Token ParseTokenFrom(StringReader reader, ParseOptions options)
-        {
-            Token token = GetTokenFrom(reader);
-            if (token == null)
-                return null;
-
-            if (options != ParseOptions.IncludeWhiteSpace)
-            {
-                token = HandleWhiteSpace(token, reader);
-            }
-
-            return token;
+            return GetTokenFrom(_reader);
         }
 
         private Token GetTokenFrom(StringReader reader)
@@ -199,16 +199,5 @@ namespace Microsoft.VisualStudio.Testing
         {
             return _delimiters.Contains((TokenType)c);
         }
-
-        private Token HandleWhiteSpace(Token token, StringReader reader)
-        {
-            while (token != null && token.IsWhiteSpace)
-            {
-                token = GetTokenFrom(reader);
-            }
-
-            return token;
-        }
-
     }
 }

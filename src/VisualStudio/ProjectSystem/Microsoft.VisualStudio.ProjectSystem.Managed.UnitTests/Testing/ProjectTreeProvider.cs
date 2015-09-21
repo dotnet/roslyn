@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.Testing
 
         public static IProjectTree Parse(string value)
         {
-            MutableProjectTree root = new MutableProjectTree("Root");
+            MutableProjectTree root = new MutableProjectTree() { Caption = "Root" };
             root.Capabilities.Add(ProjectTreeCapabilities.ProjectRoot);
 
             ParseChildren(root, value);
@@ -93,7 +93,8 @@ namespace Microsoft.VisualStudio.Testing
                     return otherChild;
             }
 
-            MutableProjectTree child = new MutableProjectTree(caption);
+            MutableProjectTree child = new MutableProjectTree();
+            child.Caption = caption;
             parent.Children.Add(child);
 
             if (!parent.IsProjectRoot() && !parent.IsFolder)
