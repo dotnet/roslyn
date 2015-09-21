@@ -24,7 +24,8 @@ Namespace Microsoft.CodeAnalysis.Diagnostics.VisualBasic
 
                 ' these errors are not supported by live analysis
                 If errorCode = ERRID.ERR_TypeRefResolutionError3 OrElse
-                   errorCode = ERRID.ERR_MissingRuntimeHelper Then
+                   errorCode = ERRID.ERR_MissingRuntimeHelper OrElse
+                   errorCode = ERRID.ERR_CannotGotoNonScopeBlocksWithClosure Then
                     Continue For
                 End If
 

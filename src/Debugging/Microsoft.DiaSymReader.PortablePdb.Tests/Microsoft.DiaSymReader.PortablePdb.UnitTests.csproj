@@ -34,12 +34,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.DiaSymReader">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(NuGetPackageRoot)\Microsoft.DiaSymReader.1.0.5\lib\net45\Microsoft.DiaSymReader.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Resources\Async.dll">
       <LogicalName>Async.dll</LogicalName>
     </EmbeddedResource>

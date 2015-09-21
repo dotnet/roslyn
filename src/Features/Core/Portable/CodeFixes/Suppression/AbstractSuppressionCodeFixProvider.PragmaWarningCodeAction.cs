@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             private readonly SyntaxNode _nodeWithTokens;
             private readonly Document _document;
             private readonly Diagnostic _diagnostic;
+            private readonly bool _forFixMultipleContext;
 
             public PragmaWarningCodeAction(
                 AbstractSuppressionCodeFixProvider fixer,
@@ -25,7 +26,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 SyntaxToken endToken,
                 SyntaxNode nodeWithTokens,
                 Document document,
-                Diagnostic diagnostic)
+                Diagnostic diagnostic,
+                bool forFixMultipleContext = false)
                 : base (fixer, title: FeaturesResources.SuppressWithPragma)
             {
                 _startToken = startToken;
@@ -33,9 +35,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 _nodeWithTokens = nodeWithTokens;
                 _document = document;
                 _diagnostic = diagnostic;
+                _forFixMultipleContext = forFixMultipleContext;
             }
+            
+            public PragmaWarningCodeAction CloneForFixMultipleContext()
+            {
+                return new PragmaWarningCodeAction(Fixer, _startToken, _endToken, _nodeWithTokens, _document, _diagnostic, forFixMultipleContext: true);
 
-            protected override string DiagnosticIdForEquivalenceKey => _diagnostic.Id;
+            }
+            protected override string DiagnosticIdForEquivalenceKey =>
+                _forFixMultipleContext ? string.Empty : _diagnostic.Id;
 
             protected async override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
