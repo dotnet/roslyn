@@ -421,13 +421,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 return extensionManager.PerformFunction(
                     fixer,
-                    () => ImmutableInterlocked.GetOrAdd(ref _fixerToFixableIdsMap, fixer, f => f.FixableDiagnosticIds),
+                    () => ImmutableInterlocked.GetOrAdd(ref _fixerToFixableIdsMap, fixer, f => GetAndTestFixableDiagnosticIds(f)),
                     defaultValue: ImmutableArray<DiagnosticId>.Empty);
             }
 
             try
             {
-                return ImmutableInterlocked.GetOrAdd(ref _fixerToFixableIdsMap, fixer, f => f.FixableDiagnosticIds);
+                return ImmutableInterlocked.GetOrAdd(ref _fixerToFixableIdsMap, fixer, f => GetAndTestFixableDiagnosticIds(f));
             }
             catch (OperationCanceledException)
             {
@@ -441,6 +441,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 }
                 return ImmutableArray<DiagnosticId>.Empty;
             }
+        }
+
+        private static ImmutableArray<string> GetAndTestFixableDiagnosticIds(CodeFixProvider codeFixProvider)
+        {
+            var ids = codeFixProvider.FixableDiagnosticIds;
+            if (ids.IsDefault)
+            {
+                throw new InvalidOperationException(
+                    string.Format(
+                        WorkspacesResources.FixableDiagnosticIdsIncorrectlyInitialized, 
+                        codeFixProvider.GetType().Name+ "."+ nameof(CodeFixProvider.FixableDiagnosticIds)));
+            }
+
+            return ids;
         }
 
         private ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>> GetFixerPerLanguageMap(
