@@ -361,7 +361,6 @@
     <Compile Include="FindResults\FindResultsTests.vb" />
     <Compile Include="GenerateType\GenerateTypeViewModelTests.vb" />
     <Compile Include="GoToDefinition\GoToDefinitionApiTests.vb" />
-    <Compile Include="GoToDefinition\MockNavigableItemsPresenter.vb" />
     <Compile Include="Help\HelpTests.vb" />
     <Compile Include="LanguageBlockTests.vb" />
     <Compile Include="MockComponentModel.vb" />

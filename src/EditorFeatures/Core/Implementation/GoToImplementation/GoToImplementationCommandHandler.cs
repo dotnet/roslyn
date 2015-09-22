@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -97,11 +98,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
                 else
                 {
                     // We have multiple symbols, so we'll build a list of all preferred locations for all the symbols
-                    var navigableItems = implementations.SelectMany(implementation =>
-                        NavigableItemFactory.GetItemsFromPreferredSourceLocations(solution, implementation));
+                    var navigableItems = implementations.SelectMany(
+                        implementation => CreateItemsForImplementation(implementation, solution));
 
                     var presenter = _navigatableItemPresenters.First();
-                    presenter.Value.DisplayResult(navigableItems);
+                    presenter.Value.DisplayResult(NavigableItemFactory.GetSymbolDisplayString(document.Project, symbol), navigableItems);
                 }
 
                 return null;
@@ -110,6 +111,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
             {
                 return EditorFeaturesResources.CannotNavigateToTheSymbol;
             }
+        }
+
+        private static IEnumerable<INavigableItem> CreateItemsForImplementation(ISymbol implementation, Solution solution)
+        {
+            var symbolDisplayService = solution.Workspace.Services.GetLanguageServices(implementation.Language).GetRequiredService<ISymbolDisplayService>();
+
+            return NavigableItemFactory.GetItemsFromPreferredSourceLocations(solution, implementation,
+                                        displayString: symbolDisplayService.ToDisplayString(implementation));
         }
     }
 }

@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
 
                 if (presenters.Any())
                 {
-                    presenters.First().Value.DisplayResult(
+                    presenters.First().Value.DisplayResult(NavigableItemFactory.GetSymbolDisplayString(project, symbol),
                         preferredSourceLocations.Select(location => NavigableItemFactory.GetItemFromSymbolLocation(solution, symbol, location)).ToList());
 
                     return true;

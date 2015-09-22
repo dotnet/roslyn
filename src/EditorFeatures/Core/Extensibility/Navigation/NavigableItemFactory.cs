@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
 {
     internal static partial class NavigableItemFactory
     {
-        public static INavigableItem GetItemFromSymbolLocation(Solution solution, ISymbol symbol, Location location)
+        public static INavigableItem GetItemFromSymbolLocation(Solution solution, ISymbol symbol, Location location, string displayString = null)
         {
-            return new SymbolLocationNavigableItem(solution, symbol, location);
+            return new SymbolLocationNavigableItem(solution, symbol, location, displayString);
         }
 
         public static INavigableItem GetItemFromDeclaredSymbolInfo(DeclaredSymbolInfo declaredSymbolInfo, Document document)
@@ -24,10 +24,10 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
         }
 
 
-        public static IEnumerable<INavigableItem> GetItemsFromPreferredSourceLocations(Solution solution, ISymbol symbol)
+        public static IEnumerable<INavigableItem> GetItemsFromPreferredSourceLocations(Solution solution, ISymbol symbol, string displayString = null)
         {
             var locations = GetPreferredSourceLocations(solution, symbol);
-            return locations.Select(loc => GetItemFromSymbolLocation(solution, symbol, loc));
+            return locations.Select(loc => GetItemFromSymbolLocation(solution, symbol, loc, displayString));
         }
 
         public static IEnumerable<Location> GetPreferredSourceLocations(Solution solution, ISymbol symbol)

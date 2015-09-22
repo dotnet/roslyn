@@ -15,30 +15,23 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
             private readonly Solution _solution;
             private readonly ISymbol _symbol;
             private readonly Location _location;
-            private readonly Lazy<string> _lazyDisplayString;
+            private readonly string _displayString;
 
             public SymbolLocationNavigableItem(
                 Solution solution,
                 ISymbol symbol,
-                Location location)
+                Location location,
+                string displayString)
             {
                 _solution = solution;
                 _symbol = symbol;
                 _location = location;
-
-                _lazyDisplayString = new Lazy<string>(() =>
-                {
-                    return GetSymbolDisplayString(Document.Project, _symbol);
-                });
+                _displayString = displayString;
             }
 
-            public string DisplayString
-            {
-                get
-                {
-                    return _lazyDisplayString.Value;
-                }
-            }
+            public bool DisplayFileLocation => true;
+
+            public string DisplayString => _displayString;
 
             public Glyph Glyph
             {
