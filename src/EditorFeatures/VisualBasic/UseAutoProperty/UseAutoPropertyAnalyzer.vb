@@ -63,15 +63,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
 
         Protected Overrides Function GetSetterExpression(setMethod As IMethodSymbol, semanticModel As SemanticModel, cancellationToken As CancellationToken) As ExpressionSyntax
             Dim setAccessor = TryCast(TryCast(setMethod.DeclaringSyntaxReferences(0).GetSyntax(cancellationToken), AccessorStatementSyntax)?.Parent, AccessorBlockSyntax)
-
-            Dim firstStatement = setAccessor?.Statements.SingleOrDefault()
-            If firstStatement?.Kind() = SyntaxKind.SimpleAssignmentStatement Then
-                Dim assignmentStatement = DirectCast(firstStatement, AssignmentStatementSyntax)
-                If assignmentStatement.Right.Kind() = SyntaxKind.IdentifierName Then
-                    Dim identifier = DirectCast(assignmentStatement.Right, IdentifierNameSyntax)
-                    Dim symbol = semanticModel.GetSymbolInfo(identifier).Symbol
-                    If setMethod.Parameters.Contains(TryCast(symbol, IParameterSymbol)) Then
-                        Return If(CheckExpressionSyntactically(assignmentStatement.Left), assignmentStatement.Left, Nothing)
+            Dim statements = setAccessor?.Statements
+            If statements?.Count = 1 Then
+                ' this only works with a setter body with exactly one statement
+                Dim firstStatement = statements.Value(0)
+                If firstStatement?.Kind() = SyntaxKind.SimpleAssignmentStatement Then
+                    Dim assignmentStatement = DirectCast(firstStatement, AssignmentStatementSyntax)
+                    If assignmentStatement.Right.Kind() = SyntaxKind.IdentifierName Then
+                        Dim identifier = DirectCast(assignmentStatement.Right, IdentifierNameSyntax)
+                        Dim symbol = semanticModel.GetSymbolInfo(identifier).Symbol
+                        If setMethod.Parameters.Contains(TryCast(symbol, IParameterSymbol)) Then
+                            Return If(CheckExpressionSyntactically(assignmentStatement.Left), assignmentStatement.Left, Nothing)
+                        End If
                     End If
                 End If
             End If

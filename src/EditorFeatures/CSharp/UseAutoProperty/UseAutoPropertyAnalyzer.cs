@@ -101,22 +101,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
         protected override ExpressionSyntax GetSetterExpression(IMethodSymbol setMethod, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             var setAccessor = setMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken) as AccessorDeclarationSyntax;
-
-            // Setter has to be of the form:
-            //
-            //      set { field = value; } or
-            //      set { this.field = value; }
-            var firstStatement = setAccessor?.Body.Statements.SingleOrDefault();
-            if (firstStatement?.Kind() == SyntaxKind.ExpressionStatement)
+            var statements = setAccessor?.Body?.Statements;
+            if (statements?.Count == 1)
             {
-                var expressionStatement = (ExpressionStatementSyntax)firstStatement;
-                if (expressionStatement.Expression.Kind() == SyntaxKind.SimpleAssignmentExpression)
+                // this only works with a setter body with exactly one statement
+                var firstStatement = statements.Value[0];
+                if (firstStatement?.Kind() == SyntaxKind.ExpressionStatement)
                 {
-                    var assignmentExpression = (AssignmentExpressionSyntax)expressionStatement.Expression;
-                    if (assignmentExpression.Right.Kind() == SyntaxKind.IdentifierName &&
-                        ((IdentifierNameSyntax)assignmentExpression.Right).Identifier.ValueText == "value")
+                    var expressionStatement = (ExpressionStatementSyntax)firstStatement;
+                    if (expressionStatement.Expression.Kind() == SyntaxKind.SimpleAssignmentExpression)
                     {
-                        return CheckExpressionSyntactically(assignmentExpression.Left) ? assignmentExpression.Left : null;
+                        var assignmentExpression = (AssignmentExpressionSyntax)expressionStatement.Expression;
+                        if (assignmentExpression.Right.Kind() == SyntaxKind.IdentifierName &&
+                            ((IdentifierNameSyntax)assignmentExpression.Right).Identifier.ValueText == "value")
+                        {
+                            return CheckExpressionSyntactically(assignmentExpression.Left) ? assignmentExpression.Left : null;
+                        }
                     }
                 }
             }
