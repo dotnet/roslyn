@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System
+Imports System.IO
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -24,6 +25,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 
             Return compilation.EmitToArray()
         End Function
+
+        <Fact>
+        Public Sub BanVersionWildcards()
+            Dim source =
+"<assembly: System.Reflection.AssemblyVersion(""10101.0.*"")> 
+Class C 
+    Shared Sub Main()
+    End Sub
+End Class"
+            Dim compilationDeterministic = CreateCompilationWithMscorlib({source}, assemblyName:="DeterminismTest",
+                parseOptions:=TestOptions.Regular.WithFeature("deterministic", "true"))
+            Dim compilationNonDeterministic = CreateCompilationWithMscorlib({source}, assemblyName:="DeterminismTest")
+
+            Dim resultDeterministic = compilationDeterministic.Emit(New MemoryStream(), New MemoryStream())
+            Dim resultNonDeterministic = compilationNonDeterministic.Emit(New MemoryStream(), New MemoryStream())
+
+            Assert.False(resultDeterministic.Success)
+            Assert.True(resultNonDeterministic.Success)
+        End Sub
 
         <Fact>
         Public Sub CompareAllBytesEmitted_Release()
