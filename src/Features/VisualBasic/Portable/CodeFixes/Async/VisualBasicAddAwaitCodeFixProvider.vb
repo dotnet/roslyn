@@ -114,6 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
 
         Private Function ConverToAwaitExpression(expression As ExpressionSyntax) As ExpressionSyntax
             Return SyntaxFactory.AwaitExpression(SyntaxFactory.ParenthesizedExpression(expression.WithoutTrivia())) _
+                                .WithTriviaFrom(expression) _
                                 .WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation)
         End Function
 
