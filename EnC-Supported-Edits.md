@@ -39,6 +39,7 @@ Edit & Continue lets you modify/add to your source code in break-mode while debu
 | Renaming of any kind | - | - |
 | Delete members or types | - | - |
 | Delete entire method bodies | - | Not supported because deleting an entire method body would make the method “abstract”—which is not currently supported |
+| Add using statements | We hope to add this! | - | 
 
 
 ### App Model EnC Support
