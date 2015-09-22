@@ -26,9 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestSyntaxWithOperatorToken()
         {
-            var expression = SyntaxFactory.AddExpression(SyntaxFactory.ParseExpression("5"),
-                                                         SyntaxFactory.ParseToken("+"),
-                                                         SyntaxFactory.ParseExpression("3"));
+            var expression = SyntaxFactory.BinaryExpression(SyntaxKind.AddExpression,
+                                                            SyntaxFactory.ParseExpression("5"),
+                                                            SyntaxFactory.ParseExpression("3"));
 
             var newOperatorToken = SyntaxFactory.Token(SyntaxKind.MinusToken);
 
