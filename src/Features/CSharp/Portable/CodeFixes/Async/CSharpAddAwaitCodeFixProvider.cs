@@ -48,10 +48,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             CancellationToken cancellationToken)
         {
             var expression = oldNode as ExpressionSyntax;
-                    if (expression == null)
-                    {
+            if (expression == null)
+            {
                 return SpecializedTasks.Default<SyntaxNode>();
-                    }
+            }
 
             switch (diagnostic.Id)
             {
