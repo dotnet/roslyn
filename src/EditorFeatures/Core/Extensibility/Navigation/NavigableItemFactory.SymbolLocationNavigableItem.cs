@@ -28,21 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
 
                 _lazyDisplayName = new Lazy<string>(() =>
                 {
-                    var symbolDisplayService = this.Document.Project.LanguageServices.GetService<ISymbolDisplayService>();
-
-                    switch (symbol.Kind)
-                    {
-                        case SymbolKind.NamedType:
-                            return symbolDisplayService.ToDisplayString(_symbol, s_shortFormatWithModifiers);
-
-                        case SymbolKind.Method:
-                            return _symbol.IsStaticConstructor()
-                                ? symbolDisplayService.ToDisplayString(_symbol, s_shortFormatWithModifiers)
-                                : symbolDisplayService.ToDisplayString(_symbol, s_shortFormat);
-
-                        default:
-                            return symbolDisplayService.ToDisplayString(_symbol, s_shortFormat);
-                    }
+                    return GetSymbolDisplayString(Document.Project, _symbol);
                 });
             }
 

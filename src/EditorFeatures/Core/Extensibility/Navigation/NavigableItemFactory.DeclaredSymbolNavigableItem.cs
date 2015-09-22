@@ -44,20 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
                             return null;
                         }
 
-                        var symbolDisplayService = Document.GetLanguageService<ISymbolDisplayService>();
-                        switch (Symbol.Kind)
-                        {
-                            case SymbolKind.NamedType:
-                                return symbolDisplayService.ToDisplayString(Symbol, s_shortFormatWithModifiers);
-
-                            case SymbolKind.Method:
-                                return Symbol.IsStaticConstructor()
-                                    ? symbolDisplayService.ToDisplayString(Symbol, s_shortFormatWithModifiers)
-                                    : symbolDisplayService.ToDisplayString(Symbol, s_shortFormat);
-
-                            default:
-                                return symbolDisplayService.ToDisplayString(Symbol, s_shortFormat);
-                        }
+                        return GetSymbolDisplayString(Document.Project, Symbol);
                     }
                     catch (Exception e) when (FatalError.Report(e))
                     {
