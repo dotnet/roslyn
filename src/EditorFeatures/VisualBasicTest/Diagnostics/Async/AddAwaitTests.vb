@@ -273,22 +273,22 @@ NewLines("Imports System.Threading.Tasks \n Module Program \n Sub MyTestMethod1A
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Sub TestTernaryOperator()
             Test(
-NewLines("Module M \n Async Function A() As Task(Of Integer) \n Return [|If(True, Task.FromResult(0), Task.FromResult(1))|] \n End Function \n End Module"),
-NewLines("Module M \n Async Function A() As Task(Of Integer) \n Return Await If(True, Task.FromResult(0), Task.FromResult(1)) \n End Function \n End Module"))
+NewLines("Imports System.Threading.Tasks \n Module M \n Async Function A() As Task(Of Integer) \n Return [|If(True, Task.FromResult(0), Task.FromResult(1))|] \n End Function \n End Module"),
+NewLines("Imports System.Threading.Tasks \n Module M \n Async Function A() As Task(Of Integer) \n Return Await If(True, Task.FromResult(0), Task.FromResult(1)) \n End Function \n End Module"))
         End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Sub TestTernaryOperator2()
             Test(
-NewLines("Module M \n Async Function A() As Task(Of Integer) \n Return [|If(Nothing, Task.FromResult(1))|] \n End Function \n End Module"),
-NewLines("Module M \n Async Function A() As Task(Of Integer) \n Return Await If(Nothing, Task.FromResult(1)) \n End Function \n End Module"))
+NewLines("Imports System.Threading.Tasks \n Module M \n Async Function A() As Task(Of Integer) \n Return [|If(Nothing, Task.FromResult(1))|] \n End Function \n End Module"),
+NewLines("Imports System.Threading.Tasks \n Module M \n Async Function A() As Task(Of Integer) \n Return Await If(Nothing, Task.FromResult(1)) \n End Function \n End Module"))
         End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Sub TestCastExpression()
             Test(
-NewLines("Module M \n Async Function A() As Task(Of Integer) \n Return [|TryCast(Nothing, Task(Of Integer)|] \n End Function \n End Module"),
-NewLines("Module M \n Async Function A() As Task(Of Integer) \n Return Await TryCast(Nothing, Task(Of Integer) \n End Function \n End Module"))
+NewLines("Imports System.Threading.Tasks \n Module M \n Async Function A() As Task(Of Integer) \n Return [|TryCast(Nothing, Task(Of Integer)|] \n End Function \n End Module"),
+NewLines("Imports System.Threading.Tasks \n Module M \n Async Function A() As Task(Of Integer) \n Return Await TryCast(Nothing, Task(Of Integer) \n End Function \n End Module"))
         End Sub
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
