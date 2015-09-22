@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
             public ISymbol Symbol => _lazySymbol.Value;
             public ImmutableArray<INavigableItem> ChildItems => ImmutableArray<INavigableItem>.Empty;
 
+            public bool DisplayFileLocation => false;
+
             private readonly DeclaredSymbolInfo _declaredSymbolInfo;
             private readonly Lazy<string> _lazyDisplayString;
             private readonly Lazy<ISymbol> _lazySymbol;
