@@ -2679,16 +2679,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     MoveCaretToClosestEditableBuffer();
                 }
 
-                // there are only two possible outcomes from actions above:
-                //    1. selection is not empty, which means none of the selected span is editable
-                //    2. selection is empty and caret is in an editable buffer
-
-                // Do nothing if none of the selected span is editable 
-                if (!TextView.Selection.IsEmpty)
-                {
-                    return true;
-                }
-
                 // handle "RETURN" command that is not handled by either editor or service
                 var langCaret = GetPositionInLanguageBuffer(TextView.Caret.Position.BufferPosition);
 
@@ -2700,16 +2690,18 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     if (trySubmit && caretPosition >= CurrentLanguageBuffer.CurrentSnapshot.Length && CanExecuteActiveCode())
                     {
                         var dummy = SubmitAsync();
-                        return true;
                     }
-
-                    // insert new line (triggers secondary prompt injection in buffer changed event):
-                    CurrentLanguageBuffer.Insert(caretPosition, _lineBreakString);
-                    IndentCurrentLine(TextView.Caret.Position.BufferPosition);
-                    ScrollToCaret();
+                    else
+                    {
+                        // insert new line (triggers secondary prompt injection in buffer changed event):
+                        CurrentLanguageBuffer.Insert(caretPosition, _lineBreakString);
+                        IndentCurrentLine(TextView.Caret.Position.BufferPosition);
+                        ScrollToCaret();
+                    }
+                    return true;
                 }
 
-                return true;
+                return false;
             }
 
             private bool CanExecuteActiveCode()
