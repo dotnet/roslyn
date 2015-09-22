@@ -154,6 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var hasGetSyntax = getSyntax != null;
                 _isAutoProperty = notRegularProperty && hasGetSyntax;
+                bool isReadOnly = hasGetSyntax && setSyntax == null;
 
                 if (_isAutoProperty || hasInitializer)
                 {
@@ -165,7 +166,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     string fieldName = GeneratedNames.MakeBackingFieldName(_sourceName);
-                    bool isReadOnly = hasGetSyntax && setSyntax == null;
                     _backingField = new SynthesizedBackingFieldSymbol(this,
                                                                           fieldName,
                                                                           isReadOnly,
@@ -175,7 +175,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (notRegularProperty)
                 {
-                    Binder.CheckFeatureAvailability(location, MessageID.IDS_FeatureAutoImplementedProperties, diagnostics);
+                    Binder.CheckFeatureAvailability(location, 
+                                                    isReadOnly ? MessageID.IDS_FeatureReadonlyAutoImplementedProperties : 
+                                                                 MessageID.IDS_FeatureAutoImplementedProperties, 
+                                                    diagnostics);
                 }
             }
 

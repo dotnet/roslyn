@@ -63,9 +63,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                 return;
             }
 
-            var sourceCodeKind = extension.Equals(".csx", StringComparison.OrdinalIgnoreCase)
-                ? SourceCodeKind.Script
-                : SourceCodeKind.Regular;
+            // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
+            //var sourceCodeKind = extension.Equals(".csx", StringComparison.OrdinalIgnoreCase)
+            //    ? SourceCodeKind.Script
+            //    : SourceCodeKind.Regular;
+            var sourceCodeKind = SourceCodeKind.Regular;
 
             IVsHierarchy foundHierarchy;
             uint itemId;
