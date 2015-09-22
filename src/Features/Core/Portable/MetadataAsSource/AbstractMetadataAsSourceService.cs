@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 generateMethodBodies: false,
                 generateDocumentationComments: true,
                 mergeAttributes: false,
-                autoInsertionLocation: !((symbol is ITypeSymbol) && (symbol as ITypeSymbol).IsEnumType()));
+                autoInsertionLocation: false);
         }
     }
 }

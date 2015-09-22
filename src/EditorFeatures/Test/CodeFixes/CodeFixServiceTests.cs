@@ -78,6 +78,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
         }
 
         [Fact]
+        public void TestGetCodeFixWithExceptionInFixableDiagnosticIds2()
+        {
+            GetDefaultFixes(new ErrorCases.ExceptionInFixableDiagnosticIds2());
+            GetAddedFixes(new ErrorCases.ExceptionInFixableDiagnosticIds2());
+        }
+
+        [Fact]
         public void TestGetCodeFixWithExceptionInGetFixAllProvider()
         {
             GetAddedFixes(new ErrorCases.ExceptionInGetFixAllProvider());

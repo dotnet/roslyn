@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
             return null;
         }
 
-        protected bool TryGetTypes(
+        protected static bool TryGetTaskAndExpressionTypes(
             SyntaxNode expression,
             SemanticModel semanticModel,
             out INamedTypeSymbol source,
