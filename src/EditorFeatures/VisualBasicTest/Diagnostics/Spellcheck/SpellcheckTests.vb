@@ -372,7 +372,9 @@ End Module</File>
             Test(text, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <ConditionalFact(GetType(x86))>
+        <Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <WorkItem(5391, "Fails on x64")>
         Public Sub SuggestEscapedPredefinedTypes()
             Dim text = <File>
 Imports System
