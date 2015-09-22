@@ -18,6 +18,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.AddAsy
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        Public Sub TaskNotAwaited_WithLeadingTrivia()
+            Test(
+                NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Async Sub MySub() \n ' Useful comment \n [|Task.Delay(3)|] \n End Sub \n End Module"),
+                NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Async Sub MySub() \n ' Useful comment \n Await Task.Delay(3) \n End Sub \n End Module"),
+)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Sub BadAsyncReturnOperand1()
             Dim initial =
 <File>
@@ -97,6 +105,50 @@ End Module
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        Public Sub FunctionNotAwaited_WithLeadingTrivia()
+            Dim initial =
+<File>
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Threading.Tasks
+
+Module Program
+    Function AwaitableFunction() As Task
+        Return New Task()
+    End Function
+
+    Async Sub MySub()
+
+        ' Useful comment
+        [|AwaitableFunction()|]
+    End Sub
+End Module
+</File>
+            Dim expected =
+<File>
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Threading.Tasks
+
+Module Program
+    Function AwaitableFunction() As Task
+        Return New Task()
+    End Function
+
+    Async Sub MySub()
+
+        ' Useful comment
+        Await AwaitableFunction()
+    End Sub
+End Module
+</File>
+
+            Test(initial, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Sub SubLambdaNotAwaited()
             Dim initial =
 <File>
@@ -144,6 +196,7 @@ Imports System.Threading.Tasks
 Module Program
     Sub MySub()
         Dim a = Async Function()
+                    ' Useful comment
                     [|Task.Delay(1)|]
                 End Function
     End Sub
@@ -159,6 +212,7 @@ Imports System.Threading.Tasks
 Module Program
     Sub MySub()
         Dim a = Async Function()
+                    ' Useful comment
                     Await Task.Delay(1)
                 End Function
     End Sub
@@ -214,6 +268,27 @@ NewLines("Imports System.Threading.Tasks \n Module Program \n Sub MyTestMethod1A
             Test(
 NewLines("Imports System.Threading.Tasks \n Module Program \n Sub MyTestMethod1Async() \n Dim myInt As Long \n Dim lambda = Async Sub() myInt = [|MyIntMethodAsync()|] \n End Sub \n Private Function MyIntMethodAsync() As Task(Of Object) \n Return Task.FromResult(New Object()) \n End Function \n End Module"),
 NewLines("Imports System.Threading.Tasks \n Module Program \n Sub MyTestMethod1Async() \n Dim myInt As Long \n Dim lambda = Async Sub() myInt = Await MyIntMethodAsync() \n End Sub \n Private Function MyIntMethodAsync() As Task(Of Object) \n Return Task.FromResult(New Object()) \n End Function \n End Module"))
+        End Sub
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        Public Sub TestTernaryOperator()
+            Test(
+NewLines("Module M \n Async Function A() As Task(Of Integer) \n Return [|If(True, Task.FromResult(0), Task.FromResult(1))|] \n End Function \n End Module"),
+NewLines("Module M \n Async Function A() As Task(Of Integer) \n Return Await If(True, Task.FromResult(0), Task.FromResult(1)) \n End Function \n End Module"))
+        End Sub
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        Public Sub TestTernaryOperator2()
+            Test(
+NewLines("Module M \n Async Function A() As Task(Of Integer) \n Return [|If(Nothing, Task.FromResult(1))|] \n End Function \n End Module"),
+NewLines("Module M \n Async Function A() As Task(Of Integer) \n Return Await If(Nothing, Task.FromResult(1)) \n End Function \n End Module"))
+        End Sub
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        Public Sub TestCastExpression()
+            Test(
+NewLines("Module M \n Async Function A() As Task(Of Integer) \n Return [|TryCast(Nothing, Task(Of Integer)|] \n End Function \n End Module"),
+NewLines("Module M \n Async Function A() As Task(Of Integer) \n Return Await TryCast(Nothing, Task(Of Integer) \n End Function \n End Module"))
         End Sub
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)

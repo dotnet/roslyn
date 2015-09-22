@@ -49,6 +49,43 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        public void BadAsyncReturnOperand1_WithLeadingTrivia()
+        {
+            var initial =
+@"using System.Threading.Tasks;
+
+class Program
+{
+    async Task<int> Test()
+    {
+        return 3;
+    }
+
+    async Task<int> Test2()
+    {
+        [|return /* dada! */ Test();|]
+    }
+}";
+
+            var expected =
+@"using System.Threading.Tasks;
+
+class Program
+{
+    async Task<int> Test()
+    {
+        return 3;
+    }
+
+    async Task<int> Test2()
+    {
+        return /* dada! */ await Test();
+    }
+}";
+            Test(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public void TaskNotAwaited()
         {
             var initial =
@@ -67,6 +104,35 @@ class Program
 {
     async void Test()
     {
+        await Task.Delay(3);
+    }
+}";
+            Test(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        public void TaskNotAwaited_WithLeadingTrivia()
+        {
+            var initial =
+@"using System.Threading.Tasks;
+class Program
+{
+    async void Test()
+    {
+
+        // Useful comment
+        [|Task.Delay(3);|]
+    }
+}";
+
+            var expected =
+@"using System.Threading.Tasks;
+class Program
+{
+    async void Test()
+    {
+
+        // Useful comment
         await Task.Delay(3);
     }
 }";
@@ -102,6 +168,84 @@ class Program
 
     async void Test()
     {
+        await AwaitableFunction();
+    }
+}";
+            Test(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        public void FunctionNotAwaited_WithLeadingTrivia()
+        {
+            var initial =
+@"using System.Threading.Tasks;
+class Program
+{
+    Task AwaitableFunction()
+    {
+        return Task.FromResult(true);
+    }
+
+    async void Test()
+    {
+
+        // Useful comment
+        [|AwaitableFunction();|]
+    }
+}";
+
+            var expected =
+@"using System.Threading.Tasks;
+class Program
+{
+    Task AwaitableFunction()
+    {
+        return Task.FromResult(true);
+    }
+
+    async void Test()
+    {
+
+        // Useful comment
+        await AwaitableFunction();
+    }
+}";
+            Test(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        public void FunctionNotAwaited_WithLeadingTrivia1()
+        {
+            var initial =
+@"using System.Threading.Tasks;
+class Program
+{
+    Task AwaitableFunction()
+    {
+        return Task.FromResult(true);
+    }
+
+    async void Test()
+    {
+        var i = 0;
+
+        [|AwaitableFunction();|]
+    }
+}";
+
+            var expected =
+@"using System.Threading.Tasks;
+class Program
+{
+    Task AwaitableFunction()
+    {
+        return Task.FromResult(true);
+    }
+
+    async void Test()
+    {
+        var i = 0;
+
         await AwaitableFunction();
     }
 }";
@@ -197,6 +341,30 @@ class Program
         {
             TestMissing(
 @"using System ; using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { Func < Task > @delegate = delegate { int myInt = MyIntM [||] ethodAsync ( ) ; } ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        public void TestTernaryOperator()
+        {
+            Test(
+@"using System ; using System . Threading . Tasks ; class Program { async Task < int > A ( ) { return [|true ? Task . FromResult ( 0 ) : Task . FromResult ( 1 )|] ; } } ",
+@"using System ; using System . Threading . Tasks ; class Program { async Task < int > A ( ) { return await ( true ? Task . FromResult ( 0 ) : Task . FromResult ( 1 ) ) ; } } ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        public void TestNullCoalescingOperator()
+        {
+            Test(
+@"using System ; using System . Threading . Tasks ; class Program { async Task < int > A ( ) { return [|null ?? Task . FromResult ( 1 )|] } } ",
+@"using System ; using System . Threading . Tasks ; class Program { async Task < int > A ( ) { return await ( null ?? Task . FromResult ( 1 ) ) } } ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        public void TestAsExpression()
+        {
+            Test(
+@"using System ; using System . Threading . Tasks ; class Program { async Task < int > A ( ) { return [|null as Task < int >|] } } ",
+@"using System ; using System . Threading . Tasks ; class Program { async Task < int > A ( ) { return await ( null as Task < int > ) } } ");
         }
 
         internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)

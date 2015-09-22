@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.Async
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Resources = Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources.VBFeaturesResources
 
@@ -35,25 +36,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
 
         Protected Overrides Function GetNewRoot(root As SyntaxNode, oldNode As SyntaxNode, semanticModel As SemanticModel, diagnostic As Diagnostic, document As Document, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
             Dim expression = TryCast(oldNode, ExpressionSyntax)
+            If expression Is Nothing Then
+                Return SpecializedTasks.Default(Of SyntaxNode)()
+            End If
 
             Select Case diagnostic.Id
                 Case BC30311
                     If Not DoesExpressionReturnGenericTaskWhoseArgumentsMatchLeftSide(expression, semanticModel, document.Project, cancellationToken) Then
                         Return Task.FromResult(Of SyntaxNode)(Nothing)
                     End If
-                    Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression)))
+                    Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression, semanticModel, cancellationToken)))
                 Case BC37055
                     If Not DoesExpressionReturnTask(expression, semanticModel) Then
                         Return Task.FromResult(Of SyntaxNode)(Nothing)
                     End If
-                    Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression)))
+                    Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression, semanticModel, cancellationToken)))
                 Case BC42358
-                    If expression Is Nothing Then
-                        Return Task.FromResult(Of SyntaxNode)(Nothing)
-                    End If
-                    Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression)))
+                    Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression, semanticModel, cancellationToken)))
                 Case Else
-                    Return Task.FromResult(Of SyntaxNode)(Nothing)
+                    Return SpecializedTasks.Default(Of SyntaxNode)()
             End Select
         End Function
 
@@ -68,7 +69,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
 
             Dim taskType As INamedTypeSymbol = Nothing
             Dim rightSideType As INamedTypeSymbol = Nothing
-            If Not TryGetTaskAndExpressionTypes(expression, semanticModel, taskType, rightSideType) Then
+            If Not TryGetTaskType(semanticModel, taskType) OrElse
+               Not TryGetExpressionType(expression, semanticModel, rightSideType) Then
                 Return False
             End If
 
@@ -115,13 +117,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
 
             Dim taskType As INamedTypeSymbol = Nothing
             Dim returnType As INamedTypeSymbol = Nothing
-            Return TryGetTaskAndExpressionTypes(expression, semanticModel, taskType, returnType) AndAlso
-                semanticModel.Compilation.ClassifyConversion(taskType, returnType).Exists
+            Return TryGetTaskType(semanticModel, taskType) AndAlso
+                   TryGetExpressionType(expression, semanticModel, returnType) AndAlso
+                   semanticModel.Compilation.ClassifyConversion(taskType, returnType).Exists
         End Function
 
-        Private Function ConverToAwaitExpression(expression As ExpressionSyntax) As ExpressionSyntax
-            Return SyntaxFactory.AwaitExpression(expression).WithAdditionalAnnotations(Formatter.Annotation)
+        Private Shared Function ConverToAwaitExpression(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As ExpressionSyntax
+            Dim root = expression.Ancestors().Last()
+            If Not RequiresParenthesis(expression, root, semanticModel, cancellationToken) Then
+                expression = expression.Parenthesize()
+            End If
+            Return SyntaxFactory.AwaitExpression(expression.WithoutTrivia()) _
+                   .WithTriviaFrom(expression) _
+                   .WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation)
         End Function
 
+        Private Shared Function RequiresParenthesis(expression As ExpressionSyntax, root As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
+            Dim parenthesizedExpression = SyntaxFactory.ParenthesizedExpression(expression)
+            Dim newRoot = root.ReplaceNode(expression, parenthesizedExpression)
+            Dim newNode = newRoot.FindNode(expression.Span)
+            Dim result = newNode _
+                .DescendantNodesAndSelf(Function(n) n.Kind <> SyntaxKind.ParenthesizedExpression) _
+                .OfType(Of ParenthesizedExpressionSyntax).FirstOrDefault
+            If result IsNot Nothing Then
+                Return Not result.CanRemoveParentheses(semanticModel, cancellationToken)
+            End If
+
+            Return False
+        End Function
     End Class
 End Namespace
