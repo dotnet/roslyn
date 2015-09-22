@@ -25,14 +25,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
     internal sealed class GoToImplementationCommandHandler : ICommandHandler<GoToImplementationCommandArgs>
     {
         private readonly IWaitIndicator _waitIndicator;
-        private readonly IEnumerable<Lazy<INavigableItemsPresenter>> _navigatableItemPresenters;
 
         [ImportingConstructor]
         public GoToImplementationCommandHandler(
-            [ImportMany] IEnumerable<Lazy<INavigableItemsPresenter>> navigatableItemPresenters,
             IWaitIndicator waitIndicator)
         {
-            _navigatableItemPresenters = navigatableItemPresenters;
             _waitIndicator = waitIndicator;
         }
 
@@ -51,20 +48,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
                 var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
                 {
-                    // We have all the cheap stuff, so let's do expensive stuff now
-                    string messageToShow = null;
-                    _waitIndicator.Wait(
-                        EditorFeaturesResources.GoToImplementationTitle,
-                        EditorFeaturesResources.GoToImplementationMessage,
-                        allowCancel: true,
-                        action: context => messageToShow = ExecuteCommandCoreAndReturnMessage(document, caret.Value, context.CancellationToken));
+                    var service = document.Project.LanguageServices.GetService<IGoToImplementationService>();
 
-                    if (messageToShow != null)
+                    if (service != null)
                     {
-                        var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
-                        notificationService.SendNotification(messageToShow,
-                            title: EditorFeaturesResources.GoToImplementationTitle,
-                            severity: NotificationSeverity.Information);
+                        // We have all the cheap stuff, so let's do expensive stuff now
+                        string messageToShow = null;
+                        bool succeeded = false;
+                        _waitIndicator.Wait(
+                            EditorFeaturesResources.GoToImplementationTitle,
+                            EditorFeaturesResources.GoToImplementationMessage,
+                            allowCancel: true,
+                            action: context => succeeded = service.TryGoToImplementation(document, caret.Value, context.CancellationToken, out messageToShow));
+
+                        if (messageToShow != null)
+                        {
+                            var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
+                            notificationService.SendNotification(messageToShow,
+                                title: EditorFeaturesResources.GoToImplementationTitle,
+                                severity: NotificationSeverity.Information);
+                        }
                     }
 
                     return;
@@ -74,51 +77,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
             nextHandler();
         }
 
-        private string ExecuteCommandCoreAndReturnMessage(Document document, int position, CancellationToken cancellationToken)
-        {
-            var symbol = SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken).WaitAndGetResult(cancellationToken);
-
-            if (symbol != null)
-            {
-                var solution = document.Project.Solution;
-                var implementations =
-                    SymbolFinder.FindImplementationsAsync(
-                        symbol,
-                        solution,
-                        cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken).ToList();
-
-                if (implementations.Count == 0)
-                {
-                    return EditorFeaturesResources.SymbolHasNoImplementations;
-                }
-                else if (implementations.Count == 1)
-                {
-                    GoToDefinition.GoToDefinitionHelpers.TryGoToDefinition(implementations.Single(), document.Project, _navigatableItemPresenters, cancellationToken);
-                }
-                else
-                {
-                    // We have multiple symbols, so we'll build a list of all preferred locations for all the symbols
-                    var navigableItems = implementations.SelectMany(
-                        implementation => CreateItemsForImplementation(implementation, solution));
-
-                    var presenter = _navigatableItemPresenters.First();
-                    presenter.Value.DisplayResult(NavigableItemFactory.GetSymbolDisplayString(document.Project, symbol), navigableItems);
-                }
-
-                return null;
-            }
-            else
-            {
-                return EditorFeaturesResources.CannotNavigateToTheSymbol;
-            }
-        }
-
-        private static IEnumerable<INavigableItem> CreateItemsForImplementation(ISymbol implementation, Solution solution)
-        {
-            var symbolDisplayService = solution.Workspace.Services.GetLanguageServices(implementation.Language).GetRequiredService<ISymbolDisplayService>();
-
-            return NavigableItemFactory.GetItemsFromPreferredSourceLocations(solution, implementation,
-                                        displayString: symbolDisplayService.ToDisplayString(implementation));
-        }
     }
 }
