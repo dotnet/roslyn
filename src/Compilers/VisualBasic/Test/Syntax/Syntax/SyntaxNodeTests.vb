@@ -1,7 +1,7 @@
 ﻿Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Xunit
 
-Namespace Syntax
+Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Class SyntaxNodeTests
         <Fact>
