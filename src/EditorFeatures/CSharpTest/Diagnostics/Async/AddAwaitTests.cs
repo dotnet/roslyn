@@ -49,43 +49,6 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void BadAsyncReturnOperand1_WithLeadingTrivia()
-        {
-            var initial =
-@"using System.Threading.Tasks;
-
-class Program
-{
-    async Task<int> Test()
-    {
-        return 3;
-    }
-
-    async Task<int> Test2()
-    {
-        [|return /* dada! */ Test();|]
-    }
-}";
-
-            var expected =
-@"using System.Threading.Tasks;
-
-class Program
-{
-    async Task<int> Test()
-    {
-        return 3;
-    }
-
-    async Task<int> Test2()
-    {
-        return /* dada! */ await Test();
-    }
-}";
-            Test(initial, expected);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public void TaskNotAwaited()
         {
             var initial =
