@@ -2,8 +2,10 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -20,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
         {
             return new DeclaredSymbolNavigableItem(document, declaredSymbolInfo);
         }
+
 
         public static IEnumerable<INavigableItem> GetItemsFromPreferredSourceLocations(Solution solution, ISymbol symbol)
         {
@@ -55,6 +58,24 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
             return visibleSourceLocations.Any()
                 ? visibleSourceLocations
                 : locations.Where(loc => loc.IsInSource);
+        }
+
+        public static string GetSymbolDisplayString(Project project, ISymbol symbol)
+        {
+            var symbolDisplayService = project.LanguageServices.GetRequiredService<ISymbolDisplayService>();
+            switch (symbol.Kind)
+            {
+                case SymbolKind.NamedType:
+                    return symbolDisplayService.ToDisplayString(symbol, s_shortFormatWithModifiers);
+
+                case SymbolKind.Method:
+                    return symbol.IsStaticConstructor()
+                        ? symbolDisplayService.ToDisplayString(symbol, s_shortFormatWithModifiers)
+                        : symbolDisplayService.ToDisplayString(symbol, s_shortFormat);
+
+                default:
+                    return symbolDisplayService.ToDisplayString(symbol, s_shortFormat);
+            }
         }
 
         private static readonly SymbolDisplayFormat s_shortFormat =
