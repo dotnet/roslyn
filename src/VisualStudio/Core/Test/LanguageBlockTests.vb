@@ -208,6 +208,11 @@ namespace N
 var message = ""Hello"";
 System.Console$$.WriteLine(message);
 ", LanguageNames.CSharp, SourceCodeKind.Script)
+
+        VerifyNoBlock("
+var message = ""Hello"";
+System.Console$$.WriteLine(message);
+", LanguageNames.CSharp, SourceCodeKind.Regular)
     End Sub
 
     <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock)>
@@ -216,6 +221,11 @@ System.Console$$.WriteLine(message);
 Dim message = ""Hello""
 System.Console$$.WriteLine(message)
 ", LanguageNames.VisualBasic, SourceCodeKind.Script)
+
+        VerifyNoBlock("
+Dim message = ""Hello""
+System.Console$$.WriteLine(message)
+", LanguageNames.VisualBasic, SourceCodeKind.Regular)
     End Sub
 
     Private Sub VerifyNoBlock(markup As String, languageName As String, Optional sourceCodeKind As SourceCodeKind = SourceCodeKind.Regular)

@@ -4,9 +4,9 @@ using System;
 using System.Globalization;
 using System.IO;
 
-namespace Roslyn.Utilities
+namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
-    internal static partial class ReferencePathUtilities
+    internal static class XmlFileResolverForAssemblies
     {
         public static bool TryFindXmlDocumentationFile(string assemblyFilePath, out string xmlDocumentationFilePath)
         {
@@ -16,8 +16,6 @@ namespace Roslyn.Utilities
             string xmlFilePath = string.Empty;
 
             // 1. Look in subdirectories based on the current culture
-            // TODO: This logic is somewhat duplicated between here and 
-            // Microsoft.CodeAnalysis.Scripting.MetadataShadowCopyProvider
             string xmlFileName = Path.ChangeExtension(Path.GetFileName(assemblyFilePath), ".xml");
             string originalDirectory = Path.GetDirectoryName(assemblyFilePath);
 
@@ -40,10 +38,10 @@ namespace Roslyn.Utilities
             }
 
             // 2. Look in the same directory as the assembly itself
-
             var extension = Path.GetExtension(assemblyFilePath);
             if (string.Equals(extension, ".dll", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(extension, ".exe", StringComparison.OrdinalIgnoreCase))
+                string.Equals(extension, ".exe", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(extension, ".winmd", StringComparison.OrdinalIgnoreCase))
             {
                 xmlFilePath = Path.ChangeExtension(assemblyFilePath, ".xml");
             }
@@ -62,7 +60,7 @@ namespace Roslyn.Utilities
             // 3. Look for reference assemblies
 
             string referenceAssemblyFilePath;
-            if (!TryGetReferenceFilePath(assemblyFilePath, out referenceAssemblyFilePath))
+            if (!Roslyn.Utilities.ReferencePathUtilities.TryGetReferenceFilePath(assemblyFilePath, out referenceAssemblyFilePath))
             {
                 xmlDocumentationFilePath = null;
                 return false;
