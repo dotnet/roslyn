@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
     internal interface INavigableItem
     {
         Glyph Glyph { get; }
-        string DisplayName { get; }
+        string DisplayString { get; }
 
         Document Document { get; }
         TextSpan SourceSpan { get; }

@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 
         private AbstractTreeItem CreateTreeItem(INavigableItem item, int commonPathElements)
         {
-            var displayText = !item.ChildItems.IsEmpty ? item.DisplayName : null;
+            var displayText = !item.ChildItems.IsEmpty ? item.DisplayString : null;
             var result = new SourceReferenceTreeItem(item.Document, item.SourceSpan, item.Glyph.GetGlyphIndex(), commonPathElements, displayText);
 
             if (!item.ChildItems.IsEmpty)
