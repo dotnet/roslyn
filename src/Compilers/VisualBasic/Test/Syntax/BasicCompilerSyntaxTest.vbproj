@@ -138,6 +138,7 @@
     <Compile Include="Syntax\SyntaxEquivalenceTests.vb" />
     <Compile Include="Syntax\SyntaxFactoryTests.vb" />
     <Compile Include="Syntax\SyntaxFactsTest.vb" />
+    <Compile Include="Syntax\SyntaxNodeTests.vb" />
     <Compile Include="Syntax\SyntaxNormalizerTests.vb" />
     <Compile Include="Syntax\SyntaxListTests.vb" />
     <Compile Include="Syntax\SyntaxRewriterTests.vb" />
