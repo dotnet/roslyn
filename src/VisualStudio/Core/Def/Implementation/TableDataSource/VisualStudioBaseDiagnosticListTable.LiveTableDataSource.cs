@@ -162,7 +162,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private static bool ShouldInclude(DiagnosticData diagnostic)
             {
-                return diagnostic.Severity != DiagnosticSeverity.Hidden;
+                if (diagnostic == null)
+                {
+                    // guard us from wrong provider that gives null diagnostic
+                    Contract.Requires(false, "Let's see who does this");
+                    return false;
+                }
+
+                return diagnostic?.Severity != DiagnosticSeverity.Hidden;
             }
 
             private static IEnumerable<TableItem<DiagnosticData>> Order(IEnumerable<TableItem<DiagnosticData>> groupedItems)

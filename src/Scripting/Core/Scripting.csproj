@@ -58,9 +58,6 @@
     <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GlobalAssemblyCache.cs">
       <Link>Resolvers\GlobalAssemblyCache.cs</Link>
     </Compile>
-    <Compile Include="..\..\Workspaces\Core\Desktop\Utilities\ReferencePathUtilities.cs">
-      <Link>ReferencePathUtilities.cs</Link>
-    </Compile>
     <Compile Include="AssemblyLoader\AssemblyLoadResult.cs" />
     <Compile Include="CommandLine\CommandLineHostObject.cs" />
     <Compile Include="CommandLine\CommandLineRunner.cs" />
@@ -76,6 +73,7 @@
     <Compile Include="ScriptRunner.cs" />
     <Compile Include="ObjectFormatter.cs" />
     <Compile Include="ObjectFormatter.Formatter.cs" />
+    <Compile Include="XmlFileResolverForAssemblies.cs" />
     <Compile Include="Script.cs" />
     <Compile Include="ScriptBuilder.cs" />
     <Compile Include="CompilationErrorException.cs" />
@@ -123,6 +121,5 @@
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>
