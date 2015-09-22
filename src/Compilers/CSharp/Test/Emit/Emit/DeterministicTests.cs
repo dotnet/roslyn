@@ -59,8 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 parseOptions: TestOptions.Regular.WithFeature("deterministic", "true"));
             var compilationNonDeterministic = CreateCompilation(source, assemblyName: "DeterminismTest", references: new[] { MscorlibRef });
 
-            var resultDeterministic = compilationDeterministic.Emit(new MemoryStream(), new MemoryStream());
-            var resultNonDeterministic = compilationNonDeterministic.Emit(new MemoryStream(), new MemoryStream());
+            var resultDeterministic = compilationDeterministic.Emit(Stream.Null, Stream.Null);
+            var resultNonDeterministic = compilationNonDeterministic.Emit(Stream.Null, Stream.Null);
 
             Assert.False(resultDeterministic.Success);   
             Assert.True(resultNonDeterministic.Success);   

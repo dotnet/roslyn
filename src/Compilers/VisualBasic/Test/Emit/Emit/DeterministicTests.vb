@@ -38,8 +38,8 @@ End Class"
                 parseOptions:=TestOptions.Regular.WithFeature("deterministic", "true"))
             Dim compilationNonDeterministic = CreateCompilationWithMscorlib({source}, assemblyName:="DeterminismTest")
 
-            Dim resultDeterministic = compilationDeterministic.Emit(New MemoryStream(), New MemoryStream())
-            Dim resultNonDeterministic = compilationNonDeterministic.Emit(New MemoryStream(), New MemoryStream())
+            Dim resultDeterministic = compilationDeterministic.Emit(Stream.Null, Stream.Null)
+            Dim resultNonDeterministic = compilationNonDeterministic.Emit(Stream.Null, Stream.Null)
 
             Assert.False(resultDeterministic.Success)
             Assert.True(resultNonDeterministic.Success)
