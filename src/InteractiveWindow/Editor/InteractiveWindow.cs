@@ -356,6 +356,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             UIThread(uiOnly => uiOnly.Copy());
         }
 
+        void IInteractiveWindowOperations2.TypeChar()
+        {
+            UIThread(uiOnly => uiOnly.TypeChar());
+        }
+
         bool IInteractiveWindowOperations.Backspace()
         {
             return UIThread(uiOnly => uiOnly.Backspace());
