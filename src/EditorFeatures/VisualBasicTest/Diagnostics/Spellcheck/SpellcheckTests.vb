@@ -374,7 +374,7 @@ End Module</File>
 
         <ConditionalFact(GetType(x86))>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
-        <WorkItem(5391, "Fails on x64")>
+        <WorkItem(5391, "https://github.com/dotnet/roslyn/issues/5391")>
         Public Sub SuggestEscapedPredefinedTypes()
             Dim text = <File>
 Imports System
