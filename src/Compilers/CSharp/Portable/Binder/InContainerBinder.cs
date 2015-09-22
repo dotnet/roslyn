@@ -170,13 +170,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(result.IsClear);
 
+            var imports = GetImports(basesBeingResolved);
+
             if (IsSubmissionClass)
             {
                 this.LookupMembersInternal(result, _container, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteDiagnostics);
+
+                // next try using aliases or symbols in imported namespaces
+                Imports.LookupSymbolInUsings(imports.Usings, originalBinder, result, name, arity, basesBeingResolved, options, diagnose, ref useSiteDiagnostics);
                 return;
             }
-
-            var imports = GetImports(basesBeingResolved);
 
             // first lookup members of the namespace
             if ((options & LookupOptions.NamespaceAliasesOnly) == 0)

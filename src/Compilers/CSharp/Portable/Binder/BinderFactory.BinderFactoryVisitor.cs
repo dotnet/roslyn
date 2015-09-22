@@ -803,14 +803,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         //           + script class members & top-level using aliases
                         //
 
-                        if (compilation.GlobalImports.Usings.Length > 0)
+                        if (!inUsing)
                         {
-                            result = new UsingsBinder(result, compilation.GlobalImports.Usings);
-                        }
-
-                        if (compilation.IsSubmission)
-                        {
-                            result = new InteractiveUsingsBinder(result);
+                            result = new UsingsBinder(result);
                         }
 
                         result = new InContainerBinder(compilation.GlobalNamespace, result);

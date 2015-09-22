@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static readonly ParallelOptions DefaultParallelOptions = new ParallelOptions();
 
         private readonly CSharpCompilationOptions _options;
-        private readonly Lazy<Imports> _globalImports;
+        private readonly Lazy<ImmutableArray<NamespaceOrTypeAndUsingDirective>> _externalUsings;
         private readonly Lazy<AliasSymbol> _globalNamespaceAlias;  // alias symbol used to resolve "global::".
         private readonly Lazy<ImplicitNamedTypeSymbol> _scriptClass;
         private readonly CSharpCompilation _previousSubmission;
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.builtInOperators = new BuiltInOperators(this);
             _scriptClass = new Lazy<ImplicitNamedTypeSymbol>(BindScriptClass);
-            _globalImports = new Lazy<Imports>(BindGlobalUsings);
+            _externalUsings = new Lazy<ImmutableArray<NamespaceOrTypeAndUsingDirective>>(BindExternalUsings);
             _globalNamespaceAlias = new Lazy<AliasSymbol>(CreateGlobalNamespaceAlias);
             _anonymousTypeManager = new AnonymousTypeManager(this);
             this.LanguageVersion = CommonLanguageVersion(syntaxAndDeclarations.ExternalSyntaxTrees);
@@ -1195,16 +1195,155 @@ namespace Microsoft.CodeAnalysis.CSharp
             return namespaceOrType as ImplicitNamedTypeSymbol;
         }
 
-        internal Imports GlobalImports
+        /// <summary>
+        /// Usings that are not from source.  For regular compilations, these are the global usings.
+        /// For submissions, global and declared usings from previous submissions are also included.
+        /// </summary>
+        /// <remarks>
+        /// Always consider whether usings should be considered before accessing this (e.g. not when binding other usings).
+        /// </remarks>
+        internal ImmutableArray<NamespaceOrTypeAndUsingDirective> ExternalUsings => _externalUsings.Value;
+
+        private ImmutableArray<NamespaceOrTypeAndUsingDirective> BindExternalUsings()
         {
-            get { return _globalImports.Value; }
+            var globalImports = Imports.FromGlobalUsings(this);
+            globalImports.Complete(CancellationToken.None);
+
+            var newUsings = globalImports.Usings;
+
+            var previousSubmission = this.PreviousSubmission;
+            if (previousSubmission == null)
+            {
+                return newUsings;
+            }
+
+            var externalUsings = ArrayBuilder<NamespaceOrTypeAndUsingDirective>.GetInstance();
+            var uniqueTargets = PooledHashSet<NamespaceOrTypeSymbol>.GetInstance();
+
+            foreach (var previousUsing in previousSubmission.ExternalUsings)
+            {
+                var previousTarget = previousUsing.NamespaceOrType;
+                if (previousTarget.IsType)
+                {
+                    if (uniqueTargets.Add(previousTarget))
+                    {
+                        externalUsings.Add(previousUsing);
+                    }
+                }
+                else
+                { 
+                    var expandedNamespace = ExpandPreviousSubmissionNamespace((NamespaceSymbol)previousTarget, this.GlobalNamespace);
+                    if (uniqueTargets.Add(expandedNamespace))
+                    {
+                        externalUsings.Add(new NamespaceOrTypeAndUsingDirective(expandedNamespace, previousUsing.UsingDirective));
+                    }
+                }
+            }
+
+            // The previous submission should not have had extern aliases (unsupported)
+            // and using aliases are handled separately (during lookup) so we only need
+            // to extract the regular usings.
+            Debug.Assert(previousSubmission.SubmissionImports.ExternAliases.Length == 0);
+
+            // TODO (https://github.com/dotnet/roslyn/issues/5517): uncomment
+            //if (this.ReferenceManagerEquals(previousSubmission))
+            //{
+            //    foreach (var previousUsing in previousSubmission.SubmissionImports.Usings)
+            //    {
+            //        if (uniqueTargets.Add(previousUsing.NamespaceOrType))
+            //        {
+            //            externalUsings.Add(previousUsing);
+            //        }
+            //    }
+            //}
+            //else
+            {
+                foreach (var previousUsing in previousSubmission.SubmissionImports.Usings)
+                {
+                    var previousTarget = previousUsing.NamespaceOrType;
+                    if (previousTarget.IsType)
+                    {
+                        if (uniqueTargets.Add(previousTarget))
+                        {
+                            externalUsings.Add(previousUsing);
+                        }
+                    }
+                    else
+                    {
+                        var expandedNamespace = ExpandPreviousSubmissionNamespace((NamespaceSymbol)previousTarget, this.GlobalNamespace);
+                        if (uniqueTargets.Add(expandedNamespace))
+                        {
+                            externalUsings.Add(new NamespaceOrTypeAndUsingDirective(expandedNamespace, previousUsing.UsingDirective));
+                        }
+                    }
+                }
+            }
+
+            foreach (var newUsing in newUsings)
+            {
+                if (uniqueTargets.Add(newUsing.NamespaceOrType))
+                {
+                    externalUsings.Add(newUsing);
+                }
+            }
+
+            uniqueTargets.Free();
+
+            return externalUsings.ToImmutableAndFree();
         }
 
-        internal IEnumerable<NamespaceOrTypeSymbol> GlobalUsings
+        private static NamespaceSymbol ExpandPreviousSubmissionNamespace(NamespaceSymbol originalNamespace, NamespaceSymbol expandedGlobalNamespace)
+        {
+            // Soft assert: we'll still do the right thing if it fails.
+            Debug.Assert(!originalNamespace.IsGlobalNamespace, "Global using to global namespace");
+
+            var nameParts = ArrayBuilder<string>.GetInstance();
+            var curr = originalNamespace;
+            while (!curr.IsGlobalNamespace)
+            {
+                nameParts.Add(curr.Name);
+                curr = curr.ContainingNamespace;
+            }
+
+            var expandedNamespace = expandedGlobalNamespace;
+            for (int i = nameParts.Count - 1; i >= 0; i--)
+            {
+                // Note, the name may have become ambiguous (e.g. if a type with the same name
+                // is now in scope), but we're not rebinding - we're just expanding to the
+                // current contents of the same namespace.
+                expandedNamespace = expandedNamespace.GetMembers(nameParts[i]).OfType<NamespaceSymbol>().Single();
+            }
+            nameParts.Free();
+
+            return expandedNamespace;
+        }
+
+        /// <summary>
+        /// Using aliases declared by this submission (null if this isn't one).
+        /// </summary>
+        /// <remarks>
+        /// Always consider whether usings should be considered before accessing this (e.g. not when binding other usings).
+        /// </remarks>
+        internal Dictionary<string, AliasAndUsingDirective> SubmissionUsingAliases => SubmissionImports?.UsingAliases;
+
+        private Imports SubmissionImports
         {
             get
             {
-                return GlobalImports.Usings.Select(u => u.NamespaceOrType);
+                if (!this.IsSubmission)
+                {
+                    return null;
+                }
+
+                // A submission may be empty or comprised of a single script file.
+                var tree = _syntaxAndDeclarations.ExternalSyntaxTrees.SingleOrDefault();
+                if (tree == null)
+                {
+                    return null;
+                }
+
+                var binder = GetBinderFactory(tree).GetImportsBinder((CSharpSyntaxNode)tree.GetRoot());
+                return binder.GetImports();
             }
         }
 
@@ -1658,30 +1797,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetBinderFactory(declaration.SyntaxReference.SyntaxTree).GetImportsBinder((CSharpSyntaxNode)declaration.SyntaxReference.GetSyntax()).GetImports();
         }
 
-        internal Imports GetSubmissionImports()
-        {
-            return ((SourceNamespaceSymbol)SourceModule.GlobalNamespace).GetBoundImportsMerged().SingleOrDefault() ?? Imports.Empty;
-        }
-
-        internal InteractiveUsingsBinder GetInteractiveUsingsBinder()
-        {
-            Debug.Assert(IsSubmission);
-
-            // empty compilation:
-            if ((object)ScriptClass == null)
-            {
-                Debug.Assert(_syntaxAndDeclarations.ExternalSyntaxTrees.Length == 0);
-                return null;
-            }
-
-            return GetBinderFactory(_syntaxAndDeclarations.ExternalSyntaxTrees.Single()).GetInteractiveUsingsBinder();
-        }
-
-        private Imports BindGlobalUsings()
-        {
-            return Imports.FromGlobalUsings(this);
-        }
-
         private AliasSymbol CreateGlobalNamespaceAlias()
         {
             return AliasSymbol.CreateGlobalNamespaceAlias(this.GlobalNamespace, new InContainerBinder(this.GlobalNamespace, new BuckStopsHereBinder(this)));
@@ -2096,8 +2211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<Diagnostic> GetSourceDeclarationDiagnostics(SyntaxTree syntaxTree = null, TextSpan? filterSpanWithinTree = null, Func<IEnumerable<Diagnostic>, SyntaxTree, TextSpan?, IEnumerable<Diagnostic>> locationFilterOpt = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            // global imports diagnostics (specified via compilation options):
-            GlobalImports.Complete(cancellationToken);
+            var dummy = ExternalUsings; // Force completion.
 
             SourceLocation location = null;
             if (syntaxTree != null)

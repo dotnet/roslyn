@@ -252,21 +252,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // using aliases:
-                Imports imports = submission.GetSubmissionImports();
-                if (submissionSymbols.Symbols.Count > 0 && imports.IsUsingAlias(name, this.IsSemanticModelBinder))
+                AliasAndUsingDirective directive;
+                var usingAliases = submission.SubmissionUsingAliases;
+                if (usingAliases != null && usingAliases.TryGetValue(name, out directive))
                 {
-                    // using alias is ambiguous with another definition within the same submission iff the other definition is a 0-ary type or a non-type:
-                    Symbol existingDefinition = submissionSymbols.Symbols.First();
-                    if (existingDefinition.Kind == SymbolKind.NamedType && arity == 0 || existingDefinition.Kind != SymbolKind.NamedType)
+                    if (submissionSymbols.Symbols.Count > 0)
                     {
-                        CSDiagnosticInfo diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_ConflictingAliasAndDefinition, name, existingDefinition.GetKindText());
-                        var error = new ExtendedErrorTypeSymbol((NamespaceOrTypeSymbol)null, name, arity, diagInfo, unreported: true);
-                        result.SetFrom(LookupResult.Good(error)); // force lookup to be done w/ error symbol as result
-                        break;
+                        // using alias is ambiguous with another definition within the same submission iff the other definition is a 0-ary type or a non-type:
+                        Symbol existingDefinition = submissionSymbols.Symbols.First();
+                        if (existingDefinition.Kind == SymbolKind.NamedType && arity == 0 || existingDefinition.Kind != SymbolKind.NamedType)
+                        {
+                            CSDiagnosticInfo diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_ConflictingAliasAndDefinition, name, existingDefinition.GetKindText());
+                            var error = new ExtendedErrorTypeSymbol((NamespaceOrTypeSymbol)null, name, arity, diagInfo, unreported: true);
+                            result.SetFrom(LookupResult.Good(error)); // force lookup to be done w/ error symbol as result
+                            break;
+                        }
                     }
-                }
 
-                imports.LookupSymbolInAliases(originalBinder, submissionSymbols, name, arity, basesBeingResolved, options, diagnose, ref useSiteDiagnostics);
+                    // Note: all usings are considered used in submissions, so there's no reason to call MarkImportDirectiveAsUsed.
+                    submissionSymbols.MergeEqual(originalBinder.CheckViability(directive.Alias, arity, options, null, diagnose, ref useSiteDiagnostics, basesBeingResolved));
+                }
 
                 if (lookingForOverloadsOfKind == null)
                 {
@@ -1491,9 +1496,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // TODO: we need tests
             // TODO: optimize lookup (there might be many interactions in the chain)
+
             for (CSharpCompilation submission = Compilation; submission != null; submission = submission.PreviousSubmission)
             {
-                submission.GetSubmissionImports().AddLookupSymbolsInfoInAliases(this, result, options);
+                var usingAliases = submission.SubmissionUsingAliases?.Values;
+                if (usingAliases != null)
+                {
+                    foreach (var usingAlias in usingAliases)
+                    {
+                        var aliasSymbol = usingAlias.Alias;
+                        var targetSymbol = aliasSymbol.GetAliasTarget(basesBeingResolved: null);
+                        if (originalBinder.CanAddLookupSymbolInfo(targetSymbol, options, null))
+                        {
+                            // Note: we do not mark nodes when looking up arities or names.  This is because these two
+                            // types of lookup are only around to make the public
+                            // SemanticModel.LookupNames/LookupSymbols work and do not count as usages of the directives
+                            // when the actual code is bound.
+
+                            result.AddSymbol(aliasSymbol, aliasSymbol.Name, 0);
+                        }
+                    }
+                }
+
                 if ((object)submission.ScriptClass != null)
                 {
                     AddMemberLookupSymbolsInfoWithoutInheritance(result, submission.ScriptClass, options, originalBinder, scriptClass);

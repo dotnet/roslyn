@@ -1,39 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal class UsingsBinder : Binder
+    internal class UsingsBinder : Binder //TODO (acasey): ExternalUsingsBinder
     {
-        private ImmutableArray<NamespaceOrTypeAndUsingDirective> _lazyConsolidatedUsings;
-
-        internal UsingsBinder(Binder next, ImmutableArray<NamespaceOrTypeAndUsingDirective> usings = default(ImmutableArray<NamespaceOrTypeAndUsingDirective>))
+        internal UsingsBinder(Binder next)
             : base(next)
         {
-            _lazyConsolidatedUsings = usings;
-        }
-
-        internal ImmutableArray<NamespaceOrTypeAndUsingDirective> ConsolidatedUsings
-        {
-            get
-            {
-                if (_lazyConsolidatedUsings.IsDefault)
-                {
-                    ImmutableInterlocked.InterlockedCompareExchange(
-                        ref _lazyConsolidatedUsings, GetConsolidatedUsings(), default(ImmutableArray<NamespaceOrTypeAndUsingDirective>));
-                }
-
-                return _lazyConsolidatedUsings;
-            }
-        }
-
-        protected virtual ImmutableArray<NamespaceOrTypeAndUsingDirective> GetConsolidatedUsings()
-        {
-            throw ExceptionUtilities.Unreachable;
         }
 
         internal override void LookupSymbolsInSingleBinder(
@@ -47,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResult tmp = LookupResult.GetInstance();
 
             // usings:
-            Imports.LookupSymbolInUsings(ConsolidatedUsings, originalBinder, tmp, name, arity, basesBeingResolved, options, diagnose, ref useSiteDiagnostics);
+            Imports.LookupSymbolInUsings(Compilation.ExternalUsings, originalBinder, tmp, name, arity, basesBeingResolved, options, diagnose, ref useSiteDiagnostics);
 
             // if we found a viable result in imported namespaces, use it instead of unviable symbols found in source:
             if (tmp.IsMultiViable)
@@ -57,10 +34,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             tmp.Free();
         }
+
         protected override void AddLookupSymbolsInfoInSingleBinder(
             LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
         {
-
             if (!ShouldLookInUsings(options))
             {
                 return;
@@ -69,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Add types within namespaces imported through usings, but don't add nested namespaces.
             LookupOptions usingOptions = (options & ~(LookupOptions.NamespaceAliasesOnly | LookupOptions.NamespacesOrTypesOnly)) | LookupOptions.MustNotBeNamespace;
 
-            Imports.AddLookupSymbolsInfoInUsings(ConsolidatedUsings, this, result, usingOptions);
+            Imports.AddLookupSymbolsInfoInUsings(Compilation.ExternalUsings, originalBinder, result, usingOptions);
         }
 
         private static bool ShouldLookInUsings(LookupOptions options)
@@ -93,14 +70,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupOptions options,
             bool isCallerSemanticModel)
         {
-            if (searchUsingsNotNamespace)
+            if (!searchUsingsNotNamespace)
             {
-                foreach (var nsOrType in ConsolidatedUsings)
+                return;
+            }
+
+            foreach (var @using in Compilation.ExternalUsings)
+            {
+                if (@using.NamespaceOrType.Kind == SymbolKind.Namespace)
                 {
-                    if (nsOrType.NamespaceOrType.Kind == SymbolKind.Namespace)
-                    {
-                        ((NamespaceSymbol)nsOrType.NamespaceOrType).GetExtensionMethods(methods, name, arity, options);
-                    }
+                    ((NamespaceSymbol)@using.NamespaceOrType).GetExtensionMethods(methods, name, arity, options);
                 }
             }
         }

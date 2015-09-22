@@ -128,7 +128,6 @@
     <Compile Include="Binder\Imports.cs" />
     <Compile Include="Binder\InContainerBinder.cs" />
     <Compile Include="Binder\InMethodBinder.cs" />
-    <Compile Include="Binder\InteractiveUsingsBinder.cs" />
     <Compile Include="Binder\LocalBinderFactory.cs" />
     <Compile Include="Binder\LocalInProgressBinder.cs" />
     <Compile Include="Binder\LocalScopeBinder.cs" />
