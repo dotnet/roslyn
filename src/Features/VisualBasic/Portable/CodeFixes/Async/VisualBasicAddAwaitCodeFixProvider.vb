@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.Async
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Resources = Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources.VBFeaturesResources
 
@@ -112,13 +113,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
         End Function
 
         Private Function ConverToAwaitExpression(expression As ExpressionSyntax) As ExpressionSyntax
-            Dim result As AwaitExpressionSyntax
-            If expression.HasLeadingTrivia Then
-                result = SyntaxFactory.AwaitExpression(expression.WithoutLeadingTrivia()).WithLeadingTrivia(expression.GetLeadingTrivia())
-            Else
-                result = SyntaxFactory.AwaitExpression(expression)
-            End If
-            Return result.WithAdditionalAnnotations(Formatter.Annotation)
+            Return SyntaxFactory.AwaitExpression(SyntaxFactory.ParenthesizedExpression(expression.WithoutTrivia())) _
+                                .WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation)
         End Function
 
     End Class

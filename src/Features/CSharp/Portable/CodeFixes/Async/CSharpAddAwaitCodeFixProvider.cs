@@ -3,16 +3,17 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Async;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 using Resources = Microsoft.CodeAnalysis.CSharp.CSharpFeaturesResources;
-using Microsoft.CodeAnalysis.LanguageServices;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
 {
@@ -144,17 +145,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
         {
             AwaitExpressionSyntax result;
 
-            if (expression.HasLeadingTrivia)
+            if (expression is BinaryExpressionSyntax || expression is ConditionalExpressionSyntax)
             {
-                result = SyntaxFactory.AwaitExpression(expression.WithoutLeadingTrivia())
+                result = SyntaxFactory.AwaitExpression(SyntaxFactory.ParenthesizedExpression(expression.WithoutLeadingTrivia()))
                                       .WithLeadingTrivia(expression.GetLeadingTrivia());
             }
             else
             {
-                result = SyntaxFactory.AwaitExpression(expression);
+                result = SyntaxFactory.AwaitExpression(SyntaxFactory.ParenthesizedExpression(expression.WithoutTrivia()))
+                                      .WithTriviaFrom(expression);
             }
 
-            return result.WithAdditionalAnnotations(Formatter.Annotation);
+            return result.WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
         }
     }
 }
