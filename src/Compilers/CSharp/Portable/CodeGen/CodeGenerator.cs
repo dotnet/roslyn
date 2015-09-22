@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             constraints: LocalSlotConstraints.None,
                             isDynamic: false,
                             dynamicTransformFlags: ImmutableArray<TypedConstant>.Empty,
-                            isSlotReusable: _ilEmitStyle == ILEmitStyle.Release);
+                            isSlotReusable:  false);
                     }
                     else
                     {
