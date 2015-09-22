@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
             private readonly Solution _solution;
             private readonly ISymbol _symbol;
             private readonly Location _location;
-            private readonly Lazy<string> _lazyDisplayName;
+            private readonly Lazy<string> _lazyDisplayString;
 
             public SymbolLocationNavigableItem(
                 Solution solution,
@@ -26,17 +26,17 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
                 _symbol = symbol;
                 _location = location;
 
-                _lazyDisplayName = new Lazy<string>(() =>
+                _lazyDisplayString = new Lazy<string>(() =>
                 {
                     return GetSymbolDisplayString(Document.Project, _symbol);
                 });
             }
 
-            public string DisplayName
+            public string DisplayString
             {
                 get
                 {
-                    return _lazyDisplayName.Value;
+                    return _lazyDisplayString.Value;
                 }
             }
 

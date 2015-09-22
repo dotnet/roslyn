@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
     {
         internal class DeclaredSymbolNavigableItem : INavigableItem
         {
-            public string DisplayName => _lazyDisplayName.Value;
+            public string DisplayString => _lazyDisplayString.Value;
             public Document Document { get; }
             public Glyph Glyph => _lazySymbol.Value?.GetGlyph() ?? Glyph.Error;
             public TextSpan SourceSpan => _declaredSymbolInfo.Span;
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
             public ImmutableArray<INavigableItem> ChildItems => ImmutableArray<INavigableItem>.Empty;
 
             private readonly DeclaredSymbolInfo _declaredSymbolInfo;
-            private readonly Lazy<string> _lazyDisplayName;
+            private readonly Lazy<string> _lazyDisplayString;
             private readonly Lazy<ISymbol> _lazySymbol;
 
             public DeclaredSymbolNavigableItem(Document document, DeclaredSymbolInfo declaredSymbolInfo)
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
                 // Cancellation isn't supported when computing the various properties that depend on the symbol, hence
                 // CancellationToken.None.
                 _lazySymbol = new Lazy<ISymbol>(() => declaredSymbolInfo.GetSymbolAsync(document, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult());
-                _lazyDisplayName = new Lazy<string>(() =>
+                _lazyDisplayString = new Lazy<string>(() =>
                 {
                     try
                     {

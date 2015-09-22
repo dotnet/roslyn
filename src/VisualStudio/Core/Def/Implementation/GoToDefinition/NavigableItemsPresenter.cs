@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GoToDefinition
             var first = items.FirstOrDefault();
             if (first != null)
             {
-                _manager.PresentNavigableItems(first.DisplayName, items);
+                _manager.PresentNavigableItems(first.DisplayString, items);
             }
         }
     }
