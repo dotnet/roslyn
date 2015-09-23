@@ -7,6 +7,7 @@ Microsoft.CodeAnalysis.Compilation.ScriptClass.get -> Microsoft.CodeAnalysis.INa
 Microsoft.CodeAnalysis.Compilation.WithPreviousSubmission(Microsoft.CodeAnalysis.Compilation newPreviousSubmission) -> Microsoft.CodeAnalysis.Compilation
 Microsoft.CodeAnalysis.CompilationOptions.ReportSuppressedDiagnostics.get -> bool
 Microsoft.CodeAnalysis.CompilationOptions.WithReportSuppressedDiagnostics(bool value) -> Microsoft.CodeAnalysis.CompilationOptions
+Microsoft.CodeAnalysis.Diagnostic.GetSuppressionInfo(Microsoft.CodeAnalysis.Compilation compilation) -> Microsoft.CodeAnalysis.Diagnostics.SuppressionInfo
 Microsoft.CodeAnalysis.DiagnosticDescriptor.GetEffectiveSeverity(Microsoft.CodeAnalysis.CompilationOptions compilationOptions) -> Microsoft.CodeAnalysis.ReportDiagnostic
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.AnalysisOptions.get -> Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.Analyzers.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
@@ -29,6 +30,9 @@ Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.ConcurrentAna
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.LogAnalyzerExecutionTime.get -> bool
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.OnAnalyzerException.get -> System.Action<System.Exception, Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, Microsoft.CodeAnalysis.Diagnostic>
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.ReportSuppressedDiagnostics.get -> bool
+Microsoft.CodeAnalysis.Diagnostics.SuppressionInfo
+Microsoft.CodeAnalysis.Diagnostics.SuppressionInfo.Attribute.get -> Microsoft.CodeAnalysis.AttributeData
+Microsoft.CodeAnalysis.Diagnostics.SuppressionInfo.Id.get -> string
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetry
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetry.ActionCounts
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetry.ActionCounts.CodeBlockActionsCount.get -> int
