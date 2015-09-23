@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         internal Assembly Load(Stream peStream, Stream pdbStream)
         {
             byte[] peImage = new byte[peStream.Length];
-            peStream.Read(peImage, 0, peImage.Length);
+            peStream.TryReadAll(peImage, 0, peImage.Length);
             var assembly = CorLightup.Desktop.LoadAssembly(peImage);
 
             RegisterDependency(assembly);
