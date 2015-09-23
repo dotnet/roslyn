@@ -67,6 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             if (this.Workspace != null)
             {
                 // make sure solution crawler start once everything has been setup.
+                // this also should be started before any of workspace events start firing
                 this.Workspace.StartSolutionCrawler();
             }
 

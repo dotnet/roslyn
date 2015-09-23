@@ -1144,7 +1144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 string message = string.Format(ServicesVSResources.ERR_CantReadRulesetFileMessage, ruleSetFile.FilePath, ruleSetFile.GetException().Message);
                 var data = new DiagnosticData(
                     id: IDEDiagnosticIds.ErrorReadingRulesetId,
-                    category: ServicesVSResources.ErrorCategory,
+                    category: FeaturesResources.ErrorCategory,
                     message: message,
                     enuMessageForBingSearch: ServicesVSResources.ERR_CantReadRulesetFileMessage,
                     severity: DiagnosticSeverity.Error,

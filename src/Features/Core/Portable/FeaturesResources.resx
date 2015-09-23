@@ -858,4 +858,16 @@ Do you want to continue?</value>
   <data name="ChangeTo" xml:space="preserve">
     <value>Change '{0}' to '{1}'.</value>
   </data>
+  <data name="ErrorCategory" xml:space="preserve">
+    <value>Roslyn.HostError</value>
+  </data>
+  <data name="WRN_AnalyzerCannotBeCreated" xml:space="preserve">
+    <value>An instance of analyzer {0} cannot be created from {1}: {2}.</value>
+  </data>
+  <data name="WRN_NoAnalyzerInAssembly" xml:space="preserve">
+    <value>The assembly {0} does not contain any analyzers.</value>
+  </data>
+  <data name="WRN_UnableToLoadAnalyzer" xml:space="preserve">
+    <value>Unable to load Analyzer assembly {0}: {1}</value>
+  </data>
 </root>

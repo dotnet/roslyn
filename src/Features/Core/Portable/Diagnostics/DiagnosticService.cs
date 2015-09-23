@@ -116,6 +116,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public IEnumerable<DiagnosticData> GetDiagnostics(
             Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
+            // TODO: current design was one issue where GetDiagnostic can't get id if one doesnt already know about it. need an API that let it return all ids for existing diagnostics.
             if (id != null)
             {
                 // get specific one
