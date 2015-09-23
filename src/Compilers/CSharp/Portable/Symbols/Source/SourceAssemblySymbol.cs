@@ -2073,7 +2073,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 string verString = (string)attribute.CommonConstructorArguments[0].Value;
                 Version version;
-                if (!VersionHelper.TryParseAssemblyVersion(verString, allowWildcard: true, version: out version))
+                if (!VersionHelper.TryParseAssemblyVersion(verString, allowWildcard: !_compilation.IsEmitDeterministic, version: out version))
                 {
                     Location attributeArgumentSyntaxLocation = attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt);
                     arguments.Diagnostics.Add(ErrorCode.ERR_InvalidVersionFormat, attributeArgumentSyntaxLocation);

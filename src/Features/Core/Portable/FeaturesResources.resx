@@ -863,6 +863,5 @@ Do you want to continue?</value>
   </data>
   <data name="ChangeTo" xml:space="preserve">
     <value>Change '{0}' to '{1}'.</value>
->>>>>>> master
   </data>
 </root>

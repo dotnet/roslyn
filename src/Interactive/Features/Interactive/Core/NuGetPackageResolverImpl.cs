@@ -10,13 +10,23 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using NuGetPackageResolver = WORKSPACES::Microsoft.CodeAnalysis.Scripting.Hosting.NuGetPackageResolver;
 
-namespace Microsoft.CodeAnalysis.Editor.Interactive
+namespace Microsoft.CodeAnalysis.Interactive
 {
-    internal sealed class NuGetPackageResolverImpl : WORKSPACES::Microsoft.CodeAnalysis.Scripting.Hosting.NuGetPackageResolver
+    internal sealed class NuGetPackageResolverImpl : NuGetPackageResolver
     {
         private const string ProjectJsonFramework = "net46";
         private const string ProjectLockJsonFramework = ".NETFramework,Version=v4.6";
+        private const string EmptyNuGetConfig =
+@"<?xml version=""1.0"" encoding=""utf-8""?>
+<configuration>
+  <packageRestore>
+    <add key=""enabled"" value=""True"" />
+    <add key=""automatic"" value=""False"" />
+  </packageRestore>
+  <packageSources/>
+</configuration>";
 
         private readonly string _packagesDirectory;
         private readonly Action<ProcessStartInfo> _restore;
@@ -28,35 +38,39 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _restore = restore ?? NuGetRestore;
         }
 
-        internal override ImmutableArray<string> ResolveNuGetPackage(string reference)
+        internal new static bool TryParsePackageReference(string reference, out string name, out string version)
         {
-            string packageName;
-            string packageVersion;
-            if (!ParsePackageReference(reference, out packageName, out packageVersion))
-            {
-                return default(ImmutableArray<string>);
-            }
+            return NuGetPackageResolver.TryParsePackageReference(reference, out name, out version);
+        }
 
+        internal override ImmutableArray<string> ResolveNuGetPackage(string packageName, string packageVersion)
+        {
             try
             {
-                var tempPath = PathUtilities.CombineAbsoluteAndRelativePaths(Path.GetTempPath(), Guid.NewGuid().ToString("D"));
+                var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("D"));
                 var tempDir = Directory.CreateDirectory(tempPath);
                 try
                 {
                     // Create project.json.
-                    var projectJson = PathUtilities.CombineAbsoluteAndRelativePaths(tempPath, "project.json");
-                    using (var stream = File.OpenWrite(projectJson))
+                    var projectJsonPath = Path.Combine(tempPath, "project.json");
+                    using (var stream = File.OpenWrite(projectJsonPath))
                     using (var writer = new StreamWriter(stream))
                     {
                         WriteProjectJson(writer, packageName, packageVersion);
                     }
 
-                    // Run "nuget.exe restore project.json" to generate project.lock.json.
-                    NuGetRestore(projectJson);
+                    // Create nuget.config with no package sources so restore
+                    // uses the local cache only, no downloading.
+                    var configPath = Path.Combine(tempPath, "nuget.config");
+                    File.WriteAllText(configPath, EmptyNuGetConfig);
+
+                    // Run "nuget.exe restore project.json -configfile nuget.config"
+                    // to generate project.lock.json.
+                    NuGetRestore(projectJsonPath, configPath);
 
                     // Read the references from project.lock.json.
-                    var projectLockJson = PathUtilities.CombineAbsoluteAndRelativePaths(tempPath, "project.lock.json");
-                    using (var stream = File.OpenRead(projectLockJson))
+                    var projectLockJsonPath = Path.Combine(tempPath, "project.lock.json");
+                    using (var stream = File.OpenRead(projectLockJsonPath))
                     using (var reader = new StreamReader(stream))
                     {
                         return ReadProjectLockJson(_packagesDirectory, reader);
@@ -73,26 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             catch (UnauthorizedAccessException)
             {
             }
-            return default(ImmutableArray<string>);
-        }
-
-        /// <summary>
-        /// Syntax is "id/version", matching references in project.lock.json.
-        /// </summary>
-        internal static bool ParsePackageReference(string reference, out string name, out string version)
-        {
-            var parts = reference.Split('/');
-            if ((parts.Length == 2) &&
-                (parts[0].Length > 0) &&
-                (parts[1].Length > 0))
-            {
-                name = parts[0];
-                version = parts[1];
-                return true;
-            }
-            name = null;
-            version = null;
-            return false;
+            return ImmutableArray<string>.Empty;
         }
 
         /// <summary>
@@ -139,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 {
                     foreach (var package in (JObject)target.Value)
                     {
-                        var packageRoot = PathUtilities.CombineAbsoluteAndRelativePaths(packagesDirectory, package.Key);
+                        var packageRoot = Path.Combine(packagesDirectory, package.Key);
                         var runtime = (JObject)GetPropertyValue((JObject)package.Value, "runtime");
                         if (runtime == null)
                         {
@@ -147,8 +142,14 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                         }
                         foreach (var item in runtime)
                         {
-                            var path = PathUtilities.CombinePossiblyRelativeAndRelativePaths(packageRoot, item.Key);
-                            builder.Add(path);
+                            var relativePath = item.Key;
+                            // Ignore placeholder "_._" files.
+                            var name = Path.GetFileName(relativePath);
+                            if (string.Equals(name, "_._", StringComparison.InvariantCulture))
+                            {
+                                continue;
+                            }
+                            builder.Add(Path.Combine(packageRoot, relativePath));
                         }
                     }
                     break;
@@ -164,17 +165,17 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             return value;
         }
 
-        private void NuGetRestore(string projectJsonPath)
+        private void NuGetRestore(string projectJsonPath, string configPath)
         {
             // Load nuget.exe from same directory as current assembly.
-            var nugetExePath = PathUtilities.CombineAbsoluteAndRelativePaths(
-                PathUtilities.GetDirectoryName(
+            var nugetExePath = Path.Combine(
+                Path.GetDirectoryName(
                     CorLightup.Desktop.GetAssemblyLocation(typeof(NuGetPackageResolverImpl).GetTypeInfo().Assembly)),
                 "nuget.exe");
             var startInfo = new ProcessStartInfo()
             {
                 FileName = nugetExePath,
-                Arguments = $"restore \"{projectJsonPath}\" -PackagesDirectory \"{_packagesDirectory}\"",
+                Arguments = $"restore \"{projectJsonPath}\" -ConfigFile \"{configPath}\" -PackagesDirectory \"{_packagesDirectory}\"",
                 CreateNoWindow = true,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
