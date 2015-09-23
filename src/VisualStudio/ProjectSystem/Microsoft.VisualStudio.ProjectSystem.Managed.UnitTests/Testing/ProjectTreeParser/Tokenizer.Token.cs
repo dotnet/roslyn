@@ -14,20 +14,13 @@ namespace Microsoft.VisualStudio.Testing
         {
             private readonly char _value;
             private readonly bool _isDelimiter;
-            private readonly int _position;
 
-            private Token(char value, int position, bool isDelimiter)
+            private Token(char value, bool isDelimiter)
             {
                 Debug.Assert(value != '\0');
 
                 _value = value;
-                _position = position;
                 _isDelimiter = isDelimiter;
-            }
-
-            public int Position
-            {
-                get { return _position; }
             }
 
             public bool IsDelimiter
@@ -56,14 +49,14 @@ namespace Microsoft.VisualStudio.Testing
                 }
             }
 
-            public static Token Literal(char value, int position)
+            public static Token Literal(char value)
             {
-                return new Token(value, position, isDelimiter: false);
+                return new Token(value, isDelimiter: false);
             }
 
-            public static Token Delimiter(char value, int position)
+            public static Token Delimiter(char value)
             {
-                return new Token(value, position, isDelimiter: true);
+                return new Token(value, isDelimiter: true);
             }
         }
     }

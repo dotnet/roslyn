@@ -6,19 +6,13 @@ namespace Microsoft.VisualStudio.Testing
 {
     internal class ProjectTreeFormatException : FormatException
     {
-        public ProjectTreeFormatException(string message, ProjectTreeFormatError errorId, int position)
+        public ProjectTreeFormatException(string message, ProjectTreeFormatError errorId)
             : base(message)
         {
             ErrorId = errorId;
-            Position = position;
         }
 
         public ProjectTreeFormatError ErrorId
-        {
-            get;
-        }
-
-        public int Position
         {
             get;
         }

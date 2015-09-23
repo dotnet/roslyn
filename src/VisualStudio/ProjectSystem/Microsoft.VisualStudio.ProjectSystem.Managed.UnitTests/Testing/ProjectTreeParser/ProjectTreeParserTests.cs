@@ -31,73 +31,67 @@ namespace Microsoft.VisualStudio.Testing
 
         // Input                                                                                    Position (zero-based)
         [Theory]
-        [InlineData(@" ",                                                                            0)]
-        [InlineData(@"  ",                                                                           1)]
-        [InlineData(@"   ",                                                                          2)]
-        [InlineData(@"    ",                                                                         3)]
-        public void Parse_IdExpected_EncounteredOnlyWhiteSpace_ThrowsFormat(string input, int position)
+        [InlineData(@" ")]
+        [InlineData(@"  ")]
+        [InlineData(@"   ")]
+        [InlineData(@"    ")]
+        public void Parse_IdExpected_EncounteredOnlyWhiteSpace_ThrowsFormat(string input)
         {
-            AssertThrows(input, ProjectTreeFormatError.IdExpected_EncounteredOnlyWhiteSpace, position);
+            AssertThrows(input, ProjectTreeFormatError.IdExpected_EncounteredOnlyWhiteSpace);
         }
 
         // Input                                                                                    Position (zero-based)
         [Theory]
-        [InlineData(@"(",                                                                            0)]
-        [InlineData(@",",                                                                            0)]
-        [InlineData(@"Root,  ",                                                                      6)]
-        [InlineData(@"Root,   ",                                                                     6)]
-        [InlineData(@"Root ( ",                                                                      6)]
-        [InlineData(@"Root (visibility:  ",                                                         18)]
-        [InlineData(@"Root (visibility: visible,  ",                                                27)]
-        [InlineData(@"Root (visibility: visible,   ",                                               27)]
-        [InlineData(@"Root (capabilities: { ",                                                      21)]
-        [InlineData(@"Root (capabilities: {  ",                                                     21)]
-        public void Parse_IdExpected_EncounteredDelimiter_ThrowsFormat(string input, int position)
+        [InlineData(@"(")]
+        [InlineData(@",")]
+        [InlineData(@"Root,  ")]
+        [InlineData(@"Root,   ")]
+        [InlineData(@"Root ( ")]
+        [InlineData(@"Root (visibility:  ")]
+        [InlineData(@"Root (visibility: visible,  ")]
+        [InlineData(@"Root (visibility: visible,   ")]
+        [InlineData(@"Root (capabilities: { ")]
+        [InlineData(@"Root (capabilities: {  ")]
+        public void Parse_IdExpected_EncounteredDelimiter_ThrowsFormat(string input)
         {   
-            AssertThrows(input, ProjectTreeFormatError.IdExpected_EncounteredDelimiter, position);
+            AssertThrows(input, ProjectTreeFormatError.IdExpected_EncounteredDelimiter);
         }
 
         // Input                                                                                    Position (zero-based)
         [Theory]
-        [InlineData(@"Root, ",                                                                      -1)]
-        [InlineData(@"Root (",                                                                      -1)]
-        [InlineData(@"Root (visibility: ",                                                          -1)]
-        [InlineData(@"Root (visibility: visible, ",                                                 -1)]
-        [InlineData(@"Root (capabilities: {",                                                       -1)]
-        public void Parse_IdExpected_EncounteredEndOfString_ThrowsFormat(string input, int position)
+        [InlineData(@"Root, ")]
+        [InlineData(@"Root (")]
+        [InlineData(@"Root (visibility: ")]
+        [InlineData(@"Root (visibility: visible, ")]
+        [InlineData(@"Root (capabilities: {")]
+        public void Parse_IdExpected_EncounteredEndOfString_ThrowsFormat(string input)
         {
-            AssertThrows(input, ProjectTreeFormatError.IdExpected_EncounteredEndOfString, position);
+            AssertThrows(input, ProjectTreeFormatError.IdExpected_EncounteredEndOfString);
         }
 
         // Input                                                                                     Position (zero-based)
         [Theory]
-        [InlineData(@"Root (Foo:",                                                                   7)]
-        [InlineData(@"Root (Visibility:",                                                            7)]
-        [InlineData(@"Root (Capabilities: ",                                                         7)]    
-        [InlineData(@"Root (capabilıties: ",                                                         7)]    // Turkish ı
-        [InlineData(@"Root (visibilıty: ",                                                           7)]    // Turkish ı
-        [InlineData(@"Root, FılePath:",                                                              7)]    // Turkish ı
-        [InlineData(@"Root (Foo",                                                                    7)]
-        [InlineData(@"Root (Visibility",                                                             7)]
-        [InlineData(@"Root (Capabilities ",                                                          7)]    
-        [InlineData(@"Root (capabilıties ",                                                          7)]    // Turkish ı
-        [InlineData(@"Root (visibilıty ",                                                            7)]    // Turkish ı
-        [InlineData(@"Root, FılePath",                                                               7)]    // Turkish ı
-        public void Parse_UnrecognizedPropertyName_ThrowsFormat(string input, int position)
+        [InlineData(@"Root (Foo:")]
+        [InlineData(@"Root (Visibility:")]
+        [InlineData(@"Root (Capabilities: ")]
+        [InlineData(@"Root (Foo")]
+        [InlineData(@"Root (Visibility")]
+        [InlineData(@"Root (Capabilities ")]
+        public void Parse_UnrecognizedPropertyName_ThrowsFormat(string input)
         {
-            AssertThrows(input, ProjectTreeFormatError.UnrecognizedPropertyName, position);
+            AssertThrows(input, ProjectTreeFormatError.UnrecognizedPropertyName);
         }
 
         [Theory]
-        [InlineData(@"Root (visibility: visıble",                                                   17)]    // Turkish ı
-        [InlineData(@"Root (visibility: invisıble",                                                 17)]    // Turkish ı
-        [InlineData(@"Root (visibility: VISIBLE",                                                   17)]
-        [InlineData(@"Root (visibility: INVISIBLE",                                                 17)]
-        [InlineData(@"Root (visibility: v",                                                         17)]
-        [InlineData(@"Root (visibility: i",                                                         17)]
-        public void Parse_UnrecognizedPropertyValue_ThrowsFormat(string input, int position)
+        [InlineData(@"Root (visibility: Visible")]
+        [InlineData(@"Root (visibility: Invisible")]
+        [InlineData(@"Root (visibility: VISIBLE")]
+        [InlineData(@"Root (visibility: INVISIBLE")]
+        [InlineData(@"Root (visibility: v")]
+        [InlineData(@"Root (visibility: i")]
+        public void Parse_UnrecognizedPropertyValue_ThrowsFormat(string input)
         {
-            AssertThrows(input, ProjectTreeFormatError.UnrecognizedPropertyValue, position);
+            AssertThrows(input, ProjectTreeFormatError.UnrecognizedPropertyValue);
         }
 
         // Input                                                                                    // Expected
@@ -221,7 +215,7 @@ namespace Microsoft.VisualStudio.Testing
             Assert.Equal(expected, result);
         }
 
-        private void AssertThrows(string input, ProjectTreeFormatError error, int position)
+        private void AssertThrows(string input, ProjectTreeFormatError error)
         {
             var parser = new ProjectTreeParser(input);
 
@@ -232,7 +226,6 @@ namespace Microsoft.VisualStudio.Testing
 
 
             Assert.Equal(error, exception.ErrorId);
-            Assert.Equal(position, exception.Position);
         }
     }
 }

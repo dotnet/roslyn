@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.Testing
 
             if (t.TokenType != expected)
             {
-                throw FormatException(token, ProjectTreeFormatError.DelimiterExpected, $"Expected '{(char)expected}' but encountered '{t.Value}'.");
+                throw FormatException(ProjectTreeFormatError.DelimiterExpected, $"Expected '{(char)expected}' but encountered '{t.Value}'.");
             }
         }
 
@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.Testing
         {
             Token? token = ReadToken();
             if (token != null)
-                throw FormatException(token, ProjectTreeFormatError.EndOfStringExpected, $"Expected end-of-string, but encountered '{token.Value.Value}'.");
+                throw FormatException(ProjectTreeFormatError.EndOfStringExpected, $"Expected end-of-string, but encountered '{token.Value.Value}'.");
         }
 
         public string ReadIdentifier(IdentifierParseOptions options)
@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.Testing
             }
 
             // Otherwise, we must have hit a delimiter as whitespace will have been consumed as part of the identifier
-            throw FormatException(token, ProjectTreeFormatError.IdExpected_EncounteredDelimiter, $"Expected identifier, but encountered '{token.Value.Value}'.");
+            throw FormatException(ProjectTreeFormatError.IdExpected_EncounteredDelimiter, $"Expected identifier, but encountered '{token.Value.Value}'.");
         }
 
         private void CheckIdentifierAfterTrim(string identifier, IdentifierParseOptions options)
@@ -161,21 +161,21 @@ namespace Microsoft.VisualStudio.Testing
         {
             if (reader.CanRead)
             {
-                return GetToken(reader.Read(), reader.Position - 1);
+                return GetToken(reader.Read());
             }
 
             return null;
         }
 
-        private Token GetToken(char c, int position)
+        private Token GetToken(char c)
         {
             if (IsDelimiter(c))
             {
-                return Token.Delimiter(c, position);
+                return Token.Delimiter(c);
             }
 
             // Otherwise, must be a literal
-            return Token.Literal(c, position);
+            return Token.Literal(c);
         }
 
         private bool IsDelimiter(char c)
@@ -185,16 +185,8 @@ namespace Microsoft.VisualStudio.Testing
 
         internal FormatException FormatException(ProjectTreeFormatError errorId, string message)
         {
-            return FormatException((Token?)null, errorId, message);
-        }
-
-        private FormatException FormatException(Token? token, ProjectTreeFormatError errorId, string message)
-        {
-            int position = token?.Position ?? -1;
-
             return new ProjectTreeFormatException(message,
-                                                  errorId,
-                                                  position);
+                                                  errorId);
         }
     }
 }

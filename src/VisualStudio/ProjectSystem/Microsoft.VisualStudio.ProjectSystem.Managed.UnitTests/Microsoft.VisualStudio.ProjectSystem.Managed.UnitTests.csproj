@@ -145,7 +145,6 @@
     <Compile Include="Mocks\IThreadHandlingFactory.cs" />
     <Compile Include="ProjectSystem\UnconfiguredProjectCommonServicesTests.cs" />
     <Compile Include="Testing\ProjectSystemTraitDiscover.cs" />
-    <Compile Include="Testing\ProjectTreeAssert.cs" />
     <Compile Include="Testing\ProjectTreeParser\Delimiters.cs" />
     <Compile Include="Testing\ProjectTreeParser\ProjectTreeFormatError.cs" />
     <Compile Include="Testing\ProjectTreeParser\ProjectTreeFormatException.cs" />
