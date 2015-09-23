@@ -15,7 +15,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Async
         public void BadAsyncReturnOperand1()
         {
             var initial =
-@"using System.Threading.Tasks;
+@"using System;
+using System.Threading.Tasks;
 
 class Program
 {
@@ -31,7 +32,8 @@ class Program
 }";
 
             var expected =
-@"using System.Threading.Tasks;
+@"using System;
+using System.Threading.Tasks;
 
 class Program
 {
@@ -52,7 +54,8 @@ class Program
         public void BadAsyncReturnOperand_WithLeadingTrivia1()
         {
             var initial =
-@"using System.Threading.Tasks;
+@"using System;
+using System.Threading.Tasks;
 
 class Program
 {
@@ -70,7 +73,8 @@ class Program
 }";
 
             var expected =
-@"using System.Threading.Tasks;
+@"using System;
+using System.Threading.Tasks;
 
 class Program
 {
@@ -93,7 +97,8 @@ class Program
         public void BadAsyncReturnOperand_ConditionalExpressionWithTrailingTrivia_SingleLine()
         {
             var initial =
-@"using System.Threading.Tasks;
+@"using System;
+using System.Threading.Tasks;
 
 class Program
 {
@@ -106,7 +111,8 @@ class Program
 }";
 
             var expected =
-@"using System.Threading.Tasks;
+@"using System;
+using System.Threading.Tasks;
 
 class Program
 {
@@ -124,7 +130,8 @@ class Program
         public void BadAsyncReturnOperand_ConditionalExpressionWithTrailingTrivia_Multiline()
         {
             var initial =
-@"using System.Threading.Tasks;
+@"using System;
+using System.Threading.Tasks;
 
 class Program
 {
@@ -139,7 +146,8 @@ class Program
 }";
 
             var expected =
-@"using System.Threading.Tasks;
+@"using System;
+using System.Threading.Tasks;
 
 class Program
 {
@@ -159,7 +167,8 @@ class Program
         public void BadAsyncReturnOperand_NullCoalescingExpressionWithTrailingTrivia_SingleLine()
         {
             var initial =
-@"using System.Threading.Tasks;
+@"using System;
+using System.Threading.Tasks;
 
 class Program
 {
@@ -172,7 +181,8 @@ class Program
 }";
 
             var expected =
-@"using System.Threading.Tasks;
+@"using System;
+using System.Threading.Tasks;
 
 class Program
 {
@@ -190,7 +200,8 @@ class Program
         public void BadAsyncReturnOperand_NullCoalescingExpressionWithTrailingTrivia_Multiline()
         {
             var initial =
-@"using System.Threading.Tasks;
+@"using System;
+using System.Threading.Tasks;
 
 class Program
 {
@@ -205,7 +216,8 @@ class Program
 }";
 
             var expected =
-@"using System.Threading.Tasks;
+@"using System;
+using System.Threading.Tasks;
 
 class Program
 {
@@ -225,7 +237,8 @@ class Program
         public void BadAsyncReturnOperand_AsExpressionWithTrailingTrivia_SingleLine()
         {
             var initial =
-@"using System.Threading.Tasks;
+@"using System;
+using System.Threading.Tasks;
 
 class Program
 {
@@ -236,12 +249,11 @@ class Program
 }";
 
             var expected =
-@"using System.Threading.Tasks;
+@"using System;
+using System.Threading.Tasks;
 
 class Program
 {
-    async Task<int> Test() => 3;
-
     async Task<int> Test2()
     {
         return await (null /* 0 */ as Task<int> /* 1 */);
@@ -254,7 +266,8 @@ class Program
         public void BadAsyncReturnOperand_AsExpressionWithTrailingTrivia_Multiline()
         {
             var initial =
-@"using System.Threading.Tasks;
+@"using System;
+using System.Threading.Tasks;
 
 class Program
 {
@@ -269,7 +282,8 @@ class Program
 }";
 
             var expected =
-@"using System.Threading.Tasks;
+@"using System;
+using System.Threading.Tasks;
 
 class Program
 {
@@ -289,7 +303,8 @@ class Program
         public void TaskNotAwaited()
         {
             var initial =
-@"using System.Threading.Tasks;
+@"using System;
+using System.Threading.Tasks;
 class Program
 {
     async void Test()
@@ -299,7 +314,8 @@ class Program
 }";
 
             var expected =
-@"using System.Threading.Tasks;
+@"using System;
+using System.Threading.Tasks;
 class Program
 {
     async void Test()
@@ -314,7 +330,8 @@ class Program
         public void TaskNotAwaited_WithLeadingTrivia()
         {
             var initial =
-@"using System.Threading.Tasks;
+@"using System;
+using System.Threading.Tasks;
 class Program
 {
     async void Test()
@@ -326,7 +343,8 @@ class Program
 }";
 
             var expected =
-@"using System.Threading.Tasks;
+@"using System;
+using System.Threading.Tasks;
 class Program
 {
     async void Test()
@@ -343,7 +361,8 @@ class Program
         public void FunctionNotAwaited()
         {
             var initial =
-@"using System.Threading.Tasks;
+@"using System;
+using System.Threading.Tasks;
 class Program
 {
     Task AwaitableFunction()
@@ -358,7 +377,8 @@ class Program
 }";
 
             var expected =
-@"using System.Threading.Tasks;
+@"using System;
+using System.Threading.Tasks;
 class Program
 {
     Task AwaitableFunction()
@@ -378,7 +398,8 @@ class Program
         public void FunctionNotAwaited_WithLeadingTrivia()
         {
             var initial =
-@"using System.Threading.Tasks;
+@"using System;
+using System.Threading.Tasks;
 class Program
 {
     Task AwaitableFunction()
@@ -395,7 +416,8 @@ class Program
 }";
 
             var expected =
-@"using System.Threading.Tasks;
+@"using System;
+using System.Threading.Tasks;
 class Program
 {
     Task AwaitableFunction()
@@ -417,7 +439,8 @@ class Program
         public void FunctionNotAwaited_WithLeadingTrivia1()
         {
             var initial =
-@"using System.Threading.Tasks;
+@"using System;
+using System.Threading.Tasks;
 class Program
 {
     Task AwaitableFunction()
@@ -434,7 +457,8 @@ class Program
 }";
 
             var expected =
-@"using System.Threading.Tasks;
+@"using System;
+using System.Threading.Tasks;
 class Program
 {
     Task AwaitableFunction()
