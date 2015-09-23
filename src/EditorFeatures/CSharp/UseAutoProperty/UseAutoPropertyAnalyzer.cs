@@ -82,11 +82,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
 
         protected override ExpressionSyntax GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken)
         {
+            // Getter has to be of the form:
+            //
+            //     get { return field; } or
+            //     get { return this.field; }
             var getAccessor = getMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken) as AccessorDeclarationSyntax;
             var statements = getAccessor?.Body?.Statements;
             if (statements?.Count == 1)
             {
-                // this only works with a getter body with exactly one statement
                 var firstStatement = statements.Value[0];
                 if (firstStatement.Kind() == SyntaxKind.ReturnStatement)
                 {
@@ -100,11 +103,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
 
         protected override ExpressionSyntax GetSetterExpression(IMethodSymbol setMethod, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
+            // Setter has to be of the form:
+            //
+            //     set { field = value; } or
+            //     set { this.field = value; }
             var setAccessor = setMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken) as AccessorDeclarationSyntax;
             var statements = setAccessor?.Body?.Statements;
             if (statements?.Count == 1)
             {
-                // this only works with a setter body with exactly one statement
                 var firstStatement = statements.Value[0];
                 if (firstStatement?.Kind() == SyntaxKind.ExpressionStatement)
                 {
