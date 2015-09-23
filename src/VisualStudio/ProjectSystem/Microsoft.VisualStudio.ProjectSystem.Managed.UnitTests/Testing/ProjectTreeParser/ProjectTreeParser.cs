@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.Testing
 {
     internal class ProjectTreeParser
     {
-        private static readonly ImmutableArray<TokenType> Delimitors = ImmutableArray.Create(TokenType.Comma, TokenType.LeftParenthesis, TokenType.RightParenthesis, TokenType.WhiteSpace, TokenType.NewLine, TokenType.CarriageReturn);
+        
         private readonly Tokenizer _tokenizer;
         private int _indentLevel;
 
@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.Testing
         {
             Requires.NotNullOrEmpty(value, nameof(value));
 
-            _tokenizer = new Tokenizer(new StringReader(value), Delimitors);
+            _tokenizer = new Tokenizer(new StringReader(value), Delimiters.Structural);
         }
 
         public IProjectTree Parse()
