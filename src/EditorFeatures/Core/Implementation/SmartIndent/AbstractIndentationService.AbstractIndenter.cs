@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                         continue;
                     }
 
-                    // No preprocessors in the entire tree, so this line
+                    // No preprocessors in the entire tree, so this
                     // line definitely doesn't have one
                     var root = Tree.GetRoot(CancellationToken);
                     if (!root.ContainsDirectives)
