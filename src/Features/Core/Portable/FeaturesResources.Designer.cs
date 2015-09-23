@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &gt;&gt;&gt;&gt;&gt;&gt;&gt; master.
+        ///   Looks up a localized string similar to Change &apos;{0}&apos; to &apos;{1}&apos;..
         /// </summary>
         internal static string ChangeTo {
             get {
@@ -499,6 +499,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Class {
             get {
                 return ResourceManager.GetString("Class", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Computing fix all occurrences code fix....
+        /// </summary>
+        internal static string ComputingFixAllOccurrences {
+            get {
+                return ResourceManager.GetString("ComputingFixAllOccurrences", resourceCulture);
             }
         }
         
@@ -787,6 +796,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Field {
             get {
                 return ResourceManager.GetString("Field", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix all occurrences.
+        /// </summary>
+        internal static string FixAllOccurrences {
+            get {
+                return ResourceManager.GetString("FixAllOccurrences", resourceCulture);
             }
         }
         

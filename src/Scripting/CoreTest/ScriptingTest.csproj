@@ -59,6 +59,7 @@
     <Compile Include="ObjectFormatterTestBase.cs" />
     <Compile Include="ObjectFormatterTests.Fixtures.cs" />
     <Compile Include="RedirectedOutput.cs" />
+    <Compile Include="RuntimeMetadataReferenceResolverTests.cs" />
     <Compile Include="ScriptingTestHelpers.cs" />
     <Compile Include="ScriptOptionsTests.cs" />
     <Compile Include="ScriptTaskExtensions.cs" />
@@ -77,6 +78,5 @@
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

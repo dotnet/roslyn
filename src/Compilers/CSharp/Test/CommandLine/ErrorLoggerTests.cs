@@ -138,6 +138,90 @@ public class C
         }
 
         [Fact]
+        public void SimpleCompilerDiagnostics_Suppressed()
+        {
+            var source = @"
+public class C
+{
+#pragma warning disable CS0169
+    private int x;
+#pragma warning restore CS0169
+}";
+            var sourceFile = Temp.CreateFile().WriteAllText(source).Path;
+            var errorLogDir = Temp.CreateDirectory();
+            var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
+
+            var cmd = new MockCSharpCompiler(null, _baseDirectory, new[] {
+                "/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}" });
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+            var exitCode = cmd.Run(outWriter);
+            var actualConsoleOutput = outWriter.ToString().Trim();
+
+            // Suppressed diagnostics are only report in the error log, not the console output.
+            Assert.DoesNotContain("CS0169", actualConsoleOutput);
+            Assert.Contains("CS5001", actualConsoleOutput);
+            Assert.NotEqual(0, exitCode);
+
+            var actualOutput = File.ReadAllText(errorLogFile).Trim();
+
+            var expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd);
+            var expectedIssues = string.Format(@"
+  ""issues"": [
+    {{
+      ""ruleId"": ""CS0169"",
+      ""locations"": [
+        {{
+          ""analysisTarget"": [
+            {{
+              ""uri"": ""{0}"",
+              ""region"": {{
+                ""startLine"": 4,
+                ""startColumn"": 16,
+                ""endLine"": 4,
+                ""endColumn"": 17
+              }}
+            }}
+          ]
+        }}
+      ],
+      ""fullMessage"": ""The field 'C.x' is never used"",
+      ""properties"": {{
+        ""severity"": ""Warning"",
+        ""warningLevel"": ""3"",
+        ""defaultSeverity"": ""Warning"",
+        ""title"": ""Field is never used"",
+        ""category"": ""Compiler"",
+        ""isEnabledByDefault"": ""True"",
+        ""isSuppressedInSource"": ""True"",
+        ""customTags"": ""Compiler;Telemetry""
+      }}
+    }},
+    {{
+      ""ruleId"": ""CS5001"",
+      ""locations"": [
+      ],
+      ""fullMessage"": ""Program does not contain a static 'Main' method suitable for an entry point"",
+      ""properties"": {{
+        ""severity"": ""Error"",
+        ""defaultSeverity"": ""Error"",
+        ""category"": ""Compiler"",
+        ""isEnabledByDefault"": ""True"",
+        ""isSuppressedInSource"": ""False"",
+        ""customTags"": ""Compiler;Telemetry;NotConfigurable""
+      }}
+    }}
+  ]
+}}", AnalyzerForErrorLogTest.EscapeDirectorySeparatorChar(sourceFile));
+
+            var expectedText = expectedHeader + expectedIssues;
+            Assert.Equal(expectedText, actualOutput);
+
+            CleanupAllGeneratedFiles(sourceFile);
+            CleanupAllGeneratedFiles(errorLogFile);
+        }
+
+        [Fact]
         public void AnalyzerDiagnosticsWithAndWithoutLocation()
         {
             var source = @"

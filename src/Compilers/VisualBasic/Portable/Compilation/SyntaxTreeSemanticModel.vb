@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' initializers are not cached, the any semantic information used to obtain the diagnostics is discarded.
         ''' </remarks>
         Public Overrides Function GetDiagnostics(Optional span As TextSpan? = Nothing, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
-            Return _compilation.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, _syntaxTree, span, includeEarlierStages:=True, includeDiagnosticsWithSourceSuppression:=False, cancellationToken:=cancellationToken)
+            Return _compilation.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, _syntaxTree, span, includeEarlierStages:=True, cancellationToken:=cancellationToken)
         End Function
 
         ''' <summary>
@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="cancellationToken">A cancellation token that can be used to cancel the
         ''' process of obtaining the diagnostics.</param>
         Public Overrides Function GetSyntaxDiagnostics(Optional span As TextSpan? = Nothing, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
-            Return _compilation.GetDiagnosticsForSyntaxTree(CompilationStage.Parse, _syntaxTree, span, includeEarlierStages:=False, includeDiagnosticsWithSourceSuppression:=False, cancellationToken:=cancellationToken)
+            Return _compilation.GetDiagnosticsForSyntaxTree(CompilationStage.Parse, _syntaxTree, span, includeEarlierStages:=False, cancellationToken:=cancellationToken)
         End Function
 
         ''' <summary>
@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' declarations are analyzed for diagnostics. Calling this a second time will return the cached diagnostics.
         ''' </remarks>
         Public Overrides Function GetDeclarationDiagnostics(Optional span As TextSpan? = Nothing, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
-            Return _compilation.GetDiagnosticsForSyntaxTree(CompilationStage.Declare, _syntaxTree, span, includeEarlierStages:=False, includeDiagnosticsWithSourceSuppression:=False, cancellationToken:=cancellationToken)
+            Return _compilation.GetDiagnosticsForSyntaxTree(CompilationStage.Declare, _syntaxTree, span, includeEarlierStages:=False, cancellationToken:=cancellationToken)
         End Function
 
         ''' <summary>
@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' declarations are analyzed for diagnostics. Calling this a second time will return the cached diagnostics.
         ''' </remarks>
         Public Overrides Function GetMethodBodyDiagnostics(Optional span As TextSpan? = Nothing, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
-            Return _compilation.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, _syntaxTree, span, includeEarlierStages:=False, includeDiagnosticsWithSourceSuppression:=False, cancellationToken:=cancellationToken)
+            Return _compilation.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, _syntaxTree, span, includeEarlierStages:=False, cancellationToken:=cancellationToken)
         End Function
 
         ' PERF: These shared variables avoid repeated allocation of Func(Of Binder, MemberSemanticModel) in GetMemberSemanticModel

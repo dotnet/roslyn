@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: false,
                     constantValueOpt: rewrittenExpression.ConstantValue);
 
-                boundTemp = _factory.StoreToTemp(tempInit, out tempAssignment);
+                boundTemp = _factory.StoreToTemp(tempInit, out tempAssignment, kind: SynthesizedLocalKind.Using);
             }
             else
             {
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: false);
 
                 BoundAssignmentOperator tempAssignment;
-                BoundLocal boundTemp = _factory.StoreToTemp(tempInit, out tempAssignment);
+                BoundLocal boundTemp = _factory.StoreToTemp(tempInit, out tempAssignment, kind: SynthesizedLocalKind.Using);
 
                 BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundTemp);
 

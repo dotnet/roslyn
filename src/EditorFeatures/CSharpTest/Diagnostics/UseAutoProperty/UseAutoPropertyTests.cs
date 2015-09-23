@@ -120,6 +120,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public void TestSetterWithMultipleStatementsAndGetterWithSingleStatement()
+        {
+            TestMissing(@"class Class { [|int i|]; int P { get { return i; } set { ; i = value; } } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public void TestGetterAndSetterUseDifferentFields()
         {
             TestMissing(

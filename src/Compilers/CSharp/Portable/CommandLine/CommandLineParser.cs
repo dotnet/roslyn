@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowUnsafe = false;
             bool concurrentBuild = true;
             bool emitPdb = false;
+            bool debugPlus = false;
             string pdbPath = null;
             bool noStdLib = false;
             string outputDirectory = baseDirectory;
@@ -524,6 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
 
                             emitPdb = true;
+                            debugPlus = true;
                             continue;
 
                         case "debug-":
@@ -531,6 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
 
                             emitPdb = false;
+                            debugPlus = false;
                             continue;
 
                         case "o":
@@ -1056,6 +1059,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script);
 
+            // We want to report diagnostics with source suppression in the error log file.
+            // However, these diagnostics won't be reported on the command line.
+            var reportSuppressedDiagnostics = errorLogPath != null;
+
             var options = new CSharpCompilationOptions
             (
                 outputKind: outputKind,
@@ -1073,8 +1080,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 platform: platform,
                 generalDiagnosticOption: generalDiagnosticOption,
                 warningLevel: warningLevel,
-                specificDiagnosticOptions: diagnosticOptions
+                specificDiagnosticOptions: diagnosticOptions,
+                reportSuppressedDiagnostics: reportSuppressedDiagnostics
             );
+
+            if (debugPlus)
+            {
+                options = options.WithDebugPlusMode(debugPlus);
+            }
 
             var emitOptions = new EmitOptions
             (
@@ -1263,7 +1276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // current folder first -- base directory is searched by default
 
-            // SDK path is specified or current runtime directory
+            // Add SDK directory if it is available
             if (sdkDirectoryOpt != null)
             {
                 builder.Add(sdkDirectoryOpt);

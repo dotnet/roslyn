@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using Roslyn.Utilities;
@@ -450,7 +449,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
                     ShadowCopy documentationFileCopy = null;
                     string xmlOriginalPath;
-                    if (ReferencePathUtilities.TryFindXmlDocumentationFile(originalPath, out xmlOriginalPath))
+                    if (XmlFileResolverForAssemblies.TryFindXmlDocumentationFile(originalPath, out xmlOriginalPath))
                     {
                         // TODO (tomat): how do doc comments work for multi-module assembly?
                         var xmlCopyPath = Path.ChangeExtension(shadowCopyPath, ".xml");

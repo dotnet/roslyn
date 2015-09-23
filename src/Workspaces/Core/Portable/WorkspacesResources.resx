@@ -456,4 +456,7 @@
   <data name="Exceptions" xml:space="preserve">
     <value>Exceptions:</value>
   </data>
+  <data name="FixableDiagnosticIdsIncorrectlyInitialized" xml:space="preserve">
+    <value>'{0}' returned an uninitialized ImmutableArray</value>
+  </data>
 </root>

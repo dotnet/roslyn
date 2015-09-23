@@ -13,8 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                     destination As TypeBlockSyntax,
                                     namedType As INamedTypeSymbol,
                                     options As CodeGenerationOptions,
-                                    availableIndices As IList(Of Boolean)) As TypeBlockSyntax
-            Dim declaration = GenerateNamedTypeDeclaration(service, namedType, options)
+                                    availableIndices As IList(Of Boolean),
+                                    cancellationToken As CancellationToken) As TypeBlockSyntax
+            Dim declaration = GenerateNamedTypeDeclaration(service, namedType, options, cancellationToken)
             Dim members = Insert(destination.Members, declaration, options, availableIndices)
             Return FixTerminators(destination.WithMembers(members))
         End Function
@@ -23,8 +24,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                     destination As NamespaceBlockSyntax,
                                     namedType As INamedTypeSymbol,
                                     options As CodeGenerationOptions,
-                                    availableIndices As IList(Of Boolean)) As NamespaceBlockSyntax
-            Dim declaration = GenerateNamedTypeDeclaration(service, namedType, options)
+                                    availableIndices As IList(Of Boolean),
+                                       cancellationToken As CancellationToken) As NamespaceBlockSyntax
+            Dim declaration = GenerateNamedTypeDeclaration(service, namedType, options, cancellationToken)
             Dim members = Insert(destination.Members, declaration, options, availableIndices)
             Return destination.WithMembers(members)
         End Function
@@ -33,21 +35,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                     destination As CompilationUnitSyntax,
                                     namedType As INamedTypeSymbol,
                                     options As CodeGenerationOptions,
-                                    availableIndices As IList(Of Boolean)) As CompilationUnitSyntax
-            Dim declaration = GenerateNamedTypeDeclaration(service, namedType, options)
+                                    availableIndices As IList(Of Boolean),
+                                       cancellationToken As CancellationToken) As CompilationUnitSyntax
+            Dim declaration = GenerateNamedTypeDeclaration(service, namedType, options, cancellationToken)
             Dim members = Insert(destination.Members, declaration, options, availableIndices)
             Return destination.WithMembers(members)
         End Function
 
         Public Function GenerateNamedTypeDeclaration(service As ICodeGenerationService,
                                     namedType As INamedTypeSymbol,
-                                    options As CodeGenerationOptions) As StatementSyntax
+                                    options As CodeGenerationOptions,
+                                    cancellationToken As CancellationToken) As StatementSyntax
             options = If(options, CodeGenerationOptions.Default)
 
             Dim declaration = GetDeclarationSyntaxWithoutMembers(namedType, options)
 
             declaration = If(options.GenerateMembers AndAlso namedType.TypeKind <> TypeKind.Delegate,
-                service.AddMembers(declaration, GetMembers(namedType), options),
+                service.AddMembers(declaration, GetMembers(namedType), options, cancellationToken),
                 declaration)
 
             Return AddCleanupAnnotationsTo(ConditionallyAddDocumentationCommentTo(declaration, namedType, options))

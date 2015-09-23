@@ -4748,6 +4748,40 @@ class C
             Test(input, expected)
         End Sub
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(5314, "https://github.com/dotnet/roslyn/issues/5314")>
+        Public Sub CSharp_DontRemove_NecessaryCastToObjectInConditionalExpression()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    object M(bool cond, ulong value) 
+    {
+        return cond ? {|Simplify:(object)(uint)value|} : value;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+class C
+{
+    object M(bool cond, ulong value) 
+    {
+        return cond ? (object)(uint)value : value;
+    }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
 #End Region
 
 #Region "Visual Basic tests"
@@ -8015,6 +8049,36 @@ Class C
         Dim s = $"Hello {(d):yyyy-MM-dd}"
         Console.WriteLine(s)
     End Sub
+End Class
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(5314, "https://github.com/dotnet/roslyn/issues/5314")>
+        Public Sub VisualBasic_DontRemove_NecessaryCastToObjectInConditionalExpression()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Class C
+    Function Convert(cond As Boolean, value As ULong) As Object
+        Return If(cond, {|Simplify:CObj(CUInt(value))|}, value)
+    End Function
+End Class
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Class C
+    Function Convert(cond As Boolean, value As ULong) As Object
+        Return If(cond, CObj(CUInt(value)), value)
+    End Function
 End Class
 ]]>
 </code>
