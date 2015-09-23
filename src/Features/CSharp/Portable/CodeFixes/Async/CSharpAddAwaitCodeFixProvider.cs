@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Async;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -49,10 +50,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             CancellationToken cancellationToken)
         {
             var expression = oldNode as ExpressionSyntax;
-            if (expression == null)
-            {
+                    if (expression == null)
+                    {
                 return SpecializedTasks.Default<SyntaxNode>();
-            }
+                    }
 
             switch (diagnostic.Id)
             {
@@ -85,8 +86,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
         private static bool DoesExpressionReturnTask(ExpressionSyntax expression, SemanticModel semanticModel)
         {
             INamedTypeSymbol taskType = null;
+            if (!TryGetTaskType(semanticModel, out taskType))
+            {
+                return false;
+            }
+
             INamedTypeSymbol returnType = null;
-            return TryGetTaskAndExpressionTypes(expression, semanticModel, out taskType, out returnType) &&
+            return TryGetExpressionType(expression, semanticModel, out returnType) &&
             semanticModel.Compilation.ClassifyConversion(taskType, returnType).Exists;
         }
 
@@ -99,7 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
 
             INamedTypeSymbol taskType = null;
             INamedTypeSymbol rightSideType = null;
-            if (!TryGetTaskAndExpressionTypes(expression, semanticModel, out taskType, out rightSideType))
+            if (!TryGetTaskType(semanticModel, out taskType) ||
+                !TryGetExpressionType(expression, semanticModel, out rightSideType))
             {
                 return false;
             }
@@ -110,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                 return false;
             }
 
-            if(!rightSideType.IsGenericType)
+            if (!rightSideType.IsGenericType)
             {
                 return false;
             }
@@ -141,22 +148,33 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             return false;
         }
 
-        private static ExpressionSyntax ConvertToAwaitExpression(ExpressionSyntax expression)
+        private static SyntaxNode ConvertToAwaitExpression(ExpressionSyntax expression)
         {
-            AwaitExpressionSyntax result;
-
-            if (expression is BinaryExpressionSyntax || expression is ConditionalExpressionSyntax)
-            {
-                result = SyntaxFactory.AwaitExpression(SyntaxFactory.ParenthesizedExpression(expression.WithoutLeadingTrivia()))
-                                      .WithLeadingTrivia(expression.GetLeadingTrivia());
-            }
-            else
-            {
-                result = SyntaxFactory.AwaitExpression(SyntaxFactory.ParenthesizedExpression(expression.WithoutTrivia()))
-                                      .WithTriviaFrom(expression);
+            var root = expression.Ancestors().Last();
+            if (RequiresParenthesis(expression, root))
+        {
+                expression = expression.Parenthesize();
             }
 
-            return result.WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
+            return SyntaxFactory.AwaitExpression(expression.WithoutTrivia())
+                .WithTriviaFrom(expression)
+                .WithAdditionalAnnotations(Formatter.Annotation)
+                .WithAdditionalAnnotations(Simplifier.Annotation);
+        }
+
+        private static bool RequiresParenthesis(ExpressionSyntax expression, SyntaxNode root)
+        {
+            var parenthesizedExpression = SyntaxFactory.AwaitExpression(SyntaxFactory.ParenthesizedExpression(expression));
+            var newRoot = root.ReplaceNode(expression, parenthesizedExpression);
+            var newNode = newRoot.FindNode(expression.Span)
+                .DescendantNodesAndSelf(n => n.Kind() != SyntaxKind.ParenthesizedExpression)
+                .OfType<ParenthesizedExpressionSyntax>().FirstOrDefault();
+            if (newNode != null)
+            {
+                return !newNode.CanRemoveParentheses();
+            }
+
+            return false;
         }
     }
 }
