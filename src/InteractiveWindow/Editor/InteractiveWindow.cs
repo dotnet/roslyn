@@ -33,6 +33,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     /// </summary>
     internal partial class InteractiveWindow : IInteractiveWindow, IInteractiveWindowOperations2
     {
+        internal const string ClipboardFormat = "89344A36-9821-495A-8255-99A63969F87D";
+
         public event EventHandler<SubmissionBufferAddedEventArgs> SubmissionBufferAdded;
 
         PropertyCollection IPropertyOwner.Properties { get; } = new PropertyCollection();
