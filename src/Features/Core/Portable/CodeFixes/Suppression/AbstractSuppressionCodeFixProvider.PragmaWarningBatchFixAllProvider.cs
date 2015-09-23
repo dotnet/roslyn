@@ -14,6 +14,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
     internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
     {
+        /// <summary>
+        /// Batch fixer for pragma suppress code action.
+        /// </summary>
         internal sealed class PragmaWarningBatchFixAllProvider : BatchFixAllProvider
         {
             private readonly AbstractSuppressionCodeFixProvider _suppressionFixProvider;

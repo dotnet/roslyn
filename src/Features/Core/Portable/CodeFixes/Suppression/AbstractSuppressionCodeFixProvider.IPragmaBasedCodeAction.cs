@@ -7,6 +7,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
     internal partial class AbstractSuppressionCodeFixProvider
     {
+        /// <summary>
+        /// Suppression code action based on pragma add/remove/edit.
+        /// </summary>
         internal interface IPragmaBasedCodeAction
         {
             Task<Document> GetChangedDocumentAsync(bool includeStartTokenChange, bool includeEndTokenChange, CancellationToken cancellationToken);

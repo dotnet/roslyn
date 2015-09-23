@@ -20,6 +20,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 return new BatchFixer(suppressionFixProvider);
             }
 
+            /// <summary>
+            /// Batch fixer for pragma suppression removal code action.
+            /// </summary>
             private sealed class BatchFixer : BatchFixAllProvider
             {
                 private readonly AbstractSuppressionCodeFixProvider _suppressionFixProvider;

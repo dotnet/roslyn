@@ -10,6 +10,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     {
         internal abstract partial class RemoveSuppressionCodeAction
         {
+            /// <summary>
+            /// Code action to remove suppress message attributes for remove suppression.
+            /// </summary>
             private sealed class AttributeRemoveAction : RemoveSuppressionCodeAction
             {
                 private readonly AttributeData _attribute;

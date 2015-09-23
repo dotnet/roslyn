@@ -7,6 +7,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
     internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
     {
+        /// <summary>
+        /// Base type for remove suppression code actions.
+        /// </summary>
         internal abstract partial class RemoveSuppressionCodeAction : AbstractSuppressionCodeAction
         {
             private readonly Document _document;

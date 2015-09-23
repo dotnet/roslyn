@@ -13,6 +13,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
     internal partial class AbstractSuppressionCodeFixProvider
     {
+        /// <summary>
+        /// Helper methods for pragma based suppression code actions.
+        /// </summary>
         private static class PragmaHelpers
         {
             internal async static Task<Document> GetChangeDocumentWithPragmaAdjustedAsync(
@@ -165,43 +168,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 {
                     return endToken.WithTrailingTrivia(trivia.InsertRange(index, pragmaTrivia));
                 };
-            }
-
-            internal static void ResolveFixAllMergeConflictForPragmaAdd(List<TextChange> cumulativeChanges, int indexOfCurrentCumulativeChange, TextChange conflictingChange, bool isAddPragmaWarningSuppression)
-            {
-                // If there are multiple diagnostics with different IDs on the same line, we want to retain all the added pragmas.
-                var cumulativeChange = cumulativeChanges[indexOfCurrentCumulativeChange];
-                var mergedChange = ResolveFixAllMergeConflictForPragmaAdd(cumulativeChange, conflictingChange, isAddPragmaWarningSuppression: false);
-                cumulativeChanges[indexOfCurrentCumulativeChange] = mergedChange;
-            }
-
-            private static TextChange ResolveFixAllMergeConflictForPragmaAdd(TextChange cumulativeChange, TextChange conflictingChange, bool isAddPragmaWarningSuppression)
-            {
-                // If one of the change is a removal, just return the other one.
-                if (string.IsNullOrEmpty(cumulativeChange.NewText))
-                {
-                    return conflictingChange;
-                }
-                else if (string.IsNullOrEmpty(conflictingChange.NewText))
-                {
-                    return cumulativeChange;
-                }
-
-                // We have 2 code actions trying to add a pragma directive at the same location.
-                // If these are different IDs, then the order doesn't really matter.
-                // However, if these are disable and enable directives with same ID, then order does matter.
-                // We won't to make sure that for add suppression case, the restore precedes the enable and for remove suppression case, it is vice versa.
-                // We get the right ordering by sorting the pragma directive text.
-                string newText = cumulativeChange.NewText + conflictingChange.NewText;
-                var conflictChangeLexicallySmaller = string.Compare(conflictingChange.NewText, cumulativeChange.NewText, StringComparison.OrdinalIgnoreCase) < 0;
-                if ((isAddPragmaWarningSuppression && !conflictChangeLexicallySmaller) ||
-                    (!isAddPragmaWarningSuppression && conflictChangeLexicallySmaller))
-                {
-                    newText = conflictingChange.NewText + cumulativeChange.NewText;
-                }
-
-                var newSpan = new TextSpan(cumulativeChange.Span.Start, cumulativeChange.Span.Length);
-                return new TextChange(newSpan, newText);
             }
         }
     }

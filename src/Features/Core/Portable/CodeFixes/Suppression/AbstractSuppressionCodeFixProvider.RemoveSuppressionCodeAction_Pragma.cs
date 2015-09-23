@@ -16,6 +16,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     {
         internal abstract partial class RemoveSuppressionCodeAction
         {
+            /// <summary>
+            /// Code action to edit/remove/add the pragma directives for removing diagnostic suppression.
+            /// </summary>
             private class PragmaRemoveAction : RemoveSuppressionCodeAction, IPragmaBasedCodeAction
             {
                 private readonly SuppressionTargetInfo _suppressionTargetInfo;

@@ -15,6 +15,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
     internal partial class AbstractSuppressionCodeFixProvider
     {
+        /// <summary>
+        /// Helper methods for pragma suppression add/remove batch fixers.
+        /// </summary>
         private static class PragmaBatchFixHelpers
         {
             public static CodeAction CreateBatchPragmaFix(
@@ -41,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 ImmutableArray<Diagnostic> diagnostics,
                 CancellationToken cancellationToken)
             {
-                // We apply all the pragma removal fixes sequentially.
+                // We apply all the pragma suppression fixes sequentially.
                 // At every application, we track the updated locations for remaining diagnostics in the document.
                 var currentDiagnosticSpans = new Dictionary<Diagnostic, TextSpan>();
                 foreach (var diagnostic in diagnostics)
@@ -63,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         continue;
                     }
 
-                    // Compute and apply pragma removal fix.
+                    // Compute and apply pragma suppression fix.
                     var currentTree = await currentDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                     var currentLocation = Location.Create(currentTree, currentDiagnosticSpan);
                     diagnostic = Diagnostic.Create(
