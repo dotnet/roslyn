@@ -213,7 +213,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     {
                         var snapshot = _projectionBuffer.CurrentSnapshot;
                         var spanCount = snapshot.SpanCount;
-                        Debug.Assert(GetSpanKind(snapshot.GetSourceSpan(spanCount - 1)) == ReplSpanKind.Language);
+                        Debug.Assert(GetSpanKind(snapshot.GetSourceSpan(spanCount - 1)) == ReplSpanKind.Input);
                         StoreUncommittedInput();
                         RemoveProjectionSpans(spanCount - 2, 2);
                         CurrentLanguageBuffer = null;
@@ -356,7 +356,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     {
                         var snapshot = _projectionBuffer.CurrentSnapshot;
                         var spanCount = snapshot.SpanCount;
-                        if (spanCount > 0 && GetSpanKind(snapshot.GetSourceSpan(spanCount - 1)) == ReplSpanKind.Language)
+                        if (spanCount > 0 && GetSpanKind(snapshot.GetSourceSpan(spanCount - 1)) == ReplSpanKind.Input)
                         {
                             // we need to remove our input prompt.
                             RemoveLastInputPrompt();
@@ -584,6 +584,22 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 {
                     InsertCode(format);
                 }
+                else if (Clipboard.ContainsData(ClipboardFormat))
+                {
+                    var blocks = BufferBlock.Deserialize((string)Clipboard.GetData(ClipboardFormat));
+                    // Paste each block separately.
+                    foreach (var block in blocks)
+                    {
+                        switch (block.Kind)
+                        {
+                            case ReplSpanKind.Input:
+                            case ReplSpanKind.Output:
+                            case ReplSpanKind.StandardInput:
+                                InsertCode(block.Content);
+                                break;
+                        }
+                    }
+                }
                 else if (Clipboard.ContainsText())
                 {
                     InsertCode(Clipboard.GetText());
@@ -657,7 +673,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 var snapshot = _projectionBuffer.CurrentSnapshot;
                 var spanCount = snapshot.SpanCount;
                 var inputSpan = snapshot.GetSourceSpan(spanCount - 1);
-                Debug.Assert(GetSpanKind(inputSpan) == ReplSpanKind.Language ||
+                Debug.Assert(GetSpanKind(inputSpan) == ReplSpanKind.Input ||
                     GetSpanKind(inputSpan) == ReplSpanKind.StandardInput);
 
                 var buffer = inputSpan.Snapshot.TextBuffer;
@@ -1094,7 +1110,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 // Grab the span following the prompt (either language or standard input).
                 var projectionSpan = sourceSpans[promptIndex + 1];
                 var kind = GetSpanKind(projectionSpan);
-                if (kind != ReplSpanKind.Language)
+                if (kind != ReplSpanKind.Input)
                 {
                     Debug.Assert(kind == ReplSpanKind.StandardInput);
                     return null;
@@ -1535,7 +1551,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 // and ending at the end of the projection buffer, each language buffer projection is on a separate line:
                 //   [prompt)[language)...[prompt)[language)<end of projection buffer>
                 int result = projectionSpansCount - (surfaceSnapshot.LineCount - surfaceLineNumber) * SpansPerLineOfInput + 1;
-                Debug.Assert(GetSpanKind(surfaceSnapshot.GetSourceSpan(result)) == ReplSpanKind.Language);
+                Debug.Assert(GetSpanKind(surfaceSnapshot.GetSourceSpan(result)) == ReplSpanKind.Input);
                 return result;
             }
 
@@ -2027,11 +2043,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 var inputSnapshot = projectionSpan.Snapshot;
                 var kind = GetSpanKind(projectionSpan);
 
-                Debug.Assert(kind == ReplSpanKind.Language || kind == ReplSpanKind.StandardInput);
+                Debug.Assert(kind == ReplSpanKind.Input || kind == ReplSpanKind.StandardInput);
 
                 // Language input block is a projection of the entire snapshot;
                 // std input block is a projection of a single span:
-                SnapshotPoint inputBufferEnd = (kind == ReplSpanKind.Language) ?
+                SnapshotPoint inputBufferEnd = (kind == ReplSpanKind.Input) ?
                     new SnapshotPoint(inputSnapshot, inputSnapshot.Length) :
                     projectionSpan.End;
 
@@ -2359,17 +2375,45 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             private DataObject Copy(NormalizedSnapshotSpanCollection spans)
             {
-                var text = spans.Aggregate(new StringBuilder(), GetTextWithoutPrompts, b => b.ToString());
+                var text = GetText(spans);
+                var blocks = GetTextBlocks(spans);
                 var rtf = _rtfBuilderService.GenerateRtf(spans, TextView);
                 var data = new DataObject();
                 data.SetData(DataFormats.StringFormat, text);
                 data.SetData(DataFormats.Text, text);
                 data.SetData(DataFormats.UnicodeText, text);
                 data.SetData(DataFormats.Rtf, rtf);
+                data.SetData(ClipboardFormat, blocks);
                 return data;
             }
 
-            private StringBuilder GetTextWithoutPrompts(StringBuilder builder, SnapshotSpan span)
+            /// <summary>
+            /// Get the text of the given spans as a simple concatenated string.
+            /// </summary>
+            private static string GetText(NormalizedSnapshotSpanCollection spans)
+            {
+                var builder = new StringBuilder();
+                foreach (var span in spans)
+                {
+                    builder.Append(span.GetText());
+                }
+                return builder.ToString();
+            }
+
+            /// <summary>
+            /// Get the text of the given spans as a serialized BufferBlock[].
+            /// </summary>
+            private string GetTextBlocks(NormalizedSnapshotSpanCollection spans)
+            {
+                var blocks = new List<BufferBlock>();
+                foreach (var span in spans)
+                {
+                    GetTextBlocks(blocks, span);
+                }
+                return BufferBlock.Serialize(blocks.ToArray());
+            }
+
+            private void GetTextBlocks(List<BufferBlock> blocks, SnapshotSpan span)
             {
                 // Find the range of source spans that cover the span.
                 var sourceSpans = GetSourceSpans(span.Snapshot);
@@ -2380,7 +2424,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     index--;
                 }
 
-                // Add the text for all non-prompt spans within the range.
                 for (; index < n; index++)
                 {
                     var sourceSpan = sourceSpans[index];
@@ -2388,28 +2431,29 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     {
                         continue;
                     }
-                    if (!IsPrompt(sourceSpan))
+                    var sourceSnapshot = sourceSpan.Snapshot;
+                    var mappedSpans = TextView.BufferGraph.MapDownToBuffer(span, SpanTrackingMode.EdgeExclusive, sourceSnapshot.TextBuffer);
+                    bool added = false;
+                    foreach (var mappedSpan in mappedSpans)
                     {
-                        var sourceSnapshot = sourceSpan.Snapshot;
-                        var mappedSpans = TextView.BufferGraph.MapDownToBuffer(span, SpanTrackingMode.EdgeExclusive, sourceSnapshot.TextBuffer);
-                        bool added = false;
-                        foreach (var mappedSpan in mappedSpans)
+                        var intersection = sourceSpan.Span.Intersection(mappedSpan);
+                        if (intersection.HasValue && !intersection.Value.IsEmpty)
                         {
-                            var intersection = sourceSpan.Span.Intersection(mappedSpan);
-                            if (intersection.HasValue)
+                            var kind = GetSpanKind(span);
+                            if (kind == ReplSpanKind.LineBreak)
                             {
-                                builder.Append(sourceSnapshot.GetText(intersection.Value));
-                                added = true;
+                                kind = ReplSpanKind.Output;
                             }
-                        }
-                        if (!added)
-                        {
-                            break;
+                            var content = sourceSnapshot.GetText(intersection.Value);
+                            blocks.Add(new BufferBlock(kind, content));
+                            added = true;
                         }
                     }
+                    if (!added)
+                    {
+                        break;
+                    }
                 }
-
-                return builder;
             }
 
             /// <summary>Implements <see cref="IInteractiveWindowOperations.Backspace"/>.</summary>
@@ -2689,7 +2733,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         ReplSpanKind.LineBreak :
                         ReplSpanKind.Prompt;
                 }
-                return ReplSpanKind.Language;
+                return ReplSpanKind.Input;
             }
 
             #region Output
