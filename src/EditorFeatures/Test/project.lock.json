@@ -35,14 +35,15 @@
           "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll": {}
         }
       },
-      "Microsoft.DiaSymReader/1.0.5": {
+      "Microsoft.DiaSymReader/1.0.5.1": {
         "compile": {
-          "lib/net45/Microsoft.DiaSymReader.dll": {}
+          "lib/net20/Microsoft.DiaSymReader.dll": {}
         },
         "runtime": {
-          "lib/net45/Microsoft.DiaSymReader.dll": {}
+          "lib/net20/Microsoft.DiaSymReader.dll": {}
         }
       },
+      "Microsoft.DiaSymReader.Native/1.1.0-alpha2": {},
       "Microsoft.NETCore.Portable.Compatibility/1.0.0": {
         "compile": {
           "ref/net45/_._": {}
@@ -352,14 +353,15 @@
           "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll": {}
         }
       },
-      "Microsoft.DiaSymReader/1.0.5": {
+      "Microsoft.DiaSymReader/1.0.5.1": {
         "compile": {
-          "lib/net45/Microsoft.DiaSymReader.dll": {}
+          "lib/net20/Microsoft.DiaSymReader.dll": {}
         },
         "runtime": {
-          "lib/net45/Microsoft.DiaSymReader.dll": {}
+          "lib/net20/Microsoft.DiaSymReader.dll": {}
         }
       },
+      "Microsoft.DiaSymReader.Native/1.1.0-alpha2": {},
       "Microsoft.NETCore.Portable.Compatibility/1.0.0": {
         "compile": {
           "ref/net45/_._": {}
@@ -681,18 +683,30 @@
         "package/services/metadata/core-properties/12e2c94035674b25b911285cc26e3260.psmdcp"
       ]
     },
-    "Microsoft.DiaSymReader/1.0.5": {
-      "sha512": "0Ugv1+34GttdWLdhquMnRCgo4ktDNGQBDDtY+1Jdcuk1jOD0jeeqlR/AZDhxcrV25eOMC3Lwumj353nAYRylqQ==",
+    "Microsoft.DiaSymReader/1.0.5.1": {
+      "sha512": "s3ExUWlfkWt9cHcJQgrm4mS5Lfj91B6o2G9DD1zFA1/7aihXPL8W16Hyix+joyh8g3buxsxb0snwhPKQHb9ApA==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
         "lib/net20/Microsoft.DiaSymReader.dll",
         "lib/net20/Microsoft.DiaSymReader.xml",
-        "lib/net45/Microsoft.DiaSymReader.dll",
-        "lib/net45/Microsoft.DiaSymReader.xml",
+        "lib/portable-net45+win8/Microsoft.DiaSymReader.dll",
+        "lib/portable-net45+win8/Microsoft.DiaSymReader.xml",
         "Microsoft.DiaSymReader.nuspec",
-        "package/services/metadata/core-properties/08003dc206aa4abfa0c6f00c3f91c002.psmdcp"
+        "package/services/metadata/core-properties/4ff7fb1418cc465f82f38fc19097827f.psmdcp"
+      ]
+    },
+    "Microsoft.DiaSymReader.Native/1.1.0-alpha2": {
+      "sha512": "D9bGkcO1+s5c0jn4R/9BD3pw4gqyaFzC7XdlYBVDTqYMqVITMDpF8xxMXN0F3nZRl1dE54RGWp5k8GVAnMhpgQ==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "Microsoft.DiaSymReader.Native.nuspec",
+        "package/services/metadata/core-properties/e2e1c0f9faac4ddb951a90d33184740b.psmdcp",
+        "runtimes/win/native/Microsoft.DiaSymReader.Native.amd64.dll",
+        "runtimes/win/native/Microsoft.DiaSymReader.Native.x86.dll"
       ]
     },
     "Microsoft.NETCore.Portable.Compatibility/1.0.0": {

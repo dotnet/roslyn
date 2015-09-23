@@ -3,6 +3,7 @@
   "version": 1,
   "targets": {
     ".NETFramework,Version=v4.6": {
+      "Microsoft.DiaSymReader.Native/1.1.0-alpha2": {},
       "Microsoft.NETCore.Portable.Compatibility/1.0.0": {
         "compile": {
           "ref/net45/_._": {}
@@ -245,6 +246,7 @@
       }
     },
     ".NETFramework,Version=v4.6/win-anycpu": {
+      "Microsoft.DiaSymReader.Native/1.1.0-alpha2": {},
       "Microsoft.NETCore.Portable.Compatibility/1.0.0": {
         "compile": {
           "ref/net45/_._": {}
@@ -488,6 +490,18 @@
     }
   },
   "libraries": {
+    "Microsoft.DiaSymReader.Native/1.1.0-alpha2": {
+      "sha512": "D9bGkcO1+s5c0jn4R/9BD3pw4gqyaFzC7XdlYBVDTqYMqVITMDpF8xxMXN0F3nZRl1dE54RGWp5k8GVAnMhpgQ==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "Microsoft.DiaSymReader.Native.nuspec",
+        "package/services/metadata/core-properties/e2e1c0f9faac4ddb951a90d33184740b.psmdcp",
+        "runtimes/win/native/Microsoft.DiaSymReader.Native.amd64.dll",
+        "runtimes/win/native/Microsoft.DiaSymReader.Native.x86.dll"
+      ]
+    },
     "Microsoft.NETCore.Portable.Compatibility/1.0.0": {
       "sha512": "5/IFqf2zN1jzktRJitxO+5kQ+0AilcIbPvSojSJwDG3cGNSMZg44LXLB5E9RkSETE0Wh4QoALdNh1koKoF7/mA==",
       "type": "Package",
