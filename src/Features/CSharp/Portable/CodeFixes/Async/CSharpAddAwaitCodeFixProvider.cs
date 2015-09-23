@@ -81,8 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             }
         }
 
-
-
         private static bool DoesExpressionReturnTask(ExpressionSyntax expression, SemanticModel semanticModel)
         {
             INamedTypeSymbol taskType = null;
@@ -150,30 +148,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
 
         private static SyntaxNode ConvertToAwaitExpression(ExpressionSyntax expression)
         {
-            var root = expression.Ancestors().Last();
-            if (RequiresParenthesis(expression, root))
-            {
-                expression = expression.Parenthesize();
-            }
-
-            return SyntaxFactory.AwaitExpression(expression.WithoutTrivia())
+            return SyntaxFactory.AwaitExpression(expression.WithoutTrivia().Parenthesize())
                                 .WithTriviaFrom(expression)
                                 .WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation);
-        }
-
-        private static bool RequiresParenthesis(ExpressionSyntax expression, SyntaxNode root)
-        {
-            var parenthesizedExpression = SyntaxFactory.AwaitExpression(SyntaxFactory.ParenthesizedExpression(expression));
-            var newRoot = root.ReplaceNode(expression, parenthesizedExpression);
-            var newNode = newRoot.FindNode(expression.Span)
-                .DescendantNodesAndSelf(n => n.Kind() != SyntaxKind.ParenthesizedExpression)
-                .OfType<ParenthesizedExpressionSyntax>().FirstOrDefault();
-            if (newNode != null)
-            {
-                return !newNode.CanRemoveParentheses();
-            }
-
-            return false;
         }
     }
 }
