@@ -59,9 +59,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
             Dim accessor = TryCast(TryCast(getMethod.DeclaringSyntaxReferences(0).GetSyntax(cancellationToken), AccessorStatementSyntax)?.Parent, AccessorBlockSyntax)
             Dim statements = accessor?.Statements
             If statements?.Count = 1 Then
-                Dim firstStatement = statements.Value(0)
-                If firstStatement.Kind() = SyntaxKind.ReturnStatement Then
-                    Dim expr = DirectCast(firstStatement, ReturnStatementSyntax).Expression
+                Dim statement = statements.Value(0)
+                If statement.Kind() = SyntaxKind.ReturnStatement Then
+                    Dim expr = DirectCast(statement, ReturnStatementSyntax).Expression
                     Return If(CheckExpressionSyntactically(expr), expr, Nothing)
                 End If
             End If
@@ -82,9 +82,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
             Dim setAccessor = TryCast(TryCast(setMethod.DeclaringSyntaxReferences(0).GetSyntax(cancellationToken), AccessorStatementSyntax)?.Parent, AccessorBlockSyntax)
             Dim statements = setAccessor?.Statements
             If statements?.Count = 1 Then
-                Dim firstStatement = statements.Value(0)
-                If firstStatement?.Kind() = SyntaxKind.SimpleAssignmentStatement Then
-                    Dim assignmentStatement = DirectCast(firstStatement, AssignmentStatementSyntax)
+                Dim statement = statements.Value(0)
+                If statement?.Kind() = SyntaxKind.SimpleAssignmentStatement Then
+                    Dim assignmentStatement = DirectCast(statement, AssignmentStatementSyntax)
                     If assignmentStatement.Right.Kind() = SyntaxKind.IdentifierName Then
                         Dim identifier = DirectCast(assignmentStatement.Right, IdentifierNameSyntax)
                         Dim symbol = semanticModel.GetSymbolInfo(identifier).Symbol

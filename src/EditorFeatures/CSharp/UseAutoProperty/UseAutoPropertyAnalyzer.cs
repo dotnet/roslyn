@@ -90,10 +90,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             var statements = getAccessor?.Body?.Statements;
             if (statements?.Count == 1)
             {
-                var firstStatement = statements.Value[0];
-                if (firstStatement.Kind() == SyntaxKind.ReturnStatement)
+                var statement = statements.Value[0];
+                if (statement.Kind() == SyntaxKind.ReturnStatement)
                 {
-                    var expr = ((ReturnStatementSyntax)firstStatement).Expression;
+                    var expr = ((ReturnStatementSyntax)statement).Expression;
                     return CheckExpressionSyntactically(expr) ? expr : null;
                 }
             }
@@ -111,10 +111,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             var statements = setAccessor?.Body?.Statements;
             if (statements?.Count == 1)
             {
-                var firstStatement = statements.Value[0];
-                if (firstStatement?.Kind() == SyntaxKind.ExpressionStatement)
+                var statement = statements.Value[0];
+                if (statement?.Kind() == SyntaxKind.ExpressionStatement)
                 {
-                    var expressionStatement = (ExpressionStatementSyntax)firstStatement;
+                    var expressionStatement = (ExpressionStatementSyntax)statement;
                     if (expressionStatement.Expression.Kind() == SyntaxKind.SimpleAssignmentExpression)
                     {
                         var assignmentExpression = (AssignmentExpressionSyntax)expressionStatement.Expression;
