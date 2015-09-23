@@ -25,7 +25,6 @@ using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Utilities;
 
 using RuntimeMetadataReferenceResolver = WORKSPACES::Microsoft.CodeAnalysis.Scripting.Hosting.RuntimeMetadataReferenceResolver;
-using NuGetPackageResolver = WORKSPACES::Microsoft.CodeAnalysis.Scripting.Hosting.NuGetPackageResolver;
 using GacFileResolver = WORKSPACES::Microsoft.CodeAnalysis.Scripting.Hosting.GacFileResolver;
 
 namespace Microsoft.CodeAnalysis.Interactive
@@ -166,9 +165,13 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             private MetadataReferenceResolver CreateMetadataReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)
             {
+                var userProfilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                var packagesDirectory = string.IsNullOrEmpty(userProfilePath) ?
+                    null :
+                    Path.Combine(userProfilePath, Path.Combine(".nuget", "packages"));
                 return new RuntimeMetadataReferenceResolver(
                    new RelativePathResolver(searchPaths, baseDirectory),
-                   null, // TODO
+                    string.IsNullOrEmpty(packagesDirectory) ? null : new NuGetPackageResolverImpl(packagesDirectory),
                    new GacFileResolver(
                        architectures: GacFileResolver.Default.Architectures,  // TODO (tomat)
                        preferredCulture: CultureInfo.CurrentCulture), // TODO (tomat)
