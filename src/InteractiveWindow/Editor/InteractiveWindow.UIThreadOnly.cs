@@ -2164,8 +2164,18 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 Debug.Assert(selection.Mode == TextSelectionMode.Stream);
 
-                return MapToEditableBuffer(selection.AnchorPoint.Position) != null ||
-                       MapToEditableBuffer(selection.ActivePoint.Position) != null;
+                var editableBuffer = (ReadingStandardInput) ? StandardInputBuffer : CurrentLanguageBuffer;
+                var selectedSpans = selection.SelectedSpans;
+
+                foreach (var selectedSpan in selectedSpans)
+                {
+                    var spans = TextView.BufferGraph.MapDownToBuffer(selectedSpan, SpanTrackingMode.EdgeInclusive, editableBuffer);
+                    if (spans.Count > 0)
+                    {
+                        return true;
+                    }
+                }
+                return false;
             }
 
             private bool ReduceBoxSelectionToEditableBox(bool isDelete = true)
