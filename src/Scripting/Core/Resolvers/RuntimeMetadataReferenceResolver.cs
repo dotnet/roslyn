@@ -25,9 +25,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         internal RuntimeMetadataReferenceResolver(
             ImmutableArray<string> searchPaths,
             string baseDirectory)
-            : this(new RelativePathResolver(searchPaths.NullToEmpty(), baseDirectory),
-                   null,
-                   GacFileResolver.Default)
+            : this(new RelativePathResolver(searchPaths, baseDirectory), null, GacFileResolver.Default)
         {
         }
 

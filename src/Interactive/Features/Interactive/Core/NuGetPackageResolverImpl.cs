@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             catch (UnauthorizedAccessException)
             {
             }
-            return default(ImmutableArray<string>);
+            return ImmutableArray<string>.Empty;
         }
 
         /// <summary>
