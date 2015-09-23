@@ -170,6 +170,7 @@
     <Compile Include="Diagnostics\UseAutoProperty\UseAutoPropertyTests.vb" />
     <Compile Include="LanguageServices\SyntaxFactsServiceTests.vb" />
     <Compile Include="Simplification\SimplifierAPITests.vb" />
+    <Compile Include="Utilities\GoToHelpers\GoToTestHelpers.vb" />
     <Compile Include="Utilities\MockDocumentNavigationServiceProvider.vb" />
     <Compile Include="Utilities\MockSymbolNavigationServiceProvider.vb" />
     <Compile Include="CodeFixes\CodeFixServiceTests.vb" />
@@ -225,9 +226,9 @@
     <Compile Include="FindReferences\FindReferencesTests.XmlDocSymbols.vb" />
     <Compile Include="GoToDefinition\GoToDefinitionCommandHandlerTests.vb" />
     <Compile Include="GoToDefinition\GoToDefinitionTests.vb" />
-    <Compile Include="GoToDefinition\MockDocumentNavigationService.vb" />
-    <Compile Include="GoToDefinition\MockDocumentNavigationServiceFactory.vb" />
-    <Compile Include="GoToDefinition\MockNavigableItemsPresenter.vb" />
+    <Compile Include="Utilities\GoToHelpers\MockDocumentNavigationService.vb" />
+    <Compile Include="Utilities\GoToHelpers\MockDocumentNavigationServiceFactory.vb" />
+    <Compile Include="Utilities\GoToHelpers\MockNavigableItemsPresenter.vb" />
     <Compile Include="IntelliSense\CompletionWaiter.vb" />
     <Compile Include="IntelliSense\CSharpCompletionCommandHandlerTests.vb" />
     <Compile Include="IntelliSense\CSharpCompletionCommandHandlerTests_Projections.vb" />

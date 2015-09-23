@@ -3,7 +3,7 @@
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Navigation
 
-Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
+Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
     Friend Class MockNavigableItemsPresenter
         Implements INavigableItemsPresenter
 
