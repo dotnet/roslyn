@@ -90,7 +90,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void BadAsyncReturnOperand_WithTrailingTrivia1()
+        public void BadAsyncReturnOperand_ConditionalExpressionWithTrailingTrivia_SingleLine()
         {
             var initial =
 @"using System.Threading.Tasks;
@@ -114,14 +114,14 @@ class Program
 
     async Task<int> Test2()
     {
-        return await (true ? Test() /* true */ : Test()) /* false */;
+        return await (true ? Test() /* true */ : Test() /* false */);
     }
 }";
             Test(initial, expected, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void BadAsyncReturnOperand_WithTrailingTrivia2()
+        public void BadAsyncReturnOperand_ConditionalExpressionWithTrailingTrivia_Multiline()
         {
             var initial =
 @"using System.Threading.Tasks;
@@ -150,6 +150,136 @@ class Program
         return await (true ? Test() // aaa
                     : Test()) // bbb
                     ;
+    }
+}";
+            Test(initial, expected, compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        public void BadAsyncReturnOperand_NullCoalescingExpressionWithTrailingTrivia_SingleLine()
+        {
+            var initial =
+@"using System.Threading.Tasks;
+
+class Program
+{
+    async Task<int> Test() => 3;
+
+    async Task<int> Test2()
+    {[|
+        return null /* 0 */ ?? Test() /* 1 */;
+    |]}
+}";
+
+            var expected =
+@"using System.Threading.Tasks;
+
+class Program
+{
+    async Task<int> Test() => 3;
+
+    async Task<int> Test2()
+    {
+        return await (null /* 0 */ ?? Test() /* 1 */);
+    }
+}";
+            Test(initial, expected, compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        public void BadAsyncReturnOperand_NullCoalescingExpressionWithTrailingTrivia_Multiline()
+        {
+            var initial =
+@"using System.Threading.Tasks;
+
+class Program
+{
+    async Task<int> Test() => 3;
+
+    async Task<int> Test2()
+    {[|
+        return null   // aaa
+            ?? Test() // bbb
+            ;
+    |]}
+}";
+
+            var expected =
+@"using System.Threading.Tasks;
+
+class Program
+{
+    async Task<int> Test() => 3;
+
+    async Task<int> Test2()
+    {
+        return await (null   // aaa
+            ?? Test()) // bbb
+            ;
+    }
+}";
+            Test(initial, expected, compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        public void BadAsyncReturnOperand_AsExpressionWithTrailingTrivia_SingleLine()
+        {
+            var initial =
+@"using System.Threading.Tasks;
+
+class Program
+{
+    async Task<int> Test2()
+    {[|
+        return null /* 0 */ as Task<int> /* 1 */;
+    |]}
+}";
+
+            var expected =
+@"using System.Threading.Tasks;
+
+class Program
+{
+    async Task<int> Test() => 3;
+
+    async Task<int> Test2()
+    {
+        return await (null /* 0 */ as Task<int> /* 1 */);
+    }
+}";
+            Test(initial, expected, compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        public void BadAsyncReturnOperand_AsExpressionWithTrailingTrivia_Multiline()
+        {
+            var initial =
+@"using System.Threading.Tasks;
+
+class Program
+{
+    async Task<int> Test() => 3;
+
+    async Task<int> Test2()
+    {[|
+        return null      // aaa
+            as Task<int> // bbb
+            ;
+    |]}
+}";
+
+            var expected =
+@"using System.Threading.Tasks;
+
+class Program
+{
+    async Task<int> Test() => 3;
+
+    async Task<int> Test2()
+    {
+        return await (null      // aaa
+            as Task<int>) // bbb
+            ;
     }
 }";
             Test(initial, expected, compareTokens: false);

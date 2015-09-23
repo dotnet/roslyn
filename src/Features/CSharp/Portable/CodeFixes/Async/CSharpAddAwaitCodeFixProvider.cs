@@ -148,6 +148,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
 
         private static SyntaxNode ConvertToAwaitExpression(ExpressionSyntax expression)
         {
+            if ((expression is BinaryExpressionSyntax || expression is ConditionalExpressionSyntax) && expression.HasTrailingTrivia)
+            {
+                var expWithTrailing = expression.WithoutLeadingTrivia();
+                var span = expWithTrailing.GetLocation().GetLineSpan().Span;
+                if (span.Start.Line == span.End.Line && !expWithTrailing.DescendantTrivia().Any(trivia => trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)))
+                {
+                    return SyntaxFactory.AwaitExpression(SyntaxFactory.ParenthesizedExpression(expWithTrailing))
+                                        .WithLeadingTrivia(expression.GetLeadingTrivia())
+                                        .WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation);
+                }
+            }
             return SyntaxFactory.AwaitExpression(expression.WithoutTrivia().Parenthesize())
                                 .WithTriviaFrom(expression)
                                 .WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation);
