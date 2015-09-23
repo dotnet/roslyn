@@ -40,11 +40,6 @@ namespace Microsoft.VisualStudio.Testing
             }
         }
 
-        public int Position
-        {
-            get { return _position; }
-        }
-
         public char Peek()
         {
             Debug.Assert(CanRead);

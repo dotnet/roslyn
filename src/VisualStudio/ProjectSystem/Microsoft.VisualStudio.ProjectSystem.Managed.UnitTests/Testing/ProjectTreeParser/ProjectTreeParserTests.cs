@@ -29,7 +29,6 @@ namespace Microsoft.VisualStudio.Testing
             });
         }
 
-        // Input                                                                                    Position (zero-based)
         [Theory]
         [InlineData(@" ")]
         [InlineData(@"  ")]
@@ -40,7 +39,6 @@ namespace Microsoft.VisualStudio.Testing
             AssertThrows(input, ProjectTreeFormatError.IdExpected_EncounteredOnlyWhiteSpace);
         }
 
-        // Input                                                                                    Position (zero-based)
         [Theory]
         [InlineData(@"(")]
         [InlineData(@",")]
@@ -57,7 +55,6 @@ namespace Microsoft.VisualStudio.Testing
             AssertThrows(input, ProjectTreeFormatError.IdExpected_EncounteredDelimiter);
         }
 
-        // Input                                                                                    Position (zero-based)
         [Theory]
         [InlineData(@"Root, ")]
         [InlineData(@"Root (")]
@@ -69,14 +66,46 @@ namespace Microsoft.VisualStudio.Testing
             AssertThrows(input, ProjectTreeFormatError.IdExpected_EncounteredEndOfString);
         }
 
-        // Input                                                                                     Position (zero-based)
+
         [Theory]
+        [InlineData(@"Root, FilePath:")]
+        [InlineData(@"Root (),")]
+        [InlineData(@"Root (visibility")]
+        [InlineData(@"Root (visibility:")]
+        [InlineData(@"Root (capabilities")]
+        [InlineData(@"Root (capabilities:")]
+        [InlineData(@"Root (capabilities: ")]
+        [InlineData(@"Root (capabilities: {}")]
+        public void Parse_DelimiterExpected_EncounteredEndOfString_ThrowsFormat(string input)
+        {
+            AssertThrows(input, ProjectTreeFormatError.DelimiterExpected_EncounteredEndOfString);
+        }
+
+        [Theory]
+        [InlineData(@"Root, FilePath ")]
+        [InlineData(@"Root,FilePath: """"")]
+        [InlineData(@"Root, FilePath:""""")]
+        [InlineData(@"Root, FilePath:,")]
+        [InlineData(@"Root (),,")]
+        [InlineData(@"Root (visibility ")]
+        public void Parse_DelimiterExpected_ThrowsFormat(string input)
+        {
+            AssertThrows(input, ProjectTreeFormatError.DelimiterExpected);
+        }
+
+
+        [Theory]
+        [InlineData(@"Root, FilePath,")]
         [InlineData(@"Root (Foo:")]
         [InlineData(@"Root (Visibility:")]
         [InlineData(@"Root (Capabilities: ")]
         [InlineData(@"Root (Foo")]
         [InlineData(@"Root (Visibility")]
         [InlineData(@"Root (Capabilities ")]
+        [InlineData(@"Root (), File")]
+        [InlineData(@"Root (), Filepath")]
+        [InlineData(@"Root (), filepath")]
+        [InlineData(@"Root (), filepath:")]
         public void Parse_UnrecognizedPropertyName_ThrowsFormat(string input)
         {
             AssertThrows(input, ProjectTreeFormatError.UnrecognizedPropertyName);
@@ -92,6 +121,15 @@ namespace Microsoft.VisualStudio.Testing
         public void Parse_UnrecognizedPropertyValue_ThrowsFormat(string input)
         {
             AssertThrows(input, ProjectTreeFormatError.UnrecognizedPropertyValue);
+        }
+
+        [Theory]
+        [InlineData(@"Root, FilePath: ""C:\Temp"",")]
+        [InlineData(@"Root, FilePath: ""C:\Temp""""")]
+        [InlineData(@"Root, FilePath: ""C:\Temp""A")]
+        public void Parse_EndOfStringExpected_ThrowsFormat(string input)
+        {
+            AssertThrows(input, ProjectTreeFormatError.EndOfStringExpected);
         }
 
         // Input                                                                                    // Expected

@@ -26,6 +26,8 @@ namespace Microsoft.VisualStudio.Testing
 
             ReadProjectItem(tree);
 
+            _tokenizer.Close();
+
             return tree;
         }
 

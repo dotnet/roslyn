@@ -28,9 +28,9 @@ namespace Microsoft.VisualStudio.Testing
             get { return _reader; }
         }
 
-        public TokenType? Peek(int lookAhead = 1)
+        public TokenType? Peek()
         {
-            Token? token = PeekToken(lookAhead);
+            Token? token = PeekToken();
             if (token == null)
                 return null;
 
@@ -134,22 +134,9 @@ namespace Microsoft.VisualStudio.Testing
 
         private Token? PeekToken()
         {
-            return PeekToken(1);
-        }
-
-        private Token? PeekToken(int lookAhead)
-        {
             StringReader reader = _reader.Clone();
 
-            Token? token;
-            while ((token = GetTokenFrom(reader)) != null)
-            {
-                lookAhead--;
-                if (lookAhead == 0)
-                    break;
-            }
-
-            return token;
+            return GetTokenFrom(reader);
         }
 
         private Token? ReadToken()
