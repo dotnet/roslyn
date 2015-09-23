@@ -238,7 +238,119 @@ namespace Microsoft.VisualStudio.Testing
             AssertProjectTree(input, expected);
         }
 
-        private void AssertProjectTree(string input, string expected)
+        [Theory]
+        [InlineData(@"
+Root
+    Parent
+",
+            @"
+Root[caption]
+[indent]Parent[caption]
+")]
+
+        [InlineData(@"
+Root
+    Parent1
+    Parent2
+",
+            @"
+Root[caption]
+[indent]Parent1[caption]
+[indent]Parent2[caption]
+")]
+
+        [InlineData(@"
+Root
+    Parent1
+        Child
+    Parent2
+",
+            @"
+Root[caption]
+[indent]Parent1[caption]
+[indent][indent]Child[caption]
+[indent]Parent2[caption]
+")]
+
+        [InlineData(@"
+Root
+    Parent1
+        Child1
+        Child2
+    Parent2
+    Parent3
+        Child3
+        Child4
+            Grandchild
+    Parent4
+",
+            @"
+Root[caption]
+[indent]Parent1[caption]
+[indent][indent]Child1[caption]
+[indent][indent]Child2[caption]
+[indent]Parent2[caption]
+[indent]Parent3[caption]
+[indent][indent]Child3[caption]
+[indent][indent]Child4[caption]
+[indent][indent][indent]Grandchild[caption]
+[indent]Parent4[caption]
+")]
+
+        public void Parse_RootWithChildren_CanParse(string input, string expected)
+        {
+            AssertProjectTree(input, expected, ProjectTreeWriterOptions.None);
+        }
+
+
+        [Theory]
+        [InlineData(@"
+Root
+Root
+")]
+        [InlineData(@"
+Root
+    Parent
+Root
+")]
+        [InlineData(@"
+Root
+    Parent
+        Child
+Root
+")]
+        [InlineData(@"
+Root
+    Parent
+        Child
+        Child
+Root
+")]
+        public void Parse_MultipleRoots_ThrowsFormat(string input)
+        {
+            AssertThrows(input, ProjectTreeFormatError.MultipleRoots);
+        }
+
+        [Theory]
+        [InlineData(@"
+Root
+        Parent
+")]
+        [InlineData(@"
+Root
+    Parent 
+            Parent
+")]
+        [InlineData(@"
+Root
+            Parent
+")]
+        public void Parse_IndentTooManyLevels_ThrowsFormat(string input)
+        {
+            AssertThrows(input, ProjectTreeFormatError.IndentTooManyLevels);
+        }
+
+        private void AssertProjectTree(string input, string expected, ProjectTreeWriterOptions options = ProjectTreeWriterOptions.Capabilities | ProjectTreeWriterOptions.FilePath | ProjectTreeWriterOptions.Visibility)
         {
             // Remove the newlines from the start and end of input and expected so that 
             // it makes it easier inside the test to layout the repro.
@@ -246,7 +358,7 @@ namespace Microsoft.VisualStudio.Testing
             expected = expected.Trim(new[] { '\n', '\r' });
 
             var parser = new ProjectTreeParser(input);
-            var writer = new ProjectTreeWriter(parser.Parse(), tagElements: true);
+            var writer = new ProjectTreeWriter(parser.Parse(), options | ProjectTreeWriterOptions.Tags);
 
             string result = writer.WriteToString();
 
@@ -255,6 +367,8 @@ namespace Microsoft.VisualStudio.Testing
 
         private void AssertThrows(string input, ProjectTreeFormatError error)
         {
+            input = input.Trim(new[] { '\n', '\r' });
+
             var parser = new ProjectTreeParser(input);
 
             var exception = Assert.Throws<ProjectTreeFormatException>(() => {

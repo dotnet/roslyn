@@ -150,6 +150,7 @@
     <Compile Include="Testing\ProjectTreeParser\ProjectTreeFormatException.cs" />
     <Compile Include="Testing\ProjectTreeParser\ProjectTreeParser.cs" />
     <Compile Include="Testing\ProjectTreeParser\ProjectTreeParserTests.cs" />
+    <Compile Include="Testing\ProjectTreeWriterOptions.cs" />
     <Compile Include="Testing\ProjectTreeProvider.MutableProjectTree.cs" />
     <Compile Include="Testing\ProjectTreeProvider.cs" />
     <Compile Include="Testing\ProjectTreeProviderTests.cs" />

@@ -10,8 +10,9 @@ namespace Microsoft.VisualStudio.Testing
 {
     internal class ProjectTreeParser
     {
-        private static readonly ImmutableArray<TokenType> Delimitors = ImmutableArray.Create(TokenType.Comma, TokenType.LeftParenthesis, TokenType.RightParenthesis, TokenType.WhiteSpace);
+        private static readonly ImmutableArray<TokenType> Delimitors = ImmutableArray.Create(TokenType.Comma, TokenType.LeftParenthesis, TokenType.RightParenthesis, TokenType.WhiteSpace, TokenType.NewLine, TokenType.CarriageReturn);
         private readonly Tokenizer _tokenizer;
+        private int _indentLevel;
 
         public ProjectTreeParser(string value)
         {
@@ -22,16 +23,100 @@ namespace Microsoft.VisualStudio.Testing
 
         public IProjectTree Parse()
         {
-            MutableProjectTree tree = new MutableProjectTree();
-
-            ReadProjectItem(tree);
+            MutableProjectTree root = ReadProjectRoot();
 
             _tokenizer.Close();
+
+            return root;
+        }
+
+        private MutableProjectTree ReadProjectRoot()
+        {
+            // We always start with the root, with zero indent
+            MutableProjectTree root = ReadProjectItem();
+            MutableProjectTree current = root;
+            do
+            {
+                current = ReadNextProjectItem(current);
+
+            } while (current != null);
+
+            return root;
+        }
+
+        private MutableProjectTree ReadNextProjectItem(MutableProjectTree current)
+        {
+            if (!TryReadNewLine())
+                return null;
+
+            MutableProjectTree parent = current;
+
+            int previousIndentLevel;
+            int indent = ReadIndentLevel(out previousIndentLevel);
+
+            while (indent <= previousIndentLevel)
+            {
+                parent = parent.Parent;
+                indent++;
+            }
+
+            if (parent == null)
+                throw _tokenizer.FormatException(ProjectTreeFormatError.MultipleRoots, "Encountered another project root, when tree can only have one.");
+
+            var tree = ReadProjectItem();
+            tree.Parent = parent;
+            parent.Children.Add(tree);
+            return tree;
+        }
+
+        private int ReadIndentLevel(out int previousIndentLevel)
+        {   
+            // Attempts to read the indent level of the current project item
+            //
+            // Root              <--- IndentLevel: 0
+            //     Parent        <--- IndentLevel: 1
+            //         Child     <--- IndentLevel: 2
+            
+            previousIndentLevel = _indentLevel;
+            int indentLevel = 0;
+
+            while (_tokenizer.Peek() == TokenType.WhiteSpace)
+            {
+                _tokenizer.Skip(TokenType.WhiteSpace);
+                _tokenizer.Skip(TokenType.WhiteSpace);
+                _tokenizer.Skip(TokenType.WhiteSpace);
+                _tokenizer.Skip(TokenType.WhiteSpace);
+
+                indentLevel++;
+            }
+
+            if (indentLevel > previousIndentLevel + 1)
+                throw _tokenizer.FormatException(ProjectTreeFormatError.IndentTooManyLevels, "Project item has been indented too many levels");
+
+            return _indentLevel = indentLevel;
+        }
+
+        private bool TryReadNewLine()
+        {
+            if (_tokenizer.SkipIf(TokenType.CarriageReturn))
+            {   // If we read '\r', it must be followed by a '\n'
+
+                _tokenizer.Skip(TokenType.NewLine);
+                return true;
+            }
+
+            return _tokenizer.SkipIf(TokenType.NewLine);
+        }
+
+        private MutableProjectTree ReadProjectItem()
+        {
+            MutableProjectTree tree = new MutableProjectTree();
+            ReadProjectItemProperties(tree);
 
             return tree;
         }
 
-        private void ReadProjectItem(MutableProjectTree tree)
+        private void ReadProjectItemProperties(MutableProjectTree tree)
         {   // Parse "Root (visibility: visible, capabilities: {ProjectRoot}), FilePath: "C:\My Project\MyFile.txt"
 
             ReadCaption(tree);
@@ -69,7 +154,7 @@ namespace Microsoft.VisualStudio.Testing
         }
 
         private void ReadProperty(MutableProjectTree tree)
-        {
+        {   
             Tokenizer tokenizer = Tokenizer(Delimiters.PropertyName);
 
             string propertyName = tokenizer.ReadIdentifier(IdentifierParseOptions.Required);
@@ -94,7 +179,7 @@ namespace Microsoft.VisualStudio.Testing
         }
 
         private void ReadVisibility(MutableProjectTree tree)
-        {   // Parse 'visible|invisible' in 'visibility:visible|visibility:invisible"
+        {   // Parse 'visible' in 'visibility:visible' or 'invisible' in 'visibility:invisible"
 
             Tokenizer tokenizer = Tokenizer(Delimiters.PropertyValue);
 
@@ -156,7 +241,8 @@ namespace Microsoft.VisualStudio.Testing
         }
 
         private void ReadFilePathPropertyName()
-        {
+        {   // Parses 'FilePath: '
+
             Tokenizer tokenizer = Tokenizer(Delimiters.PropertyName);
 
             string filePath = tokenizer.ReadIdentifier(IdentifierParseOptions.Required);
@@ -169,7 +255,8 @@ namespace Microsoft.VisualStudio.Testing
         }
 
         private string ReadQuotedPropertyValue()
-        {
+        {   // Parses '"C:\Temp"'
+
             Tokenizer tokenizer = Tokenizer(Delimiters.QuotedPropertyValue);
 
             tokenizer.Skip(TokenType.Quote);

@@ -11,15 +11,20 @@ namespace Microsoft.VisualStudio.Testing
     internal class ProjectTreeWriter
     {
         private readonly StringBuilder _builder  = new StringBuilder();
-        private readonly bool _tagElements;
+        private readonly ProjectTreeWriterOptions _options;
         private readonly IProjectTree _parent;        
 
-        public ProjectTreeWriter(IProjectTree tree, bool tagElements = false)
+        public ProjectTreeWriter(IProjectTree tree, ProjectTreeWriterOptions options)
         {
             Requires.NotNull(tree, nameof(tree));
 
             _parent = tree;
-            _tagElements = tagElements;
+            _options = options;
+        }
+
+        private bool TagElements
+        {
+            get { return (_options & ProjectTreeWriterOptions.Tags) == ProjectTreeWriterOptions.Tags; }
         }
 
         public string WriteToString()
@@ -51,44 +56,62 @@ namespace Microsoft.VisualStudio.Testing
 
         private void WriteIndentLevel(int indentLevel)
         {
-            _builder.Append(' ', indentLevel * 4);
-
-            if (_tagElements && indentLevel > 0)
-                _builder.Append("[indent]");
+            if (TagElements)
+            {
+                for (int i = 0; i < indentLevel; i++)
+                {
+                    _builder.Append("[indent]");
+                }
+            }
+            else
+            {
+                _builder.Append(' ', indentLevel * 4);
+            }
         }
 
         private void WriteCaption(IProjectTree tree)
         {
             _builder.Append(tree.Caption);
 
-            if (_tagElements)
+            if (TagElements)
             {
                 _builder.Append("[caption]");
             }
-
-            _builder.Append(" ");
         }
 
         private void WriteProperties(IProjectTree tree)
         {
+            bool visibility = _options.HasFlag(ProjectTreeWriterOptions.Visibility);
+            bool capabilities = _options.HasFlag(ProjectTreeWriterOptions.Visibility);
+
+            if (!visibility && !capabilities)
+                return;
+
+            _builder.Append(' ');
             _builder.Append('(');
 
-            WriteVisibility(tree);
+            if (visibility)
+            {
+                WriteVisibility(tree);
+                _builder.Append(", ");
+            }
 
-            _builder.Append(", ");
-
-            WriteCapabilities(tree);
+            if (capabilities)
+                WriteCapabilities(tree);
 
             _builder.Append(')');
         }
 
         private void WriteFilePath(IProjectTree tree)
         {
+            if (!_options.HasFlag(ProjectTreeWriterOptions.FilePath))
+                return;
+
             _builder.Append(", FilePath: ");
             _builder.Append('"');
             _builder.Append(tree.FilePath);
             
-            if (_tagElements)
+            if (TagElements)
             {
                 _builder.Append("[filepath]");
             }
@@ -125,7 +148,7 @@ namespace Microsoft.VisualStudio.Testing
                 writtenCapability = true;
                 _builder.Append(capability);
 
-                if (_tagElements)
+                if (TagElements)
                 {
                     _builder.Append("[capability]");
                 }

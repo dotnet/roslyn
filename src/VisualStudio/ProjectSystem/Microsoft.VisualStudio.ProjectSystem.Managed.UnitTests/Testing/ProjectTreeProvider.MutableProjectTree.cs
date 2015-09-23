@@ -55,6 +55,17 @@ namespace Microsoft.VisualStudio.Testing
                 set;
             }
 
+            public MutableProjectTree Parent
+            {
+                get;
+                set;
+            }
+
+            IProjectTree IProjectTree.Parent
+            {
+                get { return Parent; }
+            }
+
             IRule IProjectTree.BrowseObjectProperties
             {
                 get
@@ -96,14 +107,7 @@ namespace Microsoft.VisualStudio.Testing
                     throw new NotImplementedException();
                 }
             }
-            
-            IProjectTree IProjectTree.Parent
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-            }
+
 
             IProjectTree IProjectTree.Root
             {

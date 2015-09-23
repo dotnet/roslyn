@@ -12,5 +12,7 @@ namespace Microsoft.VisualStudio.Testing
         EndOfStringExpected, 
         UnrecognizedPropertyName,
         UnrecognizedPropertyValue,
+        IndentTooManyLevels,
+        MultipleRoots,
     }
 }
