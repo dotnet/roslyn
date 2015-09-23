@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
                 bool restored = false;
                 var resolver = new NuGetPackageResolverImpl(directory.Path, startInfo => { restored = true; throw new IOException(); });
                 var actualPaths = resolver.ResolveNuGetPackage("A.B.C", "1.2");
-                Assert.True(actualPaths.IsDefault);
+                Assert.True(actualPaths.IsEmpty);
                 Assert.True(restored);
             }
         }
