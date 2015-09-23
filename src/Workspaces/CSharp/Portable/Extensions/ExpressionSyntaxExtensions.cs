@@ -43,27 +43,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static ExpressionSyntax Parenthesize(this ExpressionSyntax expression, bool includeElasticTrivia = true)
         {
-            var leadingTrivia = expression.GetLeadingTrivia();
-            var trailingTrivia = expression.GetTrailingTrivia();
-            expression = expression.WithoutLeadingTrivia()
-                                   .WithoutTrailingTrivia();
-
             if (includeElasticTrivia)
             {
-                return SyntaxFactory.ParenthesizedExpression(expression)
-                             .WithLeadingTrivia(leadingTrivia)
-                             .WithTrailingTrivia(trailingTrivia)
-                             .WithAdditionalAnnotations(Simplifier.Annotation);
+                return SyntaxFactory.ParenthesizedExpression(expression.WithoutTrivia())
+                                    .WithTriviaFrom(expression)
+                                    .WithAdditionalAnnotations(Simplifier.Annotation);
             }
             else
             {
-                return SyntaxFactory.ParenthesizedExpression(
+                return SyntaxFactory.ParenthesizedExpression
+                (
                     SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.OpenParenToken, SyntaxTriviaList.Empty),
-                    expression,
-                    SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty))
-                             .WithLeadingTrivia(leadingTrivia)
-                             .WithTrailingTrivia(trailingTrivia)
-                             .WithAdditionalAnnotations(Simplifier.Annotation);
+                    expression.WithoutTrivia(),
+                    SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty)
+                )
+                .WithTriviaFrom(expression)
+                .WithAdditionalAnnotations(Simplifier.Annotation);
             }
         }
 

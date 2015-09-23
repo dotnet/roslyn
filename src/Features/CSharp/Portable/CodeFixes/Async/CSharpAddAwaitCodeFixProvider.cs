@@ -50,10 +50,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             CancellationToken cancellationToken)
         {
             var expression = oldNode as ExpressionSyntax;
-                    if (expression == null)
-                    {
+            if (expression == null)
+            {
                 return SpecializedTasks.Default<SyntaxNode>();
-                    }
+            }
 
             switch (diagnostic.Id)
             {
@@ -152,14 +152,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
         {
             var root = expression.Ancestors().Last();
             if (RequiresParenthesis(expression, root))
-        {
+            {
                 expression = expression.Parenthesize();
             }
 
             return SyntaxFactory.AwaitExpression(expression.WithoutTrivia())
-                .WithTriviaFrom(expression)
-                .WithAdditionalAnnotations(Formatter.Annotation)
-                .WithAdditionalAnnotations(Simplifier.Annotation);
+                                .WithTriviaFrom(expression)
+                                .WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation);
         }
 
         private static bool RequiresParenthesis(ExpressionSyntax expression, SyntaxNode root)
