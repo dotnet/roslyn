@@ -19,10 +19,31 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Sub TaskNotAwaited_WithLeadingTrivia()
-            Test(
-                NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Async Sub MySub() \n ' Useful comment \n [|Task.Delay(3)|] \n End Sub \n End Module"),
-                NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Async Sub MySub() \n ' Useful comment \n Await Task.Delay(3) \n End Sub \n End Module"),
-)
+            Dim initial =
+<File>
+Imports System
+Imports System.Threading.Tasks
+
+Module Program
+    Async Sub M()
+        ' Useful comment
+        [|Task.Delay(3)|]
+    End Function
+End Module
+</File>
+            Dim expected =
+<File>
+Imports System
+Imports System.Threading.Tasks
+
+Module Program
+    Async Sub M()
+        ' Useful comment
+        Await Task.Delay(3)
+    End Function
+End Module
+</File>
+            Test(initial, expected, compareTokens:=False)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
@@ -145,7 +166,7 @@ Module Program
 End Module
 </File>
 
-            Test(initial, expected)
+            Test(initial, expected, compareTokens:=True)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
@@ -219,7 +240,7 @@ Module Program
 End Module
 </File>
 
-            Test(initial, expected)
+            Test(initial, expected, compareTokens:=True)
         End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>

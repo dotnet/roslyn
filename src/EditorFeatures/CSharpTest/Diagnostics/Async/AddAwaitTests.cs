@@ -86,7 +86,7 @@ class Program
         await Test();
     }
 }";
-            Test(initial, expected);
+            Test(initial, expected, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -114,10 +114,10 @@ class Program
 
     async Task<int> Test2()
     {
-        return await (true ? Test() /* true */ : Test() /* false */);
+        return await (true ? Test() /* true */ : Test()) /* false */;
     }
 }";
-            Test(initial, expected);
+            Test(initial, expected, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -148,11 +148,11 @@ class Program
     async Task<int> Test2()
     {
         return await (true ? Test() // aaa
-                    : Test() // bbb
-);
+                    : Test()) // bbb
+                    ;
     }
 }";
-            Test(initial, expected);
+            Test(initial, expected, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -206,7 +206,7 @@ class Program
         await Task.Delay(3);
     }
 }";
-            Test(initial, expected);
+            Test(initial, expected, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -280,7 +280,7 @@ class Program
         await AwaitableFunction();
     }
 }";
-            Test(initial, expected);
+            Test(initial, expected, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -319,7 +319,7 @@ class Program
         await AwaitableFunction();
     }
 }";
-            Test(initial, expected);
+            Test(initial, expected, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
