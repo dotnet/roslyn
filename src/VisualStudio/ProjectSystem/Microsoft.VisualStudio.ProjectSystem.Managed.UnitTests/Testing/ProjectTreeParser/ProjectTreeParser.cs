@@ -68,15 +68,21 @@ namespace Microsoft.VisualStudio.Testing
 
         private void ReadProperty(MutableProjectTree tree)
         {
-            string propertyName = ReadPropertyName();
+            Tokenizer tokenizer = Tokenizer(Delimiters.PropertyName);
+
+            string propertyName = tokenizer.ReadIdentifier(IdentifierParseOptions.Required);
 
             switch (propertyName)
             {
                 case "visibility":
+                    tokenizer.Skip(TokenType.Colon);
+                    tokenizer.Skip(TokenType.WhiteSpace);
                     ReadVisibility(tree);
                     break;
 
                 case "capabilities":
+                    tokenizer.Skip(TokenType.Colon);
+                    tokenizer.Skip(TokenType.WhiteSpace);
                     ReadCapabilities(tree);
                     break;
 
@@ -149,9 +155,15 @@ namespace Microsoft.VisualStudio.Testing
 
         private void ReadFilePathPropertyName()
         {
-            string filePath = ReadPropertyName();
+            Tokenizer tokenizer = Tokenizer(Delimiters.PropertyName);
+
+            string filePath = tokenizer.ReadIdentifier(IdentifierParseOptions.Required);
+
             if (!StringComparer.Ordinal.Equals(filePath, "FilePath"))
                 throw _tokenizer.FormatException(ProjectTreeFormatError.UnrecognizedPropertyName, $"Expected 'FilePath', but encountered '{filePath}'.");
+
+            tokenizer.Skip(TokenType.Colon);
+            tokenizer.Skip(TokenType.WhiteSpace);
         }
 
         private string ReadQuotedPropertyValue()
@@ -165,17 +177,6 @@ namespace Microsoft.VisualStudio.Testing
             tokenizer.Skip(TokenType.Quote);
 
             return value;
-        }
-
-        private string ReadPropertyName()
-        {
-            Tokenizer tokenizer = Tokenizer(Delimiters.PropertyName);
-
-            string propertyName = tokenizer.ReadIdentifier(IdentifierParseOptions.Required);
-            tokenizer.Skip(TokenType.Colon);
-            tokenizer.Skip(TokenType.WhiteSpace);
-
-            return propertyName;
         }
 
         private Tokenizer Tokenizer(ImmutableArray<TokenType> delimiters)
