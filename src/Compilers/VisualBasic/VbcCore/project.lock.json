@@ -3,6 +3,7 @@
   "version": 1,
   "targets": {
     "DNXCore,Version=v5.0": {
+      "Microsoft.DiaSymReader.Native/1.1.0-alpha2": {},
       "Microsoft.NETCore.Platforms/1.0.0": {},
       "Microsoft.NETCore.Runtime.CoreCLR/1.0.1-beta-23310": {
         "dependencies": {
@@ -666,6 +667,7 @@
       }
     },
     "DNXCore,Version=v5.0/linux-x64": {
+      "Microsoft.DiaSymReader.Native/1.1.0-alpha2": {},
       "Microsoft.NETCore.Platforms/1.0.0": {},
       "Microsoft.NETCore.Runtime.CoreCLR/1.0.1-beta-23310": {
         "dependencies": {
@@ -1329,6 +1331,12 @@
       }
     },
     "DNXCore,Version=v5.0/win-x64": {
+      "Microsoft.DiaSymReader.Native/1.1.0-alpha2": {
+        "native": {
+          "runtimes/win/native/Microsoft.DiaSymReader.Native.amd64.dll": {},
+          "runtimes/win/native/Microsoft.DiaSymReader.Native.x86.dll": {}
+        }
+      },
       "Microsoft.NETCore.Platforms/1.0.0": {},
       "Microsoft.NETCore.Runtime.CoreCLR/1.0.1-beta-23310": {
         "dependencies": {
@@ -1993,6 +2001,18 @@
     }
   },
   "libraries": {
+    "Microsoft.DiaSymReader.Native/1.1.0-alpha2": {
+      "sha512": "D9bGkcO1+s5c0jn4R/9BD3pw4gqyaFzC7XdlYBVDTqYMqVITMDpF8xxMXN0F3nZRl1dE54RGWp5k8GVAnMhpgQ==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "Microsoft.DiaSymReader.Native.nuspec",
+        "package/services/metadata/core-properties/e2e1c0f9faac4ddb951a90d33184740b.psmdcp",
+        "runtimes/win/native/Microsoft.DiaSymReader.Native.amd64.dll",
+        "runtimes/win/native/Microsoft.DiaSymReader.Native.x86.dll"
+      ]
+    },
     "Microsoft.NETCore.Platforms/1.0.0": {
       "sha512": "0N77OwGZpXqUco2C/ynv1os7HqdFYifvNIbveLDKqL5PZaz05Rl9enCwVBjF61aumHKueLWIJ3prnmdAXxww4A==",
       "type": "Package",

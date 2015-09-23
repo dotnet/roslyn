@@ -19,6 +19,7 @@
           "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll": {}
         }
       },
+      "Microsoft.DiaSymReader.Native/1.1.0-alpha2": {},
       "System.Collections/4.0.10": {
         "compile": {
           "ref/net46/_._": {}
@@ -116,6 +117,18 @@
         "License-Stable.rtf",
         "Microsoft.Composition.nuspec",
         "package/services/metadata/core-properties/12e2c94035674b25b911285cc26e3260.psmdcp"
+      ]
+    },
+    "Microsoft.DiaSymReader.Native/1.1.0-alpha2": {
+      "sha512": "D9bGkcO1+s5c0jn4R/9BD3pw4gqyaFzC7XdlYBVDTqYMqVITMDpF8xxMXN0F3nZRl1dE54RGWp5k8GVAnMhpgQ==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "Microsoft.DiaSymReader.Native.nuspec",
+        "package/services/metadata/core-properties/e2e1c0f9faac4ddb951a90d33184740b.psmdcp",
+        "runtimes/win/native/Microsoft.DiaSymReader.Native.amd64.dll",
+        "runtimes/win/native/Microsoft.DiaSymReader.Native.x86.dll"
       ]
     },
     "System.Collections/4.0.10": {

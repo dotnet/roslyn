@@ -21,6 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     {
         private static readonly object s_dependencyConflictErrorId = new object();
         private static readonly IIgnorableAssemblyList s_systemPrefixList = new IgnorableAssemblyNamePrefixList("System");
+        private static readonly IIgnorableAssemblyList s_explicitlyIgnoredAssemblyList = new IgnorableAssemblyIdentityList(GetExplicitlyIgnoredAssemblyIdentities());
 
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly HostDiagnosticUpdateSource _updateSource;
@@ -193,13 +194,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 IEnumerable<AssemblyIdentity> loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => AssemblyIdentity.FromAssemblyDefinition(assembly));
                 IgnorableAssemblyIdentityList loadedAssembliesList = new IgnorableAssemblyIdentityList(loadedAssemblies);
-                IIgnorableAssemblyList[] ignorableAssemblyLists = new[] { s_systemPrefixList, loadedAssembliesList };
 
+                IIgnorableAssemblyList[] ignorableAssemblyLists = new[] { s_systemPrefixList, s_explicitlyIgnoredAssemblyList, loadedAssembliesList };
                 return new AnalyzerDependencyChecker(currentAnalyzerPaths, ignorableAssemblyLists, _bindingRedirectionService).Run(_cancellationTokenSource.Token);
             },
             TaskScheduler.Default);
 
             return _task;
+        }
+
+        private static IEnumerable<AssemblyIdentity> GetExplicitlyIgnoredAssemblyIdentities()
+        {
+            // Microsoft.VisualBasic.dll
+            var list = new List<AssemblyIdentity>();
+            AddAssemblyIdentity(list, "Microsoft.VisualBasic, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
+            AddAssemblyIdentity(list, "Microsoft.CSharp, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
+
+            return list;
+        }
+
+        private static void AddAssemblyIdentity(List<AssemblyIdentity> list, string dllName)
+        {
+            AssemblyIdentity identity;
+            if (!AssemblyIdentity.TryParseDisplayName(dllName, out identity))
+            {
+                return;
+            }
+
+            list.Add(identity);
         }
 
         private class BindingRedirectionService : IBindingRedirectionService
