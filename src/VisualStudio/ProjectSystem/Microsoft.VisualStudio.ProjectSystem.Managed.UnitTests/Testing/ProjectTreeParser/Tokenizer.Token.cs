@@ -10,47 +10,34 @@ namespace Microsoft.VisualStudio.Testing
     internal partial class Tokenizer
     {
         // Represents a self-contained unit within a tokenized string
-        private class Token
+        private struct Token
         {
             private readonly char _value;
-            private readonly TokenType _tokenType;
+            private readonly bool _isDelimiter;
+            private readonly int _position;
 
-            private Token(char value, TokenType tokenType)
+            private Token(char value, int position, bool isDelimiter)
             {
                 Debug.Assert(value != '\0');
 
                 _value = value;
-                _tokenType = tokenType;
+                _position = position;
+                _isDelimiter = isDelimiter;
+            }
+
+            public int Position
+            {
+                get { return _position; }
             }
 
             public bool IsDelimiter
             {
-                get
-                {
-                    switch (_tokenType)
-                    {
-                        case TokenType.LeftBrace:
-                        case TokenType.RightBrace:
-                        case TokenType.Comma:
-                        case TokenType.Colon:
-                        case TokenType.LeftParenthesis:
-                        case TokenType.RightParenthesis:
-                            return true;
-                    }
-
-                    Debug.Assert(IsWhiteSpace || IsLiteral);
-                    return false;
-                }
-            }
-
-            public bool IsWhiteSpace
-            {
-                get { return _tokenType == TokenType.WhiteSpace; }
+                get { return _isDelimiter; }
             }
 
             public bool IsLiteral
             {
-                get { return _tokenType == TokenType.Literal; }
+                get { return !_isDelimiter; }
             }
 
             public char Value
@@ -60,22 +47,23 @@ namespace Microsoft.VisualStudio.Testing
 
             public TokenType TokenType
             {
-                get { return _tokenType; }
+                get
+                {
+                    if (IsDelimiter)
+                        return (TokenType)_value;
+
+                    return TokenType.Literal;
+                }
             }
 
-            public static Token Literal(char value)
+            public static Token Literal(char value, int position)
             {
-                return new Token(value, TokenType.Literal);
+                return new Token(value, position, isDelimiter: false);
             }
 
-            public static Token Delimiter(char value)
+            public static Token Delimiter(char value, int position)
             {
-                return new Token(value, (TokenType)value);
-            }
-
-            public static Token WhiteSpace(char value)
-            {
-                return new Token(value, TokenType.WhiteSpace);
+                return new Token(value, position, isDelimiter: true);
             }
         }
     }

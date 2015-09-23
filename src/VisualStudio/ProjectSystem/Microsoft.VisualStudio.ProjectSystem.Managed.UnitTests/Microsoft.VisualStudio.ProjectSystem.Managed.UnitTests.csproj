@@ -146,6 +146,9 @@
     <Compile Include="ProjectSystem\UnconfiguredProjectCommonServicesTests.cs" />
     <Compile Include="Testing\ProjectSystemTraitDiscover.cs" />
     <Compile Include="Testing\ProjectTreeAssert.cs" />
+    <Compile Include="Testing\ProjectTreeParser\Delimiters.cs" />
+    <Compile Include="Testing\ProjectTreeParser\ProjectTreeFormatError.cs" />
+    <Compile Include="Testing\ProjectTreeParser\ProjectTreeFormatException.cs" />
     <Compile Include="Testing\ProjectTreeParser\ProjectTreeParser.cs" />
     <Compile Include="Testing\ProjectTreeParser\ProjectTreeParserTests.cs" />
     <Compile Include="Testing\ProjectTreeProvider.MutableProjectTree.cs" />
@@ -153,7 +156,7 @@
     <Compile Include="Testing\ProjectTreeProviderTests.cs" />
     <Compile Include="Testing\ProjectTreeWriter.cs" />
     <Compile Include="Testing\ProjectTreeParser\StringReader.cs" />
-    <Compile Include="Testing\ProjectTreeParser\Tokenizer.LiteralParseOptions.cs" />
+    <Compile Include="Testing\ProjectTreeParser\Tokenizer.IdentifierParseOptions.cs" />
     <Compile Include="Testing\ProjectTreeParser\Tokenizer.TokenType.cs" />
     <Compile Include="Testing\ProjectTreeParser\Tokenizer.Token.cs" />
     <Compile Include="Testing\ProjectTreeParser\Tokenizer.cs" />

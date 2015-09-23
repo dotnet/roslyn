@@ -9,10 +9,9 @@ namespace Microsoft.VisualStudio.Testing
 {
     internal partial class Tokenizer
     {
-        public enum LiteralParseOptions
+        public enum IdentifierParseOptions
         {
             None,
-            AllowWhiteSpace,
             Required,
         }
     }

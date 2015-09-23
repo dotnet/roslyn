@@ -20,6 +20,7 @@ namespace Microsoft.VisualStudio.Testing
             WhiteSpace = ' ',
             Quote = '"',
             CarriageReturn = '\r',
+            NewLine = '\n',
         }
     }
 }

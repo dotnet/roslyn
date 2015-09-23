@@ -1,11 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
 using Microsoft.VisualStudio.ProjectSystem.Designers;
 using static Microsoft.VisualStudio.Testing.ProjectTreeProvider;
 using static Microsoft.VisualStudio.Testing.Tokenizer;
@@ -14,7 +10,7 @@ namespace Microsoft.VisualStudio.Testing
 {
     internal class ProjectTreeParser
     {
-        private static readonly ImmutableArray<TokenType> Delimitors = ImmutableArray.Create(TokenType.CarriageReturn, TokenType.LeftParenthesis, TokenType.RightParenthesis, TokenType.LeftBrace, TokenType.RightBrace, TokenType.Colon, TokenType.Comma, TokenType.Quote);
+        private static readonly ImmutableArray<TokenType> Delimitors = ImmutableArray.Create(TokenType.Comma, TokenType.LeftParenthesis, TokenType.RightParenthesis, TokenType.WhiteSpace);
         private readonly Tokenizer _tokenizer;
 
         public ProjectTreeParser(string value)
@@ -43,7 +39,9 @@ namespace Microsoft.VisualStudio.Testing
 
         private void ReadCaption(MutableProjectTree tree)
         {
-            tree.Caption = _tokenizer.ReadLiteral(LiteralParseOptions.AllowWhiteSpace | LiteralParseOptions.Required);
+            Tokenizer tokenizer = Tokenizer(Delimiters.Caption);
+
+            tree.Caption = tokenizer.ReadIdentifier(IdentifierParseOptions.Required);
         }
 
         private void ReadProperties(MutableProjectTree tree)
@@ -53,13 +51,16 @@ namespace Microsoft.VisualStudio.Testing
             if (!_tokenizer.SkipIf(TokenType.LeftParenthesis))
                 return;
 
-            if (_tokenizer.Peek() != TokenType.RightParenthesis)
+            // Empty properties
+            if (_tokenizer.SkipIf(TokenType.RightParenthesis))
+                return;
+
+            ReadProperty(tree);
+
+            while (_tokenizer.SkipIf(TokenType.Comma))
             {
-                do
-                {
-                    ReadProperty(tree);                    
-                }
-                while (_tokenizer.SkipIf(TokenType.Comma) && _tokenizer.SkipIf(TokenType.WhiteSpace));
+                _tokenizer.Skip(TokenType.WhiteSpace);
+                ReadProperty(tree);
             }
 
             _tokenizer.Skip(TokenType.RightParenthesis);
@@ -80,14 +81,16 @@ namespace Microsoft.VisualStudio.Testing
                     break;
 
                 default:
-                    throw new FormatException($"Unrecognized property name: {propertyName}");
+                    throw _tokenizer.FormatException(ProjectTreeFormatError.UnrecognizedPropertyName, "Expected 'visibility' or 'capabilities', but encountered '{propertyName}'.");
             }
         }
 
         private void ReadVisibility(MutableProjectTree tree)
         {   // Parse 'visible|invisible' in 'visibility:visible|visibility:invisible"
 
-            string visibility = _tokenizer.ReadLiteral(LiteralParseOptions.Required);
+            Tokenizer tokenizer = Tokenizer(Delimiters.PropertyValue);
+
+            string visibility = tokenizer.ReadIdentifier(IdentifierParseOptions.Required);
 
             switch (visibility)
             {
@@ -99,55 +102,85 @@ namespace Microsoft.VisualStudio.Testing
                     break;
 
                 default:
-                    throw new FormatException($"Unrecognized visiblity: '{visibility}'");
+                    throw _tokenizer.FormatException(ProjectTreeFormatError.UnrecognizedPropertyValue, "Expected 'visible' or 'invisible', but encountered '{visibility}'.");
             }
         }
 
         private void ReadCapabilities(MutableProjectTree tree)
         {   // Parse '{ProjectRoot Folder}'
 
-            _tokenizer.Skip(TokenType.LeftBrace);
+            Tokenizer tokenizer = Tokenizer(Delimiters.BracedPropertyValueBlock);
+            tokenizer.Skip(TokenType.LeftBrace);
 
-            if (_tokenizer.Peek() != TokenType.RightBrace)
+            // Empty capabilities
+            if (tokenizer.SkipIf(TokenType.RightBrace))
+                return;
+
+            do
             {
-                do
-                {
-                    string capability = _tokenizer.ReadLiteral(LiteralParseOptions.Required);
-                    tree.Capabilities.Add(capability);
-                }
-                while (_tokenizer.SkipIf(TokenType.WhiteSpace));
+                ReadCapability(tree);
             }
+            while (tokenizer.SkipIf(TokenType.WhiteSpace));
+            tokenizer.Skip(TokenType.RightBrace);
+        }
 
-            _tokenizer.Skip(TokenType.RightBrace);
+        private void ReadCapability(MutableProjectTree tree)
+        {   // Parses 'AppDesigner' in '{AppDesigner Folder}'
+
+            Tokenizer tokenizer = Tokenizer(Delimiters.BracedPropertyValue);
+
+            string capability = tokenizer.ReadIdentifier(IdentifierParseOptions.Required);
+            tree.Capabilities.Add(capability);
         }
 
         private void ReadFilePath(MutableProjectTree tree)
-        {   // Parses 'FilePath:"C:\Temp\Foo"'
+        {   // Parses 'FilePath: "C:\Temp\Foo"'
 
             // FilePath section is optional
-            if (!_tokenizer.SkipIf(TokenType.Comma))
-                return;
+            if (_tokenizer.SkipIf(TokenType.Comma))
+            {
+                _tokenizer.Skip(TokenType.WhiteSpace);
 
-            _tokenizer.Skip(TokenType.WhiteSpace);
+                ReadFilePathPropertyName();
 
+                tree.FilePath = ReadQuotedPropertyValue();
+            }
+        }
+
+        private void ReadFilePathPropertyName()
+        {
             string filePath = ReadPropertyName();
             if (!StringComparer.Ordinal.Equals(filePath, "FilePath"))
-                throw new FormatException($"Unrecognized property name: {filePath}");
+                throw _tokenizer.FormatException(ProjectTreeFormatError.UnrecognizedPropertyName, $"Expected 'FilePath', but encountered '{filePath}'.");
+        }
 
-            _tokenizer.Skip(TokenType.Quote);
+        private string ReadQuotedPropertyValue()
+        {
+            Tokenizer tokenizer = Tokenizer(Delimiters.QuotedPropertyValue);
 
-            tree.FilePath = _tokenizer.ReadLiteral(LiteralParseOptions.AllowWhiteSpace);
+            tokenizer.Skip(TokenType.Quote);
 
-            _tokenizer.Skip(TokenType.Quote);
+            string value = tokenizer.ReadIdentifier(IdentifierParseOptions.None);
+
+            tokenizer.Skip(TokenType.Quote);
+
+            return value;
         }
 
         private string ReadPropertyName()
         {
-            string propertyName = _tokenizer.ReadLiteral(LiteralParseOptions.Required);
-            _tokenizer.Skip(TokenType.Colon);
-            _tokenizer.Skip(TokenType.WhiteSpace);
+            Tokenizer tokenizer = Tokenizer(Delimiters.PropertyName);
+
+            string propertyName = tokenizer.ReadIdentifier(IdentifierParseOptions.Required);
+            tokenizer.Skip(TokenType.Colon);
+            tokenizer.Skip(TokenType.WhiteSpace);
 
             return propertyName;
+        }
+
+        private Tokenizer Tokenizer(ImmutableArray<TokenType> delimiters)
+        {
+            return new Tokenizer(_tokenizer.UnderlyingReader, delimiters);
         }
     }
 }

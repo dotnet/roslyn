@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -28,29 +30,26 @@ namespace Microsoft.VisualStudio.Testing
 
         public TokenType? Peek(int lookAhead = 1)
         {
-            Token token = PeekToken(lookAhead);
+            Token? token = PeekToken(lookAhead);
             if (token == null)
                 return null;
 
-            return token.TokenType;
-        }
-
-        public TokenType? PeekNext()
-        {
-            return Peek(2);
+            return token.Value.TokenType;
         }
 
         public void Skip(TokenType expected)
         {
-            Token token = ReadToken();
+            Token? token = ReadToken();
             if (token == null)
             {
-                throw new FormatException($"Expected '{(char)expected}' but encountered end of string");
+                throw FormatException(ProjectTreeFormatError.DelimiterExpected_EncounteredEndOfString, $"Expected '{(char)expected}' but encountered end of string.");
             }
 
-            if (token.TokenType != expected)
+            Token t = token.Value;
+
+            if (t.TokenType != expected)
             {
-                throw new FormatException($"Expected '{(char)expected}' but encountered '{token.Value}'");
+                throw FormatException(token, ProjectTreeFormatError.DelimiterExpected, $"Expected '{(char)expected}' but encountered '{t.Value}'.");
             }
         }
 
@@ -65,14 +64,14 @@ namespace Microsoft.VisualStudio.Testing
 
         public void Close()
         {
-            Token token = ReadToken();
+            Token? token = ReadToken();
             if (token != null)
-                throw new FormatException($"Expected end-of-string, but encountered '{token.Value}'");
+                throw FormatException(token, ProjectTreeFormatError.EndOfStringExpected, $"Expected end-of-string, but encountered '{token.Value.Value}'.");
         }
 
-        public string ReadLiteral(LiteralParseOptions options)
+        public string ReadIdentifier(IdentifierParseOptions options)
         {
-            string identifier = ReadLiteralCore(options);
+            string identifier = ReadIdentifierCore(options);
 
             CheckIdentifier(identifier, options);
 
@@ -82,58 +81,50 @@ namespace Microsoft.VisualStudio.Testing
             return identifier;
         }
 
-        private string ReadLiteralCore(LiteralParseOptions options)
+        private string ReadIdentifierCore(IdentifierParseOptions options)
         {
-            bool allowWhiteSpace = (options & LiteralParseOptions.AllowWhiteSpace) == LiteralParseOptions.AllowWhiteSpace;
-
             StringBuilder identifier = new StringBuilder();
 
-            Token token;
+            Token? token;
             while ((token = PeekToken()) != null)
             {
-                if (!IsIdentifier(token, allowWhiteSpace))
+                Token t = token.Value;
+
+                if (t.IsDelimiter)
                     break;
 
                 ReadToken();
-                identifier.Append(token.Value);
+                identifier.Append(t.Value);
             }
 
             return identifier.ToString();
         }
 
-        private bool IsIdentifier(Token token, bool allowWhiteSpace)
-        {
-            if (allowWhiteSpace && token.IsWhiteSpace)
-                return true;
-
-            return token.IsLiteral;
-        }
-
-        private void CheckIdentifier(string identifier, LiteralParseOptions options)
+        private void CheckIdentifier(string identifier, IdentifierParseOptions options)
         {
             if (IsValidIdentifier(identifier, options))
                 return;
 
             // Are we at the end of the string?
-            Token token = ReadToken();    // Consume token, so "position" is correct
+            Token? token = ReadToken();    // Consume token, so "position" is correct
             if (token == null)
             {
-                throw new FormatException($"Expected identifier, but encountered end-of-string");
+                throw FormatException(ProjectTreeFormatError.IdExpected_EncounteredEndOfString, $"Expected identifier, but encountered end-of-string.");
             }
 
             // Otherwise, we must have hit a delimiter as whitespace will have been consumed as part of the identifier
-            throw new FormatException($"Expected identifier, but encountered '{token.Value}'");
+            throw FormatException(token, ProjectTreeFormatError.IdExpected_EncounteredDelimiter, $"Expected identifier, but encountered '{token.Value.Value}'.");
         }
 
-        private void CheckIdentifierAfterTrim(string identifier, LiteralParseOptions options)
+        private void CheckIdentifierAfterTrim(string identifier, IdentifierParseOptions options)
         {
             if (!IsValidIdentifier(identifier, options))
-                throw new FormatException("Expected identifier, but encountered only white space");
+                throw FormatException(ProjectTreeFormatError.IdExpected_EncounteredOnlyWhiteSpace, "Expected identifier, but encountered only white space.");
         }
 
-        private bool IsValidIdentifier(string identifier, LiteralParseOptions options)
+        private bool IsValidIdentifier(string identifier, IdentifierParseOptions options)
         {
-            if ((options & LiteralParseOptions.Required) == LiteralParseOptions.Required)
+            if ((options & IdentifierParseOptions.Required) == IdentifierParseOptions.Required)
             {
                 return identifier.Length != 0;
             }
@@ -141,16 +132,16 @@ namespace Microsoft.VisualStudio.Testing
             return true;
         }
 
-        private Token PeekToken()
+        private Token? PeekToken()
         {
             return PeekToken(1);
         }
 
-        private Token PeekToken(int lookAhead)
+        private Token? PeekToken(int lookAhead)
         {
             StringReader reader = _reader.Clone();
 
-            Token token;
+            Token? token;
             while ((token = GetTokenFrom(reader)) != null)
             {
                 lookAhead--;
@@ -161,43 +152,49 @@ namespace Microsoft.VisualStudio.Testing
             return token;
         }
 
-        private Token ReadToken()
+        private Token? ReadToken()
         {
             return GetTokenFrom(_reader);
         }
 
-        private Token GetTokenFrom(StringReader reader)
+        private Token? GetTokenFrom(StringReader reader)
         {
-            if (!reader.CanRead)
-                return null;
+            if (reader.CanRead)
+            {
+                return GetToken(reader.Read(), reader.Position - 1);
+            }
 
-            return GetToken(reader.Read());
+            return null;
         }
 
-        private Token GetToken(char c)
+        private Token GetToken(char c, int position)
         {
             if (IsDelimiter(c))
             {
-                return Token.Delimiter(c);
-            }
-
-            if (IsWhiteSpace(c))
-            {
-                return Token.WhiteSpace(c);
+                return Token.Delimiter(c, position);
             }
 
             // Otherwise, must be a literal
-            return Token.Literal(c);
-        }
-
-        private bool IsWhiteSpace(char c)
-        {
-            return (TokenType)c == TokenType.WhiteSpace;
+            return Token.Literal(c, position);
         }
 
         private bool IsDelimiter(char c)
         {
             return _delimiters.Contains((TokenType)c);
+        }
+
+        internal FormatException FormatException(ProjectTreeFormatError errorId, string message)
+        {
+            return FormatException((Token?)null, errorId, message);
+        }
+
+        private FormatException FormatException(Token? token, ProjectTreeFormatError errorId, string message)
+        {
+            int position = token?.Position ?? -1;
+
+            return new ProjectTreeFormatException(message,
+                                                  errorId,
+                                                  position);
         }
     }
 }
