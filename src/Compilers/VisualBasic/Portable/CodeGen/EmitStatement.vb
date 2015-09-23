@@ -634,6 +634,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ' it is ok if lazyDest is Nothing
         ' if lazyDest is needed it will be initialized to a new object
         Private Sub EmitCondBranch(condition As BoundExpression, ByRef lazyDest As Object, sense As Boolean)
+            _recursionDepth += 1
+
+            If _recursionDepth > 1 Then
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth)
+
+                EmitCondBranchCore(condition, lazyDest, sense)
+            Else
+                EmitCondBranchCoreWithStackGuard(condition, lazyDest, sense)
+            End If
+
+            _recursionDepth -= 1
+        End Sub
+
+        Private Sub EmitCondBranchCoreWithStackGuard(condition As BoundExpression, ByRef lazyDest As Object, sense As Boolean)
+            Debug.Assert(_recursionDepth = 1)
+
+            Try
+                EmitCondBranchCore(condition, lazyDest, sense)
+                Debug.Assert(_recursionDepth = 1)
+
+            Catch ex As Exception When StackGuard.IsInsufficientExecutionStackException(ex)
+                _diagnostics.Add(ERRID.ERR_TooLongOrComplexExpression,
+                                 BoundTreeVisitor.CancelledByStackGuardException.GetTooLongOrComplexExpressionErrorLocation(condition))
+                Throw New EmitCancelledException()
+            End Try
+        End Sub
+
+        Private Sub EmitCondBranchCore(condition As BoundExpression, ByRef lazyDest As Object, sense As Boolean)
 oneMoreTime:
             Dim ilcode As ILOpCode
             Dim constExprValue = condition.ConstantValueOpt
@@ -832,7 +860,9 @@ OtherExpressions:
         ''' <summary>
         ''' tells if given node contains a label statement that defines given label symbol
         ''' </summary>
-        Private Class LabelFinder : Inherits BoundTreeWalker
+        Private Class LabelFinder
+            Inherits StatementWalker
+
             Private ReadOnly _label As LabelSymbol
             Private _found As Boolean = False
 
@@ -841,7 +871,7 @@ OtherExpressions:
             End Sub
 
             Public Overrides Function Visit(node As BoundNode) As BoundNode
-                If Not _found Then
+                If Not _found AndAlso TypeOf node IsNot BoundExpression Then
                     Return MyBase.Visit(node)
                 End If
 

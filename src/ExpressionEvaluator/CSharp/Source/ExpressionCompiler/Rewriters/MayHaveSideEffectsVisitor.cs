@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
-    internal sealed class MayHaveSideEffectsVisitor : BoundTreeWalker
+    internal sealed class MayHaveSideEffectsVisitor : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
         private bool _mayHaveSideEffects;
 

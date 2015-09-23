@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.RuntimeMembers;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed partial class LocalRewriter : BoundTreeRewriter
+    internal sealed partial class LocalRewriter : BoundTreeRewriterWithStackGuard
     {
         private readonly CSharpCompilation _compilation;
         private readonly SyntheticBoundNodeFactory _factory;
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var visited = (BoundExpression)base.Visit(node);
+            var visited = VisitExpressionWithStackGuard(node);
 
             // If you *really* need to change the type, consider using an indirect method
             // like compound assignment does (extra flag only passed when it is an expression
