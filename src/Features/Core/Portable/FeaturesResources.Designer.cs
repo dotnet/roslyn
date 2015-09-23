@@ -1655,6 +1655,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove Suppression.
+        /// </summary>
+        internal static string RemoveSuppressionEquivalenceKeyPrefix {
+            get {
+                return ResourceManager.GetString("RemoveSuppressionEquivalenceKeyPrefix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove Suppression {0}.
+        /// </summary>
+        internal static string RemoveSuppressionForId {
+            get {
+                return ResourceManager.GetString("RemoveSuppressionForId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove Unnecessary Cast.
         /// </summary>
         internal static string RemoveUnnecessaryCast {

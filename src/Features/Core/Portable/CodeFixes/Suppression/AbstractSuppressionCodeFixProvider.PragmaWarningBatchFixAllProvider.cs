@@ -1,11 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
@@ -22,21 +25,33 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
             public override async Task AddDocumentFixesAsync(Document document, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix, FixAllContext fixAllContext)
             {
-                foreach (var diagnosticsForSpan in diagnostics.Where(d => d.Location.IsInSource).GroupBy(d => d.Location.SourceSpan))
+                var pragmaActionsBuilder = ImmutableArray.CreateBuilder<IPragmaBasedCodeAction>();
+                var pragmaDiagnosticsBuilder = ImmutableArray.CreateBuilder<Diagnostic>();
+
+                foreach (var diagnostic in diagnostics.Where(d => d.Location.IsInSource && !d.IsSuppressed))
                 {
-                    var span = diagnosticsForSpan.First().Location.SourceSpan;
-                    var pragmaSuppressions = await _suppressionFixProvider.GetPragmaSuppressionsAsync(document, span, diagnosticsForSpan, fixAllContext.CancellationToken).ConfigureAwait(false);
-                    foreach (var pragmaSuppression in pragmaSuppressions)
+                    var span = diagnostic.Location.SourceSpan;
+                    var pragmaSuppressions = await _suppressionFixProvider.GetPragmaSuppressionsAsync(document, span, SpecializedCollections.SingletonEnumerable(diagnostic), fixAllContext.CancellationToken).ConfigureAwait(false);
+                    var pragmaSuppression = pragmaSuppressions.SingleOrDefault();
+                    if (pragmaSuppression != null)
                     {
                         if (fixAllContext is FixMultipleContext)
                         {
-                            addFix(pragmaSuppression.CloneForFixMultipleContext());
+                            pragmaSuppression = pragmaSuppression.CloneForFixMultipleContext();
                         }
-                        else
-                        {
-                            addFix(pragmaSuppression);
-                        }
+
+                        pragmaActionsBuilder.Add(pragmaSuppression);
+                        pragmaDiagnosticsBuilder.Add(diagnostic);
                     }
+                }
+
+                // Get the pragma batch fix.
+                if (pragmaActionsBuilder.Count > 0)
+                {
+                    var pragmaBatchFix = PragmaBatchFixHelpers.CreateBatchPragmaFix(_suppressionFixProvider, document,
+                        pragmaActionsBuilder.ToImmutable(), pragmaDiagnosticsBuilder.ToImmutable(), fixAllContext);
+
+                    addFix(pragmaBatchFix);
                 }
             }
         }

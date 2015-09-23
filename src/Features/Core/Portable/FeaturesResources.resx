@@ -700,6 +700,12 @@ Do you want to continue?</value>
   <data name="SuppressWithGlobalSuppressMessage" xml:space="preserve">
     <value>in Suppression File</value>
   </data>
+  <data name="RemoveSuppressionForId" xml:space="preserve">
+    <value>Remove Suppression {0}</value>
+  </data>
+  <data name="RemoveSuppressionEquivalenceKeyPrefix" xml:space="preserve">
+    <value>Remove Suppression</value>
+  </data>
   <data name="SuppressionPendingJustification" xml:space="preserve">
     <value>&lt;Pending&gt;</value>
   </data>
