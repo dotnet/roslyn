@@ -1,23 +1,9 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.Host
-Imports Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
-Imports Microsoft.CodeAnalysis.Editor.Navigation
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
-Imports Microsoft.CodeAnalysis.Host
-Imports Microsoft.CodeAnalysis.FindSymbols
-Imports Microsoft.CodeAnalysis.Navigation
-Imports Microsoft.CodeAnalysis.Notification
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.VisualStudio.Text
-Imports Roslyn.Utilities
-Imports Microsoft.CodeAnalysis.GeneratedCodeRecognition
-Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
