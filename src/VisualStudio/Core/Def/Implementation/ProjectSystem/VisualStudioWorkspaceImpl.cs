@@ -776,9 +776,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             switch (hostProject.Language)
             {
                 case LanguageNames.CSharp:
-                    return sourceCodeKind == SourceCodeKind.Regular ? ".cs" : ".csx";
+                    // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
+                    //return sourceCodeKind == SourceCodeKind.Regular ? ".cs" : ".csx";
+                    return ".cs";
                 case LanguageNames.VisualBasic:
-                    return sourceCodeKind == SourceCodeKind.Regular ? ".vb" : ".vbx";
+                    // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
+                    //return sourceCodeKind == SourceCodeKind.Regular ? ".vb" : ".vbx";
+                    return ".vb";
                 default:
                     throw new InvalidOperationException();
             }

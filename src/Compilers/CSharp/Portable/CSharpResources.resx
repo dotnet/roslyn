@@ -219,6 +219,9 @@
   <data name="IDS_FeatureAutoImplementedProperties" xml:space="preserve">
     <value>automatically implemented properties</value>
   </data>
+  <data name="IDS_FeatureReadonlyAutoImplementedProperties" xml:space="preserve">
+    <value>readonly automatically implemented properties</value>
+  </data>
   <data name="IDS_FeatureObjectInitializer" xml:space="preserve">
     <value>object initializer</value>
   </data>

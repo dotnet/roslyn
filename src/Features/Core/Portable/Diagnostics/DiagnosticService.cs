@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -108,6 +109,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
         {
+            AssertIfNull(e.Diagnostics);
             RaiseDiagnosticsUpdated(sender, e);
         }
 
@@ -182,6 +184,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     foreach (var diagnostic in source.GetDiagnostics(workspace, projectId, documentId, null, includeSuppressedDiagnostics, cancellationToken))
                     {
+                        AssertIfNull(diagnostic);
                         yield return diagnostic;
                     }
                 }
@@ -195,6 +198,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             foreach (var diagnostic in data.Diagnostics)
                             {
+                                AssertIfNull(diagnostic);
                                 if (includeSuppressedDiagnostics || !diagnostic.IsSuppressed)
                                 {
                                     yield return diagnostic;
@@ -253,6 +257,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return true;
+        }
+
+        [Conditional("DEBUG")]
+        private void AssertIfNull(ImmutableArray<DiagnosticData> diagnostics)
+        {
+            for (var i = 0; i < diagnostics.Length; i++)
+            {
+                AssertIfNull(diagnostics[i]);
+            }
+        }
+
+        [Conditional("DEBUG")]
+        private void AssertIfNull(DiagnosticData diagnostic)
+        {
+            if (diagnostic == null)
+            {
+                Contract.Requires(false, "who returns invalid data?");
+            }
         }
 
         private struct Data : IEquatable<Data>

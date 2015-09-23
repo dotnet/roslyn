@@ -24,9 +24,13 @@ namespace Roslyn.Utilities
             _stream.Flush();
         }
 
+        /// <summary>
+        /// The actual number of bytes read can be fewer than the number of bytes requested 
+        /// if an error occurs or if the end of the stream is reached during the read operation.
+        /// </summary>
         public unsafe void Read(byte[] pv, int cb, IntPtr pcbRead)
         {
-            int bytesRead = _stream.Read(pv, 0, cb);
+            int bytesRead = _stream.TryReadAll(pv, 0, cb);
 
             if (pcbRead != IntPtr.Zero)
             {
