@@ -128,7 +128,7 @@
     <GetAssemblyIdentity AssemblyFiles="$(OutDir)\CSharpAnalyzers.dll">
       <Output TaskParameter="Assemblies" ItemName="CSharpAnalyzersAssemblyInfo" />
     </GetAssemblyIdentity>
-    <Exec Command="&quot;$(PackagesDir)\NuGet.CommandLine.2.8.5\tools\NuGet.exe&quot; pack Diagnostic.nuspec -NoPackageAnalysis -Version %(CSharpAnalyzersAssemblyInfo.Version) -OutputDirectory ." WorkingDirectory="$(OutDir)" LogStandardErrorAsError="true" ConsoleToMSBuild="true">
+    <Exec Command="&quot;..\..\..\..\..\..\NuGet.exe&quot; pack Diagnostic.nuspec -NoPackageAnalysis -Version %(CSharpAnalyzersAssemblyInfo.Version) -OutputDirectory ." WorkingDirectory="$(OutDir)" LogStandardErrorAsError="true" ConsoleToMSBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
     </Exec>
   </Target>

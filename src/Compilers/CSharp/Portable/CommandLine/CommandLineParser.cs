@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowUnsafe = false;
             bool concurrentBuild = true;
             bool emitPdb = false;
+            bool debugPlus = false;
             string pdbPath = null;
             bool noStdLib = false;
             string outputDirectory = baseDirectory;
@@ -524,6 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
 
                             emitPdb = true;
+                            debugPlus = true;
                             continue;
 
                         case "debug-":
@@ -531,6 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
 
                             emitPdb = false;
+                            debugPlus = false;
                             continue;
 
                         case "o":
@@ -1080,6 +1083,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 specificDiagnosticOptions: diagnosticOptions,
                 reportSuppressedDiagnostics: reportSuppressedDiagnostics
             );
+
+            if (debugPlus)
+            {
+                options = options.WithDebugPlusMode(debugPlus);
+            }
 
             var emitOptions = new EmitOptions
             (

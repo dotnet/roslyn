@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, platform, generalDiagnosticOption, warningLevel,
                    specificDiagnosticOptions, concurrentBuild,
                    extendedCustomDebugInformation: true,
+                   debugPlusMode: false,
                    xmlReferenceResolver: xmlReferenceResolver,
                    sourceReferenceResolver: sourceReferenceResolver,
                    metadataReferenceResolver: metadataReferenceResolver,
@@ -95,6 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, platform, generalDiagnosticOption, warningLevel,
                    specificDiagnosticOptions, concurrentBuild,
                    extendedCustomDebugInformation: true,
+                   debugPlusMode: false,
                    xmlReferenceResolver: xmlReferenceResolver,
                    sourceReferenceResolver: sourceReferenceResolver,
                    metadataReferenceResolver: metadataReferenceResolver,
@@ -125,6 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions,
             bool concurrentBuild,
             bool extendedCustomDebugInformation,
+            bool debugPlusMode,
             XmlReferenceResolver xmlReferenceResolver,
             SourceReferenceResolver sourceReferenceResolver,
             MetadataReferenceResolver metadataReferenceResolver,
@@ -133,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MetadataImportOptions metadataImportOptions)
             : base(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, optimizationLevel, checkOverflow,
                    platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(),
-                   concurrentBuild, extendedCustomDebugInformation, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer,
+                   concurrentBuild, extendedCustomDebugInformation, debugPlusMode, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer,
                    strongNameProvider, metadataImportOptions)
         {
             this.Usings = usings.AsImmutableOrEmpty();
@@ -159,6 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             specificDiagnosticOptions: other.SpecificDiagnosticOptions,
             concurrentBuild: other.ConcurrentBuild,
             extendedCustomDebugInformation: other.ExtendedCustomDebugInformation,
+            debugPlusMode: other.DebugPlusMode,
             xmlReferenceResolver: other.XmlReferenceResolver,
             sourceReferenceResolver: other.SourceReferenceResolver,
             metadataReferenceResolver: other.MetadataReferenceResolver,
@@ -402,6 +406,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new CSharpCompilationOptions(this) { ExtendedCustomDebugInformation_internal_protected_set = extendedCustomDebugInformation };
+        }
+
+        internal CSharpCompilationOptions WithDebugPlusMode(bool debugPlusMode)
+        {
+            if (debugPlusMode == this.DebugPlusMode)
+            {
+                return this;
+            }
+
+            return new CSharpCompilationOptions(this) { DebugPlusMode_internal_protected_set = debugPlusMode };
         }
 
         internal CSharpCompilationOptions WithMetadataImportOptions(MetadataImportOptions value)

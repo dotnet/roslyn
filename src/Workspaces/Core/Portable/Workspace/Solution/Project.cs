@@ -372,7 +372,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Get the <see cref="Compilation"/> for this project if it is available.
+        /// Tries to get the cached <see cref="Compilation"/> for this project if it has already been created and is still cached. In almost all
+        /// cases you should call <see cref="GetCompilationAsync"/> which will either return the cached <see cref="Compilation"/>
+        /// or create a new one otherwise.
         /// </summary>
         public bool TryGetCompilation(out Compilation compilation)
         {

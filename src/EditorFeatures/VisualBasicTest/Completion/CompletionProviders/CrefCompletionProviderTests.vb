@@ -807,6 +807,10 @@ End Class]]></a>.Value.NormalizeLineEndings()
             Public Function TryGetPredefinedType(token As SyntaxToken, ByRef type As PredefinedType) As Boolean Implements ISyntaxFactsService.TryGetPredefinedType
                 Throw New NotImplementedException()
             End Function
+
+            Public Function GetInactiveRegionSpanAroundPosition(tree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As TextSpan Implements ISyntaxFactsService.GetInactiveRegionSpanAroundPosition
+                Throw New NotImplementedException()
+            End Function
         End Class
     End Class
 End Namespace
