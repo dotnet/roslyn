@@ -51,11 +51,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact>
         Public Sub SyntaxTree_WithOperatorTokenUpdatesOperatorToken()
 
-            Dim expression = SyntaxFactory.AddExpression(SyntaxFactory.ParseExpression("5"),
-                                                         SyntaxFactory.ParseToken("+"),
-                                                         SyntaxFactory.ParseExpression("3"))
+            Dim expression = SyntaxFactory.AddExpression(CreateIntegerLiteral(1),
+                                                         SyntaxFactory.Token(SyntaxKind.PlusToken, trailing:=_spaceTrivia),
+                                                         CreateIntegerLiteral(3))
 
-            Dim newOperatorToken = SyntaxFactory.Token(SyntaxKind.MinusToken)
+            Dim newOperatorToken = SyntaxFactory.Token(SyntaxKind.MinusToken, trailing:=_spaceTrivia)
             
             Dim newExpression = expression.WithOperatorToken(newOperatorToken)
 
