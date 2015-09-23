@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
@@ -586,7 +587,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Window.InsertCode("1 + 2");
             Window.Operations.SelectAll();
             Window.Operations.Copy();
-            VerifyClipboardData("1 + 2");
+            VerifyClipboardData("1 + 2", "1 + 2", @"[{""content"":""1 + 2"",""kind"":2}]");
 
             // Shrink the selection.
             var selection = Window.TextView.Selection;
@@ -594,7 +595,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             selection.Select(new SnapshotSpan(span.Snapshot, span.Start + 1, span.Length - 2), isReversed: false);
 
             Window.Operations.Copy();
-            VerifyClipboardData(" + ");
+            VerifyClipboardData(" + ", " + ", @"[{""content"":"" + "",""kind"":2}]");
         }
 
         [Fact]
@@ -616,13 +617,14 @@ System.Console.WriteLine();",
             Window.Operations.SelectAll();
             Window.Operations.SelectAll();
             Window.Operations.Copy();
-            VerifyClipboardData(@"foreach (var o in new[] { 1, 2, 3 })
-System.Console.WriteLine();
+            VerifyClipboardData(@"> foreach (var o in new[] { 1, 2, 3 })
+> System.Console.WriteLine();
 1
 2
 3
-",
-@"> foreach (var o in new[] \{ 1, 2, 3 \})\par > System.Console.WriteLine();\par 1\par 2\par 3\par > ");
+> ",
+@"> foreach (var o in new[] \{ 1, 2, 3 \})\par > System.Console.WriteLine();\par 1\par 2\par 3\par > ",
+@"[{""content"":""> "",""kind"":2},{""content"":""foreach (var o in new[] { 1, 2, 3 })\u000d\u000a"",""kind"":2},{""content"":""> "",""kind"":2},{""content"":""System.Console.WriteLine();\u000d\u000a"",""kind"":2},{""content"":""1\u000d\u000a2\u000d\u000a3\u000d\u000a"",""kind"":2},{""content"":""> "",""kind"":2}]");
 
             // Shrink the selection.
             var selection = Window.TextView.Selection;
@@ -631,11 +633,12 @@ System.Console.WriteLine();
 
             Window.Operations.Copy();
             VerifyClipboardData(@"oreach (var o in new[] { 1, 2, 3 })
-System.Console.WriteLine();
+> System.Console.WriteLine();
 1
 2
 3",
-@"oreach (var o in new[] \{ 1, 2, 3 \})\par > System.Console.WriteLine();\par 1\par 2\par 3");
+@"oreach (var o in new[] \{ 1, 2, 3 \})\par > System.Console.WriteLine();\par 1\par 2\par 3",
+@"[{""content"":""oreach (var o in new[] { 1, 2, 3 })\u000d\u000a"",""kind"":2},{""content"":""> "",""kind"":2},{""content"":""System.Console.WriteLine();\u000d\u000a"",""kind"":2},{""content"":""1\u000d\u000a2\u000d\u000a3"",""kind"":2}]");
         }
 
         [Fact]
@@ -662,7 +665,8 @@ System.Console.WriteLine();
             VerifyClipboardData(
 @"each (var o in new[] { 1, 2, 3 })
 System.Console.WriteLine()",
-                expectedRtf: null);
+                expectedRtf: null,
+                expectedRepl: null);
         }
 
         [Fact]
@@ -684,7 +688,7 @@ System.Console.WriteLine();",
             Window.Operations.SelectAll();
             Window.Operations.SelectAll();
             Window.Operations.Cut();
-            VerifyClipboardData(null);
+            VerifyClipboardData(null, null, null);
         }
 
         /// <summary>
@@ -701,15 +705,15 @@ System.Console.WriteLine();",
 @" 1
 
 2 ");
-            CopyNoSelectionAndVerify(0, 7, "s +\r\n", @"> s +\par ");
-            CopyNoSelectionAndVerify(7, 11, "\r\n", @"> \par ");
-            CopyNoSelectionAndVerify(11, 17, " t\r\n", @">  t\par ");
-            CopyNoSelectionAndVerify(17, 21, " 1\r\n", @" 1\par ");
-            CopyNoSelectionAndVerify(21, 23, "\r\n", @"\par ");
-            CopyNoSelectionAndVerify(23, 28, "2 ", "2 > ");
+            CopyNoSelectionAndVerify(0, 7, "> s +\r\n", @"> s +\par ", @"[{""content"":""> "",""kind"":2},{""content"":""s +\u000d\u000a"",""kind"":2}]");
+            CopyNoSelectionAndVerify(7, 11, "> \r\n", @"> \par ", @"[{""content"":""> "",""kind"":2},{""content"":""\u000d\u000a"",""kind"":2}]");
+            CopyNoSelectionAndVerify(11, 17, ">  t\r\n", @">  t\par ", @"[{""content"":""> "",""kind"":2},{""content"":"" t\u000d\u000a"",""kind"":2}]");
+            CopyNoSelectionAndVerify(17, 21, " 1\r\n", @" 1\par ", @"[{""content"":"" 1\u000d\u000a"",""kind"":2}]");
+            CopyNoSelectionAndVerify(21, 23, "\r\n", @"\par ", @"[{""content"":""\u000d\u000a"",""kind"":2}]");
+            CopyNoSelectionAndVerify(23, 28, "2 > ", "2 > ", @"[{""content"":""2 "",""kind"":2},{""content"":""> "",""kind"":2}]");
         }
 
-        private void CopyNoSelectionAndVerify(int start, int end, string expectedText, string expectedRtf)
+        private void CopyNoSelectionAndVerify(int start, int end, string expectedText, string expectedRtf, string expectedRepl)
         {
             var caret = Window.TextView.Caret;
             var snapshot = Window.TextView.TextBuffer.CurrentSnapshot;
@@ -718,7 +722,81 @@ System.Console.WriteLine();",
                 Clipboard.Clear();
                 caret.MoveTo(new SnapshotPoint(snapshot, i));
                 Window.Operations.Copy();
-                VerifyClipboardData(expectedText, expectedRtf);
+                VerifyClipboardData(expectedText, expectedRtf, expectedRepl);
+            }
+        }
+
+        [Fact]
+        public void Paste()
+        {
+            var blocks = new[]
+            {
+                new BufferBlock(ReplSpanKind.Output, "a\r\nbc"),
+                new BufferBlock(ReplSpanKind.Prompt, "> "),
+                new BufferBlock(ReplSpanKind.Prompt, "< "),
+                new BufferBlock(ReplSpanKind.Input, "12"),
+                new BufferBlock(ReplSpanKind.StandardInput, "3"),
+                new BufferBlock((ReplSpanKind)10, "xyz")
+            };
+
+            // Paste from text clipboard format.
+            CopyToClipboard(blocks, includeRepl: false);
+            Window.Operations.Paste();
+            var text = Window.TextView.TextBuffer.CurrentSnapshot.GetText();
+            Assert.Equal("> a\r\n> bc> < 123xyz", text);
+
+            Window.Operations.ClearView();
+            text = Window.TextView.TextBuffer.CurrentSnapshot.GetText();
+            Assert.Equal("> ", text);
+
+            // Paste from custom clipboard format.
+            CopyToClipboard(blocks, includeRepl: true);
+            Window.Operations.Paste();
+            text = Window.TextView.TextBuffer.CurrentSnapshot.GetText();
+            Assert.Equal("> a\r\n> bc123", text);
+        }
+
+        private static void CopyToClipboard(BufferBlock[] blocks, bool includeRepl)
+        {
+            Clipboard.Clear();
+            var data = new DataObject();
+            var builder = new StringBuilder();
+            foreach (var block in blocks)
+            {
+                builder.Append(block.Content);
+            }
+            var text = builder.ToString();
+            data.SetData(DataFormats.UnicodeText, text);
+            data.SetData(DataFormats.StringFormat, text);
+            if (includeRepl)
+            {
+                data.SetData(InteractiveWindow.ClipboardFormat, BufferBlock.Serialize(blocks));
+            }
+            Clipboard.SetDataObject(data, false);
+        }
+
+        [Fact]
+        public void JsonSerialization()
+        {
+            var expectedContent = new []
+            {
+                new BufferBlock(ReplSpanKind.Prompt, "> "),
+                new BufferBlock(ReplSpanKind.Input, "Hello"),
+                new BufferBlock(ReplSpanKind.Prompt, ". "),
+                new BufferBlock(ReplSpanKind.StandardInput, "world"),
+                new BufferBlock(ReplSpanKind.Output, "Hello world"),
+            };
+            var actualJson = BufferBlock.Serialize(expectedContent);
+            var expectedJson = @"[{""content"":""> "",""kind"":0},{""content"":""Hello"",""kind"":2},{""content"":"". "",""kind"":0},{""content"":""world"",""kind"":3},{""content"":""Hello world"",""kind"":1}]";
+            Assert.Equal(expectedJson, actualJson);
+            var actualContent = BufferBlock.Deserialize(actualJson);
+            Assert.Equal(expectedContent.Length, actualContent.Length);
+            for (int i = 0; i < expectedContent.Length; i++)
+            {
+                var expectedBuffer = expectedContent[i];
+                var actualBuffer = actualContent[i];
+                Assert.Equal(expectedBuffer.Kind, actualBuffer.Kind);
+                Assert.Equal(expectedBuffer.Content, actualBuffer.Content);
             }
         }
 
@@ -1051,7 +1129,7 @@ System.Console.WriteLine();",
             Assert.Equal("> 1\r\n1\r\n> 2", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
             AssertCaretVirtualPosition(1, 1);
 
-            VerifyClipboardData(null);
+            VerifyClipboardData(null, null, null);
 
             // Cut() with caret in active prompt
             caret.MoveToNextCaretPosition();
@@ -1060,7 +1138,7 @@ System.Console.WriteLine();",
 
             Assert.Equal("> 1\r\n1\r\n> ", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
             AssertCaretVirtualPosition(2, 2);
-            VerifyClipboardData("2", expectedRtf: null);
+            VerifyClipboardData("2", expectedRtf: null, expectedRepl: null);
         }
 
         [Fact]
@@ -1089,7 +1167,7 @@ System.Console.WriteLine();",
 
             Task.Run(() => Window.Operations.Cut()).PumpingWait();
             Assert.Equal("> 1\r\n1\r\n> 23", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
-            VerifyClipboardData(null);
+            VerifyClipboardData(null, null, null);
 
             // Cut() with selection in active prompt, no-op
             selection.Clear();
@@ -1102,7 +1180,7 @@ System.Console.WriteLine();",
 
             Task.Run(() => Window.Operations.Cut()).PumpingWait();
             Assert.Equal("> 1\r\n1\r\n> 23", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
-            VerifyClipboardData(null);
+            VerifyClipboardData(null, null, null);
 
             // Cut() with selection overlaps with editable buffer, 
             // Cut editable content and move caret to closest editable location 
@@ -1119,7 +1197,7 @@ System.Console.WriteLine();",
             Task.Run(() => Window.Operations.Cut()).PumpingWait();
             Assert.Equal("> 1\r\n1\r\n> 3", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
             AssertCaretVirtualPosition(2, 2);
-            VerifyClipboardData("2", expectedRtf: null);
+            VerifyClipboardData("2", expectedRtf: null, expectedRepl: null);
         }
 
         [Fact]
@@ -1136,7 +1214,7 @@ System.Console.WriteLine();",
             Clipboard.Clear();
             Window.Operations.Home(true);
             Window.Operations.Copy();
-            VerifyClipboardData("2", @"\ansi{\fonttbl{\f0 Consolas;}}{\colortbl;\red0\green0\blue0;\red255\green255\blue255;}\f0 \fs24 \cf1 \cb2 \highlight2 2");
+            VerifyClipboardData("2", @"\ansi{\fonttbl{\f0 Consolas;}}{\colortbl;\red0\green0\blue0;\red255\green255\blue255;}\f0 \fs24 \cf1 \cb2 \highlight2 2", @"[{""content"":""2"",""kind"":2}]");
 
             // Paste() with caret in readonly area, no-op 
             Window.TextView.Selection.Clear();      
@@ -1173,7 +1251,7 @@ System.Console.WriteLine();",
             Clipboard.Clear();
             Window.Operations.Home(true);
             Window.Operations.Copy();
-            VerifyClipboardData("23", @"\ansi{\fonttbl{\f0 Consolas;}}{\colortbl;\red0\green0\blue0;\red255\green255\blue255;}\f0 \fs24 \cf1 \cb2 \highlight2 23");
+            VerifyClipboardData("23", @"\ansi{\fonttbl{\f0 Consolas;}}{\colortbl;\red0\green0\blue0;\red255\green255\blue255;}\f0 \fs24 \cf1 \cb2 \highlight2 23", @"[{""content"":""23"",""kind"":2}]");
 
 
             // Paste() with selection in readonly area, no-op  
@@ -1231,17 +1309,13 @@ System.Console.WriteLine();",
             }
         }
 
-        private static void VerifyClipboardData(string expectedText)
-        {
-            VerifyClipboardData(expectedText, expectedText);
-        }
-
-        private static void VerifyClipboardData(string expectedText, string expectedRtf)
+        private static void VerifyClipboardData(string expectedText, string expectedRtf, string expectedRepl)
         {
             var data = Clipboard.GetDataObject();
             Assert.Equal(expectedText, data.GetData(DataFormats.StringFormat));
             Assert.Equal(expectedText, data.GetData(DataFormats.Text));
             Assert.Equal(expectedText, data.GetData(DataFormats.UnicodeText));
+            Assert.Equal(expectedRepl, (string)data.GetData(InteractiveWindow.ClipboardFormat));
             var actualRtf = (string)data.GetData(DataFormats.Rtf);
             if (expectedRtf == null)
             {
