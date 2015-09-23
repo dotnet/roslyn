@@ -2,7 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
+using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     /// </remarks>
     internal sealed class RuntimeMetadataReferenceResolver : MetadataReferenceResolver, IEquatable<RuntimeMetadataReferenceResolver>
     {
-        public static readonly RuntimeMetadataReferenceResolver Default = new RuntimeMetadataReferenceResolver();
+        public static readonly RuntimeMetadataReferenceResolver Default = new RuntimeMetadataReferenceResolver(ImmutableArray<string>.Empty, baseDirectory: null);
 
         internal readonly RelativePathResolver PathResolver;
         internal readonly NuGetPackageResolver PackageResolver;
@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         private readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> _fileReferenceProvider;
 
         internal RuntimeMetadataReferenceResolver(
-            ImmutableArray<string> searchPaths = default(ImmutableArray<string>),
-            string baseDirectory = null)
+            ImmutableArray<string> searchPaths,
+            string baseDirectory)
             : this(new RelativePathResolver(searchPaths.NullToEmpty(), baseDirectory),
                    null,
                    GacFileResolver.Default)
@@ -46,27 +46,29 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
         public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
         {
-            if (PathResolver != null && PathUtilities.IsFilePath(reference))
+            string packageName;
+            string packageVersion;
+            if (NuGetPackageResolver.TryParsePackageReference(reference, out packageName, out packageVersion))
             {
-                var resolvedPath = PathResolver.ResolvePath(reference, baseFilePath);
-                if (resolvedPath == null)
+                if (PackageResolver != null)
                 {
-                    return ImmutableArray<PortableExecutableReference>.Empty;
-                }
-
-                return ImmutableArray.Create(_fileReferenceProvider(resolvedPath, properties));
-            }
-
-            if (PackageResolver != null)
-            {
-                var paths = PackageResolver.ResolveNuGetPackage(reference);
-                if (!paths.IsDefaultOrEmpty)
-                {
+                    var paths = PackageResolver.ResolveNuGetPackage(packageName, packageVersion);
+                    Debug.Assert(!paths.IsDefault);
                     return paths.SelectAsArray(path => _fileReferenceProvider(path, properties));
                 }
             }
-
-            if (GacFileResolver != null)
+            else if (PathUtilities.IsFilePath(reference))
+            {
+                if (PathResolver != null)
+                {
+                    var resolvedPath = PathResolver.ResolvePath(reference, baseFilePath);
+                    if (resolvedPath != null)
+                    {
+                        return ImmutableArray.Create(_fileReferenceProvider(resolvedPath, properties));
+                    }
+                }
+            }
+            else if (GacFileResolver != null)
             {
                 var path = GacFileResolver.Resolve(reference);
                 if (path != null)
@@ -74,7 +76,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     return ImmutableArray.Create(_fileReferenceProvider(path, properties));
                 }
             }
-
             return ImmutableArray<PortableExecutableReference>.Empty;
         }
 

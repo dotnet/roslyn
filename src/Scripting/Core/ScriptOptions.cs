@@ -340,7 +340,9 @@ namespace Microsoft.CodeAnalysis.Scripting
         private static ImmutableArray<T> ToImmutableArrayChecked<T>(IEnumerable<T> items, string parameterName)
             where T : class
         {
-            return AddRangeAndFreeChecked(ArrayBuilder<T>.GetInstance(), items, parameterName);
+            var builder = ArrayBuilder<T>.GetInstance();
+            AddRangeChecked(builder, items, parameterName);
+            return builder.ToImmutableAndFree();
         }
 
         private static ImmutableArray<T> ConcatChecked<T>(ImmutableArray<T> existing, IEnumerable<T> items, string parameterName)
@@ -348,10 +350,11 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             var builder = ArrayBuilder<T>.GetInstance();
             builder.AddRange(existing);
-            return AddRangeAndFreeChecked(builder, items, parameterName);
+            AddRangeChecked(builder, items, parameterName);
+            return builder.ToImmutableAndFree();
         }
 
-        private static ImmutableArray<T> AddRangeAndFreeChecked<T>(ArrayBuilder<T> builder, IEnumerable<T> items, string parameterName)
+        private static void AddRangeChecked<T>(ArrayBuilder<T> builder, IEnumerable<T> items, string parameterName)
             where T : class
         {
             RequireNonNull(items, parameterName);
@@ -360,14 +363,11 @@ namespace Microsoft.CodeAnalysis.Scripting
             {
                 if (item == null)
                 {
-                    builder.Free();
                     throw new ArgumentNullException($"{parameterName}[{builder.Count}]");
                 }
 
                 builder.Add(item);
             }
-
-            return builder.ToImmutableAndFree();
         }
 
         private static IEnumerable<S> SelectChecked<T, S>(IEnumerable<T> items, string parameterName, Func<T, S> selector)
