@@ -820,7 +820,7 @@ End Class]]>
                 End Function
 
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
-                Public Sub TestErrorDiagnosticCannotBeSuppressed()
+                Public Sub TestErrorDiagnosticCanBeSuppressed()
                     Dim source = <![CDATA[
 Imports System
 
@@ -828,8 +828,30 @@ Imports System
     Sub Method()
     End Sub
 End Class]]>
+                    Dim expected = <![CDATA[
+Imports System
 
-                    TestMissing(source.Value)
+#Disable Warning ErrorDiagnostic ' ErrorDiagnostic
+Class C
+#Enable Warning ErrorDiagnostic ' ErrorDiagnostic
+    Sub Method()
+    End Sub
+End Class]]>
+
+                    Test(source.Value, expected.Value)
+
+                    ' Also verify that the added directive does indeed suppress the diagnostic.
+                    Dim fixedSource = <![CDATA[
+Imports System
+
+#Disable Warning ErrorDiagnostic ' ErrorDiagnostic
+[|Class C|]
+#Enable Warning ErrorDiagnostic ' ErrorDiagnostic
+    Sub Method()
+    End Sub
+End Class]]>
+
+                    TestMissing(fixedSource.Value)
                 End Sub
             End Class
         End Class

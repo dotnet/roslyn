@@ -52,6 +52,7 @@
     <Compile Include="CaseInsensitiveComparison.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerDriver.CompilationData.cs" />
     <Compile Include="DiagnosticAnalyzer\SuppressMessageInfo.cs" />
+    <Compile Include="InternalUtilities\StreamExtensions.cs" />
     <Compile Include="UnicodeCharacterUtilities.cs" />
     <Compile Include="CodeAnalysisResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -751,6 +752,5 @@
   <Import Project="..\SharedCollections\SharedCollections.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

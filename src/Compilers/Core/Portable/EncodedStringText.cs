@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Text
             // than the buffer size. The default buffer size is 4KB, so this will incur a 4KB
             // allocation for any files less than 4KB. That's why, for example, the command
             // line compiler actually specifies a very small buffer size.
-            return stream.Read(buffer, 0, length) == length;
+            return stream.TryReadAll(buffer, 0, length) == length;
         }
     }
 }

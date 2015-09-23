@@ -67,7 +67,6 @@
     <Compile Include="PseudoVariableUtilities.cs" />
   </ItemGroup>
   <ItemGroup Label="File References">
-    <Reference Include="$(NuGetPackageRoot)\Microsoft.DiaSymReader\1.0.5\lib\net45\Microsoft.DiaSymReader.dll" />
     <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Engine.dll" />
   </ItemGroup>
   <ItemGroup Label="Project References">
@@ -106,6 +105,5 @@
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

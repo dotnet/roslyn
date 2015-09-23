@@ -14614,6 +14614,96 @@ class C
 }");
         }
 
+        [WorkItem(5323, "https://github.com/dotnet/roslyn/issues/5323")]
+        [Fact]
+        public void DynamicUsingWithYield1()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        foreach(var i in Iter())
+        {
+            System.Console.WriteLine(i);
+        }
+    }
+
+    static IEnumerable<Task> Iter()
+    {
+        dynamic d = 123;
+
+        using (var t = D(d))    
+        {
+            yield return t;
+            t.Wait();
+        }
+    }
+
+    static Task D(dynamic arg)
+    {
+            return Task.FromResult(1);
+    }
+}";
+            var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
+
+            comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugExe);
+
+            CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
+        }
+
+        [WorkItem(5323, "https://github.com/dotnet/roslyn/issues/5323")]
+        [Fact]
+        public void DynamicUsingWithYield2()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        foreach(var i in Iter())
+        {
+            System.Console.WriteLine(i);
+        }
+    }
+
+    static IEnumerable<Task> Iter()
+    {
+        dynamic d = 123;
+
+        var t = D(d);
+        using (t)    
+        {
+            yield return t;
+            t.Wait();
+        }
+    }
+
+    static Task D(dynamic arg)
+    {
+            return Task.FromResult(1);
+    }
+}";
+            var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
+            
+            CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
+
+            comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugExe);
+
+            CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
+
+        }
+
         #endregion
 
         #region Using

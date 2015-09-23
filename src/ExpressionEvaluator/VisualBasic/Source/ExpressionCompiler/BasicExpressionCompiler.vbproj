@@ -20,7 +20,6 @@
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
   </PropertyGroup>
   <ItemGroup Label="File References">
-    <Reference Include="$(NuGetPackageRoot)\Microsoft.DiaSymReader\1.0.5\lib\net45\Microsoft.DiaSymReader.dll" />
     <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Engine.dll" />
   </ItemGroup>
   <ItemGroup Label="Project References">
@@ -130,6 +129,5 @@
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\Tools\Vsdconfig\Vsdconfig.targets" />
     <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>
