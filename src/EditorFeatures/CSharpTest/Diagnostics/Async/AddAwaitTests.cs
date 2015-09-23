@@ -49,6 +49,113 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        public void BadAsyncReturnOperand_WithLeadingTrivia1()
+        {
+            var initial =
+@"using System.Threading.Tasks;
+
+class Program
+{
+    async Task<int> Test()
+    {
+        return 3;
+    }
+
+    async Task<int> Test2()
+    {
+        return
+        // Useful comment
+        [|Test()|];
+    }
+}";
+
+            var expected =
+@"using System.Threading.Tasks;
+
+class Program
+{
+    async Task<int> Test()
+    {
+        return 3;
+    }
+
+    async Task<int> Test2()
+    {
+        return
+        // Useful comment
+        await Test();
+    }
+}";
+            Test(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        public void BadAsyncReturnOperand_WithTrailingTrivia1()
+        {
+            var initial =
+@"using System.Threading.Tasks;
+
+class Program
+{
+    async Task<int> Test() => 3;
+
+    async Task<int> Test2()
+    {[|
+        return true ? Test() /* true */ : Test() /* false */;
+    |]}
+}";
+
+            var expected =
+@"using System.Threading.Tasks;
+
+class Program
+{
+    async Task<int> Test() => 3;
+
+    async Task<int> Test2()
+    {
+        return await (true ? Test() /* true */ : Test() /* false */);
+    }
+}";
+            Test(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        public void BadAsyncReturnOperand_WithTrailingTrivia2()
+        {
+            var initial =
+@"using System.Threading.Tasks;
+
+class Program
+{
+    async Task<int> Test() => 3;
+
+    async Task<int> Test2()
+    {[|
+        return true ? Test() // aaa
+                    : Test() // bbb
+                    ;
+    |]}
+}";
+
+            var expected =
+@"using System.Threading.Tasks;
+
+class Program
+{
+    async Task<int> Test() => 3;
+
+    async Task<int> Test2()
+    {
+        return await (true ? Test() // aaa
+                    : Test() // bbb
+);
+    }
+}";
+            Test(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public void TaskNotAwaited()
         {
             var initial =
