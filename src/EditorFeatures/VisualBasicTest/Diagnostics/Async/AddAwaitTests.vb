@@ -28,7 +28,7 @@ Module Program
     Async Sub M()
         ' Useful comment
         [|Task.Delay(3)|]
-    End Function
+    End Sub
 End Module
 </File>
             Dim expected =
@@ -40,7 +40,7 @@ Module Program
     Async Sub M()
         ' Useful comment
         Await Task.Delay(3)
-    End Function
+    End Sub
 End Module
 </File>
             Test(initial, expected, compareTokens:=False)
