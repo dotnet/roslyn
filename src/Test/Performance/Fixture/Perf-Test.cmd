@@ -113,13 +113,24 @@ if not exist %XUNIT_RUNNER% (
 
 echo Running tests from %CD%
 
+if defined HELIX_CORRELATION_ID (
+    set RUNID=%HELIX_CORRELATION_ID%
+) else (
+    set RUNID=%COMPUTERNAME%_%USERNAME%_%DATE:~10%%DATE:~4,2%%DATE:~7,2%T%TIME:~0,2%%TIME:~3,2%%TIME:~6,2%
+)
+
 for %%f in (%TEST_ASSEMBLIES%) do (
     
     if not exist %%f (
         echo ERROR: Cannot find %%f in %CD%
     ) else (
 
-    %XUNIT_RUNNER% %%f -verbose -runner %XUNIT_CONSOLE% -runnerargs "-verbose" -outdir %RESULTS% -runid %%~nf
+    %XUNIT_RUNNER% %%f -verbose -runner %XUNIT_CONSOLE% -runnerargs "-verbose" -outdir %RESULTS% -runid %RUNID%
+
+    rem ====== Workaround for https://github.com/Microsoft/xunit-performance/issues/73
+    rem The output filename is tied to the runid. However, we want distinct output files
+    rem for each test assembly.
+    for %%g in (%RESULTS%\%RUNID%.*) do (ren %%g %%~nf%%~xg)
 
     if exist %RESULTS%\%%~nf.etl (
         echo Zipping %%~nf.etl
