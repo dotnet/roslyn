@@ -80,6 +80,24 @@ namespace Microsoft.CodeAnalysis.Scripting {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot set a constant variable.
+        /// </summary>
+        internal static string CannotSetConstantVariable {
+            get {
+                return ResourceManager.GetString("CannotSetConstantVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot set a read-only variable.
+        /// </summary>
+        internal static string CannotSetReadOnlyVariable {
+            get {
+                return ResourceManager.GetString("CannotSetReadOnlyVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Can&apos;t assign &apos;{0}&apos; to &apos;{1}&apos;..
         /// </summary>
         internal static string CantAssignTo {

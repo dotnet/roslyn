@@ -51,8 +51,13 @@ namespace Microsoft.CodeAnalysis.Scripting
             }
         }
 
-        public int Count => _count;
-        public object this[int index] => _submissionStates[index];
+        public int SubmissionStateCount => _count;
+
+        public object GetSubmissionState(int index)
+        {
+            Debug.Assert(index >= 0 && index < _count);
+            return _submissionStates[index];
+        }
 
         internal async Task<TResult> RunSubmissionsAsync<TResult>(
             ImmutableArray<Func<object[], Task>> precedingExecutors,
