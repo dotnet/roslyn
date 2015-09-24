@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
         public void ApplyModifications1_NullAsTreeProvider_ThrowsArgumentNull()
         {
             var modifier = CreateInstance();
-            var tree = ProjectTreeProvider.CreateRoot();
+            var tree = ProjectTreeParser.Parse("Root");
 
             Assert.Throws<ArgumentNullException>("projectTreeProvider", () => {
 
@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
         public void ApplyModifications2_NullAsTreeProvider_ThrowsArgumentNull()
         {
             var modifier = CreateInstance();
-            var tree = ProjectTreeProvider.CreateRoot();
+            var tree = ProjectTreeParser.Parse("Root");
 
             Assert.Throws<ArgumentNullException>("projectTreeProvider", () => {
 
@@ -81,31 +81,130 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
         }
 
         [Fact]
-        public void ApplyModifications1_RootAsTree_ReturnsUnmodifiedRoot()
+        public void ApplyModifications_RootWithZeroChildren_ReturnsUnmodifiedTree()
         {
             var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
             var projectTreeProvider = IProjectTreeProviderFactory.Create();
             var modifier = CreateInstance(features);
 
-            var tree = ProjectTreeProvider.CreateRoot();
+            var tree = ProjectTreeParser.Parse(@"
+Root (capabilities: {ProjectRoot})"
+);
 
             var result = modifier.ApplyModifications(tree, projectTreeProvider);
 
-            Assert.Same(tree, result);
+            AssertAreEquivalent(tree, result);
         }
 
         [Fact]
-        public void ApplyModifications2_RootAsTree_ReturnsUnmodifiedRoot()
+        public void ApplyModifications_TreeWithMyProjectFolder_ReturnsUnmodifiedTree()
         {
             var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
             var projectTreeProvider = IProjectTreeProviderFactory.Create();
             var modifier = CreateInstance(features);
 
-            var tree = ProjectTreeProvider.CreateRoot();
+            var tree = ProjectTreeParser.Parse(@"
+Root (capabilities: {ProjectRoot})
+    My Project (capabilities: {Folder})
+");
 
-            var result = modifier.ApplyModifications(tree, (IProjectTree)null, projectTreeProvider);
+            var result = modifier.ApplyModifications(tree, projectTreeProvider);
 
-            Assert.Same(tree, result);
+            AssertAreEquivalent(tree, result);
+        }
+
+        [Fact]
+        public void ApplyModifications_TreeWithNormalFolder_ReturnsUnmodifiedTree()
+        {
+            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => false);
+            var projectTreeProvider = IProjectTreeProviderFactory.Create();
+            var modifier = CreateInstance(features);
+
+            var tree = ProjectTreeParser.Parse(@"
+Root (capabilities: {ProjectRoot})
+    Folder (capabilities: {Folder})
+");
+
+            var result = modifier.ApplyModifications(tree, projectTreeProvider);
+
+            AssertAreEquivalent(tree, result);
+        }
+
+        [Fact]
+        public void ApplyModifications_TreeWithFileCalledProperties_ReturnsUnmodifiedTree()
+        {
+            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
+            var projectTreeProvider = IProjectTreeProviderFactory.Create();
+            var modifier = CreateInstance(features);
+
+            var tree = ProjectTreeParser.Parse(@"
+Root (capabilities: {ProjectRoot})
+    Properties (capabilities: {})
+");
+
+            var result = modifier.ApplyModifications(tree, projectTreeProvider);
+
+            AssertAreEquivalent(tree, result);
+        }
+
+        [Fact]
+        public void ApplyModifications_TreeWithExcludedPropertiesFolder_ReturnsUnmodifiedTree()
+        {
+            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
+            var projectTreeProvider = IProjectTreeProviderFactory.Create();
+            var modifier = CreateInstance(features);
+
+            var tree = ProjectTreeParser.Parse(@"
+Root (capabilities: {ProjectRoot})
+    Properties (capabilities: {Folder IncludeInProjectCandidate})
+");
+
+            var result = modifier.ApplyModifications(tree, projectTreeProvider);
+
+            AssertAreEquivalent(tree, result);
+        }
+
+        [Fact]
+        public void ApplyModifications_TreeWithNestedPropertiesFolder_ReturnsUnmodifiedTree()
+        {
+            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
+            var projectTreeProvider = IProjectTreeProviderFactory.Create();
+            var modifier = CreateInstance(features);
+
+            var tree = ProjectTreeParser.Parse(@"
+Root (capabilities: {ProjectRoot})
+    Parent
+        Properties (capabilities: {Folder})
+");
+
+            var result = modifier.ApplyModifications(tree, projectTreeProvider);
+
+            AssertAreEquivalent(tree, result);
+        }
+
+        [Fact]
+        public void ApplyModifications_TreeWithPropertiesCandidateButSupportsProjectDesignerFalse_ReturnsUnmodifiedTree()
+        {
+            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => false);
+            var projectTreeProvider = IProjectTreeProviderFactory.Create();
+            var modifier = CreateInstance(features);
+
+            var tree = ProjectTreeParser.Parse(@"
+Root (capabilities: {ProjectRoot})
+    Properties (capabilities: {Folder})
+");
+
+            var result = modifier.ApplyModifications(tree, projectTreeProvider);
+
+            AssertAreEquivalent(tree, result);
+        }
+
+        private void AssertAreEquivalent(IProjectTree expected, IProjectTree actual)
+        {
+            string expectedAsString = ProjectTreeWriter.WriteToString(expected);
+            string actualAsString = ProjectTreeWriter.WriteToString(actual);
+
+            Assert.Equal(expectedAsString, actualAsString);
         }
 
         private PropertiesFolderProjectTreeModifier CreateInstance()

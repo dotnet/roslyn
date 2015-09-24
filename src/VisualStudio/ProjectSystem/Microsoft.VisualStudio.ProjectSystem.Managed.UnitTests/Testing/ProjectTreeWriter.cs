@@ -27,6 +27,12 @@ namespace Microsoft.VisualStudio.Testing
             get { return (_options & ProjectTreeWriterOptions.Tags) == ProjectTreeWriterOptions.Tags; }
         }
 
+        public static string WriteToString(IProjectTree tree)
+        {
+            ProjectTreeWriter writer = new ProjectTreeWriter(tree, ProjectTreeWriterOptions.AllProperties);
+            return writer.WriteToString();
+        }
+
         public string WriteToString()
         {
             _builder.Clear();

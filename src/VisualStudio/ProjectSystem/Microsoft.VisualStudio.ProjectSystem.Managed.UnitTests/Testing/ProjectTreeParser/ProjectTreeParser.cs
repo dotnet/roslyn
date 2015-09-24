@@ -3,14 +3,14 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.VisualStudio.ProjectSystem.Designers;
-using static Microsoft.VisualStudio.Testing.ProjectTreeProvider;
 using static Microsoft.VisualStudio.Testing.Tokenizer;
 
 namespace Microsoft.VisualStudio.Testing
 {
-    internal class ProjectTreeParser
+    // Parses a string into a project tree
+    //
+    internal partial class ProjectTreeParser
     {
-        
         private readonly Tokenizer _tokenizer;
         private int _indentLevel;
 
@@ -19,6 +19,15 @@ namespace Microsoft.VisualStudio.Testing
             Requires.NotNullOrEmpty(value, nameof(value));
 
             _tokenizer = new Tokenizer(new StringReader(value), Delimiters.Structural);
+        }
+
+        public static IProjectTree Parse(string value)
+        {
+            value = value.Trim(new char[] { '\r', '\n' });
+
+            ProjectTreeParser parser = new ProjectTreeParser(value);
+
+            return parser.Parse();
         }
 
         public IProjectTree Parse()

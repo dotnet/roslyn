@@ -11,9 +11,9 @@ using Microsoft.VisualStudio.ProjectSystem.Utilities.Designers;
 
 namespace Microsoft.VisualStudio.Testing
 {
-    partial class ProjectTreeProvider
+    partial class ProjectTreeParser
     {
-        internal class MutableProjectTree : IProjectTree
+        private class MutableProjectTree : IProjectTree
         {
             public MutableProjectTree()
             {
