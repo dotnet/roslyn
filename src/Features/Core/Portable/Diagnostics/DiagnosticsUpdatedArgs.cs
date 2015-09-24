@@ -1,10 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Common;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal class DiagnosticsUpdatedArgs : DiagnosticsArgs
+    internal class DiagnosticsUpdatedArgs : UpdatedEventArgs
     {
         public Solution Solution { get; }
         public ImmutableArray<DiagnosticData> Diagnostics { get; }

@@ -7,6 +7,7 @@ using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -201,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public IEnumerable<DiagnosticsArgs> GetDiagnosticsArgs(Workspace workspace, ProjectId projectId, DocumentId documentId, CancellationToken cancellationToken)
+        public IEnumerable<UpdatedEventArgs> GetDiagnosticsUpdatedEventArgs(Workspace workspace, ProjectId projectId, DocumentId documentId, CancellationToken cancellationToken)
         {
             foreach (var source in _updateSources)
             {
@@ -213,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     foreach (var data in list.Object)
                     {
-                        yield return new DiagnosticsArgs(data.Id, data.Workspace, data.ProjectId, data.DocumentId);
+                        yield return new UpdatedEventArgs(data.Id, data.Workspace, data.ProjectId, data.DocumentId);
                     }
                 }
             }
@@ -294,12 +295,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public readonly object Id;
             public readonly ImmutableArray<DiagnosticData> Diagnostics;
 
-            public Data(DiagnosticsArgs args) :
+            public Data(UpdatedEventArgs args) :
                 this(args, ImmutableArray<DiagnosticData>.Empty)
             {
             }
 
-            public Data(DiagnosticsArgs args, ImmutableArray<DiagnosticData> diagnostics)
+            public Data(UpdatedEventArgs args, ImmutableArray<DiagnosticData> diagnostics)
             {
                 this.Workspace = args.Workspace;
                 this.ProjectId = args.ProjectId;
