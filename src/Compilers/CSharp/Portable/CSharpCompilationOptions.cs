@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int warningLevel = 4,
             IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions = null,
             bool concurrentBuild = true,
+            bool deterministic = false, // TODO(5431): Enable deterministic mode by default
             XmlReferenceResolver xmlReferenceResolver = null,
             SourceReferenceResolver sourceReferenceResolver = null,
             MetadataReferenceResolver metadataReferenceResolver = null,
@@ -54,7 +55,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             StrongNameProvider strongNameProvider = null)
             : this(outputKind, false, moduleName, mainTypeName, scriptClassName, usings, optimizationLevel, checkOverflow, allowUnsafe,
                    cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, platform, generalDiagnosticOption, warningLevel,
+                   specificDiagnosticOptions, concurrentBuild, deterministic,
+                   extendedCustomDebugInformation: true,
+                   debugPlusMode: false,
+                   xmlReferenceResolver: xmlReferenceResolver,
+                   sourceReferenceResolver: sourceReferenceResolver,
+                   metadataReferenceResolver: metadataReferenceResolver,
+                   assemblyIdentityComparer: assemblyIdentityComparer,
+                   strongNameProvider: strongNameProvider,
+                   metadataImportOptions: MetadataImportOptions.Public)
+        {
+        }
+
+        // Defaults correspond to the compiler's defaults or indicate that the user did not specify when that is significant.
+        // That's significant when one option depends on another's setting. SubsystemVersion depends on Platform and Target.
+        public CSharpCompilationOptions(
+            OutputKind outputKind,
+            string moduleName,
+            string mainTypeName,
+            string scriptClassName,
+            IEnumerable<string> usings,
+            OptimizationLevel optimizationLevel,
+            bool checkOverflow,
+            bool allowUnsafe,
+            string cryptoKeyContainer,
+            string cryptoKeyFile,
+            ImmutableArray<byte> cryptoPublicKey,
+            bool? delaySign,
+            Platform platform,
+            ReportDiagnostic generalDiagnosticOption,
+            int warningLevel,
+            IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions,
+            bool concurrentBuild,
+            XmlReferenceResolver xmlReferenceResolver,
+            SourceReferenceResolver sourceReferenceResolver,
+            MetadataReferenceResolver metadataReferenceResolver,
+            AssemblyIdentityComparer assemblyIdentityComparer,
+            StrongNameProvider strongNameProvider)
+            : this(outputKind, false, moduleName, mainTypeName, scriptClassName, usings, optimizationLevel, checkOverflow, allowUnsafe,
+                   cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, platform, generalDiagnosticOption, warningLevel,
                    specificDiagnosticOptions, concurrentBuild,
+                   deterministic: false, // TODO(5431): Enable deterministic mode by default
                    extendedCustomDebugInformation: true,
                    debugPlusMode: false,
                    xmlReferenceResolver: xmlReferenceResolver,
@@ -87,6 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int warningLevel = 4,
             IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions = null,
             bool concurrentBuild = true,
+            bool deterministic = true,
             XmlReferenceResolver xmlReferenceResolver = null,
             SourceReferenceResolver sourceReferenceResolver = null,
             MetadataReferenceResolver metadataReferenceResolver = null,
@@ -95,6 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             : this(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName, usings, optimizationLevel, checkOverflow, allowUnsafe,
                    cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, platform, generalDiagnosticOption, warningLevel,
                    specificDiagnosticOptions, concurrentBuild,
+                   deterministic: deterministic,
                    extendedCustomDebugInformation: true,
                    debugPlusMode: false,
                    xmlReferenceResolver: xmlReferenceResolver,
@@ -126,6 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int warningLevel,
             IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions,
             bool concurrentBuild,
+            bool deterministic,
             bool extendedCustomDebugInformation,
             bool debugPlusMode,
             XmlReferenceResolver xmlReferenceResolver,
@@ -136,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MetadataImportOptions metadataImportOptions)
             : base(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, optimizationLevel, checkOverflow,
                    platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(),
-                   concurrentBuild, extendedCustomDebugInformation, debugPlusMode, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer,
+                   concurrentBuild, deterministic, extendedCustomDebugInformation, debugPlusMode, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer,
                    strongNameProvider, metadataImportOptions)
         {
             this.Usings = usings.AsImmutableOrEmpty();
@@ -161,6 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             warningLevel: other.WarningLevel,
             specificDiagnosticOptions: other.SpecificDiagnosticOptions,
             concurrentBuild: other.ConcurrentBuild,
+            deterministic: other.Deterministic,
             extendedCustomDebugInformation: other.ExtendedCustomDebugInformation,
             debugPlusMode: other.DebugPlusMode,
             xmlReferenceResolver: other.XmlReferenceResolver,
