@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 using Resources = Microsoft.CodeAnalysis.CSharp.CSharpFeaturesResources;
 
@@ -159,34 +160,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                 }
             }
 
-            var awaitParenExpression = SimplyConvertToAwaitExpression(expression.Parenthesize());
-            if (RequiresParenthesis(expression, awaitParenExpression))
-            {
-                return awaitParenExpression;
-            }
-            else
-            {
-                return SimplyConvertToAwaitExpression(expression);
-            }
-        }
-
-        private static bool RequiresParenthesis(ExpressionSyntax originalExpression, AwaitExpressionSyntax wrappedExpression)
-        {
-            var root = originalExpression.Ancestors().Last();
-            var newRoot = root.ReplaceNode(originalExpression, wrappedExpression);
-            var newNode = (newRoot.FindNode(originalExpression.Span) as AwaitExpressionSyntax)?.Expression as ParenthesizedExpressionSyntax;
-            if (newNode != null)
-            {
-                return !newNode.CanRemoveParentheses();
-            }
-            return false;
-        }
-
-        private static AwaitExpressionSyntax SimplyConvertToAwaitExpression(ExpressionSyntax inner)
-        {
-            return SyntaxFactory.AwaitExpression(inner.WithoutTrivia())
-                                .WithTriviaFrom(inner)
-                                .WithAdditionalAnnotations(Formatter.Annotation);
+            return SyntaxFactory.AwaitExpression(expression.WithoutTrivia().Parenthesize())
+                                .WithTriviaFrom(expression)
+                                .WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
         }
     }
 }
