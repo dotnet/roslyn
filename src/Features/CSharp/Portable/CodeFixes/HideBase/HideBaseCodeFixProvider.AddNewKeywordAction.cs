@@ -45,19 +45,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
                 var propertyStatement = node as PropertyDeclarationSyntax;
                 if (propertyStatement != null)
                 {
-                    newNode = propertyStatement.AddModifiers(SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.NewKeyword, SyntaxTriviaList.Create(SyntaxFactory.Whitespace(" ")))) as SyntaxNode;
+                    newNode = propertyStatement.AddModifiers(SyntaxFactory.Token(SyntaxKind.NewKeyword)) as SyntaxNode;
                 }
 
                 var methodStatement = node as MethodDeclarationSyntax;
                 if (methodStatement != null)
                 {
-                    newNode = methodStatement.AddModifiers(SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.NewKeyword, SyntaxTriviaList.Create(SyntaxFactory.Whitespace(" "))));
+                    newNode = methodStatement.AddModifiers(SyntaxFactory.Token(SyntaxKind.NewKeyword));
                 }
 
                 var fieldDeclaration = node as FieldDeclarationSyntax;
                 if (fieldDeclaration != null)
                 {
-                    newNode = fieldDeclaration.AddModifiers(SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.NewKeyword, SyntaxTriviaList.Create(SyntaxFactory.Whitespace(" "))));
+                    newNode = fieldDeclaration.AddModifiers(SyntaxFactory.Token(SyntaxKind.NewKeyword));
                 }
 
                 //Make sure we preserve any trivia from the original node
