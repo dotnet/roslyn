@@ -102,7 +102,7 @@ function CreateSASToken(
     [System.TimeSpan] $Duration = [System.TimeSpan]::FromDays(7)
     ) {
 
-    $expiryTime = [System.DateTime]::UtcNow.Date + $Duration
+    $expiryTime = (Get-Date).Add($Duration)
     $token = New-AzureStorageContainerSASToken -Context $Context -Permission $Permission -Container $Container -ExpiryTime $expiryTime
 
     # SAS tokens in Helix should not include the query char
@@ -122,13 +122,18 @@ function BuildUri(
     [String] $BlobName,
     [String] $SASToken
 ) {
-
     $ub = New-Object System.UriBuilder -ArgumentList $Context.BlobEndPoint
-    if ([System.String]::IsNullOrEmpty($BlobName)) {
-        $ub.Path = $Container
-    } else {
-        $ub.Path += $Container + "/" + $BlobName
+    
+    if (-not $ub.Path.EndsWith('/')) {
+       $ub.Path += "/"
     }
+    
+    $ub.Path += $Container
+
+    if (-not [String]::IsNullOrEmpty($BlobName)) {
+       $ub.Path += "/" + $BlobName
+    }
+
     $ub.Query = $SASToken
     
     # Using OriginalString because that preserves escaping in the query string
@@ -160,15 +165,17 @@ function CreateXUnitFixture(
     & $NuGetExe install -OutputDirectory $PackagesPath -NonInteractive -ExcludeVersion xunit.runner.console -Version 2.1.0-beta4-build3109 -Source https://www.nuget.org/api/v2/
     & $NuGetExe install -OutputDirectory $PackagesPath -NonInteractive -ExcludeVersion Microsoft.DotNet.xunit.performance.runner.Windows -Version 1.0.0-alpha-build0013 -Source https://www.myget.org/F/dotnet-buildtools/
 
-    $ToZipPath = Join-Path $StagingPath -ChildPath ToZip
-    mkdir $ToZipPath > $null
+    $ToZipPath = Join-Path $StagingPath -ChildPath "xunit"
+    New-Item -ItemType Directory -Path $ToZipPath -ErrorAction SilentlyContinue | Out-Null
 
     # Move the contents of all "Tools" folders into the root of the archive (overwriting any duplicates)
     (Get-ChildItem -Path $PackagesPath -Recurse -Directory -Include "Tools").FullName | Get-ChildItem | Move-Item -Destination $ToZipPath -Force
 
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
-    [System.IO.Compression.ZipFile]::CreateFromDirectory($ToZipPath, $ZipFile, $compressionLevel, $false)
+    # Note: Passing 'true' for includeBaseDirectory parameter because we want the files to extract into an 'xunit' subfolder.
+    # See the note in constructing the CorrelationPayload
+    [System.IO.Compression.ZipFile]::CreateFromDirectory($ToZipPath, $ZipFile, $compressionLevel, $true)
 }
 
 function GetXUnitFixtureUri(
@@ -193,7 +200,7 @@ function GetXUnitFixtureUri(
         $FixturesStagingPath = Join-Path -Path $HelixStage -ChildPath fixtures
         $xunitZip = Join-Path $FixturesStagingPath -ChildPath xunit.zip
 
-        CreateXUnitFixture -StagingPath $FixturesStagingPath -ZipFile $xunitZip > $null
+        CreateXUnitFixture -StagingPath $FixturesStagingPath -ZipFile $xunitZip | Out-Null
 
         if (!$NoUpload) {
             Write-Host "Uploading xunit fixture"
@@ -307,7 +314,7 @@ try {
         Remove-Item -Recurse -Force $HelixStage
     }
 
-    mkdir $HelixStage > $null
+    New-Item -ItemType Directory -Path $HelixStage -ErrorAction SilentlyContinue | Out-Null
 
     $DropZip = Join-Path $HelixStage -ChildPath Drop.zip
 
@@ -332,17 +339,40 @@ try {
     $sb = New-Object -TypeName System.Text.StringBuilder
     [void] $sb.AppendLine("[")
 
+    # Note:
+    # We are putting both the Drop (built binaries) and Fixtures (xunit) into the CorrelationPayload.
+    # We do this because downloading and unziping the drop is expensive and we don't want to do that
+    # on every work item. The Helix executor will look at the CorrelationId for a work item and, only
+    # if it is new, will it download and unzip the CorrelationPayload. If the CorrelationId has been
+    # seen before, the downloading and unzipping of the CorrelationPayload can be skipped.
+    #
+    # Each ZIP file in the CorrelationPayload will be extracted into the Payload folder on the target
+    # machine. To avoid filename collisions, xunit.zip is constructed so that it unzips
+    # into an 'xunit' subfolder.
+    # The "work" payload is actually empty.
+    # The Command points to a batch file (or shell script for Linux) located inside the CorrelationPayload.
+
+    if ($Platform -eq "Windows") {
+        # The ~4 piece strips out the long path prefix
+        # Note that the slashes need to be doubled for JSon encoding
+        $WorkItemCommand = "%HELIX_CORRELATION_PAYLOAD:~4%\\Performance\\Perf-Test.cmd"
+    } else {
+        Write-Error "Unsupported platform."
+        exit 1
+    }
+
     foreach ($TestAssembly in $TestAssemblies) {
         $WorkItemId = $BlobRootName + "/" + $TestAssembly.BaseName
         Write-Host "  " $WorkItemId
         if ($sb.Length -gt 3) { $sb.AppendLine(",") }
         
         [void] $sb.AppendLine("  {")
-        [void] $sb.AppendLine("    ""Command"": ""Performance\\Perf-Test.cmd $TestAssembly"",")
+        [void] $sb.AppendLine("    ""Command"": ""$WorkItemCommand $TestAssembly"",")
         [void] $sb.AppendLine("    ""CorrelationPayloadUris"": [")
-        [void] $sb.AppendLine("        ""$XunitFixtureUri""")
+        [void] $sb.AppendLine("        ""$XunitFixtureUri"",")
+        [void] $sb.AppendLine("        ""$DropUri""")
         [void] $sb.AppendLine("    ],")
-        [void] $sb.AppendLine("    ""PayloadUri"": ""$DropUri"",")
+        [void] $sb.AppendLine("    ""PayloadUri"": """",")
         [void] $sb.AppendLine("    ""WorkItemId"": ""$WorkItemId""")
         [void] $sb.Append("  }")
     }
