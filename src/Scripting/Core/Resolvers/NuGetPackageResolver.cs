@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
@@ -10,20 +11,30 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         private const string ReferencePrefix = "nuget:";
 
         /// <summary>
-        /// Syntax is "nuget:id/version".
+        /// Syntax is "nuget:name[/version]".
         /// </summary>
         internal static bool TryParsePackageReference(string reference, out string name, out string version)
         {
             if (reference.StartsWith(ReferencePrefix, StringComparison.Ordinal))
             {
                 var parts = reference.Substring(ReferencePrefix.Length).Split('/');
-                if ((parts.Length == 2) &&
-                    (parts[0].Length > 0) &&
-                    (parts[1].Length > 0))
+                Debug.Assert(parts.Length > 0);
+                name = parts[0];
+                if (name.Length > 0)
                 {
-                    name = parts[0];
-                    version = parts[1];
-                    return true;
+                    switch (parts.Length)
+                    {
+                        case 1:
+                            version = string.Empty;
+                            return true;
+                        case 2:
+                            version = parts[1];
+                            if (version.Length > 0)
+                            {
+                                return true;
+                            }
+                            break;
+                    }
                 }
             }
             name = null;
