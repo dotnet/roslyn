@@ -73,9 +73,22 @@ rem Prepare to run XUNIT tests
 rem ========================================================
 set XUNIT=xunit
 if not exist %XUNIT% (
-    echo ERROR: xunit fixture not found
-    popd
-    goto :eof
+
+    rem ===================================================
+    rem Try to create the xunit fixture ourselves. This is
+    rem useful for local runs.
+    rem ===================================================
+    if exist ..\..\nuget.exe (
+        echo Note: xunit fixture not found. Trying to create it.
+        ..\..\nuget.exe install -OutputDirectory xunit -NonInteractive -ExcludeVersion Microsoft.DotNet.xunit.performance.runner.Windows -Version 1.0.0-alpha-build0013 -Source https://www.myget.org/F/dotnet-buildtools/
+
+        xcopy /s /y xunit\xunit.runner.console\tools\* xunit
+        xcopy /s /y xunit\Microsoft.DotNet.xunit.performance.runner.Windows\tools\* xunit
+    ) else (
+        echo ERROR: xunit fixture not found
+        popd
+        goto :eof
+    )
 )
 
 set XUNIT_CONSOLE=%XUNIT%\xunit.console.exe
