@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             var runtimeType = type.GetLmrType();
-            // Primitives, enums and null values with a declared type that is an interface have no visible members.
+            // Primitives, enums, function pointers, and null values with a declared type that is an interface have no visible members.
             Debug.Assert(!runtimeType.IsInterface || value.IsNull);
-            if (formatter.IsPredefinedType(runtimeType) || runtimeType.IsEnum || runtimeType.IsInterface)
+            if (formatter.IsPredefinedType(runtimeType) || runtimeType.IsEnum || runtimeType.IsInterface || runtimeType.IsFunctionPointer())
             {
                 return null;
             }
