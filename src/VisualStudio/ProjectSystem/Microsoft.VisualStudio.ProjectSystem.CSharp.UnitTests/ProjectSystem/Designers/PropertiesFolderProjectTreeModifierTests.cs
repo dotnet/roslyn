@@ -185,7 +185,7 @@ Root (capabilities: {ProjectRoot})
         [Fact]
         public void ApplyModifications_TreeWithPropertiesCandidateButSupportsProjectDesignerFalse_ReturnsUnmodifiedTree()
         {
-            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => false);
+            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => false);   // Don't support AppDesigner
             var projectTreeProvider = IProjectTreeProviderFactory.Create();
             var modifier = CreateInstance(features);
 
@@ -197,6 +197,62 @@ Root (capabilities: {ProjectRoot})
             var result = modifier.ApplyModifications(tree, projectTreeProvider);
 
             AssertAreEquivalent(tree, result);
+        }
+
+        [Fact]
+        public void ApplyModifications_TreeWithPropertiesCandidateAlreadyMarkedAsAppDesigner_ReturnsUnmodifiedTree()
+        {
+            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
+            var projectTreeProvider = IProjectTreeProviderFactory.Create();
+            var modifier = CreateInstance(features);
+
+            var tree = ProjectTreeParser.Parse(@"
+Root (capabilities: {ProjectRoot})
+    Properties (capabilities: {Folder AppDesignerFolder BubbleUp})
+");
+            var result = modifier.ApplyModifications(tree, projectTreeProvider);
+
+            AssertAreEquivalent(tree, result);
+        }
+
+        [Fact]
+        public void ApplyModifications_TreeWithPropertiesCandidate_ReturnsCandidateMarkedWithAppDesignerFolderAndBubbleUp()
+        {
+            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
+            var projectTreeProvider = IProjectTreeProviderFactory.Create();
+            var modifier = CreateInstance(features);
+
+            var tree = ProjectTreeParser.Parse(@"
+Root (capabilities: {ProjectRoot})
+    Properties (capabilities: {Folder})
+");
+            var expected = ProjectTreeParser.Parse(@"
+Root (capabilities: {ProjectRoot})
+    Properties (capabilities: {Folder AppDesignerFolder BubbleUp})
+");
+            var result = modifier.ApplyModifications(tree, projectTreeProvider);
+
+            AssertAreEquivalent(expected, result);
+        }
+
+        [Fact]
+        public void ApplyModifications_TreeWithPropertiesCandidate_ReturnsCandidateCapabilitiesUnionedWithMarkedWithAppDesignerFolderAndBubbleUp()
+        {
+            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
+            var projectTreeProvider = IProjectTreeProviderFactory.Create();
+            var modifier = CreateInstance(features);
+
+            var tree = ProjectTreeParser.Parse(@"
+Root (capabilities: {ProjectRoot})
+    Properties (capabilities: {Folder NonExistentCapability})
+");
+            var expected = ProjectTreeParser.Parse(@"
+Root (capabilities: {ProjectRoot})
+    Properties (capabilities: {Folder NonExistentCapability AppDesignerFolder BubbleUp})
+");
+            var result = modifier.ApplyModifications(tree, projectTreeProvider);
+
+            AssertAreEquivalent(expected, result);
         }
 
         private void AssertAreEquivalent(IProjectTree expected, IProjectTree actual)

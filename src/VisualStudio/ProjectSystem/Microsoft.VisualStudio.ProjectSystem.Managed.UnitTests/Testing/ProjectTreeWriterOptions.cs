@@ -8,10 +8,10 @@ namespace Microsoft.VisualStudio.Testing
     internal enum ProjectTreeWriterOptions 
     {
         None = 0,
-        Tags,
-        FilePath,
-        Capabilities,
-        Visibility,
+        Tags = 1,
+        FilePath = 2,
+        Capabilities = 4,
+        Visibility = 8,
         AllProperties = FilePath | Visibility | Capabilities
     }
 }

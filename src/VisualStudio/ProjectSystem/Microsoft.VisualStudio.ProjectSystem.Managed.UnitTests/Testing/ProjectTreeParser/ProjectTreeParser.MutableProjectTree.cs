@@ -113,7 +113,13 @@ namespace Microsoft.VisualStudio.Testing
             {
                 get
                 {
-                    throw new NotImplementedException();
+                    var root = this;
+                    while (root.Parent != null)
+                    {
+                        root = root.Parent;
+                    }
+
+                    return root;
                 }
             }
 
@@ -222,7 +228,23 @@ namespace Microsoft.VisualStudio.Testing
 
             IProjectTree IProjectTree.SetProperties(string caption, string filePath, IRule browseObjectProperties, ProjectImageMoniker icon, ProjectImageMoniker expandedIcon, bool? visible, IEnumerable<string> capabilities, IProjectPropertiesContext context, IPropertySheet propertySheet, bool? isLinked, bool resetFilePath, bool resetBrowseObjectProperties, bool resetIcon, bool resetExpandedIcon)
             {
-                throw new NotImplementedException();
+                if (caption != null)
+                    Caption = caption;
+
+                if (FilePath != null)
+                    FilePath = filePath;
+
+                if (visible != null)
+                    Visible = visible.Value;
+
+                Capabilities.Clear();
+                
+                foreach (string capability in capabilities)
+                {
+                    Capabilities.Add(capability);
+                }
+
+                return this;
             }
 
             IProjectTree IProjectTree.SetVisible(bool visible)
