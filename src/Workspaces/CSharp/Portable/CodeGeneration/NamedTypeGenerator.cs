@@ -19,9 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             TypeDeclarationSyntax destination,
             INamedTypeSymbol namedType,
             CodeGenerationOptions options,
-            IList<bool> availableIndices)
+            IList<bool> availableIndices, 
+            CancellationToken cancellationToken)
         {
-            var declaration = GenerateNamedTypeDeclaration(service, namedType, GetDestination(destination), options);
+            var declaration = GenerateNamedTypeDeclaration(service, namedType, GetDestination(destination), options, cancellationToken);
             var members = Insert(destination.Members, declaration, options, availableIndices);
 
             return AddMembersTo(destination, members);
@@ -32,9 +33,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             NamespaceDeclarationSyntax destination,
             INamedTypeSymbol namedType,
             CodeGenerationOptions options,
-            IList<bool> availableIndices)
+            IList<bool> availableIndices,
+            CancellationToken cancellationToken)
         {
-            var declaration = GenerateNamedTypeDeclaration(service, namedType, CodeGenerationDestination.Namespace, options);
+            var declaration = GenerateNamedTypeDeclaration(service, namedType, CodeGenerationDestination.Namespace, options, cancellationToken);
             var members = Insert(destination.Members, declaration, options, availableIndices);
             return ConditionallyAddFormattingAnnotationTo(
                 destination.WithMembers(members),
@@ -46,9 +48,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CompilationUnitSyntax destination,
             INamedTypeSymbol namedType,
             CodeGenerationOptions options,
-            IList<bool> availableIndices)
+            IList<bool> availableIndices, 
+            CancellationToken cancellationToken)
         {
-            var declaration = GenerateNamedTypeDeclaration(service, namedType, CodeGenerationDestination.CompilationUnit, options);
+            var declaration = GenerateNamedTypeDeclaration(service, namedType, CodeGenerationDestination.CompilationUnit, options, cancellationToken);
             var members = Insert(destination.Members, declaration, options, availableIndices);
             return destination.WithMembers(members);
         }
@@ -57,7 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             ICodeGenerationService service,
             INamedTypeSymbol namedType,
             CodeGenerationDestination destination,
-            CodeGenerationOptions options)
+            CodeGenerationOptions options, 
+            CancellationToken cancellationToken)
         {
             options = options ?? CodeGenerationOptions.Default;
 
@@ -70,7 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             declaration = options.GenerateMembers && namedType.TypeKind != TypeKind.Delegate
                 ? service.AddMembers(declaration,
                                      GetMembers(namedType).Where(s => s.Kind != SymbolKind.Property || PropertyGenerator.CanBeGenerated((IPropertySymbol)s)),
-                                     options)
+                                     options, 
+                                     cancellationToken)
                 : declaration;
 
             return AddCleanupAnnotationsTo(ConditionallyAddDocumentationCommentTo(declaration, namedType, options));

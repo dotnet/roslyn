@@ -215,15 +215,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             uint itemid;
             RunningDocumentTable.GetDocumentHierarchyItem(docCookie, out hierarchy, out itemid);
 
-            foreach (var project in _projectContainer.GetProjects())
+            var shimTextBuffer = RunningDocumentTable.GetDocumentData(docCookie) as IVsTextBuffer;
+
+            if (shimTextBuffer != null)
             {
-                var documentKey = new DocumentKey(project, moniker);
-
-                if (_documentMap.ContainsKey(documentKey))
+                foreach (var project in _projectContainer.GetProjects())
                 {
-                    var shimTextBuffer = RunningDocumentTable.GetDocumentData(docCookie) as IVsTextBuffer;
+                    var documentKey = new DocumentKey(project, moniker);
 
-                    if (shimTextBuffer != null)
+                    if (_documentMap.ContainsKey(documentKey))
                     {
                         var textBuffer = EditorAdaptersFactoryService.GetDocumentBuffer(shimTextBuffer);
 
@@ -254,6 +254,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         {
                             TextBufferDataEventsSink.HookupHandler(this, shimTextBuffer, documentKey);
                         }
+                    }
+                }
+            }
+            else
+            {
+                // This is opening some other designer or property page. If it's tied to our IVsHierarchy, we should
+                // let the workspace know
+                foreach (var project in _projectContainer.GetProjects())
+                {
+                    if (hierarchy == project.Hierarchy)
+                    {
+                        _projectContainer.NotifyNonDocumentOpenedForProject(project);
                     }
                 }
             }

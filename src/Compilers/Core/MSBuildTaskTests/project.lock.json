@@ -1,0 +1,166 @@
+{
+  "locked": false,
+  "version": 1,
+  "targets": {
+    ".NETFramework,Version=v4.5": {
+      "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.1.0-beta1-20150824-02": {
+        "compile": {
+          "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll": {}
+        }
+      },
+      "Microsoft.DiaSymReader/1.0.5.1": {
+        "compile": {
+          "lib/net20/Microsoft.DiaSymReader.dll": {}
+        },
+        "runtime": {
+          "lib/net20/Microsoft.DiaSymReader.dll": {}
+        }
+      },
+      "Microsoft.DiaSymReader.Native/1.1.0-alpha2": {},
+      "Moq/4.2.1402.2112": {
+        "compile": {
+          "lib/net40/Moq.dll": {}
+        },
+        "runtime": {
+          "lib/net40/Moq.dll": {}
+        }
+      },
+      "System.Collections.Immutable/1.1.36": {
+        "compile": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
+        },
+        "runtime": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
+        }
+      },
+      "System.Reflection.Metadata/1.1.0-alpha-00014": {
+        "dependencies": {
+          "System.Collections.Immutable": "[1.1.36, )"
+        },
+        "compile": {
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
+        },
+        "runtime": {
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
+        }
+      },
+      "xunit/1.9.2": {
+        "compile": {
+          "lib/net20/xunit.dll": {}
+        },
+        "runtime": {
+          "lib/net20/xunit.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.1.0-beta1-20150824-02": {
+      "sha512": "mQa72JIzSdIC7wOcW8vl1izgZ+GSeTRrYYpbPKPvrX/PeygTd4SRxord7PL+fTb1q3YjlwMBSqgJsDXVa99fUA==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll",
+        "Microsoft.CodeAnalysis.Test.Resources.Proprietary.nuspec",
+        "package/services/metadata/core-properties/58b0e57bbbed434fb2c05b7ef3a926cc.psmdcp"
+      ]
+    },
+    "Microsoft.DiaSymReader/1.0.5.1": {
+      "sha512": "s3ExUWlfkWt9cHcJQgrm4mS5Lfj91B6o2G9DD1zFA1/7aihXPL8W16Hyix+joyh8g3buxsxb0snwhPKQHb9ApA==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/net20/Microsoft.DiaSymReader.dll",
+        "lib/net20/Microsoft.DiaSymReader.xml",
+        "lib/portable-net45+win8/Microsoft.DiaSymReader.dll",
+        "lib/portable-net45+win8/Microsoft.DiaSymReader.xml",
+        "Microsoft.DiaSymReader.nuspec",
+        "package/services/metadata/core-properties/4ff7fb1418cc465f82f38fc19097827f.psmdcp"
+      ]
+    },
+    "Microsoft.DiaSymReader.Native/1.1.0-alpha2": {
+      "sha512": "D9bGkcO1+s5c0jn4R/9BD3pw4gqyaFzC7XdlYBVDTqYMqVITMDpF8xxMXN0F3nZRl1dE54RGWp5k8GVAnMhpgQ==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "Microsoft.DiaSymReader.Native.nuspec",
+        "package/services/metadata/core-properties/e2e1c0f9faac4ddb951a90d33184740b.psmdcp",
+        "runtimes/win/native/Microsoft.DiaSymReader.Native.amd64.dll",
+        "runtimes/win/native/Microsoft.DiaSymReader.Native.x86.dll"
+      ]
+    },
+    "Moq/4.2.1402.2112": {
+      "sha512": "/TWoXE2OIjJjSvcxER7HMoZwpgETSGlKbLZiME7sVVoPMoqgLvDyjSISveTyHxNoDXd18cZlM8aHdS9ZOAbjMw==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/net35/Moq.dll",
+        "lib/net35/Moq.xml",
+        "lib/net40/Moq.dll",
+        "lib/net40/Moq.xml",
+        "lib/sl4/Moq.Silverlight.dll",
+        "lib/sl4/Moq.Silverlight.xml",
+        "Moq.nuspec",
+        "package/services/metadata/core-properties/98e2d674c8ec4e5fbda07a9e01280647.psmdcp"
+      ]
+    },
+    "System.Collections.Immutable/1.1.36": {
+      "sha512": "MOlivTIeAIQPPMUPWIIoMCvZczjFRLYUWSYwqi1szu8QPyeIbsaPeI+hpXe1DzTxNwnRnmfYaoToi6kXIfSPNg==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.xml",
+        "License-Stable.rtf",
+        "package/services/metadata/core-properties/c8b7b781850445db852bd2d848380ca6.psmdcp",
+        "System.Collections.Immutable.nuspec"
+      ]
+    },
+    "System.Reflection.Metadata/1.1.0-alpha-00014": {
+      "sha512": "rVeIWjVoLQS0aNrGdzndZReskyfxu4EfO9BKqT5GJt0YfGtlsHB1aDPnjl4jIBDTr+WJC9YsnZg8S5sKT1X42g==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/portable-net45+win8/System.Reflection.Metadata.dll",
+        "lib/portable-net45+win8/System.Reflection.Metadata.pdb",
+        "lib/portable-net45+win8/System.Reflection.Metadata.xml",
+        "package/services/metadata/core-properties/a48ecf967b1540bba8edfe9af3a99ea5.psmdcp",
+        "System.Reflection.Metadata.nuspec"
+      ]
+    },
+    "xunit/1.9.2": {
+      "sha512": "c1wppJtYPUGPHVP9U1wjmfii4553MuQSXkAt8rudkXW+eUFJxOOfDvhBJ6S0YHHDMFEJwiMN770AT4Lno8EBpw==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/net20/xunit.dll",
+        "lib/net20/xunit.dll.tdnet",
+        "lib/net20/xunit.runner.msbuild.dll",
+        "lib/net20/xunit.runner.tdnet.dll",
+        "lib/net20/xunit.runner.utility.dll",
+        "lib/net20/xunit.xml",
+        "package/services/metadata/core-properties/cb77589bcde944baab7b67d60ca583c7.psmdcp",
+        "xunit.nuspec"
+      ]
+    }
+  },
+  "projectFileDependencyGroups": {
+    "": [
+      "Microsoft.CodeAnalysis.Test.Resources.Proprietary >= 1.1.0-beta1-20150824-02",
+      "Microsoft.DiaSymReader >= 1.0.5.1",
+      "Moq >= 4.2.1402.2112",
+      "xunit >= 1.9.2"
+    ],
+    ".NETFramework,Version=v4.5": []
+  }
+}

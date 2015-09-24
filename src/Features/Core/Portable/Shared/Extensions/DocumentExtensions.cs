@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -15,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         public static bool ShouldHideAdvancedMembers(this Document document)
         {
-            var service = document.Project.Solution.Workspace.Services.GetService<IOptionService>();
-            return service.GetOption(CompletionOptions.HideAdvancedMembers, document.Project.Language);
+            return document.Project.Solution.Workspace.Options
+                .GetOption(CompletionOptions.HideAdvancedMembers, document.Project.Language);
         }
 
         public static async Task<Document> ReplaceNodeAsync<TNode>(this Document document, TNode oldNode, TNode newNode, CancellationToken cancellationToken) where TNode : SyntaxNode
@@ -36,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return document.WithSyntaxRoot(newRoot);
         }
 
-        public static async Task<IEnumerable<T>> GetUnionResultsFromDocumentAndLinks<T>(
+        public static async Task<IEnumerable<T>> GetUnionItemsFromDocumentAndLinkedDocumentsAsync<T>(
             this Document document,
             IEqualityComparer<T> comparer,
             Func<Document, CancellationToken, Task<IEnumerable<T>>> getItemsWorker,
@@ -61,6 +60,29 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return totalItems;
+        }
+
+        public static async Task<bool> IsValidContextForDocumentOrLinkedDocumentsAsync(
+            this Document document,
+            Func<Document, CancellationToken, Task<bool>> contextChecker,
+            CancellationToken cancellationToken)
+        {
+            if (await contextChecker(document, cancellationToken).ConfigureAwait(false))
+            {
+                return true;
+            }
+
+            var solution = document.Project.Solution;
+            foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
+            {
+                var linkedDocument = solution.GetDocument(linkedDocumentId);
+                if (await contextChecker(linkedDocument, cancellationToken).ConfigureAwait(false))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

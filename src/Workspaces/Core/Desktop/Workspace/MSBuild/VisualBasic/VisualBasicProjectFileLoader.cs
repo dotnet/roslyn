@@ -46,30 +46,18 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
             public override SourceCodeKind GetSourceCodeKind(string documentFileName)
             {
-                SourceCodeKind result;
-                if (documentFileName.EndsWith(".vbx", StringComparison.OrdinalIgnoreCase))
-                {
-                    result = SourceCodeKind.Script;
-                }
-                else
-                {
-                    result = SourceCodeKind.Regular;
-                }
-                return result;
+                // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
+                //return documentFileName.EndsWith(".vbx", StringComparison.OrdinalIgnoreCase)
+                //    ? SourceCodeKind.Script
+                //    : SourceCodeKind.Regular;
+                return SourceCodeKind.Regular;
             }
 
             public override string GetDocumentExtension(SourceCodeKind sourceCodeKind)
             {
-                string result;
-                if (sourceCodeKind != SourceCodeKind.Script)
-                {
-                    result = ".vb";
-                }
-                else
-                {
-                    result = ".vbx";
-                }
-                return result;
+                // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
+                //return (sourceCodeKind != SourceCodeKind.Script) ? ".vb" : ".vbx";
+                return ".vb";
             }
 
             public override async Task<ProjectFileInfo> GetProjectFileInfoAsync(CancellationToken cancellationToken)

@@ -388,7 +388,7 @@ abstract public class A
                 var method2Ret = (ArrayTypeSymbol)m2.ReturnType;
                 var method3Ret = (ArrayTypeSymbol)m3.ReturnType;
 
-                Assert.Equal(1, method1Ret.Rank);
+                Assert.True(method1Ret.IsSZArray);
                 Assert.Same(classA, method1Ret.ElementType);
                 Assert.Equal(2, method2Ret.Rank);
                 Assert.Same(classA, method2Ret.ElementType);

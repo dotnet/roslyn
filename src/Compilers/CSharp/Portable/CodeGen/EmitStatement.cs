@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             switch (statement.Flavor)
             {
                 case NoOpStatementFlavor.Default:
-                    if (_optimizations == OptimizationLevel.Debug)
+                    if (_ilEmitStyle == ILEmitStyle.Debug)
                     {
                         _builder.EmitOpCode(ILOpCode.Nop);
                     }
@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             //   ret
             //
             // Do not emit this pattern if the method doesn't include user code or doesn't have a block body.
-            return _optimizations == OptimizationLevel.Debug && _method.GenerateDebugInfo && _methodBodySyntaxOpt?.IsKind(SyntaxKind.Block) == true ||
+            return _ilEmitStyle == ILEmitStyle.Debug && _method.GenerateDebugInfo && _methodBodySyntaxOpt?.IsKind(SyntaxKind.Block) == true ||
                    _builder.InExceptionHandler;
         }
 
@@ -634,7 +634,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private bool CanHandleReturnLabel(BoundReturnStatement boundReturnStatement)
         {
             return boundReturnStatement.WasCompilerGenerated &&
-                    (boundReturnStatement.Syntax.Kind() == SyntaxKind.Block || (((object)_method != null) && _method.IsImplicitConstructor)) &&
+                    (boundReturnStatement.Syntax.IsKind(SyntaxKind.Block) || _method?.IsImplicitConstructor == true) &&
                     !_builder.InExceptionHandler;
         }
 
@@ -1404,7 +1404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 constraints: constraints,
                 isDynamic: isDynamicSourceLocal,
                 dynamicTransformFlags: transformFlags,
-                isSlotReusable: local.SynthesizedKind.IsSlotReusable(_optimizations));
+                isSlotReusable: local.SynthesizedKind.IsSlotReusable(_ilEmitStyle != ILEmitStyle.Release));
 
             // If named, add it to the local debug scope.
             if (localDef.Name != null)
@@ -1437,7 +1437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return null;
             }
 
-            if (_optimizations == OptimizationLevel.Debug)
+            if (_ilEmitStyle == ILEmitStyle.Debug)
             {
                 var syntax = local.GetDeclaratorSyntax();
                 int syntaxOffset = _method.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree);
@@ -1455,7 +1455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private bool IsSlotReusable(LocalSymbol local)
         {
-            return local.SynthesizedKind.IsSlotReusable(_optimizations);
+            return local.SynthesizedKind.IsSlotReusable(_ilEmitStyle != ILEmitStyle.Release);
         }
 
         /// <summary>

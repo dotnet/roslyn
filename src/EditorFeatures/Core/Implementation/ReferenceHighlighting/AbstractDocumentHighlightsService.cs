@@ -29,18 +29,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             }
 
             symbol = await GetSymbolToSearchAsync(document, position, semanticModel, symbol, cancellationToken).ConfigureAwait(false);
+            if (symbol == null)
+            {
+                return SpecializedCollections.EmptyEnumerable<DocumentHighlights>();
+            }
 
             // Get unique tags for referenced symbols
             return await GetTagsForReferencedSymbolAsync(symbol, ImmutableHashSet.CreateRange(documentsToSearch), solution, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<ISymbol> GetSymbolToSearchAsync(Document document, int position, SemanticModel semanticModel, ISymbol symbols, CancellationToken cancellationToken)
+        private async Task<ISymbol> GetSymbolToSearchAsync(Document document, int position, SemanticModel semanticModel, ISymbol symbol, CancellationToken cancellationToken)
         {
-            // see whether we can use symbols as it is
+            // see whether we can use the symbol as it is
             var currentSemanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             if (currentSemanticModel == semanticModel)
             {
-                return symbols;
+                return symbol;
             }
 
             // get symbols from current document again

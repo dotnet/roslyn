@@ -1581,7 +1581,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_SignButNoPrivateKey = 36961
         ERR_InvalidVersionFormat = 36962
 
-        ERR_NoScriptsSpecified = 36963
+        ERR_ExpectedSingleScript = 36963
         ERR_ReferenceDirectiveOnlyAllowedInScripts = 36964
         ERR_NamespaceNotAllowedInScript = 36965
         ERR_KeywordNotAllowedInScript = 36966
@@ -1936,5 +1936,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_GlobalNamespace
         FEATURE_NullPropagatingOperator
         FEATURE_NameOfExpressions
+        FEATURE_ReadonlyAutoProperties
+        FEATURE_RegionsEverywhere
+        FEATURE_MultilineStringLiterals
+        FEATURE_CObjInAttributeArguments
+        FEATURE_LineContinuationComments
+        FEATURE_TypeOfIsNot
+        FEATURE_YearFirstDateLiterals
+        FEATURE_WarningDirectives
+        FEATURE_PartialModules
+        FEATURE_PartialInterfaces
+        FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
     End Enum
 End Namespace

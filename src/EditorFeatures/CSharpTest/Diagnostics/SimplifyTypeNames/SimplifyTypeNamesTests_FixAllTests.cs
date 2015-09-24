@@ -119,7 +119,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            Test(input, expected, isLine: false, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -229,7 +229,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            Test(input, expected, isLine: false, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -339,7 +339,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            Test(input, expected, isLine: false, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -593,7 +593,7 @@ class ProgramB3
     </Project>
 </Workspace>";
 
-            Test(input, expected, isLine: false, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -847,7 +847,7 @@ class ProgramB3
     </Project>
 </Workspace>";
 
-            Test(input, expected, isLine: false, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         #endregion

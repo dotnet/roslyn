@@ -20,10 +20,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
         Protected Overrides Async Function GetBuilderAsync(document As Document, position As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of CompletionItem)
             Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
 
-            If triggerInfo.IsDebugger Then
-                Return CreateEmptyBuilder(text, position)
-            End If
-
             Dim span = New TextSpan(position, 0)
             Dim semanticModel = Await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(False)
             Dim syntaxTree = semanticModel.SyntaxTree

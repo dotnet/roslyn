@@ -351,6 +351,24 @@ class Program
             Test(input)
         End Sub
 
+        <WorkItem(4952, "https://github.com/dotnet/roslyn/pull/4952")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Sub Field_AcrossSubmission_Command()
+            Dim input =
+<Workspace>
+    <Submission Language="C#" CommonReferences="true">
+        object {|Definition:$$foo|};
+    </Submission>
+    <Submission Language="NoCompilation" CommonReferences="false">
+        #help
+    </Submission>
+    <Submission Language="C#" CommonReferences="true">
+        [|foo|]
+    </Submission>
+</Workspace>
+            Test(input)
+        End Sub
+
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCrefField()
             Dim input =

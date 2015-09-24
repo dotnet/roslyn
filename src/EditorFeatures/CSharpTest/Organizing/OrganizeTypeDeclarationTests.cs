@@ -1,6 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Linq;
+using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
+using Microsoft.CodeAnalysis.Editor.Implementation.Organizing;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1061,6 +1069,60 @@ interface I
     }
 }";
             Check(initial, final);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Trait(Traits.Feature, Traits.Features.Interactive)]
+        public void OrganizingCommandsDisabledInSubmission()
+        {
+            var exportProvider = MinimalTestExportProvider.CreateExportProvider(
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsCodeFixService)));
+
+            using (var workspace = TestWorkspaceFactory.CreateWorkspace(XElement.Parse(@"
+                <Workspace>
+                    <Submission Language=""C#"" CommonReferences=""true"">  
+                        class C
+                        {
+                            object $$foo;
+                        }
+                    </Submission>
+                </Workspace> "),
+                workspaceKind: WorkspaceKind.Interactive,
+                exportProvider: exportProvider))
+            {
+                // Force initialization.
+                workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
+
+                var textView = workspace.Documents.Single().GetTextView();
+
+                var handler = new OrganizeDocumentCommandHandler(workspace.GetService<Host.IWaitIndicator>());
+                var delegatedToNext = false;
+                Func<CommandState> nextHandler = () =>
+                {
+                    delegatedToNext = true;
+                    return CommandState.Unavailable;
+                };
+
+                var state = handler.GetCommandState(new Commands.SortImportsCommandArgs(textView, textView.TextBuffer), nextHandler);
+                Assert.True(delegatedToNext);
+                Assert.False(state.IsAvailable);
+
+                delegatedToNext = false;
+                state = handler.GetCommandState(new Commands.SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer), nextHandler);
+                Assert.True(delegatedToNext);
+                Assert.False(state.IsAvailable);
+
+                delegatedToNext = false;
+                state = handler.GetCommandState(new Commands.RemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer), nextHandler);
+                Assert.True(delegatedToNext);
+                Assert.False(state.IsAvailable);
+
+                delegatedToNext = false;
+                state = handler.GetCommandState(new Commands.OrganizeDocumentCommandArgs(textView, textView.TextBuffer), nextHandler);
+                Assert.True(delegatedToNext);
+                Assert.False(state.IsAvailable);
+            }
         }
     }
 }

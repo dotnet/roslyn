@@ -570,15 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (seenNamespaceWithExtensionMethods && seenStaticClassWithExtensionMethods)
             {
-                var methodsNoDuplicates = ArrayBuilder<MethodSymbol>.GetInstance();
-                methodsNoDuplicates.AddRange(methods.Distinct());
-                if (methodsNoDuplicates.Count < methods.Count)
-                {
-                    methods.Clear();
-                    methods.AddRange(methodsNoDuplicates);
-                }
-
-                methodsNoDuplicates.Free();
+                methods.RemoveDuplicates();
             }
         }
 

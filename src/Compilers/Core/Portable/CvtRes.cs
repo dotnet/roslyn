@@ -12,6 +12,7 @@ using DWORD = System.UInt32;
 using WCHAR = System.Char;
 using WORD = System.UInt16;
 using System.Reflection.PortableExecutable;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -204,9 +205,9 @@ namespace Microsoft.CodeAnalysis
             var imageResourceSectionBytes = new byte[checked(rsrc1.SizeOfRawData + rsrc2.SizeOfRawData)];
 
             stream.Seek(rsrc1.PointerToRawData, SeekOrigin.Begin);
-            stream.Read(imageResourceSectionBytes, 0, rsrc1.SizeOfRawData);
+            stream.TryReadAll(imageResourceSectionBytes, 0, rsrc1.SizeOfRawData); // ConfirmSectionValues ensured that data are available
             stream.Seek(rsrc2.PointerToRawData, SeekOrigin.Begin);
-            stream.Read(imageResourceSectionBytes, rsrc1.SizeOfRawData, rsrc2.SizeOfRawData);
+            stream.TryReadAll(imageResourceSectionBytes, rsrc1.SizeOfRawData, rsrc2.SizeOfRawData); // ConfirmSectionValues ensured that data are available
 
             const int SizeOfRelocationEntry = 10;
 

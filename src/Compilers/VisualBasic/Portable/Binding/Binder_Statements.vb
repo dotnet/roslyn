@@ -667,7 +667,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         arrayType = DirectCast(redimTargetType, ArrayTypeSymbol)
                     ElseIf redimTargetType.IsObjectType() Then
                         If boundIndices.Length > 0 Then '  missing redim size error will be reported later
-                            arrayType = New ArrayTypeSymbol(redimTargetType, Nothing, boundIndices.Length, Compilation)
+                            arrayType = ArrayTypeSymbol.CreateVBArray(redimTargetType, Nothing, boundIndices.Length, Compilation)
                         End If
                     Else
                         ReportDiagnostic(diagnostics, redimOperand.Expression, ERRID.ERR_ExpectedArray1, "Redim")
@@ -3347,7 +3347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim currentPlaceholderType = currentType
 
             Dim collectionType = collection.Type
-            If Not (collectionType.IsArrayType AndAlso DirectCast(collectionType, ArrayTypeSymbol).Rank = 1) Then
+            If Not (collectionType.IsArrayType AndAlso DirectCast(collectionType, ArrayTypeSymbol).IsSZArray) Then
                 Dim isStringForEach = collectionType.IsStringType
                 If Not isStringForEach AndAlso collection.Kind = BoundKind.Conversion Then
                     Dim conversion As BoundConversion = DirectCast(collection, BoundConversion)
@@ -3686,7 +3686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' ambiguous lookups or a failed overload resolution for the current property access. 
                 isEnumerable = True
 
-                If collectionType.IsArrayType AndAlso DirectCast(collectionType, ArrayTypeSymbol).Rank = 1 Then
+                If collectionType.IsArrayType AndAlso DirectCast(collectionType, ArrayTypeSymbol).IsSZArray Then
                     Dim arrayType = DirectCast(collectionType, ArrayTypeSymbol)
                     currentType = arrayType.ElementType
 

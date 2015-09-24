@@ -9,19 +9,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class VisualBasicDeclarationComputer
         Inherits DeclarationComputer
 
-        Public Shared Function GetDeclarationsInSpan(model As SemanticModel, span As TextSpan, getSymbol As Boolean, cancellationToken As CancellationToken) As ImmutableArray(Of DeclarationInfo)
-            Dim builder = ArrayBuilder(Of DeclarationInfo).GetInstance()
+        Public Shared Sub ComputeDeclarationsInSpan(model As SemanticModel, span As TextSpan, getSymbol As Boolean, builder As List(Of DeclarationInfo), cancellationToken As CancellationToken)
             ComputeDeclarationsCore(model, model.SyntaxTree.GetRoot(),
                                     Function(node, level) Not node.Span.OverlapsWith(span) OrElse InvalidLevel(level),
                                     getSymbol, builder, Nothing, cancellationToken)
-            Return builder.ToImmutable()
-        End Function
+        End Sub
 
-        Public Shared Function GetDeclarationsInNode(model As SemanticModel, node As SyntaxNode, getSymbol As Boolean, cancellationToken As CancellationToken, Optional levelsToCompute As Integer? = Nothing) As ImmutableArray(Of DeclarationInfo)
-            Dim builder = ArrayBuilder(Of DeclarationInfo).GetInstance()
+        Public Shared Sub ComputeDeclarationsInNode(model As SemanticModel, node As SyntaxNode, getSymbol As Boolean, builder As List(Of DeclarationInfo), cancellationToken As CancellationToken, Optional levelsToCompute As Integer? = Nothing)
             ComputeDeclarationsCore(model, node, Function(n, level) InvalidLevel(level), getSymbol, builder, levelsToCompute, cancellationToken)
-            Return builder.ToImmutable()
-        End Function
+        End Sub
 
         Private Shared Function InvalidLevel(level As Integer?) As Boolean
             Return level.HasValue AndAlso level.Value <= 0
@@ -32,7 +28,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return If(level.HasValue, level.Value - 1, level)
         End Function
 
-        Private Shared Sub ComputeDeclarationsCore(model As SemanticModel, node As SyntaxNode, shouldSkip As Func(Of SyntaxNode, Integer?, Boolean), getSymbol As Boolean, builder As ArrayBuilder(Of DeclarationInfo), levelsToCompute As Integer?, cancellationToken As CancellationToken)
+        Private Shared Sub ComputeDeclarationsCore(model As SemanticModel, node As SyntaxNode, shouldSkip As Func(Of SyntaxNode, Integer?, Boolean), getSymbol As Boolean, builder As List(Of DeclarationInfo), levelsToCompute As Integer?, cancellationToken As CancellationToken)
+            cancellationToken.ThrowIfCancellationRequested()
+
             If shouldSkip(node, levelsToCompute) Then
                 Return
             End If

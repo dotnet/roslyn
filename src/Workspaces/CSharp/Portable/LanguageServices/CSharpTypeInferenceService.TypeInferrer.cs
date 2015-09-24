@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var typeArguments = method.ConstructedFrom.TypeParameters.Select(tp => bestMap.GetValueOrDefault(tp) ?? tp).ToArray();
-                return method.Construct(typeArguments);
+                return method.ConstructedFrom.Construct(typeArguments);
             }
 
             private Dictionary<ITypeParameterSymbol, ITypeSymbol> DetermineTypeParameterMapping(ITypeSymbol inferredType, ITypeSymbol returnType)

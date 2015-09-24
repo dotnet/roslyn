@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-        public void TestLocalSuppressionOnEveryNodes()
+        public void TestSuppressionWithAttributeOnEveryNodes()
         {
-            TestLocalSuppression(
+            TestSuppressionWithAttribute(
                 TestResource.AllInOneCSharpCode,
                 CSharpParseOptions.Default,
                 digInto: n => !(n is StatementSyntax) || n is BlockSyntax,

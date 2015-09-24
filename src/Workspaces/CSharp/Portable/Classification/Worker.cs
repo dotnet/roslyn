@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private void ClassifyTrivia(SyntaxTrivia trivia)
         {
-            if (trivia.Kind() == SyntaxKind.SingleLineCommentTrivia || trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
+            if (trivia.IsRegularComment())
             {
                 AddClassification(trivia, ClassificationTypeNames.Comment);
             }

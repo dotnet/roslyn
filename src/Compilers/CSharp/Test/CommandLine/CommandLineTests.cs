@@ -108,47 +108,6 @@ a.cs
             CleanupAllGeneratedFiles(rsp);
         }
 
-        [Fact]
-        public void ResponseFiles2()
-        {
-            string rsp = Temp.CreateFile().WriteAllText(@"
-/r:System
-/r:System.Core
-/r:System.Data
-/r:System.Data.DataSetExtensions
-/r:System.Xml
-/r:System.Xml.Linq
-/r:Microsoft.CSharp
-/u:System
-/u:System.Collections.Generic
-/u:System.Linq
-/u:System.Text").Path;
-
-            var cmd = new MockCsi(rsp, _baseDirectory, new[] { "b.csx" });
-
-            AssertEx.Equal(new[]
-            {
-                typeof(object).Assembly.Location,
-                "System",
-                "System.Core",
-                "System.Data",
-                "System.Data.DataSetExtensions",
-                "System.Xml",
-                "System.Xml.Linq",
-                "Microsoft.CSharp",
-            }, cmd.Arguments.MetadataReferences.Select(r => r.Reference));
-
-            AssertEx.Equal(new[]
-            {
-                "System",
-                "System.Collections.Generic",
-                "System.Linq",
-                "System.Text",
-            }, cmd.Arguments.CompilationOptions.Usings.AsEnumerable());
-
-            CleanupAllGeneratedFiles(rsp);
-        }
-
         [ConditionalFact(typeof(WindowsOnly))]
         public void ResponseFiles_RelativePaths()
         {
@@ -1210,53 +1169,67 @@ d.cs
         {
             var parsedArgs = DefaultParse(new[] { "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
+            Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
 
             parsedArgs = DefaultParse(new[] { "/debug-", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
+            Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
 
             parsedArgs = DefaultParse(new[] { "/debug", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
+            Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
 
             parsedArgs = DefaultParse(new[] { "/debug+", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
+            Assert.Equal(true, parsedArgs.CompilationOptions.DebugPlusMode);
 
             parsedArgs = DefaultParse(new[] { "/debug+", "/debug-", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
+            Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
 
             parsedArgs = DefaultParse(new[] { "/debug:full", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
+            Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
 
             parsedArgs = DefaultParse(new[] { "/debug:FULL", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
+            Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
 
             parsedArgs = DefaultParse(new[] { "/debug:pdbonly", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
+            Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
 
             parsedArgs = DefaultParse(new[] { "/debug:PDBONLY", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
+            Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
 
             parsedArgs = DefaultParse(new[] { "/debug:full", "/debug:pdbonly", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
+            Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
 
             parsedArgs = DefaultParse(new[] { "/debug:pdbonly", "/debug:full", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.True(parsedArgs.EmitPdb);
             Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat);
+            Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
 
             parsedArgs = DefaultParse(new[] { "/debug:pdbonly", "/debug-", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.False(parsedArgs.EmitPdb);
             Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat);
+            Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
 
             parsedArgs = DefaultParse(new[] { "/debug:pdbonly", "/debug-", "/debug", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.True(parsedArgs.EmitPdb);
             Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat);
+            Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
 
             parsedArgs = DefaultParse(new[] { "/debug:pdbonly", "/debug-", "/debug+", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.True(parsedArgs.EmitPdb);
             Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat);
+            Assert.Equal(true, parsedArgs.CompilationOptions.DebugPlusMode);
 
             parsedArgs = DefaultParse(new[] { "/debug:", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "debug"));
@@ -2609,38 +2582,45 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
                 // error CS2006: Command-line syntax error: Missing ':<file>' for '/errorlog:' option
                 Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments(":<file>", "/errorlog:"));
             Assert.Null(parsedArgs.ErrorLogPath);
+            Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics);
 
             parsedArgs = DefaultParse(new[] { @"/errorlog:", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2006: Command-line syntax error: Missing ':<file>' for '/errorlog:' option
                 Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments(":<file>", "/errorlog:"));
             Assert.Null(parsedArgs.ErrorLogPath);
+            Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics);
 
             parsedArgs = DefaultParse(new[] { @"/errorlog", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2006: Command-line syntax error: Missing ':<file>' for '/errorlog' option
                 Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments(":<file>", "/errorlog"));
             Assert.Null(parsedArgs.ErrorLogPath);
+            Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics);
 
             // Should preserve fully qualified paths
             parsedArgs = DefaultParse(new[] { @"/errorlog:C:\MyFolder\MyBinary.xml", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(@"C:\MyFolder\MyBinary.xml", parsedArgs.ErrorLogPath);
+            Assert.True(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics);
 
             // Should handle quotes
             parsedArgs = DefaultParse(new[] { @"/errorlog:C:\""My Folder""\MyBinary.xml", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(@"C:\My Folder\MyBinary.xml", parsedArgs.ErrorLogPath);
+            Assert.True(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics);
 
             // Should expand partially qualified paths
             parsedArgs = DefaultParse(new[] { @"/errorlog:MyBinary.xml", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(Path.Combine(baseDirectory, "MyBinary.xml"), parsedArgs.ErrorLogPath);
+            Assert.True(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics);
 
             // Should expand partially qualified paths
             parsedArgs = DefaultParse(new[] { @"/errorlog:..\MyBinary.xml", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(@"C:\abc\def\MyBinary.xml", parsedArgs.ErrorLogPath);
+            Assert.True(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics);
 
             // drive-relative path:
             char currentDrive = Directory.GetCurrentDirectory()[0];
@@ -2650,6 +2630,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
                 Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(currentDrive + ":a.xml"));
 
             Assert.Null(parsedArgs.ErrorLogPath);
+            Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics);
 
             // UNC
             parsedArgs = DefaultParse(new[] { @"/errorlog:\\b", "a.cs" }, baseDirectory);
@@ -2657,6 +2638,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
                 Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(@"\\b"));
 
             Assert.Null(parsedArgs.ErrorLogPath);
+            Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics);
 
             parsedArgs = DefaultParse(new[] { @"/errorlog:\\server\share\file.xml", "a.vb" }, baseDirectory);
             parsedArgs.Errors.Verify();
@@ -2669,6 +2651,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
                 Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments("a.b\0b"));
 
             Assert.Null(parsedArgs.ErrorLogPath);
+            Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics);
 
             parsedArgs = DefaultParse(new[] { @"/errorlog:""a<>.xml""", "a.vb" }, baseDirectory);
             parsedArgs.Errors.Verify(
@@ -2676,6 +2659,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
                 Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments("a<>.xml"));
 
             Assert.Null(parsedArgs.ErrorLogPath);
+            Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics);
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
@@ -5436,7 +5420,7 @@ public class C
         }
 
         [WorkItem(544926, "DevDiv")]
-        [ConditionalFact(typeof(ClrOnlyFact))]
+        [ClrOnlyFact]
         public void ResponseFilesWithNoconfig_03()
         {
             string source = Temp.CreateFile("a.cs").WriteAllText(@"

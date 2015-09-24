@@ -193,7 +193,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 usageTextBuilder.AddRange(supportedPlatforms.ToDisplayParts());
             }
 
-            // TODO: exceptions
+            var exceptionsTextBuilder = new List<SymbolDisplayPart>();
+            if (sections.ContainsKey(SymbolDescriptionGroups.Exceptions))
+            {
+                var parts = sections[SymbolDescriptionGroups.Exceptions];
+                if (!parts.IsDefaultOrEmpty)
+                {
+                    exceptionsTextBuilder.AddRange(parts);
+                }
+            }
 
             var formatter = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<IDocumentationCommentFormattingService>();
             var syntaxFactsService = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISyntaxFactsService>();
@@ -216,7 +224,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 documentation: documentationContent,
                 typeParameterMap: typeParameterMapBuilder,
                 anonymousTypes: anonymousTypesBuilder,
-                usageText: usageTextBuilder);
+                usageText: usageTextBuilder,
+                exceptionText: exceptionsTextBuilder);
         }
 
         private IDeferredQuickInfoContent GetDocumentationContent(

@@ -49,45 +49,42 @@
     <DefineConstants>$(DefineConstants);SCRIPTING</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System.Reflection.Metadata, Version=$(SystemReflectionMetadataAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
-      <Link>FusionAssemblyIdentity.cs</Link>
+      <Link>Resolvers\FusionAssemblyIdentity.cs</Link>
     </Compile>
     <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GacFileResolver.cs">
-      <Link>GacFileResolver.cs</Link>
+      <Link>Resolvers\GacFileResolver.cs</Link>
     </Compile>
     <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GlobalAssemblyCache.cs">
-      <Link>GlobalAssemblyCache.cs</Link>
+      <Link>Resolvers\GlobalAssemblyCache.cs</Link>
     </Compile>
-    <Compile Include="AssemblyLoadResult.cs" />
-    <Compile Include="DesktopMetadataReferenceResolver.cs" />
-    <Compile Include="InteractiveAssemblyLoader.cs" />
-    <Compile Include="MetadataShadowCopy.cs" />
-    <Compile Include="MetadataShadowCopyProvider.cs" />
-    <Compile Include="NuGetPackageResolver.cs" />
-    <Compile Include="ScriptCompilerUtil.cs" />
+    <Compile Include="AssemblyLoader\AssemblyLoadResult.cs" />
+    <Compile Include="CommandLine\CommandLineHostObject.cs" />
+    <Compile Include="CommandLine\CommandLineRunner.cs" />
+    <Compile Include="CommandLine\ConsoleIO.cs" />
+    <Compile Include="CommandLine\NotImplementedAnalyzerLoader.cs" />
+    <Compile Include="Resolvers\RuntimeMetadataReferenceResolver.cs" />
+    <Compile Include="AssemblyLoader\InteractiveAssemblyLoader.cs" />
+    <Compile Include="AssemblyLoader\MetadataShadowCopy.cs" />
+    <Compile Include="AssemblyLoader\MetadataShadowCopyProvider.cs" />
+    <Compile Include="AssemblyLoader\ShadowCopy.cs" />
+    <Compile Include="Resolvers\NuGetPackageResolver.cs" />
     <Compile Include="ScriptCompiler.cs" />
+    <Compile Include="ScriptingResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ScriptingResources.resx</DependentUpon>
+    </Compile>
     <Compile Include="ScriptRunner.cs" />
-    <Compile Include="ShadowCopy.cs" />
     <Compile Include="ObjectFormatter.cs" />
     <Compile Include="ObjectFormatter.Formatter.cs" />
+    <Compile Include="XmlFileResolverForAssemblies.cs" />
     <Compile Include="Script.cs" />
     <Compile Include="ScriptBuilder.cs" />
     <Compile Include="CompilationErrorException.cs" />
     <Compile Include="MemberDisplayFormat.cs" />
     <Compile Include="ObjectFormattingOptions.cs" />
     <Compile Include="ScriptExecutionState.cs" />
-    <Compile Include="ScriptingResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>ScriptingResources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="ScriptVariables.cs" />
     <Compile Include="ScriptOptions.cs" />
     <Compile Include="ScriptState.cs" />
     <Compile Include="ScriptVariable.cs" />
@@ -97,9 +94,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.Desktop" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.CSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.VisualBasic" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveFeatures" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveEditorFeatures" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="csi" />
     <InternalsVisibleTo Include="vbi" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
@@ -113,8 +107,8 @@
   <ItemGroup>
     <EmbeddedResource Include="ScriptingResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>ScriptingResources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+      <LastGenOutput>ScriptingResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -126,6 +120,5 @@
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

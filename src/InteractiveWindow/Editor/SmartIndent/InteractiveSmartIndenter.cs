@@ -35,7 +35,21 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             // get point at the subject buffer
             var mappingPoint = _view.BufferGraph.CreateMappingPoint(line.Start, PointTrackingMode.Negative);
-            var point = mappingPoint.GetInsertionPoint(b => b.ContentType.IsOfType(_contentType.TypeName));
+
+            // TODO (https://github.com/dotnet/roslyn/issues/5281): Remove try-catch.
+            SnapshotPoint? point = null;
+            try
+            {
+                point = mappingPoint.GetInsertionPoint(b => b.ContentType.IsOfType(_contentType.TypeName));
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                // Suppress this to work around DevDiv #144964.
+                // Note: Other callers might be affected, but this is the narrowest workaround for the observed problems.
+                // A fix is already being reviewed, so a broader change is not required.
+                return null;
+            }
+
             if (!point.HasValue)
             {
                 return null;

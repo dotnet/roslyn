@@ -7,6 +7,7 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {

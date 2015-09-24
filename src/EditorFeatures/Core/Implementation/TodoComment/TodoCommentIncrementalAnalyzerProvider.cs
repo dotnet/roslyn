@@ -30,12 +30,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                new TodoCommentIncrementalAnalyzer(w, w.Services.GetService<IOptionService>(), this, _todoCommentTokens));
         }
 
-        internal void RaiseTaskListUpdated(object id, Workspace workspace, ProjectId projectId, DocumentId documentId, ImmutableArray<TodoItem> items)
+        internal void RaiseTaskListUpdated(object id, Workspace workspace, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<TodoItem> items)
         {
             var handler = this.TodoListUpdated;
             if (handler != null)
             {
-                handler(this, new TodoListEventArgs(Tuple.Create(this, id), workspace, projectId, documentId, items));
+                handler(this, new TodoListEventArgs(Tuple.Create(this, id), workspace, solution, projectId, documentId, items));
             }
         }
 

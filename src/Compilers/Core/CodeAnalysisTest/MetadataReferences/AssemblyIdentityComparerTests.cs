@@ -570,6 +570,28 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void AsymmetricUnification()
+        {
+            // Note:
+            // System.Numerics.Vectors, Version=4.0 is an FX assembly
+            // System.Numerics.Vectors, Version=4.1+ is not an FX assembly
+            //
+            // It seems like a bug in fusion: it only determines whether the definition is an FX assembly 
+            // and calculates the result based upon that, regardless of whether the reference is an FX assembly or not.
+            // We do replicate that behavior.
+            TestMatch(
+                "System.Numerics.Vectors, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+                "System.Numerics.Vectors, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+                AssemblyIdentityComparer.ComparisonResult.NotEquivalent);
+
+            TestMatch(
+                "System.Numerics.Vectors, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+                "System.Numerics.Vectors, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+                AssemblyIdentityComparer.ComparisonResult.Equivalent,
+                unificationApplied: true);
+        }
+
+        [Fact]
         public void Portability()
         {
             TestMatch(

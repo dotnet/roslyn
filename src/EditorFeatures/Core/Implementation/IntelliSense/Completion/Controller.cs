@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -138,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             return StartNewModelComputation(
                 completionService,
-                CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo().WithIsDebugger(_isDebugger).WithIsImmediateWindow(_isImmediateWindow), filterItems, dismissIfEmptyAllowed);
+                CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo(), filterItems, dismissIfEmptyAllowed);
         }
 
         private bool StartNewModelComputation(ICompletionService completionService, CompletionTriggerInfo triggerInfo, bool filterItems, bool dismissIfEmptyAllowed = true)
@@ -151,6 +150,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // No completion with multiple selection
                 return false;
             }
+
+            // The caret may no longer be mappable into our subject buffer.
+            var caret = TextView.GetCaretPoint(SubjectBuffer);
+            if (!caret.HasValue)
+            {
+                return false;
+            }
+
 
             if (this.TextView.Caret.Position.VirtualBufferPosition.IsInVirtualSpace)
             {
@@ -166,8 +173,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 ? GetSnippetCompletionProviders()
                 : GetCompletionProviders();
 
-            sessionOpt.ComputeModel(completionService, triggerInfo, completionProviders, _isDebugger);
-            var filterReason = triggerInfo.TriggerReason == CompletionTriggerReason.BackspaceOrDeleteCommand ? CompletionFilterReason.BackspaceOrDelete : CompletionFilterReason.TypeChar;
+            sessionOpt.ComputeModel(completionService, triggerInfo, GetOptions(), completionProviders);
+
+            var filterReason = triggerInfo.TriggerReason == CompletionTriggerReason.BackspaceOrDeleteCommand
+                ? CompletionFilterReason.BackspaceOrDelete 
+                : CompletionFilterReason.TypeChar;
+
             if (filterItems)
             {
                 sessionOpt.FilterModel(filterReason, dismissIfEmptyAllowed: dismissIfEmptyAllowed);
@@ -203,7 +214,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return null;
             }
 
-            return workspace.Options;
+            return _isDebugger
+                ? workspace.Options.WithDebuggerCompletionOptions()
+                : workspace.Options;
         }
 
         private void CommitItem(CompletionItem item)

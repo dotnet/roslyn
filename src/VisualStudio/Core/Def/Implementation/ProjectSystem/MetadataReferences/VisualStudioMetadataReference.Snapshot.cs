@@ -82,15 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             protected override DocumentationProvider CreateDocumentationProvider()
             {
-                string xmlDocumentPath;
-                if (ReferencePathUtilities.TryFindXmlDocumentationFile(FilePath, out xmlDocumentPath))
-                {
-                    return new VisualStudioDocumentationProvider(xmlDocumentPath, _provider.XmlMemberIndexService);
-                }
-                else
-                {
-                    return DocumentationProvider.Default;
-                }
+                return new VisualStudioDocumentationProvider(this.FilePath, _provider.XmlMemberIndexService);
             }
 
             protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
