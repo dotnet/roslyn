@@ -115,27 +115,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
         End Function
 
         Private Shared Function ConverToAwaitExpression(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As ExpressionSyntax
-            Dim root = expression.Ancestors().Last()
-            If Not RequiresParenthesis(expression, root, semanticModel, cancellationToken) Then
-                expression = expression.Parenthesize()
-            End If
-            Return SyntaxFactory.AwaitExpression(expression.WithoutTrivia()) _
-                   .WithTriviaFrom(expression) _
-                   .WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation)
+            Return SyntaxFactory.AwaitExpression(expression.WithoutTrivia().Parenthesize()) _
+                                .WithTriviaFrom(expression) _
+                                .WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation)
         End Function
 
-        Private Shared Function RequiresParenthesis(expression As ExpressionSyntax, root As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
-            Dim parenthesizedExpression = SyntaxFactory.ParenthesizedExpression(expression)
-            Dim newRoot = root.ReplaceNode(expression, parenthesizedExpression)
-            Dim newNode = newRoot.FindNode(expression.Span)
-            Dim result = newNode _
-                .DescendantNodesAndSelf(Function(n) n.Kind <> SyntaxKind.ParenthesizedExpression) _
-                .OfType(Of ParenthesizedExpressionSyntax).FirstOrDefault
-            If result IsNot Nothing Then
-                Return Not result.CanRemoveParentheses(semanticModel, cancellationToken)
-            End If
-
-            Return False
-        End Function
     End Class
 End Namespace
