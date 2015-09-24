@@ -53,12 +53,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 return VSConstants.E_INVALIDARG;
             }
 
+            var textViewModel = WpfTextView.TextViewModel;
+            if (textViewModel == null)
+            {
+                Debug.Assert(WpfTextView.IsClosed);
+                pbstrText = null;
+                return VSConstants.E_FAIL;
+            }
+
             // We need to map the TextSpan from the DataBuffer to our subject buffer. We'll
             // only consider spans whose length matches our input span (which we expect to
             // always be zero). This is to address the case where the position is on a seam
             // and maps to multiple source spans.
             // If there is not exactly one matching span, just return.
-            var span = WpfTextView.TextViewModel.DataBuffer.CurrentSnapshot.GetSpan(pSpan[0]);
+            var span = textViewModel.DataBuffer.CurrentSnapshot.GetSpan(pSpan[0]);
             var spanLength = span.Length;
             Debug.Assert(spanLength == 0, $"Expected zero length span (got '{spanLength}'.");
             var subjectSpan = WpfTextView.BufferGraph.MapDownToBuffer(span, SpanTrackingMode.EdgeInclusive, _subjectBuffer)
@@ -83,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 // take the span that intersects with the input span, since that's probably
                 // the one we care about.
                 // If there are no such spans, just return.
-                var surfaceSpan = WpfTextView.BufferGraph.MapUpToBuffer(subjectSpan, SpanTrackingMode.EdgeInclusive, WpfTextView.TextViewModel.DataBuffer)
+                var surfaceSpan = WpfTextView.BufferGraph.MapUpToBuffer(subjectSpan, SpanTrackingMode.EdgeInclusive, textViewModel.DataBuffer)
                                     .SingleOrDefault(x => x.IntersectsWith(span));
 
                 if (surfaceSpan == default(SnapshotSpan))
