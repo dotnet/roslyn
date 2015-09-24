@@ -425,10 +425,9 @@ namespace Microsoft.CodeAnalysis
             int j = 0;
             for (int i = 0; i < Count; i++)
             {
-                this[j] = this[i];
-
                 if (set.Add(this[i]))
                 {
+                    this[j] = this[i];
                     j++;
                 }
             }
