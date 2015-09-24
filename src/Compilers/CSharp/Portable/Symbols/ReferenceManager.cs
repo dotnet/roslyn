@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
+
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -12,6 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    using Symbols.Retargeting;
     using MetadataOrDiagnostic = System.Object;
 
     public partial class CSharpCompilation
@@ -305,10 +306,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Returns false if another compilation sharing this manager finished binding earlier and we should reuse its results.
             private bool CreateAndSetSourceAssemblyFullBind(CSharpCompilation compilation)
             {
-                SourceAssemblySymbol assemblySymbol;
-
-                Dictionary<MetadataReference, ReferencedAssembly> referencedAssembliesMap;
-                Dictionary<MetadataReference, int> referencedModulesMap;
                 IDictionary<string, MetadataReference> boundReferenceDirectiveMap;
                 ImmutableArray<MetadataReference> boundReferenceDirectives;
                 bool hasCircularReference;
@@ -375,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(allAssemblies[i].IsLinked == bindingResult[i].AssemblySymbol.IsLinked);
                 }
 
-                assemblySymbol = new SourceAssemblySymbol(compilation, SimpleAssemblyName, compilation.MakeSourceModuleName(), netModules: modules);
+                var assemblySymbol = new SourceAssemblySymbol(compilation, SimpleAssemblyName, compilation.MakeSourceModuleName(), netModules: modules);
 
                 AssemblySymbol corLibrary;
 
@@ -414,12 +411,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     InitializeNewSymbols(newSymbols, assemblySymbol, allAssemblies, bindingResult, missingAssemblies);
                 }
 
-                // Setup references for the compilation (out parameters)
-                referencedAssembliesMap = new Dictionary<MetadataReference, ReferencedAssembly>(referenceMap.Length);
-                referencedModulesMap = new Dictionary<MetadataReference, int>(modules.Length);
-
-                var sourceModule = assemblySymbol.SourceModule;
-                var referencedAssemblySymbols = sourceModule.GetReferencedAssemblySymbols();
+                // Calculate reference maps and aliases:
+                var referencedAssembliesMap = new Dictionary<MetadataReference, int>(referenceMap.Length);
+                var referencedModulesMap = new Dictionary<MetadataReference, int>(modules.Length);
+                var aliasesOfReferencedAssembliesBuilder = ArrayBuilder<ImmutableArray<string>>.GetInstance(referencedAssemblies.Length);
 
                 for (int i = 0; i < referenceMap.Length; i++)
                 {
@@ -436,10 +431,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        int assemblyIndex = referenceMap[i].Index;
-                        referencedAssembliesMap.Add(references[i], new ReferencedAssembly(referencedAssemblySymbols[assemblyIndex], referenceMap[i].Aliases));
+                        // index into assembly data array
+                        int assemblyIndex = referenceMap[i].Index; 
+                        Debug.Assert(aliasesOfReferencedAssembliesBuilder.Count == assemblyIndex);
+
+                        referencedAssembliesMap.Add(references[i], assemblyIndex);
+                        aliasesOfReferencedAssembliesBuilder.Add(referenceMap[i].Aliases);
                     }
                 }
+
+                var aliasesOfReferencedAssemblies = aliasesOfReferencedAssembliesBuilder.ToImmutableAndFree();
 
                 if ((object)compilation._lazyAssemblySymbol == null)
                 {
@@ -455,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             UpdateSymbolCacheNoLock(newSymbols, allAssemblies, bindingResult);
-
+                            
                             InitializeNoLock(
                                 referencedAssembliesMap,
                                 referencedModulesMap,
@@ -466,8 +467,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 ReferenceEquals(corLibrary, assemblySymbol) ? null : corLibrary,
                                 modules,
                                 moduleReferences,
-                                referencedAssemblySymbols,
-                                sourceModule.GetUnifiedAssemblies());
+                                assemblySymbol.SourceModule.GetReferencedAssemblySymbols(),
+                                aliasesOfReferencedAssemblies,
+                                assemblySymbol.SourceModule.GetUnifiedAssemblies());
 
                             // Make sure that the given compilation holds on this instance of reference manager.
                             Debug.Assert(ReferenceEquals(compilation._referenceManager, this) || HasCircularReference);
@@ -512,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Setup CorLibrary and NoPia stuff for newly created assemblies
 
-                List<AssemblySymbol> linkedReferencedAssemblies = new List<AssemblySymbol>();
+                var linkedReferencedAssembliesBuilder = ArrayBuilder<AssemblySymbol>.GetInstance();
                 var noPiaResolutionAssemblies = sourceAssembly.Modules[0].GetReferencedAssemblySymbols();
 
                 foreach (int i in newSymbols)
@@ -523,11 +525,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // Setup linked referenced assemblies.
-                    linkedReferencedAssemblies.Clear();
+                    linkedReferencedAssembliesBuilder.Clear();
 
                     if (assemblies[i].IsLinked)
                     {
-                        linkedReferencedAssemblies.Add(bindingResult[i].AssemblySymbol);
+                        linkedReferencedAssembliesBuilder.Add(bindingResult[i].AssemblySymbol);
                     }
 
                     foreach (var referenceBinding in bindingResult[i].ReferenceBinding)
@@ -535,19 +537,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (referenceBinding.IsBound &&
                             assemblies[referenceBinding.DefinitionIndex].IsLinked)
                         {
-                            linkedReferencedAssemblies.Add(
+                            linkedReferencedAssembliesBuilder.Add(
                                 bindingResult[referenceBinding.DefinitionIndex].AssemblySymbol);
                         }
                     }
 
-                    if (linkedReferencedAssemblies.Count > 0)
+                    if (linkedReferencedAssembliesBuilder.Count > 0)
                     {
-                        bindingResult[i].AssemblySymbol.SetLinkedReferencedAssemblies(
-                            ImmutableArray.CreateRange<AssemblySymbol>(linkedReferencedAssemblies.Distinct()));
+                        linkedReferencedAssembliesBuilder.RemoveDuplicates();
+                        bindingResult[i].AssemblySymbol.SetLinkedReferencedAssemblies(linkedReferencedAssembliesBuilder.ToImmutable());
                     }
 
                     bindingResult[i].AssemblySymbol.SetCorLibrary(corLibrary);
                 }
+
+                linkedReferencedAssembliesBuilder.Free();
 
                 if (missingAssemblies != null)
                 {
@@ -583,7 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref Dictionary<AssemblyIdentity, MissingAssemblySymbol> missingAssemblies,
                 SourceAssemblySymbol sourceAssemblyDebugOnly)
             {
-                var retargetingAssemblySymbol = (Symbols.Retargeting.RetargetingAssemblySymbol)bindingResult[bindingIndex].AssemblySymbol;
+                var retargetingAssemblySymbol = (RetargetingAssemblySymbol)bindingResult[bindingIndex].AssemblySymbol;
                 ImmutableArray<ModuleSymbol> modules = retargetingAssemblySymbol.Modules;
                 int moduleCount = modules.Length;
                 int refsUsed = 0;
@@ -797,13 +801,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             private abstract class AssemblyDataForMetadataOrCompilation : AssemblyData
             {
                 private List<AssemblySymbol> _assemblies;
-                protected AssemblyIdentity assemblyIdentity;
-                protected ImmutableArray<AssemblyIdentity> referencedAssemblies;
-                protected readonly bool EmbedInteropTypes;
+                private readonly AssemblyIdentity _identity;
+                private readonly ImmutableArray<AssemblyIdentity> _referencedAssemblies;
+                private readonly bool _embedInteropTypes;
 
-                protected AssemblyDataForMetadataOrCompilation(bool embedInteropTypes)
+                protected AssemblyDataForMetadataOrCompilation(
+                    AssemblyIdentity identity,
+                    ImmutableArray<AssemblyIdentity> referencedAssemblies,
+                    bool embedInteropTypes)
                 {
-                    this.EmbedInteropTypes = embedInteropTypes;
+                    Debug.Assert(identity != null);
+                    Debug.Assert(!referencedAssemblies.IsDefault);
+
+                    _embedInteropTypes = embedInteropTypes;
+                    _identity = identity;
+                    _referencedAssemblies = referencedAssemblies;
                 }
 
                 internal abstract AssemblySymbol CreateAssemblySymbol();
@@ -812,7 +824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     get
                     {
-                        return assemblyIdentity;
+                        return _identity;
                     }
                 }
 
@@ -840,30 +852,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     get
                     {
-                        return referencedAssemblies;
+                        return _referencedAssemblies;
                     }
                 }
 
                 public override AssemblyReferenceBinding[] BindAssemblyReferences(
                     ImmutableArray<AssemblyData> assemblies, AssemblyIdentityComparer assemblyIdentityComparer)
                 {
-                    return ReferenceManager.ResolveReferencedAssemblies(referencedAssemblies, assemblies, assemblyIdentityComparer, okToResolveAgainstCompilationBeingCreated: true);
+                    return ResolveReferencedAssemblies(_referencedAssemblies, assemblies, assemblyIdentityComparer, okToResolveAgainstCompilationBeingCreated: true);
                 }
 
                 public sealed override bool IsLinked
                 {
                     get
                     {
-                        return EmbedInteropTypes;
+                        return _embedInteropTypes;
                     }
                 }
             }
 
             private sealed class AssemblyDataForFile : AssemblyDataForMetadataOrCompilation
             {
-                private readonly PEAssembly _assembly;
-                private readonly WeakList<IAssemblySymbol> _cachedSymbols;
-                private readonly DocumentationProvider _documentationProvider;
+                public readonly PEAssembly Assembly;
+
+                /// <summary>
+                /// Guarded by <see cref="CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/>.
+                /// </summary>
+                public readonly WeakList<IAssemblySymbol> CachedSymbols;
+
+                public readonly DocumentationProvider DocumentationProvider;
 
                 /// <summary>
                 /// Import options of the compilation being built.
@@ -876,32 +893,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // assembly will give friend access to the compilation.
                 private readonly string _sourceAssemblySimpleName;
 
-                public PEAssembly Assembly
-                {
-                    get
-                    {
-                        return _assembly;
-                    }
-                }
-
-                /// <summary>
-                /// Guarded by <see cref="CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/>.
-                /// </summary>
-                public WeakList<IAssemblySymbol> CachedSymbols
-                {
-                    get
-                    {
-                        return _cachedSymbols;
-                    }
-                }
-
-                public DocumentationProvider DocumentationProvider
-                {
-                    get
-                    {
-                        return _documentationProvider;
-                    }
-                }
+                private bool _internalsVisibleComputed;
+                private bool _internalsPotentiallyVisibleToCompilation;
 
                 public AssemblyDataForFile(
                     PEAssembly assembly,
@@ -910,28 +903,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     DocumentationProvider documentationProvider,
                     string sourceAssemblySimpleName,
                     MetadataImportOptions compilationImportOptions)
-                    : base(embedInteropTypes)
+                    : base(assembly.Identity, assembly.AssemblyReferences, embedInteropTypes)
                 {
-                    Debug.Assert(assembly != null);
                     Debug.Assert(documentationProvider != null);
                     Debug.Assert(cachedSymbols != null);
 
-                    _cachedSymbols = cachedSymbols;
-                    _assembly = assembly;
-                    _documentationProvider = documentationProvider;
+                    CachedSymbols = cachedSymbols;
+                    Assembly = assembly;
+                    DocumentationProvider = documentationProvider;
                     _compilationImportOptions = compilationImportOptions;
                     _sourceAssemblySimpleName = sourceAssemblySimpleName;
-
-                    assemblyIdentity = assembly.Identity;
-                    referencedAssemblies = assembly.AssemblyReferences;
                 }
-
-                private bool _internalsVisibleComputed;
-                private bool _internalsPotentiallyVisibleToCompilation;
 
                 internal override AssemblySymbol CreateAssemblySymbol()
                 {
-                    return new PEAssemblySymbol(_assembly, _documentationProvider, this.IsLinked, this.EffectiveImportOptions);
+                    return new PEAssemblySymbol(Assembly, DocumentationProvider, this.IsLinked, this.EffectiveImportOptions);
                 }
 
                 internal bool InternalsMayBeVisibleToCompilation
@@ -940,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (!_internalsVisibleComputed)
                         {
-                            _internalsPotentiallyVisibleToCompilation = InternalsMayBeVisibleToAssemblyBeingCompiled(_sourceAssemblySimpleName, _assembly);
+                            _internalsPotentiallyVisibleToCompilation = InternalsMayBeVisibleToAssemblyBeingCompiled(_sourceAssemblySimpleName, Assembly);
                             _internalsVisibleComputed = true;
                         }
 
@@ -967,7 +953,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // accessing cached symbols requires a lock
                     lock (SymbolCacheAndReferenceManagerStateGuard)
                     {
-                        foreach (var assembly in _cachedSymbols)
+                        foreach (var assembly in CachedSymbols)
                         {
                             var peAssembly = assembly as PEAssemblySymbol;
                             if (IsMatchingAssembly(peAssembly))
@@ -990,7 +976,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
-                    if (!ReferenceEquals(peAssembly.Assembly, _assembly))
+                    if (!ReferenceEquals(peAssembly.Assembly, Assembly))
                     {
                         return false;
                     }
@@ -1016,7 +1002,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     get
                     {
-                        return _assembly.ContainsNoPiaLocalTypes();
+                        return Assembly.ContainsNoPiaLocalTypes();
                     }
                 }
 
@@ -1024,7 +1010,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     get
                     {
-                        return _assembly.DeclaresTheObjectClass;
+                        return Assembly.DeclaresTheObjectClass;
                     }
                 }
 
@@ -1033,74 +1019,62 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private sealed class AssemblyDataForCompilation : AssemblyDataForMetadataOrCompilation
             {
-                private readonly CSharpCompilation _compilation;
-                public CSharpCompilation Compilation
-                {
-                    get
-                    {
-                        return _compilation;
-                    }
-                }
+                public readonly CSharpCompilation Compilation;
 
                 public AssemblyDataForCompilation(CSharpCompilation compilation, bool embedInteropTypes)
-                    : base(embedInteropTypes)
+                    : base(compilation.Assembly.Identity, GetReferencedAssemblies(compilation), embedInteropTypes)
                 {
-                    Debug.Assert(compilation != null);
-                    _compilation = compilation;
+                    Compilation = compilation;
+                }
 
-                    // Force creation of the SourceAssemblySymbol
-                    AssemblySymbol assembly = compilation.Assembly;
-                    assemblyIdentity = assembly.Identity;
-
+                private static ImmutableArray<AssemblyIdentity> GetReferencedAssemblies(CSharpCompilation compilation)
+                {
                     // Collect information about references
-                    var refs = ArrayBuilder<AssemblyIdentity>.GetInstance();
+                    var result = ArrayBuilder<AssemblyIdentity>.GetInstance();
 
-                    var modules = assembly.Modules;
-                    int mCount = modules.Length;
-                    int i;
+                    var modules = compilation.Assembly.Modules;
 
                     // Filter out linked assemblies referenced by the source module.
                     var sourceReferencedAssemblies = modules[0].GetReferencedAssemblies();
                     var sourceReferencedAssemblySymbols = modules[0].GetReferencedAssemblySymbols();
-                    int rCount = sourceReferencedAssemblies.Length;
 
-                    Debug.Assert(rCount == sourceReferencedAssemblySymbols.Length);
+                    Debug.Assert(sourceReferencedAssemblies.Length == sourceReferencedAssemblySymbols.Length);
 
-                    for (i = 0; i < rCount; i++)
+                    for (int i = 0; i < sourceReferencedAssemblies.Length; i++)
                     {
                         if (!sourceReferencedAssemblySymbols[i].IsLinked)
                         {
-                            refs.Add(sourceReferencedAssemblies[i]);
+                            result.Add(sourceReferencedAssemblies[i]);
                         }
                     }
 
-                    for (i = 1; i < mCount; i++)
+                    for (int i = 1; i < modules.Length; i++)
                     {
-                        refs.AddRange(modules[i].GetReferencedAssemblies());
+                        result.AddRange(modules[i].GetReferencedAssemblies());
                     }
 
-                    referencedAssemblies = refs.ToImmutableAndFree();
+                    return result.ToImmutableAndFree();
                 }
 
                 internal override AssemblySymbol CreateAssemblySymbol()
                 {
-                    return new Symbols.Retargeting.RetargetingAssemblySymbol(_compilation.SourceAssembly, this.IsLinked);
+                    return new RetargetingAssemblySymbol(Compilation.SourceAssembly, this.IsLinked);
                 }
 
                 protected override void AddAvailableSymbols(List<AssemblySymbol> assemblies)
                 {
-                    assemblies.Add(_compilation.Assembly);
+                    assemblies.Add(Compilation.Assembly);
 
                     // accessing cached symbols requires a lock
                     lock (SymbolCacheAndReferenceManagerStateGuard)
                     {
-                        _compilation.AddRetargetingAssemblySymbolsNoLock(assemblies);
+                        Compilation.AddRetargetingAssemblySymbolsNoLock(assemblies);
                     }
                 }
 
                 public override bool IsMatchingAssembly(AssemblySymbol candidateAssembly)
                 {
-                    var retargeting = candidateAssembly as Symbols.Retargeting.RetargetingAssemblySymbol;
+                    var retargeting = candidateAssembly as RetargetingAssemblySymbol;
                     AssemblySymbol asm;
 
                     if ((object)retargeting != null)
@@ -1112,16 +1086,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         asm = candidateAssembly as SourceAssemblySymbol;
                     }
 
-                    Debug.Assert(!(asm is Symbols.Retargeting.RetargetingAssemblySymbol));
+                    Debug.Assert(!(asm is RetargetingAssemblySymbol));
 
-                    return ReferenceEquals(asm, _compilation.Assembly);
+                    return ReferenceEquals(asm, Compilation.Assembly);
                 }
 
                 public override bool ContainsNoPiaLocalTypes
                 {
                     get
                     {
-                        return _compilation.MightContainNoPiaLocalTypes();
+                        return Compilation.MightContainNoPiaLocalTypes();
                     }
                 }
 
@@ -1129,11 +1103,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     get
                     {
-                        return _compilation.DeclaresTheObjectClass;
+                        return Compilation.DeclaresTheObjectClass;
                     }
                 }
 
-                public override Compilation SourceCompilation => _compilation;
+                public override Compilation SourceCompilation => Compilation;
             }
 
             /// <summary>

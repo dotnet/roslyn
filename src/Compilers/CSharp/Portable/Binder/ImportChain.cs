@@ -122,11 +122,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var referenceManager = ((CSharpCompilation)moduleBuilder.CommonCompilation).GetBoundReferenceManager();
 
-                foreach (var referencedAssembly in referenceManager.ReferencedAssembliesMap.Values)
+                for (int i = 0; i < referenceManager.ReferencedAssemblies.Length; i++)
                 {
-                    if ((object)referencedAssembly.Symbol == containingAssembly)
+                    if ((object)referenceManager.ReferencedAssemblies[i] == containingAssembly)
                     {
-                        if (!referencedAssembly.DeclarationsAccessibleWithoutAlias())
+                        if (!referenceManager.DeclarationsAccessibleWithoutAlias(i))
                         {
                             return moduleBuilder.Translate(containingAssembly, diagnostics);
                         }
