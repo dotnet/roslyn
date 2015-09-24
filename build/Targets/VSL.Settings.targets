@@ -143,6 +143,9 @@
   <ImportGroup Label="GlobalNuGets" Condition="'$(BootstrapBuildPath)' == ''">
     <Import Project="$(ToolsetCompilerPropsFilePath)"
             Condition="Exists('$(ToolsetCompilerPropsFilePath)')" />
+  </ImportGroup>
+
+  <ImportGroup>
     <Import Project="$(RoslynDiagnosticsPropsFilePath)"
             Condition="Exists('$(RoslynDiagnosticsPropsFilePath)') And ('$(UseRoslynAnalyzers)' == 'true')" />
   </ImportGroup>
