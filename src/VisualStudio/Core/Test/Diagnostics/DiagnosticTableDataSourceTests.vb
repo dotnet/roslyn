@@ -536,7 +536,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 ElseIf projectId IsNot Nothing Then
                     diagnostics = Items.Where(Function(t) t.ProjectId Is projectId).ToImmutableArrayOrEmpty()
                 Else
-                    diagnostics = ImmutableArray(Of DiagnosticData).Empty
+                    diagnostics = Items.ToImmutableArrayOrEmpty()
                 End If
 
                 If Not reportSuppressedDiagnostics Then
@@ -544,6 +544,39 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 End If
 
                 Return diagnostics
+            End Function
+
+            Public Function GetDiagnosticsArgs(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, cancellationToken As CancellationToken) As IEnumerable(Of DiagnosticsArgs) Implements IDiagnosticService.GetDiagnosticsArgs
+                Assert.NotNull(workspace)
+
+                Dim diagnosticsArgs As IEnumerable(Of DiagnosticsArgs)
+
+                If documentId IsNot Nothing Then
+                    diagnosticsArgs = Items.Where(Function(t) t.DocumentId Is documentId) _
+                                           .Select(
+                                                Function(t)
+                                                    Return New DiagnosticsArgs(
+                                                        New ErrorId(Me, If(CObj(t.DocumentId), t.ProjectId)),
+                                                        t.Workspace, t.ProjectId, t.DocumentId)
+                                                End Function).ToImmutableArrayOrEmpty()
+                ElseIf projectId IsNot Nothing Then
+                    diagnosticsArgs = Items.Where(Function(t) t.ProjectId Is projectId) _
+                                           .Select(
+                                                Function(t)
+                                                    Return New DiagnosticsArgs(
+                                                        New ErrorId(Me, If(CObj(t.DocumentId), t.ProjectId)),
+                                                        t.Workspace, t.ProjectId, t.DocumentId)
+                                                End Function).ToImmutableArrayOrEmpty()
+                Else
+                    diagnosticsArgs = Items.Select(
+                                                Function(t)
+                                                    Return New DiagnosticsArgs(
+                                                        New ErrorId(Me, If(CObj(t.DocumentId), t.ProjectId)),
+                                                        t.Workspace, t.ProjectId, t.DocumentId)
+                                                End Function).ToImmutableArrayOrEmpty()
+                End If
+
+                Return diagnosticsArgs
             End Function
 
             Public Sub RaiseDiagnosticsUpdated(workspace As Workspace, ParamArray items As DiagnosticData())

@@ -40,13 +40,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 _tracker = new OpenDocumentTracker<DiagnosticData>(_workspace);
 
                 _diagnosticService = diagnosticService;
+
+                PopulateInitialData(workspace, diagnosticService);
+
                 _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
             }
 
             public override string DisplayName => ServicesVSResources.DiagnosticsTableSourceName;
             public override string SourceTypeIdentifier => StandardTableDataSources.ErrorTableDataSource;
             public override string Identifier => _identifier;
-            public override object GetItemKey(object data) => ((DiagnosticsUpdatedArgs)data).Id;
+            public override object GetItemKey(object data) => ((DiagnosticsArgs)data).Id;
 
             public override ImmutableArray<TableItem<DiagnosticData>> Deduplicate(IEnumerable<IList<TableItem<DiagnosticData>>> groupedItems)
             {
@@ -115,7 +118,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private object CreateAggregationKey(object data)
             {
-                var args = (DiagnosticsUpdatedArgs)data;
+                var args = data as DiagnosticsUpdatedArgs;
+                if (args == null)
+                {
+                    return ((DiagnosticsArgs)data).Id;
+                }
+
                 if (args.DocumentId == null || args.Solution == null)
                 {
                     return args.Id;
@@ -129,6 +137,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 var documents = args.Solution.GetRelatedDocumentIds(args.DocumentId);
                 return new AggregatedKey(documents, argumentKey.Analyzer, argumentKey.StateType);
+            }
+
+            private void PopulateInitialData(Workspace workspace, IDiagnosticService diagnosticService)
+            {
+                foreach (var args in diagnosticService.GetDiagnosticsArgs(workspace, projectId: null, documentId: null, cancellationToken: CancellationToken.None))
+                {
+                    OnDataAddedOrChanged(args);
+                }
             }
 
             private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
@@ -156,7 +172,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             public override AbstractTableEntriesSource<DiagnosticData> CreateTableEntriesSource(object data)
             {
-                var item = (DiagnosticsUpdatedArgs)data;
+                var item = (DiagnosticsArgs)data;
                 return new TableEntriesSource(this, item.Workspace, item.ProjectId, item.DocumentId, item.Id);
             }
 
