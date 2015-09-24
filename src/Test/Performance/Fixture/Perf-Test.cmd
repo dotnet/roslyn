@@ -1,5 +1,5 @@
 @echo off
-setlocal
+setlocal enabledelayedexpansion
 
 echo Hello from the Roslyn XUnit Performance test.
 echo Command line: %0 %*
@@ -80,10 +80,11 @@ if not exist %XUNIT% (
     rem ===================================================
     if exist ..\..\nuget.exe (
         echo Note: xunit fixture not found. Trying to create it.
-        ..\..\nuget.exe install -OutputDirectory xunit -NonInteractive -ExcludeVersion Microsoft.DotNet.xunit.performance.runner.Windows -Version 1.0.0-alpha-build0013 -Source https://www.myget.org/F/dotnet-buildtools/
+        set XUNIT_PACKAGES=%TEMP%\xunit%RANDOM%
+        ..\..\nuget.exe install -OutputDirectory !XUNIT_PACKAGES! -NonInteractive -ExcludeVersion Microsoft.DotNet.xunit.performance.runner.Windows -Version 1.0.0-alpha-build0013 -Source https://www.myget.org/F/dotnet-buildtools/
 
-        xcopy /s /y xunit\xunit.runner.console\tools\* xunit
-        xcopy /s /y xunit\Microsoft.DotNet.xunit.performance.runner.Windows\tools\* xunit
+        xcopy /s /i /y !XUNIT_PACKAGES!\xunit.runner.console\tools\* %XUNIT%
+        xcopy /s /i /y !XUNIT_PACKAGES!\Microsoft.DotNet.xunit.performance.runner.Windows\tools\* %XUNIT%
     ) else (
         echo ERROR: xunit fixture not found
         popd
