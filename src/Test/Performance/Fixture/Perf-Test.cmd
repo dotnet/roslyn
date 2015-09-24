@@ -51,10 +51,11 @@ if DEFINED PYTHONPATH (
 )
 
 rem ========================================================
-rem The drop folder is the parent of the folder where this
-rem script lives.
+rem Find the drop folder location.
 rem We could use HELIX_CORRELATION_PAYLOAD, but that usually
-rem has the extended path prefix \\?\ on it.
+rem has the extended path prefix \\?\ on it which breaks all
+rem sorts of scenarios. So, instead just move to the parent
+rem of the folder where this rem script is running.
 rem The 'for' loop here is used just to resolve the relative
 rem path.
 rem ========================================================
@@ -69,7 +70,6 @@ pushd %DROP%
 
 rem ========================================================
 rem Prepare to run XUNIT tests
-rem Use a relative path to xunit to shorten
 rem ========================================================
 set XUNIT=xunit
 if not exist %XUNIT% (
