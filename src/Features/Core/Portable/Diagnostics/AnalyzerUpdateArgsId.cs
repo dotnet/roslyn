@@ -3,7 +3,7 @@
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
-    /// Base type of a type that is used as <see cref="DiagnosticsUpdatedArgs.Id"/> for live diagnostic
+    /// Base type of a type that is used as <see cref="DiagnosticsArgs.Id"/> for live diagnostic
     /// </summary>
     internal class AnalyzerUpdateArgsId : BuildToolId.Base<DiagnosticAnalyzer>, ISupportLiveUpdate
     {
