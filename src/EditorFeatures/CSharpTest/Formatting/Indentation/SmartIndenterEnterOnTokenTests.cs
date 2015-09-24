@@ -66,6 +66,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void Preprocessor3()
+        {
+            var code = @"#region stuff
+#endregion
+";
+            AssertIndentNotUsingSmartTokenFormatterButUsingIndenter(
+                code,
+                indentationLine: 2,
+                expectedIndentation: 0);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void Comments()
         {
             var code = @"using System;

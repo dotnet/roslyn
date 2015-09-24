@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "EnableEditAndContinue",
                 "Errors",
                 "ExtendedCustomDebugInformation",
+                "DebugPlusMode",
                 "Features",
                 "GeneralDiagnosticOption",
                 "MainTypeName",

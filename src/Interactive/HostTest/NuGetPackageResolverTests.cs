@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Editor.Interactive;
+using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -13,6 +13,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
     public class NuGetPackageResolverTests : TestBase
     {
+        /// <summary>
+        /// Valid reference.
+        /// </summary>
         [ConditionalFact(typeof(WindowsOnly))]
         public void ResolveReference()
         {
@@ -25,6 +28,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
     ""net46"": {}
   }
 }";
+            var expectedConfig =
+@"<?xml version=""1.0"" encoding=""utf-8""?>
+<configuration>
+  <packageRestore>
+    <add key=""enabled"" value=""True"" />
+    <add key=""automatic"" value=""False"" />
+  </packageRestore>
+  <packageSources/>
+</configuration>";
             var actualProjectLockJson =
 @"{
   ""locked"": false,
@@ -48,6 +60,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
           ""System.Runtime"": """"
         },
       },
+      ""System.Runtime/4.0.0"": {
+        ""runtime"": {
+          ""ref/dotnet/_._"": {}
+        }
+      },
       ""System.IO/4.0.10"": {
         ""dependencies"": {},
         ""runtime"": {
@@ -65,23 +82,32 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
                     packagesDirectory,
                     startInfo =>
                     {
+                        // Verify arguments.
                         var arguments = startInfo.Arguments.Split('"');
-                        Assert.Equal(5, arguments.Length);
+                        Assert.Equal(7, arguments.Length);
                         Assert.Equal("restore ", arguments[0]);
                         Assert.Equal("project.json", PathUtilities.GetFileName(arguments[1]));
-                        Assert.Equal(" -PackagesDirectory ", arguments[2]);
-                        Assert.Equal(packagesDirectory, arguments[3]);
-                        Assert.Equal("", arguments[4]);
+                        Assert.Equal(" -ConfigFile ", arguments[2]);
+                        Assert.Equal("nuget.config", PathUtilities.GetFileName(arguments[3]));
+                        Assert.Equal(" -PackagesDirectory ", arguments[4]);
+                        Assert.Equal(packagesDirectory, arguments[5]);
+                        Assert.Equal("", arguments[6]);
+                        // Verify project.json contents.
                         var projectJsonPath = arguments[1];
                         var actualProjectJson = File.ReadAllText(projectJsonPath);
                         Assert.Equal(expectedProjectJson, actualProjectJson);
+                        // Verify config file contents.
+                        var configPath = arguments[3];
+                        var actualConfig = File.ReadAllText(configPath);
+                        Assert.Equal(expectedConfig, actualConfig);
+                        // Generate project.lock.json.
                         var projectLockJsonPath = PathUtilities.CombineAbsoluteAndRelativePaths(PathUtilities.GetDirectoryName(projectJsonPath), "project.lock.json");
                         using (var writer = new StreamWriter(projectLockJsonPath))
                         {
                             writer.Write(actualProjectLockJson);
                         }
                     });
-                var actualPaths = resolver.ResolveNuGetPackage("A.B.C/1.2");
+                var actualPaths = resolver.ResolveNuGetPackage("A.B.C", "1.2");
                 AssertEx.SetEqual(actualPaths,
                     PathUtilities.CombineAbsoluteAndRelativePaths(packagesDirectory, PathUtilities.CombinePossiblyRelativeAndRelativePaths("System.Collections/4.0.10", "ref/dotnet/System.Collections.dll")),
                     PathUtilities.CombineAbsoluteAndRelativePaths(packagesDirectory, PathUtilities.CombinePossiblyRelativeAndRelativePaths("System.IO/4.0.10", "ref/dotnet/System.Runtime.dll")),
@@ -89,24 +115,34 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             }
         }
 
+        /// <summary>
+        /// Expected exception thrown during restore.
+        /// </summary>
         [ConditionalFact(typeof(WindowsOnly))]
         public void HandledException()
         {
             using (var directory = new DisposableDirectory(Temp))
             {
-                var resolver = new NuGetPackageResolverImpl(directory.Path, startInfo => { throw new IOException(); });
-                var actualPaths = resolver.ResolveNuGetPackage("A.B.C/1.2");
-                Assert.True(actualPaths.IsDefault);
+                bool restored = false;
+                var resolver = new NuGetPackageResolverImpl(directory.Path, startInfo => { restored = true; throw new IOException(); });
+                var actualPaths = resolver.ResolveNuGetPackage("A.B.C", "1.2");
+                Assert.True(actualPaths.IsEmpty);
+                Assert.True(restored);
             }
         }
 
+        /// <summary>
+        /// Unexpected exception thrown during restore.
+        /// </summary>
         [ConditionalFact(typeof(WindowsOnly))]
         public void UnhandledException()
         {
             using (var directory = new DisposableDirectory(Temp))
             {
-                var resolver = new NuGetPackageResolverImpl(directory.Path, startInfo => { throw new InvalidOperationException(); });
-                Assert.Throws<InvalidOperationException>(() => resolver.ResolveNuGetPackage("A.B.C/1.2"));
+                bool restored = false;
+                var resolver = new NuGetPackageResolverImpl(directory.Path, startInfo => { restored = true; throw new InvalidOperationException(); });
+                Assert.Throws<InvalidOperationException>(() => resolver.ResolveNuGetPackage("A.B.C", "1.2"));
+                Assert.True(restored);
             }
         }
 
@@ -114,24 +150,31 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         public void ParsePackageNameAndVersion()
         {
             ParseInvalidPackageReference("A");
-            ParseInvalidPackageReference("A.B");
-            ParseInvalidPackageReference("A/");
-            ParseInvalidPackageReference("A//1.0");
-            ParseInvalidPackageReference("/1.0.0");
-            ParseInvalidPackageReference("A/B/2.0.0");
+            ParseInvalidPackageReference("A/1");
+            ParseInvalidPackageReference("nuget");
+            ParseInvalidPackageReference("nuget:");
+            ParseInvalidPackageReference("NUGET:");
+            ParseInvalidPackageReference("nugetA/1");
+            ParseInvalidPackageReference("nuget:A");
+            ParseInvalidPackageReference("nuget:A.B");
+            ParseInvalidPackageReference("nuget:A/");
+            ParseInvalidPackageReference("nuget:A//1.0");
+            ParseInvalidPackageReference("nuget:/1.0.0");
+            ParseInvalidPackageReference("nuget:A/B/2.0.0");
 
-            ParseValidPackageReference("A/1", "A", "1");
-            ParseValidPackageReference("A.B/1.0.0", "A.B", "1.0.0");
-            ParseValidPackageReference("A/B.C", "A", "B.C");
-            ParseValidPackageReference("  /1", "  ", "1");
-            ParseValidPackageReference("A\t/\n1.0\r ", "A\t", "\n1.0\r ");
+            ParseValidPackageReference("nuget::nuget/1", ":nuget", "1");
+            ParseValidPackageReference("nuget:A/1", "A", "1");
+            ParseValidPackageReference("nuget:A.B/1.0.0", "A.B", "1.0.0");
+            ParseValidPackageReference("nuget:A/B.C", "A", "B.C");
+            ParseValidPackageReference("nuget:  /1", "  ", "1");
+            ParseValidPackageReference("nuget:A\t/\n1.0\r ", "A\t", "\n1.0\r ");
         }
 
         private static void ParseValidPackageReference(string reference, string expectedName, string expectedVersion)
         {
             string name;
             string version;
-            Assert.True(NuGetPackageResolverImpl.ParsePackageReference(reference, out name, out version));
+            Assert.True(NuGetPackageResolverImpl.TryParsePackageReference(reference, out name, out version));
             Assert.Equal(expectedName, name);
             Assert.Equal(expectedVersion, version);
         }
@@ -140,7 +183,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         {
             string name;
             string version;
-            Assert.False(NuGetPackageResolverImpl.ParsePackageReference(reference, out name, out version));
+            Assert.False(NuGetPackageResolverImpl.TryParsePackageReference(reference, out name, out version));
             Assert.Null(name);
             Assert.Null(version);
         }

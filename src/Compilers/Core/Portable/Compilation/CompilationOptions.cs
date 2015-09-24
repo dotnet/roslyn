@@ -142,6 +142,14 @@ namespace Microsoft.CodeAnalysis
         internal bool ExtendedCustomDebugInformation_internal_protected_set { set { ExtendedCustomDebugInformation = value; } }
 
         /// <summary>
+        /// Emit mode that favors debuggability. 
+        /// </summary>
+        internal bool DebugPlusMode { get; private set; }
+
+        // TODO: change visibility of the DebugPlusMode setter to internal & protected
+        internal bool DebugPlusMode_internal_protected_set { set { DebugPlusMode = value; } }
+
+        /// <summary>
         /// Import internal/private members from all references regardless of "internals-visible-to" relationship.
         /// </summary>
         internal MetadataImportOptions MetadataImportOptions { get; private set; }
@@ -233,6 +241,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions,
             bool concurrentBuild,
             bool extendedCustomDebugInformation,
+            bool debugPlusMode,
             XmlReferenceResolver xmlReferenceResolver,
             SourceReferenceResolver sourceReferenceResolver,
             MetadataReferenceResolver metadataReferenceResolver,
@@ -257,6 +266,7 @@ namespace Microsoft.CodeAnalysis
             this.OptimizationLevel = optimizationLevel;
             this.ConcurrentBuild = concurrentBuild;
             this.ExtendedCustomDebugInformation = extendedCustomDebugInformation;
+            this.DebugPlusMode = debugPlusMode;
             this.XmlReferenceResolver = xmlReferenceResolver;
             this.SourceReferenceResolver = sourceReferenceResolver;
             this.MetadataReferenceResolver = metadataReferenceResolver;
@@ -433,6 +443,7 @@ namespace Microsoft.CodeAnalysis
                    this.CheckOverflow == other.CheckOverflow &&
                    this.ConcurrentBuild == other.ConcurrentBuild &&
                    this.ExtendedCustomDebugInformation == other.ExtendedCustomDebugInformation &&
+                   this.DebugPlusMode == other.DebugPlusMode &&
                    string.Equals(this.CryptoKeyContainer, other.CryptoKeyContainer, StringComparison.Ordinal) &&
                    string.Equals(this.CryptoKeyFile, other.CryptoKeyFile, StringComparison.Ordinal) &&
                    this.CryptoPublicKey.SequenceEqual(other.CryptoPublicKey) &&
@@ -464,6 +475,7 @@ namespace Microsoft.CodeAnalysis
             return Hash.Combine(this.CheckOverflow,
                    Hash.Combine(this.ConcurrentBuild,
                    Hash.Combine(this.ExtendedCustomDebugInformation,
+                   Hash.Combine(this.DebugPlusMode,
                    Hash.Combine(this.CryptoKeyContainer != null ? StringComparer.Ordinal.GetHashCode(this.CryptoKeyContainer) : 0,
                    Hash.Combine(this.CryptoKeyFile != null ? StringComparer.Ordinal.GetHashCode(this.CryptoKeyFile) : 0,
                    Hash.Combine(Hash.CombineValues(this.CryptoPublicKey, 16),
@@ -482,7 +494,7 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(this.XmlReferenceResolver,
                    Hash.Combine(this.SourceReferenceResolver,
                    Hash.Combine(this.StrongNameProvider,
-                   Hash.Combine(this.AssemblyIdentityComparer, 0))))))))))))))))))))));
+                   Hash.Combine(this.AssemblyIdentityComparer, 0)))))))))))))))))))))));
         }
 
         public static bool operator ==(CompilationOptions left, CompilationOptions right)
