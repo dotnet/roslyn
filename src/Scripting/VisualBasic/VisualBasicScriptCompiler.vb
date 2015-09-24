@@ -25,6 +25,12 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property IdentifierComparer As StringComparer
+            Get
+                Return CaseInsensitiveComparison.Comparer
+            End Get
+        End Property
+
         Public Overrides Function IsCompleteSubmission(tree As SyntaxTree) As Boolean
             ' TODO: https://github.com/dotnet/roslyn/issues/5235
             Return True

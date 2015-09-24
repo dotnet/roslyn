@@ -113,21 +113,17 @@ Microsoft.CodeAnalysis.Scripting.ScriptRunner<T>
 Microsoft.CodeAnalysis.Scripting.ScriptState
 Microsoft.CodeAnalysis.Scripting.ScriptState.ContinueWithAsync(string code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Scripting.ScriptState<object>>
 Microsoft.CodeAnalysis.Scripting.ScriptState.ContinueWithAsync<TResult>(string code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Scripting.ScriptState<TResult>>
+Microsoft.CodeAnalysis.Scripting.ScriptState.GetVariable(string name) -> Microsoft.CodeAnalysis.Scripting.ScriptVariable
 Microsoft.CodeAnalysis.Scripting.ScriptState.ReturnValue.get -> object
 Microsoft.CodeAnalysis.Scripting.ScriptState.Script.get -> Microsoft.CodeAnalysis.Scripting.Script
-Microsoft.CodeAnalysis.Scripting.ScriptState.Variables.get -> Microsoft.CodeAnalysis.Scripting.ScriptVariables
+Microsoft.CodeAnalysis.Scripting.ScriptState.Variables.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Scripting.ScriptVariable>
 Microsoft.CodeAnalysis.Scripting.ScriptState<T>
 Microsoft.CodeAnalysis.Scripting.ScriptState<T>.ReturnValue.get -> T
 Microsoft.CodeAnalysis.Scripting.ScriptVariable
 Microsoft.CodeAnalysis.Scripting.ScriptVariable.Name.get -> string
 Microsoft.CodeAnalysis.Scripting.ScriptVariable.Type.get -> System.Type
 Microsoft.CodeAnalysis.Scripting.ScriptVariable.Value.get -> object
-Microsoft.CodeAnalysis.Scripting.ScriptVariables
-Microsoft.CodeAnalysis.Scripting.ScriptVariables.ContainsVariable(string name) -> bool
-Microsoft.CodeAnalysis.Scripting.ScriptVariables.Count.get -> int
-Microsoft.CodeAnalysis.Scripting.ScriptVariables.GetEnumerator() -> System.Collections.Generic.IEnumerator<Microsoft.CodeAnalysis.Scripting.ScriptVariable>
-Microsoft.CodeAnalysis.Scripting.ScriptVariables.Names.get -> System.Collections.Generic.IEnumerable<string>
-Microsoft.CodeAnalysis.Scripting.ScriptVariables.this[string name].get -> Microsoft.CodeAnalysis.Scripting.ScriptVariable
+Microsoft.CodeAnalysis.Scripting.ScriptVariable.Value.set -> void
 abstract Microsoft.CodeAnalysis.Scripting.ObjectFormatter.FormatArrayTypeName(System.Type arrayType, System.Array arrayOpt, Microsoft.CodeAnalysis.Scripting.ObjectFormattingOptions options) -> string
 abstract Microsoft.CodeAnalysis.Scripting.ObjectFormatter.FormatGeneratedTypeName(System.Type type) -> string
 abstract Microsoft.CodeAnalysis.Scripting.ObjectFormatter.FormatLiteral(System.DateTime value) -> string
