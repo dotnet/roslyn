@@ -44,10 +44,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
                 Dim presenters = {New Lazy(Of INavigableItemsPresenter)(Function() presenter)}
                 Dim actualResult = executeOnDocument(document, cursorPosition, presenters)
 
+                Assert.Equal(expectedResult, actualResult)
+
                 If expectedResult Then
                     If mockDocumentNavigationService._triedNavigationToSpan Then
                         Dim definitionDocument = workspace.GetTestDocument(mockDocumentNavigationService._documentId)
-                        Assert.Equal(1, definitionDocument.SelectedSpans.Count)
+                        Assert.Single(definitionDocument.SelectedSpans)
                         Assert.Equal(definitionDocument.SelectedSpans.Single(), mockDocumentNavigationService._span)
 
                         ' The INavigableItemsPresenter should not have been called
@@ -55,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
                     Else
                         Assert.False(mockDocumentNavigationService._triedNavigationToPosition)
                         Assert.False(mockDocumentNavigationService._triedNavigationToLineAndOffset)
-                        Assert.NotNull(items)
+                        Assert.NotEmpty(items)
 
                         For Each location In items
                             Dim definitionDocument = workspace.GetTestDocument(location.Document.Id)
@@ -69,8 +71,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
                     Assert.Null(mockDocumentNavigationService._documentId)
                     Assert.True(items Is Nothing OrElse items.Count = 0)
                 End If
-
-                Assert.Equal(expectedResult, actualResult)
             End Using
         End Sub
     End Module
