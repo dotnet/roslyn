@@ -178,6 +178,28 @@ function CreateXUnitFixture(
     [System.IO.Compression.ZipFile]::CreateFromDirectory($ToZipPath, $ZipFile, $compressionLevel, $true)
 }
 
+function CreateAndUploadXunitFixture(
+    [Parameter(Mandatory = $true)]
+    [string] $BlobName,
+    [Parameter(Mandatory = $true)]
+    [Microsoft.WindowsAzure.Commands.Common.Storage.AzureStorageContext] $StorageContext,
+    [Parameter(Mandatory = $true)]
+    [String] $StorageContainer,
+    [Parameter(Mandatory = $true)]
+    [String] $FixturesStagingPath
+) {
+    Write-Host "Xunit fixture is missing. Creating it and uploading to storage..."
+        
+    $xunitZip = Join-Path $FixturesStagingPath -ChildPath xunit.zip
+
+    CreateXUnitFixture -StagingPath $FixturesStagingPath -ZipFile $xunitZip | Out-Null
+
+    if (!$NoUpload) {
+        Write-Host "Uploading xunit fixture"
+        Set-AzureStorageBlobContent -File $xunitZip -Container $StorageContainer -Blob $BlobName -Context $StorageContext | Out-Null
+    }
+}
+
 function GetXUnitFixtureUri(
     [Parameter(Mandatory = $true)]
     [string] $BlobName,
@@ -188,24 +210,13 @@ function GetXUnitFixtureUri(
     [Parameter(Mandatory = $true)]
     [String] $StorageContainerRSAS,
     [Parameter(Mandatory = $true)]
-    [String] $HelixStage
+    [String] $FixturesStagingPath
    ) {
 
     # Look for xunit.zip in the "fixtures" folder and create it if it doesn't already exist
     $xunitBlob = Get-AzureStorageBlob -Container $StorageContainer -Blob $BlobName -Context $StorageContext -ErrorAction Ignore
     if ($xunitBlob -eq $null) {
-
-        Write-Host "Xunit fixture is missing. Creating it and uploading to storage..."
-        
-        $FixturesStagingPath = Join-Path -Path $HelixStage -ChildPath fixtures
-        $xunitZip = Join-Path $FixturesStagingPath -ChildPath xunit.zip
-
-        CreateXUnitFixture -StagingPath $FixturesStagingPath -ZipFile $xunitZip | Out-Null
-
-        if (!$NoUpload) {
-            Write-Host "Uploading xunit fixture"
-            Set-AzureStorageBlobContent -File $xunitZip -Container $StorageContainer -Blob $BlobName -Context $StorageContext
-        }
+        CreateAndUploadXunitFixture -BlobName $BlobName -StorageContext $StorageContext -StorageContainer $StorageContainer -FixturesStagingPath $FixturesStagingPath
     }
 
     return BuildUri -Context $StorageContext -Container $StorageContainer -BlobName $BlobName -SASToken $StorageContainerRSAS
@@ -324,15 +335,17 @@ try {
     $BlobName = $BlobRootName + "_Drop.zip"
     if (!$NoUpload) {
         Write-Host "Uploading drop"
-        Set-AzureStorageBlobContent -File $DropZip -Container $StorageContainer -Blob $BlobName -Context $StorageContext
+        Set-AzureStorageBlobContent -File $DropZip -Container $StorageContainer -Blob $BlobName -Context $StorageContext | Out-Null
     }
 
     $StorageContainerRSAS = CreateSASToken -Context $StorageContext -Container $StorageContainer -Permission r
 
     $DropUri = BuildUri -Context $StorageContext -Container $StorageContainer -BlobName $BlobName -SASToken $StorageContainerRSAS
 
+    $FixturesStagingPath = Join-Path -Path $HelixStage -ChildPath fixtures
+
     # Look for xunit.zip in the "fixtures/xunit2.1" folder and create it if it doesn't already exist
-    $XunitFixtureUri = GetXUnitFixtureUri -BlobName "$Repository/$Branch/fixtures/xunit2.1/xunit.zip" -StorageContext $StorageContext -StorageContainer $StorageContainer -StorageContainerRSAS $StorageContainerRSAS -HelixStage $HelixStage
+    $XunitFixtureUri = GetXUnitFixtureUri -BlobName "$Repository/$Branch/fixtures/xunit2.1/xunit.zip" -StorageContext $StorageContext -StorageContainer $StorageContainer -StorageContainerRSAS $StorageContainerRSAS -FixturesStagingPath $FixturesStagingPath
     
     Write-Host "Creating work item list"
 
@@ -386,7 +399,7 @@ try {
     $BlobName = $BlobRootName + "_WorkItemList.json"
     if (!$NoUpload) {
         Write-Host "Uploading work item list"
-        Set-AzureStorageBlobContent -File $WorkItemListJson -Container $StorageContainer -Blob $BlobName -Context $StorageContext
+        Set-AzureStorageBlobContent -File $WorkItemListJson -Container $StorageContainer -Blob $BlobName -Context $StorageContext | Out-Null
     }
 
     $ListUri = BuildUri -Context $StorageContext -Container $StorageContainer -BlobName $BlobName -SASToken $StorageContainerRSAS
@@ -418,7 +431,7 @@ try {
     $BlobName = $BlobRootName + "_" + $Queue + ".json"
     if (!$NoUpload) {
         Write-Host "Uploading job event (for archive)"
-        Set-AzureStorageBlobContent -File $JobJson -Container $StorageContainer -Blob $BlobName -Context $StorageContext
+        Set-AzureStorageBlobContent -File $JobJson -Container $StorageContainer -Blob $BlobName -Context $StorageContext | Out-Null
     }
 
     # Submit event to the Helix Event Hub

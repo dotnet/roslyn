@@ -5,14 +5,14 @@ using System;
 namespace Microsoft.CodeAnalysis.CSharp.PerformanceTests
 {
     /// <summary>
-    /// Shadows <see cref="Microsoft.Xunit.Performance.Benchmark"/> to provider the <see cref="Iterate(Action)"/> method.
-    /// This is a stop-gap until this method can be added to <see cref="Microsoft.Xunit.Performance.Benchmark"/> itself.
+    /// Shadows <see cref="Xunit.Performance.Benchmark"/> to provider the <see cref="Iterate(Action)"/> method.
+    /// This is a stop-gap until we can upgrade to a version of Microsoft.DotNet.xunit.performance that has this method.
     /// </summary>
     internal static class Benchmark
     {
         public static void Iterate(Action action)
         {
-            foreach(var iteration in Microsoft.Xunit.Performance.Benchmark.Iterations)
+            foreach(var iteration in Xunit.Performance.Benchmark.Iterations)
             {
                 using (var measurement = iteration.StartMeasurement())
                 {
