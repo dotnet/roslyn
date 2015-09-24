@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 {
     [Guid(Guids.RoslynPackageIdString)]
     [PackageRegistration(UseManagedResourcesOnly = true)]
-    [ProvideMenuResource("Menus.ctmenu", version: 11)]
+    [ProvideMenuResource("Menus.ctmenu", version: 12)]
     internal class RoslynPackage : Package
     {
         private LibraryManager _libraryManager;
