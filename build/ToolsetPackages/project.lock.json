@@ -31,7 +31,7 @@
       },
       "Microsoft.DiaSymReader.Native/1.1.0-alpha2": {},
       "Microsoft.Net.Compilers/1.1.0-beta1-20150727-01": {},
-      "Microsoft.Net.RoslynDiagnostics/1.1.1-beta1-20150814-01": {},
+      "Microsoft.Net.RoslynDiagnostics/1.1.1-beta1-20150818-01": {},
       "Microsoft.Tpl.Dataflow/4.5.24": {
         "compile": {
           "lib/portable-net45+win8+wpa81/System.Threading.Tasks.Dataflow.dll": {}
@@ -85,7 +85,7 @@
         }
       },
       "Microsoft.Net.Compilers/1.1.0-beta1-20150727-01": {},
-      "Microsoft.Net.RoslynDiagnostics/1.1.1-beta1-20150814-01": {},
+      "Microsoft.Net.RoslynDiagnostics/1.1.1-beta1-20150818-01": {},
       "Microsoft.Tpl.Dataflow/4.5.24": {
         "compile": {
           "lib/portable-net45+win8+wpa81/System.Threading.Tasks.Dataflow.dll": {}
@@ -1036,15 +1036,15 @@
         "tools/VBCSCompiler.exe.config"
       ]
     },
-    "Microsoft.Net.RoslynDiagnostics/1.1.1-beta1-20150814-01": {
-      "sha512": "ZsPiNo4TIlamP3VDJ7f+PzfLM2MwlQPW29Lm4gNn7j3EZvS2wu5RapJe6Edpz2OuFyZSq0U9NvNHmgM9I7W9Og==",
+    "Microsoft.Net.RoslynDiagnostics/1.1.1-beta1-20150818-01": {
+      "sha512": "gKMS7pSOjXejP+S3+pAIShKYOyfneRRZGowDiEGZDHPUZqaof7ccmFkXxWMyTy2hV00exSBqNeRZDL4IpJxuCQ==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
         "build/Microsoft.Net.RoslynDiagnostics.props",
         "Microsoft.Net.RoslynDiagnostics.nuspec",
-        "package/services/metadata/core-properties/e01abf88844b465fabea2ac7ad8c8ffb.psmdcp",
+        "package/services/metadata/core-properties/433dcdf8a06f4dcb806e4f7f93ed8bf2.psmdcp",
         "ThirdPartyNotices.rtf",
         "tools/Roslyn.Diagnostics.Analyzers.CSharp.dll",
         "tools/Roslyn.Diagnostics.Analyzers.dll",
@@ -1130,7 +1130,7 @@
       "Microsoft.CodeAnalysis.Test.Resources.Proprietary >= 1.1.0-beta1-20150817-01",
       "Microsoft.DiaSymReader.Native >= 1.1.0-alpha2",
       "Microsoft.Net.Compilers >= 1.1.0-beta1-20150727-01",
-      "Microsoft.Net.RoslynDiagnostics >= 1.1.1-beta1-20150814-01",
+      "Microsoft.Net.RoslynDiagnostics >= 1.1.1-beta1-20150818-01",
       "xunit >= 1.9.2",
       "xunit.runner.console >= 2.1.0-beta4-build3109",
       "xunit.runners >= 2.0.0-alpha-build2576"
