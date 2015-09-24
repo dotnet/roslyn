@@ -54,36 +54,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             _tableControl = errorList?.TableControl;
         }
 
-        public void AddSuppressions(IVsHierarchy projectHierarchyOpt)
+        public bool AddSuppressions(IVsHierarchy projectHierarchyOpt)
         {
+            if (_tableControl == null)
+            {
+                return false;
+            }
+
             Func<Project, bool> shouldFixInProject = GetShouldFixInProjectDelegate(_workspace, projectHierarchyOpt);
             
             // Apply suppressions fix in global suppressions file for non-compiler diagnostics and
             // in source only for compiler diagnostics.
             ApplySuppressionFix(shouldFixInProject, selectedEntriesOnly: false, isAddSuppression: true, isSuppressionInSource: false, onlyCompilerDiagnostics: false, showPreviewChangesDialog: false);
             ApplySuppressionFix(shouldFixInProject, selectedEntriesOnly: false, isAddSuppression: true, isSuppressionInSource: true, onlyCompilerDiagnostics: true, showPreviewChangesDialog: false);
+
+            return true;
         }
 
-        public void AddSuppressions(bool selectedErrorListEntriesOnly, bool suppressInSource, IVsHierarchy projectHierarchyOpt)
+        public bool AddSuppressions(bool selectedErrorListEntriesOnly, bool suppressInSource, IVsHierarchy projectHierarchyOpt)
         {
             if (_tableControl == null)
             {
-                return;
+                return false;
             }
 
             Func<Project, bool> shouldFixInProject = GetShouldFixInProjectDelegate(_workspace, projectHierarchyOpt);
-            ApplySuppressionFix(shouldFixInProject, selectedErrorListEntriesOnly, isAddSuppression: true, isSuppressionInSource: suppressInSource, onlyCompilerDiagnostics: false, showPreviewChangesDialog: true);
+            return ApplySuppressionFix(shouldFixInProject, selectedErrorListEntriesOnly, isAddSuppression: true, isSuppressionInSource: suppressInSource, onlyCompilerDiagnostics: false, showPreviewChangesDialog: true);
         }
 
-        public void RemoveSuppressions(bool selectedErrorListEntriesOnly, IVsHierarchy projectHierarchyOpt)
+        public bool RemoveSuppressions(bool selectedErrorListEntriesOnly, IVsHierarchy projectHierarchyOpt)
         {
             if (_tableControl == null)
             {
-                return;
+                return false;
             }
 
             Func<Project, bool> shouldFixInProject = GetShouldFixInProjectDelegate(_workspace, projectHierarchyOpt);
-            ApplySuppressionFix(shouldFixInProject, selectedErrorListEntriesOnly, isAddSuppression: false, isSuppressionInSource: false, onlyCompilerDiagnostics: false, showPreviewChangesDialog: true);
+            return ApplySuppressionFix(shouldFixInProject, selectedErrorListEntriesOnly, isAddSuppression: false, isSuppressionInSource: false, onlyCompilerDiagnostics: false, showPreviewChangesDialog: true);
         }
 
         private static Func<Project, bool> GetShouldFixInProjectDelegate(VisualStudioWorkspaceImpl workspace, IVsHierarchy projectHierarchyOpt)
@@ -103,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             }
         }
 
-        private void ApplySuppressionFix(Func<Project, bool> shouldFixInProject, bool selectedEntriesOnly, bool isAddSuppression, bool isSuppressionInSource, bool onlyCompilerDiagnostics, bool showPreviewChangesDialog)
+        private bool ApplySuppressionFix(Func<Project, bool> shouldFixInProject, bool selectedEntriesOnly, bool isAddSuppression, bool isSuppressionInSource, bool onlyCompilerDiagnostics, bool showPreviewChangesDialog)
         {
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsToFixMap = null;
 
@@ -143,9 +150,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
             // Bail out if the user cancelled.
             if (result == WaitIndicatorResult.Canceled ||
-                diagnosticsToFixMap == null || diagnosticsToFixMap.IsEmpty)
+                diagnosticsToFixMap == null)
             {
-                return;
+                return false;
+            }
+
+            if (diagnosticsToFixMap.IsEmpty)
+            {
+                // Nothing to fix.
+                return true;
             }
 
             // Equivalence key determines what fix will be applied.
@@ -234,11 +247,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 if (currentSolution == newSolution)
                 {
                     // User cancelled, so we just bail out.
-                    break;
+                    return false;
                 }
 
                 needsMappingToNewSolution = true;
             }
+
+            return true;
         }
 
         private async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDiagnosticsToFixMapAsync(IEnumerable<DiagnosticData> diagnosticsToFix, Func<Project, bool> shouldFixInProject, CancellationToken cancellationToken)
@@ -295,11 +310,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     if (!latestDocumentDiagnosticsMap.TryGetValue(document.Id, out latestDocumentDiagnostics))
                     {
                         // Ignore stale diagnostics in error list.
-                        continue;
+                        latestDocumentDiagnostics = ImmutableHashSet<DiagnosticData>.Empty;
                     }
 
                     // Filter out stale diagnostics in error list.
-                    var documentDiagnosticsToFix = documentDiagnostics.Value.Where(d => latestDocumentDiagnostics.Contains(d));
+                    var documentDiagnosticsToFix = documentDiagnostics.Value.Where(d => latestDocumentDiagnostics.Contains(d) || _suppressionStateService.IsSynthesizedNonRoslynDiagnostic(d));
 
                     if (documentDiagnosticsToFix.IsEmpty())
                     {
