@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                     case SyntaxKind.ParenthesizedLambdaExpression:
                     case SyntaxKind.SimpleLambdaExpression:
                     case SyntaxKind.AnonymousMethodExpression:
-                        return (node as AnonymousFunctionExpressionSyntax)?.AsyncKeyword.IsMissing == true;
+                        return (node as AnonymousFunctionExpressionSyntax)?.AsyncKeyword.IsMissing == false;
                     case SyntaxKind.MethodDeclaration:
                         return (node as MethodDeclarationSyntax)?.Modifiers.Any(SyntaxKind.AsyncKeyword) == true;
                     default:
