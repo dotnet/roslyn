@@ -24,25 +24,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         [ImportingConstructor]
         public DiagnosticAnalyzerService(
+            IDiagnosticUpdateSourceRegistrationService registrationService,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
             [Import(AllowDefault = true)]IWorkspaceDiagnosticAnalyzerProviderService diagnosticAnalyzerProviderService = null,
             [Import(AllowDefault = true)]AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null)
             : this(diagnosticAnalyzerProviderService != null ? diagnosticAnalyzerProviderService.GetHostDiagnosticAnalyzerPackages() : SpecializedCollections.EmptyEnumerable<HostDiagnosticAnalyzerPackage>(),
-                   hostDiagnosticUpdateSource,
-                   new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.DiagnosticService))
+                hostDiagnosticUpdateSource,
+                registrationService, new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.DiagnosticService))
         {
         }
 
         public IAsynchronousOperationListener Listener => _listener;
 
         // protected for testing purposes.
-        protected DiagnosticAnalyzerService(IEnumerable<HostDiagnosticAnalyzerPackage> workspaceAnalyzerPackages, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource, IAsynchronousOperationListener listener = null)
-            : this (new HostAnalyzerManager(workspaceAnalyzerPackages, hostDiagnosticUpdateSource), hostDiagnosticUpdateSource, listener)
+        protected DiagnosticAnalyzerService(
+            IEnumerable<HostDiagnosticAnalyzerPackage> workspaceAnalyzerPackages,
+            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
+            IDiagnosticUpdateSourceRegistrationService registrationService,
+            IAsynchronousOperationListener listener = null)
+            : this(new HostAnalyzerManager(workspaceAnalyzerPackages, hostDiagnosticUpdateSource), hostDiagnosticUpdateSource, registrationService, listener)
         {
         }
 
         // protected for testing purposes.
-        protected DiagnosticAnalyzerService(HostAnalyzerManager hostAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null, IAsynchronousOperationListener listener = null) : this()
+        protected DiagnosticAnalyzerService(
+            HostAnalyzerManager hostAnalyzerManager,
+            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
+            IDiagnosticUpdateSourceRegistrationService registrationService,
+            IAsynchronousOperationListener listener = null) : this(registrationService)
         {
             _hostAnalyzerManager = hostAnalyzerManager;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;

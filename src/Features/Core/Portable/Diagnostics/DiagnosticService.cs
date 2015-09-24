@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -14,35 +13,28 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     [Export(typeof(IDiagnosticService)), Shared]
-    internal class DiagnosticService : IDiagnosticService
+    internal partial class DiagnosticService : IDiagnosticService
     {
         private const string DiagnosticsUpdatedEventName = "DiagnosticsUpdated";
 
         private readonly IAsynchronousOperationListener _listener;
         private readonly EventMap _eventMap;
         private readonly SimpleTaskQueue _eventQueue;
-        private readonly ImmutableArray<IDiagnosticUpdateSource> _updateSources;
 
         private readonly object _gate;
         private readonly Dictionary<IDiagnosticUpdateSource, Dictionary<object, Data>> _map;
 
         [ImportingConstructor]
-        public DiagnosticService(
-            [ImportMany] IEnumerable<IDiagnosticUpdateSource> diagnosticUpdateSource,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+        public DiagnosticService([ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners) : this()
         {
             // queue to serialize events.
             _eventMap = new EventMap();
             _eventQueue = new SimpleTaskQueue(TaskScheduler.Default);
 
-            _updateSources = diagnosticUpdateSource.AsImmutable();
             _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.DiagnosticService);
 
             _gate = new object();
             _map = new Dictionary<IDiagnosticUpdateSource, Dictionary<object, Data>>();
-
-            // connect each diagnostic update source to events
-            ConnectDiagnosticsUpdatedEvents();
         }
 
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated
@@ -80,11 +72,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
-            Contract.Requires(_updateSources.IndexOf(updateSource) >= 0);
-
             // we expect someone who uses this ability to small.
             lock (_gate)
             {
+                Contract.Requires(_updateSources.Contains(updateSource));
+
                 var list = _map.GetOrAdd(updateSource, _ => new Dictionary<object, Data>());
                 var data = new Data(args);
 
@@ -96,14 +88,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 list.Add(args.Id, data);
-            }
-        }
-
-        private void ConnectDiagnosticsUpdatedEvents()
-        {
-            foreach (var source in _updateSources)
-            {
-                source.DiagnosticsUpdated += OnDiagnosticsUpdated;
             }
         }
 
