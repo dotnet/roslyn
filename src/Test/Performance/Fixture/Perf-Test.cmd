@@ -20,9 +20,13 @@ md %RESULTS%
 
 set > %RESULTS%\Environment.txt
 
-if '%1'=='' (
-    echo ERROR: Must specify at least one test assembly on the command line.
-    goto :eof
+rem =========================================================
+rem If no extra arguments are on the command line, then look
+rem for all performance test assemblies.
+rem =========================================================
+set TEST_ASSEMBLIES=%*
+if "%TEST_ASSEMBLIES%" == "" (
+    set TEST_ASSEMBLIES=*.PerformanceTests.dll
 )
 
 if not exist %~dp0ZipResult.py (
@@ -109,7 +113,7 @@ if not exist %XUNIT_RUNNER% (
 
 echo Running tests from %CD%
 
-for %%f in (%*) do (
+for %%f in (%TEST_ASSEMBLIES%) do (
     
     if not exist %%f (
         echo ERROR: Cannot find %%f in %CD%
@@ -130,6 +134,7 @@ for %%f in (%*) do (
 popd
 
 echo All tests done.
+echo Results in %RESULTS%
 
 rem ========================================================
 rem Upload Results if running under HELIX
