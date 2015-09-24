@@ -4,9 +4,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Semantics;
-using Roslyn.Diagnostics.Analyzers;
 
-namespace Microsoft.CodeAnalysis.Performance
+namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
     /// <summary>Base type for an analyzer that looks for empty array allocations and recommends their replacement.</summary>
     public class EmptyArrayOperationAnalyzer : DiagnosticAnalyzer
@@ -20,12 +19,12 @@ namespace Microsoft.CodeAnalysis.Performance
         /// <summary>The name of the Empty method on System.Array.</summary>
         internal const string ArrayEmptyMethodName = "Empty";
 
-        private static LocalizableString localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UseArrayEmptyDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UseArrayEmptyMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString localizableTitle = "Empty Array";
+        private static LocalizableString localizableMessage = "Empty array creation can be replaced with Array.Empty";
         
         /// <summary>The diagnostic descriptor used when Array.Empty should be used instead of a new array allocation.</summary>
-        internal static readonly DiagnosticDescriptor UseArrayEmptyDescriptor = new DiagnosticDescriptor(
-            RoslynDiagnosticIds.UseArrayEmptyRuleId,
+        public static readonly DiagnosticDescriptor UseArrayEmptyDescriptor = new DiagnosticDescriptor(
+            "EmptyArrayRule",
             localizableTitle,
             localizableMessage,
             PerformanceCategory,
@@ -40,20 +39,9 @@ namespace Microsoft.CodeAnalysis.Performance
 
         public sealed override void Initialize(AnalysisContext context)
         {
-            // When compilation begins, check whether Array.Empty<T> is available.
-            // Only if it is, register the syntax node action provided by the derived implementations.
             context.RegisterCompilationStartAction(ctx =>
             {
-                INamedTypeSymbol typeSymbol = ctx.Compilation.GetTypeByMetadataName(ArrayTypeName);
-                if (typeSymbol != null && typeSymbol.DeclaredAccessibility == Accessibility.Public)
-                {
-                    IMethodSymbol methodSymbol = typeSymbol.GetMembers(ArrayEmptyMethodName).FirstOrDefault() as IMethodSymbol;
-                    if (methodSymbol != null && methodSymbol.DeclaredAccessibility == Accessibility.Public &&
-                        methodSymbol.IsStatic && methodSymbol.Arity == 1 && methodSymbol.Parameters.Length == 0)
-                    {
-                        RegisterOperationAction(ctx);
-                    }
-                }
+                RegisterOperationAction(ctx);
             });
         }
 

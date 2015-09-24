@@ -4,9 +4,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Semantics;
-using Roslyn.Diagnostics.Analyzers;
 
-namespace Microsoft.CodeAnalysis.Performance
+namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
     /// <summary>Analyzer that looks boxing operations.</summary>
     public class BoxingOperationAnalyzer : DiagnosticAnalyzer
@@ -14,12 +13,12 @@ namespace Microsoft.CodeAnalysis.Performance
         /// <summary>Diagnostic category "Performance".</summary>
         private const string PerformanceCategory = "Performance";
         
-        private static LocalizableString localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.BoxingDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.BoxingMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString localizableTitle = "Boxing";
+        private static LocalizableString localizableMessage = "Boxing is expensive";
         
         /// <summary>The diagnostic descriptor used when boxing is detected.</summary>
-        internal static readonly DiagnosticDescriptor BoxingDescriptor = new DiagnosticDescriptor(
-            RoslynDiagnosticIds.BoxingRuleId,
+        public static readonly DiagnosticDescriptor BoxingDescriptor = new DiagnosticDescriptor(
+            "BoxingRule",
             localizableTitle,
             localizableMessage,
             PerformanceCategory,
