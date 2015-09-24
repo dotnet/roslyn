@@ -2333,7 +2333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.UncheckedExpression:
                 case SyntaxKind.AnonymousMethodExpression:
                     // From C# spec, 7.3.1:
-                    // Primary: x.y  f(x)  a[x]  x++  x--  new  typeof  default  checked  unchecked  delegate
+                    // Primary: x.y  x?.y  x?[y]  f(x)  a[x]  x++  x--  new  typeof  default  checked  unchecked  delegate
 
                     return OperatorPrecedence.Primary;
 
@@ -2344,8 +2344,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.PreIncrementExpression:
                 case SyntaxKind.PreDecrementExpression:
                 case SyntaxKind.CastExpression:
+                case SyntaxKind.AwaitExpression:
                     // From C# spec, 7.3.1:
-                    // Unary: +  -  !  ~  ++x  --x  (T)x
+                    // Unary: +  -  !  ~  ++x  --x  (T)x  await Task
 
                     return OperatorPrecedence.Unary;
 

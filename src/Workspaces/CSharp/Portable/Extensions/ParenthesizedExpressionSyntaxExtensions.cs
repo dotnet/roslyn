@@ -28,18 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
-            // await ( M() ) -> await M()
-            // await ( abc ) -> await abc
-            // await ( x.P ) -> await x.P
-            if (node.IsParentKind(SyntaxKind.AwaitExpression)
-                && (expression.IsKind(SyntaxKind.InvocationExpression)
-                || expression.IsKind(SyntaxKind.IdentifierName)
-                || expression.IsKind(SyntaxKind.SimpleMemberAccessExpression)
-                ))
-            {
-                return true;
-            }
-
             // Don't change (x?.Count).GetValueOrDefault() to x?.Count.GetValueOrDefault()
             if (expression.IsKind(SyntaxKind.ConditionalAccessExpression) && parentExpression is MemberAccessExpressionSyntax)
             {
