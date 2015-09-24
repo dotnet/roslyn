@@ -75,11 +75,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableDictionary<DiagnosticAnalyzer, HashSet<string>> _compilerDiagnosticAnalyzerDescriptorMap;
 
         /// <summary>
-        /// Map from project to <see cref="CompilationWithAnalyzers"/> instance to be used for computing analyzer diagnostics.
-        /// </summary>
-        private readonly ConditionalWeakTable<Project, CompilationWithAnalyzers> _compilationWithAnalyzersMap;
-
-        /// <summary>
         /// Cache from <see cref="DiagnosticAnalyzer"/> instance to its supported desciptors.
         /// </summary>
         private readonly ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyCollection<DiagnosticDescriptor>> _descriptorCache;
@@ -112,7 +107,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _compilerDiagnosticAnalyzerMap = ImmutableDictionary<string, DiagnosticAnalyzer>.Empty;
             _compilerDiagnosticAnalyzerDescriptorMap = ImmutableDictionary<DiagnosticAnalyzer, HashSet<string>>.Empty;
             _hostDiagnosticAnalyzerPackageNameMap = ImmutableDictionary<DiagnosticAnalyzer, string>.Empty;
-            _compilationWithAnalyzersMap = new ConditionalWeakTable<Project, CompilationWithAnalyzers>();
             _descriptorCache = new ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyCollection<DiagnosticDescriptor>>();
 
             DiagnosticAnalyzerLogger.LogWorkspaceAnalyzers(hostAnalyzerReferences);
@@ -510,20 +504,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return current;
-        }
-
-        internal CompilationWithAnalyzers GetOrCreateCompilationWithAnalyzers(Project project, ConditionalWeakTable<Project, CompilationWithAnalyzers>.CreateValueCallback createCompilationWithAnalyzers)
-        {
-            Contract.ThrowIfFalse(project.SupportsCompilation);
-            return _compilationWithAnalyzersMap.GetValue(project, createCompilationWithAnalyzers);
-        }
-
-        internal void DisposeCompilationWithAnalyzers(Project project)
-        {
-            if (project.SupportsCompilation)
-            {
-                _compilationWithAnalyzersMap.Remove(project);
-            }
         }
 
         private class LoadContextAssemblyLoader : IAnalyzerAssemblyLoader

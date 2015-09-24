@@ -6,19 +6,19 @@ namespace Microsoft.CodeAnalysis
     {
         internal sealed class LoggingXmlFileResolver : XmlFileResolver
         {
-            private readonly TouchedFileLogger _logger;
+            private readonly TouchedFileLogger _loggerOpt;
 
             public LoggingXmlFileResolver(string baseDirectory, TouchedFileLogger logger)
                 : base(baseDirectory)
             {
-                _logger = logger;
+                _loggerOpt = logger;
             }
 
             protected override bool FileExists(string fullPath)
             {
-                if (_logger != null && fullPath != null)
+                if (fullPath != null)
                 {
-                    _logger.AddRead(fullPath);
+                    _loggerOpt?.AddRead(fullPath);
                 }
 
                 return base.FileExists(fullPath);

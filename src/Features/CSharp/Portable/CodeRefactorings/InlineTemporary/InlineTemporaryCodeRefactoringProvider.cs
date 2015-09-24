@@ -318,10 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
         private static bool ShouldPreserve(SyntaxTriviaList trivia)
         {
-            return trivia.Any(
-                t => t.Kind() == SyntaxKind.SingleLineCommentTrivia ||
-                t.Kind() == SyntaxKind.MultiLineCommentTrivia ||
-                t.IsDirective);
+            return trivia.Any(t => t.IsRegularComment() || t.IsDirective);
         }
 
         private SyntaxNode RemoveDeclaratorFromVariableList(VariableDeclaratorSyntax variableDeclarator, VariableDeclarationSyntax variableDeclaration)

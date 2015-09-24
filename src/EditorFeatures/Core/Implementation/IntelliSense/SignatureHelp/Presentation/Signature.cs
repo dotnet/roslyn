@@ -68,6 +68,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             }
         }
 
+        /// <remarks>
+        /// The documentation is included in <see cref="Content"/> so that it will be classified.
+        /// </remarks>
         public string Documentation => null;
 
         private ReadOnlyCollection<IParameter> _parameters;

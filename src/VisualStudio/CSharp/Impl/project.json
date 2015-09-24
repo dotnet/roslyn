@@ -1,0 +1,14 @@
+{
+  "dependencies": {
+    "Microsoft.Composition": "1.0.27",
+    "System.Collections": "4.0.10",
+    "System.Diagnostics.Debug": "4.0.10",
+    "System.Globalization": "4.0.10",
+    "System.Runtime": "4.0.20",
+    "System.Runtime.Extensions": "4.0.10",
+    "System.Threading": "4.0.10"
+  },
+  "frameworks": {
+    "net46": { }
+  },
+}

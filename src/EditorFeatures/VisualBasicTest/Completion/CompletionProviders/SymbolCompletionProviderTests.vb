@@ -2861,6 +2861,18 @@ End Module
             VerifyItemExists(code, "args")
         End Sub
 
+        <WorkItem(5069, "https://github.com/dotnet/roslyn/issues/5069")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub InTopLevelFieldInitializer()
+            Dim code =
+<Code>
+Dim aaa = 1
+Dim bbb = $$
+</Code>.Value
+
+            VerifyItemExists(code, "aaa")
+        End Sub
+
 #End Region
 
 #Region "SharedMemberSourceTests"

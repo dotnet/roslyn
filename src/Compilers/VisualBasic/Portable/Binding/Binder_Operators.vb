@@ -1046,7 +1046,7 @@ Done:
                          BinaryOperatorKind.Like
 
                         If rightType.GetNullableUnderlyingTypeOrSelf().GetEnumUnderlyingTypeOrSelf().IsIntrinsicType() OrElse
-                           rightType.IsCharArrayRankOne() OrElse
+                           rightType.IsCharSZArray() OrElse
                            rightType.IsDBNullType() Then
 
                             ' For & and Like, a Nothing operand is typed String unless the other operand
@@ -1086,7 +1086,7 @@ Done:
                          BinaryOperatorKind.Like
 
                         If leftType.GetNullableUnderlyingTypeOrSelf().GetEnumUnderlyingTypeOrSelf().IsIntrinsicType() OrElse
-                           leftType.IsCharArrayRankOne() OrElse
+                           leftType.IsCharSZArray() OrElse
                            leftType.IsDBNullType() Then
 
                             ' For & and Like, a Nothing operand is typed String unless the other operand

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -139,7 +140,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             for (int i = 1; i < submissions.Count; i++)
             {
-                workspace.OnProjectReferenceAdded(submissions[i].Id, new ProjectReference(submissions[i - 1].Id));
+                if (submissions[i].CompilationOptions == null)
+                {
+                    continue;
+                }
+
+                for (int j = i - 1; j >= 0; j--)
+                {
+                    if (submissions[j].CompilationOptions != null)
+                    {
+                        workspace.OnProjectReferenceAdded(submissions[i].Id, new ProjectReference(submissions[j].Id));
+                        break;
+                    }
+                }
             }
 
             foreach (var project in projectMap.Values)
@@ -188,6 +201,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 // The project
 
                 var document = new TestHostDocument(exportProvider, languageServices, textBuffer, submissionName, cursorPosition, spans, SourceCodeKind.Interactive);
+                var documents = new List<TestHostDocument> { document };
+
+                if (languageName == NoCompilationConstants.LanguageName)
+                {
+                    submissions.Add(
+                        new TestHostProject(
+                            languageServices, 
+                            compilationOptions: null, 
+                            parseOptions: null, 
+                            assemblyName: submissionName, 
+                            references: null, 
+                            documents: documents, 
+                            isSubmission: true));
+                    continue;
+                }
 
                 var syntaxFactory = languageServices.GetService<ISyntaxTreeFactoryService>();
                 var compilationFactory = languageServices.GetService<ICompilationFactoryService>();
@@ -203,7 +231,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     parseOptions,
                     submissionName,
                     references,
-                    new List<TestHostDocument> { document }, isSubmission: true);
+                    documents, 
+                    isSubmission: true);
 
                 submissions.Add(project);
             }
@@ -429,9 +458,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     }
 
                     return language == LanguageNames.CSharp
-                       ? (CompilationOptions)new CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.WindowsRuntimeMetadata)
-                       : new VisualBasicCompilationOptions(OutputKind.WindowsRuntimeMetadata).WithGlobalImports(globalImports)
-                                                                         .WithRootNamespace(rootNamespace);
+                       ? (CompilationOptions)new CSharpCompilationOptions(OutputKind.WindowsRuntimeMetadata)
+                       : new VisualBasicCompilationOptions(OutputKind.WindowsRuntimeMetadata).WithGlobalImports(globalImports).WithRootNamespace(rootNamespace);
                 }
             }
             else
@@ -449,7 +477,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                                                    .WithGeneralDiagnosticOption(reportDiagnostic)
                                                    .WithSourceReferenceResolver(SourceFileResolver.Default)
                                                    .WithXmlReferenceResolver(XmlFileResolver.Default)
-                                                   .WithMetadataReferenceResolver(new AssemblyReferenceResolver(MetadataFileReferenceResolver.Default, MetadataFileReferenceProvider.Default))
+                                                   .WithMetadataReferenceResolver(RuntimeMetadataReferenceResolver.Default)
                                                    .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
 
             if (language == LanguageNames.VisualBasic)

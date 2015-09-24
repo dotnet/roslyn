@@ -1239,6 +1239,7 @@ class C : G<C[,][]>
             Assert.Equal(c, carr2.ElementType);
             Assert.Equal(2, carr1.Rank);
             Assert.Equal(1, carr2.Rank);
+            Assert.True(carr2.IsSZArray);
         }
 
         [Fact]

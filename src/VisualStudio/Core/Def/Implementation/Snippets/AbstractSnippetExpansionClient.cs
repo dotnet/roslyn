@@ -10,10 +10,11 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -25,7 +26,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using MSXML;
-using Roslyn.Utilities;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
@@ -169,7 +169,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 if (lineText.Trim() == string.Empty)
                 {
                     indentCaretOnCommit = true;
-                    indentDepth = lineText.Length;
+
+                    var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    if (document != null)
+                    {
+                        var optionService = document.Project.Solution.Workspace.Services.GetService<IOptionService>();
+                        var tabSize = optionService.GetOption(FormattingOptions.TabSize, document.Project.Language);
+                        indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, tabSize);
+                    }
+                    else
+                    {
+                        // If we don't have a document, then just guess the typical default TabSize value.
+                        indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, tabSize: 4);
+                    }
+
                     SubjectBuffer.Delete(new Span(line.Start.Position, line.Length));
                     endSnapshotSpan = SubjectBuffer.CurrentSnapshot.GetSpan(new Span(line.Start.Position, 0));
                 }
@@ -259,23 +272,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             // and the navigation location will be at column 0 on a blank line. We must now
             // position the caret in virtual space.
 
-            if (indentCaretOnCommit)
-            {
-                int lineLength;
-                pBuffer.GetLengthOfLine(ts[0].iStartLine, out lineLength);
+            int lineLength;
+            pBuffer.GetLengthOfLine(ts[0].iStartLine, out lineLength);
 
-                string lineText;
-                pBuffer.GetLineText(ts[0].iStartLine, 0, ts[0].iStartLine, lineLength, out lineText);
+            string endLineText;
+            pBuffer.GetLineText(ts[0].iStartLine, 0, ts[0].iStartLine, lineLength, out endLineText);
 
-                if (lineText == string.Empty)
-                {
-                    int endLinePosition;
-                    pBuffer.GetPositionOfLine(ts[0].iStartLine, out endLinePosition);
-                    TextView.TryMoveCaretToAndEnsureVisible(new VirtualSnapshotPoint(TextView.TextSnapshot.GetPoint(endLinePosition), indentDepth));
-                }
-            }
+            int endLinePosition;
+            pBuffer.GetPositionOfLine(ts[0].iStartLine, out endLinePosition);
+
+            PositionCaretForEditingInternal(endLineText, endLinePosition);
 
             return VSConstants.S_OK;
+        }
+
+        /// <summary>
+        /// Internal for testing purposes. All real caret positioning logic takes place here. <see cref="PositionCaretForEditing"/>
+        /// only extracts the <paramref name="endLineText"/> and <paramref name="endLinePosition"/> from the provided <see cref="IVsTextLines"/>.
+        /// Tests can call this method directly to avoid producing an IVsTextLines.
+        /// </summary>
+        /// <param name="endLineText"></param>
+        /// <param name="endLinePosition"></param>
+        internal void PositionCaretForEditingInternal(string endLineText, int endLinePosition)
+        {
+            if (indentCaretOnCommit && endLineText == string.Empty)
+            {
+                TextView.TryMoveCaretToAndEnsureVisible(new VirtualSnapshotPoint(TextView.TextSnapshot.GetPoint(endLinePosition), indentDepth));
+            }
         }
 
         public virtual bool TryHandleTab()

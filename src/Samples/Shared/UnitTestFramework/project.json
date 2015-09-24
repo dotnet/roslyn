@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "Moq": "4.2.1402.2112",
+    "xunit": "1.9.2"
+  },
+  "frameworks": {
+    "net452": {}
+  },
+}

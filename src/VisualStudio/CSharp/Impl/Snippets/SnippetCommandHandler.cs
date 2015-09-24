@@ -49,6 +49,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
         public CommandState GetCommandState(SurroundWithCommandArgs args, Func<CommandState> nextHandler)
         {
+            AssertIsForeground();
+
+            if (!args.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.Snippets))
+            {
+                return nextHandler();
+            }
+
             Workspace workspace;
             if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out workspace))
             {

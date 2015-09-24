@@ -1,0 +1,19 @@
+{
+    "dependencies": {
+        "Microsoft.Build.Mono.Debug": "14.1.0-prerelease",
+        "Microsoft.CodeAnalysis.Test.Resources.Proprietary": "1.1.0-beta1-20150817-01",
+        "Microsoft.DiaSymReader.Native": "1.1.0-alpha2",
+        "Microsoft.Net.Compilers": "1.1.0-beta1-20150727-01",
+        "Microsoft.Net.RoslynDiagnostics": "1.1.1-beta1-20150814-01",
+        "FakeSign": "0.9.2",
+        "xunit": "1.9.2",
+        "xunit.runner.console": "2.1.0-beta4-build3109",
+        "xunit.runners": "2.0.0-alpha-build2576"
+    },
+    "frameworks": {
+        "net45": {}
+    },
+    "runtimes": {
+        "win" : {}
+    }
+}

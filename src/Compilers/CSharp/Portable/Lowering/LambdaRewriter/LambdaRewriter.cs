@@ -312,8 +312,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(this.ContainingType, frame);
                 CompilationState.AddSynthesizedMethod(
                     frame.Constructor,
-                    FlowAnalysisPass.AppendImplicitReturn(MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
-                    frame.Constructor));
+                    FlowAnalysisPass.AppendImplicitReturn(
+                        MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
+                        frame.Constructor));
             }
 
             return frame;
@@ -358,8 +359,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // add its ctor
                     CompilationState.AddSynthesizedMethod(
                         frame.Constructor,
-                        FlowAnalysisPass.AppendImplicitReturn(MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
-                        frame.Constructor));
+                        FlowAnalysisPass.AppendImplicitReturn(
+                            MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
+                            frame.Constructor));
 
                     // associate the frame with the first lambda that caused it to exist. 
                     // we need to associate this with some syntax.

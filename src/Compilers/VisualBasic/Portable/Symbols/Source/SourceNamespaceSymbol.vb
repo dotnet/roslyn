@@ -391,23 +391,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Dim declarations As ImmutableArray(Of SingleNamespaceDeclaration) = _declaration.Declarations
-
-                Dim builder As ArrayBuilder(Of SyntaxReference) = ArrayBuilder(Of SyntaxReference).GetInstance(declarations.Length)
-
-                ' SyntaxReference in the namespace declaration points to the name node of the namespace decl node not
-                ' namespace decl node we want to return. here we will wrap the original syntax reference in 
-                ' the translation syntax reference so that we can lazily manipulate a node return to the caller
-                For Each decl In declarations
-                    Dim reference = decl.SyntaxReference
-                    If reference IsNot Nothing AndAlso Not reference.SyntaxTree.IsEmbeddedOrMyTemplateTree() Then
-                        builder.Add(New NamespaceDeclarationSyntaxReference(reference))
-                    End If
-                Next
-
-                Return builder.ToImmutableAndFree()
+                ' PERF: Declaring references are cached for compilations with event queue.
+                Return If(Me.DeclaringCompilation?.EventQueue IsNot Nothing, GetCachedDeclaringReferences(), ComputeDeclaringReferencesCore())
             End Get
         End Property
+
+        Private Function GetCachedDeclaringReferences() As ImmutableArray(Of SyntaxReference)
+            Dim declaringReferences As ImmutableArray(Of SyntaxReference) = Nothing
+            If Not Diagnostics.AnalyzerDriver.TryGetCachedDeclaringReferences(Me, DeclaringCompilation, declaringReferences) Then
+                declaringReferences = ComputeDeclaringReferencesCore()
+                Diagnostics.AnalyzerDriver.CacheDeclaringReferences(Me, DeclaringCompilation, declaringReferences)
+            End If
+
+            Return declaringReferences
+        End Function
+
+        Private Function ComputeDeclaringReferencesCore() As ImmutableArray(Of SyntaxReference)
+            Dim declarations As ImmutableArray(Of SingleNamespaceDeclaration) = _declaration.Declarations
+
+            Dim builder As ArrayBuilder(Of SyntaxReference) = ArrayBuilder(Of SyntaxReference).GetInstance(declarations.Length)
+
+            ' SyntaxReference in the namespace declaration points to the name node of the namespace decl node not
+            ' namespace decl node we want to return. here we will wrap the original syntax reference in 
+            ' the translation syntax reference so that we can lazily manipulate a node return to the caller
+            For Each decl In declarations
+                Dim reference = decl.SyntaxReference
+                If reference IsNot Nothing AndAlso Not reference.SyntaxTree.IsEmbeddedOrMyTemplateTree() Then
+                    builder.Add(New NamespaceDeclarationSyntaxReference(reference))
+                End If
+            Next
+
+            Return builder.ToImmutableAndFree()
+        End Function
 
         Friend Overrides Function IsDefinedInSourceTree(tree As SyntaxTree, definedWithinSpan As TextSpan?, Optional cancellationToken As CancellationToken = Nothing) As Boolean
             If Me.IsGlobalNamespace Then

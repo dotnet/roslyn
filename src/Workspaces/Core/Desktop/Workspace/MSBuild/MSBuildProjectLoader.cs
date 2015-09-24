@@ -361,8 +361,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 isInteractive: false,
                 sdkDirectory: RuntimeEnvironment.GetRuntimeDirectory());
 
-            var resolver = new RelativePathReferenceResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory);
-            var metadataReferences = commandLineArgs.ResolveMetadataReferences(new AssemblyReferenceResolver(resolver, metadataService.GetProvider()));
+            // we only support file paths in /r command line arguments
+            var resolver = new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory));
+            var metadataReferences = commandLineArgs.ResolveMetadataReferences(resolver);
 
             var analyzerLoader = analyzerService.GetLoader();
             foreach (var path in commandLineArgs.AnalyzerReferences.Select(r => r.FilePath))
@@ -417,7 +418,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             // project references
-            var resolvedReferences = await this.ResolveProjectReferencesAsync(
+            var resolvedReferences = await ResolveProjectReferencesAsync(
                 projectId, projectFilePath, projectFileInfo.ProjectReferences, preferMetadata, loadedProjects, cancellationToken).ConfigureAwait(false);
 
             // add metadata references for project refs converted to metadata refs
@@ -447,10 +448,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var compOptions = commandLineArgs.CompilationOptions
                     .WithXmlReferenceResolver(new XmlFileResolver(projectDirectory))
                     .WithSourceReferenceResolver(new SourceFileResolver(ImmutableArray<string>.Empty, projectDirectory))
-                    .WithMetadataReferenceResolver(
-                        new AssemblyReferenceResolver(
-                            new RelativePathReferenceResolver(ImmutableArray<string>.Empty, projectDirectory),
-                            MetadataFileReferenceProvider.Default))
+                    // TODO: https://github.com/dotnet/roslyn/issues/4967
+                    .WithMetadataReferenceResolver(new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(ImmutableArray<string>.Empty, projectDirectory)))
                     .WithStrongNameProvider(new DesktopStrongNameProvider(ImmutableArray.Create(projectDirectory, outputFilePath)))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
 

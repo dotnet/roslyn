@@ -402,7 +402,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 _builder.EmitOpCode(ILOpCode.Readonly)
             End If
 
-            If (arrayAccess.Indices.Length = 1) Then
+            If DirectCast(arrayAccess.Expression.Type, ArrayTypeSymbol).IsSZArray Then
                 _builder.EmitOpCode(ILOpCode.Ldelema)
                 EmitSymbolToken(elementType, arrayAccess.Syntax)
             Else

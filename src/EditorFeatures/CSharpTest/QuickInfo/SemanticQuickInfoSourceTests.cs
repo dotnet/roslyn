@@ -4135,5 +4135,32 @@ public class Methods2
             var expectedDescription = $"void Methods1.Do(string x)";
             VerifyWithReferenceWorker(markup, MainDescription(expectedDescription));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(4868, "https://github.com/dotnet/roslyn/issues/4868")]
+        public void QuickInfoExceptions()
+        {
+            Test(@"
+using System;
+namespace MyNs
+{
+    class MyException1 : Exception { }
+    class MyException2 : Exception { }
+    class TestClass
+    {
+        /// <exception cref=""MyException1""></exception>
+        /// <exception cref=""T:MyNs.MyException2""></exception>
+        /// <exception cref=""System.Int32""></exception>
+        /// <exception cref=""double""></exception>
+        /// <exception cref=""Not_A_Class_But_Still_Displayed""></exception>
+        void M()
+        {
+            M$$();
+        }
+    }
+}
+",
+                Exceptions($"\r\n{WorkspacesResources.Exceptions}\r\n  MyException1\r\n  MyException2\r\n  int\r\n  double\r\n  Not_A_Class_But_Still_Displayed"));
+        }
     }
 }

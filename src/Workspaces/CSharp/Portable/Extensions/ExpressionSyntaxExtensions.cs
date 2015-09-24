@@ -2292,7 +2292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
         }
 
-        public static NameSyntax GetRightmostName(this ExpressionSyntax node)
+        public static SimpleNameSyntax GetRightmostName(this ExpressionSyntax node)
         {
             var memberAccess = node as MemberAccessExpressionSyntax;
             if (memberAccess != null && memberAccess.Name != null)

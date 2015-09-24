@@ -333,7 +333,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Binder.ReportDiagnostic(diagnostics, syntax.Identifier, ERRID.ERR_ParamArrayNotArray)
                 Else
                     Dim paramTypeAsArray = DirectCast(paramType, ArrayTypeSymbol)
-                    If paramTypeAsArray.Rank <> 1 Then
+                    If Not paramTypeAsArray.IsSZArray Then
                         ' ParamArray type must be rank-1 array.
                         Binder.ReportDiagnostic(diagnostics, syntax.Identifier.Identifier, ERRID.ERR_ParamArrayRank)
                     End If

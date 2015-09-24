@@ -1,42 +1,51 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
     internal static class StreamExtensions
     {
-        // From System.IO.Stream.CopyTo:
-        // We pick a value that is the largest multiple of 4096 that is still smaller than the large object heap threshold (85K).
-        // The CopyTo/CopyToAsync buffer is short-lived and is likely to be collected at Gen0, and it offers a significant
-        // improvement in Copy performance.
-        internal const int StreamCopyBufferSize = 81920;
-
         /// <summary>
-        /// Copies specified amount of data from given stream to a target memory pointer.
+        /// Attempts to read all of the requested bytes from the stream into the buffer
         /// </summary>
-        /// <exception cref="IOException">unexpected stream end.</exception>
-        internal static void CopyTo(this Stream source, IntPtr destination, int size)
+        /// <returns>
+        /// The number of bytes read. Less than <paramref name="count" /> will
+        /// only be returned if the end of stream is reached before all bytes can be read.
+        /// </returns>
+        /// <remarks>
+        /// Unlike <see cref="Stream.Read(byte[], int, int)"/> it is not guaranteed that
+        /// the stream position or the output buffer will be unchanged if an exception is
+        /// returned.
+        /// </remarks>
+        public static int TryReadAll(
+            this Stream stream,
+            byte[] buffer,
+            int offset,
+            int count)
         {
-            byte[] buffer = new byte[Math.Min(StreamCopyBufferSize, size)];
-            while (size > 0)
+            // The implementations for many streams, e.g. FileStream, allows 0 bytes to be
+            // read and returns 0, but the documentation for Stream.Read states that 0 is
+            // only returned when the end of the stream has been reached. Rather than deal
+            // with this contradiction, let's just never pass a count of 0 bytes
+            Debug.Assert(count > 0);
+
+            int totalBytesRead;
+            int bytesRead = 0;
+            for (totalBytesRead = 0; totalBytesRead < count; totalBytesRead += bytesRead)
             {
-                int readSize = Math.Min(size, buffer.Length);
-                int bytesRead = source.Read(buffer, 0, readSize);
-
-                if (bytesRead <= 0 || bytesRead > readSize)
+                // Note: Don't attempt to save state in-between calls to .Read as it would
+                // require a possibly massive intermediate buffer array
+                bytesRead = stream.Read(buffer,
+                                        offset + totalBytesRead,
+                                        count - totalBytesRead);
+                if (bytesRead == 0)
                 {
-                    throw new IOException(CodeAnalysisResources.UnexpectedStreamEnd);
+                    break;
                 }
-
-                Marshal.Copy(buffer, 0, destination, bytesRead);
-
-                destination += bytesRead;
-                size -= bytesRead;
             }
+            return totalBytesRead;
         }
     }
 }

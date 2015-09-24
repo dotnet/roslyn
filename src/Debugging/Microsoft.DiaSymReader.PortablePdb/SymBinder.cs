@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using Roslyn.Utilities;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
-using Roslyn.Utilities;
 
 [assembly: Guid("CA89ACD1-A1D5-43DE-890A-5FDF50BC1F93")]
 
@@ -15,7 +15,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
     {
         [PreserveSig]
         public unsafe int GetReaderForFile(
-            [MarshalAs(UnmanagedType.Interface)]object importer, 
+            [MarshalAs(UnmanagedType.Interface)]object importer,
             [MarshalAs(UnmanagedType.LPWStr)]string fileName,
             [MarshalAs(UnmanagedType.LPWStr)]string searchPath,
             [MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedReader reader)

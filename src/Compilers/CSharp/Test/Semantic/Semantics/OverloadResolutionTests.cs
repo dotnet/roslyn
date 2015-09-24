@@ -8173,5 +8173,69 @@ namespace ClassLibraryOverloadResolution
     Diagnostic(ErrorCode.ERR_AmbigCall, "Should").WithArguments("FluentAssertions.AssertionExtensions.Should<TKey, TValue>(System.Collections.Generic.IDictionary<TKey, TValue>)", "Extensions.TestExtensions.Should<TKey, TValue>(System.Collections.Generic.IReadOnlyDictionary<TKey, TValue>)").WithLocation(34, 18)
                 );
         }
+
+        [Fact, WorkItem(4970, "https://github.com/dotnet/roslyn/issues/4970")]
+        public void GenericExtensionMethodWithConstraintsAsADelegate()
+        {
+            var source =
+@"
+using System;
+
+public interface IDetail<T>
+{
+
+}
+
+public interface IMaster<T>
+{
+
+}
+
+public class MyClass
+{
+    static void Main()
+    {
+        Principal aPrincipal = new Principal();
+        Test(aPrincipal.RemoveDetail);
+        Test(aPrincipal.RemoveDetail<Principal,Permission>);
+
+        Action<Permission> a;
+        a = aPrincipal.RemoveDetail;
+        a(null);
+        a = aPrincipal.RemoveDetail<Principal,Permission>;
+        a(null);
+    }
+
+    static void Test(Action<Permission> a)
+    {
+        a(null);
+    }    
+}
+
+public class Permission : IDetail<Principal>
+{
+
+}
+
+public class Principal : IMaster<Permission>
+{
+}
+
+public static class Class
+{
+    public static void RemoveDetail<TMaster, TChild>(this TMaster master, TChild child)
+        where TMaster : class, IMaster<TChild>
+        where TChild : class, IDetail<TMaster>
+    {
+        System.Console.WriteLine(""RemoveDetail"");
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options:TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput:
+@"RemoveDetail
+RemoveDetail
+RemoveDetail
+RemoveDetail");
+        }
     }
 }

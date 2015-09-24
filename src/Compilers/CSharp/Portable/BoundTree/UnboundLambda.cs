@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    block = FlowAnalysisPass.AppendImplicitReturn(block, lambdaSymbol, _unboundLambda.Syntax);
+                    block = FlowAnalysisPass.AppendImplicitReturn(block, lambdaSymbol);
                 }
             }
 

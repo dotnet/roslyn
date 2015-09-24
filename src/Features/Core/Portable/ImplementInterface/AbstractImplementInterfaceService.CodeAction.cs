@@ -408,8 +408,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             private SyntaxNode CreateThroughExpression(SyntaxGenerator factory)
             {
                 var through = ThroughMember.IsStatic
-                    ? factory.IdentifierName(State.ClassOrStructType.Name)
-                    : factory.ThisExpression();
+                        ? GenerateName(factory, State.ClassOrStructType.IsGenericType)
+                        : factory.ThisExpression();
 
                 through = factory.MemberAccessExpression(
                     through, factory.IdentifierName(ThroughMember.Name));
@@ -451,6 +451,13 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 }
 
                 return through.WithAdditionalAnnotations(Simplifier.Annotation);
+            }
+
+            private SyntaxNode GenerateName(SyntaxGenerator factory, bool isGenericType)
+            {
+                return isGenericType 
+                    ? factory.GenericName(State.ClassOrStructType.Name, State.ClassOrStructType.TypeArguments) 
+                    : factory.IdentifierName(State.ClassOrStructType.Name);
             }
 
             private bool HasNameConflict(

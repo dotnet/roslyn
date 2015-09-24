@@ -530,33 +530,33 @@ class Program
   .maxstack  2
   .locals init (System.Exception V_0) //ex
   .try
-{
-  IL_0000:  ldstr      ""bye""
-  IL_0005:  newobj     ""System.Exception..ctor(string)""
-  IL_000a:  throw
-}
+  {
+    IL_0000:  ldstr      ""bye""
+    IL_0005:  newobj     ""System.Exception..ctor(string)""
+    IL_000a:  throw
+  }
   filter
-{
-  IL_000b:  isinst     ""System.Exception""
-  IL_0010:  dup
-  IL_0011:  brtrue.s   IL_0017
-  IL_0013:  pop
-  IL_0014:  ldc.i4.0
-  IL_0015:  br.s       IL_0022
-  IL_0017:  stloc.0
-  IL_0018:  ldloc.0
-  IL_0019:  dup
-  IL_001a:  call       ""bool Program.F(System.Exception, System.Exception)""
-  IL_001f:  ldc.i4.0
-  IL_0020:  cgt.un
-  IL_0022:  endfilter
-}  // end filter
-{  // handler
-  IL_0024:  pop
-  IL_0025:  ldloc.0
-  IL_0026:  call       ""void System.Console.WriteLine(object)""
-  IL_002b:  leave.s    IL_002d
-}
+  {
+    IL_000b:  isinst     ""System.Exception""
+    IL_0010:  dup
+    IL_0011:  brtrue.s   IL_0017
+    IL_0013:  pop
+    IL_0014:  ldc.i4.0
+    IL_0015:  br.s       IL_0022
+    IL_0017:  stloc.0
+    IL_0018:  ldloc.0
+    IL_0019:  ldloc.0
+    IL_001a:  call       ""bool Program.F(System.Exception, System.Exception)""
+    IL_001f:  ldc.i4.0
+    IL_0020:  cgt.un
+    IL_0022:  endfilter
+  }  // end filter
+  {  // handler
+    IL_0024:  pop
+    IL_0025:  ldloc.0
+    IL_0026:  call       ""void System.Console.WriteLine(object)""
+    IL_002b:  leave.s    IL_002d
+  }
   IL_002d:  ret
 }
 ");
@@ -661,35 +661,35 @@ class Program
   .maxstack  2
   .locals init (T V_0) //ex
   .try
-{
-  IL_0000:  ldstr      ""bye""
-  IL_0005:  newobj     ""System.Exception..ctor(string)""
-  IL_000a:  throw
-}
+  {
+    IL_0000:  ldstr      ""bye""
+    IL_0005:  newobj     ""System.Exception..ctor(string)""
+    IL_000a:  throw
+  }
   filter
-{
-  IL_000b:  isinst     ""T""
-  IL_0010:  dup
-  IL_0011:  brtrue.s   IL_0017
-  IL_0013:  pop
-  IL_0014:  ldc.i4.0
-  IL_0015:  br.s       IL_0027
-  IL_0017:  unbox.any  ""T""
-  IL_001c:  stloc.0
-  IL_001d:  ldloc.0
-  IL_001e:  dup
-  IL_001f:  call       ""bool Program.F<T>(T, T)""
-  IL_0024:  ldc.i4.0
-  IL_0025:  cgt.un
-  IL_0027:  endfilter
-}  // end filter
-{  // handler
-  IL_0029:  pop
-  IL_002a:  ldloc.0
-  IL_002b:  box        ""T""
-  IL_0030:  call       ""void System.Console.WriteLine(object)""
-  IL_0035:  leave.s    IL_0037
-}
+  {
+    IL_000b:  isinst     ""T""
+    IL_0010:  dup
+    IL_0011:  brtrue.s   IL_0017
+    IL_0013:  pop
+    IL_0014:  ldc.i4.0
+    IL_0015:  br.s       IL_0027
+    IL_0017:  unbox.any  ""T""
+    IL_001c:  stloc.0
+    IL_001d:  ldloc.0
+    IL_001e:  ldloc.0
+    IL_001f:  call       ""bool Program.F<T>(T, T)""
+    IL_0024:  ldc.i4.0
+    IL_0025:  cgt.un
+    IL_0027:  endfilter
+  }  // end filter
+  {  // handler
+    IL_0029:  pop
+    IL_002a:  ldloc.0
+    IL_002b:  box        ""T""
+    IL_0030:  call       ""void System.Console.WriteLine(object)""
+    IL_0035:  leave.s    IL_0037
+  }
   IL_0037:  ret
 }
 ");
@@ -2197,7 +2197,7 @@ class C
       IL_0002:  ldstr      ""Try""
       IL_0007:  call       ""void System.Console.Write(string)""
       IL_000c:  ldloc.0
-      IL_000d:  dup
+      IL_000d:  ldloc.0
       IL_000e:  div
       IL_000f:  stloc.0
       IL_0010:  leave.s    IL_0035
@@ -2224,7 +2224,8 @@ class C
     IL_0034:  endfinally
   }
   IL_0035:  ret
-}");
+}
+");
         }
 
         [Fact]
@@ -2280,77 +2281,77 @@ class C
   // Code size      129 (0x81)
   .maxstack  2
   .locals init (int V_0, //x
-  System.DivideByZeroException V_1) //e
+                System.DivideByZeroException V_1) //e
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   .try
-{
-  .try
-{
-  IL_0002:  ldstr      ""Try""
-  IL_0007:  call       ""void System.Console.Write(string)""
-  IL_000c:  ldloc.0
-  IL_000d:  dup
-  IL_000e:  div
-  IL_000f:  stloc.0
-  IL_0010:  leave.s    IL_0080
-}
-  filter
-{
-  IL_0012:  isinst     ""System.DivideByZeroException""
-  IL_0017:  dup
-  IL_0018:  brtrue.s   IL_001e
-  IL_001a:  pop
-  IL_001b:  ldc.i4.0
-  IL_001c:  br.s       IL_0029
-  IL_001e:  callvirt   ""string System.Exception.Message.get""
-  IL_0023:  ldnull
-  IL_0024:  ceq
-  IL_0026:  ldc.i4.0
-  IL_0027:  cgt.un
-  IL_0029:  endfilter
-}  // end filter
-{  // handler
-  IL_002b:  pop
-  IL_002c:  ldstr      ""Catch1""
-  IL_0031:  call       ""void System.Console.Write(string)""
-  IL_0036:  leave.s    IL_0080
-}
-  filter
-{
-  IL_0038:  isinst     ""System.DivideByZeroException""
-  IL_003d:  dup
-  IL_003e:  brtrue.s   IL_0044
-  IL_0040:  pop
-  IL_0041:  ldc.i4.0
-  IL_0042:  br.s       IL_0051
-  IL_0044:  stloc.1
-  IL_0045:  ldloc.1
-  IL_0046:  callvirt   ""string System.Exception.Message.get""
-  IL_004b:  ldnull
-  IL_004c:  cgt.un
-  IL_004e:  ldc.i4.0
-  IL_004f:  cgt.un
-  IL_0051:  endfilter
-}  // end filter
-{  // handler
-  IL_0053:  pop
-  IL_0054:  ldstr      ""Catch2""
-  IL_0059:  ldloc.1
-  IL_005a:  callvirt   ""string System.Exception.Message.get""
-  IL_005f:  callvirt   ""int string.Length.get""
-  IL_0064:  box        ""int""
-  IL_0069:  call       ""string string.Concat(object, object)""
-  IL_006e:  call       ""void System.Console.Write(string)""
-  IL_0073:  leave.s    IL_0080
-}
-}
+  {
+    .try
+    {
+      IL_0002:  ldstr      ""Try""
+      IL_0007:  call       ""void System.Console.Write(string)""
+      IL_000c:  ldloc.0
+      IL_000d:  ldloc.0
+      IL_000e:  div
+      IL_000f:  stloc.0
+      IL_0010:  leave.s    IL_0080
+    }
+    filter
+    {
+      IL_0012:  isinst     ""System.DivideByZeroException""
+      IL_0017:  dup
+      IL_0018:  brtrue.s   IL_001e
+      IL_001a:  pop
+      IL_001b:  ldc.i4.0
+      IL_001c:  br.s       IL_0029
+      IL_001e:  callvirt   ""string System.Exception.Message.get""
+      IL_0023:  ldnull
+      IL_0024:  ceq
+      IL_0026:  ldc.i4.0
+      IL_0027:  cgt.un
+      IL_0029:  endfilter
+    }  // end filter
+    {  // handler
+      IL_002b:  pop
+      IL_002c:  ldstr      ""Catch1""
+      IL_0031:  call       ""void System.Console.Write(string)""
+      IL_0036:  leave.s    IL_0080
+    }
+    filter
+    {
+      IL_0038:  isinst     ""System.DivideByZeroException""
+      IL_003d:  dup
+      IL_003e:  brtrue.s   IL_0044
+      IL_0040:  pop
+      IL_0041:  ldc.i4.0
+      IL_0042:  br.s       IL_0051
+      IL_0044:  stloc.1
+      IL_0045:  ldloc.1
+      IL_0046:  callvirt   ""string System.Exception.Message.get""
+      IL_004b:  ldnull
+      IL_004c:  cgt.un
+      IL_004e:  ldc.i4.0
+      IL_004f:  cgt.un
+      IL_0051:  endfilter
+    }  // end filter
+    {  // handler
+      IL_0053:  pop
+      IL_0054:  ldstr      ""Catch2""
+      IL_0059:  ldloc.1
+      IL_005a:  callvirt   ""string System.Exception.Message.get""
+      IL_005f:  callvirt   ""int string.Length.get""
+      IL_0064:  box        ""int""
+      IL_0069:  call       ""string string.Concat(object, object)""
+      IL_006e:  call       ""void System.Console.Write(string)""
+      IL_0073:  leave.s    IL_0080
+    }
+  }
   finally
-{
-  IL_0075:  ldstr      ""Finally""
-  IL_007a:  call       ""void System.Console.Write(string)""
-  IL_007f:  endfinally
-}
+  {
+    IL_0075:  ldstr      ""Finally""
+    IL_007a:  call       ""void System.Console.Write(string)""
+    IL_007f:  endfinally
+  }
   IL_0080:  ret
 }
 ");
@@ -2399,7 +2400,7 @@ class C
       IL_0002:  ldstr      ""Try""
       IL_0007:  call       ""void System.Console.Write(string)""
       IL_000c:  ldloc.0
-      IL_000d:  dup
+      IL_000d:  ldloc.0
       IL_000e:  div
       IL_000f:  stloc.0
       IL_0010:  leave.s    IL_005e

@@ -68,10 +68,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             CategorizeDiagnostics = categorizeDiagnostics;
         }
 
-        public static bool ShouldSkipSymbolAnalysis(ISymbol symbol)
+        public static bool ShouldSkipSymbolAnalysis(SymbolDeclaredCompilationEvent symbolEvent)
         {
             // Skip symbol actions for implicitly declared symbols and non-source symbols.
-            return symbol.IsImplicitlyDeclared || symbol.DeclaringSyntaxReferences.All(s => s.SyntaxTree == null);
+            return symbolEvent.Symbol.IsImplicitlyDeclared || symbolEvent.DeclaringSyntaxReferences.All(s => s.SyntaxTree == null);
         }
 
         public static bool ShouldSkipDeclarationAnalysis(ISymbol symbol)

@@ -21,12 +21,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
         private const string AnalyzerException = "Analyzer.Exception";
         private const string AnalyzerExceptionHashCode = "Analyzer.ExceptionHashCode";
 
-        private static readonly SHA256CryptoServiceProvider s_sha256CryptoServiceProvider = new SHA256CryptoServiceProvider();
-
+        private static readonly SHA256CryptoServiceProvider s_sha256CryptoServiceProvider = GetSha256CryptoServiceProvider();
         private static readonly ConditionalWeakTable<DiagnosticAnalyzer, StrongBox<bool>> s_telemetryCache = new ConditionalWeakTable<DiagnosticAnalyzer, StrongBox<bool>>();
 
         private static string ComputeSha256Hash(string name)
         {
+            if (s_sha256CryptoServiceProvider == null)
+            {
+                return "Hash Provider Not Available";
+            }
+
             byte[] hash = s_sha256CryptoServiceProvider.ComputeHash(Encoding.UTF8.GetBytes(name));
             return Convert.ToBase64String(hash);
         }
@@ -169,6 +173,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             // find if the first diagnostic in this analyzer allows telemetry
             DiagnosticDescriptor diagnostic = diagDescriptors.Length > 0 ? diagDescriptors[0] : null;
             return diagnostic == null ? false : diagnostic.CustomTags.Any(t => t == WellKnownDiagnosticTags.Telemetry);
+        }
+
+        private static SHA256CryptoServiceProvider GetSha256CryptoServiceProvider()
+        {
+            try
+            {
+                // not all environment allows SHA256 encryption
+                return new SHA256CryptoServiceProvider();
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

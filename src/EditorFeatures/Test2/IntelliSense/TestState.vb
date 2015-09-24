@@ -43,8 +43,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Private Sub New(workspaceElement As XElement,
                         extraCompletionProviders As IEnumerable(Of Lazy(Of CompletionListProvider, OrderableLanguageAndRoleMetadata)),
                         extraSignatureHelpProviders As IEnumerable(Of Lazy(Of ISignatureHelpProvider, OrderableLanguageMetadata)),
-                        Optional extraExportedTypes As List(Of Type) = Nothing)
-            MyBase.New(workspaceElement, CreatePartCatalog(extraExportedTypes))
+                        Optional extraExportedTypes As List(Of Type) = Nothing,
+                        Optional workspaceKind As String = Nothing)
+            MyBase.New(workspaceElement, CreatePartCatalog(extraExportedTypes), workspaceKind:=workspaceKind)
 
             Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
             Dim language = languageServices.Language
@@ -125,12 +126,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 workspaceElement As XElement,
                 Optional extraCompletionProviders As CompletionListProvider() = Nothing,
                 Optional extraSignatureHelpProviders As ISignatureHelpProvider() = Nothing,
-                Optional extraExportedTypes As List(Of Type) = Nothing) As TestState
+                Optional extraExportedTypes As List(Of Type) = Nothing,
+                Optional workspaceKind As String = Nothing) As TestState
             Return New TestState(
                 workspaceElement,
                 CreateLazyProviders(extraCompletionProviders, LanguageNames.VisualBasic, roles:=Nothing),
                 CreateLazyProviders(extraSignatureHelpProviders, LanguageNames.VisualBasic),
-                extraExportedTypes)
+                extraExportedTypes,
+                workspaceKind)
         End Function
 
 #Region "IntelliSense Operations"

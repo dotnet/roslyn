@@ -167,29 +167,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return t;
             }
 
-            ImmutableArray<NamedTypeSymbol> interfaces = t.InterfacesNoUseSiteDiagnostics();
-            Debug.Assert(0 <= interfaces.Length && interfaces.Length <= 2);
+            if (t.IsSZArray)
+            {
+                ImmutableArray<NamedTypeSymbol> interfaces = t.InterfacesNoUseSiteDiagnostics();
+                Debug.Assert(0 <= interfaces.Length && interfaces.Length <= 2);
 
-            if (interfaces.Length == 1)
-            {
-                Debug.Assert(interfaces[0] is NamedTypeSymbol); // IList<T>
-                interfaces = ImmutableArray.Create<NamedTypeSymbol>((NamedTypeSymbol)SubstituteType(interfaces[0]).AsTypeSymbolOnly());
-            }
-            else if (interfaces.Length == 2)
-            {
-                Debug.Assert(interfaces[0] is NamedTypeSymbol); // IList<T>
-                interfaces = ImmutableArray.Create<NamedTypeSymbol>((NamedTypeSymbol)SubstituteType(interfaces[0]).AsTypeSymbolOnly(), (NamedTypeSymbol)SubstituteType(interfaces[1]).AsTypeSymbolOnly());
-            }
-            else if (interfaces.Length != 0)
-            {
-                throw ExceptionUtilities.Unreachable;
+                if (interfaces.Length == 1)
+                {
+                    Debug.Assert(interfaces[0] is NamedTypeSymbol); // IList<T>
+                    interfaces = ImmutableArray.Create<NamedTypeSymbol>((NamedTypeSymbol)SubstituteType(interfaces[0]).AsTypeSymbolOnly());
+                }
+                else if (interfaces.Length == 2)
+                {
+                    Debug.Assert(interfaces[0] is NamedTypeSymbol); // IList<T>
+                    interfaces = ImmutableArray.Create<NamedTypeSymbol>((NamedTypeSymbol)SubstituteType(interfaces[0]).AsTypeSymbolOnly(), (NamedTypeSymbol)SubstituteType(interfaces[1]).AsTypeSymbolOnly());
+                }
+                else if (interfaces.Length != 0)
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
+
+                return ArrayTypeSymbol.CreateSZArray(
+                    element.Type,
+                    t.BaseTypeNoUseSiteDiagnostics,
+                    interfaces,
+                    element.CustomModifiers);
             }
 
-            return new ArrayTypeSymbol(
+            return ArrayTypeSymbol.CreateMDArray(
                 element.Type,
                 t.Rank,
+                t.Sizes,
+                t.LowerBounds,
                 t.BaseTypeNoUseSiteDiagnostics,
-                interfaces,
                 element.CustomModifiers);
         }
 

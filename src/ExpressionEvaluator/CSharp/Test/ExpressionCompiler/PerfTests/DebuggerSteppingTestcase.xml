@@ -2,7 +2,7 @@
 <TaoTest xmlns="http://microsoft.com/schemas/VSLanguages/TAO">
   <InitTest>
     <StartTarget />
-    <OpenProject ProjectFile="$(WorkingDir)\..\..\LegacyTest\RealworldProjects\RoslynSolutions\Roslyn.sln" DeleteSuoFileBeforeOpening="true" DeleteIDECacheBeforeOpening="true"/>
+    <OpenProject ProjectFile="C:\Roslyn\LegacyTest\RealworldProjects\RoslynSolutions\Roslyn.sln" DeleteSuoFileBeforeOpening="true" DeleteIDECacheBeforeOpening="true"/>
   </InitTest>
   <ScenarioList>
     <Scenario Name="Step through Roslyn.sln">

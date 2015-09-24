@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.DocumentationCommentFormatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -151,6 +152,25 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 AddOverloadCountPart(symbols);
                 FixAllAnonymousTypes(symbols[0]);
+                AddExceptions(symbols[0]);
+            }
+
+            private void AddExceptions(ISymbol symbol)
+            {
+                var exceptionTypes = symbol.GetDocumentationComment().ExceptionTypes;
+                if (exceptionTypes.Any())
+                {
+                    var parts = new List<SymbolDisplayPart>();
+                    parts.Add(new SymbolDisplayPart(kind: SymbolDisplayPartKind.Text, symbol: null, text: $"\r\n{WorkspacesResources.Exceptions}"));
+                    foreach (var exceptionString in exceptionTypes)
+                    {
+                        parts.AddRange(LineBreak());
+                        parts.AddRange(Space(count: 2));
+                        parts.AddRange(AbstractDocumentationCommentFormattingService.CrefToSymbolDisplayParts(exceptionString, _position, _semanticModel));
+                    }
+
+                    AddToGroup(SymbolDescriptionGroups.Exceptions, parts);
+                }
             }
 
             public async Task<ImmutableArray<SymbolDisplayPart>> BuildDescriptionAsync(
