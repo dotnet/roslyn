@@ -27,6 +27,7 @@
     "System.Runtime.Serialization.Json": "4.0.1-beta-23321",
     "System.Security.Cryptography.Hashing.Algorithms": "4.0.0-beta-23311",
     "System.Text.Encoding": "4.0.11-beta-23321",
+    "System.Text.Encoding.CodePages": "4.0.1-beta-23321",
     "System.Text.Encoding.Extensions": "4.0.11-beta-23321",
     "System.Threading": "4.0.11-beta-23321",
     "System.Threading.Tasks": "4.0.11-beta-23321",

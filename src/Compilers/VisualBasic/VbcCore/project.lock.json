@@ -582,6 +582,15 @@
           "lib/DNXCore50/System.Text.Encoding.dll": {}
         }
       },
+      "System.Text.Encoding.CodePages/4.0.1-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )",
+          "System.Text.Encoding": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Text.Encoding.CodePages.dll": {}
+        }
+      },
       "System.Text.Encoding.Extensions/4.0.11-beta-23321": {
         "dependencies": {
           "System.Runtime": "[4.0.0, )",
@@ -938,6 +947,27 @@
         },
         "runtime": {
           "lib/dotnet/System.Private.Uri.dll": {}
+        }
+      },
+      "runtime.unix.System.Text.Encoding.CodePages/4.0.1-beta-23321": {
+        "dependencies": {
+          "System.Collections": "[4.0.10, )",
+          "System.Globalization": "[4.0.10, )",
+          "System.IO": "[4.0.10, )",
+          "System.Reflection": "[4.0.10, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Runtime.Extensions": "[4.0.10, )",
+          "System.Runtime.Handles": "[4.0.0, )",
+          "System.Runtime.InteropServices": "[4.0.20, )",
+          "System.Text.Encoding": "[4.0.10, )",
+          "System.Threading": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet/_._": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.Text.Encoding.CodePages.dll": {}
         }
       },
       "runtime.unix.System.Threading/4.0.11-beta-23321": {
@@ -1508,6 +1538,15 @@
           "lib/DNXCore50/System.Text.Encoding.dll": {}
         }
       },
+      "System.Text.Encoding.CodePages/4.0.1-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )",
+          "System.Text.Encoding": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Text.Encoding.CodePages.dll": {}
+        }
+      },
       "System.Text.Encoding.Extensions/4.0.11-beta-23321": {
         "dependencies": {
           "System.Runtime": "[4.0.0, )",
@@ -2026,6 +2065,27 @@
         },
         "runtime": {
           "lib/DNXCore50/System.Runtime.Extensions.dll": {}
+        }
+      },
+      "runtime.win7.System.Text.Encoding.CodePages/4.0.1-beta-23321": {
+        "dependencies": {
+          "System.Collections": "[4.0.10, )",
+          "System.Globalization": "[4.0.10, )",
+          "System.IO": "[4.0.10, )",
+          "System.Reflection": "[4.0.10, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Runtime.Extensions": "[4.0.10, )",
+          "System.Runtime.Handles": "[4.0.0, )",
+          "System.Runtime.InteropServices": "[4.0.20, )",
+          "System.Text.Encoding": "[4.0.10, )",
+          "System.Threading": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet/_._": {}
+        },
+        "runtime": {
+          "runtimes/win7/lib/dotnet/System.Text.Encoding.CodePages.dll": {}
         }
       },
       "runtime.win7.System.Threading/4.0.11-beta-23321": {
@@ -2596,6 +2656,15 @@
           "lib/DNXCore50/System.Text.Encoding.dll": {}
         }
       },
+      "System.Text.Encoding.CodePages/4.0.1-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )",
+          "System.Text.Encoding": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Text.Encoding.CodePages.dll": {}
+        }
+      },
       "System.Text.Encoding.Extensions/4.0.11-beta-23321": {
         "dependencies": {
           "System.Runtime": "[4.0.0, )",
@@ -3014,6 +3083,18 @@
         "runtime.unix.System.Private.Uri.nuspec"
       ]
     },
+    "runtime.unix.System.Text.Encoding.CodePages/4.0.1-beta-23321": {
+      "sha512": "ZZS7hqjzl5l0xtJzr/WmK+4Q2Vrr3RcI0KjCNARH2GT2Zcj0Hsnm1Fd+5M9eOg36YbSjy3ZNVn7JbH/Q7ioPEA==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/dotnet/System.Text.Encoding.CodePages.dll",
+        "package/services/metadata/core-properties/3da52d6f11ac4de8b21b1c4988e87d14.psmdcp",
+        "ref/dotnet/_._",
+        "runtime.unix.System.Text.Encoding.CodePages.nuspec"
+      ]
+    },
     "runtime.unix.System.Threading/4.0.11-beta-23321": {
       "sha512": "QlIzt08mk+SpmK8PuZJA+H0UfgAurvw5vRcAQImrVxKezS+ILuQ3YTkwQ/Q79koGHfgeFjWMdjYCSGY2KrfVDQ==",
       "type": "Package",
@@ -3422,6 +3503,31 @@
         "runtimes/win8-aot/lib/netcore50/System.Runtime.Extensions.xml",
         "runtimes/win8-aot/lib/netcore50/zh-hans/System.Runtime.Extensions.xml",
         "runtimes/win8-aot/lib/netcore50/zh-hant/System.Runtime.Extensions.xml"
+      ]
+    },
+    "runtime.win7.System.Text.Encoding.CodePages/4.0.1-beta-23321": {
+      "sha512": "0XPZ3FG5C/jV/uzM7YY9ZcdbBMyU3Bh1VmT3v0/EaTQllb9r7+oTy2egWyCdgiFDDKpdfiERVw9EJGQQA3nTDA==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/win8/_._",
+        "lib/wp8/_._",
+        "lib/wpa81/_._",
+        "package/services/metadata/core-properties/b4379f524aba4b37927aad12501a01d3.psmdcp",
+        "ref/dotnet/_._",
+        "runtime.win7.System.Text.Encoding.CodePages.nuspec",
+        "runtimes/win7/lib/dotnet/de/System.Text.Encoding.CodePages.xml",
+        "runtimes/win7/lib/dotnet/es/System.Text.Encoding.CodePages.xml",
+        "runtimes/win7/lib/dotnet/fr/System.Text.Encoding.CodePages.xml",
+        "runtimes/win7/lib/dotnet/it/System.Text.Encoding.CodePages.xml",
+        "runtimes/win7/lib/dotnet/ja/System.Text.Encoding.CodePages.xml",
+        "runtimes/win7/lib/dotnet/ko/System.Text.Encoding.CodePages.xml",
+        "runtimes/win7/lib/dotnet/ru/System.Text.Encoding.CodePages.xml",
+        "runtimes/win7/lib/dotnet/System.Text.Encoding.CodePages.dll",
+        "runtimes/win7/lib/dotnet/System.Text.Encoding.CodePages.xml",
+        "runtimes/win7/lib/dotnet/zh-hans/System.Text.Encoding.CodePages.xml",
+        "runtimes/win7/lib/dotnet/zh-hant/System.Text.Encoding.CodePages.xml"
       ]
     },
     "runtime.win7.System.Threading/4.0.11-beta-23321": {
@@ -4809,6 +4915,26 @@
         "System.Text.Encoding.nuspec"
       ]
     },
+    "System.Text.Encoding.CodePages/4.0.1-beta-23321": {
+      "sha512": "2wTRNrgvdymVYnGfQJFf28UX8N+JipXBZjdLMoecCw5eIVel7ffKYlzQKFbHFmZ8RIxLsjhsr1oEn542acsd/Q==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "package/services/metadata/core-properties/ea1d25d85d6a4287a5f88d11ba69be14.psmdcp",
+        "ref/dotnet/System.Text.Encoding.CodePages.dll",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "runtime.json",
+        "System.Text.Encoding.CodePages.nuspec"
+      ]
+    },
     "System.Text.Encoding.Extensions/4.0.11-beta-23321": {
       "sha512": "DfR8dxgjAyrPeFGLG+O9mLvC5eP76hMMLrOsBMqVBnfwxSa/TYjlNfjluR+bHI/qQZ/W0JELViC93lNX9LGsSQ==",
       "type": "Package",
@@ -5193,6 +5319,7 @@
       "System.Runtime.Serialization.Json >= 4.0.1-beta-23321",
       "System.Security.Cryptography.Hashing.Algorithms >= 4.0.0-beta-23311",
       "System.Text.Encoding >= 4.0.11-beta-23321",
+      "System.Text.Encoding.CodePages >= 4.0.1-beta-23321",
       "System.Text.Encoding.Extensions >= 4.0.11-beta-23321",
       "System.Threading >= 4.0.11-beta-23321",
       "System.Threading.Tasks >= 4.0.11-beta-23321",
