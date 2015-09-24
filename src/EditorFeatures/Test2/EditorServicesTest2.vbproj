@@ -168,6 +168,7 @@
     <Compile Include="CallHierarchy\CallHierarchyTests.vb" />
     <Compile Include="Diagnostics\InMemoryAssemblyLoader.vb" />
     <Compile Include="Diagnostics\UseAutoProperty\UseAutoPropertyTests.vb" />
+    <Compile Include="GoToImplementation\GoToImplementationTests.vb" />
     <Compile Include="LanguageServices\SyntaxFactsServiceTests.vb" />
     <Compile Include="Simplification\SimplifierAPITests.vb" />
     <Compile Include="Utilities\GoToHelpers\GoToTestHelpers.vb" />
