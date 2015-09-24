@@ -4,9 +4,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Semantics;
-using Roslyn.Diagnostics.Analyzers;
 
-namespace Microsoft.CodeAnalysis.Reliability
+namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
     // These analyzers are not intended for any actual use. They exist solely to test IOperation support.
 
@@ -16,8 +15,8 @@ namespace Microsoft.CodeAnalysis.Reliability
         /// <summary>Diagnostic category "Reliability".</summary>
         private const string ReliabilityCategory = "Reliability";
 
-        internal static readonly DiagnosticDescriptor BigForDescriptor = new DiagnosticDescriptor(
-            "OTA1",
+        public static readonly DiagnosticDescriptor BigForDescriptor = new DiagnosticDescriptor(
+            "BigForRule",
             "Big For Loop",
             "For loop iterates more than one million times",
             ReliabilityCategory,
@@ -172,8 +171,8 @@ namespace Microsoft.CodeAnalysis.Reliability
         /// <summary>Diagnostic category "Reliability".</summary>
         private const string ReliabilityCategory = "Reliability";
 
-        internal static readonly DiagnosticDescriptor SparseSwitchDescriptor = new DiagnosticDescriptor(
-            "OTA2",
+        public static readonly DiagnosticDescriptor SparseSwitchDescriptor = new DiagnosticDescriptor(
+            "SparseSwitchRule",
             "Sparse switch",
             "Switch has less than one percept density",
             ReliabilityCategory,
@@ -295,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Reliability
                      long span = maxCaseValue - minCaseValue + 1;
                      if (caseValueCount == 0 || span / caseValueCount > 100)
                      {
-                         Report(operationContext, switchOperation.Syntax, SparseSwitchDescriptor);
+                         Report(operationContext, switchOperation.Value.Syntax, SparseSwitchDescriptor);
                      }
                  },
                  OperationKind.SwitchStatement);
@@ -328,16 +327,16 @@ namespace Microsoft.CodeAnalysis.Reliability
         /// <summary>Diagnostic category "Reliability".</summary>
         private const string ReliabilityCategory = "Reliability";
 
-        internal static readonly DiagnosticDescriptor BigParamarrayArgumentsDescriptor = new DiagnosticDescriptor(
-            "OTA3",
+        public static readonly DiagnosticDescriptor BigParamarrayArgumentsDescriptor = new DiagnosticDescriptor(
+            "BigParamarrayRule",
             "Big Paramarray",
             "Paramarray has more than 10 elements",
             ReliabilityCategory,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        internal static readonly DiagnosticDescriptor OutOfNumericalOrderArgumentsDescriptor = new DiagnosticDescriptor(
-            "OTA4",
+        public static readonly DiagnosticDescriptor OutOfNumericalOrderArgumentsDescriptor = new DiagnosticDescriptor(
+            "OutOfOrderArgumentsRule",
             "Out of order arguments",
             "Argument values are not in increasing order",
             ReliabilityCategory,
