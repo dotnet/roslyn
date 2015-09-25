@@ -33,8 +33,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 var isGlobalSuppression = NestedSuppressionCodeAction.IsEquivalenceKeyForGlobalSuppression(fixAllContext.CodeActionEquivalenceKey);
                 if (!isGlobalSuppression)
                 {
-                    // Pragma warning fix all.
-                    batchFixer = new PragmaWarningBatchFixAllProvider(suppressionFixer);
+                    var isPragmaWarningSuppression = NestedSuppressionCodeAction.IsEquivalenceKeyForPragmaWarning(fixAllContext.CodeActionEquivalenceKey);
+                    Contract.ThrowIfFalse(isPragmaWarningSuppression || NestedSuppressionCodeAction.IsEquivalenceKeyForRemoveSuppression(fixAllContext.CodeActionEquivalenceKey));
+
+                    batchFixer = isPragmaWarningSuppression ?
+                        new PragmaWarningBatchFixAllProvider(suppressionFixer) :
+                        RemoveSuppressionCodeAction.GetBatchFixer(suppressionFixer);
                 }
 
                 var title = fixAllContext.CodeActionEquivalenceKey;

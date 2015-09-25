@@ -125,8 +125,8 @@ class Class
 {{
     void Method()
     {{
+        // Start comment previous line
 #pragma warning disable CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
-                              // Start comment previous line
                               /* Start comment same line */
         int x = 0; // End comment same line
 #pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
@@ -296,9 +296,9 @@ class Class
     void Method()
     {{
 
+        // Comment
+        // Comment
 #pragma warning disable CS1633 // {CSharpResources.WRN_IllegalPragma_Title}
-                              // Comment
-                              // Comment
 #pragma abcde
 
     }}    // Comment   
@@ -325,7 +325,7 @@ class Class
                 public void TestPragmaWarningDirectiveAroundTrivia3()
                 {
                     Test(
-        @"  [|#pragma abcde|]  ",
+        @"[|#pragma abcde|]  ",
         $@"#pragma warning disable CS1633 // {CSharpResources.WRN_IllegalPragma_Title}
 #pragma abcde  
 #pragma warning restore CS1633 // {CSharpResources.WRN_IllegalPragma_Title}");

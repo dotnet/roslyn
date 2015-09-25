@@ -107,6 +107,13 @@
     <Compile Include="CodeFixes\FixAllOccurrences\IFixAllGetFixesService.cs" />
     <Compile Include="CodeFixes\Iterator\AbstractIteratorCodeFixProvider.cs" />
     <Compile Include="CodeFixes\PredefinedCodeFixProviderNames.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.IPragmaBasedCodeAction.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.PragmaBatchFixHelpers.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.PragmaHelpers.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.RemoveSuppressionCodeAction.BatchFixer.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.RemoveSuppressionCodeAction_Attribute.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.RemoveSuppressionCodeAction_Pragma.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.RemoveSuppressionCodeAction.cs" />
     <Compile Include="CodeFixes\Suppression\SuppressionHelpers.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.AbstractSuppressionCodeAction.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.FixAllProvider.cs" />
