@@ -89,6 +89,9 @@
     <Compile Include="..\..\..\Compilers\Helpers\AbstractAnalyzerAssemblyLoader.cs">
       <Link>AbstractAnalyzerAssemblyLoader.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Helpers\AnalyzerAssemblyLoadUtils.cs">
+      <Link>AnalyzerAssemblyLoadUtils.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Helpers\SimpleAnalyzerAssemblyLoader.cs">
       <Link>SimpleAnalyzerAssemblyLoader.cs</Link>
     </Compile>
