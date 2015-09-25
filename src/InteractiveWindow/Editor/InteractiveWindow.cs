@@ -376,8 +376,17 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         bool IInteractiveWindowOperations.Return()
         {
             return UIThread(uiOnly => uiOnly.Return());
+        }   
+
+        void IInteractiveWindowOperations2.DeleteLine()
+        {
+            UIThread(uiOnly => uiOnly.DeleteLine());
         }
 
+        void IInteractiveWindowOperations2.CutLine()
+        {
+            UIThread(uiOnly => uiOnly.CutLine());
+        }
         #endregion
 
         #region Command Debugging
@@ -532,9 +541,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             Dispatcher.PushFrame(frame);
         }
 
-#endregion
+        #endregion
 
-#region Testing
+        #region Testing
 
         internal event Action<State> StateChanged;
 
