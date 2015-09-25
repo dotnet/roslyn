@@ -34,15 +34,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             context.RegisterOperationAction(
                  (operationContext) =>
                  {
-                     ILoop loop = (ILoop)operationContext.Operation;
+                     ILoopStatement loop = (ILoopStatement)operationContext.Operation;
                      if (loop.LoopKind == LoopKind.For)
                      {
-                         IFor forLoop = (IFor)loop;
+                         IForLoopStatement forLoop = (IForLoopStatement)loop;
                          IExpression forCondition = forLoop.Condition;
 
                          if (forCondition.Kind == OperationKind.RelationalOperator)
                          {
-                             IRelational condition = (IRelational)forCondition;
+                             IRelationalOperatorExpression condition = (IRelationalOperatorExpression)forCondition;
                              IExpression conditionLeft = condition.Left;
                              IExpression conditionRight = condition.Right;
 
@@ -53,16 +53,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                  // Test is known to be a comparison of a local against a constant.
 
                                  int testValue = (int)conditionRight.ConstantValue;
-                                 ILocalSymbol testVariable = ((ILocalReference)conditionLeft).Local;
+                                 ILocalSymbol testVariable = ((ILocalReferenceExpression)conditionLeft).Local;
 
                                  if (forLoop.Before.Length == 1)
                                  {
                                      IStatement setup = forLoop.Before[0];
                                      if (setup.Kind == OperationKind.ExpressionStatement && ((IExpressionStatement)setup).Expression.Kind == OperationKind.Assignment)
                                      {
-                                         IAssignment setupAssignment = (IAssignment)((IExpressionStatement)setup).Expression;
+                                         IAssignmentExpression setupAssignment = (IAssignmentExpression)((IExpressionStatement)setup).Expression;
                                          if (setupAssignment.Target.Kind == OperationKind.LocalReference &&
-                                             ((ILocalReference)setupAssignment.Target).Local == testVariable &&
+                                             ((ILocalReferenceExpression)setupAssignment.Target).Local == testVariable &&
                                              setupAssignment.Value.ConstantValue != null &&
                                              setupAssignment.Value.ResultType.SpecialType == SpecialType.System_Int32)
                                          {
@@ -81,19 +81,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
                                                      if (advanceExpression.Kind == OperationKind.Assignment)
                                                      {
-                                                         IAssignment advanceAssignment = (IAssignment)advanceExpression;
+                                                         IAssignmentExpression advanceAssignment = (IAssignmentExpression)advanceExpression;
 
                                                          if (advanceAssignment.Target.Kind == OperationKind.LocalReference &&
-                                                             ((ILocalReference)advanceAssignment.Target).Local == testVariable &&
+                                                             ((ILocalReferenceExpression)advanceAssignment.Target).Local == testVariable &&
                                                              advanceAssignment.Value.Kind == OperationKind.BinaryOperator &&
                                                              advanceAssignment.Value.ResultType.SpecialType == SpecialType.System_Int32)
                                                          {
                                                              // Advance is known to be an assignment of a binary operation to the local used in the test.
 
-                                                             IBinary advanceOperation = (IBinary)advanceAssignment.Value;
+                                                             IBinaryOperatorExpression advanceOperation = (IBinaryOperatorExpression)advanceAssignment.Value;
                                                              if (!advanceOperation.UsesOperatorMethod &&
                                                                  advanceOperation.Left.Kind == OperationKind.LocalReference &&
-                                                                 ((ILocalReference)advanceOperation.Left).Local == testVariable &&
+                                                                 ((ILocalReferenceExpression)advanceOperation.Left).Local == testVariable &&
                                                                  advanceOperation.Right.ConstantValue != null &&
                                                                  advanceOperation.Right.ResultType.SpecialType == SpecialType.System_Int32)
                                                              {
@@ -105,10 +105,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                                      }
                                                      else if (advanceExpression.Kind == OperationKind.CompoundAssignment || advanceExpression.Kind == OperationKind.Increment)
                                                      {
-                                                         ICompoundAssignment advanceAssignment = (ICompoundAssignment)advanceExpression;
+                                                         ICompoundAssignmentExpression advanceAssignment = (ICompoundAssignmentExpression)advanceExpression;
 
                                                          if (advanceAssignment.Target.Kind == OperationKind.LocalReference &&
-                                                             ((ILocalReference)advanceAssignment.Target).Local == testVariable &&
+                                                             ((ILocalReferenceExpression)advanceAssignment.Target).Local == testVariable &&
                                                              advanceAssignment.Value.ConstantValue != null &&
                                                              advanceAssignment.Value.ResultType.SpecialType == SpecialType.System_Int32)
                                                          {
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             context.RegisterOperationAction(
                  (operationContext) =>
                  {
-                     ISwitch switchOperation = (ISwitch)operationContext.Operation;
+                     ISwitchStatement switchOperation = (ISwitchStatement)operationContext.Operation;
                      long minCaseValue = long.MaxValue;
                      long maxCaseValue = long.MinValue;
                      long caseValueCount = 0;
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             context.RegisterOperationAction(
                  (operationContext) =>
                  {
-                     IInvocation invocation = (IInvocation)operationContext.Operation;
+                     IInvocationExpression invocation = (IInvocationExpression)operationContext.Operation;
                      long priorArgumentValue = long.MinValue;
                      foreach (IArgument argument in invocation.ArgumentsInParameterOrder)
                      {
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                          
                          if (argument.Kind == ArgumentKind.ParamArray)
                          {
-                             IArrayCreation arrayArgument = argument.Value as IArrayCreation;
+                             IArrayCreationExpression arrayArgument = argument.Value as IArrayCreationExpression;
                              if (arrayArgument != null && arrayArgument.ElementValues.ArrayClass == ArrayInitializerKind.Dimension)
                              {
                                  IDimensionArrayInitializer dimension = arrayArgument.ElementValues as IDimensionArrayInitializer;

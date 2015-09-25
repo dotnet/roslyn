@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a block scope.
     /// </summary>
-    public interface IBlock : IStatement
+    public interface IBlockStatement : IStatement
     {
         /// <summary>
         /// Statements contained within the block.
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a local variable declaration statement.
     /// </summary>
-    public interface IVariableDeclaration : IStatement
+    public interface IVariableDeclarationStatement : IStatement
     {
         /// <summary>
         /// Variables declared by the statement.
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# switch or VB Select Case statement.
     /// </summary>
-    public interface ISwitch : IStatement
+    public interface ISwitchStatement : IStatement
     {
         /// <summary>
         /// Value to be switched upon.
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an if statement in C# or an If statement in VB.
     /// </summary>
-    public interface IIf : IStatement
+    public interface IIfStatement : IStatement
     {
         /// <summary>
         /// Clauses of the if. For C# there is one clause per if, but for VB there can be multiple.
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# while, for, foreach, or do statement, or a VB While, For, For Each, or Do statement.
     /// </summary>
-    public interface ILoop : IStatement
+    public interface ILoopStatement : IStatement
     {
         /// <summary>
         /// Kind of the loop.
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# while, for, or do statement, or a VB While, For, or Do statement.
     /// </summary>
-    public interface IForWhileUntil : ILoop
+    public interface IForWhileUntilLoopStatement : ILoopStatement
     {
         /// <summary>
         /// Condition of the loop.
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# while or do statement, or a VB While or Do statement.
     /// </summary>
-    public interface IWhileUntil : IForWhileUntil
+    public interface IWhileUntilLoopStatement : IForWhileUntilLoopStatement
     {
         /// <summary>
         /// True if the loop test executes at the top of the loop; false if the loop test executes at the bottom of the loop.
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# for statement or a VB For statement.
     /// </summary>
-    public interface IFor : IForWhileUntil
+    public interface IForLoopStatement : IForWhileUntilLoopStatement
     {
         /// <summary>
         /// Statements to execute before entry to the loop. For C# these come from the first clause of the for statement. For VB these initialize the index variable of the For statement.
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# foreach statement or a VB For Each staement.
     /// </summary>
-    public interface IForEach : ILoop
+    public interface IForEachLoopStatement : ILoopStatement
     {
         /// <summary>
         /// Iteration variable of the loop.
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# or VB label statement.
     /// </summary>
-    public interface ILabel : IStatement
+    public interface ILabelStatement : IStatement
     {
         // Label that can be the target of branches.
         ILabelSymbol Label { get; }
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# label statement.
     /// </summary>
-    public interface ILabeled: ILabel
+    public interface ILabeledStatement : ILabelStatement
     {
         // Statement that has been labeled.
         IStatement Labeled { get; }
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# goto, break, or continue statement, or a VB GoTo, Exit ***, or Continue *** statement
     /// </summary>
-    public interface IBranch : IStatement
+    public interface IBranchStatement : IStatement
     {
         // Label that is the target of the branch.
         ILabelSymbol Target { get; }
@@ -313,16 +313,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# throw or a VB Throw statement.
     /// </summary>
-    public interface IThrow : IStatement
+    public interface IThrowStatement : IStatement
     {
         // Thrown expression.
         IExpression Thrown { get; }
     }
 
     /// <summary>
-    /// Represents a C# return of a VB Return statement.
+    /// Represents a C# return or a VB Return statement.
     /// </summary>
-    public interface IReturn : IStatement
+    public interface IReturnStatement : IStatement
     {
         /// <summary>
         /// Value to be returned.
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# lock or a VB SyncLock statement.
     /// </summary>
-    public interface ILock : IStatement
+    public interface ILockStatement : IStatement
     {
         /// <summary>
         /// Value to be locked.
@@ -348,12 +348,12 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# try or a VB Try statement.
     /// </summary>
-    public interface ITry: IStatement
+    public interface ITryStatement : IStatement
     {
         /// <summary>
         /// Body of the try, over which the handlers are active.
         /// </summary>
-        IBlock Body { get; }
+        IBlockStatement Body { get; }
         /// <summary>
         /// Catch clauses of the try.
         /// </summary>
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Finally handler of the try.
         /// </summary>
-        IBlock FinallyHandler { get; }
+        IBlockStatement FinallyHandler { get; }
     }
 
     /// <summary>
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Body of the exception handler.
         /// </summary>
-        IBlock Handler { get; }
+        IBlockStatement Handler { get; }
         /// <summary>
         /// Type of exception to be handled.
         /// </summary>
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# using or VB Using statement.
     /// </summary>
-    public interface IUsing : IStatement
+    public interface IUsingStatement : IStatement
     {
         /// <summary>
         /// Body of the using, over which the resources of the using are maintained.
@@ -401,18 +401,18 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# using or VB Using statement that declares one or more local variables for the resources held by the using.
     /// </summary>
-    public interface IUsingWithDeclaration : IUsing
+    public interface IUsingWithDeclarationStatement : IUsingStatement
     {
         /// <summary>
         /// Variables declared by the using.
         /// </summary>
-        IVariableDeclaration Variables { get; }
+        IVariableDeclarationStatement Variables { get; }
     }
 
     /// <summary>
     /// Represents a C# using or VB Using statement that uses an expression for the resource held by the using.
     /// </summary>
-    public interface IUsingWithExpression : IUsing
+    public interface IUsingWithExpressionStatement : IUsingStatement
     {
         /// <summary>
         /// Resource held by the using.
@@ -423,12 +423,12 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# fixed staement.
     /// </summary>
-    public interface IFixed : IStatement
+    public interface IFixedStatement : IStatement
     {
         /// <summary>
         /// Variables to be fixed.
         /// </summary>
-        IVariableDeclaration Variables { get; }
+        IVariableDeclarationStatement Variables { get; }
         /// <summary>
         /// Body of the fixed, over which the variables are fixed.
         /// </summary>
@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a VB With statement.
     /// </summary>
-    public interface IWith : IStatement
+    public interface IWithStatement : IStatement
     {
         /// <summary>
         /// Body of the with.
