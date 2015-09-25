@@ -166,7 +166,7 @@ Module Program
 End Module
 </File>
 
-            Test(initial, expected, compareTokens:=True)
+            Test(initial, expected, compareTokens:=False)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
@@ -240,7 +240,7 @@ Module Program
 End Module
 </File>
 
-            Test(initial, expected, compareTokens:=True)
+            Test(initial, expected, compareTokens:=False)
         End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
