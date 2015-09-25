@@ -9245,6 +9245,75 @@ End Class
 ]]>)
         End Sub
 
+        <Fact>
+        Public Sub PublicParameterlessConstructorInMetadata_Private_D()
+            Dim ilSource = <![CDATA[
+.class public sequential ansi sealed beforefieldinit S
+       extends [mscorlib]System.ValueType
+{
+  .pack 0
+  .size 1
+
+  .method private hidebysig specialname rtspecialname 
+        instance void  .ctor() cil managed
+  {
+    ret
+  }
+}
+]]>
+
+            Dim vbSource =
+<compilation>
+    <file name="a.vb">
+Option Infer Off
+Class C
+    Shared Sub Main()
+        Dim s As S = New S()
+        s = Nothing
+        s = New S()
+        SS(Nothing)
+        SS(New S())
+        Dim a = (New S()).ToString()
+        s = DirectCast(Nothing, S)
+    End Sub
+    Shared Sub SS(s As S)
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDebugDll).
+                VerifyIL("C.Main",
+            <![CDATA[
+{
+  // Code size       60 (0x3c)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloc.0
+  IL_0009:  call       "Sub C.SS(S)"
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  initobj    "S"
+  IL_0016:  ldloc.0
+  IL_0017:  call       "Sub C.SS(S)"
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  initobj    "S"
+  IL_0024:  ldloc.0
+  IL_0025:  stloc.0
+  IL_0026:  ldloca.s   V_0
+  IL_0028:  constrained. "S"
+  IL_002e:  callvirt   "Function System.ValueType.ToString() As String"
+  IL_0033:  pop
+  IL_0034:  ldnull
+  IL_0035:  unbox.any  "S"
+  IL_003a:  pop
+  IL_003b:  ret
+}
+]]>)
+        End Sub
+
+
         <WorkItem(541308, "DevDiv")>
         <Fact>
         Public Sub PublicParameterlessConstructorInMetadata_OptionalParameter()
@@ -10611,6 +10680,99 @@ True
 ]]>)
         End Sub
 
+        <Fact()>
+        Public Sub ArrayInitZero_D()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module Program
+    Sub Main()
+        Dim saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture
+        Try
+            Test()
+        Finally
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
+        End Try
+    End Sub
+
+    Sub Test()
+            ' no element inits
+            Dim arrB1 = new boolean() {false, false, false}
+            System.Console.WriteLine(arrB1(0))
+
+            ' no element inits
+            Dim arrE1 = new Exception() {Nothing, Nothing, Nothing}
+            System.Console.WriteLine(arrE1(0))
+
+            ' 1 element init
+            Dim arrB2 = new boolean() {false, true, false}
+            System.Console.WriteLine(arrB2(1))
+
+            ' 1 element init
+            Dim arrE2 = new Exception() {Nothing, new Exception(), Nothing, Nothing, Nothing, Nothing, Nothing}
+            System.Console.WriteLine(arrE2(1))
+
+            ' blob init
+            Dim arrB3 = new boolean() {true, false, true, true}
+            System.Console.WriteLine(arrB3(2))
+
+    End Sub
+End Module
+    </file>
+</compilation>, options:=TestOptions.ReleaseDebugExe.WithModuleName("MODULE"), expectedOutput:=<![CDATA[False
+
+True
+System.Exception: Exception of type 'System.Exception' was thrown.
+True
+]]>).
+            VerifyIL("Program.Test",
+            <![CDATA[
+{
+  // Code size       89 (0x59)
+  .maxstack  4
+  IL_0000:  ldc.i4.3
+  IL_0001:  newarr     "Boolean"
+  IL_0006:  ldc.i4.0
+  IL_0007:  ldelem.u1
+  IL_0008:  call       "Sub System.Console.WriteLine(Boolean)"
+  IL_000d:  ldc.i4.3
+  IL_000e:  newarr     "System.Exception"
+  IL_0013:  ldc.i4.0
+  IL_0014:  ldelem.ref
+  IL_0015:  call       "Sub System.Console.WriteLine(Object)"
+  IL_001a:  ldc.i4.3
+  IL_001b:  newarr     "Boolean"
+  IL_0020:  dup
+  IL_0021:  ldc.i4.1
+  IL_0022:  ldc.i4.1
+  IL_0023:  stelem.i1
+  IL_0024:  ldc.i4.1
+  IL_0025:  ldelem.u1
+  IL_0026:  call       "Sub System.Console.WriteLine(Boolean)"
+  IL_002b:  ldc.i4.7
+  IL_002c:  newarr     "System.Exception"
+  IL_0031:  dup
+  IL_0032:  ldc.i4.1
+  IL_0033:  newobj     "Sub System.Exception..ctor()"
+  IL_0038:  stelem.ref
+  IL_0039:  ldc.i4.1
+  IL_003a:  ldelem.ref
+  IL_003b:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0040:  ldc.i4.4
+  IL_0041:  newarr     "Boolean"
+  IL_0046:  dup
+  IL_0047:  ldtoken    "Integer <PrivateImplementationDetails>.35CCB1599F52363510686EF38B7DB5E7998DB108"
+  IL_004c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
+  IL_0051:  ldc.i4.2
+  IL_0052:  ldelem.u1
+  IL_0053:  call       "Sub System.Console.WriteLine(Boolean)"
+  IL_0058:  ret
+}
+]]>)
+        End Sub
+
         <Fact, WorkItem(529162, "DevDiv")>
         Public Sub TestMSVBTypeNameAPI()
             Dim vbCompilation = CreateVisualBasicCompilation("TestMSVBTypeNameAPI",
@@ -11517,6 +11679,107 @@ End Module
 }
 ]]>)
         End Sub
+
+        <WorkItem(546422, "DevDiv")>
+        <Fact()>
+        Public Sub LateBindingToSystemArrayIndex01_D()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+option strict off        
+
+Imports System
+
+Module Module1
+    Sub Main()
+        Console.WriteLine(getTypes().Length)
+    End Sub
+
+    Function getTypes() As Array
+        Dim types As Array = {1, 2, 3, 4}
+        Dim s(types.Length - 1) As Object
+        Dim arr As Array
+        arr = Array.CreateInstance(New Integer.GetType, 12)
+        Dim i As Integer
+        For i = 0 To types.Length - 1
+            arr(i) = types.GetValue(i)
+        Next
+        Return arr
+    End Function
+
+End Module
+
+    </file>
+</compilation>, options:=TestOptions.ReleaseDebugExe.WithModuleName("MODULE"), expectedOutput:="12").
+            VerifyIL("Module1.getTypes",
+            <![CDATA[
+{
+  // Code size      118 (0x76)
+  .maxstack  6
+  .locals init (System.Array V_0, //types
+                System.Array V_1, //arr
+                Integer V_2, //i
+                Integer V_3,
+                Integer V_4)
+  IL_0000:  ldc.i4.4
+  IL_0001:  newarr     "Integer"
+  IL_0006:  dup
+  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.1456763F890A84558F99AFA687C36B9037697848"
+  IL_000c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
+  IL_0011:  stloc.0
+  IL_0012:  ldloc.0
+  IL_0013:  callvirt   "Function System.Array.get_Length() As Integer"
+  IL_0018:  ldc.i4.1
+  IL_0019:  sub.ovf
+  IL_001a:  ldc.i4.1
+  IL_001b:  add.ovf
+  IL_001c:  newarr     "Object"
+  IL_0021:  pop
+  IL_0022:  ldloca.s   V_3
+  IL_0024:  initobj    "Integer"
+  IL_002a:  ldloc.3
+  IL_002b:  box        "Integer"
+  IL_0030:  call       "Function Object.GetType() As System.Type"
+  IL_0035:  ldc.i4.s   12
+  IL_0037:  call       "Function System.Array.CreateInstance(System.Type, Integer) As System.Array"
+  IL_003c:  stloc.1
+  IL_003d:  ldloc.0
+  IL_003e:  callvirt   "Function System.Array.get_Length() As Integer"
+  IL_0043:  ldc.i4.1
+  IL_0044:  sub.ovf
+  IL_0045:  stloc.s    V_4
+  IL_0047:  ldc.i4.0
+  IL_0048:  stloc.2
+  IL_0049:  br.s       IL_006f
+  IL_004b:  ldloc.1
+  IL_004c:  ldc.i4.2
+  IL_004d:  newarr     "Object"
+  IL_0052:  dup
+  IL_0053:  ldc.i4.0
+  IL_0054:  ldloc.2
+  IL_0055:  box        "Integer"
+  IL_005a:  stelem.ref
+  IL_005b:  dup
+  IL_005c:  ldc.i4.1
+  IL_005d:  ldloc.0
+  IL_005e:  ldloc.2
+  IL_005f:  callvirt   "Function System.Array.GetValue(Integer) As Object"
+  IL_0064:  stelem.ref
+  IL_0065:  ldnull
+  IL_0066:  call       "Sub Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateIndexSet(Object, Object(), String())"
+  IL_006b:  ldloc.2
+  IL_006c:  ldc.i4.1
+  IL_006d:  add.ovf
+  IL_006e:  stloc.2
+  IL_006f:  ldloc.2
+  IL_0070:  ldloc.s    V_4
+  IL_0072:  ble.s      IL_004b
+  IL_0074:  ldloc.1
+  IL_0075:  ret
+}
+]]>)
+        End Sub
+
 
         <WorkItem(575547, "DevDiv")>
         <Fact()>
