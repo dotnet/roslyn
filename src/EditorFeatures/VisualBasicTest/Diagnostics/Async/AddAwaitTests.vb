@@ -166,7 +166,7 @@ Module Program
 End Module
 </File>
 
-            Test(initial, expected, compareTokens:=True)
+            Test(initial, expected, compareTokens:=False)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
@@ -240,7 +240,7 @@ Module Program
 End Module
 </File>
 
-            Test(initial, expected, compareTokens:=True)
+            Test(initial, expected, compareTokens:=False)
         End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
@@ -308,8 +308,8 @@ NewLines("Imports System.Threading.Tasks \n Module M \n Async Function A() As Ta
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Sub TestCastExpression()
             Test(
-NewLines("Imports System.Threading.Tasks \n Module M \n Async Function A() As Task(Of Integer) \n Return [|TryCast(Nothing, Task(Of Integer)|] \n End Function \n End Module"),
-NewLines("Imports System.Threading.Tasks \n Module M \n Async Function A() As Task(Of Integer) \n Return Await TryCast(Nothing, Task(Of Integer) \n End Function \n End Module"))
+NewLines("Imports System.Threading.Tasks \n Module M \n Async Function A() As Task(Of Integer) \n Return [|TryCast(Nothing, Task(Of Integer))|] \n End Function \n End Module"),
+NewLines("Imports System.Threading.Tasks \n Module M \n Async Function A() As Task(Of Integer) \n Return Await TryCast(Nothing, Task(Of Integer)) \n End Function \n End Module"))
         End Sub
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
