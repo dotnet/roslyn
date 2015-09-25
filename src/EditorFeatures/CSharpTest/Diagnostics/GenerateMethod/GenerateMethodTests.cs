@@ -2732,9 +2732,9 @@ namespace ConsoleApplication1
 
         [WorkItem(774321)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-        public void TestEquivalenceKey()
+        public void TestGenerateMethodEquivalenceKey()
         {
-            TestEquivalenceKeyWorker(
+            TestEquivalenceKey(
 @"class C { void M() { this.[|M1|](System.Exception.M2()); } } ",
 string.Format(FeaturesResources.GenerateMethodIn, "M1", "C"));
         }

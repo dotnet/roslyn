@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        protected void TestEquivalenceKeyWorker(string initialMarkup, string equivalenceKey)
+        protected void TestEquivalenceKey(string initialMarkup, string equivalenceKey)
         {
             using (var workspace = CreateWorkspaceFromFile(initialMarkup, parseOptions: null, compilationOptions: null))
             {
