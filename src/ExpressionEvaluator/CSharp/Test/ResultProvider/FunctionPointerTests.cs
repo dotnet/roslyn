@@ -52,22 +52,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     int* pfn;
 }";
             var assembly = GetUnsafeAssembly(source);
-            unsafe
+            const long ptr = 0x0;
+            GetMemberValueDelegate getMemberValue = (v, m) => (m == "pfn") ? GetFunctionPointerField(v, m) : null;
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(assembly), getMemberValue: getMemberValue);
+            using (runtime.Load())
             {
-                const long ptr = 0x0;
-                GetMemberValueDelegate getMemberValue = (v, m) => (m == "pfn") ? GetFunctionPointerField(v, m) : null;
-                var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(assembly), getMemberValue: getMemberValue);
-                using (runtime.Load())
-                {
-                    var type = runtime.GetType("C");
-                    var value = CreateDkmClrValue(type.Instantiate(ptr), type);
-                    var evalResult = FormatResult("o", value);
-                    Verify(evalResult,
-                        EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable, DkmEvaluationResultCategory.Other));
-                    var children = GetChildren(evalResult);
-                    Verify(children,
-                        EvalResult("pfn", PointerToString(new IntPtr(ptr)), "int*", "o.pfn", DkmEvaluationResultFlags.None, DkmEvaluationResultCategory.Other));
-                }
+                var type = runtime.GetType("C");
+                var value = CreateDkmClrValue(type.Instantiate(ptr), type);
+                var evalResult = FormatResult("o", value);
+                Verify(evalResult,
+                    EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable, DkmEvaluationResultCategory.Other));
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("pfn", PointerToString(new IntPtr(ptr)), "int*", "o.pfn", DkmEvaluationResultFlags.None, DkmEvaluationResultCategory.Other));
             }
         }
 
