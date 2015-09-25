@@ -29,7 +29,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             var menuCommandService = (IMenuCommandService)serviceProvider.GetService(typeof(IMenuCommandService));
             if (menuCommandService != null)
             {
-                AddSuppressionsCommandHandlers(menuCommandService);
+                // The Add/Remove suppression(s) have been moved to the VS code analysis layer, so we don't add the commands here.
+                
+                // TODO: Figure out how to access menu commands registered by CodeAnalysisPackage and 
+                //       add the commands here if we cannot find the new command(s) in the code analysis layer.
+                
+                // AddSuppressionsCommandHandlers(menuCommandService);
             }
         }
 
