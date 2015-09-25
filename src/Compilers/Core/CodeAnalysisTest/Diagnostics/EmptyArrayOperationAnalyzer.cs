@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             context.RegisterOperationAction(
                 (operationContext) =>
                     {
-                        IArrayCreation arrayCreation = (IArrayCreation)operationContext.Operation;
+                        IArrayCreationExpression arrayCreation = (IArrayCreationExpression)operationContext.Operation;
 
                         // ToDo: Need to suppress analysis of array creation expressions within attribute applications.
 

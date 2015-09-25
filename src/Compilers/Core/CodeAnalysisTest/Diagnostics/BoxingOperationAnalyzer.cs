@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
                      if (operation.Kind == OperationKind.Conversion)
                      {
-                         IConversion conversion = (IConversion)operation;
+                         IConversionExpression conversion = (IConversionExpression)operation;
                          if (conversion.ResultType.IsReferenceType &&
                              conversion.Operand.ResultType != null &&
                              conversion.Operand.ResultType.IsValueType &&
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      // Calls to instance methods of value types don’t have conversions.
                      if (operation.Kind == OperationKind.Invocation)
                      {
-                         IInvocation invocation = (IInvocation)operation;
+                         IInvocationExpression invocation = (IInvocationExpression)operation;
 
                          if (invocation.Instance != null &&
                              invocation.Instance.ResultType.IsValueType &&

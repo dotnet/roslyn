@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
     }
 
-    public class Relational : IRelational
+    public class Relational : IRelationalOperatorExpression
     {
         public Relational(RelationalOperationKind relationalKind, IExpression left, IExpression right, ITypeSymbol resultType, IMethodSymbol operatorMethod, SyntaxNode syntax)
         {
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public object ConstantValue => null;
     }
 
-    public class ConditionalChoice : IConditionalChoice
+    public class ConditionalChoice : IConditionalChoiceExpression
     {
         public ConditionalChoice(IExpression condition, IExpression ifTrue, IExpression ifFalse, ITypeSymbol resultType, SyntaxNode syntax)
         {
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly AssignmentExpression _assignment;
 
-        public Assignment(IReference target, IExpression value, SyntaxNode syntax)
+        public Assignment(IReferenceExpression target, IExpression value, SyntaxNode syntax)
         {
             _assignment = new AssignmentExpression(target, value, syntax);
             this.Syntax = syntax;
@@ -154,16 +154,16 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public IExpression Expression => _assignment;
 
-        class AssignmentExpression : IAssignment
+        class AssignmentExpression : IAssignmentExpression
         {
-            public AssignmentExpression(IReference target, IExpression value, SyntaxNode syntax)
+            public AssignmentExpression(IReferenceExpression target, IExpression value, SyntaxNode syntax)
             {
                 this.Value = value;
                 this.Target = target;
                 this.Syntax = syntax;
             }
 
-            public IReference Target { get; }
+            public IReferenceExpression Target { get; }
 
             public IExpression Value { get; }
 
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly CompoundAssignmentExpression _compoundAssignment;
 
-        public CompoundAssignment(IReference target, IExpression value, BinaryOperationKind binaryKind, IMethodSymbol operatorMethod, SyntaxNode syntax)
+        public CompoundAssignment(IReferenceExpression target, IExpression value, BinaryOperationKind binaryKind, IMethodSymbol operatorMethod, SyntaxNode syntax)
         {
             _compoundAssignment = new CompoundAssignmentExpression(target, value, binaryKind, operatorMethod, syntax);
             this.Syntax = syntax;
@@ -193,9 +193,9 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public IExpression Expression => _compoundAssignment;
 
-        class CompoundAssignmentExpression : ICompoundAssignment
+        class CompoundAssignmentExpression : ICompoundAssignmentExpression
         {
-            public CompoundAssignmentExpression(IReference target, IExpression value, BinaryOperationKind binaryKind, IMethodSymbol operatorMethod, SyntaxNode syntax)
+            public CompoundAssignmentExpression(IReferenceExpression target, IExpression value, BinaryOperationKind binaryKind, IMethodSymbol operatorMethod, SyntaxNode syntax)
             {
                 this.Target = target;
                 this.Value = value;
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 this.Syntax = syntax;
             }
 
-            public IReference Target { get; }
+            public IReferenceExpression Target { get; }
 
             public IExpression Value { get; }
 
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
     }
 
-    public class IntegerLiteral : ILiteral
+    public class IntegerLiteral : ILiteralExpression
     {
         private readonly long _value;
 
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public SyntaxNode Syntax { get; }
     }
 
-    internal class Literal : ILiteral
+    internal class Literal : ILiteralExpression
     {
         private readonly ConstantValue _value;
 
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public SyntaxNode Syntax { get; }
     }
 
-    public class Binary : IBinary
+    public class Binary : IBinaryOperatorExpression
     {
         public Binary(BinaryOperationKind binaryKind, IExpression left, IExpression right, ITypeSymbol resultType, SyntaxNode syntax)
         {
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public SyntaxNode Syntax { get; }
     }
 
-    public class ArrayCreation: IArrayCreation
+    public class ArrayCreation: IArrayCreationExpression
     {
         private readonly IArrayTypeSymbol _arrayType;
 

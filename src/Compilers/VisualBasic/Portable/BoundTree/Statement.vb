@@ -29,16 +29,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundIfStatement
-        Implements IIf
+        Implements IIfStatement
         Implements IIfClause
 
-        Private ReadOnly Property IElse As IStatement Implements IIf.Else
+        Private ReadOnly Property IElse As IStatement Implements IIfStatement.Else
             Get
                 Return Me.AlternativeOpt
             End Get
         End Property
 
-        Private ReadOnly Property IIfClauses As ImmutableArray(Of IIfClause) Implements IIf.IfClauses
+        Private ReadOnly Property IIfClauses As ImmutableArray(Of IIfClause) Implements IIfStatement.IfClauses
             Get
                 ' Apparently the VB bound trees do not preserve multi-clause if statements. This is disappointing.
                 Return ImmutableArray.Create(Of IIfClause)(Me)
@@ -64,15 +64,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundSelectStatement
-        Implements ISwitch
+        Implements ISwitchStatement
 
-        Private ReadOnly Property ICases As ImmutableArray(Of ICase) Implements ISwitch.Cases
+        Private ReadOnly Property ICases As ImmutableArray(Of ICase) Implements ISwitchStatement.Cases
             Get
                 Return Me.CaseBlocks.As(Of ICase)()
             End Get
         End Property
 
-        Private ReadOnly Property IValue As IExpression Implements ISwitch.Value
+        Private ReadOnly Property IValue As IExpression Implements ISwitchStatement.Value
             Get
                 Return Me.ExpressionStatement.Expression
             End Get
@@ -264,33 +264,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundDoLoopStatement
-        Implements IWhileUntil
+        Implements IWhileUntilLoopStatement
 
-        Private ReadOnly Property ICondition As IExpression Implements IForWhileUntil.Condition
+        Private ReadOnly Property ICondition As IExpression Implements IForWhileUntilLoopStatement.Condition
             Get
                 Return Me.ConditionOpt
             End Get
         End Property
 
-        Private ReadOnly Property IBody As IStatement Implements ILoop.Body
+        Private ReadOnly Property IBody As IStatement Implements ILoopStatement.Body
             Get
                 Return Me.Body
             End Get
         End Property
 
-        Private ReadOnly Property ILoopClass As LoopKind Implements ILoop.LoopKind
+        Private ReadOnly Property ILoopClass As LoopKind Implements ILoopStatement.LoopKind
             Get
                 Return LoopKind.WhileUntil
             End Get
         End Property
 
-        Private ReadOnly Property IIsTopTest As Boolean Implements IWhileUntil.IsTopTest
+        Private ReadOnly Property IIsTopTest As Boolean Implements IWhileUntilLoopStatement.IsTopTest
             Get
                 Return Me.ConditionIsTop
             End Get
         End Property
 
-        Private ReadOnly Property IIsWhile As Boolean Implements IWhileUntil.IsWhile
+        Private ReadOnly Property IIsWhile As Boolean Implements IWhileUntilLoopStatement.IsWhile
             Get
                 Return Not Me.ConditionIsUntil
             End Get
@@ -303,11 +303,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundForToStatement
-        Implements IFor
+        Implements IForLoopStatement
 
         Private Shared LoopBottomMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundForToStatement, Object)
 
-        Private ReadOnly Property IAtLoopBottom As ImmutableArray(Of IStatement) Implements IFor.AtLoopBottom
+        Private ReadOnly Property IAtLoopBottom As ImmutableArray(Of IStatement) Implements IForLoopStatement.AtLoopBottom
             Get
                 Dim result = LoopBottomMappings.GetValue(
                     Me,
@@ -317,7 +317,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If operators IsNot Nothing Then
                             ' Use the operator methods. Figure out the precise rules first.
                         Else
-                            Dim controlReference As IReference = TryCast(BoundFor.ControlVariable, IReference)
+                            Dim controlReference As IReferenceExpression = TryCast(BoundFor.ControlVariable, IReferenceExpression)
                             If controlReference IsNot Nothing Then
 
                                 ' ControlVariable += StepValue
@@ -343,7 +343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared LoopTopMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundForToStatement, Object)
 
-        Private ReadOnly Property IBefore As ImmutableArray(Of IStatement) Implements IFor.Before
+        Private ReadOnly Property IBefore As ImmutableArray(Of IStatement) Implements IForLoopStatement.Before
             Get
                 Dim result = LoopTopMappings.GetValue(
                     Me,
@@ -351,7 +351,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim statements As ArrayBuilder(Of IStatement) = ArrayBuilder(Of IStatement).GetInstance()
 
                         ' ControlVariable = InitialValue
-                        Dim controlReference As IReference = TryCast(BoundFor.ControlVariable, IReference)
+                        Dim controlReference As IReferenceExpression = TryCast(BoundFor.ControlVariable, IReferenceExpression)
                         If controlReference IsNot Nothing Then
                             statements.Add(New Assignment(controlReference, BoundFor.InitialValue, BoundFor.InitialValue.Syntax))
                         End If
@@ -373,7 +373,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property ILocals As ImmutableArray(Of ILocalSymbol) Implements IFor.Locals
+        Private ReadOnly Property ILocals As ImmutableArray(Of ILocalSymbol) Implements IForLoopStatement.Locals
             Get
                 Return ImmutableArray(Of ILocalSymbol).Empty
             End Get
@@ -381,7 +381,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared LoopConditionMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundForToStatement, IExpression)
 
-        Private ReadOnly Property ICondition As IExpression Implements IForWhileUntil.Condition
+        Private ReadOnly Property ICondition As IExpression Implements IForWhileUntilLoopStatement.Condition
             Get
                 Return LoopConditionMappings.GetValue(
                     Me,
@@ -421,13 +421,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IBody As IStatement Implements ILoop.Body
+        Private ReadOnly Property IBody As IStatement Implements ILoopStatement.Body
             Get
                 Return Me.Body
             End Get
         End Property
 
-        Private ReadOnly Property ILoopClass As LoopKind Implements ILoop.LoopKind
+        Private ReadOnly Property ILoopClass As LoopKind Implements ILoopStatement.LoopKind
             Get
                 Return LoopKind.For
             End Get
@@ -438,7 +438,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Class Temporary
-            Implements ISyntheticLocalReference
+            Implements ISyntheticLocalReferenceExpression
 
             Private _temporaryKind As SyntheticLocalKind
             Private _containingStatement As IStatement
@@ -474,19 +474,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Public ReadOnly Property ReferenceKind As ReferenceKind Implements IReference.ReferenceKind
+            Public ReadOnly Property ReferenceKind As ReferenceKind Implements IReferenceExpression.ReferenceKind
                 Get
                     Return ReferenceKind.SyntheticLocal
                 End Get
             End Property
 
-            Public ReadOnly Property ContainingStatement As IStatement Implements ISyntheticLocalReference.ContainingStatement
+            Public ReadOnly Property ContainingStatement As IStatement Implements ISyntheticLocalReferenceExpression.ContainingStatement
                 Get
                     Return Me._containingStatement
                 End Get
             End Property
 
-            Public ReadOnly Property SyntheticLocalKind As SyntheticLocalKind Implements ISyntheticLocalReference.SyntheticLocalKind
+            Public ReadOnly Property SyntheticLocalKind As SyntheticLocalKind Implements ISyntheticLocalReferenceExpression.SyntheticLocalKind
                 Get
                     Return Me._temporaryKind
                 End Get
@@ -495,11 +495,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundForEachStatement
-        Implements IForEach
+        Implements IForEachLoopStatement
 
-        Private ReadOnly Property IterationVariable As ILocalSymbol Implements IForEach.IterationVariable
+        Private ReadOnly Property IterationVariable As ILocalSymbol Implements IForEachLoopStatement.IterationVariable
             Get
-                Dim controlReference As ILocalReference = TryCast(Me.ControlVariable, ILocalReference)
+                Dim controlReference As ILocalReferenceExpression = TryCast(Me.ControlVariable, ILocalReferenceExpression)
                 If controlReference IsNot Nothing Then
                     Return controlReference.Local
                 End If
@@ -508,19 +508,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property LoopClass As LoopKind Implements ILoop.LoopKind
+        Private ReadOnly Property LoopClass As LoopKind Implements ILoopStatement.LoopKind
             Get
                 Return LoopKind.ForEach
             End Get
         End Property
 
-        Private ReadOnly Property IForEach_Collection As IExpression Implements IForEach.Collection
+        Private ReadOnly Property IForEach_Collection As IExpression Implements IForEachLoopStatement.Collection
             Get
                 Return Me.Collection
             End Get
         End Property
 
-        Private ReadOnly Property ILoop_Body As IStatement Implements ILoop.Body
+        Private ReadOnly Property ILoop_Body As IStatement Implements ILoopStatement.Body
             Get
                 Return Me.Body
             End Get
@@ -532,21 +532,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundTryStatement
-        Implements ITry
+        Implements ITryStatement
 
-        Private ReadOnly Property IBody As IBlock Implements ITry.Body
+        Private ReadOnly Property IBody As IBlockStatement Implements ITryStatement.Body
             Get
                 Return Me.TryBlock
             End Get
         End Property
 
-        Private ReadOnly Property ICatches As ImmutableArray(Of ICatch) Implements ITry.Catches
+        Private ReadOnly Property ICatches As ImmutableArray(Of ICatch) Implements ITryStatement.Catches
             Get
                 Return Me.CatchBlocks.As(Of ICatch)()
             End Get
         End Property
 
-        Private ReadOnly Property IFinallyHandler As IBlock Implements ITry.FinallyHandler
+        Private ReadOnly Property IFinallyHandler As IBlockStatement Implements ITryStatement.FinallyHandler
             Get
                 Return Me.FinallyBlockOpt
             End Get
@@ -577,7 +577,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IHandler As IBlock Implements ICatch.Handler
+        Private ReadOnly Property IHandler As IBlockStatement Implements ICatch.Handler
             Get
                 Return Me.Body
             End Get
@@ -603,15 +603,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundBlock
-        Implements IBlock
+        Implements IBlockStatement
 
-        Private ReadOnly Property ILocals As ImmutableArray(Of ILocalSymbol) Implements IBlock.Locals
+        Private ReadOnly Property ILocals As ImmutableArray(Of ILocalSymbol) Implements IBlockStatement.Locals
             Get
                 Return Me.Locals.As(Of ILocalSymbol)()
             End Get
         End Property
 
-        Private ReadOnly Property IStatements As ImmutableArray(Of IStatement) Implements IBlock.Statements
+        Private ReadOnly Property IStatements As ImmutableArray(Of IStatement) Implements IBlockStatement.Statements
             Get
                 Return Me.Statements.As(Of IStatement)()
             End Get
@@ -629,9 +629,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundReturnStatement
-        Implements IReturn
+        Implements IReturnStatement
 
-        Private ReadOnly Property IReturned As IExpression Implements IReturn.Returned
+        Private ReadOnly Property IReturned As IExpression Implements IReturnStatement.Returned
             Get
                 Return Me.ExpressionOpt
             End Get
@@ -643,9 +643,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundThrowStatement
-        Implements IThrow
+        Implements IThrowStatement
 
-        Private ReadOnly Property IThrown As IExpression Implements IThrow.Thrown
+        Private ReadOnly Property IThrown As IExpression Implements IThrowStatement.Thrown
             Get
                 Return Me.ExpressionOpt
             End Get
@@ -657,33 +657,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundWhileStatement
-        Implements IWhileUntil
+        Implements IWhileUntilLoopStatement
 
-        Private ReadOnly Property ICondition As IExpression Implements IForWhileUntil.Condition
+        Private ReadOnly Property ICondition As IExpression Implements IForWhileUntilLoopStatement.Condition
             Get
                 Return Me.Condition
             End Get
         End Property
 
-        Private ReadOnly Property IBody As IStatement Implements ILoop.Body
+        Private ReadOnly Property IBody As IStatement Implements ILoopStatement.Body
             Get
                 Return Me.Body
             End Get
         End Property
 
-        Private ReadOnly Property ILoopClass As LoopKind Implements ILoop.LoopKind
+        Private ReadOnly Property ILoopClass As LoopKind Implements ILoopStatement.LoopKind
             Get
                 Return LoopKind.WhileUntil
             End Get
         End Property
 
-        Private ReadOnly Property IIsTopTest As Boolean Implements IWhileUntil.IsTopTest
+        Private ReadOnly Property IIsTopTest As Boolean Implements IWhileUntilLoopStatement.IsTopTest
             Get
                 Return True
             End Get
         End Property
 
-        Private ReadOnly Property IIsWhile As Boolean Implements IWhileUntil.IsWhile
+        Private ReadOnly Property IIsWhile As Boolean Implements IWhileUntilLoopStatement.IsWhile
             Get
                 Return True
             End Get
@@ -703,9 +703,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundLocalDeclaration
-        Implements IVariableDeclaration
+        Implements IVariableDeclarationStatement
 
-        Private ReadOnly Property IVariables As ImmutableArray(Of IVariable) Implements IVariableDeclaration.Variables
+        Private ReadOnly Property IVariables As ImmutableArray(Of IVariable) Implements IVariableDeclarationStatement.Variables
             Get
                 Return ImmutableArray.Create(Of IVariable)(Me)
             End Get
@@ -729,9 +729,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundAsNewLocalDeclarations
-        Implements IVariableDeclaration
+        Implements IVariableDeclarationStatement
 
-        Private ReadOnly Property IVariables As ImmutableArray(Of IVariable) Implements IVariableDeclaration.Variables
+        Private ReadOnly Property IVariables As ImmutableArray(Of IVariable) Implements IVariableDeclarationStatement.Variables
             Get
                 Return Me.LocalDeclarations.As(Of IVariable)()
             End Get
@@ -758,9 +758,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundDimStatement
-        Implements IVariableDeclaration
+        Implements IVariableDeclarationStatement
 
-        Private ReadOnly Property IVariables As ImmutableArray(Of IVariable) Implements IVariableDeclaration.Variables
+        Private ReadOnly Property IVariables As ImmutableArray(Of IVariable) Implements IVariableDeclarationStatement.Variables
             Get
                 Return Me.LocalDeclarations.As(Of IVariable)()
             End Get
@@ -772,8 +772,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundYieldStatement
-        Implements IReturn
-        Private ReadOnly Property IReturned As IExpression Implements IReturn.Returned
+        Implements IReturnStatement
+        Private ReadOnly Property IReturned As IExpression Implements IReturnStatement.Returned
             Get
                 Return Me.Expression
             End Get
@@ -785,9 +785,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundLabelStatement
-        Implements ILabel
+        Implements ILabelStatement
 
-        Private ReadOnly Property ILabel As ILabelSymbol Implements ILabel.Label
+        Private ReadOnly Property ILabel As ILabelSymbol Implements ILabelStatement.Label
             Get
                 Return Me.Label
             End Get
@@ -799,9 +799,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundGotoStatement
-        Implements IBranch
+        Implements IBranchStatement
 
-        Private ReadOnly Property ITarget As ILabelSymbol Implements IBranch.Target
+        Private ReadOnly Property ITarget As ILabelSymbol Implements IBranchStatement.Target
             Get
                 Return Me.Label
             End Get
@@ -813,9 +813,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundContinueStatement
-        Implements IBranch
+        Implements IBranchStatement
 
-        Private ReadOnly Property ITarget As ILabelSymbol Implements IBranch.Target
+        Private ReadOnly Property ITarget As ILabelSymbol Implements IBranchStatement.Target
             Get
                 Return Me.Label
             End Get
@@ -827,9 +827,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundExitStatement
-        Implements IBranch
+        Implements IBranchStatement
 
-        Private ReadOnly Property ITarget As ILabelSymbol Implements IBranch.Target
+        Private ReadOnly Property ITarget As ILabelSymbol Implements IBranchStatement.Target
             Get
                 Return Me.Label
             End Get
@@ -841,15 +841,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundSyncLockStatement
-        Implements ILock
+        Implements ILockStatement
 
-        Private ReadOnly Property ILocked As IExpression Implements ILock.Locked
+        Private ReadOnly Property ILocked As IExpression Implements ILockStatement.Locked
             Get
                 Return Me.LockExpression
             End Get
         End Property
 
-        Private ReadOnly Property IBody As IStatement Implements ILock.Body
+        Private ReadOnly Property IBody As IStatement Implements ILockStatement.Body
             Get
                 Return Me.Body
             End Get
@@ -897,15 +897,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundWithStatement
-        Implements IWith
+        Implements IWithStatement
 
-        Private ReadOnly Property IBody As IStatement Implements IWith.Body
+        Private ReadOnly Property IBody As IStatement Implements IWithStatement.Body
             Get
                 Return Me.Body
             End Get
         End Property
 
-        Private ReadOnly Property IValue As IExpression Implements IWith.Value
+        Private ReadOnly Property IValue As IExpression Implements IWithStatement.Value
             Get
                 Return Me.OriginalExpression
             End Get
@@ -917,9 +917,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundUsingStatement
-        Implements IUsingWithExpression, IUsingWithDeclaration
+        Implements IUsingWithExpressionStatement, IUsingWithDeclarationStatement
 
-        Private ReadOnly Property IValue As IExpression Implements IUsingWithExpression.Value
+        Private ReadOnly Property IValue As IExpression Implements IUsingWithExpressionStatement.Value
             Get
                 Return Me.ResourceExpressionOpt
             End Get
@@ -927,7 +927,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared VariablesMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundUsingStatement, Variables)
 
-        Private ReadOnly Property IVariables As IVariableDeclaration Implements IUsingWithDeclaration.Variables
+        Private ReadOnly Property IVariables As IVariableDeclarationStatement Implements IUsingWithDeclarationStatement.Variables
             Get
                 Return VariablesMappings.GetValue(
                     Me,
@@ -937,7 +937,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IBody As IStatement Implements IUsing.Body
+        Private ReadOnly Property IBody As IStatement Implements IUsingStatement.Body
             Get
                 Return Me.Body
             End Get
@@ -948,7 +948,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Class Variables
-            Implements IVariableDeclaration
+            Implements IVariableDeclarationStatement
 
             Private ReadOnly _variables As ImmutableArray(Of IVariable)
 
@@ -968,7 +968,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Private ReadOnly Property IVariableDeclaration_Variables As ImmutableArray(Of IVariable) Implements IVariableDeclaration.Variables
+            Private ReadOnly Property IVariableDeclaration_Variables As ImmutableArray(Of IVariable) Implements IVariableDeclarationStatement.Variables
                 Get
                     Return _variables
                 End Get
