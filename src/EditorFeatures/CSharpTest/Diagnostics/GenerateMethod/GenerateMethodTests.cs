@@ -2730,6 +2730,15 @@ namespace ConsoleApplication1
 @"using System ; class C { void M() { var x = new System.Collections.Generic.Dictionary<int, bool> { { 1, T() } }; } private bool T() { throw new NotImplementedException(); } } ");
         }
 
+        [WorkItem(774321)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public void TestEquivalenceKey()
+        {
+            TestEquivalenceKeyWorker(
+@"class C { void M() { this.[|M1|](System.Exception.M2()); } } ",
+string.Format(FeaturesResources.GenerateMethodIn, "M1", "C"));
+        }
+
         public class GenerateConversionTest : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
         {
             internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
@@ -2807,15 +2816,6 @@ namespace ConsoleApplication1
                 Test(
     @"class Digit { public Digit ( double d ) { val = d ; } public double val ; } class Program { static void Main ( string [ ] args ) { Digit dig = new Digit ( 7 ) ; double num = [|( double ) dig|] ; } } ",
     @"using System ; class Digit { public Digit ( double d ) { val = d ; } public double val ; public static explicit operator double ( Digit v ) { throw new NotImplementedException ( ) ; } } class Program { static void Main ( string [ ] args ) { Digit dig = new Digit ( 7 ) ; double num = ( double ) dig ; } } ");
-            }
-
-            [WorkItem(774321)]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-            public void TestEquivalenceKey()
-            {
-                TestEquivalenceKeyWorker(
-    @"class C { void M() { this.[|M1|](System.Exception.M2()); } } ",
-    string.Format(FeaturesResources.GenerateMethodIn, "C", "M1"));
             }
         }
     }
