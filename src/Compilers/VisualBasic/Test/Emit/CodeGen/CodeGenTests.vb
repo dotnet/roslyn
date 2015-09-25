@@ -9286,29 +9286,37 @@ End Class
                 VerifyIL("C.Main",
             <![CDATA[
 {
-  // Code size       60 (0x3c)
+  // Code size       84 (0x54)
   .maxstack  1
-  .locals init (S V_0)
+  .locals init (S V_0, //s
+                Object V_1, //a
+                S V_2)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    "S"
-  IL_0008:  ldloc.0
-  IL_0009:  call       "Sub C.SS(S)"
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  initobj    "S"
-  IL_0016:  ldloc.0
-  IL_0017:  call       "Sub C.SS(S)"
-  IL_001c:  ldloca.s   V_0
-  IL_001e:  initobj    "S"
-  IL_0024:  ldloc.0
-  IL_0025:  stloc.0
-  IL_0026:  ldloca.s   V_0
-  IL_0028:  constrained. "S"
-  IL_002e:  callvirt   "Function System.ValueType.ToString() As String"
-  IL_0033:  pop
-  IL_0034:  ldnull
-  IL_0035:  unbox.any  "S"
-  IL_003a:  pop
-  IL_003b:  ret
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  initobj    "S"
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  initobj    "S"
+  IL_0018:  ldloca.s   V_2
+  IL_001a:  initobj    "S"
+  IL_0020:  ldloc.2
+  IL_0021:  call       "Sub C.SS(S)"
+  IL_0026:  ldloca.s   V_2
+  IL_0028:  initobj    "S"
+  IL_002e:  ldloc.2
+  IL_002f:  call       "Sub C.SS(S)"
+  IL_0034:  ldloca.s   V_2
+  IL_0036:  initobj    "S"
+  IL_003c:  ldloc.2
+  IL_003d:  stloc.2
+  IL_003e:  ldloca.s   V_2
+  IL_0040:  constrained. "S"
+  IL_0046:  callvirt   "Function System.ValueType.ToString() As String"
+  IL_004b:  stloc.1
+  IL_004c:  ldnull
+  IL_004d:  unbox.any  "S"
+  IL_0052:  stloc.0
+  IL_0053:  ret
 }
 ]]>)
         End Sub
@@ -10730,45 +10738,60 @@ True
             VerifyIL("Program.Test",
             <![CDATA[
 {
-  // Code size       89 (0x59)
+  // Code size      101 (0x65)
   .maxstack  4
+  .locals init (Boolean() V_0, //arrB1
+                System.Exception() V_1, //arrE1
+                Boolean() V_2, //arrB2
+                System.Exception() V_3, //arrE2
+                Boolean() V_4) //arrB3
   IL_0000:  ldc.i4.3
   IL_0001:  newarr     "Boolean"
-  IL_0006:  ldc.i4.0
-  IL_0007:  ldelem.u1
-  IL_0008:  call       "Sub System.Console.WriteLine(Boolean)"
-  IL_000d:  ldc.i4.3
-  IL_000e:  newarr     "System.Exception"
-  IL_0013:  ldc.i4.0
-  IL_0014:  ldelem.ref
-  IL_0015:  call       "Sub System.Console.WriteLine(Object)"
-  IL_001a:  ldc.i4.3
-  IL_001b:  newarr     "Boolean"
-  IL_0020:  dup
-  IL_0021:  ldc.i4.1
-  IL_0022:  ldc.i4.1
-  IL_0023:  stelem.i1
-  IL_0024:  ldc.i4.1
-  IL_0025:  ldelem.u1
-  IL_0026:  call       "Sub System.Console.WriteLine(Boolean)"
-  IL_002b:  ldc.i4.7
-  IL_002c:  newarr     "System.Exception"
-  IL_0031:  dup
-  IL_0032:  ldc.i4.1
-  IL_0033:  newobj     "Sub System.Exception..ctor()"
-  IL_0038:  stelem.ref
-  IL_0039:  ldc.i4.1
-  IL_003a:  ldelem.ref
-  IL_003b:  call       "Sub System.Console.WriteLine(Object)"
-  IL_0040:  ldc.i4.4
-  IL_0041:  newarr     "Boolean"
-  IL_0046:  dup
-  IL_0047:  ldtoken    "Integer <PrivateImplementationDetails>.35CCB1599F52363510686EF38B7DB5E7998DB108"
-  IL_004c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
-  IL_0051:  ldc.i4.2
-  IL_0052:  ldelem.u1
-  IL_0053:  call       "Sub System.Console.WriteLine(Boolean)"
-  IL_0058:  ret
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldelem.u1
+  IL_000a:  call       "Sub System.Console.WriteLine(Boolean)"
+  IL_000f:  ldc.i4.3
+  IL_0010:  newarr     "System.Exception"
+  IL_0015:  stloc.1
+  IL_0016:  ldloc.1
+  IL_0017:  ldc.i4.0
+  IL_0018:  ldelem.ref
+  IL_0019:  call       "Sub System.Console.WriteLine(Object)"
+  IL_001e:  ldc.i4.3
+  IL_001f:  newarr     "Boolean"
+  IL_0024:  dup
+  IL_0025:  ldc.i4.1
+  IL_0026:  ldc.i4.1
+  IL_0027:  stelem.i1
+  IL_0028:  stloc.2
+  IL_0029:  ldloc.2
+  IL_002a:  ldc.i4.1
+  IL_002b:  ldelem.u1
+  IL_002c:  call       "Sub System.Console.WriteLine(Boolean)"
+  IL_0031:  ldc.i4.7
+  IL_0032:  newarr     "System.Exception"
+  IL_0037:  dup
+  IL_0038:  ldc.i4.1
+  IL_0039:  newobj     "Sub System.Exception..ctor()"
+  IL_003e:  stelem.ref
+  IL_003f:  stloc.3
+  IL_0040:  ldloc.3
+  IL_0041:  ldc.i4.1
+  IL_0042:  ldelem.ref
+  IL_0043:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0048:  ldc.i4.4
+  IL_0049:  newarr     "Boolean"
+  IL_004e:  dup
+  IL_004f:  ldtoken    "Integer <PrivateImplementationDetails>.35CCB1599F52363510686EF38B7DB5E7998DB108"
+  IL_0054:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
+  IL_0059:  stloc.s    V_4
+  IL_005b:  ldloc.s    V_4
+  IL_005d:  ldc.i4.2
+  IL_005e:  ldelem.u1
+  IL_005f:  call       "Sub System.Console.WriteLine(Boolean)"
+  IL_0064:  ret
 }
 ]]>)
         End Sub
@@ -11714,68 +11737,71 @@ End Module
             VerifyIL("Module1.getTypes",
             <![CDATA[
 {
-  // Code size      118 (0x76)
+  // Code size      127 (0x7f)
   .maxstack  6
-  .locals init (System.Array V_0, //types
-                System.Array V_1, //arr
-                Integer V_2, //i
-                Integer V_3,
-                Integer V_4)
+  .locals init (System.Array V_0, //getTypes
+                System.Array V_1, //types
+                Object() V_2, //s
+                System.Array V_3, //arr
+                Integer V_4, //i
+                Integer V_5)
   IL_0000:  ldc.i4.4
   IL_0001:  newarr     "Integer"
   IL_0006:  dup
   IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.1456763F890A84558F99AFA687C36B9037697848"
   IL_000c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
-  IL_0011:  stloc.0
-  IL_0012:  ldloc.0
+  IL_0011:  stloc.1
+  IL_0012:  ldloc.1
   IL_0013:  callvirt   "Function System.Array.get_Length() As Integer"
   IL_0018:  ldc.i4.1
   IL_0019:  sub.ovf
   IL_001a:  ldc.i4.1
   IL_001b:  add.ovf
   IL_001c:  newarr     "Object"
-  IL_0021:  pop
-  IL_0022:  ldloca.s   V_3
+  IL_0021:  stloc.2
+  IL_0022:  ldloca.s   V_5
   IL_0024:  initobj    "Integer"
-  IL_002a:  ldloc.3
-  IL_002b:  box        "Integer"
-  IL_0030:  call       "Function Object.GetType() As System.Type"
-  IL_0035:  ldc.i4.s   12
-  IL_0037:  call       "Function System.Array.CreateInstance(System.Type, Integer) As System.Array"
-  IL_003c:  stloc.1
-  IL_003d:  ldloc.0
-  IL_003e:  callvirt   "Function System.Array.get_Length() As Integer"
-  IL_0043:  ldc.i4.1
-  IL_0044:  sub.ovf
-  IL_0045:  stloc.s    V_4
-  IL_0047:  ldc.i4.0
-  IL_0048:  stloc.2
-  IL_0049:  br.s       IL_006f
-  IL_004b:  ldloc.1
-  IL_004c:  ldc.i4.2
-  IL_004d:  newarr     "Object"
-  IL_0052:  dup
-  IL_0053:  ldc.i4.0
-  IL_0054:  ldloc.2
-  IL_0055:  box        "Integer"
-  IL_005a:  stelem.ref
-  IL_005b:  dup
-  IL_005c:  ldc.i4.1
-  IL_005d:  ldloc.0
-  IL_005e:  ldloc.2
-  IL_005f:  callvirt   "Function System.Array.GetValue(Integer) As Object"
-  IL_0064:  stelem.ref
-  IL_0065:  ldnull
-  IL_0066:  call       "Sub Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateIndexSet(Object, Object(), String())"
-  IL_006b:  ldloc.2
-  IL_006c:  ldc.i4.1
-  IL_006d:  add.ovf
-  IL_006e:  stloc.2
-  IL_006f:  ldloc.2
-  IL_0070:  ldloc.s    V_4
-  IL_0072:  ble.s      IL_004b
-  IL_0074:  ldloc.1
-  IL_0075:  ret
+  IL_002a:  ldloc.s    V_5
+  IL_002c:  box        "Integer"
+  IL_0031:  call       "Function Object.GetType() As System.Type"
+  IL_0036:  ldc.i4.s   12
+  IL_0038:  call       "Function System.Array.CreateInstance(System.Type, Integer) As System.Array"
+  IL_003d:  stloc.3
+  IL_003e:  ldloc.1
+  IL_003f:  callvirt   "Function System.Array.get_Length() As Integer"
+  IL_0044:  ldc.i4.1
+  IL_0045:  sub.ovf
+  IL_0046:  stloc.s    V_5
+  IL_0048:  ldc.i4.0
+  IL_0049:  stloc.s    V_4
+  IL_004b:  br.s       IL_0075
+  IL_004d:  ldloc.3
+  IL_004e:  ldc.i4.2
+  IL_004f:  newarr     "Object"
+  IL_0054:  dup
+  IL_0055:  ldc.i4.0
+  IL_0056:  ldloc.s    V_4
+  IL_0058:  box        "Integer"
+  IL_005d:  stelem.ref
+  IL_005e:  dup
+  IL_005f:  ldc.i4.1
+  IL_0060:  ldloc.1
+  IL_0061:  ldloc.s    V_4
+  IL_0063:  callvirt   "Function System.Array.GetValue(Integer) As Object"
+  IL_0068:  stelem.ref
+  IL_0069:  ldnull
+  IL_006a:  call       "Sub Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateIndexSet(Object, Object(), String())"
+  IL_006f:  ldloc.s    V_4
+  IL_0071:  ldc.i4.1
+  IL_0072:  add.ovf
+  IL_0073:  stloc.s    V_4
+  IL_0075:  ldloc.s    V_4
+  IL_0077:  ldloc.s    V_5
+  IL_0079:  ble.s      IL_004d
+  IL_007b:  ldloc.3
+  IL_007c:  stloc.0
+  IL_007d:  ldloc.0
+  IL_007e:  ret
 }
 ]]>)
         End Sub
