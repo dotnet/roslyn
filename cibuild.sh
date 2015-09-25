@@ -80,7 +80,7 @@ restore_nuget()
     # restore coreclr runtime package
     pushd /tmp
     local coreclr_package_name="coreclr.linux.1.zip"
-    rm $coreclr_package_name
+    rm $coreclr_package_name 2>/dev/null
     curl -O https://dotnetci.blob.core.windows.net/roslyn/$coreclr_package_name
     unzip -uoq $coreclr_package_name -d ~/
     popd
