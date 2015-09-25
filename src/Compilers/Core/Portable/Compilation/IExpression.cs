@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# or VB method invocation.
     /// </summary>
-    public interface IInvocation : IExpression
+    public interface IInvocationExpression : IExpression
     {
         /// <summary>
         /// Method to be invoked.
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference, which refers to a symbol or an element of a collection.
     /// </summary>
-    public interface IReference : IExpression
+    public interface IReferenceExpression : IExpression
     {
         /// <summary>
         /// Kind of the reference.
@@ -141,23 +141,23 @@ namespace Microsoft.CodeAnalysis.Semantics
         LateBoundMember
     }
 
-    public interface IArrayElementReference : IReference
+    public interface IArrayElementReferenceExpression : IReferenceExpression
     {
         IExpression ArrayReference { get; }
         ImmutableArray<IExpression> Indices { get; }
     }
 
-    public interface IPointerIndirectionReference : IReference
+    public interface IPointerIndirectionReferenceExpression : IReferenceExpression
     {
         IExpression Pointer { get; }
     }
 
-    public interface ILocalReference : IReference
+    public interface ILocalReferenceExpression : IReferenceExpression
     {
         ILocalSymbol Local { get; }
     }
 
-    public interface IParameterReference : IReference
+    public interface IParameterReferenceExpression : IReferenceExpression
     {
         IParameterSymbol Parameter { get; }
     }
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a local variable synthesized by language analysis.
     /// </summary>
-    public interface ISyntheticLocalReference : IReference
+    public interface ISyntheticLocalReferenceExpression : IReferenceExpression
     {
         SyntheticLocalKind SyntheticLocalKind { get; }
         /// <summary>
@@ -191,33 +191,33 @@ namespace Microsoft.CodeAnalysis.Semantics
         ForLoopLimitValue
     }
 
-    public interface IThisReference : IParameterReference
+    public interface IThisReferenceExpression : IParameterReferenceExpression
     {
         bool IsExplicit { get; }
     }
 
-    public interface IMemberReference : IReference
+    public interface IMemberReferenceExpression : IReferenceExpression
     {
         IExpression Instance { get; }
     }
 
-    public interface IFieldReference : IMemberReference
+    public interface IFieldReferenceExpression : IMemberReferenceExpression
     {
         IFieldSymbol Field { get; }
     }
 
-    public interface IMethodReference : IMemberReference
+    public interface IMethodReferenceExpression : IMemberReferenceExpression
     {
         IMethodSymbol Method { get; }
         bool IsVirtual { get; }
     }
     
-    public interface IPropertyReference : IMemberReference
+    public interface IPropertyReferenceExpression : IMemberReferenceExpression
     {
         IPropertySymbol Property { get; }
     }
 
-    public interface IConditionalAccess : IExpression
+    public interface IConditionalAccessExpression : IExpression
     {
         IExpression Access { get; }
     }
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a unary, binary, relational, or conversion operation that can use an operator method.
     /// </summary>
-    public interface IWithOperator : IExpression
+    public interface IHasOperatorExpression : IExpression
     {
         /// <summary>
         /// True if and only if the operation is performed by an operator method.
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an operation with one operand.
     /// </summary>
-    public interface IUnary : IWithOperator
+    public interface IUnaryOperatorExpression : IHasOperatorExpression
     {
         UnaryOperationKind UnaryKind { get; }
         IExpression Operand { get; }
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
     /// </summary>
-    public interface IBinary : IWithOperator
+    public interface IBinaryOperatorExpression : IHasOperatorExpression
     {
         BinaryOperationKind BinaryKind { get; }
         IExpression Left { get; }
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an operation that compares two operands and produces a boolean result.
     /// </summary>
-    public interface IRelational : IWithOperator
+    public interface IRelationalOperatorExpression : IHasOperatorExpression
     {
         RelationalOperationKind RelationalKind { get; }
         IExpression Left { get; }
@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a conversion operation.
     /// </summary>
-    public interface IConversion : IWithOperator
+    public interface IConversionExpression : IHasOperatorExpression
     {
         IExpression Operand { get; }
         ConversionKind Conversion { get; }
@@ -566,26 +566,26 @@ namespace Microsoft.CodeAnalysis.Semantics
         Operator
     }
 
-    public interface IConditionalChoice : IExpression
+    public interface IConditionalChoiceExpression : IExpression
     {
         IExpression Condition { get; }
         IExpression IfTrue { get; }
         IExpression IfFalse { get; }
     }
 
-    public interface INullCoalescing : IExpression
+    public interface INullCoalescingExpression : IExpression
     {
         IExpression Primary { get; }
         IExpression Secondary { get; }
     }
 
-    public interface IIs : IExpression
+    public interface IIsExpression : IExpression
     {
         IExpression Operand { get; }
         ITypeSymbol IsType { get; }
     }
 
-    public interface ITypeOperation : IExpression
+    public interface ITypeOperationExpression : IExpression
     {
         TypeOperationKind TypeOperationClass { get; }
         ITypeSymbol TypeOperand { get; }
@@ -602,28 +602,28 @@ namespace Microsoft.CodeAnalysis.Semantics
         TypeOf
     }
 
-    public interface ILambda : IExpression
+    public interface ILambdaExpression : IExpression
     {
         IMethodSymbol Signature { get; }
-        IBlock Body { get; }
+        IBlockStatement Body { get; }
     }
 
-    public interface ILiteral : IExpression
+    public interface ILiteralExpression : IExpression
     {
         string Spelling { get; }
     }
 
-    public interface IAwait : IExpression
+    public interface IAwaitExpression : IExpression
     {
         IExpression Upon { get; }
     }
 
-    public interface IAddressOf : IExpression
+    public interface IAddressOfExpression : IExpression
     {
-        IReference Addressed { get; }
+        IReferenceExpression Addressed { get; }
     }
 
-    public interface IObjectCreation : IExpression
+    public interface IObjectCreationExpression : IExpression
     {
         IMethodSymbol Constructor { get; }
         ImmutableArray<IArgument> ConstructorArguments { get; }
@@ -656,7 +656,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         IMethodSymbol Setter { get; }
     }
 
-    public interface IArrayCreation : IExpression
+    public interface IArrayCreationExpression : IExpression
     {
         ITypeSymbol ElementType { get; }
         ImmutableArray<IExpression> DimensionSizes { get; }
@@ -693,28 +693,28 @@ namespace Microsoft.CodeAnalysis.Semantics
         ImmutableArray<IArrayInitializer> ElementValues { get; }
     }
 
-    public interface IAssignment : IExpression
+    public interface IAssignmentExpression : IExpression
     {
-        IReference Target { get; }
+        IReferenceExpression Target { get; }
         IExpression Value { get; }
     }
 
-    public interface ICompoundAssignment : IAssignment, IWithOperator
+    public interface ICompoundAssignmentExpression : IAssignmentExpression, IHasOperatorExpression
     {
         BinaryOperationKind BinaryKind { get; }
     }
 
-    public interface IIncrement : ICompoundAssignment
+    public interface IIncrementExpression : ICompoundAssignmentExpression
     {
         UnaryOperationKind IncrementKind { get; }
     }
 
-    public interface IParenthesized : IExpression
+    public interface IParenthesizedExpression : IExpression
     {
         IExpression Operand { get; }
     }
 
-    public interface ILateBoundMemberReference : IReference
+    public interface ILateBoundMemberReferenceExpression : IReferenceExpression
     {
         IExpression Instance { get; }
         string MemberName { get; }
@@ -725,7 +725,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public static class IExpressionExtensions
     {
-        public static bool IsStatic(this IInvocation invocation)
+        public static bool IsStatic(this IInvocationExpression invocation)
         {
             return invocation.TargetMethod.IsStatic;
         }

@@ -55,15 +55,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    partial class BoundCall : IInvocation
+    partial class BoundCall : IInvocationExpression
     {
-        IMethodSymbol IInvocation.TargetMethod => this.Method;
+        IMethodSymbol IInvocationExpression.TargetMethod => this.Method;
 
-        IExpression IInvocation.Instance => this.ReceiverOpt;
+        IExpression IInvocationExpression.Instance => this.ReceiverOpt;
 
-        bool IInvocation.IsVirtual => (this.Method.IsVirtual || this.Method.IsAbstract || this.Method.IsOverride) && !this.ReceiverOpt.SuppressVirtualCalls;
+        bool IInvocationExpression.IsVirtual => (this.Method.IsVirtual || this.Method.IsAbstract || this.Method.IsOverride) && !this.ReceiverOpt.SuppressVirtualCalls;
 
-        ImmutableArray<IArgument> IInvocation.ArgumentsInSourceOrder
+        ImmutableArray<IArgument> IInvocationExpression.ArgumentsInSourceOrder
         {
             get
             {
@@ -77,9 +77,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
         
-        ImmutableArray<IArgument> IInvocation.ArgumentsInParameterOrder => DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Method.Parameters);
+        ImmutableArray<IArgument> IInvocationExpression.ArgumentsInParameterOrder => DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Method.Parameters);
 
-        IArgument IInvocation.ArgumentMatchingParameter(IParameterSymbol parameter)
+        IArgument IInvocationExpression.ArgumentMatchingParameter(IParameterSymbol parameter)
         {
             return ArgumentMatchingParameter(this.Arguments, this.ArgsToParamsOpt, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, parameter.ContainingSymbol as Symbols.MethodSymbol, parameter);
         }
@@ -265,65 +265,65 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    partial class BoundLocal : ILocalReference
+    partial class BoundLocal : ILocalReferenceExpression
     {
-        ILocalSymbol ILocalReference.Local => this.LocalSymbol;
+        ILocalSymbol ILocalReferenceExpression.Local => this.LocalSymbol;
         
-        ReferenceKind IReference.ReferenceKind => ReferenceKind.Local;
+        ReferenceKind IReferenceExpression.ReferenceKind => ReferenceKind.Local;
        
         protected override OperationKind ExpressionKind => OperationKind.LocalReference;
     }
 
-    partial class BoundFieldAccess : IFieldReference
+    partial class BoundFieldAccess : IFieldReferenceExpression
     {
-        IExpression IMemberReference.Instance => this.ReceiverOpt;
+        IExpression IMemberReferenceExpression.Instance => this.ReceiverOpt;
        
-        IFieldSymbol IFieldReference.Field => this.FieldSymbol;
+        IFieldSymbol IFieldReferenceExpression.Field => this.FieldSymbol;
        
-        ReferenceKind IReference.ReferenceKind => this.FieldSymbol.IsStatic ? ReferenceKind.StaticField : ReferenceKind.InstanceField;
+        ReferenceKind IReferenceExpression.ReferenceKind => this.FieldSymbol.IsStatic ? ReferenceKind.StaticField : ReferenceKind.InstanceField;
 
         protected override OperationKind ExpressionKind => OperationKind.FieldReference;
     }
 
-    partial class BoundPropertyAccess : IPropertyReference
+    partial class BoundPropertyAccess : IPropertyReferenceExpression
     {
-        IPropertySymbol IPropertyReference.Property => this.PropertySymbol;
+        IPropertySymbol IPropertyReferenceExpression.Property => this.PropertySymbol;
        
-        IExpression IMemberReference.Instance => this.ReceiverOpt;
+        IExpression IMemberReferenceExpression.Instance => this.ReceiverOpt;
        
-        ReferenceKind IReference.ReferenceKind => this.PropertySymbol.IsStatic ? ReferenceKind.StaticProperty : ReferenceKind.InstanceProperty;
+        ReferenceKind IReferenceExpression.ReferenceKind => this.PropertySymbol.IsStatic ? ReferenceKind.StaticProperty : ReferenceKind.InstanceProperty;
 
         protected override OperationKind ExpressionKind => OperationKind.PropertyReference;
     }
 
-    partial class BoundParameter : IParameterReference
+    partial class BoundParameter : IParameterReferenceExpression
     {
-        IParameterSymbol IParameterReference.Parameter => this.ParameterSymbol;
+        IParameterSymbol IParameterReferenceExpression.Parameter => this.ParameterSymbol;
 
-        ReferenceKind IReference.ReferenceKind => ReferenceKind.Parameter;
+        ReferenceKind IReferenceExpression.ReferenceKind => ReferenceKind.Parameter;
 
         protected override OperationKind ExpressionKind => OperationKind.ParameterReference;
     }
 
-    partial class BoundLiteral : ILiteral
+    partial class BoundLiteral : ILiteralExpression
     {
-        string ILiteral.Spelling => this.Syntax.ToString();
+        string ILiteralExpression.Spelling => this.Syntax.ToString();
 
         protected override OperationKind ExpressionKind => OperationKind.Literal;
     }
 
-    partial class BoundObjectCreationExpression : IObjectCreation
+    partial class BoundObjectCreationExpression : IObjectCreationExpression
     {
-        IMethodSymbol IObjectCreation.Constructor => this.Constructor;
+        IMethodSymbol IObjectCreationExpression.Constructor => this.Constructor;
 
-        ImmutableArray<IArgument> IObjectCreation.ConstructorArguments => BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Constructor.Parameters);
+        ImmutableArray<IArgument> IObjectCreationExpression.ConstructorArguments => BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Constructor.Parameters);
 
-        IArgument IObjectCreation.ArgumentMatchingParameter(IParameterSymbol parameter)
+        IArgument IObjectCreationExpression.ArgumentMatchingParameter(IParameterSymbol parameter)
         {
             return BoundCall.ArgumentMatchingParameter(this.Arguments, this.ArgsToParamsOpt, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Constructor, parameter);
         }
 
-        ImmutableArray<IMemberInitializer> IObjectCreation.MemberInitializers
+        ImmutableArray<IMemberInitializer> IObjectCreationExpression.MemberInitializers
         {
             get
             {
@@ -345,20 +345,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind ExpressionKind => OperationKind.UnboundLambda;
     }
 
-    partial class BoundLambda : ILambda
+    partial class BoundLambda : ILambdaExpression
     {
-        IMethodSymbol ILambda.Signature => this.Symbol;
+        IMethodSymbol ILambdaExpression.Signature => this.Symbol;
 
-        IBlock ILambda.Body => this.Body;
+        IBlockStatement ILambdaExpression.Body => this.Body;
 
         protected override OperationKind ExpressionKind => OperationKind.Lambda;
     }
 
-    partial class BoundConversion : IConversion
+    partial class BoundConversion : IConversionExpression
     {
-        IExpression IConversion.Operand => this.Operand;
+        IExpression IConversionExpression.Operand => this.Operand;
 
-        Semantics.ConversionKind IConversion.Conversion
+        Semantics.ConversionKind IConversionExpression.Conversion
         {
             get
             {
@@ -399,60 +399,60 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        bool IConversion.IsExplicit => this.ExplicitCastInCode;
+        bool IConversionExpression.IsExplicit => this.ExplicitCastInCode;
 
-        IMethodSymbol IWithOperator.Operator => this.SymbolOpt;
+        IMethodSymbol IHasOperatorExpression.Operator => this.SymbolOpt;
 
-        bool IWithOperator.UsesOperatorMethod => this.ConversionKind == CSharp.ConversionKind.ExplicitUserDefined || this.ConversionKind == CSharp.ConversionKind.ImplicitUserDefined;
-
-        protected override OperationKind ExpressionKind => OperationKind.Conversion;
-    }
-
-    partial class BoundAsOperator : IConversion
-    {
-        IExpression IConversion.Operand => this.Operand;
-
-        Semantics.ConversionKind IConversion.Conversion => Semantics.ConversionKind.AsCast;
-
-        bool IConversion.IsExplicit => true;
-
-        IMethodSymbol IWithOperator.Operator => null;
-
-        bool IWithOperator.UsesOperatorMethod => false;
+        bool IHasOperatorExpression.UsesOperatorMethod => this.ConversionKind == CSharp.ConversionKind.ExplicitUserDefined || this.ConversionKind == CSharp.ConversionKind.ImplicitUserDefined;
 
         protected override OperationKind ExpressionKind => OperationKind.Conversion;
     }
 
-    partial class BoundIsOperator : IIs
+    partial class BoundAsOperator : IConversionExpression
     {
-        IExpression IIs.Operand => this.Operand;
+        IExpression IConversionExpression.Operand => this.Operand;
 
-        ITypeSymbol IIs.IsType => this.TargetType.Type;
+        Semantics.ConversionKind IConversionExpression.Conversion => Semantics.ConversionKind.AsCast;
+
+        bool IConversionExpression.IsExplicit => true;
+
+        IMethodSymbol IHasOperatorExpression.Operator => null;
+
+        bool IHasOperatorExpression.UsesOperatorMethod => false;
+
+        protected override OperationKind ExpressionKind => OperationKind.Conversion;
+    }
+
+    partial class BoundIsOperator : IIsExpression
+    {
+        IExpression IIsExpression.Operand => this.Operand;
+
+        ITypeSymbol IIsExpression.IsType => this.TargetType.Type;
 
         protected override OperationKind ExpressionKind => OperationKind.Is;
     }
 
-    partial class BoundSizeOfOperator : ITypeOperation
+    partial class BoundSizeOfOperator : ITypeOperationExpression
     {
-        TypeOperationKind ITypeOperation.TypeOperationClass => TypeOperationKind.SizeOf;
+        TypeOperationKind ITypeOperationExpression.TypeOperationClass => TypeOperationKind.SizeOf;
 
-        ITypeSymbol ITypeOperation.TypeOperand => this.SourceType.Type;
+        ITypeSymbol ITypeOperationExpression.TypeOperand => this.SourceType.Type;
 
         protected override OperationKind ExpressionKind => OperationKind.TypeOperation;
     }
 
-    partial class BoundTypeOfOperator : ITypeOperation
+    partial class BoundTypeOfOperator : ITypeOperationExpression
     {
-        TypeOperationKind ITypeOperation.TypeOperationClass => TypeOperationKind.TypeOf;
+        TypeOperationKind ITypeOperationExpression.TypeOperationClass => TypeOperationKind.TypeOf;
 
-        ITypeSymbol ITypeOperation.TypeOperand => this.SourceType.Type;
+        ITypeSymbol ITypeOperationExpression.TypeOperand => this.SourceType.Type;
 
         protected override OperationKind ExpressionKind => OperationKind.TypeOperation;
     }
 
-    partial class BoundArrayCreation : IArrayCreation
+    partial class BoundArrayCreation : IArrayCreationExpression
     {
-        ITypeSymbol IArrayCreation.ElementType
+        ITypeSymbol IArrayCreationExpression.ElementType
         {
             get
             {
@@ -466,9 +466,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        ImmutableArray<IExpression> IArrayCreation.DimensionSizes => this.Bounds.As<IExpression>();
+        ImmutableArray<IExpression> IArrayCreationExpression.DimensionSizes => this.Bounds.As<IExpression>();
 
-        IArrayInitializer IArrayCreation.ElementValues
+        IArrayInitializer IArrayCreationExpression.ElementValues
         {
             get
             {
@@ -558,45 +558,45 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind ExpressionKind => OperationKind.Instance;
     }
 
-    partial class BoundAssignmentOperator : IAssignment
+    partial class BoundAssignmentOperator : IAssignmentExpression
     {
-        IReference IAssignment.Target => this.Left as IReference;
+        IReferenceExpression IAssignmentExpression.Target => this.Left as IReferenceExpression;
 
-        IExpression IAssignment.Value => this.Right;
+        IExpression IAssignmentExpression.Value => this.Right;
 
         protected override OperationKind ExpressionKind => OperationKind.Assignment;
     }
 
-    partial class BoundCompoundAssignmentOperator : ICompoundAssignment
+    partial class BoundCompoundAssignmentOperator : ICompoundAssignmentExpression
     {
-        BinaryOperationKind ICompoundAssignment.BinaryKind => Expression.DeriveBinaryOperationKind(this.Operator.Kind);
+        BinaryOperationKind ICompoundAssignmentExpression.BinaryKind => Expression.DeriveBinaryOperationKind(this.Operator.Kind);
 
-        IReference IAssignment.Target => this.Left as IReference;
+        IReferenceExpression IAssignmentExpression.Target => this.Left as IReferenceExpression;
 
-        IExpression IAssignment.Value => this.Right;
+        IExpression IAssignmentExpression.Value => this.Right;
 
-        bool IWithOperator.UsesOperatorMethod => (this.Operator.Kind & BinaryOperatorKind.TypeMask) == BinaryOperatorKind.UserDefined;
+        bool IHasOperatorExpression.UsesOperatorMethod => (this.Operator.Kind & BinaryOperatorKind.TypeMask) == BinaryOperatorKind.UserDefined;
 
-        IMethodSymbol IWithOperator.Operator => this.Operator.Method;
+        IMethodSymbol IHasOperatorExpression.Operator => this.Operator.Method;
 
         protected override OperationKind ExpressionKind => OperationKind.CompoundAssignment;
     }
 
-    partial class BoundIncrementOperator : IIncrement
+    partial class BoundIncrementOperator : IIncrementExpression
     {
-        UnaryOperationKind IIncrement.IncrementKind => Expression.DeriveUnaryOperationKind(this.OperatorKind);
+        UnaryOperationKind IIncrementExpression.IncrementKind => Expression.DeriveUnaryOperationKind(this.OperatorKind);
 
-        BinaryOperationKind ICompoundAssignment.BinaryKind => Expression.DeriveBinaryOperationKind(((IIncrement)this).IncrementKind);
+        BinaryOperationKind ICompoundAssignmentExpression.BinaryKind => Expression.DeriveBinaryOperationKind(((IIncrementExpression)this).IncrementKind);
 
-        IReference IAssignment.Target => this.Operand as IReference;
+        IReferenceExpression IAssignmentExpression.Target => this.Operand as IReferenceExpression;
 
         private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<BoundIncrementOperator, IExpression> IncrementValueMappings = new System.Runtime.CompilerServices.ConditionalWeakTable<BoundIncrementOperator, IExpression>();
 
-        IExpression IAssignment.Value => IncrementValueMappings.GetValue(this, (increment) => new BoundLiteral(this.Syntax, Semantics.Expression.SynthesizeNumeric(increment.Type, 1), increment.Type));
+        IExpression IAssignmentExpression.Value => IncrementValueMappings.GetValue(this, (increment) => new BoundLiteral(this.Syntax, Semantics.Expression.SynthesizeNumeric(increment.Type, 1), increment.Type));
 
-        bool IWithOperator.UsesOperatorMethod => (this.OperatorKind & UnaryOperatorKind.TypeMask) == UnaryOperatorKind.UserDefined;
+        bool IHasOperatorExpression.UsesOperatorMethod => (this.OperatorKind & UnaryOperatorKind.TypeMask) == UnaryOperatorKind.UserDefined;
 
-        IMethodSymbol IWithOperator.Operator => this.MethodOpt;
+        IMethodSymbol IHasOperatorExpression.Operator => this.MethodOpt;
 
         protected override OperationKind ExpressionKind => OperationKind.Increment;
     }
@@ -611,36 +611,36 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind ExpressionKind => OperationKind.TypeParameterObjectCreation;
     }
 
-    partial class BoundUnaryOperator : IUnary
+    partial class BoundUnaryOperator : IUnaryOperatorExpression
     {
-        UnaryOperationKind IUnary.UnaryKind => Expression.DeriveUnaryOperationKind(this.OperatorKind);
+        UnaryOperationKind IUnaryOperatorExpression.UnaryKind => Expression.DeriveUnaryOperationKind(this.OperatorKind);
 
-        IExpression IUnary.Operand => this.Operand;
+        IExpression IUnaryOperatorExpression.Operand => this.Operand;
 
-        bool IWithOperator.UsesOperatorMethod => (this.OperatorKind & UnaryOperatorKind.TypeMask) == UnaryOperatorKind.UserDefined;
+        bool IHasOperatorExpression.UsesOperatorMethod => (this.OperatorKind & UnaryOperatorKind.TypeMask) == UnaryOperatorKind.UserDefined;
 
-        IMethodSymbol IWithOperator.Operator => this.MethodOpt;
+        IMethodSymbol IHasOperatorExpression.Operator => this.MethodOpt;
 
         protected override OperationKind ExpressionKind => OperationKind.UnaryOperator;
     }
 
-    partial class BoundBinaryOperator : IBinary, IRelational
+    partial class BoundBinaryOperator : IBinaryOperatorExpression, IRelationalOperatorExpression
     {
-        BinaryOperationKind IBinary.BinaryKind => Expression.DeriveBinaryOperationKind(this.OperatorKind);
+        BinaryOperationKind IBinaryOperatorExpression.BinaryKind => Expression.DeriveBinaryOperationKind(this.OperatorKind);
 
-        IExpression IBinary.Left => this.Left;
+        IExpression IBinaryOperatorExpression.Left => this.Left;
 
-        IExpression IBinary.Right => this.Right;
+        IExpression IBinaryOperatorExpression.Right => this.Right;
 
-        RelationalOperationKind IRelational.RelationalKind => Expression.DeriveRelationalOperationKind(this.OperatorKind);
+        RelationalOperationKind IRelationalOperatorExpression.RelationalKind => Expression.DeriveRelationalOperationKind(this.OperatorKind);
 
-        IExpression IRelational.Left => this.Left;
+        IExpression IRelationalOperatorExpression.Left => this.Left;
 
-        IExpression IRelational.Right => this.Right;
+        IExpression IRelationalOperatorExpression.Right => this.Right;
    
-        bool IWithOperator.UsesOperatorMethod => (this.OperatorKind & BinaryOperatorKind.TypeMask) == BinaryOperatorKind.UserDefined;
+        bool IHasOperatorExpression.UsesOperatorMethod => (this.OperatorKind & BinaryOperatorKind.TypeMask) == BinaryOperatorKind.UserDefined;
 
-        IMethodSymbol IWithOperator.Operator => this.MethodOpt;
+        IMethodSymbol IHasOperatorExpression.Operator => this.MethodOpt;
 
         protected override OperationKind ExpressionKind
         {
@@ -673,56 +673,56 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    partial class BoundConditionalOperator : IConditionalChoice
+    partial class BoundConditionalOperator : IConditionalChoiceExpression
     {
-        IExpression IConditionalChoice.Condition => this.Condition;
+        IExpression IConditionalChoiceExpression.Condition => this.Condition;
 
-        IExpression IConditionalChoice.IfTrue => this.Consequence;
+        IExpression IConditionalChoiceExpression.IfTrue => this.Consequence;
 
-        IExpression IConditionalChoice.IfFalse => this.Alternative;
+        IExpression IConditionalChoiceExpression.IfFalse => this.Alternative;
 
         protected override OperationKind ExpressionKind => OperationKind.ConditionalChoice;
     }
 
-    partial class BoundNullCoalescingOperator : INullCoalescing
+    partial class BoundNullCoalescingOperator : INullCoalescingExpression
     {
-        IExpression INullCoalescing.Primary => this.LeftOperand;
+        IExpression INullCoalescingExpression.Primary => this.LeftOperand;
 
-        IExpression INullCoalescing.Secondary => this.RightOperand;
+        IExpression INullCoalescingExpression.Secondary => this.RightOperand;
 
         protected override OperationKind ExpressionKind => OperationKind.NullCoalescing;
     }
 
-    partial class BoundAwaitExpression : IAwait
+    partial class BoundAwaitExpression : IAwaitExpression
     {
-        IExpression IAwait.Upon => this.Expression;
+        IExpression IAwaitExpression.Upon => this.Expression;
 
         protected override OperationKind ExpressionKind => OperationKind.Await;
     }
 
-    partial class BoundArrayAccess : IArrayElementReference
+    partial class BoundArrayAccess : IArrayElementReferenceExpression
     {
-        IExpression IArrayElementReference.ArrayReference => this.Expression;
+        IExpression IArrayElementReferenceExpression.ArrayReference => this.Expression;
 
-        ImmutableArray<IExpression> IArrayElementReference.Indices => this.Indices.As<IExpression>();
+        ImmutableArray<IExpression> IArrayElementReferenceExpression.Indices => this.Indices.As<IExpression>();
 
-        ReferenceKind IReference.ReferenceKind => ReferenceKind.ArrayElement;
+        ReferenceKind IReferenceExpression.ReferenceKind => ReferenceKind.ArrayElement;
 
         protected override OperationKind ExpressionKind => OperationKind.ArrayElementReference;
     }
 
-    partial class BoundPointerIndirectionOperator : IPointerIndirectionReference
+    partial class BoundPointerIndirectionOperator : IPointerIndirectionReferenceExpression
     {
-        IExpression IPointerIndirectionReference.Pointer => this.Operand;
+        IExpression IPointerIndirectionReferenceExpression.Pointer => this.Operand;
 
-        ReferenceKind IReference.ReferenceKind => ReferenceKind.PointerIndirection;
+        ReferenceKind IReferenceExpression.ReferenceKind => ReferenceKind.PointerIndirection;
 
         protected override OperationKind ExpressionKind => OperationKind.PointerIndirectionReference;
     }
 
-    partial class BoundAddressOfOperator : IAddressOf
+    partial class BoundAddressOfOperator : IAddressOfExpression
     {
-        IReference IAddressOf.Addressed => (IReference)this.Operand;
+        IReferenceExpression IAddressOfExpression.Addressed => (IReferenceExpression)this.Operand;
 
         protected override OperationKind ExpressionKind => OperationKind.AddressOf;
     }
@@ -732,9 +732,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind ExpressionKind => OperationKind.ImplicitInstance;
     }
 
-    partial class BoundConditionalAccess : IConditionalAccess
+    partial class BoundConditionalAccess : IConditionalAccessExpression
     {
-        IExpression IConditionalAccess.Access => this.AccessExpression;
+        IExpression IConditionalAccessExpression.Access => this.AccessExpression;
 
         protected override OperationKind ExpressionKind => OperationKind.ConditionalAccess;
     }
