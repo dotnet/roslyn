@@ -1318,7 +1318,7 @@ lVbRuntimePlus:
             Return Nothing
         End Function
 
-        Private Function GetWin32Setting(arg As String, value As String, diagnostics As List(Of Diagnostic)) As String
+        Private Shared Function GetWin32Setting(arg As String, value As String, diagnostics As List(Of Diagnostic)) As String
             If value Is Nothing Then
                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, arg, ":<file>")
             Else

@@ -1156,7 +1156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             };
         }
 
-        private void ParseAndResolveReferencePaths(string switchName, string switchValue, string baseDirectory, List<string> builder, MessageID origin, List<Diagnostic> diagnostics)
+        private static void ParseAndResolveReferencePaths(string switchName, string switchValue, string baseDirectory, List<string> builder, MessageID origin, List<Diagnostic> diagnostics)
         {
             if (string.IsNullOrEmpty(switchValue))
             {
@@ -1183,7 +1183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private string GetWin32Setting(string arg, string value, List<Diagnostic> diagnostics)
+        private static string GetWin32Setting(string arg, string value, List<Diagnostic> diagnostics)
         {
             if (value == null)
             {
