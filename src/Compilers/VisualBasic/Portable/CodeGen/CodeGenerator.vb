@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private ReadOnly _builder As ILBuilder
         Private ReadOnly _module As PEModuleBuilder
         Private ReadOnly _diagnostics As DiagnosticBag
-        Private ReadOnly _optimizations As OptimizationLevel
+        Private ReadOnly _ilEmitStyle As ILEmitStyle
         Private ReadOnly _emitPdbSequencePoints As Boolean
 
         Private ReadOnly _stackLocals As HashSet(Of LocalSymbol) = Nothing
@@ -41,6 +41,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private _asyncYieldPoints As ArrayBuilder(Of Integer) = Nothing
         Private _asyncResumePoints As ArrayBuilder(Of Integer) = Nothing
 
+        Private Enum ILEmitStyle As Byte
+            ' no optimizations
+            ' add additional debug specific emit 
+            ' like nops for sequence points mapping to no IL
+            Debug = 0
+
+            ' do optimizations that do Not diminish debug experience
+            DebugFriendlyRelease = 1
+
+            ' do all optimizations
+            Release = 2
+        End Enum
+
         Public Sub New(method As MethodSymbol,
                        boundBody As BoundStatement,
                        builder As ILBuilder,
@@ -61,8 +74,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             _module = moduleBuilder
             _diagnostics = diagnostics
 
-            ' Always optimize synthesized methods that don't contain user code.
-            _optimizations = If(method.GenerateDebugInfo, optimizations, OptimizationLevel.Release)
+            'Always optimize synthesized methods that don't contain user code.
+            If Not method.GenerateDebugInfo Then
+                _ilEmitStyle = ILEmitStyle.Release
+
+            Else
+                If optimizations = OptimizationLevel.Debug Then
+                    _ilEmitStyle = ILEmitStyle.Debug
+                Else
+                    _ilEmitStyle = If(IsDebugPlus(),
+                                        ILEmitStyle.DebugFriendlyRelease,
+                                        ILEmitStyle.Release)
+                End If
+            End If
 
             ' Emit sequence points unless
             ' - the PDBs are not being generated
@@ -72,13 +96,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             ' This setting only affects generating PDB sequence points, it shall Not affect generated IL in any way.
             _emitPdbSequencePoints = emittingPdb AndAlso method.GenerateDebugInfo
 
-            If _optimizations = OptimizationLevel.Release Then
-                _block = Optimizer.Optimize(method, boundBody, _stackLocals)
-            End If
+            _block = Optimizer.Optimize(method, boundBody, debugFriendly:=_ilEmitStyle <> ILEmitStyle.Release, stackLocals:=_stackLocals)
 
             _checkCallsForUnsafeJITOptimization = (_method.ImplementationAttributes And MethodSymbol.DisableJITOptimizationFlags) <> MethodSymbol.DisableJITOptimizationFlags
             Debug.Assert(Not _module.JITOptimizationIsDisabled(_method))
         End Sub
+
+        Private Function IsDebugPlus() As Boolean
+            Return Me._module.Compilation.Options.DebugPlusMode
+        End Function
 
         Public Sub Generate()
             Debug.Assert(_asyncYieldPoints Is Nothing)
@@ -242,7 +268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 instructionsEmitted = EmitStatementAndCountInstructions(statement)
             End If
 
-            If instructionsEmitted = 0 AndAlso syntax IsNot Nothing AndAlso _optimizations = OptimizationLevel.Debug Then
+            If instructionsEmitted = 0 AndAlso syntax IsNot Nothing AndAlso _ilEmitStyle = OptimizationLevel.Debug Then
                 ' if there was no code emitted, then emit nop 
                 ' otherwise this point could get associated with some random statement, possibly in a wrong scope
                 _builder.EmitOpCode(ILOpCode.Nop)
@@ -261,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 instructionsEmitted = EmitStatementAndCountInstructions(statement)
             End If
 
-            If instructionsEmitted = 0 AndAlso span <> Nothing AndAlso _optimizations = OptimizationLevel.Debug Then
+            If instructionsEmitted = 0 AndAlso span <> Nothing AndAlso _ilEmitStyle = OptimizationLevel.Debug Then
                 ' if there was no code emitted, then emit nop 
                 ' otherwise this point could get associated with some random statement, possibly in a wrong scope
                 _builder.EmitOpCode(ILOpCode.Nop)

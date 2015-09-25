@@ -9,10 +9,16 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
     Partial Friend Class StackScheduler
 
-        Public Shared Function OptimizeLocalsOut(container As Symbol, src As BoundStatement, <Out> ByRef stackLocals As HashSet(Of LocalSymbol)) As BoundStatement
+        Public Shared Function OptimizeLocalsOut(
+                         container As Symbol,
+                         src As BoundStatement,
+                         debugFriendly As Boolean,
+                         <Out> ByRef stackLocals As HashSet(Of LocalSymbol)) As BoundStatement
 
             Dim locals As Dictionary(Of LocalSymbol, LocalDefUseInfo) = Nothing
-            src = DirectCast(Analyzer.Analyze(container, src, locals), BoundStatement)
+            Dim evalStack = ArrayBuilder(Of ValueTuple(Of BoundExpression, ExprContext)).GetInstance()
+            src = DirectCast(Analyzer.Analyze(container, src, evalStack, debugFriendly, locals), BoundStatement)
+            evalStack.Free()
 
             locals = FilterValidStackLocals(locals)
 

@@ -6043,7 +6043,7 @@ End Module
   // Code size       10 (0xa)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  dup
+  IL_0001:  ldarg.0
   IL_0002:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.ExponentObject(Object, Object) As Object"
   IL_0007:  starg.s    V_0
   IL_0009:  ret
@@ -6080,7 +6080,7 @@ End Module
   // Code size       10 (0xa)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  dup
+  IL_0001:  ldarg.0
   IL_0002:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.DivideObject(Object, Object) As Object"
   IL_0007:  starg.s    V_0
   IL_0009:  ret
@@ -6093,7 +6093,7 @@ End Module
   // Code size       10 (0xa)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  dup
+  IL_0001:  ldarg.0
   IL_0002:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.ModObject(Object, Object) As Object"
   IL_0007:  starg.s    V_0
   IL_0009:  ret
@@ -6106,7 +6106,7 @@ End Module
   // Code size       10 (0xa)
   .maxstack  2
   IL_0000:  ldarg.0   
-  IL_0001:  dup
+  IL_0001:  ldarg.0
   IL_0002:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.IntDivideObject(Object, Object) As Object"
   IL_0007:  starg.s    V_0
   IL_0009:  ret       
@@ -6119,7 +6119,7 @@ End Module
   // Code size       10 (0xa)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  dup
+  IL_0001:  ldarg.0
   IL_0002:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.ConcatenateObject(Object, Object) As Object"
   IL_0007:  starg.s    V_0
   IL_0009:  ret
@@ -6144,7 +6144,7 @@ End Module
   // Code size       10 (0xa)
   .maxstack  2
   IL_0000:  ldarg.0   
-  IL_0001:  dup
+  IL_0001:  ldarg.0
   IL_0002:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.AndObject(Object, Object) As Object"
   IL_0007:  starg.s    V_0
   IL_0009:  ret       
@@ -6175,7 +6175,7 @@ End Module
   // Code size       10 (0xa)
   .maxstack  2
   IL_0000:  ldarg.0   
-  IL_0001:  dup
+  IL_0001:  ldarg.0
   IL_0002:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.OrObject(Object, Object) As Object"
   IL_0007:  starg.s    V_0
   IL_0009:  ret       
@@ -6206,7 +6206,7 @@ End Module
   // Code size       10 (0xa)
   .maxstack  2
   IL_0000:  ldarg.0   
-  IL_0001:  dup
+  IL_0001:  ldarg.0
   IL_0002:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.XorObject(Object, Object) As Object"
   IL_0007:  starg.s    V_0
   IL_0009:  ret       
@@ -6219,7 +6219,7 @@ End Module
   // Code size       10 (0xa)
   .maxstack  2
   IL_0000:  ldarg.0   
-  IL_0001:  dup
+  IL_0001:  ldarg.0
   IL_0002:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.MultiplyObject(Object, Object) As Object"
   IL_0007:  starg.s    V_0
   IL_0009:  ret       
@@ -6232,7 +6232,7 @@ End Module
   // Code size       10 (0xa)
   .maxstack  2
   IL_0000:  ldarg.0   
-  IL_0001:  dup
+  IL_0001:  ldarg.0
   IL_0002:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.AddObject(Object, Object) As Object"
   IL_0007:  starg.s    V_0
   IL_0009:  ret       
@@ -6245,7 +6245,7 @@ End Module
   // Code size       10 (0xa)
   .maxstack  2
   IL_0000:  ldarg.0   
-  IL_0001:  dup
+  IL_0001:  ldarg.0
   IL_0002:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.SubtractObject(Object, Object) As Object"
   IL_0007:  starg.s    V_0
   IL_0009:  ret       
@@ -6258,7 +6258,7 @@ End Module
   // Code size       10 (0xa)
   .maxstack  2
   IL_0000:  ldarg.0   
-  IL_0001:  dup
+  IL_0001:  ldarg.0
   IL_0002:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.LeftShiftObject(Object, Object) As Object"
   IL_0007:  starg.s    V_0
   IL_0009:  ret       
@@ -6271,7 +6271,7 @@ End Module
   // Code size       10 (0xa)
   .maxstack  2
   IL_0000:  ldarg.0   
-  IL_0001:  dup
+  IL_0001:  ldarg.0
   IL_0002:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.RightShiftObject(Object, Object) As Object"
   IL_0007:  starg.s    V_0
   IL_0009:  ret       
@@ -8427,26 +8427,26 @@ End Class
   .maxstack  2
   .locals init (System.Exception V_0) //ex
   .try
-{
-  IL_0000:  ldc.i4.1
-  IL_0001:  newobj     "Sub S..ctor(Integer)"
-  IL_0006:  pop
-  IL_0007:  ldc.i4.1
-  IL_0008:  newobj     "Sub S..ctor(Integer)"
-  IL_000d:  pop
-  IL_000e:  ldc.i4.1
-  IL_000f:  newobj     "Sub S..ctor(Integer)"
-  IL_0014:  pop
-  IL_0015:  leave.s    IL_0025
-}
+  {
+    IL_0000:  ldc.i4.1
+    IL_0001:  newobj     "Sub S..ctor(Integer)"
+    IL_0006:  pop
+    IL_0007:  ldc.i4.1
+    IL_0008:  newobj     "Sub S..ctor(Integer)"
+    IL_000d:  pop
+    IL_000e:  ldc.i4.1
+    IL_000f:  newobj     "Sub S..ctor(Integer)"
+    IL_0014:  pop
+    IL_0015:  leave.s    IL_0025
+  }
   catch System.Exception
-{
-  IL_0017:  dup
-  IL_0018:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_001d:  stloc.0
-  IL_001e:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0023:  leave.s    IL_0025
-}
+  {
+    IL_0017:  dup
+    IL_0018:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_001d:  stloc.0
+    IL_001e:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0023:  leave.s    IL_0025
+  }
   IL_0025:  ret
 }
 ]]>)
@@ -10250,7 +10250,8 @@ End Module
   IL_004a:  nop
   IL_004b:  nop
   IL_004c:  ret
-}]]>)
+}
+]]>)
         End Sub
 
         <WorkItem(539392, "DevDiv")>
@@ -11345,18 +11346,19 @@ End Class
             VerifyIL("EdmFunction.SetFunctionAttribute",
             <![CDATA[
 {
-  // Code size       10 (0xa)
+  // Code size       11 (0xb)
   .maxstack  4
   IL_0000:  ldarg.0
-  IL_0001:  dup
+  IL_0001:  ldarg.0
   IL_0002:  ldind.u1
-  IL_0003:  dup
-  IL_0004:  ldarg.1
-  IL_0005:  and
-  IL_0006:  add
-  IL_0007:  conv.ovf.u1.un
-  IL_0008:  stind.i1
-  IL_0009:  ret
+  IL_0003:  ldarg.0
+  IL_0004:  ldind.u1
+  IL_0005:  ldarg.1
+  IL_0006:  and
+  IL_0007:  add
+  IL_0008:  conv.ovf.u1.un
+  IL_0009:  stind.i1
+  IL_000a:  ret
 }
 ]]>)
         End Sub
@@ -11450,12 +11452,13 @@ End Module
             VerifyIL("Module1.getTypes",
             <![CDATA[
 {
-  // Code size      116 (0x74)
+  // Code size      118 (0x76)
   .maxstack  6
   .locals init (System.Array V_0, //types
                 System.Array V_1, //arr
                 Integer V_2, //i
-                Integer V_3)
+                Integer V_3,
+                Integer V_4)
   IL_0000:  ldc.i4.4
   IL_0001:  newarr     "Integer"
   IL_0006:  dup
@@ -11482,35 +11485,35 @@ End Module
   IL_003e:  callvirt   "Function System.Array.get_Length() As Integer"
   IL_0043:  ldc.i4.1
   IL_0044:  sub.ovf
-  IL_0045:  stloc.3
-  IL_0046:  ldc.i4.0
-  IL_0047:  stloc.2
-  IL_0048:  br.s       IL_006e
-  IL_004a:  ldloc.1
-  IL_004b:  ldc.i4.2
-  IL_004c:  newarr     "Object"
-  IL_0051:  dup
-  IL_0052:  ldc.i4.0
-  IL_0053:  ldloc.2
-  IL_0054:  box        "Integer"
-  IL_0059:  stelem.ref
-  IL_005a:  dup
-  IL_005b:  ldc.i4.1
-  IL_005c:  ldloc.0
-  IL_005d:  ldloc.2
-  IL_005e:  callvirt   "Function System.Array.GetValue(Integer) As Object"
-  IL_0063:  stelem.ref
-  IL_0064:  ldnull
-  IL_0065:  call       "Sub Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateIndexSet(Object, Object(), String())"
-  IL_006a:  ldloc.2
-  IL_006b:  ldc.i4.1
-  IL_006c:  add.ovf
-  IL_006d:  stloc.2
-  IL_006e:  ldloc.2
-  IL_006f:  ldloc.3
-  IL_0070:  ble.s      IL_004a
-  IL_0072:  ldloc.1
-  IL_0073:  ret
+  IL_0045:  stloc.s    V_4
+  IL_0047:  ldc.i4.0
+  IL_0048:  stloc.2
+  IL_0049:  br.s       IL_006f
+  IL_004b:  ldloc.1
+  IL_004c:  ldc.i4.2
+  IL_004d:  newarr     "Object"
+  IL_0052:  dup
+  IL_0053:  ldc.i4.0
+  IL_0054:  ldloc.2
+  IL_0055:  box        "Integer"
+  IL_005a:  stelem.ref
+  IL_005b:  dup
+  IL_005c:  ldc.i4.1
+  IL_005d:  ldloc.0
+  IL_005e:  ldloc.2
+  IL_005f:  callvirt   "Function System.Array.GetValue(Integer) As Object"
+  IL_0064:  stelem.ref
+  IL_0065:  ldnull
+  IL_0066:  call       "Sub Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateIndexSet(Object, Object(), String())"
+  IL_006b:  ldloc.2
+  IL_006c:  ldc.i4.1
+  IL_006d:  add.ovf
+  IL_006e:  stloc.2
+  IL_006f:  ldloc.2
+  IL_0070:  ldloc.s    V_4
+  IL_0072:  ble.s      IL_004b
+  IL_0074:  ldloc.1
+  IL_0075:  ret
 }
 ]]>)
         End Sub
