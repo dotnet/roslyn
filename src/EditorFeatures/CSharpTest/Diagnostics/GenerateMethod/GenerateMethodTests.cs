@@ -2813,7 +2813,7 @@ namespace ConsoleApplication1
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
             public void TestEquivalenceKey()
             {
-                TestEquivalenceKey(
+                TestEquivalenceKeyWorker(
     @"class C { void M() { this.[|M1|](System.Exception.M2()); } } ",
     string.Format(FeaturesResources.GenerateMethodIn, "C", "M1"));
             }
