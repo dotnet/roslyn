@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
 
-        public DiagnosticAnalyzerService(IDiagnosticUpdateSourceRegistrationService registrationService) : this()
+        private DiagnosticAnalyzerService(IDiagnosticUpdateSourceRegistrationService registrationService) : this()
         {
             registrationService.Register(this);
         }
