@@ -428,25 +428,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         ObjectConditionalOr,
         ObjectConcatenation,
 
-        StringConcatenation
-    }
+        StringConcatenation,
 
-    /// <summary>
-    /// Represents an operation that compares two operands and produces a boolean result.
-    /// </summary>
-    public interface IRelationalOperatorExpression : IHasOperatorExpression
-    {
-        RelationalOperationKind RelationalKind { get; }
-        IExpression Left { get; }
-        IExpression Right { get; }
-    }
-
-    /// <summary>
-    /// Kinds of relational operations.
-    /// </summary>
-    public enum RelationalOperationKind
-    {
-        None,
+        // Relational operations.
 
         OperatorEqual,
         OperatorNotEqual,

@@ -71,17 +71,6 @@ Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.OperationAnalysisCon
 Microsoft.CodeAnalysis.Semantics.IOperation
 Microsoft.CodeAnalysis.Semantics.IOperation.Kind.get -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.IOperation.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
-Microsoft.CodeAnalysis.Semantics.Relational
-Microsoft.CodeAnalysis.Semantics.Relational.Relational(Microsoft.CodeAnalysis.Semantics.RelationalOperationKind relationalKind, Microsoft.CodeAnalysis.Semantics.IExpression left, Microsoft.CodeAnalysis.Semantics.IExpression right, Microsoft.CodeAnalysis.ITypeSymbol resultType, Microsoft.CodeAnalysis.IMethodSymbol operatorMethod, Microsoft.CodeAnalysis.SyntaxNode syntax) -> void
-Microsoft.CodeAnalysis.Semantics.Relational.RelationalKind.get -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.Relational.Left.get -> Microsoft.CodeAnalysis.Semantics.IExpression
-Microsoft.CodeAnalysis.Semantics.Relational.Right.get -> Microsoft.CodeAnalysis.Semantics.IExpression
-Microsoft.CodeAnalysis.Semantics.Relational.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
-Microsoft.CodeAnalysis.Semantics.Relational.UsesOperatorMethod.get -> bool
-Microsoft.CodeAnalysis.Semantics.Relational.Operator.get -> Microsoft.CodeAnalysis.IMethodSymbol
-Microsoft.CodeAnalysis.Semantics.Relational.ResultType.get -> Microsoft.CodeAnalysis.ITypeSymbol
-Microsoft.CodeAnalysis.Semantics.Relational.Kind.get -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.Relational.ConstantValue.get -> object
 Microsoft.CodeAnalysis.Semantics.ConditionalChoice
 Microsoft.CodeAnalysis.Semantics.ConditionalChoice.ConditionalChoice(Microsoft.CodeAnalysis.Semantics.IExpression condition, Microsoft.CodeAnalysis.Semantics.IExpression ifTrue, Microsoft.CodeAnalysis.Semantics.IExpression ifFalse, Microsoft.CodeAnalysis.ITypeSymbol resultType, Microsoft.CodeAnalysis.SyntaxNode syntax) -> void
 Microsoft.CodeAnalysis.Semantics.ConditionalChoice.Condition.get -> Microsoft.CodeAnalysis.Semantics.IExpression
@@ -208,10 +197,6 @@ Microsoft.CodeAnalysis.Semantics.IConditionalChoiceExpression.IfFalse.get -> Mic
 Microsoft.CodeAnalysis.Semantics.INullCoalescingExpression
 Microsoft.CodeAnalysis.Semantics.INullCoalescingExpression.Primary.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.INullCoalescingExpression.Secondary.get -> Microsoft.CodeAnalysis.Semantics.IExpression
-Microsoft.CodeAnalysis.Semantics.IRelationalOperatorExpression
-Microsoft.CodeAnalysis.Semantics.IRelationalOperatorExpression.RelationalKind.get -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.IRelationalOperatorExpression.Left.get -> Microsoft.CodeAnalysis.Semantics.IExpression
-Microsoft.CodeAnalysis.Semantics.IRelationalOperatorExpression.Right.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IConversionExpression
 Microsoft.CodeAnalysis.Semantics.IConversionExpression.Operand.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IConversionExpression.Conversion.get -> Microsoft.CodeAnalysis.Semantics.ConversionKind
@@ -429,72 +414,70 @@ Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.ObjectConditionalAnd = 79 -
 Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.ObjectConditionalOr = 80 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.ObjectConcatenation = 81 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.StringConcatenation = 82 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.None = 0 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.OperatorEqual = 1 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.OperatorNotEqual = 2 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.OperatorLess = 3 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.OperatorLessEqual = 4 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.OperatorGreaterEqual = 5 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.OperatorGreater = 6 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.IntegerEqual = 7 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.IntegerNotEqual = 8 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.IntegerLess = 9 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.IntegerLessEqual = 10 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.IntegerGreaterEqual = 11 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.IntegerGreater = 12 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.UnsignedLess = 13 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.UnsignedLessEqual = 14 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.UnsignedGreaterEqual = 15 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.UnsignedGreater = 16 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.FloatingEqual = 17 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.FloatingNotEqual = 18 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.FloatingLess = 19 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.FloatingLessEqual = 20 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.FloatingGreaterEqual = 21 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.FloatingGreater = 22 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.DecimalEqual = 23 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.DecimalNotEqual = 24 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.DecimalLess = 25 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.DecimalLessEqual = 26 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.DecimalGreaterEqual = 27 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.DecimalGreater = 28 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.BooleanEqual = 29 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.BooleanNotEqual = 30 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.StringEqual = 31 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.StringNotEqual = 32 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.StringLike = 33 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.DelegateEqual = 34 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.DelegateNotEqual = 35 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.NullableEqual = 36 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.NullableNotEqual = 37 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.ObjectLess = 38 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.ObjectLessEqual = 39 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.ObjectEqual = 40 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.ObjectNotEqual = 41 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.ObjectVBEqual = 42 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.ObjectVBNotEqual = 43 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.ObjectLike = 44 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.ObjectGreaterEqual = 45 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.ObjectGreater = 46 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.EnumEqual = 47 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.EnumNotEqual = 48 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.EnumLess = 49 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.EnumLessEqual = 50 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.EnumGreaterEqual = 51 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.EnumGreater = 52 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.PointerEqual = 53 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.PointerNotEqual = 54 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.PointerLess = 55 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.PointerLessEqual = 56 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.PointerGreaterEqual = 57 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.PointerGreater = 58 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.DynamicEqual = 59 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.DynamicNotEqual = 60 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.DynamicLess = 61 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.DynamicLessEqual = 62 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.DynamicGreaterEqual = 63 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
-Microsoft.CodeAnalysis.Semantics.RelationalOperationKind.DynamicGreater = 64 -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorEqual = 83 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorNotEqual = 84 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorLess = 85 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorLessEqual = 86 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorGreaterEqual = 87 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.OperatorGreater = 88 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.IntegerEqual = 89 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.IntegerNotEqual = 90 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.IntegerLess = 91 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.IntegerLessEqual = 92 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.IntegerGreaterEqual = 93 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.IntegerGreater = 94 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.UnsignedLess = 95 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.UnsignedLessEqual = 96 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.UnsignedGreaterEqual = 97 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.UnsignedGreater = 98 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.FloatingEqual = 99 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.FloatingNotEqual = 100 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.FloatingLess = 101 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.FloatingLessEqual = 102 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.FloatingGreaterEqual = 103 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.FloatingGreater = 104 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.DecimalEqual = 105 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.DecimalNotEqual = 106 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.DecimalLess = 107 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.DecimalLessEqual = 108 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.DecimalGreaterEqual = 109 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.DecimalGreater = 110 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.BooleanEqual = 111 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.BooleanNotEqual = 112 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.StringEqual = 113 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.StringNotEqual = 114 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.StringLike = 115 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.DelegateEqual = 116 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.DelegateNotEqual = 117 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.NullableEqual = 118 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.NullableNotEqual = 119 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.ObjectLess = 120 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.ObjectLessEqual = 121 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.ObjectEqual = 122 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.ObjectNotEqual = 123 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.ObjectVBEqual = 124 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.ObjectVBNotEqual = 125 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.ObjectLike = 126 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.ObjectGreaterEqual = 127 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.ObjectGreater = 128 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.EnumEqual = 129 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.EnumNotEqual = 130 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.EnumLess = 131 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.EnumLessEqual = 132 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.EnumGreaterEqual = 133 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.EnumGreater = 134 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.PointerEqual = 135 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.PointerNotEqual = 136 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.PointerLess = 137 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.PointerLessEqual = 138 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.PointerGreaterEqual = 139 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.PointerGreater = 140 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.DynamicEqual = 141 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.DynamicNotEqual = 142 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.DynamicLess = 143 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.DynamicLessEqual = 144 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.DynamicGreaterEqual = 145 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.BinaryOperationKind.DynamicGreater = 146 -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
 Microsoft.CodeAnalysis.Semantics.IExpressionExtensions
 static Microsoft.CodeAnalysis.Semantics.IExpressionExtensions.IsStatic(this Microsoft.CodeAnalysis.Semantics.IInvocationExpression invocation) -> bool
 Microsoft.CodeAnalysis.Semantics.IStatement
@@ -516,9 +499,9 @@ Microsoft.CodeAnalysis.Semantics.ICaseClause
 Microsoft.CodeAnalysis.Semantics.ICaseClause.CaseKind.get -> Microsoft.CodeAnalysis.Semantics.CaseKind
 Microsoft.CodeAnalysis.Semantics.ISingleValueCaseClause
 Microsoft.CodeAnalysis.Semantics.ISingleValueCaseClause.Value.get -> Microsoft.CodeAnalysis.Semantics.IExpression
-Microsoft.CodeAnalysis.Semantics.ISingleValueCaseClause.Equality.get -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
+Microsoft.CodeAnalysis.Semantics.ISingleValueCaseClause.Equality.get -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
 Microsoft.CodeAnalysis.Semantics.IRelationalCaseClause
-Microsoft.CodeAnalysis.Semantics.IRelationalCaseClause.Relation.get -> Microsoft.CodeAnalysis.Semantics.RelationalOperationKind
+Microsoft.CodeAnalysis.Semantics.IRelationalCaseClause.Relation.get -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
 Microsoft.CodeAnalysis.Semantics.IRelationalCaseClause.Value.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IRangeCaseClause
 Microsoft.CodeAnalysis.Semantics.IRangeCaseClause.MinimumValue.get -> Microsoft.CodeAnalysis.Semantics.IExpression
@@ -631,30 +614,29 @@ Microsoft.CodeAnalysis.Semantics.OperationKind.UnaryOperator = 35 -> Microsoft.C
 Microsoft.CodeAnalysis.Semantics.OperationKind.BinaryOperator = 36 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.ConditionalChoice = 37 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.NullCoalescing = 38 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.RelationalOperator = 39 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.Lambda = 40 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.ObjectCreation = 41 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.TypeParameterObjectCreation = 42 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.ArrayCreation = 43 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.DefaultValue = 44 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.Instance = 45 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.BaseClassInstance = 46 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.ClassInstance = 47 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.ImplicitInstance = 48 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.Is = 49 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.TypeOperation = 50 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.Await = 51 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.AddressOf = 52 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.Assignment = 53 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.CompoundAssignment = 54 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.Parenthesized = 55 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.UnboundLambda = 56 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.Omitted = 57 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.StopStatement = 58 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.EndStatement = 59 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.WithStatement = 60 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.ConditionalAccess = 61 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.Increment = 62 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.Lambda = 39 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.ObjectCreation = 40 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.TypeParameterObjectCreation = 41 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.ArrayCreation = 42 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.DefaultValue = 43 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.Instance = 44 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.BaseClassInstance = 45 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.ClassInstance = 46 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.ImplicitInstance = 47 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.Is = 48 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.TypeOperation = 49 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.Await = 50 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.AddressOf = 51 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.Assignment = 52 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.CompoundAssignment = 53 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.Parenthesized = 54 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.UnboundLambda = 55 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.Omitted = 56 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.StopStatement = 57 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.EndStatement = 58 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.WithStatement = 59 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.ConditionalAccess = 60 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.Increment = 61 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationExtensions
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.Descendants(this Microsoft.CodeAnalysis.Semantics.IOperation operation) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Semantics.IOperation>
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.DescendantsAndSelf(this Microsoft.CodeAnalysis.Semantics.IOperation operation) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Semantics.IOperation>

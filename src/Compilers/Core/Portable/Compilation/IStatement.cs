@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Relational operator used to compare the switch value with the case value.
         /// </summary>
-        RelationalOperationKind Equality { get; }
+        BinaryOperationKind Equality { get; }
     }
 
     /// <summary>
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Relational operator used to compare the switch value with the case value. 
         /// </summary>
-        RelationalOperationKind Relation { get; }
+        BinaryOperationKind Relation { get; }
     }
 
     // Represents Case x To y in VB.

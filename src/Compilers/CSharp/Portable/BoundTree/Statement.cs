@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         IExpression ISingleValueCaseClause.Value => this.ExpressionOpt;
 
-        RelationalOperationKind ISingleValueCaseClause.Equality
+        BinaryOperationKind ISingleValueCaseClause.Equality
         {
             get
             {
@@ -180,22 +180,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case SpecialType.System_SByte:
                         case SpecialType.System_Byte:
                         case SpecialType.System_Char:
-                            return RelationalOperationKind.IntegerEqual;
+                            return BinaryOperationKind.IntegerEqual;
 
                         case SpecialType.System_Boolean:
-                            return RelationalOperationKind.BooleanEqual;
+                            return BinaryOperationKind.BooleanEqual;
 
                         case SpecialType.System_String:
-                            return RelationalOperationKind.StringEqual;
+                            return BinaryOperationKind.StringEqual;
                     }
 
                     if (caseValue.Type.TypeKind == TypeKind.Enum)
                     {
-                        return RelationalOperationKind.EnumEqual;
+                        return BinaryOperationKind.EnumEqual;
                     }
                 }
 
-                return RelationalOperationKind.None;
+                return BinaryOperationKind.None;
             }
         }
 

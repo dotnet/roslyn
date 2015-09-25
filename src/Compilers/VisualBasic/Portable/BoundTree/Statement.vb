@@ -129,27 +129,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundSimpleCaseClause
         Implements ISingleValueCaseClause
 
-        Private ReadOnly Property IEquality As RelationalOperationKind Implements ISingleValueCaseClause.Equality
+        Private ReadOnly Property IEquality As BinaryOperationKind Implements ISingleValueCaseClause.Equality
             Get
                 Dim caseValue As BoundExpression = DirectCast(Me.IValue, BoundExpression)
                 If caseValue IsNot Nothing Then
                     Select Case caseValue.Type.SpecialType
                         Case SpecialType.System_Int32, SpecialType.System_Int64, SpecialType.System_UInt32, SpecialType.System_UInt64, SpecialType.System_UInt16, SpecialType.System_Int16, SpecialType.System_SByte, SpecialType.System_Byte, SpecialType.System_Char
-                            Return RelationalOperationKind.IntegerEqual
+                            Return BinaryOperationKind.IntegerEqual
 
                         Case SpecialType.System_Boolean
-                            Return RelationalOperationKind.BooleanEqual
+                            Return BinaryOperationKind.BooleanEqual
 
                         Case SpecialType.System_String
-                            Return RelationalOperationKind.StringEqual
+                            Return BinaryOperationKind.StringEqual
                     End Select
 
                     If caseValue.Type.TypeKind = TypeKind.Enum Then
-                        Return RelationalOperationKind.EnumEqual
+                        Return BinaryOperationKind.EnumEqual
                     End If
                 End If
 
-                Return RelationalOperationKind.None
+                Return BinaryOperationKind.None
             End Get
         End Property
 
@@ -224,13 +224,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundRelationalCaseClause
         Implements IRelationalCaseClause
 
-        Private ReadOnly Property Relation As RelationalOperationKind Implements IRelationalCaseClause.Relation
+        Private ReadOnly Property Relation As BinaryOperationKind Implements IRelationalCaseClause.Relation
             Get
                 If Me.Value IsNot Nothing Then
-                    Return DeriveRelationalOperationKind(Me.OperatorKind, DirectCast(Me.Value, BoundExpression))
+                    Return DeriveBinaryOperationKind(Me.OperatorKind, DirectCast(Me.Value, BoundExpression))
                 End If
 
-                Return RelationalOperationKind.None
+                Return BinaryOperationKind.None
             End Get
         End Property
 
@@ -399,20 +399,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If BoundFor.StepValue Is Nothing OrElse (BoundFor.StepValue.IsConstant AndAlso BoundFor.StepValue.ConstantValueOpt IsNot Nothing) Then
                                 ' Either ControlVariable <= LimitValue or ControlVariable >= LimitValue, depending on whether the step value is negative.
 
-                                Dim relationalCode As RelationalOperationKind = DeriveRelationalOperationKind(If(BoundFor.StepValue IsNot Nothing AndAlso BoundFor.StepValue.ConstantValueOpt.IsNegativeNumeric, BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.LessThanOrEqual), controlVariable)
-                                Return New Relational(relationalCode, controlVariable, limitValue, booleanType, Nothing, limitValue.Syntax)
+                                Dim relationalCode As BinaryOperationKind = DeriveBinaryOperationKind(If(BoundFor.StepValue IsNot Nothing AndAlso BoundFor.StepValue.ConstantValueOpt.IsNegativeNumeric, BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.LessThanOrEqual), controlVariable)
+                                Return New Binary(relationalCode, controlVariable, limitValue, booleanType, limitValue.Syntax)
                             Else
                                 ' If(StepValue >= 0, ControlVariable <= LimitValue, ControlVariable >= LimitValue)
 
                                 Dim stepValue As IExpression = New Temporary(SyntheticLocalKind.ForLoopStepValue, BoundFor, BoundFor.StepValue)
-                                Dim stepRelationalCode As RelationalOperationKind = DeriveRelationalOperationKind(BinaryOperatorKind.GreaterThanOrEqual, BoundFor.StepValue)
-                                Dim stepCondition As IExpression = New Relational(stepRelationalCode, stepValue, New BoundLiteral(Nothing, Semantics.Expression.SynthesizeNumeric(stepValue.ResultType, 0), BoundFor.StepValue.Type), booleanType, Nothing, BoundFor.StepValue.Syntax)
+                                Dim stepRelationalCode As BinaryOperationKind = DeriveBinaryOperationKind(BinaryOperatorKind.GreaterThanOrEqual, BoundFor.StepValue)
+                                Dim stepCondition As IExpression = New Binary(stepRelationalCode, stepValue, New BoundLiteral(Nothing, Semantics.Expression.SynthesizeNumeric(stepValue.ResultType, 0), BoundFor.StepValue.Type), booleanType, BoundFor.StepValue.Syntax)
 
-                                Dim positiveStepRelationalCode As RelationalOperationKind = DeriveRelationalOperationKind(BinaryOperatorKind.LessThanOrEqual, controlVariable)
-                                Dim positiveStepCondition As IExpression = New Relational(positiveStepRelationalCode, controlVariable, limitValue, booleanType, Nothing, limitValue.Syntax)
+                                Dim positiveStepRelationalCode As BinaryOperationKind = DeriveBinaryOperationKind(BinaryOperatorKind.LessThanOrEqual, controlVariable)
+                                Dim positiveStepCondition As IExpression = New Binary(positiveStepRelationalCode, controlVariable, limitValue, booleanType, limitValue.Syntax)
 
-                                Dim negativeStepRelationalCode As RelationalOperationKind = DeriveRelationalOperationKind(BinaryOperatorKind.GreaterThanOrEqual, controlVariable)
-                                Dim negativeStepCondition As IExpression = New Relational(negativeStepRelationalCode, controlVariable, limitValue, booleanType, Nothing, limitValue.Syntax)
+                                Dim negativeStepRelationalCode As BinaryOperationKind = DeriveBinaryOperationKind(BinaryOperatorKind.GreaterThanOrEqual, controlVariable)
+                                Dim negativeStepCondition As IExpression = New Binary(negativeStepRelationalCode, controlVariable, limitValue, booleanType, limitValue.Syntax)
 
                                 Return New ConditionalChoice(stepCondition, positiveStepCondition, negativeStepCondition, booleanType, limitValue.Syntax)
                             End If
