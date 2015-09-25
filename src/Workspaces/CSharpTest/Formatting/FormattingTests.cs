@@ -5358,15 +5358,50 @@ class Program
 class Program
 {
     int[] x;
+    int[ , ] y;
+    var z = new[] { 0 };
 }";
 
             var expected = @"
 class Program
 {
     int[ ] x;
+    int[,] y;
+    var z = new[ ] { 0 };
 }";
 
-            var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.SpaceBetweenEmptySquareBrackets, true } };
+            var options = new Dictionary<OptionKey, object>()
+            {
+                { CSharpFormattingOptions.SpaceBetweenEmptySquareBrackets, true },
+                { CSharpFormattingOptions.SpaceWithinSquareBrackets, false },
+            };
+            AssertFormat(expected, code, changedOptionSet: options);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SquareBracesEmpty_False()
+        {
+            var code = @"
+class Program
+{
+    int[ ] x;
+    int[,] y;
+    var z = new[ ] { 0 };
+}";
+
+            var expected = @"
+class Program
+{
+    int[] x;
+    int[ , ] y;
+    var z = new[] { 0 };
+}";
+
+            var options = new Dictionary<OptionKey, object>()
+            {
+                { CSharpFormattingOptions.SpaceBetweenEmptySquareBrackets, false },
+                { CSharpFormattingOptions.SpaceWithinSquareBrackets, true },
+            };
             AssertFormat(expected, code, changedOptionSet: options);
         }
 
