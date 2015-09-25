@@ -79,7 +79,7 @@ restore_nuget()
 {
     acquire_sem_or_wait "restore_nuget"
 
-    local package_name="nuget.12.zip"
+    local package_name="nuget.15.zip"
     local target="/tmp/$package_name"
     echo "Installing NuGet Packages $target"
     if [ -f $target ]; then
@@ -112,7 +112,7 @@ run_msbuild()
     
     for i in `seq 1 $RETRY_COUNT`
     do
-        mono $MONO_ARGS ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe /v:m /p:SignAssembly=false /p:DebugSymbols=false "$@"
+        mono $MONO_ARGS ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe /v:m /p:SignAssembly=false /p:UseRoslynAnalyzers=false /p:DebugSymbols=false "$@"
         if [ $? -eq 0 ]; then
             is_good=true
             break

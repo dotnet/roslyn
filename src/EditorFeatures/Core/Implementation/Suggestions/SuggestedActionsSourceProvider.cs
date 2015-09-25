@@ -316,8 +316,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         {
                             if (fix.Action is SuppressionCodeAction)
                             {
-                                var suggestedAction = new SuppressionSuggestedAction(workspace, _subjectBuffer, _owner._editHandler,
-                                    fix, fixCollection.Provider, getFixAllSuggestedActionSet);
+                                SuggestedAction suggestedAction;
+                                if (fix.Action.HasCodeActions)
+                                {
+                                    suggestedAction = new SuppressionSuggestedAction(workspace, _subjectBuffer, _owner._editHandler,
+                                        fix, fixCollection.Provider, getFixAllSuggestedActionSet);
+                                }
+                                else
+                                {
+                                    suggestedAction = new CodeFixSuggestedAction(workspace, _subjectBuffer, _owner._editHandler,
+                                        fix, fix.Action, fixCollection.Provider, getFixAllSuggestedActionSet(fix.Action));
+                                }
 
                                 AddFix(fix, suggestedAction, map, order);
                             }

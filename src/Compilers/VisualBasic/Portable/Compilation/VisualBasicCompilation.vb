@@ -1227,7 +1227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the <see cref="MetadataReference"/> that corresponds to the assembly symbol.
         ''' </summary>
         Friend Shadows Function GetMetadataReference(assemblySymbol As AssemblySymbol) As MetadataReference
-            Return Me.GetBoundReferenceManager().ReferencedAssembliesMap.Where(Function(kvp) kvp.Value.Symbol Is assemblySymbol).Select(Function(kvp) kvp.Key).FirstOrDefault()
+            Return Me.GetBoundReferenceManager().GetMetadataReference(assemblySymbol)
         End Function
 
         Public Overrides ReadOnly Property ReferencedAssemblyNames As IEnumerable(Of AssemblyIdentity)
@@ -2639,15 +2639,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me.ObjectType
             End Get
         End Property
-
-        Protected Overrides Function CommonGetMetadataReference(_assemblySymbol As IAssemblySymbol) As MetadataReference
-            Dim symbol = TryCast(_assemblySymbol, AssemblySymbol)
-            If symbol IsNot Nothing Then
-                Return Me.GetMetadataReference(symbol)
-            Else
-                Return Nothing
-            End If
-        End Function
 
         Protected Overrides Function CommonGetEntryPoint(cancellationToken As CancellationToken) As IMethodSymbol
             Return Me.GetEntryPoint(cancellationToken)

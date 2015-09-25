@@ -510,4 +510,16 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="ComputingSuppressionFixForLanguage" xml:space="preserve">
     <value>Computing suppressions fix ('{0}')...</value>
   </data>
+  <data name="RemoveSuppressMultipleOccurrences" xml:space="preserve">
+    <value>Remove suppressions</value>
+  </data>
+  <data name="RemoveSuppressMultipleOccurrencesForLanguage" xml:space="preserve">
+    <value>Remove suppressions ('{0}')</value>
+  </data>
+  <data name="ComputingRemoveSuppressionFix" xml:space="preserve">
+    <value>Computing remove suppressions fix...</value>
+  </data>
+  <data name="ComputingRemoveSuppressionFixForLanguage" xml:space="preserve">
+    <value>Computing remove suppressions fix ('{0}')...</value>
+  </data>
 </root>

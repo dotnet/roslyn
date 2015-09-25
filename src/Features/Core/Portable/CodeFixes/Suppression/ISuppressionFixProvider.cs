@@ -11,12 +11,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     internal interface ISuppressionFixProvider
     {
         /// <summary>
-        /// Returns true if the given diagnostic can be suppressed or triaged.
+        /// Returns true if the given diagnostic can be suppressed or unsuppressed.
         /// </summary>
-        bool CanBeSuppressed(Diagnostic diagnostic);
+        bool CanBeSuppressedOrUnsuppressed(Diagnostic diagnostic);
 
         /// <summary>
-        /// Gets one or more suppression or triage fixes for the specified diagnostics represented as a list of <see cref="CodeAction"/>'s.
+        /// Gets one or more add suppression or remove suppression fixes for the specified diagnostics represented as a list of <see cref="CodeAction"/>'s.
         /// </summary>
         /// <returns>A list of zero or more potential <see cref="CodeFix"/>'es. It is also safe to return null if there are none.</returns>
         Task<IEnumerable<CodeFix>> GetSuppressionsAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken);

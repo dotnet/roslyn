@@ -53,6 +53,9 @@
     <Compile Include="..\..\Helpers\AbstractAnalyzerAssemblyLoader.cs">
       <Link>AbstractAnalyzerAssemblyLoader.cs</Link>
     </Compile>
+    <Compile Include="..\..\Helpers\AnalyzerAssemblyLoadUtils.cs">
+      <Link>AnalyzerAssemblyLoadUtils.cs</Link>
+    </Compile>
     <Compile Include="..\..\Helpers\ConsoleUtil.cs">
       <Link>ConsoleUtil.cs</Link>
     </Compile>

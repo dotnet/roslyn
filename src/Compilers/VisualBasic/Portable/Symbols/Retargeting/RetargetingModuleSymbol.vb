@@ -170,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
             Dim underlyingBoundReferences As ImmutableArray(Of AssemblySymbol) = _underlyingModule.GetReferencedAssemblySymbols()
             Dim referencedAssemblySymbols As ImmutableArray(Of AssemblySymbol) = moduleReferences.Symbols
-            Dim referencedAssemblies As ImmutableArray(Of AssemblyIdentity) = moduleReferences.Names
+            Dim referencedAssemblies As ImmutableArray(Of AssemblyIdentity) = moduleReferences.Identities
 
             Debug.Assert(referencedAssemblySymbols.Length = referencedAssemblies.Length)
             Debug.Assert(referencedAssemblySymbols.Length <= underlyingBoundReferences.Length) ' Linked references are filtered out.
