@@ -77,6 +77,14 @@ release_sem()
 
 restore_nuget()
 {
+    # restore coreclr runtime package
+    pushd /tmp
+    local coreclr_package_name="coreclr.linux.1.zip"
+    rm $coreclr_package_name
+    curl -O https://dotnetci.blob.core.windows.net/roslyn/$coreclr_package_name
+    unzip -uoq $coreclr_package_name -d ~/
+    popd
+
     acquire_sem_or_wait "restore_nuget"
 
     local package_name="nuget.15.zip"
