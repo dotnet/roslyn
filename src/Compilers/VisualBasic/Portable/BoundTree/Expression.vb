@@ -513,9 +513,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Class BoundBinaryOperator
         Implements IBinaryOperatorExpression
-        Implements IRelationalOperatorExpression
 
-        Private ReadOnly Property ILeft As IExpression Implements IBinaryOperatorExpression.Left, IRelationalOperatorExpression.Left
+        Private ReadOnly Property ILeft As IExpression Implements IBinaryOperatorExpression.Left
             Get
                 Return Me.Left
             End Get
@@ -527,7 +526,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IRight As IExpression Implements IBinaryOperatorExpression.Right, IRelationalOperatorExpression.Right
+        Private ReadOnly Property IRight As IExpression Implements IBinaryOperatorExpression.Right
             Get
                 Return Me.Right
             End Get
@@ -545,12 +544,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public ReadOnly Property RelationalKind As RelationalOperationKind Implements IRelationalOperatorExpression.RelationalKind
-            Get
-                Return DeriveRelationalOperationKind(Me.OperatorKind, Me.Left)
-            End Get
-        End Property
-
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.BinaryOperator
         End Function
@@ -559,9 +552,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Class BoundUserDefinedBinaryOperator
         Implements IBinaryOperatorExpression
-        Implements IRelationalOperatorExpression
 
-        Private ReadOnly Property ILeft As IExpression Implements IBinaryOperatorExpression.Left, IRelationalOperatorExpression.Left
+        Private ReadOnly Property ILeft As IExpression Implements IBinaryOperatorExpression.Left
             Get
                 Return Me.Left
             End Get
@@ -594,34 +586,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return BinaryOperationKind.OperatorLeftShift
                     Case BinaryOperatorKind.RightShift
                         Return BinaryOperationKind.OperatorRightShift
+                    Case BinaryOperatorKind.LessThan
+                        Return BinaryOperationKind.OperatorLess
+                    Case BinaryOperatorKind.LessThanOrEqual
+                        Return BinaryOperationKind.OperatorLessEqual
+                    Case BinaryOperatorKind.Equals
+                        Return BinaryOperationKind.OperatorEqual
+                    Case BinaryOperatorKind.NotEquals
+                        Return BinaryOperationKind.OperatorNotEqual
+                    Case BinaryOperatorKind.GreaterThanOrEqual
+                        Return BinaryOperationKind.OperatorGreaterEqual
+                    Case BinaryOperatorKind.GreaterThan
+                        Return BinaryOperationKind.OperatorGreater
                 End Select
 
                 Return BinaryOperationKind.None
             End Get
         End Property
 
-        Private ReadOnly Property IRelationalKind As RelationalOperationKind Implements IRelationalOperatorExpression.RelationalKind
-            Get
-                Select Case OperatorKind And BinaryOperatorKind.OpMask
-                    Case BinaryOperatorKind.LessThan
-                        Return RelationalOperationKind.OperatorLess
-                    Case BinaryOperatorKind.LessThanOrEqual
-                        Return RelationalOperationKind.OperatorLessEqual
-                    Case BinaryOperatorKind.Equals
-                        Return RelationalOperationKind.OperatorEqual
-                    Case BinaryOperatorKind.NotEquals
-                        Return RelationalOperationKind.OperatorNotEqual
-                    Case BinaryOperatorKind.GreaterThanOrEqual
-                        Return RelationalOperationKind.OperatorGreaterEqual
-                    Case BinaryOperatorKind.GreaterThan
-                        Return RelationalOperationKind.OperatorGreater
-                End Select
-
-                Return RelationalOperationKind.None
-            End Get
-        End Property
-
-        Private ReadOnly Property IRight As IExpression Implements IBinaryOperatorExpression.Right, IRelationalOperatorExpression.Right
+        Private ReadOnly Property IRight As IExpression Implements IBinaryOperatorExpression.Right
             Get
                 Return Me.Right
             End Get
@@ -643,14 +626,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Select Case Me.OperatorKind And BinaryOperatorKind.OpMask
                 Case BinaryOperatorKind.Add, BinaryOperatorKind.Concatenate, BinaryOperatorKind.Subtract, BinaryOperatorKind.Multiply, BinaryOperatorKind.Divide,
                     BinaryOperatorKind.IntegerDivide, BinaryOperatorKind.Modulo, BinaryOperatorKind.Power, BinaryOperatorKind.LeftShift, BinaryOperatorKind.RightShift,
-                    BinaryOperatorKind.And, BinaryOperatorKind.Or, BinaryOperatorKind.Xor, BinaryOperatorKind.AndAlso, BinaryOperatorKind.OrElse
-
-                    Return OperationKind.BinaryOperator
-
-                Case BinaryOperatorKind.LessThan, BinaryOperatorKind.LessThanOrEqual, BinaryOperatorKind.Equals, BinaryOperatorKind.NotEquals,
+                    BinaryOperatorKind.And, BinaryOperatorKind.Or, BinaryOperatorKind.Xor, BinaryOperatorKind.AndAlso, BinaryOperatorKind.OrElse,
+                    BinaryOperatorKind.LessThan, BinaryOperatorKind.LessThanOrEqual, BinaryOperatorKind.Equals, BinaryOperatorKind.NotEquals,
                     BinaryOperatorKind.Is, BinaryOperatorKind.IsNot, BinaryOperatorKind.Like, BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.GreaterThan
 
-                    Return OperationKind.RelationalOperator
+                    Return OperationKind.BinaryOperator
             End Select
 
             Return OperationKind.None
@@ -1238,7 +1218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Function DeriveBinaryOperationKind(operatorKind As BinaryOperatorKind, left As BoundExpression) As BinaryOperationKind
             Select Case left.Type.SpecialType
-                Case SpecialType.System_Byte, SpecialType.System_UInt16, SpecialType.System_UInt32, SpecialType.System_UInt64
+                Case SpecialType.System_Byte, SpecialType.System_UInt16, SpecialType.System_UInt32, SpecialType.System_UInt64, SpecialType.System_Char
                     Select Case operatorKind And BinaryOperatorKind.OpMask
                         Case BinaryOperatorKind.Add
                             Return BinaryOperationKind.IntegerAdd
@@ -1260,6 +1240,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Return BinaryOperationKind.IntegerLeftShift
                         Case BinaryOperatorKind.RightShift
                             Return BinaryOperationKind.IntegerRightShift
+                        Case BinaryOperatorKind.LessThan
+                            Return BinaryOperationKind.UnsignedLess
+                        Case BinaryOperatorKind.LessThanOrEqual
+                            Return BinaryOperationKind.UnsignedLessEqual
+                        Case BinaryOperatorKind.Equals
+                            Return BinaryOperationKind.IntegerEqual
+                        Case BinaryOperatorKind.NotEquals
+                            Return BinaryOperationKind.IntegerNotEqual
+                        Case BinaryOperatorKind.GreaterThanOrEqual
+                            Return BinaryOperationKind.UnsignedGreaterEqual
+                        Case BinaryOperatorKind.GreaterThan
+                            Return BinaryOperationKind.UnsignedGreater
                     End Select
                 Case SpecialType.System_SByte, SpecialType.System_Int16, SpecialType.System_Int32, SpecialType.System_Int64
                     Select Case operatorKind And BinaryOperatorKind.OpMask
@@ -1283,6 +1275,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Return BinaryOperationKind.UnsignedLeftShift
                         Case BinaryOperatorKind.RightShift
                             Return BinaryOperationKind.UnsignedRightShift
+                        Case BinaryOperatorKind.LessThan
+                            Return BinaryOperationKind.IntegerLess
+                        Case BinaryOperatorKind.LessThanOrEqual
+                            Return BinaryOperationKind.IntegerLessEqual
+                        Case BinaryOperatorKind.Equals
+                            Return BinaryOperationKind.IntegerEqual
+                        Case BinaryOperatorKind.NotEquals
+                            Return BinaryOperationKind.IntegerNotEqual
+                        Case BinaryOperatorKind.GreaterThanOrEqual
+                            Return BinaryOperationKind.IntegerGreaterEqual
+                        Case BinaryOperatorKind.GreaterThan
+                            Return BinaryOperationKind.IntegerGreater
                     End Select
                 Case SpecialType.System_Single, SpecialType.System_Double
                     Select Case operatorKind And BinaryOperatorKind.OpMask
@@ -1298,6 +1302,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Return BinaryOperationKind.FloatingRemainder
                         Case BinaryOperatorKind.Power
                             Return BinaryOperationKind.FloatingPower
+                        Case BinaryOperatorKind.LessThan
+                            Return BinaryOperationKind.FloatingLess
+                        Case BinaryOperatorKind.LessThanOrEqual
+                            Return BinaryOperationKind.FloatingLessEqual
+                        Case BinaryOperatorKind.Equals
+                            Return BinaryOperationKind.FloatingEqual
+                        Case BinaryOperatorKind.NotEquals
+                            Return BinaryOperationKind.FloatingNotEqual
+                        Case BinaryOperatorKind.GreaterThanOrEqual
+                            Return BinaryOperationKind.FloatingGreaterEqual
+                        Case BinaryOperatorKind.GreaterThan
+                            Return BinaryOperationKind.FloatingGreater
                     End Select
                 Case SpecialType.System_Decimal
                     Select Case operatorKind And BinaryOperatorKind.OpMask
@@ -1309,6 +1325,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Return BinaryOperationKind.DecimalMultiply
                         Case BinaryOperatorKind.Divide
                             Return BinaryOperationKind.DecimalDivide
+                        Case BinaryOperatorKind.LessThan
+                            Return BinaryOperationKind.DecimalLess
+                        Case BinaryOperatorKind.LessThanOrEqual
+                            Return BinaryOperationKind.DecimalLessEqual
+                        Case BinaryOperatorKind.Equals
+                            Return BinaryOperationKind.DecimalEqual
+                        Case BinaryOperatorKind.NotEquals
+                            Return BinaryOperationKind.DecimalNotEqual
+                        Case BinaryOperatorKind.GreaterThanOrEqual
+                            Return BinaryOperationKind.DecimalGreaterEqual
+                        Case BinaryOperatorKind.GreaterThan
+                            Return BinaryOperationKind.DecimalGreater
                     End Select
                 Case SpecialType.System_Boolean
                     Select Case operatorKind And BinaryOperatorKind.OpMask
@@ -1322,11 +1350,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Return BinaryOperationKind.BooleanConditionalAnd
                         Case BinaryOperatorKind.OrElse
                             Return BinaryOperationKind.BooleanConditionalOr
+                        Case BinaryOperatorKind.Equals
+                            Return BinaryOperationKind.BooleanEqual
+                        Case BinaryOperatorKind.NotEquals
+                            Return BinaryOperationKind.BooleanNotEqual
                     End Select
                 Case SpecialType.System_String
                     Select Case operatorKind And BinaryOperatorKind.OpMask
                         Case BinaryOperatorKind.Concatenate
                             Return BinaryOperationKind.StringConcatenation
+                        Case BinaryOperatorKind.Equals
+                            Return BinaryOperationKind.StringEqual
+                        Case BinaryOperatorKind.NotEquals
+                            Return BinaryOperationKind.StringNotEqual
+                        Case BinaryOperatorKind.Like
+                            Return BinaryOperationKind.StringLike
                     End Select
                 Case SpecialType.System_Object
                     Select Case operatorKind And BinaryOperatorKind.OpMask
@@ -1360,6 +1398,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Return BinaryOperationKind.ObjectLeftShift
                         Case BinaryOperatorKind.RightShift
                             Return BinaryOperationKind.ObjectRightShift
+                        Case BinaryOperatorKind.LessThan
+                            Return BinaryOperationKind.ObjectLess
+                        Case BinaryOperatorKind.LessThanOrEqual
+                            Return BinaryOperationKind.ObjectLessEqual
+                        Case BinaryOperatorKind.Equals
+                            Return BinaryOperationKind.ObjectVBEqual
+                        Case BinaryOperatorKind.Is
+                            Return BinaryOperationKind.ObjectEqual
+                        Case BinaryOperatorKind.IsNot
+                            Return BinaryOperationKind.ObjectNotEqual
+                        Case BinaryOperatorKind.NotEquals
+                            Return BinaryOperationKind.ObjectVBNotEqual
+                        Case BinaryOperatorKind.Like
+                            Return BinaryOperationKind.ObjectLike
+                        Case BinaryOperatorKind.GreaterThanOrEqual
+                            Return BinaryOperationKind.ObjectGreaterEqual
+                        Case BinaryOperatorKind.GreaterThan
+                            Return BinaryOperationKind.ObjectGreater
                     End Select
             End Select
 
@@ -1375,131 +1431,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return BinaryOperationKind.EnumOr
                     Case BinaryOperatorKind.Xor
                         Return BinaryOperationKind.EnumExclusiveOr
+                    Case BinaryOperatorKind.LessThan
+                        Return BinaryOperationKind.EnumLess
+                    Case BinaryOperatorKind.LessThanOrEqual
+                        Return BinaryOperationKind.EnumLessEqual
+                    Case BinaryOperatorKind.Equals
+                        Return BinaryOperationKind.EnumEqual
+                    Case BinaryOperatorKind.NotEquals
+                        Return BinaryOperationKind.EnumNotEqual
+                    Case BinaryOperatorKind.GreaterThanOrEqual
+                        Return BinaryOperationKind.EnumGreaterEqual
+                    Case BinaryOperatorKind.GreaterThan
+                        Return BinaryOperationKind.EnumGreater
                 End Select
             End If
 
             Return BinaryOperationKind.None
-        End Function
-
-        Friend Function DeriveRelationalOperationKind(operatorKind As BinaryOperatorKind, left As BoundExpression) As RelationalOperationKind
-            Select Case left.Type.SpecialType
-                Case SpecialType.System_Byte, SpecialType.System_UInt16, SpecialType.System_UInt32, SpecialType.System_UInt64, SpecialType.System_Char
-                    Select Case operatorKind And BinaryOperatorKind.OpMask
-                        Case BinaryOperatorKind.LessThan
-                            Return RelationalOperationKind.UnsignedLess
-                        Case BinaryOperatorKind.LessThanOrEqual
-                            Return RelationalOperationKind.UnsignedLessEqual
-                        Case BinaryOperatorKind.Equals
-                            Return RelationalOperationKind.IntegerEqual
-                        Case BinaryOperatorKind.NotEquals
-                            Return RelationalOperationKind.IntegerNotEqual
-                        Case BinaryOperatorKind.GreaterThanOrEqual
-                            Return RelationalOperationKind.UnsignedGreaterEqual
-                        Case BinaryOperatorKind.GreaterThan
-                            Return RelationalOperationKind.UnsignedGreater
-                    End Select
-                Case SpecialType.System_SByte, SpecialType.System_Int16, SpecialType.System_Int32, SpecialType.System_Int64
-                    Select Case operatorKind And BinaryOperatorKind.OpMask
-                        Case BinaryOperatorKind.LessThan
-                            Return RelationalOperationKind.IntegerLess
-                        Case BinaryOperatorKind.LessThanOrEqual
-                            Return RelationalOperationKind.IntegerLessEqual
-                        Case BinaryOperatorKind.Equals
-                            Return RelationalOperationKind.IntegerEqual
-                        Case BinaryOperatorKind.NotEquals
-                            Return RelationalOperationKind.IntegerNotEqual
-                        Case BinaryOperatorKind.GreaterThanOrEqual
-                            Return RelationalOperationKind.IntegerGreaterEqual
-                        Case BinaryOperatorKind.GreaterThan
-                            Return RelationalOperationKind.IntegerGreater
-                    End Select
-                Case SpecialType.System_Single, SpecialType.System_Double
-                    Select Case operatorKind And BinaryOperatorKind.OpMask
-                        Case BinaryOperatorKind.LessThan
-                            Return RelationalOperationKind.FloatingLess
-                        Case BinaryOperatorKind.LessThanOrEqual
-                            Return RelationalOperationKind.FloatingLessEqual
-                        Case BinaryOperatorKind.Equals
-                            Return RelationalOperationKind.FloatingEqual
-                        Case BinaryOperatorKind.NotEquals
-                            Return RelationalOperationKind.FloatingNotEqual
-                        Case BinaryOperatorKind.GreaterThanOrEqual
-                            Return RelationalOperationKind.FloatingGreaterEqual
-                        Case BinaryOperatorKind.GreaterThan
-                            Return RelationalOperationKind.FloatingGreater
-                    End Select
-                Case SpecialType.System_Decimal
-                    Select Case operatorKind And BinaryOperatorKind.OpMask
-                        Case BinaryOperatorKind.LessThan
-                            Return RelationalOperationKind.DecimalLess
-                        Case BinaryOperatorKind.LessThanOrEqual
-                            Return RelationalOperationKind.DecimalLessEqual
-                        Case BinaryOperatorKind.Equals
-                            Return RelationalOperationKind.DecimalEqual
-                        Case BinaryOperatorKind.NotEquals
-                            Return RelationalOperationKind.DecimalNotEqual
-                        Case BinaryOperatorKind.GreaterThanOrEqual
-                            Return RelationalOperationKind.DecimalGreaterEqual
-                        Case BinaryOperatorKind.GreaterThan
-                            Return RelationalOperationKind.DecimalGreater
-                    End Select
-                Case SpecialType.System_Boolean
-                    Select Case operatorKind And BinaryOperatorKind.OpMask
-                        Case BinaryOperatorKind.Equals
-                            Return RelationalOperationKind.BooleanEqual
-                        Case BinaryOperatorKind.NotEquals
-                            Return RelationalOperationKind.BooleanNotEqual
-                    End Select
-                Case SpecialType.System_String
-                    Select Case operatorKind And BinaryOperatorKind.OpMask
-                        Case BinaryOperatorKind.Equals
-                            Return RelationalOperationKind.StringEqual
-                        Case BinaryOperatorKind.NotEquals
-                            Return RelationalOperationKind.StringNotEqual
-                        Case BinaryOperatorKind.Like
-                            Return RelationalOperationKind.StringLike
-                    End Select
-                Case SpecialType.System_Object
-                    Select Case operatorKind And BinaryOperatorKind.OpMask
-                        Case BinaryOperatorKind.LessThan
-                            Return RelationalOperationKind.ObjectLess
-                        Case BinaryOperatorKind.LessThanOrEqual
-                            Return RelationalOperationKind.ObjectLessEqual
-                        Case BinaryOperatorKind.Equals
-                            Return RelationalOperationKind.ObjectVBEqual
-                        Case BinaryOperatorKind.Is
-                            Return RelationalOperationKind.ObjectEqual
-                        Case BinaryOperatorKind.IsNot
-                            Return RelationalOperationKind.ObjectNotEqual
-                        Case BinaryOperatorKind.NotEquals
-                            Return RelationalOperationKind.ObjectVBNotEqual
-                        Case BinaryOperatorKind.Like
-                            Return RelationalOperationKind.ObjectLike
-                        Case BinaryOperatorKind.GreaterThanOrEqual
-                            Return RelationalOperationKind.ObjectGreaterEqual
-                        Case BinaryOperatorKind.GreaterThan
-                            Return RelationalOperationKind.ObjectGreater
-                    End Select
-            End Select
-
-            If left.Type.TypeKind = TypeKind.Enum Then
-                Select Case operatorKind And BinaryOperatorKind.OpMask
-                    Case BinaryOperatorKind.LessThan
-                        Return RelationalOperationKind.EnumLess
-                    Case BinaryOperatorKind.LessThanOrEqual
-                        Return RelationalOperationKind.EnumLessEqual
-                    Case BinaryOperatorKind.Equals
-                        Return RelationalOperationKind.EnumEqual
-                    Case BinaryOperatorKind.NotEquals
-                        Return RelationalOperationKind.EnumNotEqual
-                    Case BinaryOperatorKind.GreaterThanOrEqual
-                        Return RelationalOperationKind.EnumGreaterEqual
-                    Case BinaryOperatorKind.GreaterThan
-                        Return RelationalOperationKind.EnumGreater
-                End Select
-            End If
-
-            Return RelationalOperationKind.None
         End Function
     End Module
 End Namespace

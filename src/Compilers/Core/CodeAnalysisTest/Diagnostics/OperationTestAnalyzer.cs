@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                          IForLoopStatement forLoop = (IForLoopStatement)loop;
                          IExpression forCondition = forLoop.Condition;
 
-                         if (forCondition.Kind == OperationKind.RelationalOperator)
+                         if (forCondition.Kind == OperationKind.BinaryOperator)
                          {
-                             IRelationalOperatorExpression condition = (IRelationalOperatorExpression)forCondition;
+                             IBinaryOperatorExpression condition = (IBinaryOperatorExpression)forCondition;
                              IExpression conditionLeft = condition.Left;
                              IExpression conditionRight = condition.Right;
 
@@ -129,11 +129,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
                                                          if (advanceOperationCode == BinaryOperationKind.IntegerAdd &&
                                                              incrementValue != 0 &&
-                                                             (condition.RelationalKind == RelationalOperationKind.IntegerLess ||
-                                                              condition.RelationalKind == RelationalOperationKind.IntegerLessEqual ||
-                                                              condition.RelationalKind == RelationalOperationKind.IntegerNotEqual ||
-                                                              condition.RelationalKind == RelationalOperationKind.IntegerGreater ||
-                                                              condition.RelationalKind == RelationalOperationKind.IntegerGreaterEqual))
+                                                             (condition.BinaryKind == BinaryOperationKind.IntegerLess ||
+                                                              condition.BinaryKind == BinaryOperationKind.IntegerLessEqual ||
+                                                              condition.BinaryKind == BinaryOperationKind.IntegerNotEqual ||
+                                                              condition.BinaryKind == BinaryOperationKind.IntegerGreater ||
+                                                              condition.BinaryKind == BinaryOperationKind.IntegerGreaterEqual))
                                                          {
                                                              int iterationCount = (testValue - initialValue) / incrementValue;
                                                              if (iterationCount >= 1000000)
@@ -250,25 +250,25 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                              int relationalValue = (int)relationalValueExpression.ConstantValue;
                                              switch (relationalClause.Relation)
                                              {
-                                                 case RelationalOperationKind.IntegerEqual:
+                                                 case BinaryOperationKind.IntegerEqual:
                                                      rangeMinValue = relationalValue;
                                                      rangeMaxValue = relationalValue;
                                                      break;
-                                                 case RelationalOperationKind.IntegerNotEqual:
+                                                 case BinaryOperationKind.IntegerNotEqual:
                                                      return;
-                                                 case RelationalOperationKind.IntegerLess:
+                                                 case BinaryOperationKind.IntegerLess:
                                                      rangeMinValue = int.MinValue;
                                                      rangeMaxValue = relationalValue - 1;
                                                      break;
-                                                 case RelationalOperationKind.IntegerLessEqual:
+                                                 case BinaryOperationKind.IntegerLessEqual:
                                                      rangeMinValue = int.MinValue;
                                                      rangeMaxValue = relationalValue;
                                                      break;
-                                                 case RelationalOperationKind.IntegerGreaterEqual:
+                                                 case BinaryOperationKind.IntegerGreaterEqual:
                                                      rangeMinValue = relationalValue;
                                                      rangeMaxValue = int.MaxValue;
                                                      break;
-                                                 case RelationalOperationKind.IntegerGreater:
+                                                 case BinaryOperationKind.IntegerGreater:
                                                      rangeMinValue = relationalValue + 1;
                                                      rangeMaxValue = int.MaxValue;
                                                      break;

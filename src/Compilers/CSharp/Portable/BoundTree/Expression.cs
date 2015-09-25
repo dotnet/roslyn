@@ -25,31 +25,36 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         IEnumerable<IOperation> IOperationSearchable.Descendants()
         {
-            var list = new List<BoundNode>();
+            var list = new List<IOperation>();
             new Collector(list).Visit(this);
             list.RemoveAt(0);
-            return list.OfType<IOperation>();
+            return list;
         }
 
         IEnumerable<IOperation> IOperationSearchable.DescendantsAndSelf()
         {
-            var list = new List<BoundNode>();
+            var list = new List<IOperation>();
             new Collector(list).Visit(this);
-            return list.OfType<IOperation>();
+            return list;
         }
 
         private class Collector : BoundTreeWalker
         {
-            private readonly List<BoundNode> nodes;
+            private readonly List<IOperation> nodes;
 
-            public Collector(List<BoundNode> nodes)
+            public Collector(List<IOperation> nodes)
             {
                 this.nodes = nodes;
             }
 
             public override BoundNode Visit(BoundNode node)
             {
-                this.nodes.Add(node);
+                IOperation operation = node as IOperation;
+                if (operation != null)
+                {
+                    this.nodes.Add(operation);
+                }
+
                 return base.Visit(node);
             }
         }
@@ -624,19 +629,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind ExpressionKind => OperationKind.UnaryOperator;
     }
 
-    partial class BoundBinaryOperator : IBinaryOperatorExpression, IRelationalOperatorExpression
+    partial class BoundBinaryOperator : IBinaryOperatorExpression
     {
         BinaryOperationKind IBinaryOperatorExpression.BinaryKind => Expression.DeriveBinaryOperationKind(this.OperatorKind);
 
         IExpression IBinaryOperatorExpression.Left => this.Left;
 
         IExpression IBinaryOperatorExpression.Right => this.Right;
-
-        RelationalOperationKind IRelationalOperatorExpression.RelationalKind => Expression.DeriveRelationalOperationKind(this.OperatorKind);
-
-        IExpression IRelationalOperatorExpression.Left => this.Left;
-
-        IExpression IRelationalOperatorExpression.Right => this.Right;
    
         bool IHasOperatorExpression.UsesOperatorMethod => (this.OperatorKind & BinaryOperatorKind.TypeMask) == BinaryOperatorKind.UserDefined;
 
@@ -658,14 +657,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BinaryOperatorKind.And:
                     case BinaryOperatorKind.Or:
                     case BinaryOperatorKind.Xor:
-                        return OperationKind.BinaryOperator;
                     case BinaryOperatorKind.LessThan:
                     case BinaryOperatorKind.LessThanOrEqual:
                     case BinaryOperatorKind.Equal:
                     case BinaryOperatorKind.NotEqual:
                     case BinaryOperatorKind.GreaterThan:
                     case BinaryOperatorKind.GreaterThanOrEqual:
-                        return OperationKind.RelationalOperator;
+                        return OperationKind.BinaryOperator;
                 }
 
                 return OperationKind.None;
@@ -1279,35 +1277,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     break;
-            }
 
-            return BinaryOperationKind.None;
-        }
-
-        internal static RelationalOperationKind DeriveRelationalOperationKind(BinaryOperatorKind operatorKind)
-        {
-            switch (operatorKind & BinaryOperatorKind.OpMask)
-            {
                 case BinaryOperatorKind.LessThan:
                     switch (operatorKind & BinaryOperatorKind.TypeMask)
                     {
                         case BinaryOperatorKind.Int:
                         case BinaryOperatorKind.Long:
-                            return RelationalOperationKind.IntegerLess;
+                            return BinaryOperationKind.IntegerLess;
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return RelationalOperationKind.UnsignedLess;
+                            return BinaryOperationKind.UnsignedLess;
                         case BinaryOperatorKind.Float:
                         case BinaryOperatorKind.Double:
-                            return RelationalOperationKind.FloatingLess;
+                            return BinaryOperationKind.FloatingLess;
                         case BinaryOperatorKind.Decimal:
-                            return RelationalOperationKind.DecimalLess;
+                            return BinaryOperationKind.DecimalLess;
                         case BinaryOperatorKind.Pointer:
-                            return RelationalOperationKind.PointerLess;
+                            return BinaryOperationKind.PointerLess;
                         case BinaryOperatorKind.Enum:
-                            return RelationalOperationKind.EnumLess;
+                            return BinaryOperationKind.EnumLess;
                         case BinaryOperatorKind.UserDefined:
-                            return RelationalOperationKind.OperatorLess;
+                            return BinaryOperationKind.OperatorLess;
                     }
 
                     break;
@@ -1317,21 +1307,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BinaryOperatorKind.Int:
                         case BinaryOperatorKind.Long:
-                            return RelationalOperationKind.IntegerLessEqual;
+                            return BinaryOperationKind.IntegerLessEqual;
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return RelationalOperationKind.UnsignedLessEqual;
+                            return BinaryOperationKind.UnsignedLessEqual;
                         case BinaryOperatorKind.Float:
                         case BinaryOperatorKind.Double:
-                            return RelationalOperationKind.FloatingLessEqual;
+                            return BinaryOperationKind.FloatingLessEqual;
                         case BinaryOperatorKind.Decimal:
-                            return RelationalOperationKind.DecimalLessEqual;
+                            return BinaryOperationKind.DecimalLessEqual;
                         case BinaryOperatorKind.Pointer:
-                            return RelationalOperationKind.PointerLessEqual;
+                            return BinaryOperationKind.PointerLessEqual;
                         case BinaryOperatorKind.Enum:
-                            return RelationalOperationKind.EnumLessEqual;
+                            return BinaryOperationKind.EnumLessEqual;
                         case BinaryOperatorKind.UserDefined:
-                            return RelationalOperationKind.OperatorLessEqual;
+                            return BinaryOperationKind.OperatorLessEqual;
                     }
 
                     break;
@@ -1343,28 +1333,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BinaryOperatorKind.Long:
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return RelationalOperationKind.IntegerEqual;
+                            return BinaryOperationKind.IntegerEqual;
                         case BinaryOperatorKind.Float:
                         case BinaryOperatorKind.Double:
-                            return RelationalOperationKind.FloatingEqual;
+                            return BinaryOperationKind.FloatingEqual;
                         case BinaryOperatorKind.Decimal:
-                            return RelationalOperationKind.DecimalEqual;
+                            return BinaryOperationKind.DecimalEqual;
                         case BinaryOperatorKind.Pointer:
-                            return RelationalOperationKind.PointerEqual;
+                            return BinaryOperationKind.PointerEqual;
                         case BinaryOperatorKind.Enum:
-                            return RelationalOperationKind.EnumEqual;
+                            return BinaryOperationKind.EnumEqual;
                         case BinaryOperatorKind.Bool:
-                            return RelationalOperationKind.BooleanEqual;
+                            return BinaryOperationKind.BooleanEqual;
                         case BinaryOperatorKind.String:
-                            return RelationalOperationKind.StringEqual;
+                            return BinaryOperationKind.StringEqual;
                         case BinaryOperatorKind.Object:
-                            return RelationalOperationKind.ObjectEqual;
+                            return BinaryOperationKind.ObjectEqual;
                         case BinaryOperatorKind.Delegate:
-                            return RelationalOperationKind.DelegateEqual;
+                            return BinaryOperationKind.DelegateEqual;
                         case BinaryOperatorKind.NullableNull:
-                            return RelationalOperationKind.NullableEqual;
+                            return BinaryOperationKind.NullableEqual;
                         case BinaryOperatorKind.UserDefined:
-                            return RelationalOperationKind.OperatorEqual;
+                            return BinaryOperationKind.OperatorEqual;
                     }
 
                     break;
@@ -1376,28 +1366,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BinaryOperatorKind.Long:
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return RelationalOperationKind.IntegerNotEqual;
+                            return BinaryOperationKind.IntegerNotEqual;
                         case BinaryOperatorKind.Float:
                         case BinaryOperatorKind.Double:
-                            return RelationalOperationKind.FloatingNotEqual;
+                            return BinaryOperationKind.FloatingNotEqual;
                         case BinaryOperatorKind.Decimal:
-                            return RelationalOperationKind.DecimalNotEqual;
+                            return BinaryOperationKind.DecimalNotEqual;
                         case BinaryOperatorKind.Pointer:
-                            return RelationalOperationKind.PointerNotEqual;
+                            return BinaryOperationKind.PointerNotEqual;
                         case BinaryOperatorKind.Enum:
-                            return RelationalOperationKind.EnumNotEqual;
+                            return BinaryOperationKind.EnumNotEqual;
                         case BinaryOperatorKind.Bool:
-                            return RelationalOperationKind.BooleanNotEqual;
+                            return BinaryOperationKind.BooleanNotEqual;
                         case BinaryOperatorKind.String:
-                            return RelationalOperationKind.StringNotEqual;
+                            return BinaryOperationKind.StringNotEqual;
                         case BinaryOperatorKind.Object:
-                            return RelationalOperationKind.ObjectNotEqual;
+                            return BinaryOperationKind.ObjectNotEqual;
                         case BinaryOperatorKind.Delegate:
-                            return RelationalOperationKind.DelegateNotEqual;
+                            return BinaryOperationKind.DelegateNotEqual;
                         case BinaryOperatorKind.NullableNull:
-                            return RelationalOperationKind.NullableNotEqual;
+                            return BinaryOperationKind.NullableNotEqual;
                         case BinaryOperatorKind.UserDefined:
-                            return RelationalOperationKind.OperatorNotEqual;
+                            return BinaryOperationKind.OperatorNotEqual;
                     }
 
                     break;
@@ -1407,21 +1397,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BinaryOperatorKind.Int:
                         case BinaryOperatorKind.Long:
-                            return RelationalOperationKind.IntegerGreaterEqual;
+                            return BinaryOperationKind.IntegerGreaterEqual;
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return RelationalOperationKind.UnsignedGreaterEqual;
+                            return BinaryOperationKind.UnsignedGreaterEqual;
                         case BinaryOperatorKind.Float:
                         case BinaryOperatorKind.Double:
-                            return RelationalOperationKind.FloatingGreaterEqual;
+                            return BinaryOperationKind.FloatingGreaterEqual;
                         case BinaryOperatorKind.Decimal:
-                            return RelationalOperationKind.DecimalGreaterEqual;
+                            return BinaryOperationKind.DecimalGreaterEqual;
                         case BinaryOperatorKind.Pointer:
-                            return RelationalOperationKind.PointerGreaterEqual;
+                            return BinaryOperationKind.PointerGreaterEqual;
                         case BinaryOperatorKind.Enum:
-                            return RelationalOperationKind.EnumGreaterEqual;
+                            return BinaryOperationKind.EnumGreaterEqual;
                         case BinaryOperatorKind.UserDefined:
-                            return RelationalOperationKind.OperatorGreaterEqual;
+                            return BinaryOperationKind.OperatorGreaterEqual;
                     }
 
                     break;
@@ -1431,27 +1421,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BinaryOperatorKind.Int:
                         case BinaryOperatorKind.Long:
-                            return RelationalOperationKind.IntegerGreater;
+                            return BinaryOperationKind.IntegerGreater;
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return RelationalOperationKind.UnsignedGreater;
+                            return BinaryOperationKind.UnsignedGreater;
                         case BinaryOperatorKind.Float:
                         case BinaryOperatorKind.Double:
-                            return RelationalOperationKind.FloatingGreater;
+                            return BinaryOperationKind.FloatingGreater;
                         case BinaryOperatorKind.Decimal:
-                            return RelationalOperationKind.DecimalGreater;
+                            return BinaryOperationKind.DecimalGreater;
                         case BinaryOperatorKind.Pointer:
-                            return RelationalOperationKind.PointerGreater;
+                            return BinaryOperationKind.PointerGreater;
                         case BinaryOperatorKind.Enum:
-                            return RelationalOperationKind.EnumGreater;
+                            return BinaryOperationKind.EnumGreater;
                         case BinaryOperatorKind.UserDefined:
-                            return RelationalOperationKind.OperatorGreater;
+                            return BinaryOperationKind.OperatorGreater;
                     }
 
                     break;
             }
 
-            return RelationalOperationKind.None;
+            return BinaryOperationKind.None;
         }
     }
 }

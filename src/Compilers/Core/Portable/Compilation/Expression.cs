@@ -81,37 +81,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
     }
 
-    public class Relational : IRelationalOperatorExpression
-    {
-        public Relational(RelationalOperationKind relationalKind, IExpression left, IExpression right, ITypeSymbol resultType, IMethodSymbol operatorMethod, SyntaxNode syntax)
-        {
-            this.RelationalKind = relationalKind;
-            this.Left = left;
-            this.Right = right;
-            this.ResultType = resultType;
-            this.Operator = operatorMethod;
-            this.Syntax = syntax;
-        }
-
-        public RelationalOperationKind RelationalKind { get; }
-        
-        public IExpression Left { get; }
-        
-        public IExpression Right { get; }
-        
-        public SyntaxNode Syntax { get; }
-
-        public bool UsesOperatorMethod => this.Operator != null;
-
-        public IMethodSymbol Operator { get; }
-
-        public ITypeSymbol ResultType { get; }
-
-        public OperationKind Kind => OperationKind.RelationalOperator;
-
-        public object ConstantValue => null;
-    }
-
     public class ConditionalChoice : IConditionalChoiceExpression
     {
         public ConditionalChoice(IExpression condition, IExpression ifTrue, IExpression ifFalse, ITypeSymbol resultType, SyntaxNode syntax)

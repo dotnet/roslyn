@@ -67,7 +67,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         BinaryOperator,
         ConditionalChoice,
         NullCoalescing,
-        RelationalOperator,
         Lambda,
         ObjectCreation,
         TypeParameterObjectCreation,
