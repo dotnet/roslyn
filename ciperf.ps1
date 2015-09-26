@@ -158,14 +158,23 @@ function CreateXUnitFixture(
     [Parameter(Mandatory = $true)]
     [String] $StagingPath,
     [Parameter(Mandatory = $true)]
-    [String] $ZipFile
+    [String] $ZipFile,
+    [Parameter(Mandatory = $false)]
+    [String] $UnzippedBaseDirectory
     ) {
     
     $PackagesPath = Join-Path -Path $StagingPath -ChildPath Packages
     & $NuGetExe install -OutputDirectory $PackagesPath -NonInteractive -ExcludeVersion xunit.runner.console -Version 2.1.0-beta4-build3109 -Source https://www.nuget.org/api/v2/
     & $NuGetExe install -OutputDirectory $PackagesPath -NonInteractive -ExcludeVersion Microsoft.DotNet.xunit.performance.runner.Windows -Version 1.0.0-alpha-build0013 -Source https://www.myget.org/F/dotnet-buildtools/
 
-    $ToZipPath = Join-Path $StagingPath -ChildPath "xunit"
+    if ([System.String]::IsNullOrEmpty($UnzippedBaseDirectory)) {
+        $IncludeBaseDirectory = $false
+        $UnzippedBaseDirectory = "ToZip"
+    } else {
+        $IncludeBaseDirectory = $true
+    }
+
+    $ToZipPath = Join-Path $StagingPath -ChildPath $UnzippedBaseDirectory
     New-Item -ItemType Directory -Path $ToZipPath -ErrorAction SilentlyContinue | Out-Null
 
     # Move the contents of all "Tools" folders into the root of the archive (overwriting any duplicates)
@@ -173,9 +182,7 @@ function CreateXUnitFixture(
 
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
-    # Note: Passing 'true' for includeBaseDirectory parameter because we want the files to extract into an 'xunit' subfolder.
-    # See the note in constructing the CorrelationPayload
-    [System.IO.Compression.ZipFile]::CreateFromDirectory($ToZipPath, $ZipFile, $compressionLevel, $true)
+    [System.IO.Compression.ZipFile]::CreateFromDirectory($ToZipPath, $ZipFile, $compressionLevel, $IncludeBaseDirectory)
 }
 
 function CreateAndUploadXunitFixture(
@@ -189,14 +196,14 @@ function CreateAndUploadXunitFixture(
     [String] $FixturesStagingPath
 ) {
     Write-Host "Xunit fixture is missing. Creating it and uploading to storage..."
-        
-    $xunitZip = Join-Path $FixturesStagingPath -ChildPath xunit.zip
 
-    CreateXUnitFixture -StagingPath $FixturesStagingPath -ZipFile $xunitZip | Out-Null
+    $ZipFile = Join-Path $FixturesStagingPath -ChildPath (Split-Path $BlobName -Leaf)
+
+    CreateXUnitFixture -StagingPath $FixturesStagingPath -ZipFile $ZipFile -UnzippedBaseDirectory "xunit" | Out-Null
 
     if (!$NoUpload) {
         Write-Host "Uploading xunit fixture"
-        Set-AzureStorageBlobContent -File $xunitZip -Container $StorageContainer -Blob $BlobName -Context $StorageContext | Out-Null
+        Set-AzureStorageBlobContent -File $ZipFile -Container $StorageContainer -Blob $BlobName -Context $StorageContext | Out-Null
     }
 }
 
@@ -213,9 +220,8 @@ function GetXUnitFixtureUri(
     [String] $FixturesStagingPath
    ) {
 
-    # Look for xunit.zip in the "fixtures" folder and create it if it doesn't already exist
-    $xunitBlob = Get-AzureStorageBlob -Container $StorageContainer -Blob $BlobName -Context $StorageContext -ErrorAction Ignore
-    if ($xunitBlob -eq $null) {
+    # Check first if the fixture already exists
+    if ((Get-AzureStorageBlob -Container $StorageContainer -Blob $BlobName -Context $StorageContext -ErrorAction Ignore) -eq $null) {
         CreateAndUploadXunitFixture -BlobName $BlobName -StorageContext $StorageContext -StorageContainer $StorageContainer -FixturesStagingPath $FixturesStagingPath
     }
 
@@ -233,7 +239,7 @@ function SubmitJobToHelix(
     $EventHubClient = [Microsoft.ServiceBus.Messaging.EventHubClient]::CreateFromConnectionString($EventHubConnectionString)
     $JobJsonStream = [System.IO.File]::Open($JobJsonPath, [System.IO.FileMode]::Open)
     $EventData = New-Object Microsoft.ServiceBus.Messaging.EventData -ArgumentList $JobJsonStream
-    $EventHubClient.Send($EventData)
+    $EventHubClient.Send($EventData) | Out-Null
     $JobJsonStream.Dispose()
 }
 
@@ -344,9 +350,9 @@ try {
 
     $FixturesStagingPath = Join-Path -Path $HelixStage -ChildPath fixtures
 
-    # Look for xunit.zip in the "fixtures/xunit2.1" folder and create it if it doesn't already exist
-    $XunitFixtureUri = GetXUnitFixtureUri -BlobName "$Repository/$Branch/fixtures/xunit2.1/xunit.zip" -StorageContext $StorageContext -StorageContainer $StorageContainer -StorageContainerRSAS $StorageContainerRSAS -FixturesStagingPath $FixturesStagingPath
-    
+    # Look for xunit-performance.zip in the appropriate fixtures folder and create it if it doesn't already exist
+    $XunitFixtureUri = GetXUnitFixtureUri -BlobName "$Repository/$Branch/fixtures/xunit-performance1.0.0-alpha-build0013/xunit-performance.zip" -StorageContext $StorageContext -StorageContainer $StorageContainer -StorageContainerRSAS $StorageContainerRSAS -FixturesStagingPath $FixturesStagingPath
+
     Write-Host "Creating work item list"
 
     $sb = New-Object -TypeName System.Text.StringBuilder
@@ -360,8 +366,9 @@ try {
     # seen before, the downloading and unzipping of the CorrelationPayload can be skipped.
     #
     # Each ZIP file in the CorrelationPayload will be extracted into the Payload folder on the target
-    # machine. To avoid filename collisions, xunit.zip is constructed so that it unzips
-    # into an 'xunit' subfolder.
+    # machine. To avoid filename collisions the fixture(s), (e.g. xunit-performance.zip) should be
+    # constructed so that they unzip into separate folders (by including the base directory in the
+    # zip file)
     # The "work" payload is actually empty.
     # The Command points to a batch file (or shell script for Linux) located inside the CorrelationPayload.
 

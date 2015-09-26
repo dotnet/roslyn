@@ -1,5 +1,5 @@
 @echo off
-setlocal
+setlocal enabledelayedexpansion
 
 echo Hello from the Roslyn XUnit Performance test.
 echo Command line: %0 %*
@@ -20,9 +20,13 @@ md %RESULTS%
 
 set > %RESULTS%\Environment.txt
 
-if '%1'=='' (
-    echo ERROR: Must specify at least one test assembly on the command line.
-    goto :eof
+rem =========================================================
+rem If no extra arguments are on the command line, then look
+rem for all performance test assemblies.
+rem =========================================================
+set TEST_ASSEMBLIES=%*
+if "%TEST_ASSEMBLIES%" == "" (
+    set TEST_ASSEMBLIES=*.PerformanceTests.dll
 )
 
 if not exist %~dp0ZipResult.py (
@@ -51,10 +55,11 @@ if DEFINED PYTHONPATH (
 )
 
 rem ========================================================
-rem The drop folder is the parent of the folder where this
-rem script lives.
+rem Find the drop folder location.
 rem We could use HELIX_CORRELATION_PAYLOAD, but that usually
-rem has the extended path prefix \\?\ on it.
+rem has the extended path prefix \\?\ on it which breaks all
+rem sorts of scenarios. So, instead just move to the parent
+rem of the folder where this rem script is running.
 rem The 'for' loop here is used just to resolve the relative
 rem path.
 rem ========================================================
@@ -69,13 +74,26 @@ pushd %DROP%
 
 rem ========================================================
 rem Prepare to run XUNIT tests
-rem Use a relative path to xunit to shorten
 rem ========================================================
 set XUNIT=xunit
 if not exist %XUNIT% (
-    echo ERROR: xunit fixture not found
-    popd
-    goto :eof
+
+    rem ===================================================
+    rem Try to create the xunit fixture ourselves. This is
+    rem useful for local runs.
+    rem ===================================================
+    if exist ..\..\nuget.exe (
+        echo Note: xunit fixture not found. Trying to create it.
+        set XUNIT_PACKAGES=%TEMP%\xunit%RANDOM%
+        ..\..\nuget.exe install -OutputDirectory !XUNIT_PACKAGES! -NonInteractive -ExcludeVersion Microsoft.DotNet.xunit.performance.runner.Windows -Version 1.0.0-alpha-build0013 -Source https://www.myget.org/F/dotnet-buildtools/
+
+        xcopy /s /i /y !XUNIT_PACKAGES!\xunit.runner.console\tools\* %XUNIT%
+        xcopy /s /i /y !XUNIT_PACKAGES!\Microsoft.DotNet.xunit.performance.runner.Windows\tools\* %XUNIT%
+    ) else (
+        echo ERROR: xunit fixture not found
+        popd
+        goto :eof
+    )
 )
 
 set XUNIT_CONSOLE=%XUNIT%\xunit.console.exe
@@ -95,13 +113,24 @@ if not exist %XUNIT_RUNNER% (
 
 echo Running tests from %CD%
 
-for %%f in (%*) do (
+if defined HELIX_CORRELATION_ID (
+    set RUNID=%HELIX_CORRELATION_ID%
+) else (
+    set RUNID=%COMPUTERNAME%_%USERNAME%_%DATE:~10%%DATE:~4,2%%DATE:~7,2%T%TIME:~0,2%%TIME:~3,2%%TIME:~6,2%
+)
+
+for %%f in (%TEST_ASSEMBLIES%) do (
     
     if not exist %%f (
         echo ERROR: Cannot find %%f in %CD%
     ) else (
 
-    %XUNIT_RUNNER% %%f -verbose -runner %XUNIT_CONSOLE% -runnerargs "-verbose" -outdir %RESULTS% -runid %%~nf
+    %XUNIT_RUNNER% %%f -verbose -runner %XUNIT_CONSOLE% -runnerargs "-verbose" -outdir %RESULTS% -runid %RUNID%
+
+    rem ====== Workaround for https://github.com/Microsoft/xunit-performance/issues/73
+    rem The output filename is tied to the runid. However, we want distinct output files
+    rem for each test assembly.
+    for %%g in (%RESULTS%\%RUNID%.*) do (ren %%g %%~nf%%~xg)
 
     if exist %RESULTS%\%%~nf.etl (
         echo Zipping %%~nf.etl
@@ -116,6 +145,7 @@ for %%f in (%*) do (
 popd
 
 echo All tests done.
+echo Results in %RESULTS%
 
 rem ========================================================
 rem Upload Results if running under HELIX
