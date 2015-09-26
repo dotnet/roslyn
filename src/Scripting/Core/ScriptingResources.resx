@@ -140,4 +140,10 @@
   <data name="AtFileLine" xml:space="preserve">
     <value> at {0} : {1}</value>
   </data>
+  <data name="CannotSetReadOnlyVariable" xml:space="preserve">
+    <value>Cannot set a read-only variable</value>
+  </data>
+  <data name="CannotSetConstantVariable" xml:space="preserve">
+    <value>Cannot set a constant variable</value>
+  </data>
 </root>

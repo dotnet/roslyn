@@ -402,8 +402,8 @@ End Class]]>
 Imports System
 Class C
     Sub Method()
-#Disable Warning BC42024 ' {WRN_UnusedLocal_Title}
         ' Trivia previous line
+#Disable Warning BC42024 ' {WRN_UnusedLocal_Title}
         Dim x As Integer    ' Trivia same line
 #Enable Warning BC42024 ' {WRN_UnusedLocal_Title}
         ' Trivia next line

@@ -52,15 +52,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function Parenthesize(expression As ExpressionSyntax) As ParenthesizedExpressionSyntax
-            Dim leadingTrivia = expression.GetLeadingTrivia()
-            Dim trailingTrivia = expression.GetTrailingTrivia()
-
-            Dim strippedExpression = expression.WithoutLeadingTrivia().WithoutTrailingTrivia()
-
-            Return SyntaxFactory.ParenthesizedExpression(strippedExpression) _
-                         .WithLeadingTrivia(leadingTrivia) _
-                         .WithTrailingTrivia(trailingTrivia) _
-                         .WithAdditionalAnnotations(Simplifier.Annotation)
+            Return SyntaxFactory.ParenthesizedExpression(expression.WithoutTrivia()) _
+                                .WithTriviaFrom(expression) _
+                                .WithAdditionalAnnotations(Simplifier.Annotation)
         End Function
 
 

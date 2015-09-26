@@ -284,6 +284,26 @@ namespace Microsoft.CodeAnalysis
         public abstract bool IsSuppressed { get; }
 
         /// <summary>
+        /// Gets the <see cref="SuppressionInfo"/> for suppressed diagnostics, i.e. <see cref="IsSuppressed"/> = true.
+        /// Otherwise, returns null.
+        /// </summary>
+        public SuppressionInfo GetSuppressionInfo(Compilation compilation)
+        {
+            if (!IsSuppressed)
+            {
+                return null;
+            }
+
+            AttributeData attribute;
+            if (!SuppressMessageAttributeState.IsDiagnosticSuppressed(this, compilation, out attribute))
+            {
+                attribute = null;
+            }
+
+            return new SuppressionInfo(this.Id, attribute);
+        }
+
+        /// <summary>
         /// Returns true if this diagnostic is enabled by default by the author of the diagnostic.
         /// </summary>
         internal virtual bool IsEnabledByDefault { get { return this.Descriptor.IsEnabledByDefault; } }
