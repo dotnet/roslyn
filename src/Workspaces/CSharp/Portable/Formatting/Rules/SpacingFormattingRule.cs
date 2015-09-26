@@ -165,9 +165,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // For spacing empty square braces
             if (previousKind == SyntaxKind.OpenBracketToken
-                && (
-                    currentKind == SyntaxKind.CloseBracketToken
-                    || (currentKind == SyntaxKind.OmittedArraySizeExpressionToken && (previousToken.Parent as ArrayRankSpecifierSyntax)?.Rank == 1 ))
+                && (currentKind == SyntaxKind.CloseBracketToken
+                    || (currentKind == SyntaxKind.OmittedArraySizeExpressionToken
+                        && (previousToken.Parent as ArrayRankSpecifierSyntax)?.Rank == 1 ))
                 && HasFormattableBracketParent(previousToken))
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceBetweenEmptySquareBrackets);
