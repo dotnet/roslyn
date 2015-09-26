@@ -178,19 +178,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinSquareBrackets);
             }
+            if (previousKind == SyntaxKind.CommaToken && currentKind == SyntaxKind.OmittedArraySizeExpressionToken)
+            {
+                var parent = previousToken.Parent as ArrayRankSpecifierSyntax;
+                if (parent != null && currentToken.Parent == parent.Sizes.Last())
+                {
+                    return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinSquareBrackets);
+                }
+            }
             else if (currentKind == SyntaxKind.CloseBracketToken && HasFormattableBracketParent(currentToken))
             {
-                if (currentToken.Parent is ArrayRankSpecifierSyntax)
-                {
-                    var parent = currentToken.Parent as ArrayRankSpecifierSyntax;
-                    if ((parent.Sizes.Any() && parent.Sizes.First().Kind() != SyntaxKind.OmittedArraySizeExpression) || parent.Sizes.SeparatorCount > 0)
-                    {
-                        // int []: added spacing operation on open [
-                        // int[1], int[,]: need spacing operation
-                        return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinSquareBrackets);
-                    }
-                }
-                else
+                // int []: added spacing operation on [
+                // int[,]: added spacing operation on ,
+                // int[1]: need spacing operation
+                if (previousKind != SyntaxKind.OmittedArraySizeExpressionToken)
                 {
                     return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinSquareBrackets);
                 }

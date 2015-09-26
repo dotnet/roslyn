@@ -5386,6 +5386,7 @@ class Program
 {
     int[ ] x;
     var z = new[ ] { 0 };
+    int[, ] x;
 }";
 
             var expected = @"
@@ -5393,28 +5394,6 @@ class Program
 {
     int[] x;
     var z = new[] { 0 };
-}";
-
-            var options = new Dictionary<OptionKey, object>()
-            {
-                { CSharpFormattingOptions.SpaceBetweenEmptySquareBrackets, false },
-                { CSharpFormattingOptions.SpaceWithinSquareBrackets, true },
-            };
-            AssertFormat(expected, code, changedOptionSet: options);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void WithinSquareBraces_True_OmittedArrayRank()
-        {
-            var code = @"
-class Program
-{
-    int[, ] x;
-}";
-
-            var expected = @"
-class Program
-{
     int[ , ] x;
 }";
 
@@ -5423,22 +5402,7 @@ class Program
                 { CSharpFormattingOptions.SpaceBetweenEmptySquareBrackets, false },
                 { CSharpFormattingOptions.SpaceWithinSquareBrackets, true },
             };
-
-            AssertFormat(expected, code, changedOptionSet: options,
-                // Let Omit = OmittedArraySizeSyntaxToken
-                // Consider the token streams for:
-                //  [ , ]   -> Open Omit |Comma Omit Close|
-                //  [ , , ] -> Open Omit |Comma Omit Comma| Omit Close
-                // To produce the same tree with the one parsed from source,
-                // the TrailingTrivia must be edited on the Comma,
-                // then we have to look at 3 tokens in order to distinguish between
-                //  Comma Omit Close
-                //  Comma Omit Comma
-                // and only pick the first case.
-                // But we currently only have 2 tokens to look at,
-                // we had no choice but to edit Omit's TrailingTrivia,
-                // so ignoring the tree compare for this case.
-                testWithTransformation: false);
+            AssertFormat(expected, code, changedOptionSet: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
