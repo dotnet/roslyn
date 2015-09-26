@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (previousKind == SyntaxKind.OpenBracketToken
                 && (currentKind == SyntaxKind.CloseBracketToken
                     || (currentKind == SyntaxKind.OmittedArraySizeExpressionToken
-                        && (previousToken.Parent as ArrayRankSpecifierSyntax)?.Rank == 1 ))
+                        && (previousToken.Parent as ArrayRankSpecifierSyntax)?.Rank == 1))
                 && HasFormattableBracketParent(previousToken))
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceBetweenEmptySquareBrackets);
@@ -178,10 +178,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinSquareBrackets);
             }
-            if (previousKind == SyntaxKind.CommaToken && currentKind == SyntaxKind.OmittedArraySizeExpressionToken)
+            if (currentKind == SyntaxKind.OmittedArraySizeExpressionToken && previousKind == SyntaxKind.CommaToken)
             {
-                var parent = previousToken.Parent as ArrayRankSpecifierSyntax;
-                if (parent != null && currentToken.Parent == parent.Sizes.Last())
+                var rankSpec = previousToken.Parent as ArrayRankSpecifierSyntax;
+                if (rankSpec != null && currentToken.Parent == rankSpec.Sizes.Last())
                 {
                     return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinSquareBrackets);
                 }
