@@ -154,6 +154,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 SetAlignmentBlockOperation(list, implicitArrayCreation.NewKeyword, implicitArrayCreation.Initializer.OpenBraceToken, implicitArrayCreation.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
                 return;
             }
+
+            var ifStatement = node as IfStatementSyntax;
+            if (ifStatement != null && ifStatement.Statement.IsKind(SyntaxKind.Block))
+            {
+                SetAlignmentBlockOperation(list, ifStatement, ifStatement.Statement);
+            }
         }
 
         private void SetAlignmentBlockOperation(List<IndentBlockOperation> list, SyntaxNode baseNode, SyntaxNode body)
@@ -214,16 +220,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             // increase indentation - embedded statement cases
             var ifStatement = node as IfStatementSyntax;
-            if (ifStatement != null && ifStatement.Statement != null && !(ifStatement.Statement is BlockSyntax))
+            if (ifStatement?.Statement != null && !(ifStatement.Statement is BlockSyntax) && !(ifStatement.Parent is ElseClauseSyntax))
             {
                 AddEmbeddedStatementsIndentationOperation(list, ifStatement.Statement);
                 return;
             }
 
             var elseClause = node as ElseClauseSyntax;
-            if (elseClause != null && elseClause.Statement != null)
+            if (elseClause?.Statement != null)
             {
-                if (!(elseClause.Statement is BlockSyntax || elseClause.Statement is IfStatementSyntax))
+                if (elseClause.Statement is BlockSyntax)
+                {
+                    return;
+                }
+                else if (elseClause.Statement is IfStatementSyntax)
+                {
+                    var innerIf = (IfStatementSyntax)elseClause.Statement;
+                    if (innerIf.Statement is BlockSyntax)
+                    {
+                        return;
+                    }
+
+                    var firstToken = innerIf.IfKeyword.GetNextToken(includeZeroWidth: true);
+                    var lastToken = innerIf.Statement.GetLastToken(includeZeroWidth: true);
+                    if (firstToken.IsMissing || lastToken.IsMissing)
+                    {
+                        return;
+                    }
+
+                    AddIndentBlockOperation(list, innerIf.IfKeyword, firstToken, lastToken, IndentBlockOption.RelativePosition | IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+                }
+                else
                 {
                     AddEmbeddedStatementsIndentationOperation(list, elseClause.Statement);
                 }
@@ -281,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             if (lastToken.IsMissing)
             {
-                // embedded statement is not done, consider following as part of embeded statement
+                // embedded statement is not done, consider following as part of embedded statement
                 AddIndentBlockOperation(list, firstToken, lastToken);
             }
             else

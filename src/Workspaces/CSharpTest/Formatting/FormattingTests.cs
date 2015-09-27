@@ -6556,5 +6556,94 @@ class C
     string  Name    {    get    ;   set     ;    }
 }", changedOptionSet: changedOptionSet);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(1711675, "https://connect.microsoft.com/VisualStudio/feedback/details/1711675/autoformatting-issues")]
+        public void IndentationOfStatementAfterIfOnSameAsElse()
+        {
+            AssertFormat(@"
+class C
+{
+    void M()
+    {
+        if (true)
+            M();
+        else if (true)
+            M();
+    }
+}", @"
+class C
+{
+    void M()
+    {
+        if (true)
+            M();
+        else if (true)
+                       M();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(1711675, "https://connect.microsoft.com/VisualStudio/feedback/details/1711675/autoformatting-issues")]
+        public void IndentationOfStatementAfterIfOnNewLineAfterElse()
+        {
+            AssertFormat(@"
+class C
+{
+    void M()
+    {
+        if (true)
+            M();
+        else
+            if (true)
+                M();
+    }
+}", @"
+class C
+{
+    void M()
+    {
+        if (true)
+            M();
+        else
+            if (true)
+                       M();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(1711675, "https://connect.microsoft.com/VisualStudio/feedback/details/1711675/autoformatting-issues")]
+        public void IndentationOfBlockAfterIfOnNewLineAfterElse()
+        {
+            AssertFormat(@"
+class C
+{
+    void M()
+    {
+        if (true)
+            M();
+        else
+            if (true)
+            {
+                M();
+            }
+    }
+}", @"
+class C
+{
+    void M()
+    {
+        if (true)
+            M();
+        else
+            if (true)
+                  {
+                         M();
+        }
+    }
+}");
+        }
     }
 }
