@@ -110,7 +110,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 else
                 {
                     var fullParts = ToMinimalDisplayParts(symbol, s_propertySignatureDisplayFormat);
-                    AddToGroup(SymbolDescriptionGroups.MainDescription, fullParts.Skip(2));
+                    var neededParts = fullParts.SkipWhile(p => p.Symbol == null);
+                    AddToGroup(SymbolDescriptionGroups.MainDescription, neededParts);
                 }
             }
 
