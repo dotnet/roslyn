@@ -155,8 +155,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             ParseInvalidPackageReference("nuget:");
             ParseInvalidPackageReference("NUGET:");
             ParseInvalidPackageReference("nugetA/1");
-            ParseInvalidPackageReference("nuget:A");
-            ParseInvalidPackageReference("nuget:A.B");
+
+            ParseValidPackageReference("nuget:A", "A", "");
+            ParseValidPackageReference("nuget:A.B", "A.B", "");
+            ParseValidPackageReference("nuget:  ", "  ", "");
+
             ParseInvalidPackageReference("nuget:A/");
             ParseInvalidPackageReference("nuget:A//1.0");
             ParseInvalidPackageReference("nuget:/1.0.0");
@@ -195,6 +198,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 @"{
   ""dependencies"": {
     ""A.B"": ""4.0.1""
+  },
+  ""frameworks"": {
+    ""net46"": {}
+  }
+}");
+            WriteProjectJsonPackageReference("A", "",
+@"{
+  ""dependencies"": {
+    ""A"": """"
   },
   ""frameworks"": {
     ""net46"": {}
