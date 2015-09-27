@@ -2371,28 +2371,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
                 else
                 {
-                    var selection = TextView.Selection;
-
-                    var anchor = selection.AnchorPoint;
-                    var active = selection.ActivePoint;
-
-                    ITextSnapshotLine startLine, endLine;
-                    int startCol, endCol;
-
-                    selection.AnchorPoint.GetLineAndColumn(out startLine, out startCol);
-                    selection.ActivePoint.GetLineAndColumn(out endLine, out endCol);
-
-                    if (startLine.LineNumber > endLine.LineNumber)
-                    {
-                        var temp = startLine;
-                        startLine = endLine;
-                        endLine = temp;
-                    }
-
-                    var projectionSpans = TextView.BufferGraph.MapUpToSnapshot(new SnapshotSpan(startLine.Start, endLine.EndIncludingLineBreak), 
-                                                SpanTrackingMode.EdgeInclusive, 
-                                                _projectionBuffer.CurrentSnapshot); 
-                                                                                                                            
+                    var selection = TextView.Selection;       
+                    var projectionSpans = TextView.BufferGraph.MapUpToSnapshot(new SnapshotSpan(selection.Start.Position.GetContainingLine().Start,
+                                                                                                selection.End.Position.GetContainingLine().EndIncludingLineBreak), 
+                                                                               SpanTrackingMode.EdgeInclusive, 
+                                                                               _projectionBuffer.CurrentSnapshot);                                                                                                                             
                     if (OverlapsWithEditableBuffer(projectionSpans))
                     {
                         CutOrDelete(projectionSpans, isCut);
@@ -2423,7 +2406,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 var selection = TextView.Selection;
                 if (!selection.IsEmpty)
                 {
-                    // Even though `IsSelectionInEditableBuffer` and `CutOrDelete` is sufficient to 
+                    // Even though `OverlapsWithEditableBuffer` and `CutOrDelete` is sufficient to 
                     // delete editable selection,  we still need to handle box selection 
                     // differently to move caret to appropiate location after deletion.
                     bool isEditable = selection.Mode == TextSelectionMode.Stream ?
