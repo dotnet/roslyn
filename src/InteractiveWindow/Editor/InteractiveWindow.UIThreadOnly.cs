@@ -2317,7 +2317,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     IsInActivePrompt(caretPosition))
                 {
                     CutOrDeleteCurrentLine(isCut: true);
-                    MoveCaretToClosestEditableBuffer();
+                    Home(false);
                 }
             }
 
@@ -2366,8 +2366,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         IsInActivePrompt(position))
                     {
                         CutOrDeleteCurrentLine(isCut); 
-                        MoveCaretToClosestEditableBuffer(); ;
-                        caret.EnsureVisible();
+                        Home(false);                
                     }
                 }
                 else

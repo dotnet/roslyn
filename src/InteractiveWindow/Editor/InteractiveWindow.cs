@@ -453,9 +453,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
         }
 
-#endregion
+        #endregion
 
-#region Output
+        #region Output
 
         Span IInteractiveWindow.Write(string text)
         {
@@ -482,7 +482,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             UIThread(uiOnly => uiOnly.Write(element));
         }
 
-#endregion
+        #endregion
 
         #region UI Dispatcher Helpers
 
@@ -547,6 +547,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         internal event Action<State> StateChanged;
 
-#endregion
+        #endregion
     }
 }

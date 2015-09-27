@@ -1295,6 +1295,215 @@ System.Console.WriteLine();",
             AssertCaretVirtualPosition(2, 4);             
         }
 
+        [Fact]
+        public void DeleteLineWithOutSelection()
+        {
+            Submit(
+@"1",
+@"1
+");                                                                                                                        
+            var caret = Window.TextView.Caret;                               
+
+            // DeleteLine with caret in readonly area
+            caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+
+            AssertCaretVirtualPosition(1, 1);
+            Task.Run(() => Window.Operations.DeleteLine()).PumpingWait();
+            Assert.Equal("> 1\r\n1\r\n> ", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            AssertCaretVirtualPosition(1, 1);
+
+            // DeleteLine with caret in active prompt
+            caret.MoveToNextCaretPosition();
+            caret.MoveToNextCaretPosition();
+            caret.MoveToNextCaretPosition();
+            Window.InsertCode("int x");
+            Window.Operations.BreakLine();
+            Window.InsertCode(";");
+            for (int i = 0; i < 11; ++i)
+            {
+                caret.MoveToPreviousCaretPosition();
+            }                                          
+
+            AssertCaretVirtualPosition(2, 0);
+            Task.Run(() => Window.Operations.DeleteLine()).PumpingWait();
+            Assert.Equal("> 1\r\n1\r\n> ;", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            AssertCaretVirtualPosition(2, 2);
+
+            // DeleteLine with caret in editable area   
+            caret.MoveToNextCaretPosition();
+
+            Task.Run(() => Window.Operations.DeleteLine()).PumpingWait();
+            Assert.Equal("> 1\r\n1\r\n> ", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            AssertCaretVirtualPosition(2, 2);
+        }
+
+        [Fact]
+        public void DeleteLineWithSelection()
+        {
+            Submit(
+@"1",
+@"1
+");
+            var caret = Window.TextView.Caret;
+            var selection = Window.TextView.Selection;
+
+            // DeleteLine with selection in readonly area  
+            caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+            Window.Operations.SelectAll();
+            Task.Run(() => Window.Operations.DeleteLine()).PumpingWait();
+            Assert.Equal("> 1\r\n1\r\n> ", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+
+            // DeleteLine with selection in active prompt
+            selection.Clear();
+            caret.MoveToNextCaretPosition();
+            caret.MoveToNextCaretPosition();
+            caret.MoveToNextCaretPosition();
+            Window.InsertCode("int x");
+            Window.Operations.BreakLine();
+            Window.InsertCode(";");
+            for (int i = 0; i < 11; ++i)
+            {
+                caret.MoveToPreviousCaretPosition();
+            }
+            selection.Select(caret.MoveToNextCaretPosition().VirtualBufferPosition, caret.MoveToNextCaretPosition().VirtualBufferPosition);
+            Task.Run(() => Window.Operations.DeleteLine()).PumpingWait();
+            Assert.Equal("> 1\r\n1\r\n> ;", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            AssertCaretVirtualPosition(2, 2);
+            Assert.True(selection.IsEmpty);
+
+            // DeleteLine with selection in editable area   
+            Window.InsertCode("int x");
+            selection.Select(caret.MoveToPreviousCaretPosition().VirtualBufferPosition, caret.MoveToPreviousCaretPosition().VirtualBufferPosition);
+            Task.Run(() => Window.Operations.DeleteLine()).PumpingWait();
+            Assert.Equal("> 1\r\n1\r\n> ", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            AssertCaretVirtualPosition(2, 2);
+            Assert.True(selection.IsEmpty);
+
+            // DeleteLine with selection spans all areas     
+            Window.InsertCode("int x");
+            Window.Operations.BreakLine();
+            Window.InsertCode(";");
+            Window.Operations.SelectAll();
+            Window.Operations.SelectAll();
+            Task.Run(() => Window.Operations.DeleteLine()).PumpingWait();
+            Assert.Equal("> 1\r\n1\r\n> ", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            AssertCaretVirtualPosition(2, 2);
+            Assert.True(selection.IsEmpty);
+        }
+
+        [Fact]
+        public void CutineWithOutSelection()
+        {
+            Submit(
+@"1",
+@"1
+");
+            var caret = Window.TextView.Caret;
+            Clipboard.Clear();
+
+            // CutLine with caret in readonly area
+            caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+
+            AssertCaretVirtualPosition(1, 1);
+            Task.Run(() => Window.Operations.CutLine()).PumpingWait();
+            Assert.Equal("> 1\r\n1\r\n> ", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            AssertCaretVirtualPosition(1, 1);
+            VerifyClipboardData(null, null, null);
+
+            // CutLine with caret in active prompt
+            caret.MoveToNextCaretPosition();
+            caret.MoveToNextCaretPosition();
+            caret.MoveToNextCaretPosition();
+            Window.InsertCode("int x");
+            Window.Operations.BreakLine();
+            Window.InsertCode(";");
+            for (int i = 0; i < 11; ++i)
+            {
+                caret.MoveToPreviousCaretPosition();
+            }
+
+            AssertCaretVirtualPosition(2, 0);
+            Task.Run(() => Window.Operations.CutLine()).PumpingWait();
+            Assert.Equal("> 1\r\n1\r\n> ;", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            AssertCaretVirtualPosition(2, 2);
+            VerifyClipboardData("int x\r\n", null, null);
+
+            // CutLine with caret in editable area   
+            caret.MoveToNextCaretPosition();
+
+            Task.Run(() => Window.Operations.CutLine()).PumpingWait();
+            Assert.Equal("> 1\r\n1\r\n> ", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            AssertCaretVirtualPosition(2, 2);
+            VerifyClipboardData(";", null, null);
+        }
+
+        [Fact]
+        public void CutLineWithSelection()
+        {
+            Submit(
+@"1",
+@"1
+");
+            var caret = Window.TextView.Caret;
+            var selection = Window.TextView.Selection;
+            Clipboard.Clear();
+
+            // CutLine with selection in readonly area  
+            caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+            Window.Operations.SelectAll();
+            Task.Run(() => Window.Operations.CutLine()).PumpingWait();
+            Assert.Equal("> 1\r\n1\r\n> ", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            VerifyClipboardData(null, null, null);
+
+            // CutLine with selection in active prompt
+            selection.Clear();
+            caret.MoveToNextCaretPosition();
+            caret.MoveToNextCaretPosition();
+            caret.MoveToNextCaretPosition();
+            Window.InsertCode("int x");
+            Window.Operations.BreakLine();
+            Window.InsertCode(";");
+            for (int i = 0; i < 11; ++i)
+            {
+                caret.MoveToPreviousCaretPosition();
+            }
+            selection.Select(caret.MoveToNextCaretPosition().VirtualBufferPosition, caret.MoveToNextCaretPosition().VirtualBufferPosition);
+            Task.Run(() => Window.Operations.CutLine()).PumpingWait();
+            Assert.Equal("> 1\r\n1\r\n> ;", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            AssertCaretVirtualPosition(2, 2);
+            Assert.True(selection.IsEmpty);
+            VerifyClipboardData("int x\r\n", null, null);
+
+            // CutLine with selection in editable area   
+            Window.InsertCode("int x");
+            selection.Select(caret.MoveToPreviousCaretPosition().VirtualBufferPosition, caret.MoveToPreviousCaretPosition().VirtualBufferPosition);
+            Task.Run(() => Window.Operations.CutLine()).PumpingWait();
+            Assert.Equal("> 1\r\n1\r\n> ", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            AssertCaretVirtualPosition(2, 2);
+            Assert.True(selection.IsEmpty);
+            VerifyClipboardData("int x;", null, null);
+
+            // CutLine with selection spans all areas     
+            Window.InsertCode("int x");
+            Window.Operations.BreakLine();
+            Window.InsertCode(";");
+            Window.Operations.SelectAll();
+            Window.Operations.SelectAll();
+            Task.Run(() => Window.Operations.CutLine()).PumpingWait();
+            Assert.Equal("> 1\r\n1\r\n> ", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            AssertCaretVirtualPosition(2, 2);
+            Assert.True(selection.IsEmpty);
+            VerifyClipboardData("int x\r\n;", null, null);
+        }
+
         private void Submit(string submission, string output)
         {
             Task.Run(() => Window.SubmitAsync(new[] { submission })).PumpingWait();
@@ -1360,6 +1569,16 @@ System.Console.WriteLine();",
         internal static void Copy(this IInteractiveWindowOperations operations)
         {
             ((IInteractiveWindowOperations2)operations).Copy();
+        }
+
+        internal static void DeleteLine(this IInteractiveWindowOperations operations)
+        {
+            ((IInteractiveWindowOperations2)operations).DeleteLine();
+        }
+
+        internal static void CutLine(this IInteractiveWindowOperations operations)
+        {
+            ((IInteractiveWindowOperations2)operations).CutLine();
         }
     }
 }
