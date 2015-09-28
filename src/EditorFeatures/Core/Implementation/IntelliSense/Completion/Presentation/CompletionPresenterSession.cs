@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Windows.Input;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -25,10 +27,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         public event EventHandler<EventArgs> Dismissed;
         public event EventHandler<CompletionItemEventArgs> ItemCommitted;
         public event EventHandler<CompletionItemEventArgs> ItemSelected;
+        public event EventHandler<CompletionListSelectedEventArgs> CompletionListSelected;
 
-        private readonly CompletionSet2 _completionSet;
+        private CompletionSet2[] _completionSets;
+        private ImmutableArray<CompletionPresentationData> _models;
 
-        private ICompletionSession _editorSessionOpt;
+        internal ICompletionSession _editorSessionOpt { get; private set; }
         private bool _ignoreSelectionStatusChangedEvent;
 
         // Now that PresentItemsInternal is called after a delay, editorSessionOpt may be null because
@@ -46,18 +50,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             this.GlyphService = glyphService;
             _textView = textView;
             _subjectBuffer = subjectBuffer;
-
-            _completionSet = new CompletionSet2(this, textView, subjectBuffer);
-            _completionSet.SelectionStatusChanged += OnCompletionSetSelectionStatusChanged;
         }
 
-        public void PresentItems(
+        public void PresentModels(
             ITrackingSpan triggerSpan,
-            IList<CompletionItem> completionItems,
-            CompletionItem selectedItem,
-            CompletionItem presetBuilder,
-            bool suggestionMode,
-            bool isSoftSelected)
+            ImmutableArray<CompletionPresentationData> models,
+            bool suggestionMode)
         {
             AssertIsForeground();
 
@@ -67,17 +65,45 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 return;
             }
 
-            _completionSet.SetTrackingSpan(triggerSpan);
+            // First: if this is the first time we're starting a session, make sure we
+            // have the right number of presentable completion sets.
+            // The number of lists we present shouldn't change once computed.
+            if (_editorSessionOpt == null)
+            {
+                _completionSets = new CompletionSet2[models.Length];
+                for (int i = 0; i < models.Length; i++)
+                {
+                    var data = models[i];
+                    var completionSet = new CompletionSet2(this, _textView, _subjectBuffer, data.ModelId, data.Title);
+                    _completionSets[i] = completionSet;
+                }
+            }
 
-            _ignoreSelectionStatusChangedEvent = true;
-            try
+            var selectedModel = models.FirstOrDefault(m => m.IsSelectedList);
+
+            for (int i = 0; i < models.Length; i++)
             {
-                _completionSet.SetCompletionItems(completionItems, selectedItem, presetBuilder, suggestionMode, isSoftSelected);
+                var data = models[i];
+                // var completionSet = new CompletionSet2(this, _textView, _subjectBuffer, data.ModelId, data.Title);
+                var completionSet = _completionSets[i];
+                completionSet.SetTrackingSpan(triggerSpan);
+                completionSet.SelectionStatusChanged += (s, e) => OnCompletionSetSelectionStatusChanged(s, e, completionSet);
+
+                _ignoreSelectionStatusChangedEvent = true;
+                try
+                {
+                    completionSet.SetCompletionItems(data.Items, data.SelectedItem, data.PresetBuilder, suggestionMode, data.IsSoftSelected);
+                }
+                finally
+                {
+                    _ignoreSelectionStatusChangedEvent = false;
+                }
+
+                completionSet.Selected = completionSet.Id == (selectedModel?.ModelId);
+                _completionSets[i] = completionSet;
             }
-            finally
-            {
-                _ignoreSelectionStatusChangedEvent = false;
-            }
+
+            _models = models;
 
             if (_editorSessionOpt == null)
             {
@@ -95,6 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 }
 
                 _editorSessionOpt.Dismissed += (s, e) => OnEditorSessionDismissed();
+                _editorSessionOpt.SelectedCompletionSetChanged += OnSelectedCompletionSetChanged;
 
                 // So here's the deal.  We cannot create the editor session and give it the right
                 // items (even though we know what they are).  Instead, the session will call
@@ -105,6 +132,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 // session.
                 _editorSessionOpt.Properties.AddProperty(Key, this);
                 _editorSessionOpt.Start();
+            }
+        }
+
+        private void OnSelectedCompletionSetChanged(object sender, ValueChangedEventArgs<CompletionSet> e)
+        {
+            AssertIsForeground();
+
+            var completionListSelected = this.CompletionListSelected;
+            if (CompletionListSelected != null)
+            {
+                var oldList = (e.OldValue as CompletionSet2)?.Id;
+                var newList = (e.NewValue as CompletionSet2)?.Id;
+                CompletionListSelected(this, new CompletionListSelectedEventArgs(oldList, newList));
             }
         }
 
@@ -130,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             }
         }
 
-        private void OnCompletionSetSelectionStatusChanged(object sender, ValueChangedEventArgs<CompletionSelectionStatus> eventArgs)
+        private void OnCompletionSetSelectionStatusChanged(object sender, ValueChangedEventArgs<CompletionSelectionStatus> eventArgs, CompletionSet2 completionSet)
         {
             AssertIsForeground();
 
@@ -139,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 return;
             }
 
-            var completionItem = _completionSet.GetCompletionItem(eventArgs.NewValue.Completion);
+            var completionItem = completionSet.GetCompletionItem(eventArgs.NewValue.Completion);
             var completionItemSelected = this.ItemSelected;
             if (completionItemSelected != null && completionItem != null)
             {
@@ -147,10 +187,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             }
         }
 
-        internal void AugmentCompletionSession(IList<CompletionSet> completionSets)
+
+        internal void AugmentCompletionSession(IList<CompletionSet> editorCompletionSets)
         {
-            Contract.ThrowIfTrue(completionSets.Contains(_completionSet));
-            completionSets.Add(_completionSet);
+            foreach (var completionSet in _completionSets)
+            {
+                Contract.ThrowIfTrue(editorCompletionSets.Contains(completionSet));
+                editorCompletionSets.Add(completionSet);
+            }
         }
 
         public void Dismiss()
