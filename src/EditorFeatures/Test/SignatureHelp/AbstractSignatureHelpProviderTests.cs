@@ -32,6 +32,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             this.workspaceFixture = workspaceFixture;
         }
 
+        public override void Dispose()
+        {
+            this.workspaceFixture.CloseTextView();
+            base.Dispose();
+        }
+
         /// <summary>
         /// Verifies that sighelp comes up at the indicated location in markup ($$), with the indicated span [| ... |].
         /// </summary>
