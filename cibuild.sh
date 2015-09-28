@@ -56,44 +56,15 @@ do
     esac
 done
 
-acquire_sem_or_wait()
-{
-    local lockpath="/tmp/${1}.lock.d"
-    echo "Acquiring ${lockpath}"
-    while true; do
-        mkdir "${lockpath}" 2>/dev/null
-        if [ $? -eq 0 ]; then
-            break;
-        fi
-        echo "Waiting for lock $1"
-        sleep 10
-    done
-}
-
-release_sem()
-{
-    rmdir "/tmp/${1}.lock.d"
-}
-
 restore_nuget()
 {
-    # restore coreclr runtime package
-    pushd /tmp
-    local coreclr_package_name="coreclr.linux.1.zip"
-    rm $coreclr_package_name 2>/dev/null
-    curl -O https://dotnetci.blob.core.windows.net/roslyn/$coreclr_package_name
-    unzip -uoq $coreclr_package_name -d ~/
-    popd
 
-    acquire_sem_or_wait "restore_nuget"
-
-    local package_name="nuget.15.zip"
+    local package_name="nuget.16.zip"
     local target="/tmp/$package_name"
     echo "Installing NuGet Packages $target"
     if [ -f $target ]; then
         if [ "$USE_CACHE" = "true" ]; then
             echo "Already installed"
-            release_sem "restore_nuget"
             return
         fi
     fi
@@ -105,13 +76,11 @@ restore_nuget()
     unzip -uoq $package_name -d ~/
     if [ $? -ne 0 ]; then
         echo "Unable to download NuGet packages"
-        release_sem "restore_nuget"
         exit 1
     fi
 
     popd
 
-    release_sem "restore_nuget"
 }
 
 run_msbuild()
@@ -170,17 +139,6 @@ save_toolset()
 {
     mkdir Binaries/Bootstrap
     cp Binaries/$BUILD_CONFIGURATION/core-clr/* Binaries/Bootstrap
-
-    if [ "$OS_NAME" == "Linux" ]; then
-      # Copy over the CoreCLR runtime
-      ./build/linux/copy-coreclr-runtime.sh Binaries/Bootstrap
-      if [ $? -ne 0 ]; then
-        echo Saving bootstrap binaries failed
-        exit 1
-      fi
-      chmod +x Binaries/Bootstrap/csc
-      chmod +x Binaries/Bootstrap/vbc
-    fi 
 }
 
 # Clean out all existing binaries.  This ensures the bootstrap phase forces
@@ -197,8 +155,8 @@ build_roslyn()
     local bootstrapArg=""
 
     if [ "$OS_NAME" == "Linux" ]; then
-      bootstrapArg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap /p:CscToolExe=csc \
-/p:VbcToolPath=$(pwd)/Binaries/Bootstrap /p:VbcToolExe=vbc"
+      bootstrapArg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap /p:CscToolExe=csc.sh \
+/p:VbcToolPath=$(pwd)/Binaries/Bootstrap /p:VbcToolExe=vbc.sh"
     fi
 
     echo Building CrossPlatform.sln
@@ -211,12 +169,9 @@ install_mono_toolset()
     local target=/tmp/$1
     echo "Installing Mono toolset $1"
 
-    acquire_sem_or_wait "$1"
-
     if [ -d $target ]; then
         if [ "$USE_CACHE" = "true" ]; then
             echo "Already installed"
-            release_sem "$1"
             return
         fi
     fi
@@ -229,12 +184,10 @@ install_mono_toolset()
     tar -jxf $1.tar.bz2
     if [ $? -ne 0 ]; then
         echo "Unable to download toolset"
-        release_sem "$1"
         exit 1
     fi
 
     popd
-    release_sem "$1"
 }
 
 # This function will update the PATH variable to put the desired
