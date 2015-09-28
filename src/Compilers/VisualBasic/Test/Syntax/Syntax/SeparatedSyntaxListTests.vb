@@ -212,5 +212,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(-1, list.IndexOf(SyntaxKind.WhereClause))
             Assert.False(list.Any(SyntaxKind.WhereClause))
         End Sub
+
+        <Fact>
+        <WorkItem(5097, "https://github.com/dotnet/roslyn/issues/5097")>
+        Public Sub InsertInterfaceAtEndOfImplementsClause()
+            ' prove that comma is inserted before EOL
+            Dim cu = SyntaxFactory.ParseCompilationUnit("
+Class C
+    Implements I
+End Class")
+
+            Dim iface = cu.DescendantNodes().OfType(Of IdentifierNameSyntax).First(Function(id) id.Identifier.Text = "I")
+            Dim xface = SyntaxFactory.ParseExpression("X")
+
+            Dim newcu = cu.InsertNodesAfter(iface, {xface})
+
+            Assert.Equal("
+Class C
+    Implements I,
+XEnd Class", newcu.ToFullString())
+
+            Dim normal = newcu.NormalizeWhitespace()
+            Dim expected = "Class C
+    Implements I, X
+
+End Class
+"
+            Assert.Equal(expected, normal.ToFullString())
+
+        End Sub
     End Class
 End Namespace

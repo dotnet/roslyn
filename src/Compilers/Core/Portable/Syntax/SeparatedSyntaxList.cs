@@ -362,50 +362,66 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
 
-            var nodesWithSeps = this.GetWithSeparators();
+            var nodesWithSeps = this.GetWithSeparators().ToList();
             int insertionIndex = index < this.Count ? nodesWithSeps.IndexOf(this[index]) : nodesWithSeps.Count;
 
-            // determine how to deal with separators (commas)
-            if (insertionIndex > 0 && insertionIndex < nodesWithSeps.Count)
+            if (insertionIndex > 0 && insertionIndex - 1 < nodesWithSeps.Count)
             {
+                // insert before nodes exsiting seperator if it doesn't have EOL trivia
+                // (if it does have EOL trivia, then assume it is sticky with the node)
                 var previous = nodesWithSeps[insertionIndex - 1];
-                if (previous.IsToken && !KeepSeparatorWithPreviousNode(previous.AsToken()))
+                if (previous.IsToken && !HasEndOfLine(previous.AsToken().TrailingTrivia))
                 {
-                    // pull back so item in inserted before separator
                     insertionIndex--;
                 }
             }
 
-            var nodesToInsertWithSeparators = new List<SyntaxNodeOrToken>();
             foreach (var item in nodes)
             {
                 if (item != null)
                 {
                     // if item before insertion point is a node, add a separator
-                    if (nodesToInsertWithSeparators.Count > 0 || (insertionIndex > 0 && nodesWithSeps[insertionIndex - 1].IsNode))
+                    if (insertionIndex > 0 && insertionIndex - 1 < nodesWithSeps.Count && nodesWithSeps[insertionIndex - 1].IsNode)
                     {
-                        nodesToInsertWithSeparators.Add(item.Green.CreateSeparator<TNode>(item));
+                        InsertSeparator(nodesWithSeps, insertionIndex);
+                        insertionIndex++;
                     }
 
-                    nodesToInsertWithSeparators.Add(item);
+                    nodesWithSeps.Insert(insertionIndex, item);
+                    insertionIndex++;
                 }
             }
 
             // if item after last inserted node is a node, add separator
             if (insertionIndex < nodesWithSeps.Count && nodesWithSeps[insertionIndex].IsNode)
             {
-                var node = nodesWithSeps[insertionIndex].AsNode();
-                nodesToInsertWithSeparators.Add(node.Green.CreateSeparator<TNode>(node)); // separator
+                InsertSeparator(nodesWithSeps, insertionIndex);
             }
 
-            return new SeparatedSyntaxList<TNode>(nodesWithSeps.InsertRange(insertionIndex, nodesToInsertWithSeparators));
+            return new SeparatedSyntaxList<TNode>(default(SyntaxNodeOrTokenList).AddRange(nodesWithSeps));
         }
 
-        private static bool KeepSeparatorWithPreviousNode(SyntaxToken separator)
+        private static void InsertSeparator(List<SyntaxNodeOrToken> list, int index)
         {
-            // if the trivia after the separator contains an explicit end of line or a single line comment
-            // then it should stay associated with previous node
-            foreach (var tr in separator.TrailingTrivia)
+            Debug.Assert(index > 0);
+
+            var lastIndex = index - 1;
+            var sampleNode = list[lastIndex].AsNode();
+
+            // move trailing trivia of previous node to after separator
+            var movedTrivia = default(SyntaxTriviaList);
+            var separator = sampleNode.Green.CreateSeparator<TNode>(sampleNode);
+            var lastNode = list[lastIndex].AsNode();
+            movedTrivia = lastNode.GetTrailingTrivia();
+            list[lastIndex] = lastNode.WithTrailingTrivia();
+            separator = separator.WithTrailingTrivia(separator.TrailingTrivia.Concat(movedTrivia));
+
+            list.Insert(index, separator);
+        }
+
+        private static bool HasEndOfLine(SyntaxTriviaList list)
+        {
+            foreach (var tr in list)
             {
                 if (tr.UnderlyingNode.IsTriviaWithEndOfLine())
                 {
