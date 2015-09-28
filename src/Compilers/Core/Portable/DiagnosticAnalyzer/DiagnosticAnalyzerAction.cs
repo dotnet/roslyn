@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public ImmutableArray<OperationKind> Kinds { get { return this.kinds; } }
     }
 
-internal sealed class CompilationStartAnalyzerAction : AnalyzerAction
+    internal sealed class CompilationStartAnalyzerAction : AnalyzerAction
     {
         private readonly Action<CompilationStartAnalysisContext> _action;
 

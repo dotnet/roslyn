@@ -1477,11 +1477,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            if (isPartialDeclAnalysis)
-            {
-                nodesToAnalyze = nodesToAnalyze.Where(node => analysisScope.ShouldAnalyze(node));
-            }
-
             return operationsToAnalyze.ToImmutableArray();
         }
 
