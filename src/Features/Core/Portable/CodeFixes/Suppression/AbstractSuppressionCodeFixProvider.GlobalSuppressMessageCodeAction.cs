@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             private readonly ISymbol _targetSymbol;
             private readonly Diagnostic _diagnostic;
 
-            public GlobalSuppressMessageCodeAction(AbstractSuppressionCodeFixProvider fixer, ISymbol targetSymbol, Project project, Diagnostic diagnostic)
+            public GlobalSuppressMessageCodeAction(ISymbol targetSymbol, Project project, Diagnostic diagnostic, AbstractSuppressionCodeFixProvider fixer)
                 : base(fixer, project)
             {
                 _targetSymbol = targetSymbol;

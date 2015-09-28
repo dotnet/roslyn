@@ -1295,5 +1295,30 @@ class Program
 
             Assert.Equal("Program a", symbolInfo.Symbol.ToTestDisplayString());
         }
+
+        [Fact]
+        [WorkItem(3826, "https://github.com/dotnet/roslyn/issues/3826")]
+        public void ExpressionTreeSelfAssignmentShouldError()
+        {
+            var source = @"
+using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    static void Main()
+    {
+        Expression<Func<int, int>> x = y => y = y;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            compilation.VerifyDiagnostics(
+                // (9,45): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         Expression<Func<int, int>> x = y => y = y;
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "y = y").WithLocation(9, 45),
+                // (9,45): error CS0832: An expression tree may not contain an assignment operator
+                //         Expression<Func<int, int>> x = y => y = y;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "y = y").WithLocation(9, 45));
+        }
     }
 }
