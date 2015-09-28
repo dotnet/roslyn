@@ -120,7 +120,7 @@ if defined HELIX_CORRELATION_ID (
 )
 
 for %%f in (%TEST_ASSEMBLIES%) do (
-    
+
     if not exist %%f (
         echo ERROR: Cannot find %%f in %CD%
     ) else (
