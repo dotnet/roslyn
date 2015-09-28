@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     });
 
                     _primaryTask = ExecutePrimaryAnalysisTaskAsync(analysisScope, analysisStateOpt: null, usingPrePopulatedEventQueue: false, cancellationToken: cancellationToken)
-                    .ContinueWith(c => DiagnosticQueue.TryComplete(), cancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                        .ContinueWith(c => DiagnosticQueue.TryComplete(), cancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
                 }
             }
             finally
@@ -1334,13 +1334,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     if (shouldExecuteCodeBlockActions)
                     {
-                        foreach (var analyzerActions in GetCodeBlockActions(analysisScope))
-                        {
-                            analyzerExecutor.ExecuteCodeBlockActions(
-                                analyzerActions.CodeBlockStartActions, analyzerActions.CodeBlockActions,
-                                analyzerActions.CodeBlockEndActions, analyzerActions.Analyzer, declarationAnalysisData.TopmostNodeForAnalysis, symbol,
-                                executableCodeBlocks, semanticModel, _getKind, decl, analysisScope, analysisStateOpt);
-                        }
+                        analyzerExecutor.ExecuteCodeBlockActions(
+                            analyzerActions.CodeBlockStartActions, analyzerActions.CodeBlockActions,
+                            analyzerActions.CodeBlockEndActions, analyzerActions.Analyzer, declarationAnalysisData.TopmostNodeForAnalysis, symbol,
+                            executableCodeBlocks, semanticModel, _getKind, decl, analysisScope, analysisStateOpt);
                     }
                 }
             }
