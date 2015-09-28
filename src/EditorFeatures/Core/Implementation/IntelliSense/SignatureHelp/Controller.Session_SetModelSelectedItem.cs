@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using Roslyn.Utilities;
 
@@ -19,21 +20,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     updateController: false);
             }
 
-            private Model SetModelExplicitlySelectedItemInBackground(
-                Model model,
+            private ImmutableArray<Model> SetModelExplicitlySelectedItemInBackground(
+                ImmutableArray<Model> models,
                 Func<Model, SignatureHelpItem> selector)
             {
                 AssertIsBackground();
 
-                if (model == null)
+                if (models == default(ImmutableArray<Model>))
                 {
-                    return null;
+                    return default(ImmutableArray<Model>);
                 }
 
+                var model = models[0];
                 var selectedItem = selector(model);
                 Contract.ThrowIfFalse(model.Items.Contains(selectedItem));
 
-                return model.WithSelectedItem(selectedItem);
+                return new[] { model.WithSelectedItem(selectedItem) }.ToImmutableArray();
             }
         }
     }

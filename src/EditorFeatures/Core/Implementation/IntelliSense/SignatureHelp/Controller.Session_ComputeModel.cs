@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,11 +41,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 // If we've already computed a model, then just use that.  Otherwise, actually
                 // compute a new model and send that along.
                 Computation.ChainTaskAndNotifyControllerWhenFinished(
-                    (model, cancellationToken) => ComputeModelInBackgroundAsync(model, matchedProviders, unmatchedProviders, caretPosition, disconnectedBufferGraph, triggerInfo, cancellationToken));
+                    (models, cancellationToken) => ComputeModelInBackgroundAsync(models, matchedProviders, unmatchedProviders, caretPosition, disconnectedBufferGraph, triggerInfo, cancellationToken));
             }
 
-            private async Task<Model> ComputeModelInBackgroundAsync(
-                Model currentModel,
+            private async Task<ImmutableArray<Model>> ComputeModelInBackgroundAsync(
+                ImmutableArray<Model> currentModels,
                 IList<ISignatureHelpProvider> matchedProviders,
                 IList<ISignatureHelpProvider> unmatchedProviders,
                 SnapshotPoint caretPosition,
@@ -62,15 +63,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                         var document = await Controller.DocumentProvider.GetDocumentAsync(caretPosition.Snapshot, cancellationToken).ConfigureAwait(false);
                         if (document == null)
                         {
-                            return currentModel;
+                            return currentModels;
                         }
 
                         if (triggerInfo.TriggerReason == SignatureHelpTriggerReason.RetriggerCommand)
                         {
-                            if (currentModel == null ||
-                                (triggerInfo.TriggerCharacter.HasValue && !currentModel.Provider.IsRetriggerCharacter(triggerInfo.TriggerCharacter.Value)))
+                            if (currentModels == default(ImmutableArray<Model>) ||
+                                (triggerInfo.TriggerCharacter.HasValue && !currentModels[0].Provider.IsRetriggerCharacter(triggerInfo.TriggerCharacter.Value)))
                             {
-                                return currentModel;
+                                return currentModels;
                             }
                         }
 
@@ -89,10 +90,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                             if (provider == null)
                             {
                                 // the other providers didn't produce items either, so we don't produce a model
-                                return null;
+                                return default(ImmutableArray<Model>);
                             }
                         }
 
+                        // Signature Help only computes one model
+                        var currentModel = currentModels != default(ImmutableArray<Model>) ? currentModels[0] : null;
                         if (currentModel != null &&
                             currentModel.Provider == provider &&
                             currentModel.GetCurrentSpanInSubjectBuffer(disconnectedBufferGraph.SubjectBufferSnapshot).Span.Start == items.ApplicableSpan.Start &&
@@ -102,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                         {
                             // The new model is the same as the current model.  Return the currentModel
                             // so we keep the active selection.
-                            return currentModel;
+                            return currentModels;
                         }
 
                         var selectedItem = GetSelectedItem(currentModel, items, provider);
@@ -115,8 +118,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                         var selection = DefaultSignatureHelpSelector.GetSelection(model.Items,
                             model.SelectedItem, model.ArgumentIndex, model.ArgumentCount, model.ArgumentName, isCaseSensitive);
 
-                        return model.WithSelectedItem(selection.SelectedItem)
-                                    .WithSelectedParameter(selection.SelectedParameter);
+                        return new [] { model.WithSelectedItem(selection.SelectedItem)
+                                    .WithSelectedParameter(selection.SelectedParameter) }.ToImmutableArray();
                     }
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
