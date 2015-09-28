@@ -2393,5 +2393,58 @@ namespace Class____foo____Library1
             Assert.Equal(0, result.ExitCode);
             Assert.Equal("", result.Errors);
         }
+
+        [Fact]
+        public void MutexStopsServerStarting()
+        {
+            var pipename = Guid.NewGuid().ToString("N");
+            var mutexName = $"{pipename}.server";
+
+            bool holdsMutex;
+            using (var mutex = new Mutex(initiallyOwned: true,
+                                         name: mutexName,
+                                         createdNew: out holdsMutex))
+            {
+                Assert.True(holdsMutex);
+                try
+                {
+                    var result = ProcessUtilities.StartProcess(_compilerServerExecutable,
+                                                               $"-pipename:{pipename}");
+
+                    // Note: can't use async because Mutexes are thread-affinitive
+                    Thread.Sleep(TimeSpan.FromMilliseconds(500));
+                    var exited = result.HasExited;
+                    if (!exited)
+                    {
+                        result.Kill();
+                    }
+                    Assert.True(exited);
+                }
+                finally
+                {
+                    mutex.ReleaseMutex();
+                }
+            }
+        }
+
+        [Fact]
+        public async Task ServerWithSamePipeNameExits()
+        {
+            var pipename = Guid.NewGuid().ToString("N");
+            var args = $"-pipename:{pipename}";
+
+            var server1 = ProcessUtilities.StartProcess(_compilerServerExecutable, args);
+
+            await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+
+            var server2 = ProcessUtilities.StartProcess(_compilerServerExecutable, args);
+
+            await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+
+            Assert.False(server1.HasExited);
+            Assert.True(server2.HasExited);
+            Assert.False(server1.HasExited);
+            server1.Kill();
+        }
     }
 }
