@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 // If we've already computed a model then we can just ignore this request and not
                 // generate any tasks.
-                if (this.Computation.InitialUnfilteredModel != null)
+                if (this.Computation.InitialUnfilteredModels != null)
                 {
                     return;
                 }
@@ -79,10 +80,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 {
                     AssertIsForeground();
                     _session.Computation.ChainTaskAndNotifyControllerWhenFinished(
-                        (model, cancellationToken) => model != null ? Task.FromResult(model) : DoInBackgroundAsync(cancellationToken));
+                        (models, cancellationToken) => models != default(ImmutableArray<Model>) ? Task.FromResult(models) : DoInBackgroundAsync(cancellationToken));
                 }
 
-                private async Task<Model> DoInBackgroundAsync(CancellationToken cancellationToken)
+                private async Task<ImmutableArray<Model>> DoInBackgroundAsync(CancellationToken cancellationToken)
                 {
                     using (Logger.LogBlock(FunctionId.Completion_ModelComputer_DoInBackground, cancellationToken))
                     {
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         {
                             // both completionService and options can be null if given buffer is not registered to workspace yet.
                             // could happen in razor more frequently
-                            return null;
+                            return default(ImmutableArray<Model>);
                         }
 
                         // get partial solution from background thread.
@@ -99,15 +100,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                         // TODO(cyrusn): We're calling into extensions, we need to make ourselves resilient
                         // to the extension crashing.
-                        var completionList = await GetCompletionListAsync(_completionService, _triggerInfo, cancellationToken).ConfigureAwait(false);
+                        var completionList = await GetCompletionListsAsync(_completionService, _triggerInfo, cancellationToken).ConfigureAwait(false);
                         if (completionList == null)
                         {
-                            return null;
+                            return default(ImmutableArray<Model>);
                         }
 
                         var trackingSpan = await _completionService.GetDefaultTrackingSpanAsync(_documentOpt, _subjectBufferCaretPosition, cancellationToken).ConfigureAwait(false);
 
-                        return Model.CreateModel(
+                        var model = Model.CreateModel(
                             _disconnectedBufferGraph,
                             trackingSpan,
                             completionList.Items,
@@ -118,11 +119,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                             builder: completionList.Builder,
                             triggerInfo: _triggerInfo,
                             completionService: _completionService,
-                            workspace: _documentOpt != null ? _documentOpt.Project.Solution.Workspace : null);
+                            workspace: _documentOpt != null ? _documentOpt.Project.Solution.Workspace : null, 
+                            title: "All", 
+                            isSelected: false,
+                            neverDismissIfEmpty: false);
+
+                        return new[] { model }.ToImmutableArray();
                     }
                 }
 
-                private async Task<CompletionList> GetCompletionListAsync(ICompletionService completionService, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
+                private Dictionary<string, List<CompletionItem>> ExtractTaggedLists(CompletionList completionList)
+                {
+                    var result = new Dictionary<string, List<CompletionItem>>();
+
+                    foreach (var item in completionList.Items)
+                    {
+                        foreach (var tag in item.Tags)
+                        {
+                            var list = result.GetOrAdd(tag, s => new List<CompletionItem>());
+                            list.Add(item);
+                        }
+                    }
+
+                    return result;
+                }
+
+                private async Task<CompletionList> GetCompletionListsAsync(ICompletionService completionService, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
                 {
                     return _documentOpt != null
                         ? await completionService.GetCompletionListAsync(_documentOpt, _subjectBufferCaretPosition, triggerInfo, _options, _completionProviders, cancellationToken).ConfigureAwait(false)

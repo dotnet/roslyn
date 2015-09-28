@@ -2,6 +2,8 @@
 
 using System;
 using Microsoft.CodeAnalysis.Editor.Commands;
+using System.Linq;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
@@ -34,8 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
 
             // Get the selected item.  If it's unique, then we want to commit it.
-            var model = this.sessionOpt.WaitForModel();
-            if (model == null)
+            var models = this.sessionOpt.WaitForModels();
+            if (models == default(ImmutableArray<Model>))
             {
                 // Computation failed.  Just pass this command on.
                 nextHandler();
@@ -48,13 +50,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // we do want it through, it would be easy to get again simply by asking the model
             // computation to remove all filtering.
 
-            if (model.IsUnique)
+            var selectedModel = models.FirstOrDefault(m => m.IsSelected);
+            if (selectedModel?.IsUnique ?? false)
             {
                 // We had a unique item in the list.  Commit it and dismiss this session.
-
-                var selectedItem = Controller.GetExternallyUsableCompletionItem(model.SelectedItem);
+                var selectedItem = Controller.GetExternallyUsableCompletionItem(selectedModel.SelectedItem);
                 var textChange = GetCompletionRules().GetTextChange(selectedItem);
-                this.Commit(selectedItem, textChange, model, null);
+                this.Commit(selectedItem, textChange, selectedModel, null);
             }
         }
     }

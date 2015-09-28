@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             this.TextView.TextBuffer.PostChanged += this.OnTextViewBufferPostChanged;
         }
 
-        internal abstract void OnModelUpdated(TModel result);
+        internal abstract void OnModelsUpdated(ImmutableArray<TModel> result);
         internal abstract void OnTextViewBufferPostChanged(object sender, EventArgs e);
         internal abstract void OnCaretPositionChanged(object sender, EventArgs e);
 
@@ -60,21 +61,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             this.TextView.TextBuffer.PostChanged -= this.OnTextViewBufferPostChanged;
         }
 
-        public TModel WaitForController()
+        public ImmutableArray<TModel> WaitForController()
         {
             AssertIsForeground();
             VerifySessionIsActive();
             return sessionOpt.WaitForController();
         }
 
-        void IController<TModel>.OnModelUpdated(TModel result)
+        void IController<TModel>.OnModelsUpdated(ImmutableArray<TModel> result)
         {
             // This is only called from the model computation if it was not cancelled.  And if it was 
             // not cancelled then we must have a pointer to it (as well as the presenter session).
             AssertIsForeground();
             VerifySessionIsActive();
 
-            this.OnModelUpdated(result);
+            this.OnModelsUpdated(result);
         }
 
         IAsyncToken IController<TModel>.BeginAsyncOperation()
@@ -131,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             // If we haven't even computed a model yet, then also send this command to anyone
             // listening.  It's unlikely that the command was intended for us (as we wouldn't
             // have even shown ui yet.
-            var handledCommand = sessionOpt.InitialUnfilteredModel != null;
+            var handledCommand = sessionOpt.InitialUnfilteredModels != default(ImmutableArray<TModel>);
 
             // In the presense of an escape, we always stop what we're doing.
             this.StopModelComputation();

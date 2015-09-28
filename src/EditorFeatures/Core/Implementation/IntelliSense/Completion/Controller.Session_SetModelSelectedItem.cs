@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Roslyn.Utilities;
@@ -21,40 +22,54 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     updateController: false);
             }
 
-            private Model SetModelSelectedItemInBackground(
-                Model model,
+            private ImmutableArray<Model> SetModelSelectedItemInBackground(
+                ImmutableArray<Model> models,
                 Func<Model, CompletionItem> selector)
             {
-                if (model == null)
+                if (models == default(ImmutableArray<Model>))
                 {
-                    return null;
+                    return default(ImmutableArray<Model>);
                 }
 
-                // Switch to hard selection.
-                var selectedItem = selector(model);
-                Contract.ThrowIfFalse(model.TotalItems.Contains(selectedItem) || model.DefaultBuilder == selectedItem);
-
-                if (model.FilteredItems.Contains(selectedItem))
+                var result = ImmutableArray.CreateBuilder<Model>(models.Length);
+                for (int i = 0; i < models.Length; i++)
                 {
-                    // Easy case, just set the selected item that's already in the filtered items
-                    // list.
+                    var model = models[i];
 
-                    return model.WithSelectedItem(selector(model))
-                                .WithHardSelection(true);
-                }
-                else
-                {
-                    // Item wasn't in the filtered list, so we need to recreate the filtered list
-                    // with that item in it.
-                    var filteredItemsSet = new HashSet<CompletionItem>(model.FilteredItems,
-                        ReferenceEqualityComparer.Instance);
+                    if (!model.IsSelected)
+                    {
+                        result.Add(models[i]);
+                        continue;
+                    }
 
-                    var newFilteredItems = model.TotalItems.Where(
-                        i => filteredItemsSet.Contains(i) || i == selectedItem).ToList();
-                    return model.WithFilteredItems(newFilteredItems)
-                                .WithSelectedItem(selectedItem)
-                                .WithHardSelection(true);
+                    // Switch to hard selection.
+                    var selectedItem = selector(model);
+                    Contract.ThrowIfFalse(model.TotalItems.Contains(selectedItem) || model.DefaultBuilder == selectedItem);
+
+                    if (model.FilteredItems.Contains(selectedItem))
+                    {
+                        // Easy case, just set the selected item that's already in the filtered items
+                        // list.
+
+                        result.Add(model.WithSelectedItem(selector(model))
+                                    .WithHardSelection(true));
+                    }
+                    else
+                    {
+                        // Item wasn't in the filtered list, so we need to recreate the filtered list
+                        // with that item in it.
+                        var filteredItemsSet = new HashSet<CompletionItem>(model.FilteredItems,
+                            ReferenceEqualityComparer.Instance);
+
+                        var newFilteredItems = model.TotalItems.Where(
+                            j => filteredItemsSet.Contains(j) || j == selectedItem).ToList();
+                        result.Add(model.WithFilteredItems(newFilteredItems)
+                                    .WithSelectedItem(selectedItem)
+                                    .WithHardSelection(true));
+                    }
                 }
+
+                return result.ToImmutable();
             }
         }
     }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // change.
                 Interlocked.Increment(ref _filterId);
                 var localId = _filterId;
-                Computation.ChainTaskAndNotifyControllerWhenFinished(model => FilterModelInBackground(model, localId, caretPosition, recheckCaretPosition, dismissIfEmptyAllowed, filterReason));
+                Computation.ChainTaskAndNotifyControllerWhenFinished(model => FilterModelsInBackground(model, localId, caretPosition, recheckCaretPosition, dismissIfEmptyAllowed, filterReason));
             }
 
             public void IdentifyBestMatchAndFilterToAllItems(CompletionFilterReason filterReason, bool recheckCaretPosition = false, bool dismissIfEmptyAllowed = true)
@@ -37,17 +38,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // change.
                 Interlocked.Increment(ref _filterId);
                 var localId = _filterId;
-                Computation.ChainTaskAndNotifyControllerWhenFinished(model =>
+                Computation.ChainTaskAndNotifyControllerWhenFinished(models =>
                     {
-                        var filteredModel = FilterModelInBackground(model, localId, caretPosition, recheckCaretPosition, dismissIfEmptyAllowed, filterReason);
-                        return filteredModel != null
-                            ? filteredModel.WithFilteredItems(filteredModel.TotalItems).WithSelectedItem(filteredModel.SelectedItem)
-                            : null;
+                        var filteredModels = FilterModelsInBackground(models, localId, caretPosition, recheckCaretPosition, dismissIfEmptyAllowed, filterReason);
+                        return filteredModels != default(ImmutableArray<Model>)
+                            ? filteredModels.Select(m => m.WithFilteredItems(m.TotalItems).WithSelectedItem(m.SelectedItem)).ToImmutableArray()
+                            : default(ImmutableArray<Model>);
                     });
             }
 
-            private Model FilterModelInBackground(
-                Model model,
+            private ImmutableArray<Model> FilterModelsInBackground(
+                ImmutableArray<Model> models,
                 int id,
                 SnapshotPoint caretPosition,
                 bool recheckCaretPosition,
@@ -56,7 +57,42 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             {
                 using (Logger.LogBlock(FunctionId.Completion_ModelComputation_FilterModelInBackground, CancellationToken.None))
                 {
-                    return FilterModelInBackgroundWorker(model, id, caretPosition, recheckCaretPosition, dismissIfEmptyAllowed, filterReason);
+                    if (models == default(ImmutableArray<Model>))
+                    {
+                        return default(ImmutableArray<Model>);
+                    }
+                    else
+                    {
+                        // We want to dismiss the session if the caret ever moved outside our bounds.
+                        if (recheckCaretPosition && Controller.IsCaretOutsideAllItemBounds(models, caretPosition))
+                        {
+                            return default(ImmutableArray<Model>);
+                        }
+
+                        var multipleModels = models.Length > 1;
+                        var filteredModels = models.Select(m => FilterModelInBackgroundWorker(m, id, caretPosition, recheckCaretPosition, dismissIfEmptyAllowed, filterReason, multipleModels))
+                                                    .ToImmutableArray();
+
+                        // Every model can truly no longer present anything.
+                        if (filteredModels.All(f => f == null))
+                        {
+                            return default(ImmutableArray<Model>);
+                        }
+
+                        // If the selected model doesn't have a selected item, try to choose one that does
+                        var selectedModel = filteredModels.FirstOrDefault(m => m.IsSelected);
+                        
+                        if (selectedModel != null && (selectedModel.SelectedItem == null || selectedModel.IsSoftSelection))
+                        {
+                            var nextSelectableModel = filteredModels.FirstOrDefault(m => m.SelectedItem != null && m.IsHardSelection);
+                            if (nextSelectableModel != null)
+                            {
+                                return filteredModels.Select(m => m.WithIsSelected(m == nextSelectableModel)).ToImmutableArray();
+                            }
+                        }
+
+                        return filteredModels;
+                    }
                 }
             }
 
@@ -76,15 +112,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 SnapshotPoint caretPosition,
                 bool recheckCaretPosition,
                 bool dismissIfEmptyAllowed,
-                CompletionFilterReason filterReason)
+                CompletionFilterReason filterReason,
+                bool returnInitialUnfilteredModelWhenEmpty)
             {
                 if (model == null)
-                {
-                    return null;
-                }
-
-                // We want to dismiss the session if the caret ever moved outside our bounds.
-                if (recheckCaretPosition && Controller.IsCaretOutsideAllItemBounds(model, caretPosition))
                 {
                     return null;
                 }
@@ -179,7 +210,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 if (allFilteredItems.Count == 0)
                 {
-                    if (dismissIfEmptyAllowed &&
+                    if (!returnInitialUnfilteredModelWhenEmpty &&
+                        dismissIfEmptyAllowed &&
                         model.DismissIfEmpty &&
                         filterReason != CompletionFilterReason.BackspaceOrDelete)
                     {

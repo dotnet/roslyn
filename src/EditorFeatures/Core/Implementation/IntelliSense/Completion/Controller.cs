@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return false;
             }
 
-            var model = sessionOpt.WaitForModel();
+            var model = sessionOpt.WaitForModels();
 
             return model != null;
         }
@@ -114,22 +115,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return this.TextView.BufferGraph.MapUpOrDownToBuffer(this.TextView.Caret.Position.BufferPosition, this.SubjectBuffer).GetValueOrDefault();
         }
 
-        internal override void OnModelUpdated(Model modelOpt)
+        internal override void OnModelsUpdated(ImmutableArray<Model> modelOpt)
         {
             AssertIsForeground();
             if (modelOpt == null)
             {
                 this.StopModelComputation();
+                return;
             }
             else
             {
-                var selectedItem = modelOpt.SelectedItem;
-                var viewSpan = modelOpt.GetSubjectBufferFilterSpanInViewBuffer(selectedItem.FilterSpan);
-                var triggerSpan = modelOpt.GetCurrentSpanInSnapshot(viewSpan, this.TextView.TextSnapshot)
+                var data = modelOpt.Select((m, i) => new CompletionPresentationData(m.FilteredItems, m.SelectedItem, m.Builder, m.IsSoftSelection, i, m.Title, m.IsSelected)).ToImmutableArray();
+
+                // TODO: Can these differ?
+                var selectedItem = modelOpt[0].SelectedItem;
+                var viewSpan = modelOpt[0].GetSubjectBufferFilterSpanInViewBuffer(selectedItem.FilterSpan);
+                var triggerSpan = modelOpt[0].GetCurrentSpanInSnapshot(viewSpan, this.TextView.TextSnapshot)
                                           .CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
 
-                sessionOpt.PresenterSession.PresentItems(
-                    triggerSpan, modelOpt.FilteredItems, selectedItem, modelOpt.Builder, this.SubjectBuffer.GetOption(EditorCompletionOptions.UseSuggestionMode), modelOpt.IsSoftSelection);
+                sessionOpt.PresenterSession.PresentModels(
+                    triggerSpan, data, this.SubjectBuffer.GetOption(EditorCompletionOptions.UseSuggestionMode));
             }
         }
 
@@ -227,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             // We should not be getting called if we didn't even have a computation running.
             Contract.ThrowIfNull(this.sessionOpt);
-            Contract.ThrowIfNull(this.sessionOpt.Computation.InitialUnfilteredModel);
+            Contract.ThrowIfFalse(this.sessionOpt.Computation.InitialUnfilteredModels != default(ImmutableArray<Model>));
 
             // If the selected item is the builder, there's not actually any work to do to commit
             if (item.IsBuilder)
@@ -237,7 +242,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
 
             var textChange = GetCompletionRules().GetTextChange(item);
-            this.Commit(item, textChange, this.sessionOpt.Computation.InitialUnfilteredModel, null);
+
+            // Use the selected model for span computation etc.
+            // TODO: Does this matter?
+            var model = this.sessionOpt.Computation.ModelTask.Result.First(m => m.IsSelected);
+
+            this.Commit(item, textChange, model, null);
         }
 
         /// <summary>
