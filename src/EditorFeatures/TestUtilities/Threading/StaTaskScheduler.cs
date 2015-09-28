@@ -12,17 +12,10 @@ namespace Roslyn.Test.Utilities
     /// <summary>Provides a scheduler that uses STA threads.</summary>
     public sealed class StaTaskScheduler : TaskScheduler, IDisposable
     {
-        /// <summary>A StaTaskScheduler for the current AppDomain.</summary>
-        private static readonly StaTaskScheduler _defaultInstance = new StaTaskScheduler(Environment.ProcessorCount);
-
         /// <summary>Gets a StaTaskScheduler for the current AppDomain.</summary>
-        public static StaTaskScheduler DefaultSta
-        {
-            get
-            {
-                return _defaultInstance;
-            }
-        }
+        /// <remarks>We use a count of 1, because the editor ends up re-using <see cref="System.Windows.Threading.DispatcherObject"/>
+        /// instances between tests, so we need to always use the same thread for our Sta tests.</remarks>
+        public static StaTaskScheduler DefaultSta { get; } = new StaTaskScheduler(1);
 
         /// <summary>Stores the queued tasks to be executed by our pool of STA threads.</summary>
         private BlockingCollection<Task> _tasks;
