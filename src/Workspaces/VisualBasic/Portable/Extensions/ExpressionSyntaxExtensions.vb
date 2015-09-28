@@ -173,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Public Function TryGetNameParts(expression As ExpressionSyntax, parts As List(Of String)) As Boolean
             If expression.IsKind(SyntaxKind.SimpleMemberAccessExpression) Then
                 Dim memberAccess = DirectCast(expression, MemberAccessExpressionSyntax)
-                If Not memberAccess.Name.TryGetNameParts(parts) Then
+                If Not memberAccess.Expression.TryGetNameParts(parts) Then
                     Return False
                 End If
 

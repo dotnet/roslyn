@@ -74,10 +74,28 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
                 var conditionalMemberAccess = identifierName.Parent.Parent as ConditionalAccessExpressionSyntax;
                 if (memberAccess?.Name == identifierName)
                 {
+                    if (!document.SemanticModel.GetSymbolInfo(memberAccess.Expression).GetBestOrAllSymbols().Any())
+                    {
+                        identifierToken = default(SyntaxToken);
+                        simpleNameOrMemberAccessExpression = null;
+                        isInExecutableBlock = false;
+                        isConditionalAccessExpression = false;
+                        return false;
+                    }
+                    
                     simpleNameOrMemberAccessExpression = memberAccess;
                 }
                 else if ((conditionalMemberAccess?.WhenNotNull as MemberBindingExpressionSyntax)?.Name == identifierName)
                 {
+                    if (!document.SemanticModel.GetSymbolInfo(conditionalMemberAccess.Expression).GetBestOrAllSymbols().Any())
+                    {
+                        identifierToken = default(SyntaxToken);
+                        simpleNameOrMemberAccessExpression = null;
+                        isInExecutableBlock = false;
+                        isConditionalAccessExpression = false;
+                        return false;
+                    }
+
                     simpleNameOrMemberAccessExpression = conditionalMemberAccess;
                 }
                 else

@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateVariable
                 ByRef isInExecutableBlock As Boolean,
                 ByRef isConditionalAccessExpression As Boolean) As Boolean
             identifierToken = identifierName.Identifier
-
+            Dim semanticModel = document.SemanticModel
             Dim memberAccess = TryCast(identifierName.Parent, MemberAccessExpressionSyntax)
             If memberAccess IsNot Nothing Then
                 If memberAccess.Kind = SyntaxKind.DictionaryAccessExpression Then
@@ -77,15 +77,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateVariable
             Dim conditionalMemberAccess = TryCast(identifierName.Parent.Parent, ConditionalAccessExpressionSyntax)
 
             If memberAccess?.Name Is identifierName Then
-                simpleNameOrMemberAccessExpression = DirectCast(memberAccess, ExpressionSyntax)
+                simpleNameOrMemberAccessExpression = memberAccess
             ElseIf TryCast(conditionalMemberAccess?.WhenNotNull, MemberAccessExpressionSyntax)?.Name Is identifierName Then
+                If conditionalMemberAccess.Expression IsNot Nothing AndAlso
+                   Not semanticModel.GetSymbolInfo(conditionalMemberAccess.Expression).GetBestOrAllSymbols().Any() Then
+                    Return False
+                End If
+
                 simpleNameOrMemberAccessExpression = conditionalMemberAccess
             Else
                 simpleNameOrMemberAccessExpression = identifierName
             End If
 
-
-            Dim semanticModel = DirectCast(document.SemanticModel, SemanticModel)
             If Not IsLegal(semanticModel, simpleNameOrMemberAccessExpression, cancellationToken) AndAlso
                Not simpleNameOrMemberAccessExpression.Parent.IsKind(SyntaxKind.NameOfExpression, SyntaxKind.NamedFieldInitializer) Then
                 identifierToken = Nothing

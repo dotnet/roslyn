@@ -678,14 +678,12 @@ End Namespace</Document>
                           </Workspace>.ToString()
 
             Dim expected = <Text>
-Namespace A
-    Public Class B
-        Public Class C
-        End Class
+Namespace A.B.C
+    Friend Class D
     End Class
 End Namespace</Text>.NormalizedValue
 
-            Test(initial, expected, compareTokens:=False)
+            Test(initial, expected)
         End Sub
 
         <WorkItem(940003)>
@@ -755,8 +753,8 @@ index:=0)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestAccessibilityForNestedType()
             Test(
-NewLines("Public Interface I \n  Sub Foo(a As [|X.Y.Z|]) \n End Interface \n Public Class X \n End Class"),
-NewLines("Public Interface I \n  Sub Foo(a As X.Y.Z) \n End Interface \n Public Class X \n Public Class Y \n End Class \n End Class"),
+NewLines("Public Interface I \n  Sub Foo(a As [|X.Y|]) \n End Interface \n Public Class X \n End Class"),
+NewLines("Public Interface I \n  Sub Foo(a As X.Y) \n End Interface \n Public Class X \n Public Class Y \n End Class \n End Class"),
 index:=0)
         End Sub
 
@@ -856,6 +854,54 @@ index:=1)
 NewLines("Public Class A \n Public B As New [|B(Of Integer)|] \n End Class"),
 NewLines("Public Class A \n Public B As New B(Of Integer) \n Public Class B(Of T) \n End Class \n End Class"),
 index:=2)
+        End Sub
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestGenerateTypeRightMostName()
+            Test(
+NewLines("Module Program \n Sub Main(args As String()) \n Dim a As [|MyCompany.MyProduct.MyArea.MyClass|] \n End Sub \n End Module"),
+NewLines("Namespace MyCompany.MyProduct.MyArea \n Friend Class [MyClass] \n End Class \n End Namespace"))
+        End Sub
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestGenerateTypeRightMostNameInsideNameOf()
+            Test(
+NewLines("Module Program \n Sub Main(args As String()) \n Dim a = NameOf([|MyCompany.MyProduct.MyArea.MyClass|]) \n End Sub \n End Module"),
+NewLines("Friend Class MyCompany \n End Class"))
+        End Sub
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestGenerateTypeInConditionalExpression()
+            TestMissing(
+NewLines("Module Program \n Sub Main(args As String()) \n Dim a As [|MyCompany?.MyProduct.MyArea.MyClass|] \n End Sub \n End Module"))
+        End Sub
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestGenerateTypeInConditionalExpressionWithNameOf()
+            TestMissing(
+NewLines("Module Program \n Sub Main(args As String()) \n Dim a = NameOf([|MyCompany.MyProduct.MyArea?.MyClass|]) \n End Sub \n End Module"))
+        End Sub
+
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestGenerateTypeAssignmentWithConditionalExpression()
+            Test(
+NewLines("Module Program \n Sub Main(args As String()) \n Dim a = [|MyCompany|].MyProduct.MyArea?.MyClass \n End Sub \n End Module"),
+NewLines("Friend Class MyCompany \n End Class"))
+        End Sub
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestGenerateTypeWihtRightMostNameInLambda()
+            Test(
+NewLines("Module Program \n Sub Main(args As String()) \n Dim b = Function() \n Dim a As [|MyCompany.MyProduct.MyArea.MyClass|] \n End Function \n End Sub \n End Module"),
+NewLines("Namespace MyCompany.MyProduct.MyArea \n Friend Class [MyClass] \n End Class \n End Namespace"))
+        End Sub
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestGenerateTypeWihtRightMostNameAsMethodArgument()
+            Test(
+NewLines("Module Program \n Sub Main(args As String()) \n Test(New [|MyCompany.MyProduct.MyArea.MyClass|]) \n End Sub \n Sub Test(a As Object) \n End Sub \n End Module"),
+NewLines("Namespace MyCompany.MyProduct.MyArea \n Friend Class [MyClass] \n End Class \n End Namespace"))
         End Sub
 
         Public Class AddImportTestsWithAddImportDiagnosticProvider

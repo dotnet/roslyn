@@ -101,15 +101,6 @@ NewLines("Module Program \n Friend P As Integer \n Sub Main(args As String()) \n
 index:=1)
         End Sub
 
-        <WorkItem(539848)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
-        Public Sub TestOnLeftOfMemberAccess()
-            Test(
-NewLines("Module Program \n Sub Main(args As String()) \n [|HERE|].ToString() \n End Sub \n End Module"),
-NewLines("Module Program \n Private HERE As Object \n Sub Main(args As String()) \n HERE.ToString() \n End Sub \n End Module"),
-index:=1)
-        End Sub
-
         <WorkItem(539725)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
         Public Sub TestMissingWhenInterfacePropertyAlreadyExists()

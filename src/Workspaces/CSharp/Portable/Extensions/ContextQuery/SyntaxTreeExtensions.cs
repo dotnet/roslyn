@@ -2139,7 +2139,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 if (token.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression))
                 {
                     var parentMemberAccess = token.Parent;
-                    while (parentMemberAccess.IsParentKind(SyntaxKind.SimpleMemberAccessExpression))
+                    while (parentMemberAccess.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) || 
+                           parentMemberAccess.IsParentKind(SyntaxKind.ConditionalAccessExpression))
                     {
                         parentMemberAccess = parentMemberAccess.Parent;
                     }

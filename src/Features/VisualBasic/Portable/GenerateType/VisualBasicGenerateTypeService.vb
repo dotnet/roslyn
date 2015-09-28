@@ -97,9 +97,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Dim nameOrMemberAccessExpression As ExpressionSyntax = Nothing
             If simpleName.IsRightSideOfDot() Then
                 nameOrMemberAccessExpression = DirectCast(simpleName.Parent, ExpressionSyntax)
-                If Not (TypeOf simpleName.GetLeftSideOfDot() Is NameSyntax) Then
-                    Return False
-                End If
             Else
                 nameOrMemberAccessExpression = simpleName
             End If
@@ -128,10 +125,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                         End If
 
                         Dim leftSymbol = semanticModel.GetSymbolInfo(DirectCast(nameOrMemberAccessExpression, MemberAccessExpressionSyntax).Expression).Symbol
+                        If leftSymbol?.IsKind(SymbolKind.Namespace) Then
+                            Return False
+                        End If
+
                         Dim token = simpleName.GetLastToken().GetNextToken()
-                        If leftSymbol Is Nothing OrElse
-                            Not leftSymbol.IsKind(SymbolKind.Namespace) OrElse
-                            Not token.IsKind(SyntaxKind.DotToken) Then
+                        If (Not token.IsKind(SyntaxKind.DotToken) OrElse
+                               token.IsKind(SyntaxKind.QuestionToken)) AndAlso
+                            Not nameOrMemberAccessExpression.IsKind(SyntaxKind.SimpleMemberAccessExpression) Then
                             Return False
                         Else
                             generateTypeServiceStateOptions.IsMembersWithModule = True
@@ -172,6 +173,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             End If
 
             If SyntaxFacts.IsInNamespaceOrTypeContext(nameOrMemberAccessExpression) Then
+
+                ' We shouldn't generate a type in a conditional access expression
+                If nextToken.IsKind(SyntaxKind.QuestionToken) Then
+                    Return False
+                End If
 
                 ' In Namespace or Type Context we cannot have Interface, Enum, Delegate as part of the Left Expression of a QualifiedName
                 If nextToken.IsKind(SyntaxKind.DotToken) Then

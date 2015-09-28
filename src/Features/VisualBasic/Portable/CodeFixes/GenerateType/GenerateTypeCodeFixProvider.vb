@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.GenerateMember
 Imports Microsoft.CodeAnalysis.GenerateType
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -56,7 +57,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateType
         End Function
 
         Protected Overrides Function GetTargetNode(node As SyntaxNode) As SyntaxNode
-            Return (DirectCast(node, ExpressionSyntax)).GetRightmostName()
+            Dim qualified = TryCast(node.Parent, QualifiedNameSyntax)
+            If qualified IsNot Nothing Then
+                Return GetRightmostNameOfAncestor(qualified)
+            End If
+
+            Return DirectCast(node, ExpressionSyntax).GetRightmostName
+        End Function
+
+        Private Shared Function GetRightmostNameOfAncestor(Of TNameSyntax As ExpressionSyntax)(expression As TNameSyntax) As SyntaxNode
+            While True
+                Dim temp = TryCast(expression.Parent, TNameSyntax)
+                If temp Is Nothing Then
+                    Return expression.GetRightmostName()
+                End If
+                expression = temp
+            End While
+
+            Return expression.GetRightmostName()
         End Function
     End Class
 End Namespace

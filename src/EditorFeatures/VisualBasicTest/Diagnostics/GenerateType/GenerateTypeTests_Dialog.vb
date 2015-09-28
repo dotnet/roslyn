@@ -1462,78 +1462,23 @@ initial:=<Text>Module Program
     End Sub
 End Module
 
-Namespace A
+Namespace A.B
 End Namespace</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
-typeName:="B",
+typeName:="C",
 expected:=<Text>Module Program
     Sub Main(args As String())
         Dim s as A.B.C
     End Sub
 End Module
 
-Namespace A
-    Module B
+Namespace A.B
+    Module C
     End Module
 End Namespace</Text>.NormalizedValue,
 isNewFile:=False,
 typeKind:=TypeKind.Module,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Module))
-        End Sub
-
-        <WorkItem(861362)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateTypeInMemberAccessExpression()
-            TestWithMockedGenerateTypeDialog(
-initial:=<Text>Module Program
-    Sub Main(args As String())
-        Dim s = [|$$A.B|]
-    End Sub
-End Module</Text>.NormalizedValue,
-languageName:=LanguageNames.VisualBasic,
-typeName:="A",
-expected:=<Text>Module Program
-    Sub Main(args As String())
-        Dim s = A.B
-    End Sub
-End Module
-
-Public Module A
-End Module
-</Text>.NormalizedValue,
-isNewFile:=False,
-accessibility:=Accessibility.Public,
-typeKind:=TypeKind.Module,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.MemberAccessWithNamespace))
-        End Sub
-
-        <WorkItem(861362)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateTypeInMemberAccessExpressionWithNamespace()
-            TestWithMockedGenerateTypeDialog(
-initial:=<Text>Namespace A
-    Module Program
-        Sub Main(args As String())
-            Dim s = [|$$A.B.C|]
-        End Sub
-    End Module
-End Namespace</Text>.NormalizedValue,
-languageName:=LanguageNames.VisualBasic,
-typeName:="B",
-expected:=<Text>Namespace A
-    Module Program
-        Sub Main(args As String())
-            Dim s = A.B.C
-        End Sub
-    End Module
-
-    Public Module B
-    End Module
-End Namespace</Text>.NormalizedValue,
-isNewFile:=False,
-accessibility:=Accessibility.Public,
-typeKind:=TypeKind.Module,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.MemberAccessWithNamespace))
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions))
         End Sub
 
         <WorkItem(876202)>
@@ -1560,38 +1505,6 @@ End Structure
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Structure,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure))
-        End Sub
-
-        <WorkItem(861600)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateTypeWithoutEnumForGenericsInMemberAccessExpression()
-            TestWithMockedGenerateTypeDialog(
-initial:=<Text>Module Program
-    Sub Main(args As String())
-        Dim s = [|$$Foo(Of Bar).D|]
-    End Sub
-End Module
-
-Class Bar
-End Class</Text>.NormalizedValue,
-languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
-expected:=<Text>Module Program
-    Sub Main(args As String())
-        Dim s = Foo(Of Bar).D
-    End Sub
-End Module
-
-Class Bar
-End Class
-
-Public Class Foo(Of T)
-End Class
-</Text>.NormalizedValue,
-isNewFile:=False,
-accessibility:=Accessibility.Public,
-typeKind:=TypeKind.Class,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure))
         End Sub
 
@@ -1625,62 +1538,6 @@ isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Interface Or TypeKindOptions.Delegate))
-        End Sub
-
-        <WorkItem(861600)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateTypeInMemberAccessWithNSForModule()
-            TestWithMockedGenerateTypeDialog(
-initial:=<Text>Module Program
-    Sub Main(args As String())
-        Dim s = [|$$Foo.Bar|].Baz
-    End Sub
-End Module
-
-Namespace Foo
-End Namespace</Text>.NormalizedValue,
-languageName:=LanguageNames.VisualBasic,
-typeName:="Bar",
-expected:=<Text>Module Program
-    Sub Main(args As String())
-        Dim s = Foo.Bar.Baz
-    End Sub
-End Module
-
-Namespace Foo
-    Public Class Bar
-    End Class
-End Namespace</Text>.NormalizedValue,
-isNewFile:=False,
-accessibility:=Accessibility.Public,
-typeKind:=TypeKind.Class,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.MemberAccessWithNamespace))
-        End Sub
-
-        <WorkItem(861600)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateTypeInMemberAccessWithGlobalNSForModule()
-            TestWithMockedGenerateTypeDialog(
-initial:=<Text>Module Program
-    Sub Main(args As String())
-        Dim s = [|$$Bar|].Baz
-    End Sub
-End Module</Text>.NormalizedValue,
-languageName:=LanguageNames.VisualBasic,
-typeName:="Bar",
-expected:=<Text>Module Program
-    Sub Main(args As String())
-        Dim s = Bar.Baz
-    End Sub
-End Module
-
-Public Class Bar
-End Class
-</Text>.NormalizedValue,
-isNewFile:=False,
-accessibility:=Accessibility.Public,
-typeKind:=TypeKind.Class,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.MemberAccessWithNamespace))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2184,60 +2041,6 @@ typeKind:=TypeKind.Delegate)
 #End Region
 #Region "Dev12Filtering"
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateType_Invocation_NoEnum_0()
-            TestWithMockedGenerateTypeDialog(
-initial:=<Text>Module Program
-    Sub Main(args As String())
-        Dim a = [|$$Baz.Foo|].Bar()
-    End Sub
-End Module
-
-Namespace Baz
-End Namespace</Text>.NormalizedValue,
-languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
-expected:=<Text>Module Program
-    Sub Main(args As String())
-        Dim a = Baz.Foo.Bar()
-    End Sub
-End Module
-
-Namespace Baz
-    Public Class Foo
-    End Class
-End Namespace</Text>.NormalizedValue,
-isNewFile:=False,
-accessibility:=Accessibility.Public,
-typeKind:=TypeKind.Class,
-assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum})
-        End Sub
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateType_Invocation_NoEnum_1()
-            TestWithMockedGenerateTypeDialog(
-initial:=<Text>Module Program
-    Sub Main(args As String())
-        Dim a = [|$$Foo.Bar|]()
-    End Sub
-End Module</Text>.NormalizedValue,
-languageName:=LanguageNames.VisualBasic,
-typeName:="Bar",
-expected:=<Text>Module Program
-    Sub Main(args As String())
-        Dim a = Foo.Bar()
-    End Sub
-End Module
-
-Public Class Bar
-End Class
-</Text>.NormalizedValue,
-isNewFile:=False,
-accessibility:=Accessibility.Public,
-typeKind:=TypeKind.Class,
-assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum})
-        End Sub
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_Invocation_NoEnum_2()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class C
@@ -2272,71 +2075,6 @@ assertTypeKindPresent:=New TypeKindOptions() {TypeKindOptions.Delegate},
 assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateType_Invocation_NoEnum_3()
-            TestWithMockedGenerateTypeDialog(
-initial:=<Text>Class C
-    Custom Event E As Action
-        AddHandler(value As Action)
-        End AddHandler
-        RemoveHandler(value As [|$$Foo|])
-        End RemoveHandler
-        RaiseEvent()
-        End RaiseEvent
-    End Event
-End Class</Text>.NormalizedValue,
-languageName:=LanguageNames.VisualBasic,
-typeName:="Foo",
-expected:=<Text>Class C
-    Custom Event E As Action
-        AddHandler(value As Action)
-        End AddHandler
-        RemoveHandler(value As Foo)
-        End RemoveHandler
-        RaiseEvent()
-        End RaiseEvent
-    End Event
-End Class
-
-Public Delegate Sub Foo()
-</Text>.NormalizedValue,
-isNewFile:=False,
-accessibility:=Accessibility.Public,
-typeKind:=TypeKind.Delegate,
-assertTypeKindPresent:=New TypeKindOptions() {TypeKindOptions.Delegate},
-assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum})
-        End Sub
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateType_Invocation_NoEnum_4()
-            TestWithMockedGenerateTypeDialog(
-initial:=<Text>Imports System
-Module Program
-    Sub Main(args As String())
-        Dim s As Action = AddressOf [|NS.Bar$$|].Method
-    End Sub
-End Module
-
-Namespace NS
-End Namespace</Text>.NormalizedValue,
-languageName:=LanguageNames.VisualBasic,
-typeName:="Bar",
-expected:=<Text>Imports System
-Module Program
-    Sub Main(args As String())
-        Dim s As Action = AddressOf NS.Bar.Method
-    End Sub
-End Module
-
-Namespace NS
-    Public Class Bar
-    End Class
-End Namespace</Text>.NormalizedValue,
-isNewFile:=False,
-accessibility:=Accessibility.Public,
-typeKind:=TypeKind.Class,
-assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum})
-        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_TypeConstraint_1()
@@ -2502,7 +2240,7 @@ Class C1
     End Event
 End Class
 
-Namespace NS
+Namespace NS.Foo
 End Namespace</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Foo",
@@ -2518,14 +2256,13 @@ Class C1
     End Event
 End Class
 
-Namespace NS
-    Public Class Foo
-    End Class
+Namespace NS.Foo
+    Public Delegate Sub Foo()
 End Namespace</Text>.NormalizedValue,
 isNewFile:=False,
 accessibility:=Accessibility.Public,
-typeKind:=TypeKind.Class,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Module))
+typeKind:=TypeKind.Delegate,
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Delegate))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2582,23 +2319,22 @@ Class Foo
     Public Event F As [|$$NS.Bar.MyDel|]
 End Class
 
-Namespace NS
+Namespace NS.Bar
 End Namespace</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Bar",
+typeName:="MyDel",
 expected:=<Text>
 Class Foo
     Public Event F As NS.Bar.MyDel
 End Class
 
-Namespace NS
-    Public Class Bar
-    End Class
+Namespace NS.Bar
+    Public Delegate Sub MyDel()
 End Namespace</Text>.NormalizedValue,
 isNewFile:=False,
 accessibility:=Accessibility.Public,
-typeKind:=TypeKind.Class,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Module))
+typeKind:=TypeKind.Delegate,
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Delegate))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2657,17 +2393,17 @@ Class Bar
     Public WithEvents G As [|$$NS.Delegate1.MyDel|]
 End Class
 
-Namespace NS
+Namespace NS.Delegate1
 End Namespace</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
-typeName:="Delegate1",
+typeName:="MyDel",
 expected:=<Text>
 Class Bar
     Public WithEvents G As NS.Delegate1.MyDel
 End Class
 
-Namespace NS
-    Public Class Delegate1
+Namespace NS.Delegate1
+    Public Class MyDel
     End Class
 End Namespace</Text>.NormalizedValue,
 isNewFile:=False,

@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -58,7 +59,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType
 
         protected override SyntaxNode GetTargetNode(SyntaxNode node)
         {
-            return ((ExpressionSyntax)node).GetRightmostName();
+            var qualified = node.Parent as QualifiedNameSyntax;
+            if (qualified != null)
+            {
+                return GetRightmostNameOfAncestor(qualified);
+            }
+
+            return (node as ExpressionSyntax)?.GetRightmostName();
+        }
+
+        private SyntaxNode GetRightmostNameOfAncestor<TNameSyntax>(TNameSyntax expression) where TNameSyntax : ExpressionSyntax
+        {
+            while (true)
+            {
+                var temp = expression.Parent as TNameSyntax;
+                if (temp == null)
+                {
+                    return expression.GetRightmostName();
+                }
+                expression = temp;
+            }
         }
 
         protected override Task<IEnumerable<CodeAction>> GetCodeActionsAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)

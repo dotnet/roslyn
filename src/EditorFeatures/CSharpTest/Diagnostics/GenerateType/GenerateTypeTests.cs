@@ -970,30 +970,10 @@ index: 1);
 
         [WorkItem(539339)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void InLeftSideOfAssignment()
-        {
-            Test(
-@"class Class { void M(int i) { [|Foo|].Bar = 2; } }",
-@"class Class { void M(int i) { Foo.Bar = 2; } } internal class Foo { }",
-index: 1);
-        }
-
-        [WorkItem(539339)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void NotInRightSideOfAssignment()
         {
             TestMissing(
 @"class Class { void M(int i) { x = [|Foo|]; } }");
-        }
-
-        [WorkItem(539339)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void InRightSideOfAssignment()
-        {
-            Test(
-@"class Class { void M(int i) { x = [|Foo|].Bar; } }",
-@"class Class { void M(int i) { x = Foo.Bar; } } internal class Foo { }",
-index: 1);
         }
 
         [WorkItem(539489)]
@@ -1638,18 +1618,15 @@ namespace A
                 </Workspace>";
 
             var expected = @"
-namespace A
+namespace A.B.C
 {
-    public class B
+    internal class D
     {
-        public class C
-        {
-        }
     }
 }
 ";
 
-            Test(code, expected, compareTokens: false);
+            Test(code, expected);
         }
 
         [WorkItem(932602)]
@@ -2017,6 +1994,62 @@ index: 1);
 @"class A { public B<int> b = new [|B|]<int>(); }",
 @"class A { public B<int> b = new B<int>(); public class B<T>{ public B(){}}}",
 index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public void TestGenerateRightMostType()
+        {
+            Test(
+@"class Program { static void Main ( string [ ] args ) { [|MyCompany|] . MyProduct . MyArea . MyClass a ; } } ",
+@"namespace MyCompany.MyProduct.MyArea { internal class MyClass { } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public void TestGenerateRightMostTypeInsideNameOf()
+        {
+            Test(
+@"class Program { static void Main ( string [ ] args ) { var a = nameof ( [|MyCompany|] . MyProduct . MyArea . MyClass ) ; } } ",
+@"internal class MyCompany { }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public void TestGenerateRightMostTypeNotPresentInConditional()
+        {
+            Test(
+@"class Program { static void Main ( string [ ] args ) { [|MyCompany . MyProduct ? . MyArea . MyClass a |]; } }",
+@"internal class MyCompany { }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public void TestGenerateRightMostTypeNotPresentInConditionalWithNameOf()
+        {
+            Test(
+@"class Program { static void Main ( string [ ] args ) { var a = nameof ( [|MyCompany|] . MyProduct ? . MyArea . MyClass ) ; } } ",
+@"internal class MyCompany { }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public void TestGenerateRightMostTypeInAssignmentExpression()
+        {
+            Test(
+@"class Program { static void Main ( string [ ] args ) { var a = [|MyCompany|] . MyProduct ? . MyArea . MyClass ; } } ",
+@"internal class MyCompany { }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public void TestGenerateRightMostTypeInLambda()
+        {
+            Test(
+@"using System ; class Program { static void Main ( string [ ] args ) { Action b = ( ) => { [|MyCompany|] . MyProduct . MyArea . MyClass a ; } ; } } ",
+@"namespace MyCompany.MyProduct.MyArea { internal class MyClass { } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public void TestGenerateRightMostTypeAsArgumentInMethodCall()
+        {
+            Test(
+@"using System ; class Program { static void Main ( string [ ] args ) { Test ( new [|MyCompany|] . MyProduct . MyArea . MyClass ( ) ) ; } private static void Test ( object v ) { } } ",
+@"namespace MyCompany.MyProduct.MyArea { internal class MyClass { public MyClass() { } } }");
         }
     }
 }

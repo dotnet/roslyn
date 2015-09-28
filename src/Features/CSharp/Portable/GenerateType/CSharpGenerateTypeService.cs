@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                     return false;
                 }
 
-                if (!simpleName.IsLeftSideOfDot() && !simpleName.IsInsideNameOf())
+                if (!simpleName.IsLeftSideOfDot() && !simpleName.SyntaxTree.IsNameOfContext(simpleName.SpanStart, semanticModel, cancellationToken))
                 {
                     if (nameOrMemberAccessExpression == null || !nameOrMemberAccessExpression.IsKind(SyntaxKind.SimpleMemberAccessExpression) || !simpleName.IsRightSideOfDot())
                     {
@@ -231,12 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                     }
 
                     var leftSymbol = semanticModel.GetSymbolInfo(((MemberAccessExpressionSyntax)nameOrMemberAccessExpression).Expression, cancellationToken).Symbol;
-                    var token = simpleName.GetLastToken().GetNextToken();
-
-                    // We let only the Namespace to be left of the Dot
-                    if (leftSymbol == null ||
-                        !leftSymbol.IsKind(SymbolKind.Namespace) ||
-                        !token.IsKind(SyntaxKind.DotToken))
+                    if (leftSymbol != null && !leftSymbol.IsKind(SymbolKind.Namespace))
                     {
                         return false;
                     }

@@ -1917,9 +1917,9 @@ namespace A
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
-expected: @"Namespace Global.A
-    Public Module Foo
+typeName: "Bar",
+expected: @"Namespace Global.A.Foo
+    Public Module Bar
     End Module
 End Namespace
 ",
@@ -1930,7 +1930,7 @@ isNewFile: true,
 newFileName: "Test2.vb",
 newFileFolderContainers: Array.Empty<string>(),
 projectName: "Assembly2",
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Module));
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
         }
 
         #endregion
@@ -2006,114 +2006,6 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.Interface, false));
         }
 
-        [WorkItem(861362)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void GenerateTypeInMemberAccessExpression()
-        {
-            TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s = [|$$A.B|];
-    }
-}",
-languageName: LanguageNames.CSharp,
-typeName: "A",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s = A.B;
-    }
-}
-
-public class A
-{
-}",
-accessibility: Accessibility.Public,
-typeKind: TypeKind.Class,
-isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.MemberAccessWithNamespace));
-        }
-
-        [WorkItem(861362)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void GenerateTypeInMemberAccessExpressionInNamespace()
-        {
-            TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s = [|$$A.B.C|];
-    }
-}
-
-namespace A
-{
-}",
-languageName: LanguageNames.CSharp,
-typeName: "B",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s = A.B.C;
-    }
-}
-
-namespace A
-{
-    public class B
-    {
-    }
-}",
-accessibility: Accessibility.Public,
-typeKind: TypeKind.Class,
-isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.MemberAccessWithNamespace));
-        }
-
-        [WorkItem(861600)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void GenerateTypeWithoutEnumForGenericsInMemberAccess()
-        {
-            TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s = [|$$Foo<Bar>|].D;
-    }
-}
-
-class Bar
-{
-}",
-languageName: LanguageNames.CSharp,
-typeName: "Foo",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s = Foo<Bar>.D;
-    }
-}
-
-class Bar
-{
-}
-
-public class Foo<T>
-{
-}",
-accessibility: Accessibility.Public,
-typeKind: TypeKind.Class,
-isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure));
-        }
-
         [WorkItem(861600)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateTypeWithoutEnumForGenericsInNameContext()
@@ -2155,75 +2047,6 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
 
         [WorkItem(861600)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void GenerateTypeInMemberAccessWithNSForModule()
-        {
-            TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s = [|Foo.$$Bar|].Baz;
-    }
-}
-
-namespace Foo
-{
-}",
-languageName: LanguageNames.CSharp,
-typeName: "Bar",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s = Foo.Bar.Baz;
-    }
-}
-
-namespace Foo
-{
-    public class Bar
-    {
-    }
-}",
-accessibility: Accessibility.Public,
-typeKind: TypeKind.Class,
-isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.MemberAccessWithNamespace));
-        }
-
-        [WorkItem(861600)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void GenerateTypeInMemberAccessWithGlobalNSForModule()
-        {
-            TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s = [|$$Bar|].Baz;
-    }
-}",
-languageName: LanguageNames.CSharp,
-typeName: "Bar",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s = Bar.Baz;
-    }
-}
-
-public class Bar
-{
-}",
-accessibility: Accessibility.Public,
-typeKind: TypeKind.Class,
-isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.MemberAccessWithNamespace));
-        }
-
-        [WorkItem(861600)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateTypeInMemberAccessWithoutNS()
         {
             TestWithMockedGenerateTypeDialog(
@@ -2239,8 +2062,25 @@ namespace Bar
 {
 }",
 languageName: LanguageNames.CSharp,
-typeName: "Bar",
-isMissing: true);
+typeName: "Baz",
+expected: @"class Program
+{
+    static void Main(string[] args)
+    {
+        var s = Bar.Baz;
+    }
+}
+
+namespace Bar
+{
+    public class Baz
+    {
+    }
+}",
+accessibility: Accessibility.Public,
+typeKind: TypeKind.Class,
+isNewFile: false,
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.MemberAccessWithNamespace));
         }
 
         [WorkItem(876202)]
@@ -2991,73 +2831,6 @@ isNewFile: false);
         #endregion 
         #region Dev12Filtering
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void GenerateDelegateType_NoEnum_InvocationExpression_0()
-        {
-            TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s2 = [|$$B|].C();
-    }
-}",
-languageName: LanguageNames.CSharp,
-typeName: "B",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s2 = B.C();
-    }
-}
-
-public class B
-{
-}",
-accessibility: Accessibility.Public,
-typeKind: TypeKind.Class,
-isNewFile: false,
-assertTypeKindAbsent: new[] { TypeKindOptions.Enum });
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void GenerateDelegateType_NoEnum_InvocationExpression_1()
-        {
-            TestWithMockedGenerateTypeDialog(
-initial: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s2 = [|A.$$B|].C();
-    }
-}
-
-namespace A
-{
-}",
-languageName: LanguageNames.CSharp,
-typeName: "B",
-expected: @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s2 = A.B.C();
-    }
-}
-
-namespace A
-{
-    public class B
-    {
-    }
-}",
-accessibility: Accessibility.Public,
-typeKind: TypeKind.Class,
-isNewFile: false,
-assertTypeKindAbsent: new[] { TypeKindOptions.Enum });
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateType_TypeConstraint_1()
         {
             TestWithMockedGenerateTypeDialog(
@@ -3413,11 +3186,11 @@ class A
     }
 }
 
-namespace NS
+namespace NS.foo
 {
 }",
 languageName: LanguageNames.CSharp,
-typeName: "foo",
+typeName: "Mydel",
 expected: @"
 class A
 {
@@ -3428,16 +3201,14 @@ class A
     }
 }
 
-namespace NS
+namespace NS.foo
 {
-    public class foo
-    {
-    }
+    public delegate void Mydel();
 }",
 accessibility: Accessibility.Public,
-typeKind: TypeKind.Class,
+typeKind: TypeKind.Delegate,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Module));
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Delegate));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -3450,27 +3221,25 @@ class A
     public event [|$$NS.foo.Mydel|] name2;
 }
 
-namespace NS
+namespace NS.foo
 {
 }",
 languageName: LanguageNames.CSharp,
-typeName: "foo",
+typeName: "Mydel",
 expected: @"
 class A
 {
     public event NS.foo.Mydel name2;
 }
 
-namespace NS
+namespace NS.foo
 {
-    public class foo
-    {
-    }
+    public delegate void Mydel();
 }",
 accessibility: Accessibility.Public,
-typeKind: TypeKind.Class,
+typeKind: TypeKind.Delegate,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Module));
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Delegate));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]

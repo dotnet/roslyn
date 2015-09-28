@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod
         Protected Overrides Function GetTargetNode(node As SyntaxNode) As SyntaxNode
             Dim memberAccess = TryCast(node, MemberAccessExpressionSyntax)
             If memberAccess IsNot Nothing Then
-                Return memberAccess.Name
+                Return GetRightmostNameOfAncestor(memberAccess)
             End If
 
             Dim invocationExpression = TryCast(node, InvocationExpressionSyntax)
@@ -63,6 +63,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod
             End If
 
             Return node
+        End Function
+
+        Private Shared Function GetRightmostNameOfAncestor(memberAccess As MemberAccessExpressionSyntax) As SyntaxNode
+            While True
+                Dim temp = TryCast(memberAccess.Parent, MemberAccessExpressionSyntax)
+                If temp Is Nothing Then
+                    Return memberAccess.GetRightmostName()
+                Else
+                    memberAccess = temp
+                End If
+            End While
+
+            Return memberAccess.GetRightmostName()
         End Function
     End Class
 End Namespace
