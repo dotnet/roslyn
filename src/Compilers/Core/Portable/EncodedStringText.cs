@@ -32,20 +32,14 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 if (CoreClrShim.IsCoreClr)
                 {
-                    // If we're running on CoreCLR there is no "default" codepage but
-                    // we should be able to grab 1252 from System.Text.Encoding.CodePages
+                    // If we're running on CoreCLR we have to register the CodePagesEncodingProvider
+                    // first
                     CoreClrShim.Encoding.RegisterProvider(CoreClrShim.CodePagesEncodingProvider.Instance);
-                    // We should now have 1252 from the CodePagesEncodingProvider
-                    return PortableShim.Encoding.GetEncoding(1252);
                 }
-                else
-                {
-                    // If we're running on the desktop framework we should be able
-                    // to get the default ANSI code page in the operating system's
-                    // regional and language settings,
-                    return PortableShim.Encoding.GetEncoding(0)
-                        ?? PortableShim.Encoding.GetEncoding(1252);
-                }
+                // Try to get the default ANSI code page in the operating system's
+                // regional and language settings, and fall back to 1252 otherwise
+                return PortableShim.Encoding.GetEncoding(0)
+                    ?? PortableShim.Encoding.GetEncoding(1252);
             }
             catch (NotSupportedException)
             {
