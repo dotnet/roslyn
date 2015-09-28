@@ -25,7 +25,14 @@ namespace Roslyn.Test.Utilities
 
             for (var i = 0; i < Math.Min(expectedTokens.Count, actualTokens.Count); i++)
             {
-                Assert.Equal(expectedTokens[i].ToString(), actualTokens[i].ToString());
+                var expectedToken = expectedTokens[i].ToString();
+                var actualToken = actualTokens[i].ToString();
+                if (!String.Equals(expectedToken, actualToken))
+                {
+                    var prev = (i - 1 > -1) ? actualTokens[i - 1].ToString() : "^";
+                    var next = (i + 1 < actualTokens.Count) ? actualTokens[i + 1].ToString() : "$";
+                    AssertEx.Fail($"Unexpected token at index {i} near \"{prev} {actualToken} {next}\". Expected '{expectedToken}', Actual '{actualToken}'");
+                }
             }
 
             if (expectedTokens.Count != actualTokens.Count)

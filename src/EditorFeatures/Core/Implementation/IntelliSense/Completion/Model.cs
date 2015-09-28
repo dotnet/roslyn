@@ -97,6 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             if (completionService != null && 
                 workspace != null && 
+                workspace.Kind != WorkspaceKind.Interactive && // TODO (https://github.com/dotnet/roslyn/issues/5107): support in interactive
                 workspace.Options.GetOption(InternalFeatureOnOffOptions.Snippets) && 
                 triggerInfo.TriggerReason != CompletionTriggerReason.Snippets)
             {

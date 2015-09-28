@@ -5,12 +5,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    using System.Reflection;
     using MetadataOrDiagnostic = System.Object;
 
     /// <summary>
@@ -54,8 +54,6 @@ namespace Microsoft.CodeAnalysis
             private readonly int _index;
             private readonly ImmutableArray<string> _aliases;
 
-            public static readonly ResolvedReference Skipped = default(ResolvedReference);
-
             public ResolvedReference(int index, MetadataImageKind kind, ImmutableArray<string> aliases)
             {
                 Debug.Assert(index >= 0);
@@ -74,6 +72,9 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            /// <summary>
+            /// default(<see cref="ResolvedReference"/>) is considered skipped.
+            /// </summary>
             public bool IsSkipped
             {
                 get
@@ -91,6 +92,9 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            /// <summary>
+            /// Index into an array of assemblies or an array of modules, depending on <see cref="Kind"/>.
+            /// </summary>
             public int Index
             {
                 get
@@ -324,6 +328,13 @@ namespace Microsoft.CodeAnalysis
                 boundReferenceDirectives = ImmutableArray<MetadataReference>.Empty;
             }
 
+            // We enumerated references in reverse order in the above code
+            // and thus assemblies and modules in the builders are reversed.
+            // Fix up all the indices and reverse the builder content now to get 
+            // the ordering matching the references.
+            // 
+            // Also fills in aliases.
+
             for (int i = 0; i < referenceMap.Length; i++)
             {
                 if (!referenceMap[i].IsSkipped)
@@ -331,6 +342,7 @@ namespace Microsoft.CodeAnalysis
                     int count = referenceMap[i].Kind == MetadataImageKind.Assembly
                         ? ((object)assembliesBuilder == null ? 0 : assembliesBuilder.Count)
                         : ((object)modulesBuilder == null ? 0 : modulesBuilder.Count);
+
                     int reversedIndex = count - 1 - referenceMap[i].Index;
                     referenceMap[i] = new ResolvedReference(reversedIndex, referenceMap[i].Kind, GetAliases(references[i], aliasMap));
                 }
@@ -345,7 +357,7 @@ namespace Microsoft.CodeAnalysis
                 assembliesBuilder.ReverseContents();
                 assemblies = assembliesBuilder.ToImmutableAndFree();
             }
-
+            
             if (modulesBuilder == null)
             {
                 modules = ImmutableArray<PEModule>.Empty;
@@ -542,6 +554,7 @@ namespace Microsoft.CodeAnalysis
                 assemblies = ArrayBuilder<AssemblyData>.GetInstance();
             }
 
+            // aliases will be filled in later:
             referenceMap[referenceIndex] = new ResolvedReference(assemblies.Count, MetadataImageKind.Assembly, default(ImmutableArray<string>));
             assemblies.Add(data);
         }

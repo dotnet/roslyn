@@ -1415,7 +1415,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 EmitPopIfUnused(used);
             }
-            else if (_optimizations == OptimizationLevel.Debug)
+            else if (_ilEmitStyle == ILEmitStyle.Debug)
             {
                 // The only void methods with usable return values are constructors and we represent those
                 // as BoundObjectCreationExpressions, not BoundCalls.

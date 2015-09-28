@@ -67,8 +67,11 @@
     <Compile Include="..\..\Helpers\ConsoleUtil.cs">
       <Link>ConsoleUtil.cs</Link>
     </Compile>
-    <Compile Include="..\..\Helpers\NoOpAnalyzerAssemblyLoader.cs">
-      <Link>ConsoleUtil.cs</Link>
+    <Compile Include="..\..\Helpers\CoreClrAnalyzerAssemblyLoader.cs">
+      <Link>CoreClrAnalyzerAssemblyLoader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Helpers\AnalyzerAssemblyLoadUtils.cs">
+      <Link>AnalyzerAssemblyLoadUtils.cs</Link>
     </Compile>
     <Compile Include="Vbc.cs" />
     <Compile Include="Program.cs" />
@@ -77,6 +80,9 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.CommandLine.UnitTests" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="vbc.cmd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="vbc.exe.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
