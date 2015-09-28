@@ -69,8 +69,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
         {
             var symbolDisplayService = solution.Workspace.Services.GetLanguageServices(implementation.Language).GetRequiredService<ISymbolDisplayService>();
 
-            return NavigableItemFactory.GetItemsFromPreferredSourceLocations(solution, implementation,
-                                        displayString: symbolDisplayService.ToDisplayString(implementation));
+            return NavigableItemFactory.GetItemsFromPreferredSourceLocations(
+                solution,
+                implementation,
+                displayString: symbolDisplayService.ToDisplayString(implementation));
         }
 
     }
