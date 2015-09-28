@@ -306,183 +306,163 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Returns false if another compilation sharing this manager finished binding earlier and we should reuse its results.
             private bool CreateAndSetSourceAssemblyFullBind(CSharpCompilation compilation)
             {
-                IDictionary<string, MetadataReference> boundReferenceDirectiveMap;
-                ImmutableArray<MetadataReference> boundReferenceDirectives;
-                bool hasCircularReference;
-
-                // Let's process our references and separate Assembly refs from addmodule.
-                ImmutableArray<AssemblyData> referencedAssemblies;
-                ImmutableArray<PEModule> modules; // To make sure the modules are not collected ahead of time.
-                ImmutableArray<MetadataReference> references;
-
-                var resolutionDiagnostics = default(ImmutableArray<Diagnostic>);
-                var referenceMap = default(ImmutableArray<ResolvedReference>);
-                var diagnostics = DiagnosticBag.GetInstance();
+                var resolutionDiagnostics = DiagnosticBag.GetInstance();
+                var implicitlyResolvedReferences = ArrayBuilder<MetadataReference>.GetInstance();
 
                 try
                 {
-                    referenceMap = ResolveMetadataReferences(
+                    IDictionary<string, MetadataReference> boundReferenceDirectiveMap;
+                    ImmutableArray<MetadataReference> boundReferenceDirectives;
+                    ImmutableArray<AssemblyData> referencedAssemblies;
+                    ImmutableArray<PEModule> modules; // To make sure the modules are not collected ahead of time.
+                    ImmutableArray<MetadataReference> references;
+
+                    ImmutableArray<ResolvedReference> referenceMap = ResolveMetadataReferences(
                         compilation,
                         out references,
                         out boundReferenceDirectiveMap,
                         out boundReferenceDirectives,
                         out referencedAssemblies,
                         out modules,
-                        diagnostics);
+                        resolutionDiagnostics);
 
-                    resolutionDiagnostics = diagnostics.ToReadOnly();
-                }
-                finally
-                {
-                    diagnostics.Free();
-                }
+                    var assemblyBeingBuiltData = new AssemblyDataForAssemblyBeingBuilt(new AssemblyIdentity(name: SimpleAssemblyName), referencedAssemblies, modules);
+                    var allAssemblyData = referencedAssemblies.Insert(0, assemblyBeingBuiltData);
 
-                var assemblyBeingBuiltData = new AssemblyDataForAssemblyBeingBuilt(new AssemblyIdentity(name: SimpleAssemblyName), referencedAssemblies, modules);
+                    // Let's bind all the references and resolve missing one (if resolver is available)
+                    bool hasCircularReference;
+                    int corLibraryIndex;
+                    BoundInputAssembly[] bindingResult = Bind(
+                        ref allAssemblyData,
+                        compilation.Options.MetadataReferenceResolver,
+                        compilation.Options.MetadataImportOptions,
+                        implicitlyResolvedReferences,
+                        resolutionDiagnostics,
+                        out hasCircularReference,
+                        out corLibraryIndex);
 
-                var assembliesArray = new AssemblyData[referencedAssemblies.Length + 1];
-                assembliesArray[0] = assemblyBeingBuiltData;
-                for (int i = 1; i < assembliesArray.Length; i++)
-                {
-                    assembliesArray[i] = referencedAssemblies[i - 1];
-                }
+                    Debug.Assert(bindingResult.Length == allAssemblyData.Length);
 
-                ImmutableArray<AssemblyData> allAssemblies = assembliesArray.AsImmutableOrNull();
+                    Dictionary<MetadataReference, int> referencedAssembliesMap, referencedModulesMap;
+                    ImmutableArray<ImmutableArray<string>> aliasesOfReferencedAssemblies;
+                    BuildReferencedAssembliesAndModulesMaps(
+                        references,
+                        referenceMap,
+                        implicitlyResolvedReferences,
+                        referencedAssemblies.Length,
+                        modules.Length,
+                        out referencedAssembliesMap,
+                        out referencedModulesMap,
+                        out aliasesOfReferencedAssemblies);
 
-                // Let's bind all the references
-                int corLibraryIndex;
-                BoundInputAssembly[] bindingResult = Bind(allAssemblies,
-                                                          out hasCircularReference,
-                                                          out corLibraryIndex);
+                    // Create AssemblySymbols for assemblies that can't use any existing symbols.
+                    var newSymbols = new List<int>();
 
-                Debug.Assert(bindingResult.Length == allAssemblies.Length);
-
-                // Create AssemblySymbols for assemblies that can't use any existing symbols.
-                var newSymbols = new List<int>();
-
-                for (int i = 1; i < bindingResult.Length; i++)
-                {
-                    if ((object)bindingResult[i].AssemblySymbol == null)
+                    for (int i = 1; i < bindingResult.Length; i++)
                     {
-                        // symbols hasn't been found in the cache, create a new one
-                        var compilationData = (AssemblyDataForMetadataOrCompilation)allAssemblies[i];
-                        bindingResult[i].AssemblySymbol = compilationData.CreateAssemblySymbol();
-                        newSymbols.Add(i);
+                        if ((object)bindingResult[i].AssemblySymbol == null)
+                        {
+                            // symbols hasn't been found in the cache, create a new one
+                            var compilationData = (AssemblyDataForMetadataOrCompilation)allAssemblyData[i];
+                            bindingResult[i].AssemblySymbol = compilationData.CreateAssemblySymbol();
+                            newSymbols.Add(i);
+                        }
+
+                        Debug.Assert(allAssemblyData[i].IsLinked == bindingResult[i].AssemblySymbol.IsLinked);
                     }
 
-                    Debug.Assert(allAssemblies[i].IsLinked == bindingResult[i].AssemblySymbol.IsLinked);
-                }
+                    var assemblySymbol = new SourceAssemblySymbol(compilation, SimpleAssemblyName, compilation.MakeSourceModuleName(), netModules: modules);
 
-                var assemblySymbol = new SourceAssemblySymbol(compilation, SimpleAssemblyName, compilation.MakeSourceModuleName(), netModules: modules);
+                    AssemblySymbol corLibrary;
 
-                AssemblySymbol corLibrary;
-
-                if (corLibraryIndex == 0)
-                {
-                    corLibrary = assemblySymbol;
-                }
-                else if (corLibraryIndex > 0)
-                {
-                    corLibrary = bindingResult[corLibraryIndex].AssemblySymbol;
-                }
-                else
-                {
-                    corLibrary = MissingCorLibrarySymbol.Instance;
-                }
-
-                assemblySymbol.SetCorLibrary(corLibrary);
-
-                // Setup bound references for newly created AssemblySymbols
-                // This should be done after we created/found all AssemblySymbols 
-                Dictionary<AssemblyIdentity, MissingAssemblySymbol> missingAssemblies = null;
-
-                // Setup bound references for newly created SourceAssemblySymbol
-                ImmutableArray<ModuleReferences<AssemblySymbol>> moduleReferences;
-                SetupReferencesForSourceAssembly(assemblySymbol, assemblyBeingBuiltData, bindingResult, ref missingAssemblies, out moduleReferences);
-
-                if (newSymbols.Count > 0)
-                {
-                    // Only if we detected that a referenced assembly refers to the assembly being built
-                    // we allow the references to get a hold of the assembly being built.
-                    if (hasCircularReference)
+                    if (corLibraryIndex == 0)
                     {
-                        bindingResult[0].AssemblySymbol = assemblySymbol;
+                        corLibrary = assemblySymbol;
                     }
-
-                    InitializeNewSymbols(newSymbols, assemblySymbol, allAssemblies, bindingResult, missingAssemblies);
-                }
-
-                // Calculate reference maps and aliases:
-                var referencedAssembliesMap = new Dictionary<MetadataReference, int>(referenceMap.Length);
-                var referencedModulesMap = new Dictionary<MetadataReference, int>(modules.Length);
-                var aliasesOfReferencedAssembliesBuilder = ArrayBuilder<ImmutableArray<string>>.GetInstance(referencedAssemblies.Length);
-
-                for (int i = 0; i < referenceMap.Length; i++)
-                {
-                    if (referenceMap[i].IsSkipped)
+                    else if (corLibraryIndex > 0)
                     {
-                        continue;
-                    }
-
-                    if (referenceMap[i].Kind == MetadataImageKind.Module)
-                    {
-                        // add 1 for the manifest module:
-                        int moduleIndex = 1 + referenceMap[i].Index;
-                        referencedModulesMap.Add(references[i], moduleIndex);
+                        corLibrary = bindingResult[corLibraryIndex].AssemblySymbol;
                     }
                     else
                     {
-                        // index into assembly data array
-                        int assemblyIndex = referenceMap[i].Index; 
-                        Debug.Assert(aliasesOfReferencedAssembliesBuilder.Count == assemblyIndex);
-
-                        referencedAssembliesMap.Add(references[i], assemblyIndex);
-                        aliasesOfReferencedAssembliesBuilder.Add(referenceMap[i].Aliases);
+                        corLibrary = MissingCorLibrarySymbol.Instance;
                     }
-                }
 
-                var aliasesOfReferencedAssemblies = aliasesOfReferencedAssembliesBuilder.ToImmutableAndFree();
+                    assemblySymbol.SetCorLibrary(corLibrary);
 
-                if ((object)compilation._lazyAssemblySymbol == null)
-                {
-                    lock (SymbolCacheAndReferenceManagerStateGuard)
+                    // Setup bound references for newly created AssemblySymbols
+                    // This should be done after we created/found all AssemblySymbols 
+                    Dictionary<AssemblyIdentity, MissingAssemblySymbol> missingAssemblies = null;
+
+                    // Setup bound references for newly created SourceAssemblySymbol
+                    ImmutableArray<ModuleReferences<AssemblySymbol>> moduleReferences;
+                    SetupReferencesForSourceAssembly(
+                        allAssemblyData,
+                        assemblySymbol,
+                        modules,
+                        bindingResult,
+                        ref missingAssemblies,
+                        out moduleReferences);
+
+                    if (newSymbols.Count > 0)
                     {
-                        if ((object)compilation._lazyAssemblySymbol == null)
+                        // Only if we detected that a referenced assembly refers to the assembly being built
+                        // we allow the references to get a hold of the assembly being built.
+                        if (hasCircularReference)
                         {
-                            if (IsBound)
+                            bindingResult[0].AssemblySymbol = assemblySymbol;
+                        }
+
+                        InitializeNewSymbols(newSymbols, assemblySymbol, allAssemblyData, bindingResult, missingAssemblies);
+                    }
+
+                    if ((object)compilation._lazyAssemblySymbol == null)
+                    {
+                        lock (SymbolCacheAndReferenceManagerStateGuard)
+                        {
+                            if ((object)compilation._lazyAssemblySymbol == null)
                             {
-                                // Another thread has finished constructing AssemblySymbol for another compilation that shares this manager.
-                                // Drop the results and reuse the symbols that were created for the other compilation.
-                                return false;
+                                if (IsBound)
+                                {
+                                    // Another thread has finished constructing AssemblySymbol for another compilation that shares this manager.
+                                    // Drop the results and reuse the symbols that were created for the other compilation.
+                                    return false;
+                                }
+
+                                UpdateSymbolCacheNoLock(newSymbols, allAssemblyData, bindingResult);
+
+                                InitializeNoLock(
+                                    referencedAssembliesMap,
+                                    referencedModulesMap,
+                                    boundReferenceDirectiveMap,
+                                    boundReferenceDirectives,
+                                    hasCircularReference,
+                                    resolutionDiagnostics.ToReadOnly(),
+                                    ReferenceEquals(corLibrary, assemblySymbol) ? null : corLibrary,
+                                    modules,
+                                    moduleReferences,
+                                    assemblySymbol.SourceModule.GetReferencedAssemblySymbols(),
+                                    aliasesOfReferencedAssemblies,
+                                    assemblySymbol.SourceModule.GetUnifiedAssemblies());
+
+                                // Make sure that the given compilation holds on this instance of reference manager.
+                                Debug.Assert(ReferenceEquals(compilation._referenceManager, this) || HasCircularReference);
+                                compilation._referenceManager = this;
+
+                                // Finally, publish the source symbol after all data have been written.
+                                // Once lazyAssemblySymbol is non-null other readers might start reading the data written above.
+                                compilation._lazyAssemblySymbol = assemblySymbol;
                             }
-
-                            UpdateSymbolCacheNoLock(newSymbols, allAssemblies, bindingResult);
-                            
-                            InitializeNoLock(
-                                referencedAssembliesMap,
-                                referencedModulesMap,
-                                boundReferenceDirectiveMap,
-                                boundReferenceDirectives,
-                                hasCircularReference,
-                                resolutionDiagnostics,
-                                ReferenceEquals(corLibrary, assemblySymbol) ? null : corLibrary,
-                                modules,
-                                moduleReferences,
-                                assemblySymbol.SourceModule.GetReferencedAssemblySymbols(),
-                                aliasesOfReferencedAssemblies,
-                                assemblySymbol.SourceModule.GetUnifiedAssemblies());
-
-                            // Make sure that the given compilation holds on this instance of reference manager.
-                            Debug.Assert(ReferenceEquals(compilation._referenceManager, this) || HasCircularReference);
-                            compilation._referenceManager = this;
-
-                            // Finally, publish the source symbol after all data have been written.
-                            // Once lazyAssemblySymbol is non-null other readers might start reading the data written above.
-                            compilation._lazyAssemblySymbol = assemblySymbol;
                         }
                     }
-                }
 
-                return true;
+                    return true;
+                }
+                finally
+                {
+                    resolutionDiagnostics.Free();
+                    implicitlyResolvedReferences.Free();
+                }
             }
 
             private static void InitializeNewSymbols(
@@ -698,26 +678,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private static void SetupReferencesForSourceAssembly(
+                ImmutableArray<AssemblyData> allAssemblyData,
                 SourceAssemblySymbol sourceAssembly,
-                AssemblyDataForAssemblyBeingBuilt assemblyBeingBuiltData,
+                ImmutableArray<PEModule> modules,
                 BoundInputAssembly[] bindingResult,
                 ref Dictionary<AssemblyIdentity, MissingAssemblySymbol> missingAssemblies,
                 out ImmutableArray<ModuleReferences<AssemblySymbol>> moduleReferences)
             {
-                ImmutableArray<ModuleSymbol> modules = sourceAssembly.Modules;
-                int moduleCount = modules.Length;
-                int refsUsed = 0;
-                ArrayBuilder<ModuleReferences<AssemblySymbol>> moduleReferencesBuilder = moduleCount > 1
-                    ? ArrayBuilder<ModuleReferences<AssemblySymbol>>.GetInstance()
-                    : null;
+                var moduleSymbols = sourceAssembly.Modules;
+                Debug.Assert(moduleSymbols.Length == 1 + modules.Length);
 
-                for (int moduleIndex = 0; moduleIndex < moduleCount; moduleIndex++)
+                var moduleReferencesBuilder = (moduleSymbols.Length > 1) ? ArrayBuilder<ModuleReferences<AssemblySymbol>>.GetInstance() : null;
+
+                int refsUsed = 0;
+                for (int moduleIndex = 0; moduleIndex < moduleSymbols.Length; moduleIndex++)
                 {
-                    int refsCount = assemblyBeingBuiltData.ReferencesCountForModule[moduleIndex];
+                    // -1 for assembly being built
+                    int refsCount = (moduleIndex == 0) ? (allAssemblyData.Length - 1) : modules[moduleIndex - 1].ReferencedAssemblies.Length;
+
                     var identities = new AssemblyIdentity[refsCount];
                     var symbols = new AssemblySymbol[refsCount];
-
-                    assemblyBeingBuiltData.AssemblyReferences.CopyTo(refsUsed, identities, 0, refsCount);
 
                     ArrayBuilder<UnifiedAssembly<AssemblySymbol>> unifiedAssemblies = null;
 
@@ -730,8 +710,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            symbols[k] = GetOrAddMissingAssemblySymbol(identities[k], ref missingAssemblies);
+                            symbols[k] = GetOrAddMissingAssemblySymbol(boundReference.ReferenceIdentity, ref missingAssemblies);
                         }
+
+                        identities[k] = boundReference.ReferenceIdentity;
                     }
 
                     var references = new ModuleReferences<AssemblySymbol>(
@@ -744,14 +726,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         moduleReferencesBuilder.Add(references);
                     }
 
-                    modules[moduleIndex].SetReferences(references, sourceAssembly);
+                    moduleSymbols[moduleIndex].SetReferences(references, sourceAssembly);
 
                     refsUsed += refsCount;
                 }
 
-                moduleReferences = moduleReferencesBuilder == null
-                    ? ImmutableArray<ModuleReferences<AssemblySymbol>>.Empty
-                    : moduleReferencesBuilder.ToImmutableAndFree();
+                moduleReferences = moduleReferencesBuilder.AsImmutableOrEmpty();
             }
 
             private static AssemblySymbol GetAssemblyDefinitionSymbol(
@@ -859,7 +839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override AssemblyReferenceBinding[] BindAssemblyReferences(
                     ImmutableArray<AssemblyData> assemblies, AssemblyIdentityComparer assemblyIdentityComparer)
                 {
-                    return ResolveReferencedAssemblies(_referencedAssemblies, assemblies, assemblyIdentityComparer, okToResolveAgainstCompilationBeingCreated: true);
+                    return ResolveReferencedAssemblies(_referencedAssemblies, assemblies, definitionStartIndex: 0, assemblyIdentityComparer: assemblyIdentityComparer);
                 }
 
                 public sealed override bool IsLinked

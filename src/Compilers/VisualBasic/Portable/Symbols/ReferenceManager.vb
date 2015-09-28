@@ -255,172 +255,159 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Returns false if another compilation sharing this manager finished binding earlier and we should reuse its results.
             Friend Function CreateAndSetSourceAssemblyFullBind(compilation As VisualBasicCompilation) As Boolean
 
-                Dim boundReferenceDirectiveMap As IDictionary(Of String, MetadataReference) = Nothing
-                Dim boundReferenceDirectives As ImmutableArray(Of MetadataReference) = Nothing
-                Dim hasCircularReference As Boolean
-
-                ' Let's process our references and separate Assembly refs from addmodule.
-                Dim referencedAssemblies As ImmutableArray(Of AssemblyData) = Nothing
-                Dim modules As ImmutableArray(Of PEModule) = Nothing ' To make sure the modules are not collected ahead of time.
-                Dim references As ImmutableArray(Of MetadataReference) = Nothing
-
-                Dim resolutionDiagnostics As ImmutableArray(Of Diagnostic) = Nothing
-                Dim referenceMap As ImmutableArray(Of ResolvedReference) = Nothing
-                Dim diagnostics = DiagnosticBag.GetInstance()
+                Dim resolutionDiagnostics = DiagnosticBag.GetInstance()
+                Dim implicitlyResolvedReferences = ArrayBuilder(Of MetadataReference).GetInstance()
 
                 Try
-                    referenceMap = ResolveMetadataReferences(
+                    Dim boundReferenceDirectiveMap As IDictionary(Of String, MetadataReference) = Nothing
+                    Dim boundReferenceDirectives As ImmutableArray(Of MetadataReference) = Nothing
+                    Dim referencedAssemblies As ImmutableArray(Of AssemblyData) = Nothing
+                    Dim modules As ImmutableArray(Of PEModule) = Nothing ' To make sure the modules are not collected ahead of time.
+                    Dim references As ImmutableArray(Of MetadataReference) = Nothing
+
+                    Dim referenceMap As ImmutableArray(Of ResolvedReference) = ResolveMetadataReferences(
                         compilation,
                         references,
                         boundReferenceDirectiveMap,
                         boundReferenceDirectives,
                         referencedAssemblies,
                         modules,
-                        diagnostics)
+                        resolutionDiagnostics)
 
-                    resolutionDiagnostics = diagnostics.ToReadOnly()
-                Finally
-                    diagnostics.Free()
-                End Try
+                    Dim assemblyBeingBuiltData As New AssemblyDataForAssemblyBeingBuilt(New AssemblyIdentity(name:=SimpleAssemblyName), referencedAssemblies, modules)
+                    Dim allAssemblyData = referencedAssemblies.Insert(0, assemblyBeingBuiltData)
 
-                Dim assemblyBeingBuiltData As New AssemblyDataForAssemblyBeingBuilt(New AssemblyIdentity(name:=SimpleAssemblyName), referencedAssemblies, modules)
+                    ' Let's bind all the references and resolve missing one (if resolver is available)
+                    Dim corLibraryIndex As Integer
+                    Dim hasCircularReference As Boolean
+                    Dim bindingResult() As BoundInputAssembly = Bind(allAssemblyData,
+                                                                     compilation.Options.MetadataReferenceResolver,
+                                                                     compilation.Options.MetadataImportOptions,
+                                                                     implicitlyResolvedReferences,
+                                                                     resolutionDiagnostics,
+                                                                     hasCircularReference,
+                                                                     corLibraryIndex)
 
-                Dim assembliesArray As AssemblyData() = New AssemblyData(referencedAssemblies.Length) {}
-                assembliesArray(0) = assemblyBeingBuiltData
-                For i = 1 To assembliesArray.Length - 1
-                    assembliesArray(i) = referencedAssemblies(i - 1)
-                Next
+                    Debug.Assert(bindingResult.Length = allAssemblyData.Length)
 
-                Dim allAssemblies As ImmutableArray(Of AssemblyData) = assembliesArray.AsImmutableOrNull()
+                    Dim referencedAssembliesMap As Dictionary(Of MetadataReference, Integer) = Nothing
+                    Dim referencedModulesMap As Dictionary(Of MetadataReference, Integer) = Nothing
+                    Dim aliasesOfReferencedAssemblies As ImmutableArray(Of ImmutableArray(Of String)) = Nothing
 
-                ' Let's bind all the references
-                Dim corLibraryIndex As Integer
-                Dim bindingResult() As BoundInputAssembly = Bind(allAssemblies, hasCircularReference, corLibraryIndex)
+                    BuildReferencedAssembliesAndModulesMaps(
+                        references,
+                        referenceMap,
+                        implicitlyResolvedReferences,
+                        referencedAssemblies.Length,
+                        modules.Length,
+                        referencedAssembliesMap,
+                        referencedModulesMap,
+                        aliasesOfReferencedAssemblies)
 
-                Debug.Assert(bindingResult.Length = allAssemblies.Length)
+                    ' Create AssemblySymbols for assemblies that can't use any existing symbols.
+                    Dim newSymbols As New List(Of Integer)
 
-                ' Create AssemblySymbols for assemblies that can't use any existing symbols.
-                Dim newSymbols As New List(Of Integer)
+                    For i As Integer = 1 To bindingResult.Length - 1 Step 1
+                        If bindingResult(i).AssemblySymbol Is Nothing Then
 
-                For i As Integer = 1 To bindingResult.Length - 1 Step 1
-                    If bindingResult(i).AssemblySymbol Is Nothing Then
+                            Dim compilationData = TryCast(allAssemblyData(i), AssemblyDataForCompilation)
 
-                        Dim compilationData = TryCast(allAssemblies(i), AssemblyDataForCompilation)
+                            If compilationData IsNot Nothing Then
+                                bindingResult(i).AssemblySymbol = New Retargeting.RetargetingAssemblySymbol(compilationData.Compilation.SourceAssembly,
+                                                                                                            compilationData.IsLinked)
+                            Else
+                                Dim fileData = DirectCast(allAssemblyData(i), AssemblyDataForFile)
 
-                        If compilationData IsNot Nothing Then
-                            bindingResult(i).AssemblySymbol = New Retargeting.RetargetingAssemblySymbol(compilationData.Compilation.SourceAssembly,
-                                                                                                        compilationData.IsLinked)
-                        Else
-                            Dim fileData = DirectCast(allAssemblies(i), AssemblyDataForFile)
-
-                            bindingResult(i).AssemblySymbol = New PEAssemblySymbol(fileData.Assembly,
-                                                                                   fileData.DocumentationProvider,
-                                                                                   fileData.IsLinked,
-                                                                                   fileData.EffectiveImportOptions)
-                        End If
-
-                        newSymbols.Add(i)
-                    End If
-
-                    Debug.Assert(allAssemblies(i).IsLinked = bindingResult(i).AssemblySymbol.IsLinked)
-                Next
-
-                Dim assemblySymbol = New SourceAssemblySymbol(compilation, SimpleAssemblyName, compilation.MakeSourceModuleName(), modules)
-
-                Dim corLibrary As AssemblySymbol
-
-                If corLibraryIndex = 0 Then
-                    corLibrary = assemblySymbol
-                ElseIf corLibraryIndex > 0 Then
-                    corLibrary = bindingResult(corLibraryIndex).AssemblySymbol
-                Else
-                    corLibrary = MissingCorLibrarySymbol.Instance
-                End If
-
-                assemblySymbol.SetCorLibrary(corLibrary)
-
-                ' Setup bound references for newly created AssemblySymbols
-                ' This should be done after we created/found all AssemblySymbols 
-                Dim missingAssemblies As Dictionary(Of AssemblyIdentity, MissingAssemblySymbol) = Nothing
-
-                ' Setup bound references for newly created SourceAssemblySymbol
-                Dim moduleReferences As ImmutableArray(Of ModuleReferences(Of AssemblySymbol)) = Nothing
-                SetupReferencesForSourceAssembly(assemblySymbol, assemblyBeingBuiltData, bindingResult, missingAssemblies, moduleReferences)
-
-                If newSymbols.Count > 0 Then
-                    ' Only if we detected that a referenced assembly refers to the assembly being built
-                    ' we allow the references to get ahold of the assembly being built.
-                    If hasCircularReference Then
-                        bindingResult(0).AssemblySymbol = assemblySymbol
-                    End If
-
-                    InitializeNewSymbols(newSymbols, assemblySymbol, allAssemblies, bindingResult, missingAssemblies)
-                End If
-
-                ' Calculate reference maps And aliases
-                Dim referencedAssembliesMap = New Dictionary(Of MetadataReference, Integer)(referenceMap.Length)
-                Dim referencedModulesMap = New Dictionary(Of MetadataReference, Integer)(modules.Length)
-                Dim aliasesOfReferencedAssembliesBuilder = ArrayBuilder(Of ImmutableArray(Of String)).GetInstance(referencedAssemblies.Length)
-
-                For i As Integer = 0 To referenceMap.Length - 1 Step 1
-                    If referenceMap(i).IsSkipped Then
-                        Continue For
-                    End If
-
-                    If referenceMap(i).Kind = MetadataImageKind.Module Then
-                        ' add 1 for the manifest module
-                        Dim moduleIndex = 1 + referenceMap(i).Index
-                        referencedModulesMap.Add(references(i), moduleIndex)
-                    Else
-                        ' index into assembly data array
-                        Dim assemblyIndex = referenceMap(i).Index
-                        Debug.Assert(aliasesOfReferencedAssembliesBuilder.Count = assemblyIndex)
-
-                        referencedAssembliesMap.Add(references(i), assemblyIndex)
-                        aliasesOfReferencedAssembliesBuilder.Add(ImmutableArray(Of String).Empty)
-                    End If
-                Next
-
-                Dim aliasesOfReferencedAssemblies = aliasesOfReferencedAssembliesBuilder.ToImmutableAndFree()
-
-                If compilation._lazyAssemblySymbol Is Nothing Then
-                    SyncLock SymbolCacheAndReferenceManagerStateGuard
-                        If compilation._lazyAssemblySymbol Is Nothing Then
-
-                            If IsBound Then
-                                ' Another thread has finished constructing AssemblySymbol for another compilation that shares this manager.
-                                ' Drop the results and reuse the symbols that were created for the other compilation.
-                                Return False
+                                bindingResult(i).AssemblySymbol = New PEAssemblySymbol(fileData.Assembly,
+                                                                                       fileData.DocumentationProvider,
+                                                                                       fileData.IsLinked,
+                                                                                       fileData.EffectiveImportOptions)
                             End If
 
-                            UpdateSymbolCacheNoLock(newSymbols, allAssemblies, bindingResult)
-
-                            InitializeNoLock(
-                                referencedAssembliesMap,
-                                referencedModulesMap,
-                                boundReferenceDirectiveMap,
-                                boundReferenceDirectives,
-                                hasCircularReference,
-                                resolutionDiagnostics,
-                                If(corLibrary Is assemblySymbol, Nothing, corLibrary),
-                                modules,
-                                moduleReferences,
-                                assemblySymbol.SourceModule.GetReferencedAssemblySymbols(),
-                                aliasesOfReferencedAssemblies,
-                                assemblySymbol.SourceModule.GetUnifiedAssemblies())
-
-                            ' Make sure that the given compilation holds on this instance of reference manager.
-                            Debug.Assert(compilation._referenceManager Is Me OrElse hasCircularReference)
-                            compilation._referenceManager = Me
-
-                            ' Finally, publish the source symbol after all data have been written.
-                            ' Once lazyAssemblySymbol is non-null other readers might start reading the data written above.
-                            compilation._lazyAssemblySymbol = assemblySymbol
+                            newSymbols.Add(i)
                         End If
-                    End SyncLock
-                End If
 
-                Return True
+                        Debug.Assert(allAssemblyData(i).IsLinked = bindingResult(i).AssemblySymbol.IsLinked)
+                    Next
+
+                    Dim assemblySymbol = New SourceAssemblySymbol(compilation, SimpleAssemblyName, compilation.MakeSourceModuleName(), modules)
+
+                    Dim corLibrary As AssemblySymbol
+
+                    If corLibraryIndex = 0 Then
+                        corLibrary = assemblySymbol
+                    ElseIf corLibraryIndex > 0 Then
+                        corLibrary = bindingResult(corLibraryIndex).AssemblySymbol
+                    Else
+                        corLibrary = MissingCorLibrarySymbol.Instance
+                    End If
+
+                    assemblySymbol.SetCorLibrary(corLibrary)
+
+                    ' Setup bound references for newly created AssemblySymbols
+                    ' This should be done after we created/found all AssemblySymbols 
+                    Dim missingAssemblies As Dictionary(Of AssemblyIdentity, MissingAssemblySymbol) = Nothing
+
+                    ' Setup bound references for newly created SourceAssemblySymbol
+                    Dim moduleReferences As ImmutableArray(Of ModuleReferences(Of AssemblySymbol)) = Nothing
+                    SetupReferencesForSourceAssembly(allAssemblyData,
+                                                     assemblySymbol,
+                                                     modules,
+                                                     bindingResult,
+                                                     missingAssemblies,
+                                                     moduleReferences)
+
+                    If newSymbols.Count > 0 Then
+                        ' Only if we detected that a referenced assembly refers to the assembly being built
+                        ' we allow the references to get ahold of the assembly being built.
+                        If hasCircularReference Then
+                            bindingResult(0).AssemblySymbol = assemblySymbol
+                        End If
+
+                        InitializeNewSymbols(newSymbols, assemblySymbol, allAssemblyData, bindingResult, missingAssemblies)
+                    End If
+
+                    If compilation._lazyAssemblySymbol Is Nothing Then
+                        SyncLock SymbolCacheAndReferenceManagerStateGuard
+                            If compilation._lazyAssemblySymbol Is Nothing Then
+
+                                If IsBound Then
+                                    ' Another thread has finished constructing AssemblySymbol for another compilation that shares this manager.
+                                    ' Drop the results and reuse the symbols that were created for the other compilation.
+                                    Return False
+                                End If
+
+                                UpdateSymbolCacheNoLock(newSymbols, allAssemblyData, bindingResult)
+
+                                InitializeNoLock(
+                                    referencedAssembliesMap,
+                                    referencedModulesMap,
+                                    boundReferenceDirectiveMap,
+                                    boundReferenceDirectives,
+                                    hasCircularReference,
+                                    resolutionDiagnostics.ToReadOnly(),
+                                    If(corLibrary Is assemblySymbol, Nothing, corLibrary),
+                                    modules,
+                                    moduleReferences,
+                                    assemblySymbol.SourceModule.GetReferencedAssemblySymbols(),
+                                    aliasesOfReferencedAssemblies,
+                                    assemblySymbol.SourceModule.GetUnifiedAssemblies())
+
+                                ' Make sure that the given compilation holds on this instance of reference manager.
+                                Debug.Assert(compilation._referenceManager Is Me OrElse hasCircularReference)
+                                compilation._referenceManager = Me
+
+                                ' Finally, publish the source symbol after all data have been written.
+                                ' Once lazyAssemblySymbol is non-null other readers might start reading the data written above.
+                                compilation._lazyAssemblySymbol = assemblySymbol
+                            End If
+                        End SyncLock
+                    End If
+
+                    Return True
+                Finally
+                    resolutionDiagnostics.Free()
+                End Try
             End Function
 
             Private Shared Sub InitializeNewSymbols(newSymbols As List(Of Integer),
@@ -604,48 +591,51 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             Private Shared Sub SetupReferencesForSourceAssembly(
+                allAssemblyData As ImmutableArray(Of AssemblyData),
                 sourceAssembly As SourceAssemblySymbol,
-                assemblyBeingBuiltData As AssemblyDataForAssemblyBeingBuilt,
+                modules As ImmutableArray(Of PEModule),
                 bindingResult() As BoundInputAssembly,
                 ByRef missingAssemblies As Dictionary(Of AssemblyIdentity, MissingAssemblySymbol),
                 ByRef moduleReferences As ImmutableArray(Of ModuleReferences(Of AssemblySymbol))
             )
-                Dim modules As ImmutableArray(Of ModuleSymbol) = sourceAssembly.Modules
-                Dim moduleCount = modules.Length
+                Dim moduleSymbols = sourceAssembly.Modules
+                Debug.Assert(moduleSymbols.Length = 1 + modules.Length)
+
+                Dim moduleReferencesBuilder = If(moduleSymbols.Length > 1, ArrayBuilder(Of ModuleReferences(Of AssemblySymbol)).GetInstance(), Nothing)
+
                 Dim refsUsed As Integer = 0
-                Dim moduleReferencesBuilder As ArrayBuilder(Of ModuleReferences(Of AssemblySymbol)) =
-                    If(moduleCount > 1, ArrayBuilder(Of ModuleReferences(Of AssemblySymbol)).GetInstance(), Nothing)
+                For moduleIndex As Integer = 0 To moduleSymbols.Length - 1 Step 1
+                    ' -1 for assembly being built
+                    Dim refsCount As Integer = If(moduleIndex = 0, allAssemblyData.Length - 1, modules(moduleIndex - 1).ReferencedAssemblies.Length)
 
-                For j As Integer = 0 To moduleCount - 1 Step 1
-                    Dim refsCount As Integer = assemblyBeingBuiltData.ReferencesCountForModule(j)
-                    Dim names(refsCount - 1) As AssemblyIdentity
+                    Dim identities(refsCount - 1) As AssemblyIdentity
                     Dim symbols(refsCount - 1) As AssemblySymbol
-
-                    assemblyBeingBuiltData.AssemblyReferences.CopyTo(refsUsed, names, 0, refsCount)
 
                     Dim unifiedAssemblies As ArrayBuilder(Of UnifiedAssembly(Of AssemblySymbol)) = Nothing
 
                     For k As Integer = 0 To refsCount - 1 Step 1
-                        Dim referenceBinding = bindingResult(0).ReferenceBinding(refsUsed + k)
-                        If referenceBinding.IsBound Then
-                            symbols(k) = GetAssemblyDefinitionSymbol(bindingResult, referenceBinding, unifiedAssemblies)
+                        Dim boundReference = bindingResult(0).ReferenceBinding(refsUsed + k)
+                        If boundReference.IsBound Then
+                            symbols(k) = GetAssemblyDefinitionSymbol(bindingResult, boundReference, unifiedAssemblies)
                         Else
-                            symbols(k) = GetOrAddMissingAssemblySymbol(names(k), missingAssemblies)
+                            symbols(k) = GetOrAddMissingAssemblySymbol(boundReference.ReferenceIdentity, missingAssemblies)
                         End If
+
+                        identities(k) = boundReference.ReferenceIdentity
                     Next
 
-                    Dim references = New ModuleReferences(Of AssemblySymbol)(names.AsImmutableOrNull(), symbols.AsImmutableOrNull(), unifiedAssemblies.AsImmutableOrEmpty())
+                    Dim references = New ModuleReferences(Of AssemblySymbol)(identities.AsImmutableOrNull(), symbols.AsImmutableOrNull(), unifiedAssemblies.AsImmutableOrEmpty())
 
-                    If j > 0 Then
+                    If moduleIndex > 0 Then
                         moduleReferencesBuilder.Add(references)
                     End If
 
-                    modules(j).SetReferences(references, sourceAssembly)
+                    moduleSymbols(moduleIndex).SetReferences(references, sourceAssembly)
 
                     refsUsed += refsCount
                 Next
 
-                moduleReferences = If(moduleReferencesBuilder Is Nothing, ImmutableArray(Of ModuleReferences(Of AssemblySymbol)).Empty, moduleReferencesBuilder.ToImmutableAndFree())
+                moduleReferences = moduleReferencesBuilder.AsImmutableOrEmpty()
             End Sub
 
             Private Shared Function GetAssemblyDefinitionSymbol(bindingResult As BoundInputAssembly(),
@@ -742,7 +732,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Property
 
                 Public Overrides Function BindAssemblyReferences(assemblies As ImmutableArray(Of AssemblyData), assemblyIdentityComparer As AssemblyIdentityComparer) As AssemblyReferenceBinding()
-                    Return ResolveReferencedAssemblies(m_ReferencedAssemblies, assemblies, assemblyIdentityComparer, okToResolveAgainstCompilationBeingCreated:=True)
+                    Return ResolveReferencedAssemblies(m_ReferencedAssemblies, assemblies, definitionStartIndex:=0, assemblyIdentityComparer:=assemblyIdentityComparer)
                 End Function
 
                 Public NotOverridable Overrides ReadOnly Property IsLinked As Boolean

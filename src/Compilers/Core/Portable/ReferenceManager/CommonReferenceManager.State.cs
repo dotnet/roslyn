@@ -323,8 +323,6 @@ namespace Microsoft.CodeAnalysis
 
             // lazyCorLibrary is null if the compilation is corlib
             Debug.Assert(_lazyReferencedAssemblies.Length == 0 || _lazyCorLibraryOpt != null);
-
-            Debug.Assert(_lazyReferencedAssemblies.Length == _lazyAliasesOfReferencedAssemblies.Length);
         }
 
         [Conditional("DEBUG")]
@@ -362,6 +360,7 @@ namespace Microsoft.CodeAnalysis
 
             Debug.Assert(referencedModules.Length == referencedModulesReferences.Length);
             Debug.Assert(referencedModules.Length == referencedModulesMap.Count);
+            Debug.Assert(referencedAssemblies.Length == aliasesOfReferencedAssemblies.Length);
 
             _lazyReferencedAssembliesMap = referencedAssembliesMap;
             _lazyReferencedModuleIndexMap = referencedModulesMap;
@@ -379,6 +378,63 @@ namespace Microsoft.CodeAnalysis
 
             // once we flip this bit the state of the manager is immutable and available to any readers:
             Interlocked.Exchange(ref _isBound, 1);
+        }
+
+        protected static void BuildReferencedAssembliesAndModulesMaps(
+            ImmutableArray<MetadataReference> references,
+            ImmutableArray<ResolvedReference> referenceMap,
+            IReadOnlyList<MetadataReference> implicitlyResolvedReferences,
+            int referencedAssemblyCount,
+            int referencedModuleCount,
+            out Dictionary<MetadataReference, int> referencedAssembliesMap,
+            out Dictionary<MetadataReference, int> referencedModulesMap,
+            out ImmutableArray<ImmutableArray<string>> aliasesOfReferencedAssemblies)
+        {
+            referencedAssembliesMap = new Dictionary<MetadataReference, int>(referenceMap.Length + implicitlyResolvedReferences.Count);
+            referencedModulesMap = new Dictionary<MetadataReference, int>(referencedModuleCount);
+            var aliasesOfReferencedAssembliesBuilder = ArrayBuilder<ImmutableArray<string>>.GetInstance(referencedAssemblyCount);
+
+            for (int i = 0; i < referenceMap.Length; i++)
+            {
+                if (referenceMap[i].IsSkipped)
+                {
+                    continue;
+                }
+
+                if (referenceMap[i].Kind == MetadataImageKind.Module)
+                {
+                    // add 1 for the manifest module:
+                    int moduleIndex = 1 + referenceMap[i].Index;
+                    referencedModulesMap.Add(references[i], moduleIndex);
+                }
+                else
+                {
+                    // index into assembly data array
+                    int assemblyIndex = referenceMap[i].Index;
+                    Debug.Assert(aliasesOfReferencedAssembliesBuilder.Count == assemblyIndex);
+
+                    referencedAssembliesMap.Add(references[i], assemblyIndex);
+                    aliasesOfReferencedAssembliesBuilder.Add(referenceMap[i].Aliases);
+                }
+            }
+
+            for (int i = 0; i < implicitlyResolvedReferences.Count; i++)
+            {
+                var assemblyIndex = referencedAssemblyCount + i;
+                Debug.Assert(aliasesOfReferencedAssembliesBuilder.Count == assemblyIndex);
+
+                referencedAssembliesMap.Add(implicitlyResolvedReferences[i], assemblyIndex);
+
+                // Use aliases specified on the reference returned by the missing assembly resolver.
+                // Unlike explicitly given references, we don't apply de-duplication logic on references 
+                // returned by the resolver. This is because we already have an assembly identity 
+                // (rather than an opaque reference string or a preexisting metadata reference) 
+                // and we don't ask the resolver to resolve an identity that matches identities 
+                // we have already resolved. Hence there are no opportunities for reference duplication.
+                aliasesOfReferencedAssembliesBuilder.Add(implicitlyResolvedReferences[i].Properties.Aliases);
+            }
+
+            aliasesOfReferencedAssemblies = aliasesOfReferencedAssembliesBuilder.ToImmutableAndFree();
         }
 
         #region Compilation APIs Implementation

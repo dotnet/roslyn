@@ -767,13 +767,13 @@ namespace Microsoft.CodeAnalysis
         internal static AssemblyReferenceBinding[] ResolveReferencedAssemblies(
             ImmutableArray<AssemblyIdentity> references,
             ImmutableArray<AssemblyData> definitions,
-            AssemblyIdentityComparer assemblyIdentityComparer,
-            bool okToResolveAgainstCompilationBeingCreated)
+            int definitionStartIndex,
+            AssemblyIdentityComparer assemblyIdentityComparer)
         {
             var boundReferences = new AssemblyReferenceBinding[references.Length];
             for (int j = 0; j < references.Length; j++)
             {
-                boundReferences[j] = ResolveReferencedAssembly(references[j], definitions, assemblyIdentityComparer, okToResolveAgainstCompilationBeingCreated);
+                boundReferences[j] = ResolveReferencedAssembly(references[j], definitions, definitionStartIndex, assemblyIdentityComparer);
             }
 
             return boundReferences;
@@ -783,17 +783,17 @@ namespace Microsoft.CodeAnalysis
         /// Used to match AssemblyRef with AssemblyDef.
         /// </summary>
         /// <param name="definitions">Array of definition identities to match against.</param>
+        /// <param name="definitionStartIndex">An index of the first definition to consider, <paramref name="definitions"/> preceding this index are ignored.</param>
         /// <param name="reference">Reference identity to resolve.</param>
         /// <param name="assemblyIdentityComparer">Assembly identity comparer.</param>
-        /// <param name="okToResolveAgainstCompilationBeingCreated"> Is it Ok to resolve reference against the compilation we are creating?</param>
         /// <returns>
         /// Returns an index the reference is bound.
         /// </returns>
         internal static AssemblyReferenceBinding ResolveReferencedAssembly(
             AssemblyIdentity reference,
             ImmutableArray<AssemblyData> definitions,
-            AssemblyIdentityComparer assemblyIdentityComparer,
-            bool okToResolveAgainstCompilationBeingCreated)
+            int definitionStartIndex,
+            AssemblyIdentityComparer assemblyIdentityComparer)
         {
             // Dev11 C# compiler allows the versions to not match exactly, assuming that a newer library may be used instead of an older version.
             // For a given reference it finds a definition with the lowest version that is higher then or equal to the reference version.
@@ -803,9 +803,11 @@ namespace Microsoft.CodeAnalysis
             int minHigherVersionDefinition = -1;
             int maxLowerVersionDefinition = -1;
 
-            // NB: Start at 1, since we checked 0 above.
-            const int definitionOffset = 1;
-            for (int i = definitionOffset; i < definitions.Length; i++)
+            // Skip assembly being built for now; it will be considered at the very end:
+            bool resolveAgainstAssemblyBeingBuilt = definitionStartIndex == 0;
+            definitionStartIndex = Math.Max(definitionStartIndex, 1);
+
+            for (int i = definitionStartIndex; i < definitions.Length; i++)
             {
                 AssemblyIdentity definition = definitions[i].Identity;
 
@@ -860,7 +862,7 @@ namespace Microsoft.CodeAnalysis
             // substitute for a collection of Windows.*.winmd compile-time references.
             if (reference.IsWindowsComponent())
             {
-                for (int i = definitionOffset; i < definitions.Length; i++)
+                for (int i = definitionStartIndex; i < definitions.Length; i++)
                 {
                     if (definitions[i].Identity.IsWindowsRuntime())
                     {
@@ -878,7 +880,7 @@ namespace Microsoft.CodeAnalysis
             // allow the compilation to match the reference.
             if (reference.ContentType == AssemblyContentType.WindowsRuntime)
             {
-                for (int i = definitionOffset; i < definitions.Length; i++)
+                for (int i = definitionStartIndex; i < definitions.Length; i++)
                 {
                     var definition = definitions[i].Identity;
                     var sourceCompilation = definitions[i].SourceCompilation;
@@ -898,7 +900,7 @@ namespace Microsoft.CodeAnalysis
             // As in the native compiler (see IMPORTER::MapAssemblyRefToAid), we compare against the
             // compilation (i.e. source) assembly as a last resort.  We follow the native approach of
             // skipping the public key comparison since we have yet to compute it.
-            if (okToResolveAgainstCompilationBeingCreated &&
+            if (resolveAgainstAssemblyBeingBuilt &&
                 AssemblyIdentityComparer.SimpleNameComparer.Equals(reference.Name, definitions[0].Identity.Name))
             {
                 Debug.Assert(definitions[0].Identity.PublicKeyToken.IsEmpty);
@@ -906,6 +908,29 @@ namespace Microsoft.CodeAnalysis
             }
 
             return new AssemblyReferenceBinding(reference);
+        }
+
+        private static bool IsBetterVersionMatch(AssemblyIdentity reference, ImmutableArray<AssemblyData> definitions, AssemblyReferenceBinding previousBinding, AssemblyReferenceBinding newBinding)
+        {
+            Debug.Assert(newBinding.IsBound);
+
+            // Previous binding failed or new binding is an exact match
+            if (!previousBinding.IsBound || newBinding.VersionDifference == 0)
+            {
+                return true;
+            }
+
+            if (previousBinding.VersionDifference != newBinding.VersionDifference)
+            {
+                // lesser than reference version is worst than higher than reference version
+                return previousBinding.VersionDifference < 0;
+            }
+
+            var previousVersion = definitions[previousBinding.DefinitionIndex].Identity.Version;
+            var newVersion = definitions[newBinding.DefinitionIndex].Identity.Version;
+
+            // closer version is better:
+            return (newBinding.VersionDifference > 0) ? newVersion < previousVersion : newVersion > previousVersion;
         }
     }
 }

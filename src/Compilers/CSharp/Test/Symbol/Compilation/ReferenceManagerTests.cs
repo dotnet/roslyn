@@ -2174,5 +2174,310 @@ public class Source
             Assert.Equal("System.Numerics.Vectors, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((IAssemblySymbol)a0).Identity.GetDisplayName());
             Assert.Equal("System.Numerics.Vectors, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((IAssemblySymbol)a1).Identity.GetDisplayName());
         }
+
+        private class TestMissingMetadataReferenceResolver : MetadataReferenceResolver
+        {
+            private readonly Dictionary<string, MetadataReference> _map;
+            public readonly List<AssemblyIdentity> ResolvedIdentities = new List<AssemblyIdentity>();
+
+            public TestMissingMetadataReferenceResolver(Dictionary<string, MetadataReference> map)
+            {
+                _map = map;
+            }
+
+            public override PortableExecutableReference ResolveMissingAssembly(AssemblyIdentity identity)
+            {
+                ResolvedIdentities.Add(identity);
+
+                MetadataReference reference;
+                string nameAndVersion = identity.Name + (identity.Version != AssemblyIdentity.NullVersion ? $", {identity.Version}" : "");
+                return _map.TryGetValue(nameAndVersion, out reference) ? (PortableExecutableReference)reference : null;
+            }
+
+            public override bool ResolveMissingAssemblies => true;
+            public override bool Equals(object other) => true;
+            public override int GetHashCode() => 1;
+            public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties) => default(ImmutableArray<PortableExecutableReference>);
+        }
+
+        [Fact]
+        public void MissingAssemblyResolution1()
+        {
+            // c - a -> b
+            var bRef = CreateCompilationWithMscorlib("public class B { }", assemblyName: "B").EmitToImageReference();
+            var aRef = CreateCompilationWithMscorlib("public class A : B { }", new[] { bRef }, assemblyName: "A").EmitToImageReference();
+
+            var c = CreateCompilationWithMscorlib("public class C : A { }", new[] { aRef },
+                TestOptions.ReleaseDll.WithMetadataReferenceResolver(new TestMissingMetadataReferenceResolver(new Dictionary<string, MetadataReference>
+                {
+                    { "B", bRef }
+                })));
+
+            c.VerifyEmitDiagnostics();
+
+            Assert.Equal("B", ((AssemblySymbol)c.GetAssemblyOrModuleSymbol(bRef)).Name);
+        }
+
+        [Fact]
+        public void MissingAssemblyResolution_Aliases()
+        {
+            // c - a -> b with alias X
+            var bRef = CreateCompilationWithMscorlib("public class B { }", assemblyName: "B").EmitToImageReference();
+            var aRef = CreateCompilationWithMscorlib("public class A : B { }", new[] { bRef }, assemblyName: "A").EmitToImageReference();
+
+            var c = CreateCompilationWithMscorlib(@"
+extern alias X;
+
+public class C : A 
+{ 
+    X::B F() => null; 
+}
+", new[] { aRef },
+                TestOptions.ReleaseDll.WithMetadataReferenceResolver(new TestMissingMetadataReferenceResolver(new Dictionary<string, MetadataReference>
+                {
+                    { "B", bRef.WithAliases(ImmutableArray.Create("X")) }
+                })));
+
+            c.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void MissingAssemblyResolution_None()
+        {
+            // c - a -> d
+            //   - d
+            var dRef = CreateCompilationWithMscorlib("public interface D { }", assemblyName: "D").EmitToImageReference();
+            var aRef = CreateCompilationWithMscorlib("public interface A : D { }", new[] { dRef }, assemblyName: "A").ToMetadataReference();
+
+            var resolver = new TestMissingMetadataReferenceResolver(new Dictionary<string, MetadataReference>());
+
+            var c = CreateCompilationWithMscorlib("public interface C : A { }", new[] { aRef, dRef },
+                TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver));
+
+            c.VerifyDiagnostics();
+
+            Assert.Equal(0, resolver.ResolvedIdentities.Count);
+        }
+
+        [Fact]
+        public void MissingAssemblyResolution_Multiple()
+        {
+            // c - a -> d
+            //   - b -> d
+            var dRef = CreateCompilationWithMscorlib("public interface D { }", assemblyName: "D").EmitToImageReference();
+            var aRef = CreateCompilationWithMscorlib("public interface A : D { }", new[] { dRef }, assemblyName: "A").ToMetadataReference();
+            var bRef = CreateCompilationWithMscorlib("public interface B : D { }", new[] { dRef }, assemblyName: "B").ToMetadataReference();
+
+            var resolver = new TestMissingMetadataReferenceResolver(new Dictionary<string, MetadataReference>
+            {
+                { "D", dRef }
+            });
+
+            var c = CreateCompilationWithMscorlib("public interface C : A, B { }", new[] { aRef, bRef },
+                TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver));
+
+            c.VerifyEmitDiagnostics();
+
+            Assert.Equal("D", ((AssemblySymbol)c.GetAssemblyOrModuleSymbol(dRef)).Name);
+            Assert.Equal(1, resolver.ResolvedIdentities.Count);
+        }
+
+        [Fact]
+        public void MissingAssemblyResolution_Modules()
+        {
+            // c - a - d
+            //   - module(m) - b
+            //   - module(n) - d 
+
+            var bRef = CreateCompilationWithMscorlib("public interface B { }", assemblyName: "B").EmitToImageReference();
+            var dRef = CreateCompilationWithMscorlib("public interface D { }", assemblyName: "D").EmitToImageReference();
+
+            var mRef = CreateCompilationWithMscorlib("public interface M : B { }", new[] { bRef }, options: TestOptions.ReleaseModule.WithModuleName("M.netmodule")).EmitToImageReference();
+            var nRef = CreateCompilationWithMscorlib("public interface N : D { }", new[] { dRef }, options: TestOptions.ReleaseModule.WithModuleName("N.netmodule")).EmitToImageReference();
+
+            var aRef = CreateCompilationWithMscorlib("public interface A : D { }", new[] { dRef }, assemblyName: "A").EmitToImageReference();
+
+            var resolver = new TestMissingMetadataReferenceResolver(new Dictionary<string, MetadataReference>
+            {
+                { "B", bRef },
+                { "D", dRef },
+            });
+
+            var c = CreateCompilationWithMscorlib("public interface C : A { }", new[] { aRef, mRef, nRef },
+                TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver));
+
+            c.VerifyEmitDiagnostics();
+
+            Assert.Equal("B", ((AssemblySymbol)c.GetAssemblyOrModuleSymbol(bRef)).Name);
+            Assert.Equal("D", ((AssemblySymbol)c.GetAssemblyOrModuleSymbol(dRef)).Name);
+        }
+
+        [Fact]
+        public void MissingAssemblyResolution_BetterVersion_Higher_vs_Exact()
+        {
+            // c - a -> "b,v1"
+            //   - "b,v3"
+            //      
+            var b1Ref = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class B { }", options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b2Ref = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class B { }", options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b3Ref = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""3.0.0.0"")] public class B { }", options: s_signedDll, assemblyName: "B").EmitToImageReference();
+
+            var aRef = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class A : B { }", new[] { b1Ref }, options: s_signedDll, assemblyName: "A").EmitToImageReference();
+
+            var c = CreateCompilationWithMscorlib("public class C : A { }", new[] { aRef, b3Ref }, 
+                s_signedDll.WithMetadataReferenceResolver(new TestMissingMetadataReferenceResolver(new Dictionary<string, MetadataReference>
+                {
+                    // the compiler asked for v1, but we have v2
+                    { "B, 1.0.0.0", b2Ref }
+                })));
+
+            c.VerifyEmitDiagnostics(
+                // (1,18): warning CS1701: Assuming assembly reference 
+                // 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity
+                // 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "A").WithArguments(
+                    "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", 
+                    "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B"));
+
+            Assert.Equal(
+                "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", 
+                ((AssemblySymbol)c.GetAssemblyOrModuleSymbol(b2Ref)).Identity.GetDisplayName());
+        }
+
+        [Fact]
+        public void MissingAssemblyResolution_BetterVersion_Higher_vs_BetterHigher()
+        {
+            // c - a -> "b,v1"
+            //   - "b,v3"
+            //      
+            var b1Ref = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class B { }", options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b2Ref = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class B { }", options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b3Ref = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""3.0.0.0"")] public class B { }", options: s_signedDll, assemblyName: "B").EmitToImageReference();
+
+            var aRef = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class A : B { }", new[] { b1Ref }, options: s_signedDll, assemblyName: "A").EmitToImageReference();
+
+            var c = CreateCompilationWithMscorlib("public class C : A { }", new[] { aRef, b3Ref },
+                s_signedDll.WithMetadataReferenceResolver(new TestMissingMetadataReferenceResolver(new Dictionary<string, MetadataReference>
+                {
+                    { "B, 1.0.0.0", b2Ref }
+                })));
+
+            c.VerifyEmitDiagnostics(
+                // (1,18): warning CS1701: Assuming assembly reference 
+                // 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity 
+                // 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "A").WithArguments(
+                    "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", 
+                    "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B"));
+        }
+
+        [Fact]
+        public void MissingAssemblyResolution_BetterVersion_Higher_vs_WorseHigher()
+        {
+            // c - a -> "b,v1"
+            //   - "b,v2"
+            //      
+            var b1Ref = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class B { }", options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b2Ref = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class B { }", options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b3Ref = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""3.0.0.0"")] public class B { }", options: s_signedDll, assemblyName: "B").EmitToImageReference();
+
+            var aRef = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class A : B { }", new[] { b1Ref }, options: s_signedDll, assemblyName: "A").EmitToImageReference();
+
+            var c = CreateCompilationWithMscorlib("public class C : A { }", new[] { aRef, b2Ref },
+                s_signedDll.WithMetadataReferenceResolver(new TestMissingMetadataReferenceResolver(new Dictionary<string, MetadataReference>
+                {
+                    { "B, 1.0.0.0", b3Ref }
+                })));
+
+            c.VerifyEmitDiagnostics(
+                // (1,18): warning CS1701: Assuming assembly reference 
+                // 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity 
+                // 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "A").WithArguments(
+                    "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", 
+                    "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B"));
+        }
+
+        [Fact]
+        public void MissingAssemblyResolution_BetterVersion_Lower_vs_Exact1()
+        {
+            // c - a -> "b,v2"
+            //   - "b,v1"
+            //      
+            var b1Ref = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class B { }", options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b2Ref = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class B { }", options: s_signedDll, assemblyName: "B").EmitToImageReference();
+
+            var aRef = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class A : B { }", new[] { b2Ref }, options: s_signedDll, assemblyName: "A").EmitToImageReference();
+
+            var c = CreateCompilationWithMscorlib("public class C : A { }", new[] { aRef, b1Ref },
+                s_signedDll.WithMetadataReferenceResolver(new TestMissingMetadataReferenceResolver(new Dictionary<string, MetadataReference>
+                {
+                    { "B, 2.0.0.0", b2Ref }
+                })));
+
+            c.VerifyEmitDiagnostics();
+
+            Assert.Equal(
+                "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                ((AssemblySymbol)c.GetAssemblyOrModuleSymbol(b2Ref)).Identity.GetDisplayName());
+        }
+
+        [Fact]
+        public void MissingAssemblyResolution_BetterVersion_Lower_vs_WorseLower()
+        {
+            // c - a -> "b,v3"
+            //   - "b,v2"
+            //      
+            var b1Ref = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class B { }", options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b2Ref = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class B { }", options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b3Ref = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""3.0.0.0"")] public class B { }", options: s_signedDll, assemblyName: "B").EmitToImageReference();
+
+            var aRef = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class A : B { }", new[] { b3Ref }, options: s_signedDll, assemblyName: "A").EmitToImageReference();
+
+            var c = CreateCompilationWithMscorlib("public class C : A { }", new[] { aRef, b2Ref },
+                s_signedDll.WithMetadataReferenceResolver(new TestMissingMetadataReferenceResolver(new Dictionary<string, MetadataReference>
+                {
+                    { "B, 3.0.0.0", b1Ref }
+                })));
+
+            c.VerifyDiagnostics(
+                // (1,18): error CS1705: Assembly
+                // 'A' with identity 'A, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' 
+                // uses 'B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' which has a higher version than referenced assembly 
+                // 'B' with identity 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'
+                Diagnostic(ErrorCode.ERR_AssemblyMatchBadVersion, "A").WithArguments(
+                    "A", "A, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", 
+                    "B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", 
+                    "B", "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2"));
+        }
+
+        [Fact]
+        public void MissingAssemblyResolution_BetterVersion_Lower_vs_BetterLower()
+        {
+            // c - a -> "b,v3"
+            //   - "b,v1"
+            //      
+            var b1Ref = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class B { }", options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b2Ref = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class B { }", options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b3Ref = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""3.0.0.0"")] public class B { }", options: s_signedDll, assemblyName: "B").EmitToImageReference();
+
+            var aRef = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class A : B { }", new[] { b3Ref }, options: s_signedDll, assemblyName: "A").EmitToImageReference();
+
+            var c = CreateCompilationWithMscorlib("public class C : A { }", new[] { aRef, b1Ref },
+                s_signedDll.WithMetadataReferenceResolver(new TestMissingMetadataReferenceResolver(new Dictionary<string, MetadataReference>
+                {
+                    { "B, 3.0.0.0", b2Ref }
+                })));
+
+            c.VerifyDiagnostics(
+                // (1,18): error CS1705: Assembly 
+                // 'A' with identity 'A, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' 
+                // uses 'B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' which has a higher version than referenced assembly 
+                // 'B' with identity 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'
+                Diagnostic(ErrorCode.ERR_AssemblyMatchBadVersion, "A").WithArguments(
+                    "A", "A, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", 
+                    "B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", 
+                    "B", "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2"));
+        }
     }
 }

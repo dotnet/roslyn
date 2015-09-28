@@ -383,6 +383,14 @@ namespace Microsoft.CodeAnalysis
             _builder.AddRange(items, length);
         }
 
+        public void AddRange(T[] items, int start, int length)
+        {
+            for (int i = 0; i < length; i++)
+            {
+                Add(items[start + i]);
+            }
+        }
+
         public void AddRange(IEnumerable<T> items)
         {
             _builder.AddRange(items);
