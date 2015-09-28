@@ -186,8 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             return GoToDefinitionHelpers.TryGoToDefinition(
-                searchSymbol, searchProject, _navigableItemsPresenters,
-                containingTypeSymbol: null, throwOnHiddenDefinition: false, cancellationToken: cancellationToken);
+                searchSymbol, searchProject, _navigableItemsPresenters, cancellationToken: cancellationToken);
         }
 
         public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)

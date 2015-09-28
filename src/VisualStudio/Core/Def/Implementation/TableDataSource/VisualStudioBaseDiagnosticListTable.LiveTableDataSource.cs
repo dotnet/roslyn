@@ -8,6 +8,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV1;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
@@ -41,12 +42,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 _diagnosticService = diagnosticService;
                 _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
+
+                PopulateInitialData(workspace, diagnosticService);
             }
 
             public override string DisplayName => ServicesVSResources.DiagnosticsTableSourceName;
             public override string SourceTypeIdentifier => StandardTableDataSources.ErrorTableDataSource;
             public override string Identifier => _identifier;
-            public override object GetItemKey(object data) => ((DiagnosticsUpdatedArgs)data).Id;
+            public override object GetItemKey(object data) => ((UpdatedEventArgs)data).Id;
 
             public override ImmutableArray<TableItem<DiagnosticData>> Deduplicate(IEnumerable<IList<TableItem<DiagnosticData>>> groupedItems)
             {
@@ -99,12 +102,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private bool CheckAggregateKey(AggregatedKey key, DiagnosticsUpdatedArgs args)
             {
-                if (key == null || args == null)
+                if (key == null)
                 {
                     return true;
                 }
 
-                if (args.DocumentId == null || args.Solution == null)
+                if (args?.DocumentId == null || args?.Solution == null)
                 {
                     return true;
                 }
@@ -115,20 +118,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private object CreateAggregationKey(object data)
             {
-                var args = (DiagnosticsUpdatedArgs)data;
-                if (args.DocumentId == null || args.Solution == null)
+                var args = data as DiagnosticsUpdatedArgs;
+                if (args?.DocumentId == null || args?.Solution == null)
                 {
-                    return args.Id;
+                    return GetItemKey(data);
                 }
 
                 var argumentKey = args.Id as DiagnosticIncrementalAnalyzer.ArgumentKey;
                 if (argumentKey == null)
                 {
-                    return args.Id;
+                    return GetItemKey(data);
                 }
 
                 var documents = args.Solution.GetRelatedDocumentIds(args.DocumentId);
                 return new AggregatedKey(documents, argumentKey.Analyzer, argumentKey.StateType);
+            }
+
+            private void PopulateInitialData(Workspace workspace, IDiagnosticService diagnosticService)
+            {
+                foreach (var args in diagnosticService.GetDiagnosticsUpdatedEventArgs(workspace, projectId: null, documentId: null, cancellationToken: CancellationToken.None))
+                {
+                    OnDataAddedOrChanged(args);
+                }
             }
 
             private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
@@ -156,7 +167,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             public override AbstractTableEntriesSource<DiagnosticData> CreateTableEntriesSource(object data)
             {
-                var item = (DiagnosticsUpdatedArgs)data;
+                var item = (UpdatedEventArgs)data;
                 return new TableEntriesSource(this, item.Workspace, item.ProjectId, item.DocumentId, item.Id);
             }
 

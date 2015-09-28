@@ -1264,6 +1264,52 @@ static void Main(string[] args)
             VerifyPressingEnter(code, expected, useTabs: true);
         }
 
+        [WorkItem(5486, "https://github.com/dotnet/roslyn/issues/5486")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void PressingEnter_Selection1()
+        {
+            var code =
+@"/// <summary>
+/// Hello [|World|]$$!
+/// </summary>
+class C
+{
+}";
+            var expected =
+@"/// <summary>
+/// Hello 
+/// $$!
+/// </summary>
+class C
+{
+}";
+
+            VerifyPressingEnter(code, expected);
+        }
+
+        [WorkItem(5486, "https://github.com/dotnet/roslyn/issues/5486")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void PressingEnter_Selection2()
+        {
+            var code =
+@"/// <summary>
+/// Hello $$[|World|]!
+/// </summary>
+class C
+{
+}";
+            var expected =
+@"/// <summary>
+/// Hello 
+/// $$!
+/// </summary>
+class C
+{
+}";
+
+            VerifyPressingEnter(code, expected);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void Command_Class()
         {

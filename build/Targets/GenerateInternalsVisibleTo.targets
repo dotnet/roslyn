@@ -17,6 +17,9 @@
     <InternalsVisibleToTypeScript>
       <Visible>false</Visible>
     </InternalsVisibleToTypeScript>
+    <InternalsVisibleToMoq>
+      <Visible>false</Visible>
+    </InternalsVisibleToMoq>
   </ItemDefinitionGroup>
 
   <PropertyGroup Condition="'$(PublicKey)' != '' and '$(SignAssembly)' == 'True'">

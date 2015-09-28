@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             DiagnosticData data = new DiagnosticData(
                 IDEDiagnosticIds.AnalyzerChangedId,
-                ServicesVSResources.ErrorCategory,
+                FeaturesResources.ErrorCategory,
                 message,
                 ServicesVSResources.WRN_AnalyzerChangedMessage,
                 severity: DiagnosticSeverity.Warning,

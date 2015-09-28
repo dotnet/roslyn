@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
@@ -76,14 +77,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             {
                 _workspace = workspace;
                 _identifier = identifier;
+
                 _todoListProvider = todoListProvider;
                 _todoListProvider.TodoListUpdated += OnTodoListUpdated;
+
+                PopulateInitialData(workspace, _todoListProvider);
             }
 
             public override string DisplayName => ServicesVSResources.TodoTableSourceName;
             public override string SourceTypeIdentifier => StandardTableDataSources.CommentTableDataSource;
             public override string Identifier => _identifier;
-            public override object GetItemKey(object data) => ((TodoListEventArgs)data).DocumentId;
+            public override object GetItemKey(object data) => ((UpdatedEventArgs)data).DocumentId;
 
             protected override object GetOrUpdateAggregationKey(object data)
             {
@@ -95,7 +99,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return key;
                 }
 
-                if (!CheckAggregateKey((ImmutableArray<DocumentId>)key, (TodoListEventArgs)data))
+                if (!(key is ImmutableArray<DocumentId>))
+                {
+                    return key;
+                }
+
+                if (!CheckAggregateKey((ImmutableArray<DocumentId>)key, data as TodoItemsUpdatedArgs))
                 {
                     RemoveStaledData(data);
 
@@ -106,9 +115,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return key;
             }
 
-            private bool CheckAggregateKey(ImmutableArray<DocumentId> key, TodoListEventArgs args)
+            private bool CheckAggregateKey(ImmutableArray<DocumentId> key, TodoItemsUpdatedArgs args)
             {
-                if (args.DocumentId == null || args.Solution == null)
+                if (args?.DocumentId == null || args?.Solution == null)
                 {
                     return true;
                 }
@@ -119,10 +128,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private object CreateAggregationKey(object data)
             {
-                var args = (TodoListEventArgs)data;
-                if (args.Solution == null)
+                var args = data as TodoItemsUpdatedArgs;
+                if (args?.Solution == null)
                 {
-                    return args.DocumentId;
+                    return GetItemKey(data);
                 }
 
                 return args.Solution.GetRelatedDocumentIds(args.DocumentId);
@@ -149,7 +158,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                    .ThenBy(d => d.Primary.OriginalColumn);
             }
 
-            private void OnTodoListUpdated(object sender, TodoListEventArgs e)
+            private void PopulateInitialData(Workspace workspace, ITodoListProvider todoListService)
+            {
+                foreach (var args in todoListService.GetTodoItemsUpdatedEventArgs(workspace, cancellationToken: CancellationToken.None))
+                {
+                    OnDataAddedOrChanged(args);
+                }
+            }
+
+            private void OnTodoListUpdated(object sender, TodoItemsUpdatedArgs e)
             {
                 if (_workspace != e.Workspace)
                 {
@@ -169,7 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             public override AbstractTableEntriesSource<TodoItem> CreateTableEntriesSource(object data)
             {
-                var item = (TodoListEventArgs)data;
+                var item = (UpdatedEventArgs)data;
                 return new TableEntriesSource(this, item.Workspace, item.DocumentId);
             }
 

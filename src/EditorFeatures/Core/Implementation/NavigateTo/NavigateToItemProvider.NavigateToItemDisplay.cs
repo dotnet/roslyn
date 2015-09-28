@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             {
                 get
                 {
-                    return _searchResult.NavigableItem.DisplayName;
+                    return _searchResult.NavigableItem.DisplayString;
                 }
             }
 
