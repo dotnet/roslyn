@@ -1337,9 +1337,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         foreach (var analyzerActions in GetCodeBlockActions(analysisScope))
                         {
                             analyzerExecutor.ExecuteCodeBlockActions(
-                            analyzerActions.CodeBlockStartActions, analyzerActions.CodeBlockActions,
-                            analyzerActions.CodeBlockEndActions, analyzerActions.Analyzer, declarationAnalysisData.TopmostNodeForAnalysis, symbol,
-                            executableCodeBlocks, semanticModel, _getKind, decl, analysisScope, analysisStateOpt);
+                                analyzerActions.CodeBlockStartActions, analyzerActions.CodeBlockActions,
+                                analyzerActions.CodeBlockEndActions, analyzerActions.Analyzer, declarationAnalysisData.TopmostNodeForAnalysis, symbol,
+                                executableCodeBlocks, semanticModel, _getKind, decl, analysisScope, analysisStateOpt);
                         }
                     }
                 }
@@ -1414,7 +1414,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SemanticModel semanticModel,
             AnalyzerExecutor analyzerExecutor)
         {
-            // Eliminate descendant member declarations within declarations. 
+            // Eliminate descendant member declarations within declarations.
             // There will be separate symbols declared for the members.
             HashSet<SyntaxNode> descendantDeclsToSkip = null;
             bool first = true;
@@ -1461,7 +1461,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 nodesToAnalyze = nodesToAnalyze.Where(node => analysisScope.ShouldAnalyze(node));
             }
 
-            return nodesToAnalyze.ToImmutableArray();
+            return nodesToAnalyze;
         }
 
         private static ImmutableArray<IOperation> GetOperationsToAnalyze(
