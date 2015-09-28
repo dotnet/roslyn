@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     public struct CodeFixContext
     {
         private readonly Document _document;
+        private readonly Project _project;
         private readonly TextSpan _span;
         private readonly ImmutableArray<Diagnostic> _diagnostics;
         private readonly CancellationToken _cancellationToken;
@@ -26,6 +27,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// Document corresponding to the <see cref="CodeFixContext.Span"/> to fix.
         /// </summary>
         public Document Document { get { return _document; } }
+
+        /// <summary>
+        /// Project corresponding to the diagnostics to fix.
+        /// </summary>
+        internal Project Project { get { return _project; } }
 
         /// <summary>
         /// Text span within the <see cref="CodeFixContext.Document"/> to fix.
@@ -97,6 +103,27 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
             bool verifyArguments,
             CancellationToken cancellationToken)
+            : this (document, document.Project, span, diagnostics, registerCodeFix, verifyArguments, cancellationToken)
+        {
+        }
+
+        internal CodeFixContext(
+            Project project,
+            ImmutableArray<Diagnostic> diagnostics,
+            Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
+            CancellationToken cancellationToken)
+            : this(document: null, project: project, span: default(TextSpan), diagnostics: diagnostics, registerCodeFix: registerCodeFix, verifyArguments: false, cancellationToken: cancellationToken)
+        {
+        }
+
+        private CodeFixContext(
+            Document document,
+            Project project,
+            TextSpan span,
+            ImmutableArray<Diagnostic> diagnostics,
+            Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
+            bool verifyArguments,
+            CancellationToken cancellationToken)
         {
             if (verifyArguments)
             {
@@ -114,6 +141,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             _document = document;
+            _project = project;
             _span = span;
             _diagnostics = diagnostics;
             _registerCodeFix = registerCodeFix;
