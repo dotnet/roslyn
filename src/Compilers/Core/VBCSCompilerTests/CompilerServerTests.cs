@@ -2435,11 +2435,11 @@ namespace Class____foo____Library1
 
             var server1 = ProcessUtilities.StartProcess(_compilerServerExecutable, args);
 
-            await Task.Delay(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+            await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
 
             var server2 = ProcessUtilities.StartProcess(_compilerServerExecutable, args);
 
-            await Task.Delay(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+            await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
 
             Assert.False(server1.HasExited);
             Assert.True(server2.HasExited);
