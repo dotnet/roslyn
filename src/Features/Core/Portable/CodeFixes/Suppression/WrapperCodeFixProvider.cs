@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
         public async override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var diagnostics = context.Diagnostics.WhereAsArray(_suppressionFixProvider.CanBeSuppressed);
+            var diagnostics = context.Diagnostics.WhereAsArray(_suppressionFixProvider.CanBeSuppressedOrUnsuppressed);
             var suppressionFixes = await _suppressionFixProvider.GetSuppressionsAsync(context.Document, context.Span, diagnostics, context.CancellationToken).ConfigureAwait(false);
             if (suppressionFixes != null)
             {

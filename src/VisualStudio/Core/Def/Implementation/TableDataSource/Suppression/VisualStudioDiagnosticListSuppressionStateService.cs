@@ -5,13 +5,16 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
@@ -30,6 +33,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private int _selectedRoslynItems;
         private int _selectedCompilerDiagnosticItems;
         private int _selectedNonSuppressionStateItems;
+
+        private const string SynthesizedFxCopDiagnostic = "SynthesizedFxCopDiagnostic";
+        private readonly string[] SynthesizedFxCopDiagnosticCustomTags = new string[] { SynthesizedFxCopDiagnostic };
 
         [ImportingConstructor]
         public VisualStudioDiagnosticListSuppressionStateService(
@@ -135,9 +141,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             int index;
             var roslynSnapshot = GetEntriesSnapshot(entryHandle, out index);
+            if (roslynSnapshot == null)
+            {
+                isRoslynEntry = false;
+                isCompilerDiagnosticEntry = false;
+                return IsNonRoslynEntrySupportingSuppressionState(entryHandle, out isSuppressedEntry);
+            }
 
             var diagnosticData = roslynSnapshot?.GetItem(index)?.Primary;
-            if (diagnosticData == null || !diagnosticData.HasTextSpan || SuppressionHelpers.IsNotConfigurableDiagnostic(diagnosticData))
+            if (!IsEntryWithConfigurableSuppressionState(diagnosticData))
             {
                 isRoslynEntry = false;
                 isSuppressedEntry = false;
@@ -149,6 +161,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             isSuppressedEntry = diagnosticData.IsSuppressed;
             isCompilerDiagnosticEntry = SuppressionHelpers.IsCompilerDiagnostic(diagnosticData);
             return true;
+        }
+
+        private static bool IsNonRoslynEntrySupportingSuppressionState(ITableEntryHandle entryHandle, out bool isSuppressedEntry)
+        {
+            string suppressionStateValue;
+            if (entryHandle.TryGetValue(SuppressionStateColumnDefinition.ColumnName, out suppressionStateValue))
+            {
+                isSuppressedEntry = suppressionStateValue == ServicesVSResources.SuppressionStateSuppressed;
+                return true;
+            }
+
+            isSuppressedEntry = false;
+            return false;
+        }
+
+        /// <summary>
+        /// Returns true if an entry's suppression state can be modified.
+        /// </summary>
+        /// <returns></returns>
+        private static bool IsEntryWithConfigurableSuppressionState(DiagnosticData entry)
+        {
+            return entry != null &&
+                entry.HasTextSpan &&
+                !SuppressionHelpers.IsNotConfigurableDiagnostic(entry);
         }
 
         private static AbstractTableEntriesSnapshot<DiagnosticData> GetEntriesSnapshot(ITableEntryHandle entryHandle)
@@ -168,12 +204,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return snapshot as AbstractTableEntriesSnapshot<DiagnosticData>;
         }
 
+        public bool IsSynthesizedNonRoslynDiagnostic(DiagnosticData diagnostic)
+        {
+            var tags = diagnostic.CustomTags;
+            return tags != null && tags.Contains(SynthesizedFxCopDiagnostic);
+        }
+
         /// <summary>
         /// Gets <see cref="DiagnosticData"/> objects for error list entries, filtered based on the given parameters.
         /// </summary>
-        public ImmutableArray<DiagnosticData> GetItems(bool selectedEntriesOnly, bool isAddSuppression, bool isSuppressionInSource, bool onlyCompilerDiagnostics, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<DiagnosticData>> GetItemsAsync(bool selectedEntriesOnly, bool isAddSuppression, bool isSuppressionInSource, bool onlyCompilerDiagnostics, CancellationToken cancellationToken)
         {
             var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
+            Dictionary<string, Project> projectNameToProjectMapOpt = null;
+            Dictionary<Project, ImmutableDictionary<string, Document>> filePathToDocumentMapOpt = null;
+
             var entries = selectedEntriesOnly ? _tableControl.SelectedEntries : _tableControl.Entries;
             foreach (var entryHandle in entries)
             {
@@ -185,28 +230,139 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 if (roslynSnapshot != null)
                 {
                     diagnosticData = roslynSnapshot.GetItem(index)?.Primary;
-                    if (diagnosticData != null && diagnosticData.HasTextSpan)
+                }
+                else if (!isAddSuppression)
+                {
+                    // For suppression removal, we also need to handle FxCop entries.
+                    bool isSuppressedEntry;
+                    if (!IsNonRoslynEntrySupportingSuppressionState(entryHandle, out isSuppressedEntry) ||
+                        !isSuppressedEntry)
                     {
-                        var isCompilerDiagnostic = SuppressionHelpers.IsCompilerDiagnostic(diagnosticData);
-                        if (onlyCompilerDiagnostics && !isCompilerDiagnostic)
+                        continue;
+                    }
+
+                    string errorCode = null, category = null, message = null, filePath = null, projectName = null;
+                    int line = -1; // FxCop only supports line, not column.
+                    var location = Location.None;
+
+                    if (entryHandle.TryGetValue(StandardTableColumnDefinitions.ErrorCode, out errorCode) && !string.IsNullOrEmpty(errorCode) &&
+                        entryHandle.TryGetValue(StandardTableColumnDefinitions.ErrorCategory, out category) && !string.IsNullOrEmpty(category) &&
+                        entryHandle.TryGetValue(StandardTableColumnDefinitions.Text, out message) && !string.IsNullOrEmpty(message) &&
+                        entryHandle.TryGetValue(StandardTableColumnDefinitions.ProjectName, out projectName) && !string.IsNullOrEmpty(projectName))
+                    {
+                        if (projectNameToProjectMapOpt == null)
                         {
+                            projectNameToProjectMapOpt = new Dictionary<string, Project>();
+                            foreach (var p in _workspace.CurrentSolution.Projects)
+                            {
+                                projectNameToProjectMapOpt[p.Name] = p;
+                            }
+                        }
+
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        Project project;
+                        if (!projectNameToProjectMapOpt.TryGetValue(projectName, out project))
+                        {
+                            // bail out
                             continue;
                         }
 
-                        if (isAddSuppression)
+                        Document document = null;
+                        var hasLocation = (entryHandle.TryGetValue(StandardTableColumnDefinitions.DocumentName, out filePath) && !string.IsNullOrEmpty(filePath)) &&
+                            (entryHandle.TryGetValue(StandardTableColumnDefinitions.Line, out line) && line >= 0);
+                        if (hasLocation)
                         {
-                            // Compiler diagnostics can only be suppressed in source.
-                            if (!diagnosticData.IsSuppressed &&
-                                (isSuppressionInSource || !isCompilerDiagnostic))
+                            if (string.IsNullOrEmpty(filePath) || line < 0)
                             {
-                                builder.Add(diagnosticData);
+                                // bail out
+                                continue;
                             }
+
+                            ImmutableDictionary<string, Document> filePathMap;
+                            filePathToDocumentMapOpt = filePathToDocumentMapOpt ?? new Dictionary<Project, ImmutableDictionary<string, Document>>();
+                            if (!filePathToDocumentMapOpt.TryGetValue(project, out filePathMap))
+                            {
+                                filePathMap = await GetFilePathToDocumentMapAsync(project, cancellationToken).ConfigureAwait(false);
+                                filePathToDocumentMapOpt[project] = filePathMap;
+                            }
+
+                            if (!filePathMap.TryGetValue(filePath, out document))
+                            {
+                                // bail out
+                                continue;
+                            }
+
+                            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                            var linePosition = new LinePosition(line, 0);
+                            var linePositionSpan = new LinePositionSpan(start: linePosition, end: linePosition);
+                            var textSpan = (await tree.GetTextAsync(cancellationToken).ConfigureAwait(false)).Lines.GetTextSpan(linePositionSpan);
+                            location = tree.GetLocation(textSpan);
                         }
-                        else if (diagnosticData.IsSuppressed)
+
+                        Contract.ThrowIfNull(project);
+                        Contract.ThrowIfFalse((document != null) == location.IsInSource);
+
+                        // Create a diagnostic with correct values for fields we care about: id, category, message, isSuppressed, location
+                        // and default values for the rest of the fields (not used by suppression fixer).
+                        var diagnostic = Diagnostic.Create(
+                            id: errorCode,
+                            category: category,
+                            message: message,
+                            severity: DiagnosticSeverity.Warning,
+                            defaultSeverity: DiagnosticSeverity.Warning,
+                            isEnabledByDefault: true,
+                            warningLevel: 1,
+                            isSuppressed: isSuppressedEntry,
+                            title: message,
+                            location: location,
+                            customTags: SynthesizedFxCopDiagnosticCustomTags);
+
+                        diagnosticData = document != null ?
+                            DiagnosticData.Create(document, diagnostic) :
+                            DiagnosticData.Create(project, diagnostic);
+                    }
+                }
+
+                if (IsEntryWithConfigurableSuppressionState(diagnosticData))
+                {
+                    var isCompilerDiagnostic = SuppressionHelpers.IsCompilerDiagnostic(diagnosticData);
+                    if (onlyCompilerDiagnostics && !isCompilerDiagnostic)
+                    {
+                        continue;
+                    }
+
+                    if (isAddSuppression)
+                    {
+                        // Compiler diagnostics can only be suppressed in source.
+                        if (!diagnosticData.IsSuppressed &&
+                            (isSuppressionInSource || !isCompilerDiagnostic))
                         {
                             builder.Add(diagnosticData);
                         }
                     }
+                    else if (diagnosticData.IsSuppressed)
+                    {
+                        builder.Add(diagnosticData);
+                    }
+                }
+            }
+
+            return builder.ToImmutable();
+        }
+
+        private static async Task<ImmutableDictionary<string, Document>> GetFilePathToDocumentMapAsync(Project project, CancellationToken cancellationToken)
+        {
+            var builder = ImmutableDictionary.CreateBuilder<string, Document>();
+            foreach (var document in project.Documents)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var filePath = tree.FilePath;
+                if (filePath != null)
+                {
+                    builder.Add(filePath, document);
                 }
             }
 

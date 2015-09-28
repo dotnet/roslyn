@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -25,9 +23,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// 
         /// <param name="assemblies">
-        /// The set of AssemblyData objects describing assemblies, for which this method should
-        /// resolve references and find suitable AssemblySymbols. This array is not modified by the
-        /// method.
+        /// The set of <see cref="AssemblyData"/> objects describing assemblies, for which this method should
+        /// resolve references and find suitable AssemblySymbols.
         /// </param>
         /// <param name="hasCircularReference">
         /// True if the assembly being compiled is indirectly referenced through some of its own references.
@@ -36,18 +33,18 @@ namespace Microsoft.CodeAnalysis
         /// The definition index of the COR library.
         /// </param>
         /// <returns>
-        /// An array of Binding structures describing the result. It has the same amount of items as
-        /// the input assemblies array, Binding structure for each input AssemblyData object resides
+        /// An array of <see cref="BoundInputAssembly"/> structures describing the result. It has the same amount of items as
+        /// the input assemblies array, <see cref="BoundInputAssembly"/> for each input AssemblyData object resides
         /// at the same position.
         /// 
-        /// Each Binding structure contains the following data:
+        /// Each <see cref="BoundInputAssembly"/> contains the following data:
         /// 
         /// -    Suitable AssemblySymbol instance for the corresponding assembly, 
         ///     null reference if none is available/found. Always null for the first element, which corresponds to the assembly being built.
         ///
         /// -    Result of resolving assembly references of the corresponding assembly 
         ///     against provided set of assembly definitions. Essentially, this is an array returned by
-        ///     AssemblyData.BindAssemblyReferences method.
+        ///     <see cref="AssemblyData.BindAssemblyReferences(ImmutableArray{AssemblyData}, AssemblyIdentityComparer)"/> method.
         /// </returns>
         internal BoundInputAssembly[] Bind(
             ImmutableArray<AssemblyData> assemblies,

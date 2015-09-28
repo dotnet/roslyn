@@ -107,6 +107,12 @@ NewLines("class Class1 \n [|dim i as integer|] \n property P as Integer \n set \
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        Public Sub TestSetterWithMutipleStatementsAndGetterWithSingleStatement()
+            TestMissing(
+NewLines("class Class1 \n [|dim i as integer|] \n property P as Integer \n get \n Return i \n end get \n \n set \n Foo() \n i = value \n end set \n end property \n end class"))
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Sub TestGetterAndSetterUseDifferentFields()
             TestMissing(
 NewLines("class Class1 \n [|dim i as integer|] \n dim j as Integer \n property P as Integer \n get \n return i \n end get \n set \n j = value \n end set \n end property \n end class"))

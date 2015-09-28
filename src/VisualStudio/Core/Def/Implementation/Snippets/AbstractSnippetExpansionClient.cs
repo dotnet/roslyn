@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -365,6 +366,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public virtual bool TryInsertExpansion(int startPositionInSubjectBuffer, int endPositionInSubjectBuffer)
         {
+            var textViewModel = TextView.TextViewModel;
+            if (textViewModel == null)
+            {
+                Debug.Assert(TextView.IsClosed);
+                return false;
+            }
+
             int startLine = 0;
             int startIndex = 0;
             int endLine = 0;
@@ -377,13 +385,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             SnapshotSpan dataBufferSpan;
             if (!TryGetSpanOnHigherBuffer(
                 SubjectBuffer.CurrentSnapshot.GetSpan(startPositionInSubjectBuffer, endPositionInSubjectBuffer - startPositionInSubjectBuffer),
-                TextView.TextViewModel.DataBuffer,
+                textViewModel.DataBuffer,
                 out dataBufferSpan))
             {
                 return false;
             }
 
-            var buffer = EditorAdaptersFactoryService.GetBufferAdapter(TextView.TextViewModel.DataBuffer);
+            var buffer = EditorAdaptersFactoryService.GetBufferAdapter(textViewModel.DataBuffer);
             var expansion = buffer as IVsExpansion;
             if (buffer == null || expansion == null)
             {
@@ -446,6 +454,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public int OnItemChosen(string pszTitle, string pszPath)
         {
+            var textViewModel = TextView.TextViewModel;
+            if (textViewModel == null)
+            {
+                Debug.Assert(TextView.IsClosed);
+                return VSConstants.E_FAIL;
+            }
+
             var hr = VSConstants.S_OK;
 
             try
@@ -456,7 +471,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 textSpan.iEndLine = textSpan.iStartLine;
                 textSpan.iEndIndex = textSpan.iStartIndex;
 
-                IVsExpansion expansion = EditorAdaptersFactoryService.GetBufferAdapter(TextView.TextViewModel.DataBuffer) as IVsExpansion;
+                IVsExpansion expansion = EditorAdaptersFactoryService.GetBufferAdapter(textViewModel.DataBuffer) as IVsExpansion;
                 earlyEndExpansionHappened = false;
                 hr = expansion.InsertNamedExpansion(pszTitle, pszPath, textSpan, this, LanguageServiceGuid, fShowDisambiguationUI: 0, pSession: out ExpansionSession);
 
