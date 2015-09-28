@@ -38,6 +38,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             this.CompletionProvider = CreateCompletionProvider();
         }
 
+        public override void Dispose()
+        {
+            this.WorkspaceFixture.CloseTextView();
+            base.Dispose();
+        }
+
         protected static bool CanUseSpeculativeSemanticModel(Document document, int position)
         {
             var service = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
