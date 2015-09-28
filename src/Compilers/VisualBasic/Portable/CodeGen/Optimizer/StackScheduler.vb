@@ -16,9 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                          <Out> ByRef stackLocals As HashSet(Of LocalSymbol)) As BoundStatement
 
             Dim locals As Dictionary(Of LocalSymbol, LocalDefUseInfo) = Nothing
-            Dim evalStack = ArrayBuilder(Of ValueTuple(Of BoundExpression, ExprContext)).GetInstance()
-            src = DirectCast(Analyzer.Analyze(container, src, evalStack, debugFriendly, locals), BoundStatement)
-            evalStack.Free()
+            src = DirectCast(Analyzer.Analyze(container, src, debugFriendly, locals), BoundStatement)
 
             locals = FilterValidStackLocals(locals)
 

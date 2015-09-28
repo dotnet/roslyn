@@ -77,13 +77,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Public Shared Function Analyze(
                              container As Symbol,
                              node As BoundNode,
-                             evalStack As ArrayBuilder(Of ValueTuple(Of BoundExpression, ExprContext)),
                              debugFriendly As Boolean,
                              <Out> ByRef locals As Dictionary(Of LocalSymbol, LocalDefUseInfo)) As BoundNode
 
+                Dim evalStack = ArrayBuilder(Of ValueTuple(Of BoundExpression, ExprContext)).GetInstance()
                 Dim analyzer = New Analyzer(container, evalStack, debugFriendly)
-
                 Dim rewritten As BoundNode = analyzer.Visit(node)
+                evalStack.Free()
+
                 locals = analyzer._locals
 
                 Return rewritten

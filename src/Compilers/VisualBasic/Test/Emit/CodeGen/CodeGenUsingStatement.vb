@@ -390,19 +390,18 @@ End Structure
 {
   // Code size       26 (0x1a)
   .maxstack  1
-  .locals init (s1 V_0,
-                s1 V_1)
+  .locals init (s1 V_0)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    "s1"
   IL_0008:  ldloc.0
-  IL_0009:  stloc.1
+  IL_0009:  stloc.0
   .try
   {
     IL_000a:  br.s       IL_000a
   }
   finally
   {
-    IL_000c:  ldloca.s   V_1
+    IL_000c:  ldloca.s   V_0
     IL_000e:  constrained. "s1"
     IL_0014:  callvirt   "Sub System.IDisposable.Dispose()"
     IL_0019:  endfinally

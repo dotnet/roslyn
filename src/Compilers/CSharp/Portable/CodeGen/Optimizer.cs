@@ -57,9 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             //      stack scheduler must be the last one.
 
             var locals = PooledDictionary<LocalSymbol, LocalDefUseInfo>.GetInstance();
-            var evalStack = ArrayBuilder<ValueTuple<BoundExpression, ExprContext>>.GetInstance();
-            src = (BoundStatement)StackOptimizerPass1.Analyze(src, locals, evalStack, debugFriendly);
-            evalStack.Free();
+            src = (BoundStatement)StackOptimizerPass1.Analyze(src, locals, debugFriendly);
 
             FilterValidStackLocals(locals);
 
@@ -366,11 +364,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public static BoundNode Analyze(
             BoundNode node, 
             Dictionary<LocalSymbol, LocalDefUseInfo> locals,
-            ArrayBuilder<ValueTuple<BoundExpression, ExprContext>> evalStack,
             bool debugFriendly)
         {
+            var evalStack = ArrayBuilder<ValueTuple<BoundExpression, ExprContext>>.GetInstance();
             var analyzer = new StackOptimizerPass1(locals, evalStack, debugFriendly);
             var rewritten = analyzer.Visit(node);
+            evalStack.Free();
 
             return rewritten;
         }

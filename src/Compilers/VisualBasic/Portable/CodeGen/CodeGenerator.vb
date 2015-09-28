@@ -41,19 +41,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private _asyncYieldPoints As ArrayBuilder(Of Integer) = Nothing
         Private _asyncResumePoints As ArrayBuilder(Of Integer) = Nothing
 
-        Private Enum ILEmitStyle As Byte
-            ' no optimizations
-            ' add additional debug specific emit 
-            ' like nops for sequence points mapping to no IL
-            Debug = 0
-
-            ' do optimizations that do Not diminish debug experience
-            DebugFriendlyRelease = 1
-
-            ' do all optimizations
-            Release = 2
-        End Enum
-
         Public Sub New(method As MethodSymbol,
                        boundBody As BoundStatement,
                        builder As ILBuilder,
@@ -268,7 +255,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 instructionsEmitted = EmitStatementAndCountInstructions(statement)
             End If
 
-            If instructionsEmitted = 0 AndAlso syntax IsNot Nothing AndAlso _ilEmitStyle = OptimizationLevel.Debug Then
+            If instructionsEmitted = 0 AndAlso syntax IsNot Nothing AndAlso _ilEmitStyle = ILEmitStyle.Debug Then
                 ' if there was no code emitted, then emit nop 
                 ' otherwise this point could get associated with some random statement, possibly in a wrong scope
                 _builder.EmitOpCode(ILOpCode.Nop)
@@ -287,7 +274,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 instructionsEmitted = EmitStatementAndCountInstructions(statement)
             End If
 
-            If instructionsEmitted = 0 AndAlso span <> Nothing AndAlso _ilEmitStyle = OptimizationLevel.Debug Then
+            If instructionsEmitted = 0 AndAlso span <> Nothing AndAlso _ilEmitStyle = ILEmitStyle.Debug Then
                 ' if there was no code emitted, then emit nop 
                 ' otherwise this point could get associated with some random statement, possibly in a wrong scope
                 _builder.EmitOpCode(ILOpCode.Nop)
