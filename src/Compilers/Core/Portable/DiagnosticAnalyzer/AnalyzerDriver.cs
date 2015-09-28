@@ -1330,17 +1330,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                 }
 
-                if (executableCodeBlocks.Any())
+                if (executableCodeBlocks.Any() && shouldExecuteCodeBlockActions)
                 {
-                    if (shouldExecuteCodeBlockActions)
+                    foreach (var analyzerActions in GetCodeBlockActions(analysisScope))
                     {
-                        foreach (var analyzerActions in GetCodeBlockActions(analysisScope))
-                        {
-                            analyzerExecutor.ExecuteCodeBlockActions(
-                                analyzerActions.CodeBlockStartActions, analyzerActions.CodeBlockActions,
-                                analyzerActions.CodeBlockEndActions, analyzerActions.Analyzer, declarationAnalysisData.TopmostNodeForAnalysis, symbol,
-                                executableCodeBlocks, semanticModel, _getKind, decl, analysisScope, analysisStateOpt);
-                        }
+                        analyzerExecutor.ExecuteCodeBlockActions(
+                            analyzerActions.CodeBlockStartActions, analyzerActions.CodeBlockActions,
+                            analyzerActions.CodeBlockEndActions, analyzerActions.Analyzer, declarationAnalysisData.TopmostNodeForAnalysis, symbol,
+                            executableCodeBlocks, semanticModel, _getKind, decl, analysisScope, analysisStateOpt);
                     }
                 }
             }
