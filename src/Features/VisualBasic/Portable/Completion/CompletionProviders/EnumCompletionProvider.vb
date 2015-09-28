@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Function CreateItem(displayAndInsertionText As ValueTuple(Of String, String), position As Integer, symbols As List(Of ISymbol), context As AbstractSyntaxContext, textChangeSpan As TextSpan, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
-            Return New SymbolCompletionItem(
+            Dim item = New SymbolCompletionItem(
                 Me,
                 displayAndInsertionText.Item1,
                 displayAndInsertionText.Item2,
@@ -127,6 +127,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 preselect:=preselect,
                 supportedPlatforms:=supportedPlatformData,
                 rules:=ItemRules.Instance)
+
+            item.AddTag(symbols(0).GetSymbolType().Name)
+            Return item
+
         End Function
 
         Protected Overrides Function GetCompletionItemRules() As CompletionItemRules
