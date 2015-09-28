@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                         var trackingSpan = await _completionService.GetDefaultTrackingSpanAsync(_documentOpt, _subjectBufferCaretPosition, cancellationToken).ConfigureAwait(false);
 
-                        var model = Model.CreateModel(
+                        var primaryListModel = Model.CreateModel(
                             _disconnectedBufferGraph,
                             trackingSpan,
                             completionList.Items,
@@ -119,12 +119,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                             builder: completionList.Builder,
                             triggerInfo: _triggerInfo,
                             completionService: _completionService,
-                            workspace: _documentOpt != null ? _documentOpt.Project.Solution.Workspace : null, 
-                            title: "All", 
+                            workspace: _documentOpt != null ? _documentOpt.Project.Solution.Workspace : null,
+                            title: "All",
                             isSelected: false,
                             neverDismissIfEmpty: false);
 
-                        return new[] { model }.ToImmutableArray();
+                        var taggedLists = ExtractTaggedLists(completionList);
+
+                        if (!taggedLists.Any())
+                        {
+                            // Go ahead and mark the sole model as selected
+                            return new[] { primaryListModel.WithIsSelected(true) }.ToImmutableArray();
+                        }
+
+                        var otherLists = taggedLists.Select(kvp => Model.CreateModel(_disconnectedBufferGraph, trackingSpan, kvp.Value.ToImmutableArrayOrEmpty(), kvp.Value.First(),
+                            isHardSelection: false, isUnique: false, useSuggestionCompletionMode: _includeBuilder, builder: completionList.Builder, triggerInfo: _triggerInfo,
+                            completionService: _completionService, workspace: _documentOpt != null ? _documentOpt.Project.Solution.Workspace : null, title: kvp.Key,
+                            isSelected: true, neverDismissIfEmpty: true));
+
+                        return otherLists.Concat(primaryListModel).ToImmutableArray();
                     }
                 }
 
