@@ -238,6 +238,20 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.NotNull(Me.CurrentCompletionPresenterSession)
         End Sub
 
+        Public Sub AssertListCount(count As Integer)
+            WaitForAsynchronousOperations()
+            Assert.Equal(Me.CurrentCompletionPresenterSession.Models.Count(), count)
+        End Sub
+
+        Public Sub AssertSelectedTab(title As String)
+            WaitForAsynchronousOperations()
+            Assert.Equal(Me.CurrentCompletionPresenterSession.GetSelectedModel().Title, title)
+        End Sub
+
+        Public Sub AssertTabCount(count As Integer)
+
+        End Sub
+
         Public Function CompletionItemsContainsAll(displayText As String()) As Boolean
             WaitForAsynchronousOperations()
             Return displayText.All(Function(v) CurrentCompletionPresenterSession.CompletionItems.Any(
