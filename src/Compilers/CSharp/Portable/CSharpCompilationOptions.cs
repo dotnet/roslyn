@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int warningLevel = 4,
             IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions = null,
             bool concurrentBuild = true,
-            bool deterministic = false, // TODO(5431): Enable deterministic mode by default
+            bool deterministic = false, 
             XmlReferenceResolver xmlReferenceResolver = null,
             SourceReferenceResolver sourceReferenceResolver = null,
             MetadataReferenceResolver metadataReferenceResolver = null,
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             : this(outputKind, false, moduleName, mainTypeName, scriptClassName, usings, optimizationLevel, checkOverflow, allowUnsafe,
                    cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, platform, generalDiagnosticOption, warningLevel,
                    specificDiagnosticOptions, concurrentBuild,
-                   deterministic: false, // TODO(5431): Enable deterministic mode by default
+                   deterministic: false, 
                    extendedCustomDebugInformation: true,
                    debugPlusMode: false,
                    xmlReferenceResolver: xmlReferenceResolver,
@@ -441,6 +441,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new CSharpCompilationOptions(this) { ConcurrentBuild = concurrentBuild };
+        }
+
+        public CSharpCompilationOptions WithDeterminism(bool deterministic)
+        {
+            if (deterministic == this.Deterministic)
+            {
+                return this;
+            }
+
+            return new CSharpCompilationOptions(this) { Deterministic = deterministic };
         }
 
         internal CSharpCompilationOptions WithExtendedCustomDebugInformation(bool extendedCustomDebugInformation)

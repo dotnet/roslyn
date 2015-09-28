@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool checkOverflow = false;
             bool allowUnsafe = false;
             bool concurrentBuild = true;
+            bool deterministic = false; // TODO(5431): Enable deterministic mode by default
             bool emitPdb = false;
             bool debugPlus = false;
             string pdbPath = null;
@@ -557,6 +558,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
 
                             optimize = false;
+                            continue;
+
+                        case "deterministic+":
+                            if (value != null)
+                                break;
+
+                            deterministic = true;
+                            continue;
+
+                        case "deterministic-":
+                            if (value != null)
+                                break;
+                            deterministic = false;
                             continue;
 
                         case "p":
@@ -1082,6 +1096,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 optimizationLevel: optimize ? OptimizationLevel.Release : OptimizationLevel.Debug,
                 checkOverflow: checkOverflow,
                 allowUnsafe: allowUnsafe,
+                deterministic: deterministic,
                 concurrentBuild: concurrentBuild,
                 cryptoKeyContainer: keyContainerSetting,
                 cryptoKeyFile: keyFileSetting,
