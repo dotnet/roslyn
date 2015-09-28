@@ -6,14 +6,12 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.Shared.Tagging
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
-Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Tagging
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
@@ -26,7 +24,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 class 123 { }
                        </code>
             Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(code.ToString())
-                Dim miscService = New MiscellaneousDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()))
+                Dim miscService = New MiscellaneousDiagnosticAnalyzerService(
+                    New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()),
+                    New MockDiagnosticUpdateSourceRegistrationService())
+
                 Assert.False(miscService.SupportGetDiagnostics)
 
                 Dim listener = New AsynchronousOperationListener()
@@ -34,7 +35,8 @@ class 123 { }
                     ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
                     ValueTuple.Create(FeatureAttribute.ErrorSquiggles, listener))
 
-                Dim diagnosticService = New DiagnosticService(New IDiagnosticUpdateSource() {miscService}, listeners)
+                Dim diagnosticService = New DiagnosticService(listeners)
+                diagnosticService.Register(miscService)
 
                 Dim optionsService = workspace.Services.GetService(Of IOptionService)()
 
@@ -64,7 +66,10 @@ class 123 { }
 class 123 { }
                        </code>
             Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(code.ToString())
-                Dim miscService = New MiscellaneousDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()))
+                Dim miscService = New MiscellaneousDiagnosticAnalyzerService(
+                    New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()),
+                    New MockDiagnosticUpdateSourceRegistrationService())
+
                 Dim buildTool = String.Empty
 
                 AddHandler miscService.DiagnosticsUpdated, Sub(e, a)
@@ -86,7 +91,10 @@ Class 123
 End Class
                        </code>
             Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(code.ToString())
-                Dim miscService = New MiscellaneousDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()))
+                Dim miscService = New MiscellaneousDiagnosticAnalyzerService(
+                    New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()),
+                    New MockDiagnosticUpdateSourceRegistrationService())
+
                 Dim buildTool = String.Empty
 
                 AddHandler miscService.DiagnosticsUpdated, Sub(e, a)

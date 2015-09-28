@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
 
-        protected void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
+        public void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
         {
             var updated = this.DiagnosticsUpdated;
             if (updated != null)

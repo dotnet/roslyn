@@ -358,15 +358,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Roslyn.HostError.
-        /// </summary>
-        internal static string ErrorCategory {
-            get {
-                return ResourceManager.GetString("ErrorCategory", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Error while reading &apos;{0}&apos;: {1}.
         /// </summary>
         internal static string ErrorWhileReading {
@@ -1174,15 +1165,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An instance of analyzer {0} cannot be created from {1}: {2}..
-        /// </summary>
-        internal static string WRN_AnalyzerCannotBeCreated {
-            get {
-                return ResourceManager.GetString("WRN_AnalyzerCannotBeCreated", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The analyzer assembly &apos;{0}&apos; has changed. Diagnostics may be incorrect until Visual Studio is restarted..
         /// </summary>
         internal static string WRN_AnalyzerChangedMessage {
@@ -1233,24 +1215,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string WRN_MissingAnalyzerReferenceTitle {
             get {
                 return ResourceManager.GetString("WRN_MissingAnalyzerReferenceTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The assembly {0} does not contain any analyzers..
-        /// </summary>
-        internal static string WRN_NoAnalyzerInAssembly {
-            get {
-                return ResourceManager.GetString("WRN_NoAnalyzerInAssembly", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unable to load Analyzer assembly {0}: {1}.
-        /// </summary>
-        internal static string WRN_UnableToLoadAnalyzer {
-            get {
-                return ResourceManager.GetString("WRN_UnableToLoadAnalyzer", resourceCulture);
             }
         }
         

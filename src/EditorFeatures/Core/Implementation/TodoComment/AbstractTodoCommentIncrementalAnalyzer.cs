@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -148,6 +149,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             }
 
             return existingData.Items;
+        }
+
+        public IEnumerable<UpdatedEventArgs> GetTodoItemsUpdatedEventArgs(Workspace workspace, CancellationToken cancellationToken)
+        {
+            foreach (var documentId in _state.GetDocumentIds())
+            {
+                yield return new UpdatedEventArgs(Tuple.Create(this, documentId), workspace, documentId.ProjectId, documentId);
+            }
         }
 
         private static bool CheckVersions(Document document, VersionStamp textVersion, VersionStamp syntaxVersion, Data existingData)
