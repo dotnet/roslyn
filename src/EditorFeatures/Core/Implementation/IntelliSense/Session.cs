@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             this.PresenterSession.Dismissed += OnPresenterSessionDismissed;
         }
 
-        public TModel InitialUnfilteredModel { get { return this.Computation.InitialUnfilteredModel; } }
+        public ImmutableArray<TModel> InitialUnfilteredModels { get { return this.Computation.InitialUnfilteredModels; } }
 
         private void OnPresenterSessionDismissed(object sender, EventArgs e)
         {
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             this.PresenterSession.Dismiss();
         }
 
-        public TModel WaitForController()
+        public ImmutableArray<TModel> WaitForController()
         {
             AssertIsForeground();
             return Computation.WaitForController();
