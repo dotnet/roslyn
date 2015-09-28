@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -187,6 +188,25 @@ namespace Microsoft.CodeAnalysis.Completion
         public override string ToString()
         {
             return DisplayText;
+        }
+
+        private List<string> tags = null;
+        public IEnumerable<string> Tags
+        {
+            get
+            {
+                return tags ?? SpecializedCollections.EmptyEnumerable<string>();
+            }
+        }
+
+        public void AddTag(string tag)
+        {
+            if (tags == null)
+            {
+                tags = new List<string>();
+            }
+
+            tags.Add(tag);
         }
     }
 }
