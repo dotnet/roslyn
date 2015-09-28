@@ -95,6 +95,7 @@ namespace Roslyn.Test.Utilities
             public const string F1Help = "F1Help";
             public const string Formatting = "Formatting";
             public const string GoToDefinition = "GoToDefinition";
+            public const string GoToImplementation = "GoToImplementation";
             public const string Interactive = "Interactive";
             public const string InteractiveHost = "InteractiveHost";
             public const string KeywordHighlighting = "KeywordHighlighting";

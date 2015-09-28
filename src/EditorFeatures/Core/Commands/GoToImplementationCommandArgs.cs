@@ -7,12 +7,12 @@ using Microsoft.VisualStudio.Text.Editor;
 namespace Microsoft.CodeAnalysis.Editor.Commands
 {
     /// <summary>
-    /// Arguments for Go To Definition.
+    /// Arguments for Go To Implementation.
     /// </summary>
     [ExcludeFromCodeCoverage]
-    internal class GoToDefinitionCommandArgs : CommandArgs
+    internal sealed class GoToImplementationCommandArgs : CommandArgs
     {
-        public GoToDefinitionCommandArgs(ITextView textView, ITextBuffer subjectBuffer)
+        public GoToImplementationCommandArgs(ITextView textView, ITextBuffer subjectBuffer)
             : base(textView, subjectBuffer)
         {
         }
