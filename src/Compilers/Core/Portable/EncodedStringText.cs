@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Text
                     // first
                     CoreClrShim.Encoding.RegisterProvider(CoreClrShim.CodePagesEncodingProvider.Instance);
                 }
+
                 // Try to get the default ANSI code page in the operating system's
                 // regional and language settings, and fall back to 1252 otherwise
                 return PortableShim.Encoding.GetEncoding(0)
