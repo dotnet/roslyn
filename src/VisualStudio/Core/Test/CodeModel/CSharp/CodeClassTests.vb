@@ -3790,6 +3790,34 @@ partial class Foo
 #End Region
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TypeDescriptor_GetProperties()
+            Dim expectedPropertyNames = {"DTE", "Collection", "Name", "FullName", "ProjectItem", "Kind", "IsCodeType",
+                                         "InfoLocation", "Children", "Language", "StartPoint", "EndPoint", "ExtenderNames",
+                                         "ExtenderCATID", "Parent", "Namespace", "Bases", "Members", "Access", "Attributes",
+                                         "DocComment", "Comment", "DerivedTypes", "ImplementedInterfaces", "IsAbstract",
+                                         "ClassKind", "PartialClasses", "DataTypeKind", "Parts", "InheritanceKind", "IsGeneric",
+                                         "IsShared"}
+
+            Dim code =
+<Code>
+class $$C
+{
+}
+</Code>
+
+            TestElement(code,
+                Sub(codeClass)
+                    Dim propertyDescriptors = ComponentModel.TypeDescriptor.GetProperties(codeClass)
+                    Dim propertyNames = propertyDescriptors _
+                        .OfType(Of ComponentModel.PropertyDescriptor) _
+                        .Select(Function(pd) pd.Name) _
+                        .ToArray()
+
+                    Assert.Equal(expectedPropertyNames, propertyNames)
+                End Sub)
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub ExternalClass_ImplementedInterfaces()
             Dim code =
 <Code>

@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
@@ -9,7 +8,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
 {
     [ComVisible(true)]
-    [ComDefaultInterface(typeof(EnvDTE.CodeClass))]
+    [ComDefaultInterface(typeof(EnvDTE80.CodeClass2))]
     public sealed class CodeClass : AbstractCodeType, EnvDTE.CodeClass, EnvDTE80.CodeClass2
     {
         internal static EnvDTE.CodeClass Create(
