@@ -80,7 +80,7 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.CommandLine.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="vbc.sh">
+    <None Include="vbc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="vbc.cmd">
