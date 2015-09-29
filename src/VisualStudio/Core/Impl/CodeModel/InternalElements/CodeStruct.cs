@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
 {
     [ComVisible(true)]
-    [ComDefaultInterface(typeof(EnvDTE.CodeStruct))]
+    [ComDefaultInterface(typeof(EnvDTE80.CodeStruct2))]
     public sealed class CodeStruct : AbstractCodeType, EnvDTE.CodeStruct, EnvDTE80.CodeStruct2
     {
         internal static EnvDTE.CodeStruct Create(
