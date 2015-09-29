@@ -730,4 +730,13 @@ Do you want to proceed?</value>
   <data name="FontAndColors_BraceMatching" xml:space="preserve">
     <value>Brace Matching</value>
   </data>
+  <data name="GoToImplementationMessage" xml:space="preserve">
+    <value>Locating implementations...</value>
+  </data>
+  <data name="GoToImplementationTitle" xml:space="preserve">
+    <value>Go To Implementation</value>
+  </data>
+  <data name="SymbolHasNoImplementations" xml:space="preserve">
+    <value>The symbol has no implementations.</value>
+  </data>
 </root>

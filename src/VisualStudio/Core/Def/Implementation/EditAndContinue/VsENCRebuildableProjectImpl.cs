@@ -177,7 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 }
             }
 
-            _notifications.SendNotification(message, "Edit and Continue", NotificationSeverity.Error);
+            _notifications.SendNotification(message, title: FeaturesResources.EditAndContinue, severity: NotificationSeverity.Error);
         }
 
         /// <summary>

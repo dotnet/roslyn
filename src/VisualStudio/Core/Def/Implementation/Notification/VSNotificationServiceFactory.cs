@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Notification
                         _uiShellService.ShowMessageBox(
                             dwCompRole: 0, // unused, as per MSDN documentation
                             rclsidComp: Guid.Empty, // unused
-                            pszTitle: title,
+                            pszTitle: null, // use a null title since the title just becomes another line in the regular message
                             pszText: message,
                             pszHelpFile: null,
                             dwHelpContextID: 0, // required to be 0, as per MSDN documentation
@@ -102,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Notification
                     _uiShellService.ShowMessageBox(
                         dwCompRole: 0, // unused, as per MSDN documentation
                         rclsidComp: Guid.Empty, // unused
-                        pszTitle: title,
+                        pszTitle: null, // use a null title since the title just becomes another line in the regular message
                         pszText: message,
                         pszHelpFile: null,
                         dwHelpContextID: 0, // required to be 0, as per MSDN documentation

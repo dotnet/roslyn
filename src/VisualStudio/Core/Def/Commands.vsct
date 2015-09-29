@@ -326,6 +326,19 @@
           <CommandName>AddSuppressionsInSuppressionFile</CommandName>
         </Strings>
       </Button>
+
+      <Button guid="guidRoslynGrpId" id="cmdidGoToImplementation" priority="0x0200" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_EDIT_GOTO"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>CommandWellOnly</CommandFlag>
+        <Strings>
+          <ButtonText>Go To Implementation</ButtonText>
+          <CanonicalName>GoToImplementation</CanonicalName>
+          <LocCanonicalName>GoToImplementation</LocCanonicalName>
+          <CommandName>GoToImplementation</CommandName>
+        </Strings>
+      </Button>
     </Buttons>
 
     <Menus>
@@ -428,6 +441,10 @@
     <CommandPlacement guid="guidRoslynGrpId" id="grpSetActiveRuleSet" priority="0x0200">
       <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_WEBITEMNODE"/>
     </CommandPlacement>
+
+    <CommandPlacement guid="guidRoslynGrpId" id="cmdidGoToImplementation" priority="0x0200">
+      <Parent guid="guidSHLMainMenu" id="IDG_VS_CODEWIN_NAVIGATETOLOCATION"/>
+    </CommandPlacement>
   </CommandPlacements>
 
   <UsedCommands>
@@ -488,6 +505,8 @@
       <IDSymbol name="cmdidAddSuppressionsInSource"   value="0x011f" />
       <IDSymbol name="cmdidAddSuppressionsInSuppressionFile"  value="0x0120" />
       <IDSymbol name="cmdidRemoveSuppressions"        value="0x0121" />
+
+      <IDSymbol name="cmdidGoToImplementation"        value="0x0200" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>
