@@ -145,6 +145,7 @@
     <Compile Include="Mocks\IThreadHandlingFactory.cs" />
     <Compile Include="Moq\ReturnsExtensions.cs" />
     <Compile Include="FuncWithOut.cs" />
+    <Compile Include="ProjectSystem\Designers\ProjectRootImageProjectTreeModifierTests.cs" />
     <Compile Include="ProjectSystem\UnconfiguredProjectCommonServicesTests.cs" />
     <Compile Include="Testing\ProjectSystemTraitDiscover.cs" />
     <Compile Include="Testing\ProjectTreeParser\Delimiters.cs" />

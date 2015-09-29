@@ -28,18 +28,17 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Imaging
             get;
         }
 
-        public bool TryGetProjectImage(string key, out ProjectImageMoniker result)
+        public ProjectImageMoniker GetProjectImage(string key)
         {
             foreach (Lazy<IProjectImageProvider> provider in ImageProviders)
             {
-                if (provider.Value.TryGetProjectImage(key, out result))
-                {
-                    return true;
-                }
+                ProjectImageMoniker image = provider.Value.GetProjectImage(key);
+                if (image != null)
+                    return image;
+                
             }
 
-            result = default(ProjectImageMoniker);
-            return false;
+            return null;
         }
     }
 }

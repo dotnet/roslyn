@@ -97,11 +97,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
 
         private ProjectImageMoniker GetSpecialItemIcon()
         {
-            ProjectImageMoniker moniker;
-            if (_imageProvider.TryGetProjectImage(ImageKey, out moniker))
-                return moniker;
-
-            return null;
+            return _imageProvider.GetProjectImage(ImageKey);
         }
     }
 }

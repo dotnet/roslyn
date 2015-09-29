@@ -13,14 +13,14 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
     [AppliesTo(ProjectCapability.CSharpOrVisualBasic)]
     internal class ProjectRootImageProjectTreeModifier : ProjectTreeModifierBase
     {
-        private readonly IProjectImageProvider _provider;
+        private readonly IProjectImageProvider _imageProvider;
 
         [ImportingConstructor]
-        public ProjectRootImageProjectTreeModifier([Import(typeof(ProjectImageProviderAggregator))]IProjectImageProvider provider)
+        public ProjectRootImageProjectTreeModifier([Import(typeof(ProjectImageProviderAggregator))]IProjectImageProvider imageProvider)
         {
-            Requires.NotNull(provider, nameof(provider));
+            Requires.NotNull(imageProvider, nameof(imageProvider));
 
-            _provider = provider;
+            _imageProvider = imageProvider;
         }
 
         protected override IProjectTree ApplyInitialModifications(IProjectTree node)
@@ -28,8 +28,8 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
             if (!node.IsProjectRoot())
                 return node;
 
-            ProjectImageMoniker icon;
-            if (!_provider.TryGetProjectImage(ProjectImageKey.ProjectRoot, out icon) || node.Icon == icon)
+            ProjectImageMoniker icon = _imageProvider.GetProjectImage(ProjectImageKey.ProjectRoot);
+            if (icon == null || node.Icon == icon)
                 return node;
 
             return node.SetIcon(icon);

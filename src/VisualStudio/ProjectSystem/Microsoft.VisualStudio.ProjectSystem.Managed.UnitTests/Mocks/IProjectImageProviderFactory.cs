@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.VisualStudio.ProjectSystem.Designers.Imaging;
 using Moq;
 
@@ -12,6 +13,28 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Imaging
             var mock = new Mock<IProjectImageProvider>();
 
             return mock.Object;
+        }
+
+        public static IProjectImageProvider ImplementGetProjectImage(Func<string, ProjectImageMoniker> action)
+        {
+            var mock = new Mock<IProjectImageProvider>();
+            mock.Setup(p => p.GetProjectImage(It.IsAny<string>()))
+                .Returns(action);
+
+            return mock.Object;
+        }
+
+        public static IProjectImageProvider ImplementGetProjectImage(string key, ProjectImageMoniker moniker)
+        {
+            return IProjectImageProviderFactory.ImplementGetProjectImage((string k) => {
+
+                if (k == key)
+                {
+                    return moniker;
+                }
+
+                return null;
+            });
         }
     }
 }

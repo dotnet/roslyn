@@ -92,12 +92,10 @@ namespace Microsoft.VisualStudio.Testing
                 }
             }
 
-            ProjectImageMoniker IProjectTree.Icon
+            public ProjectImageMoniker Icon
             {
-                get
-                {
-                    throw new NotImplementedException();
-                }
+                get;
+                set;
             }
 
             IntPtr IProjectTree.Identity
@@ -222,7 +220,9 @@ namespace Microsoft.VisualStudio.Testing
 
             IProjectTree IProjectTree.SetIcon(ProjectImageMoniker icon)
             {
-                throw new NotImplementedException();
+                Icon = icon;
+
+                return this;
             }
 
             IProjectItemTree IProjectTree.SetItem(IProjectPropertiesContext context, IPropertySheet propertySheet, bool isLinked)

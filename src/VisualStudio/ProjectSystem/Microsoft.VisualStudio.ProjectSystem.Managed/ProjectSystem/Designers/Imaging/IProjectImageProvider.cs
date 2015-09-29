@@ -8,9 +8,9 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Imaging
     internal interface IProjectImageProvider
     {
         /// <summary>
-        ///     Returns the <see cref="ProjectImageMoniker"/> for the specified key, returning <see langword="false"/>
+        ///     Returns the <see cref="ProjectImageMoniker"/> for the specified key, returning <see langword="null"/>
         ///     if the provider does handle the specified key.
         /// </summary>
-        bool TryGetProjectImage(string key, out ProjectImageMoniker result);
+        ProjectImageMoniker GetProjectImage(string key);
     }
 }
