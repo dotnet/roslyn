@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
 {
     [ComVisible(true)]
-    [ComDefaultInterface(typeof(EnvDTE.CodeProperty))]
+    [ComDefaultInterface(typeof(EnvDTE80.CodeProperty2))]
     public sealed partial class CodeProperty : AbstractCodeMember, ICodeElementContainer<CodeParameter>, ICodeElementContainer<CodeAttribute>, EnvDTE.CodeProperty, EnvDTE80.CodeProperty2
     {
         internal static EnvDTE.CodeProperty Create(

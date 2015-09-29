@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
 {
     [ComVisible(true)]
-    [ComDefaultInterface(typeof(EnvDTE.CodeDelegate))]
+    [ComDefaultInterface(typeof(EnvDTE80.CodeDelegate2))]
     public sealed partial class CodeDelegate : AbstractCodeType, ICodeElementContainer<CodeParameter>, EnvDTE.CodeDelegate, EnvDTE80.CodeDelegate2
     {
         internal static EnvDTE.CodeDelegate Create(
