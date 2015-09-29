@@ -2671,7 +2671,7 @@ End Class
   // Code size        4 (0x4)
   .maxstack  2
   IL_0000:  ldarg.1
-  IL_0001:  dup
+  IL_0001:  ldarg.1
   IL_0002:  add.ovf
   IL_0003:  ret
 }")
