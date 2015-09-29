@@ -283,6 +283,7 @@
     <Compile Include="CodeModel\InternalElements\CodeVariable.cs" />
     <Compile Include="CodeModel\Interop\ApartmentSensitiveComObject.cs" />
     <Compile Include="CodeModel\Interop\CodeModelInterop.cs" />
+    <Compile Include="CodeModel\Interop\ICodeClassBase.cs" />
     <Compile Include="CodeModel\Interop\ICodeElements.cs" />
     <Compile Include="CodeModel\Interop\ICSCodeModelRefactoring.cs" />
     <Compile Include="CodeModel\Interop\IEventHandler.cs" />
@@ -297,7 +298,7 @@
     <Compile Include="CodeModel\MethodXml\AbstractMethodXmlBuilder.AutoTag.cs" />
     <Compile Include="CodeModel\MethodXml\AbstractMethodXmlBuilder.cs" />
     <Compile Include="CodeModel\MethodXml\BinaryOperatorKind.cs" />
-    <Compile Include="CodeModel\MethodXml\MetadataNameHelpers.cs" />
+    <Compile Include="CodeModel\MetadataNameHelpers.cs" />
     <Compile Include="CodeModel\MethodXml\VariableKind.cs" />
     <Compile Include="CodeModel\NodeKeyValidation.cs" />
     <Compile Include="CodeModel\ParentHandle.cs" />
