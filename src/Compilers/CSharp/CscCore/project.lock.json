@@ -34,7 +34,7 @@
           "System.Threading.Timer": "[4.0.1-beta-23321, 4.0.1-beta-23321]"
         }
       },
-      "Microsoft.NETCore.TestHost-x64/1.0.0-beta-23213": {},
+      "Microsoft.NETCore.TestHost/1.0.0-beta-23321": {},
       "Microsoft.NETCore.Windows.ApiSets/1.0.1-beta-23321": {},
       "System.AppContext/4.0.1-beta-23321": {
         "dependencies": {
@@ -56,6 +56,25 @@
         },
         "runtime": {
           "lib/DNXCore50/System.Collections.dll": {}
+        }
+      },
+      "System.Collections.Concurrent/4.0.10": {
+        "dependencies": {
+          "System.Collections": "[4.0.10, )",
+          "System.Diagnostics.Debug": "[4.0.10, )",
+          "System.Diagnostics.Tracing": "[4.0.20, )",
+          "System.Globalization": "[4.0.10, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Runtime.Extensions": "[4.0.10, )",
+          "System.Threading": "[4.0.10, )",
+          "System.Threading.Tasks": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Collections.Concurrent.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.Collections.Concurrent.dll": {}
         }
       },
       "System.Collections.Immutable/1.1.36": {
@@ -514,36 +533,17 @@
           "lib/dotnet/System.Runtime.Serialization.Primitives.dll": {}
         }
       },
-      "System.Security.Cryptography.Algorithms/4.0.0-beta-23311": {
+      "System.Security.Cryptography.Algorithms/4.0.0-beta-23321": {
         "dependencies": {
-          "System.IO": "[4.0.10, )",
-          "System.Resources.ResourceManager": "[4.0.0, )",
-          "System.Runtime": "[4.0.20, )",
-          "System.Runtime.Handles": "[4.0.0, )",
-          "System.Security.Cryptography.Primitives": "[4.0.0-beta-23311, )",
-          "System.Text.Encoding": "[4.0.0, )",
-          "System.Text.Encoding.Extensions": "[4.0.0, )"
+          "System.IO": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )",
+          "System.Security.Cryptography.Primitives": "[4.0.0-beta-23321, )"
         },
         "compile": {
           "ref/dotnet/System.Security.Cryptography.Algorithms.dll": {}
-        },
-        "runtime": {
-          "lib/DNXCore50/System.Security.Cryptography.Algorithms.dll": {}
         }
       },
-      "System.Security.Cryptography.Hashing.Algorithms/4.0.0-beta-23311": {
-        "dependencies": {
-          "System.Runtime": "[4.0.0, )",
-          "System.Security.Cryptography.Algorithms": "[4.0.0-beta-23311, )"
-        },
-        "compile": {
-          "lib/DNXCore50/System.Security.Cryptography.Hashing.Algorithms.dll": {}
-        },
-        "runtime": {
-          "lib/DNXCore50/System.Security.Cryptography.Hashing.Algorithms.dll": {}
-        }
-      },
-      "System.Security.Cryptography.Primitives/4.0.0-beta-23311": {
+      "System.Security.Cryptography.Primitives/4.0.0-beta-23321": {
         "dependencies": {
           "System.Diagnostics.Debug": "[4.0.0, )",
           "System.Globalization": "[4.0.0, )",
@@ -557,7 +557,7 @@
           "ref/dotnet/System.Security.Cryptography.Primitives.dll": {}
         },
         "runtime": {
-          "lib/DNXCore50/System.Security.Cryptography.Primitives.dll": {}
+          "lib/dotnet/System.Security.Cryptography.Primitives.dll": {}
         }
       },
       "System.Security.Principal/4.0.0": {
@@ -637,6 +637,24 @@
         },
         "runtime": {
           "lib/DNXCore50/System.Threading.Tasks.dll": {}
+        }
+      },
+      "System.Threading.Tasks.Parallel/4.0.1-beta-23321": {
+        "dependencies": {
+          "System.Collections.Concurrent": "[4.0.10, )",
+          "System.Diagnostics.Debug": "[4.0.10, )",
+          "System.Diagnostics.Tracing": "[4.0.20, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Runtime.Extensions": "[4.0.10, )",
+          "System.Threading": "[4.0.10, )",
+          "System.Threading.Tasks": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Threading.Tasks.Parallel.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.Threading.Tasks.Parallel.dll": {}
         }
       },
       "System.Threading.Thread/4.0.0-beta-23321": {
@@ -786,7 +804,7 @@
           "System.Threading.Timer": "[4.0.1-beta-23321, 4.0.1-beta-23321]"
         }
       },
-      "Microsoft.NETCore.TestHost-x64/1.0.0-beta-23213": {},
+      "Microsoft.NETCore.TestHost/1.0.0-beta-23321": {},
       "Microsoft.NETCore.Windows.ApiSets/1.0.1-beta-23321": {},
       "Microsoft.Win32.Primitives/4.0.0": {
         "dependencies": {
@@ -858,6 +876,24 @@
           "lib/dotnet/System.Runtime.Extensions.dll": {}
         }
       },
+      "runtime.linux.System.Security.Cryptography.Algorithms/4.0.0-beta-23321": {
+        "dependencies": {
+          "System.IO": "[4.0.10, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Runtime.Handles": "[4.0.0, )",
+          "System.Runtime.InteropServices": "[4.0.20, )",
+          "System.Security.Cryptography.Primitives": "[4.0.0-beta-23321, )",
+          "System.Text.Encoding": "[4.0.0, )",
+          "System.Text.Encoding.Extensions": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/_._": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.Security.Cryptography.Algorithms.dll": {}
+        }
+      },
       "runtime.ubuntu.14.04-x64.Microsoft.NETCore.Runtime.CoreCLR/1.0.1-beta-23321": {
         "compile": {
           "ref/dotnet/_._": {}
@@ -875,6 +911,11 @@
           "runtimes/ubuntu.14.04-x64/native/System.Native.so": {},
           "runtimes/ubuntu.14.04-x64/native/System.Net.Http.Native.so": {},
           "runtimes/ubuntu.14.04-x64/native/System.Security.Cryptography.Native.so": {}
+        }
+      },
+      "runtime.ubuntu.14.04-x64.Microsoft.NETCore.TestHost/1.0.0-beta-23321": {
+        "native": {
+          "runtimes/ubuntu.14.04-x64/native/CoreRun": {}
         }
       },
       "runtime.unix.System.Console/4.0.0-beta-23321": {
@@ -998,6 +1039,25 @@
         },
         "runtime": {
           "lib/DNXCore50/System.Collections.dll": {}
+        }
+      },
+      "System.Collections.Concurrent/4.0.10": {
+        "dependencies": {
+          "System.Collections": "[4.0.10, )",
+          "System.Diagnostics.Debug": "[4.0.10, )",
+          "System.Diagnostics.Tracing": "[4.0.20, )",
+          "System.Globalization": "[4.0.10, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Runtime.Extensions": "[4.0.10, )",
+          "System.Threading": "[4.0.10, )",
+          "System.Threading.Tasks": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Collections.Concurrent.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.Collections.Concurrent.dll": {}
         }
       },
       "System.Collections.Immutable/1.1.36": {
@@ -1470,36 +1530,17 @@
           "lib/dotnet/System.Runtime.Serialization.Primitives.dll": {}
         }
       },
-      "System.Security.Cryptography.Algorithms/4.0.0-beta-23311": {
+      "System.Security.Cryptography.Algorithms/4.0.0-beta-23321": {
         "dependencies": {
-          "System.IO": "[4.0.10, )",
-          "System.Resources.ResourceManager": "[4.0.0, )",
-          "System.Runtime": "[4.0.20, )",
-          "System.Runtime.Handles": "[4.0.0, )",
-          "System.Security.Cryptography.Primitives": "[4.0.0-beta-23311, )",
-          "System.Text.Encoding": "[4.0.0, )",
-          "System.Text.Encoding.Extensions": "[4.0.0, )"
+          "System.IO": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )",
+          "System.Security.Cryptography.Primitives": "[4.0.0-beta-23321, )"
         },
         "compile": {
           "ref/dotnet/System.Security.Cryptography.Algorithms.dll": {}
-        },
-        "runtime": {
-          "lib/DNXCore50/System.Security.Cryptography.Algorithms.dll": {}
         }
       },
-      "System.Security.Cryptography.Hashing.Algorithms/4.0.0-beta-23311": {
-        "dependencies": {
-          "System.Runtime": "[4.0.0, )",
-          "System.Security.Cryptography.Algorithms": "[4.0.0-beta-23311, )"
-        },
-        "compile": {
-          "lib/DNXCore50/System.Security.Cryptography.Hashing.Algorithms.dll": {}
-        },
-        "runtime": {
-          "lib/DNXCore50/System.Security.Cryptography.Hashing.Algorithms.dll": {}
-        }
-      },
-      "System.Security.Cryptography.Primitives/4.0.0-beta-23311": {
+      "System.Security.Cryptography.Primitives/4.0.0-beta-23321": {
         "dependencies": {
           "System.Diagnostics.Debug": "[4.0.0, )",
           "System.Globalization": "[4.0.0, )",
@@ -1513,7 +1554,7 @@
           "ref/dotnet/System.Security.Cryptography.Primitives.dll": {}
         },
         "runtime": {
-          "lib/DNXCore50/System.Security.Cryptography.Primitives.dll": {}
+          "lib/dotnet/System.Security.Cryptography.Primitives.dll": {}
         }
       },
       "System.Security.Principal/4.0.0": {
@@ -1593,6 +1634,24 @@
         },
         "runtime": {
           "lib/DNXCore50/System.Threading.Tasks.dll": {}
+        }
+      },
+      "System.Threading.Tasks.Parallel/4.0.1-beta-23321": {
+        "dependencies": {
+          "System.Collections.Concurrent": "[4.0.10, )",
+          "System.Diagnostics.Debug": "[4.0.10, )",
+          "System.Diagnostics.Tracing": "[4.0.20, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Runtime.Extensions": "[4.0.10, )",
+          "System.Threading": "[4.0.10, )",
+          "System.Threading.Tasks": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Threading.Tasks.Parallel.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.Threading.Tasks.Parallel.dll": {}
         }
       },
       "System.Threading.Thread/4.0.0-beta-23321": {
@@ -1759,11 +1818,7 @@
           "System.Threading.Timer": "[4.0.1-beta-23321, 4.0.1-beta-23321]"
         }
       },
-      "Microsoft.NETCore.TestHost-x64/1.0.0-beta-23213": {
-        "native": {
-          "runtimes/win7-x64/native/CoreRun.exe": {}
-        }
-      },
+      "Microsoft.NETCore.TestHost/1.0.0-beta-23321": {},
       "Microsoft.NETCore.Windows.ApiSets/1.0.1-beta-23321": {},
       "Microsoft.Win32.Primitives/4.0.0": {
         "dependencies": {
@@ -1809,6 +1864,11 @@
           "runtimes/win7-x64/native/mscordbi.dll": {},
           "runtimes/win7-x64/native/mscorrc.debug.dll": {},
           "runtimes/win7-x64/native/mscorrc.dll": {}
+        }
+      },
+      "runtime.win7-x64.Microsoft.NETCore.TestHost/1.0.0-beta-23321": {
+        "native": {
+          "runtimes/win7-x64/native/CoreRun.exe": {}
         }
       },
       "runtime.win7-x64.Microsoft.NETCore.Windows.ApiSets/1.0.1-beta-23321": {
@@ -2067,6 +2127,24 @@
           "lib/DNXCore50/System.Runtime.Extensions.dll": {}
         }
       },
+      "runtime.win7.System.Security.Cryptography.Algorithms/4.0.0-beta-23321": {
+        "dependencies": {
+          "System.IO": "[4.0.10, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Runtime.Handles": "[4.0.0, )",
+          "System.Runtime.InteropServices": "[4.0.20, )",
+          "System.Security.Cryptography.Primitives": "[4.0.0-beta-23321, )",
+          "System.Text.Encoding": "[4.0.0, )",
+          "System.Text.Encoding.Extensions": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/_._": {}
+        },
+        "runtime": {
+          "runtimes/win7/lib/dotnet/System.Security.Cryptography.Algorithms.dll": {}
+        }
+      },
       "runtime.win7.System.Text.Encoding.CodePages/4.0.1-beta-23321": {
         "dependencies": {
           "System.Collections": "[4.0.10, )",
@@ -2116,6 +2194,25 @@
         },
         "runtime": {
           "lib/DNXCore50/System.Collections.dll": {}
+        }
+      },
+      "System.Collections.Concurrent/4.0.10": {
+        "dependencies": {
+          "System.Collections": "[4.0.10, )",
+          "System.Diagnostics.Debug": "[4.0.10, )",
+          "System.Diagnostics.Tracing": "[4.0.20, )",
+          "System.Globalization": "[4.0.10, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Runtime.Extensions": "[4.0.10, )",
+          "System.Threading": "[4.0.10, )",
+          "System.Threading.Tasks": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Collections.Concurrent.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.Collections.Concurrent.dll": {}
         }
       },
       "System.Collections.Immutable/1.1.36": {
@@ -2588,36 +2685,17 @@
           "lib/dotnet/System.Runtime.Serialization.Primitives.dll": {}
         }
       },
-      "System.Security.Cryptography.Algorithms/4.0.0-beta-23311": {
+      "System.Security.Cryptography.Algorithms/4.0.0-beta-23321": {
         "dependencies": {
-          "System.IO": "[4.0.10, )",
-          "System.Resources.ResourceManager": "[4.0.0, )",
-          "System.Runtime": "[4.0.20, )",
-          "System.Runtime.Handles": "[4.0.0, )",
-          "System.Security.Cryptography.Primitives": "[4.0.0-beta-23311, )",
-          "System.Text.Encoding": "[4.0.0, )",
-          "System.Text.Encoding.Extensions": "[4.0.0, )"
+          "System.IO": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )",
+          "System.Security.Cryptography.Primitives": "[4.0.0-beta-23321, )"
         },
         "compile": {
           "ref/dotnet/System.Security.Cryptography.Algorithms.dll": {}
-        },
-        "runtime": {
-          "lib/DNXCore50/System.Security.Cryptography.Algorithms.dll": {}
         }
       },
-      "System.Security.Cryptography.Hashing.Algorithms/4.0.0-beta-23311": {
-        "dependencies": {
-          "System.Runtime": "[4.0.0, )",
-          "System.Security.Cryptography.Algorithms": "[4.0.0-beta-23311, )"
-        },
-        "compile": {
-          "lib/DNXCore50/System.Security.Cryptography.Hashing.Algorithms.dll": {}
-        },
-        "runtime": {
-          "lib/DNXCore50/System.Security.Cryptography.Hashing.Algorithms.dll": {}
-        }
-      },
-      "System.Security.Cryptography.Primitives/4.0.0-beta-23311": {
+      "System.Security.Cryptography.Primitives/4.0.0-beta-23321": {
         "dependencies": {
           "System.Diagnostics.Debug": "[4.0.0, )",
           "System.Globalization": "[4.0.0, )",
@@ -2631,7 +2709,7 @@
           "ref/dotnet/System.Security.Cryptography.Primitives.dll": {}
         },
         "runtime": {
-          "lib/DNXCore50/System.Security.Cryptography.Primitives.dll": {}
+          "lib/dotnet/System.Security.Cryptography.Primitives.dll": {}
         }
       },
       "System.Security.Principal/4.0.0": {
@@ -2723,6 +2801,24 @@
         },
         "runtime": {
           "lib/DNXCore50/System.Threading.Tasks.dll": {}
+        }
+      },
+      "System.Threading.Tasks.Parallel/4.0.1-beta-23321": {
+        "dependencies": {
+          "System.Collections.Concurrent": "[4.0.10, )",
+          "System.Diagnostics.Debug": "[4.0.10, )",
+          "System.Diagnostics.Tracing": "[4.0.20, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Runtime.Extensions": "[4.0.10, )",
+          "System.Threading": "[4.0.10, )",
+          "System.Threading.Tasks": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Threading.Tasks.Parallel.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.Threading.Tasks.Parallel.dll": {}
         }
       },
       "System.Threading.Thread/4.0.0-beta-23321": {
@@ -2888,15 +2984,15 @@
         "runtime.json"
       ]
     },
-    "Microsoft.NETCore.TestHost-x64/1.0.0-beta-23213": {
-      "sha512": "9ewco27jElurDDETH+6SltNecKAJE+ZVzMVNCvb0Ju0gkJEm7B+dOqIvSgtOymHtpyfkko/hwm+PHXjP1CLkCg==",
+    "Microsoft.NETCore.TestHost/1.0.0-beta-23321": {
+      "sha512": "DrGjBXZWFWnsOEJiVsqgEu3DFumzjouK9CaZdR8YC1eb9AIWcElJ2OkMT5bji3cEUFKtxXaYoK6BI4kGCZg0nw==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
-        "Microsoft.NETCore.TestHost-x64.nuspec",
-        "package/services/metadata/core-properties/dd955bfbc91347b4a3ef1ab48f8d4700.psmdcp",
-        "runtimes/win7-x64/native/CoreRun.exe"
+        "Microsoft.NETCore.TestHost.nuspec",
+        "package/services/metadata/core-properties/3382e022023547b5943fc63a7000aa68.psmdcp",
+        "runtime.json"
       ]
     },
     "Microsoft.NETCore.Windows.ApiSets/1.0.1-beta-23321": {
@@ -3002,6 +3098,18 @@
         "runtime.linux.System.Runtime.Extensions.nuspec"
       ]
     },
+    "runtime.linux.System.Security.Cryptography.Algorithms/4.0.0-beta-23321": {
+      "sha512": "VRvM9XvSoR0E67ygeRKNfZjgeLEG61cnRWRlBUWbJxOcAQA/pBdhMpwUCap5OdTs2iHUHC+Un41gHaxfFLkraw==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/dotnet/System.Security.Cryptography.Algorithms.dll",
+        "package/services/metadata/core-properties/24f03bb87f684050a65548cab6a58bf2.psmdcp",
+        "ref/dotnet/_._",
+        "runtime.linux.System.Security.Cryptography.Algorithms.nuspec"
+      ]
+    },
     "runtime.ubuntu.14.04-x64.Microsoft.NETCore.Runtime.CoreCLR/1.0.1-beta-23321": {
       "sha512": "utiFbeU7toM0VRG4D6A5qPM7gfeHHdSPeMhKRamOQu3R/T471TsyXqNPZkje8/W/gJMTVLmbQHtmWmVj/kJSxQ==",
       "type": "Package",
@@ -3021,6 +3129,17 @@
         "runtimes/ubuntu.14.04-x64/native/System.Native.so",
         "runtimes/ubuntu.14.04-x64/native/System.Net.Http.Native.so",
         "runtimes/ubuntu.14.04-x64/native/System.Security.Cryptography.Native.so"
+      ]
+    },
+    "runtime.ubuntu.14.04-x64.Microsoft.NETCore.TestHost/1.0.0-beta-23321": {
+      "sha512": "x1ebMcm2xYM95PXuR+0XxcIXrzwSIVzE7Q9OIpw8TZw3L3HW7Ygo0K+SOSgwjcqycY1rzuRprxOVdmanDfnmpA==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "package/services/metadata/core-properties/39b7faa3249643f491f11bab51f04522.psmdcp",
+        "runtime.ubuntu.14.04-x64.Microsoft.NETCore.TestHost.nuspec",
+        "runtimes/ubuntu.14.04-x64/native/CoreRun"
       ]
     },
     "runtime.unix.System.Console/4.0.0-beta-23321": {
@@ -3126,6 +3245,17 @@
         "runtimes/win7-x64/native/mscorrc.dll",
         "tools/crossgen.exe",
         "tools/sos.dll"
+      ]
+    },
+    "runtime.win7-x64.Microsoft.NETCore.TestHost/1.0.0-beta-23321": {
+      "sha512": "LGX+uhGoeB1smwtM9/08gxcAv3wz3fiHnnGFxlzlaIxKgBBKFSM9bwoqscMGdWrFeeg6JIPVu/OAkSzkB73YVA==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "package/services/metadata/core-properties/5481fc04851d44ac9d777297a45c288c.psmdcp",
+        "runtime.win7-x64.Microsoft.NETCore.TestHost.nuspec",
+        "runtimes/win7-x64/native/CoreRun.exe"
       ]
     },
     "runtime.win7-x64.Microsoft.NETCore.Windows.ApiSets/1.0.1-beta-23321": {
@@ -3505,6 +3635,18 @@
         "runtimes/win8-aot/lib/netcore50/zh-hant/System.Runtime.Extensions.xml"
       ]
     },
+    "runtime.win7.System.Security.Cryptography.Algorithms/4.0.0-beta-23321": {
+      "sha512": "F/h0kedZH+vciCt3KRpxWWczO3DFxAf3LALU3ig2bG19I01IZQCP2oqZJ8eis8ddG2rcg2gjcs4SiGmGuVo/aw==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "package/services/metadata/core-properties/b1551008505c45f79b008cf110018885.psmdcp",
+        "ref/dotnet/_._",
+        "runtime.win7.System.Security.Cryptography.Algorithms.nuspec",
+        "runtimes/win7/lib/dotnet/System.Security.Cryptography.Algorithms.dll"
+      ]
+    },
     "runtime.win7.System.Text.Encoding.CodePages/4.0.1-beta-23321": {
       "sha512": "0XPZ3FG5C/jV/uzM7YY9ZcdbBMyU3Bh1VmT3v0/EaTQllb9r7+oTy2egWyCdgiFDDKpdfiERVw9EJGQQA3nTDA==",
       "type": "Package",
@@ -3637,6 +3779,38 @@
         "runtimes/win8-aot/lib/netcore50/zh-hans/System.Collections.xml",
         "runtimes/win8-aot/lib/netcore50/zh-hant/System.Collections.xml",
         "System.Collections.nuspec"
+      ]
+    },
+    "System.Collections.Concurrent/4.0.10": {
+      "sha512": "ZtMEqOPAjAIqR8fqom9AOKRaB94a+emO2O8uOP6vyJoNswSPrbiwN7iH53rrVpvjMVx0wr4/OMpI7486uGZjbw==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/dotnet/System.Collections.Concurrent.dll",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net46/_._",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "package/services/metadata/core-properties/c982a1e1e1644b62952fc4d4dcbe0d42.psmdcp",
+        "ref/dotnet/de/System.Collections.Concurrent.xml",
+        "ref/dotnet/es/System.Collections.Concurrent.xml",
+        "ref/dotnet/fr/System.Collections.Concurrent.xml",
+        "ref/dotnet/it/System.Collections.Concurrent.xml",
+        "ref/dotnet/ja/System.Collections.Concurrent.xml",
+        "ref/dotnet/ko/System.Collections.Concurrent.xml",
+        "ref/dotnet/ru/System.Collections.Concurrent.xml",
+        "ref/dotnet/System.Collections.Concurrent.dll",
+        "ref/dotnet/System.Collections.Concurrent.xml",
+        "ref/dotnet/zh-hans/System.Collections.Concurrent.xml",
+        "ref/dotnet/zh-hant/System.Collections.Concurrent.xml",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net46/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "System.Collections.Concurrent.nuspec"
       ]
     },
     "System.Collections.Immutable/1.1.36": {
@@ -4793,62 +4967,41 @@
         "System.Runtime.Serialization.Primitives.nuspec"
       ]
     },
-    "System.Security.Cryptography.Algorithms/4.0.0-beta-23311": {
-      "sha512": "1l9b838cbDrV/KUwlnLmGTF2JbHBt7yJ0tw9mCl2LXZk31y+W0vzo0gA0RUfdr4ASvhF1dOzq6cUwolPScc7wQ==",
+    "System.Security.Cryptography.Algorithms/4.0.0-beta-23321": {
+      "sha512": "is3IkmQpNNBTyX5LTSUJUj/3vXpJTL/V60hwYP7TiXWdzXSBjF4l8Fit2ywQu/V1kvbqeae3e26hPJgghXwaKw==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
-        "lib/DNXCore50/System.Security.Cryptography.Algorithms.dll",
         "lib/MonoAndroid10/_._",
         "lib/MonoTouch10/_._",
         "lib/net46/System.Security.Cryptography.Algorithms.dll",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/da0ade3d3f8d461c8c5ecd436f3b2a22.psmdcp",
+        "package/services/metadata/core-properties/da68787786554786a3089796de8dc1aa.psmdcp",
         "ref/dotnet/System.Security.Cryptography.Algorithms.dll",
         "ref/MonoAndroid10/_._",
         "ref/MonoTouch10/_._",
         "ref/net46/System.Security.Cryptography.Algorithms.dll",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
+        "runtime.json",
         "System.Security.Cryptography.Algorithms.nuspec"
       ]
     },
-    "System.Security.Cryptography.Hashing.Algorithms/4.0.0-beta-23311": {
-      "sha512": "OR5tGGelqx20MGQpWT3kMw1pDg/auXwevZ/SynUt6Dl0Ac2SQ38WEzqmBvovvoTH/sqlKQFvBhQ/0yd4F/b2Ag==",
+    "System.Security.Cryptography.Primitives/4.0.0-beta-23321": {
+      "sha512": "/ikqSaAkgplWxYWEzu1r9g4ipQf6GERrkOOv7xNwbxMQx0Vi2y/MyJSbB14ePrcYLykJOa1c6rrPyLByAhtVyg==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
-        "de/System.Security.Cryptography.Hashing.Algorithms.xml",
-        "es/System.Security.Cryptography.Hashing.Algorithms.xml",
-        "fr/System.Security.Cryptography.Hashing.Algorithms.xml",
-        "it/System.Security.Cryptography.Hashing.Algorithms.xml",
-        "ja/System.Security.Cryptography.Hashing.Algorithms.xml",
-        "ko/System.Security.Cryptography.Hashing.Algorithms.xml",
-        "lib/DNXCore50/System.Security.Cryptography.Hashing.Algorithms.dll",
-        "package/services/metadata/core-properties/b491eccd83fc4bd0a4d0bcf7686b45f0.psmdcp",
-        "ru/System.Security.Cryptography.Hashing.Algorithms.xml",
-        "System.Security.Cryptography.Hashing.Algorithms.nuspec",
-        "System.Security.Cryptography.Hashing.Algorithms.xml",
-        "zh-hans/System.Security.Cryptography.Hashing.Algorithms.xml",
-        "zh-hant/System.Security.Cryptography.Hashing.Algorithms.xml"
-      ]
-    },
-    "System.Security.Cryptography.Primitives/4.0.0-beta-23311": {
-      "sha512": "znDa+79gOts4Kgfvy/JmZ6m5xLE4q7CJSCxkPFl3t+BJE7IXwwkUQ489oc7E02YrIm1EpnYTcyUnnI0EqmgGXQ==",
-      "type": "Package",
-      "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
-        "lib/DNXCore50/System.Security.Cryptography.Primitives.dll",
+        "lib/dotnet/System.Security.Cryptography.Primitives.dll",
         "lib/MonoAndroid10/_._",
         "lib/MonoTouch10/_._",
         "lib/net46/System.Security.Cryptography.Primitives.dll",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/f6e14f094dde4d3b88a6965aafad62f1.psmdcp",
+        "package/services/metadata/core-properties/7448df9f0cfa4428b5c3dced5b3e990a.psmdcp",
         "ref/dotnet/System.Security.Cryptography.Primitives.dll",
         "ref/MonoAndroid10/_._",
         "ref/MonoTouch10/_._",
@@ -5093,6 +5246,37 @@
         "System.Threading.Tasks.nuspec"
       ]
     },
+    "System.Threading.Tasks.Parallel/4.0.1-beta-23321": {
+      "sha512": "wDGHoyzdxm2h/QrDxcsCYzeJUvkS9hoW9gllghEvxqzgZoYZfsh4wbxxASDHdUoI1KSeHsdrzLLeIDGhSaWFOQ==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/dotnet/de/System.Threading.Tasks.Parallel.xml",
+        "lib/dotnet/es/System.Threading.Tasks.Parallel.xml",
+        "lib/dotnet/fr/System.Threading.Tasks.Parallel.xml",
+        "lib/dotnet/it/System.Threading.Tasks.Parallel.xml",
+        "lib/dotnet/ja/System.Threading.Tasks.Parallel.xml",
+        "lib/dotnet/ko/System.Threading.Tasks.Parallel.xml",
+        "lib/dotnet/ru/System.Threading.Tasks.Parallel.xml",
+        "lib/dotnet/System.Threading.Tasks.Parallel.dll",
+        "lib/dotnet/System.Threading.Tasks.Parallel.xml",
+        "lib/dotnet/zh-hans/System.Threading.Tasks.Parallel.xml",
+        "lib/dotnet/zh-hant/System.Threading.Tasks.Parallel.xml",
+        "lib/net45/_._",
+        "lib/netcore50/System.Threading.Tasks.Parallel.dll",
+        "lib/netcore50/System.Threading.Tasks.Parallel.xml",
+        "lib/win8/_._",
+        "lib/wpa81/_._",
+        "package/services/metadata/core-properties/1c6312253e7f4649ae729f75de7dd476.psmdcp",
+        "ref/dotnet/System.Threading.Tasks.Parallel.dll",
+        "ref/net45/_._",
+        "ref/netcore50/System.Threading.Tasks.Parallel.dll",
+        "ref/win8/_._",
+        "ref/wpa81/_._",
+        "System.Threading.Tasks.Parallel.nuspec"
+      ]
+    },
     "System.Threading.Thread/4.0.0-beta-23321": {
       "sha512": "LiwEM9FfFcKHbKKbJzBIU4RIVEDK1d3KdwGwV01putKnO2DEsxjRiunjCIaV5NYPqSTi/0gMybkak5iyomOZfA==",
       "type": "Package",
@@ -5294,7 +5478,7 @@
     "": [
       "Microsoft.NETCore.Platforms >= 1.0.1-beta-23321",
       "Microsoft.NETCore.Runtime.CoreCLR >= 1.0.1-beta-23321",
-      "Microsoft.NETCore.TestHost-x64 >= 1.0.0-beta-23213",
+      "Microsoft.NETCore.TestHost >= 1.0.0-beta-23321",
       "System.AppContext >= 4.0.1-beta-23321",
       "System.Collections >= 4.0.11-beta-23321",
       "System.Collections.Immutable >= 1.1.36",
@@ -5317,12 +5501,13 @@
       "System.Runtime.InteropServices >= 4.0.21-beta-23321",
       "System.Runtime.Loader >= 4.0.0-beta-23321",
       "System.Runtime.Serialization.Json >= 4.0.1-beta-23321",
-      "System.Security.Cryptography.Hashing.Algorithms >= 4.0.0-beta-23311",
+      "System.Security.Cryptography.Algorithms >= 4.0.0-beta-23321",
       "System.Text.Encoding >= 4.0.11-beta-23321",
       "System.Text.Encoding.CodePages >= 4.0.1-beta-23321",
       "System.Text.Encoding.Extensions >= 4.0.11-beta-23321",
       "System.Threading >= 4.0.11-beta-23321",
       "System.Threading.Tasks >= 4.0.11-beta-23321",
+      "System.Threading.Tasks.Parallel >= 4.0.1-beta-23321",
       "System.Threading.Thread >= 4.0.0-beta-23321",
       "System.Xml.XDocument >= 4.0.11-beta-23321",
       "System.Xml.XmlDocument >= 4.0.1-beta-23321"
