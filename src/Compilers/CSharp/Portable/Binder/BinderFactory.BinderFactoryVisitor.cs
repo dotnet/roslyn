@@ -805,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (!inUsing)
                         {
-                            result = new UsingsBinder(result);
+                            result = new ExternalUsingsBinder(result);
                         }
 
                         result = new InContainerBinder(compilation.GlobalNamespace, result);

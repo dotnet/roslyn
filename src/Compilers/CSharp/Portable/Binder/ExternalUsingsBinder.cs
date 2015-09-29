@@ -6,9 +6,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal class UsingsBinder : Binder //TODO (acasey): ExternalUsingsBinder
+    internal class ExternalUsingsBinder : Binder
     {
-        internal UsingsBinder(Binder next)
+        internal ExternalUsingsBinder(Binder next)
             : base(next)
         {
         }

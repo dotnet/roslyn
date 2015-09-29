@@ -187,7 +187,7 @@
     <Compile Include="Binder\SwitchBinder.cs" />
     <Compile Include="Binder\SimpleLocalScopeBinder.cs" />
     <Compile Include="Binder\TypeofBinder.cs" />
-    <Compile Include="Binder\UsingsBinder.cs" />
+    <Compile Include="Binder\ExternalUsingsBinder.cs" />
     <Compile Include="Binder\UsingStatementBinder.cs" />
     <Compile Include="Binder\WhileBinder.cs" />
     <Compile Include="Binder\WithClassTypeParametersBinder.cs" />
