@@ -1200,7 +1200,7 @@ System.Console.WriteLine();",
             VerifyClipboardData("2", expectedRtf: null, expectedRepl: null);
         }
 
-        [Fact]
+        [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
         public void PasteWithOutSelectionInReadOnlyArea()
         {
             Submit(
