@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 !symbol.IsSealed;
         }
 
-        public static bool IsImplementable(this ISymbol symbol)
+        public static bool IsImplementableMember(this ISymbol symbol)
         {
             if (symbol != null &&
                 symbol.ContainingType != null &&

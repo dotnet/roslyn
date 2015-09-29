@@ -6,8 +6,10 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Navigation;
+using Microsoft.CodeAnalysis.Editor.SymbolMapping;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
@@ -27,41 +29,87 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
 
             if (symbol != null)
             {
-                var solution = document.Project.Solution;
-                var implementations =
-                    SymbolFinder.FindImplementationsAsync(
-                        symbol,
-                        solution,
-                        cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken).ToList();
+                // Map the symbol if necessary back to the originating workspace if we're invoking from something
+                // like metadata as source
+                var mappingService = document.Project.Solution.Workspace.Services.GetRequiredService<ISymbolMappingService>();
+                var mapping = mappingService.MapSymbolAsync(document, symbol, cancellationToken).WaitAndGetResult(cancellationToken);
 
-                if (implementations.Count == 0)
+                if (mapping != null)
                 {
-                    message = EditorFeaturesResources.SymbolHasNoImplementations;
-                    return false;
+                    return TryGoToImplementationOnMappedSymbol(mapping, cancellationToken, out message);
                 }
-                else if (implementations.Count == 1)
+            }
+
+            message = EditorFeaturesResources.CannotNavigateToTheSymbol;
+            return false;
+        }
+
+        private bool TryGoToImplementationOnMappedSymbol(SymbolMappingResult mapping, CancellationToken cancellationToken, out string message)
+        {
+            if (mapping.Symbol.IsInterfaceType() || mapping.Symbol.IsImplementableMember())
+            {
+                var implementations =
+                    SymbolFinder.FindImplementationsAsync(mapping.Symbol, mapping.Solution, cancellationToken: cancellationToken)
+                        .WaitAndGetResult(cancellationToken)
+                        .Where(s => s.Locations.Any(l => l.IsInSource))
+                        .ToList();
+
+                return TryGoToImplementations(mapping, implementations, cancellationToken, out message);
+            }
+            else if (mapping.Symbol.IsOverridable())
+            {
+                var overrides = 
+                    SymbolFinder.FindOverridesAsync(mapping.Symbol, mapping.Solution, cancellationToken: cancellationToken)
+                        .WaitAndGetResult(cancellationToken)
+                        .ToList();
+
+                // If the original symbol isn't abstract, then it's an implementation too
+                if (!mapping.Symbol.IsAbstract)
                 {
-                    GoToDefinition.GoToDefinitionHelpers.TryGoToDefinition(implementations.Single(), document.Project, _navigableItemPresenters, cancellationToken);
+                    overrides.Add(mapping.Symbol);
+                }
+
+                return TryGoToImplementations(mapping, overrides, cancellationToken, out message);
+            }
+            else
+            {
+                // This is something boring like a regular method or type, so we'll just go there directly
+                if (GoToDefinition.GoToDefinitionHelpers.TryGoToDefinition(mapping.Symbol, mapping.Project, _navigableItemPresenters, cancellationToken))
+                {
                     message = null;
                     return true;
                 }
                 else
                 {
-                    // We have multiple symbols, so we'll build a list of all preferred locations for all the symbols
-                    var navigableItems = implementations.SelectMany(
-                        implementation => CreateItemsForImplementation(implementation, solution));
-
-                    var presenter = _navigableItemPresenters.First();
-                    presenter.Value.DisplayResult(NavigableItemFactory.GetSymbolDisplayString(document.Project, symbol), navigableItems);
+                    message = EditorFeaturesResources.CannotNavigateToTheSymbol;
+                    return false;
                 }
+            }
+        }
 
+        private bool TryGoToImplementations(SymbolMappingResult mapping, IList<ISymbol> implementations, CancellationToken cancellationToken, out string message)
+        {
+            if (implementations.Count == 0)
+            {
+                message = EditorFeaturesResources.SymbolHasNoImplementations;
+                return false;
+            }
+            else if (implementations.Count == 1)
+            {
+                GoToDefinition.GoToDefinitionHelpers.TryGoToDefinition(implementations.Single(), mapping.Project, _navigableItemPresenters, cancellationToken);
                 message = null;
                 return true;
             }
             else
             {
-                message = EditorFeaturesResources.CannotNavigateToTheSymbol;
-                return false;
+                // We have multiple symbols, so we'll build a list of all preferred locations for all the symbols
+                var navigableItems = implementations.SelectMany(
+                    implementation => CreateItemsForImplementation(implementation, mapping.Solution));
+
+                var presenter = _navigableItemPresenters.First();
+                presenter.Value.DisplayResult(NavigableItemFactory.GetSymbolDisplayString(mapping.Project, mapping.Symbol), navigableItems);
+                message = null;
+                return true;
             }
         }
 
