@@ -155,8 +155,8 @@ build_roslyn()
     local bootstrapArg=""
 
     if [ "$OS_NAME" == "Linux" ]; then
-      bootstrapArg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap /p:CscToolExe=csc.sh \
-/p:VbcToolPath=$(pwd)/Binaries/Bootstrap /p:VbcToolExe=vbc.sh"
+      bootstrapArg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap /p:CscToolExe=csc \
+/p:VbcToolPath=$(pwd)/Binaries/Bootstrap /p:VbcToolExe=vbc"
     fi
 
     echo Building CrossPlatform.sln
