@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             try
             {
-                if (CoreClrShim.IsCoreClr)
+                if (CoreClrShim.CodePagesEncodingProvider.Type != null)
                 {
                     // If we're running on CoreCLR we have to register the CodePagesEncodingProvider
                     // first
