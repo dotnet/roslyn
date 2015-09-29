@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IValue As IExpression Implements IAssignmentExpression.Value
             Get
-                If ExpressionKind() = OperationKind.CompoundAssignment Then
+                If ExpressionKind() = OperationKind.CompoundAssignmentExpression Then
                     Dim rightBinary As BoundBinaryOperator = TryCast(Me.Right, BoundBinaryOperator)
                     If rightBinary IsNot Nothing Then
                         Return rightBinary.Right
@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IBinaryKind As BinaryOperationKind Implements ICompoundAssignmentExpression.BinaryKind
             Get
-                If ExpressionKind() = OperationKind.CompoundAssignment Then
+                If ExpressionKind() = OperationKind.CompoundAssignmentExpression Then
                     Dim rightBinary As BoundBinaryOperator = TryCast(Me.Right, BoundBinaryOperator)
                     If rightBinary IsNot Nothing Then
                         Return Expression.DeriveBinaryOperationKind(rightBinary.OperatorKind, Me.Left)
@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IHasOperatorExpression.UsesOperatorMethod
             Get
-                If ExpressionKind() = OperationKind.CompoundAssignment Then
+                If ExpressionKind() = OperationKind.CompoundAssignmentExpression Then
                     Return TypeOf Me.Right Is BoundUserDefinedBinaryOperator
                 End If
 
@@ -149,36 +149,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim rightBinary As BoundBinaryOperator = TryCast(Me.Right, BoundBinaryOperator)
             If rightBinary IsNot Nothing Then
                 If TypeOf rightBinary.Left Is BoundCompoundAssignmentTargetPlaceholder Then
-                    Return OperationKind.CompoundAssignment
+                    Return OperationKind.CompoundAssignmentExpression
                 End If
             End If
 
             Dim rightOperatorBinary As BoundUserDefinedBinaryOperator = TryCast(Me.Right, BoundUserDefinedBinaryOperator)
             If rightOperatorBinary IsNot Nothing Then
                 If TypeOf rightOperatorBinary.Left Is BoundCompoundAssignmentTargetPlaceholder Then
-                    Return OperationKind.CompoundAssignment
+                    Return OperationKind.CompoundAssignmentExpression
                 End If
             End If
 
-            Return OperationKind.Assignment
+            Return OperationKind.AssignmentExpression
         End Function
     End Class
 
     Partial Class BoundMeReference
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.Instance
+            Return OperationKind.InstanceExpression
         End Function
     End Class
 
     Partial Class BoundMyBaseReference
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.BaseClassInstance
+            Return OperationKind.BaseClassInstanceExpression
         End Function
     End Class
 
     Partial Class BoundMyClassReference
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.ClassInstance
+            Return OperationKind.ClassInstanceExpression
         End Function
     End Class
 
@@ -192,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.Literal
+            Return OperationKind.LiteralExpression
         End Function
     End Class
 
@@ -206,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.Await
+            Return OperationKind.AwaitExpression
         End Function
     End Class
 
@@ -226,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.Lambda
+            Return OperationKind.LambdaExpression
         End Function
     End Class
 
@@ -270,7 +270,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.Invocation
+            Return OperationKind.InvocationExpression
         End Function
 
         Friend Shared Function ArgumentMatchingParameter(arguments As ImmutableArray(Of BoundExpression), parameter As IParameterSymbol, parameters As ImmutableArray(Of Symbols.ParameterSymbol)) As IArgument
@@ -394,7 +394,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Class BoundOmittedArgument
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.Omitted
+            Return OperationKind.OmittedArgumentExpression
         End Function
     End Class
 
@@ -408,7 +408,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.Parenthesized
+            Return OperationKind.ParenthesizedExpression
         End Function
     End Class
 
@@ -434,7 +434,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.ArrayElementReference
+            Return OperationKind.ArrayElementReferenceExpression
         End Function
     End Class
 
@@ -466,7 +466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.UnaryOperator
+            Return OperationKind.UnaryOperatorExpression
         End Function
     End Class
 
@@ -507,7 +507,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.UnaryOperator
+            Return OperationKind.UnaryOperatorExpression
         End Function
     End Class
 
@@ -545,7 +545,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.BinaryOperator
+            Return OperationKind.BinaryOperatorExpression
         End Function
 
     End Class
@@ -630,7 +630,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     BinaryOperatorKind.LessThan, BinaryOperatorKind.LessThanOrEqual, BinaryOperatorKind.Equals, BinaryOperatorKind.NotEquals,
                     BinaryOperatorKind.Is, BinaryOperatorKind.IsNot, BinaryOperatorKind.Like, BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.GreaterThan
 
-                    Return OperationKind.BinaryOperator
+                    Return OperationKind.BinaryOperatorExpression
             End Select
 
             Return OperationKind.None
@@ -653,7 +653,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.NullCoalescing
+            Return OperationKind.NullCoalescingExpression
         End Function
     End Class
 
@@ -691,7 +691,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.BinaryOperator
+            Return OperationKind.BinaryOperatorExpression
         End Function
     End Class
 
@@ -735,7 +735,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.Conversion
+            Return OperationKind.ConversionExpression
         End Function
     End Class
 
@@ -773,7 +773,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.Conversion
+            Return OperationKind.ConversionExpression
         End Function
     End Class
 
@@ -811,7 +811,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.Conversion
+            Return OperationKind.ConversionExpression
         End Function
     End Class
 
@@ -849,7 +849,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.Conversion
+            Return OperationKind.ConversionExpression
         End Function
     End Class
 
@@ -875,7 +875,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.ConditionalChoice
+            Return OperationKind.ConditionalChoiceExpression
         End Function
     End Class
 
@@ -895,7 +895,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.Is
+            Return OperationKind.IsExpression
         End Function
     End Class
 
@@ -930,13 +930,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.ObjectCreation
+            Return OperationKind.ObjectCreationExpression
         End Function
     End Class
 
     Partial Class BoundNewT
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.TypeParameterObjectCreation
+            Return OperationKind.TypeParameterObjectCreationExpression
         End Function
     End Class
 
@@ -972,7 +972,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.ArrayCreation
+            Return OperationKind.ArrayCreationExpression
         End Function
 
         Private Shared ArrayInitializerMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundArrayInitialization, IArrayInitializer)
@@ -1061,7 +1061,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.PropertyReference
+            Return OperationKind.PropertyReferenceExpression
         End Function
     End Class
 
@@ -1087,7 +1087,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.FieldReference
+            Return OperationKind.FieldReferenceExpression
         End Function
     End Class
 
@@ -1101,7 +1101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.ConditionalAccess
+            Return OperationKind.ConditionalAccessExpression
         End Function
     End Class
 
@@ -1121,7 +1121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.ParameterReference
+            Return OperationKind.ParameterReferenceExpression
         End Function
     End Class
 
@@ -1141,7 +1141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.LocalReference
+            Return OperationKind.LocalReferenceExpression
         End Function
     End Class
 
@@ -1167,7 +1167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.LateBoundMemberReference
+            Return OperationKind.LateBoundMemberReferenceExpression
         End Function
     End Class
 

@@ -458,7 +458,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public ReadOnly Property Kind As OperationKind Implements IOperation.Kind
                 Get
-                    Return OperationKind.TemporaryReference
+                    Return OperationKind.TemporaryReferenceExpression
                 End Get
             End Property
 

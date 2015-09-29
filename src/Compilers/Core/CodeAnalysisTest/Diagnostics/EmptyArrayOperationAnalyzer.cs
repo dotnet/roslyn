@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                             }
                         }
                     },
-                OperationKind.ArrayCreation);
+                OperationKind.ArrayCreationExpression);
         }
     }
 }

@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public SyntaxNode Syntax { get; }
 
-        public OperationKind Kind => OperationKind.ConditionalChoice;
+        public OperationKind Kind => OperationKind.ConditionalChoiceExpression;
 
         public object ConstantValue => null;
     }
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             public ITypeSymbol ResultType => this.Target.ResultType;
 
-            public OperationKind Kind => OperationKind.Assignment;
+            public OperationKind Kind => OperationKind.AssignmentExpression;
 
             public object ConstantValue => null;
         }
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             public ITypeSymbol ResultType => this.Target.ResultType;
 
-            public OperationKind Kind => OperationKind.CompoundAssignment;
+            public OperationKind Kind => OperationKind.CompoundAssignmentExpression;
 
             public object ConstantValue => null;
 
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public ITypeSymbol ResultType { get; }
 
-        public OperationKind Kind => OperationKind.Literal;
+        public OperationKind Kind => OperationKind.LiteralExpression;
 
         public object ConstantValue => _value;
 
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public ITypeSymbol ResultType { get; }
 
-        public OperationKind Kind => OperationKind.Literal;
+        public OperationKind Kind => OperationKind.LiteralExpression;
 
         public object ConstantValue => _value.Value;
 
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public ITypeSymbol ResultType { get; }
 
-        public OperationKind Kind => OperationKind.BinaryOperator;
+        public OperationKind Kind => OperationKind.BinaryOperatorExpression;
 
         public object ConstantValue => null;
 
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public SyntaxNode Syntax { get; }
 
-        public OperationKind Kind => OperationKind.ArrayCreation;
+        public OperationKind Kind => OperationKind.ArrayCreationExpression;
 
         public object ConstantValue => null;
 
