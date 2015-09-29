@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.Editor.SymbolMapping;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
@@ -45,15 +46,49 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
 
         private bool TryGoToImplementationOnMappedSymbol(SymbolMappingResult mapping, CancellationToken cancellationToken, out string message)
         {
-            var implementations =
-                SymbolFinder.FindImplementationsAsync(
-                    mapping.Symbol,
-                    mapping.Solution,
-                    cancellationToken: cancellationToken)
-                    .WaitAndGetResult(cancellationToken)
-                    .Where(s => s.Locations.Any(l => l.IsInSource))
-                    .ToList();
+            if (mapping.Symbol.IsInterfaceType() || mapping.Symbol.IsImplementableMember())
+            {
+                var implementations =
+                    SymbolFinder.FindImplementationsAsync(mapping.Symbol, mapping.Solution, cancellationToken: cancellationToken)
+                        .WaitAndGetResult(cancellationToken)
+                        .Where(s => s.Locations.Any(l => l.IsInSource))
+                        .ToList();
 
+                return TryGoToImplementations(mapping, implementations, cancellationToken, out message);
+            }
+            else if (mapping.Symbol.IsOverridable())
+            {
+                var overrides = 
+                    SymbolFinder.FindOverridesAsync(mapping.Symbol, mapping.Solution, cancellationToken: cancellationToken)
+                        .WaitAndGetResult(cancellationToken)
+                        .ToList();
+
+                // If the original symbol isn't abstract, then it's an implementation too
+                if (!mapping.Symbol.IsAbstract)
+                {
+                    overrides.Add(mapping.Symbol);
+                }
+
+                return TryGoToImplementations(mapping, overrides, cancellationToken, out message);
+            }
+            else
+            {
+                // This is something boring like a regular method or type, so we'll just go there directly
+                if (GoToDefinition.GoToDefinitionHelpers.TryGoToDefinition(mapping.Symbol, mapping.Project, _navigableItemPresenters, cancellationToken))
+                {
+                    message = null;
+                    return true;
+                }
+                else
+                {
+                    message = EditorFeaturesResources.CannotNavigateToTheSymbol;
+                    return false;
+                }
+            }
+        }
+
+        private bool TryGoToImplementations(SymbolMappingResult mapping, IList<ISymbol> implementations, CancellationToken cancellationToken, out string message)
+        {
             if (implementations.Count == 0)
             {
                 message = EditorFeaturesResources.SymbolHasNoImplementations;
@@ -73,10 +108,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
 
                 var presenter = _navigableItemPresenters.First();
                 presenter.Value.DisplayResult(NavigableItemFactory.GetSymbolDisplayString(mapping.Project, mapping.Symbol), navigableItems);
+                message = null;
+                return true;
             }
-
-            message = null;
-            return true;
         }
 
         private static IEnumerable<INavigableItem> CreateItemsForImplementation(ISymbol implementation, Solution solution)
