@@ -23,5 +23,21 @@ namespace Microsoft.VisualStudio.ProjectSystem
         {
             get;
         }
+
+        /// <summary>
+        ///     Gets the current active <see cref="ConfiguredProject"/>.
+        /// </summary>
+        ConfiguredProject ActiveConfiguredProject
+        {
+            get;
+        }
+
+        /// <summary>
+        ///     Gets the <see cref="ProjectProperties"/> of the currently active configured project.
+        /// </summary>
+        ProjectProperties ActiveConfiguredProjectProperties
+        {
+            get;
+        }
     }
 }

@@ -138,8 +138,11 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Mocks\IActiveConfiguredProjectFactory.cs" />
+    <Compile Include="Mocks\ProjectPropertiesFactory.cs" />
     <Compile Include="Mocks\IProjectImageProviderFactory.cs" />
     <Compile Include="Mocks\IProjectTreeProviderFactory.cs" />
+    <Compile Include="Mocks\IConfiguredProjectFactory.cs" />
     <Compile Include="Mocks\IUnconfiguredProjectFactory.cs" />
     <Compile Include="Mocks\IProjectFeaturesFactory.cs" />
     <Compile Include="Mocks\IThreadHandlingFactory.cs" />

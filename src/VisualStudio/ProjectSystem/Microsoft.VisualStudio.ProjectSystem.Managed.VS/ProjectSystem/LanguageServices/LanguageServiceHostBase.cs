@@ -100,16 +100,6 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
         }
 
         /// <summary>
-        /// Gets or sets exports from the active configured project.
-        /// </summary>
-        [Import]
-        private ActiveConfiguredProject<ActiveConfiguredProjectHelper> ActiveConfigurationExports
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
         /// Gets or sets the Visual Studio IServiceProvider.
         /// </summary>
         [Import]
@@ -316,7 +306,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
 
             HResult hr = HrInvoke(async delegate
             {
-                var generalProperties = await ActiveConfigurationExports.Value.Properties.Value.GetConfigurationGeneralPropertiesAsync();
+                var generalProperties = await _projectVsServices.ActiveConfiguredProjectProperties.GetConfigurationGeneralPropertiesAsync();
 
                 switch (dwPropID)
                 {
@@ -367,7 +357,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
             string pbstrOutputAssembly = null;
             HResult hr = HrInvoke(async delegate
             {
-                var generalProperties = await ActiveConfigurationExports.Value.Properties.Value.GetConfigurationGeneralPropertiesAsync();
+                var generalProperties = await _projectVsServices.ActiveConfiguredProjectProperties.GetConfigurationGeneralPropertiesAsync();
                 pbstrOutputAssembly = await generalProperties.TargetPath.GetEvaluatedValueAtEndAsync();
             });
 
@@ -650,33 +640,6 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
 
                     Marshal.ThrowExceptionForHR(_intellisenseEngine.StartIntellisenseEngine());
                 }
-            }
-        }
-
-        /// <summary>
-        /// A class that has ConfiguredProject-level imports.
-        /// </summary>
-        [Export]
-        private class ActiveConfiguredProjectHelper
-        {
-            /// <summary>
-            /// Gets the configured project instance.
-            /// </summary>
-            [Import]
-            internal ConfiguredProject ConfiguredProject
-            {
-                get;
-                private set;
-            }
-
-            /// <summary>
-            /// Gets the project properties rule accessors.
-            /// </summary>
-            [Import]
-            internal Lazy<ProjectProperties> Properties
-            {
-                get;
-                set;
             }
         }
 

@@ -45,5 +45,15 @@ namespace Microsoft.VisualStudio.ProjectSystem
         {
             get { return _commonServices.ThreadingPolicy; }
         }
+
+        public ConfiguredProject ActiveConfiguredProject
+        {
+            get { return _commonServices.ActiveConfiguredProject; }
+        }
+
+        public ProjectProperties ActiveConfiguredProjectProperties
+        {
+            get { return _commonServices.ActiveConfiguredProjectProperties; }
+        }
     }
 }
