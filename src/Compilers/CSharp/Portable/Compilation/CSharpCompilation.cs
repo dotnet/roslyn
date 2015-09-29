@@ -1220,26 +1220,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var externalUsings = ArrayBuilder<NamespaceOrTypeAndUsingDirective>.GetInstance();
             var uniqueTargets = PooledHashSet<NamespaceOrTypeSymbol>.GetInstance();
 
-            foreach (var previousUsing in previousSubmission.ExternalUsings)
-            {
-                var previousTarget = previousUsing.NamespaceOrType;
-                if (previousTarget.IsType)
-                {
-                    if (uniqueTargets.Add(previousTarget))
-                    {
-                        externalUsings.Add(previousUsing);
-                    }
-                }
-                else
-                { 
-                    var expandedNamespace = ExpandPreviousSubmissionNamespace((NamespaceSymbol)previousTarget, this.GlobalNamespace);
-                    if (uniqueTargets.Add(expandedNamespace))
-                    {
-                        externalUsings.Add(new NamespaceOrTypeAndUsingDirective(expandedNamespace, previousUsing.UsingDirective));
-                    }
-                }
-            }
-
             // The previous submission should not have had extern aliases (unsupported)
             // and using aliases are handled separately (during lookup) so we only need
             // to extract the regular usings.
@@ -1258,7 +1238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //}
             //else
             {
-                foreach (var previousUsing in previousSubmission.SubmissionImports.Usings)
+                foreach (var previousUsing in previousSubmission.ExternalUsings.Concat(previousSubmission.SubmissionImports.Usings))
                 {
                     var previousTarget = previousUsing.NamespaceOrType;
                     if (previousTarget.IsType)
@@ -1324,7 +1304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Always consider whether usings should be considered before accessing this (e.g. not when binding other usings).
         /// </remarks>
-        internal Dictionary<string, AliasAndUsingDirective> SubmissionUsingAliases => SubmissionImports?.UsingAliases;
+        internal ImmutableDictionary<string, AliasAndUsingDirective> SubmissionUsingAliases => SubmissionImports?.UsingAliases;
 
         private Imports SubmissionImports
         {

@@ -1504,17 +1504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var usingAlias in usingAliases)
                     {
-                        var aliasSymbol = usingAlias.Alias;
-                        var targetSymbol = aliasSymbol.GetAliasTarget(basesBeingResolved: null);
-                        if (originalBinder.CanAddLookupSymbolInfo(targetSymbol, options, null))
-                        {
-                            // Note: we do not mark nodes when looking up arities or names.  This is because these two
-                            // types of lookup are only around to make the public
-                            // SemanticModel.LookupNames/LookupSymbols work and do not count as usages of the directives
-                            // when the actual code is bound.
-
-                            result.AddSymbol(aliasSymbol, aliasSymbol.Name, 0);
-                        }
+                        AddAliasSymbolToResult(result, usingAlias.Alias, options, originalBinder);
                     }
                 }
 
@@ -1522,6 +1512,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     AddMemberLookupSymbolsInfoWithoutInheritance(result, submission.ScriptClass, options, originalBinder, scriptClass);
                 }
+            }
+        }
+
+        /// <remarks>
+        /// Note: we do not mark nodes when looking up arities or names.  This is because these two
+        /// types of lookup are only around to make the public
+        /// SemanticModel.LookupNames/LookupSymbols work and do not count as usages of the directives
+        /// when the actual code is bound.
+        /// </remarks>
+        internal static void AddAliasSymbolToResult(LookupSymbolsInfo result, AliasSymbol aliasSymbol, LookupOptions options, Binder originalBinder)
+        {
+            var targetSymbol = aliasSymbol.GetAliasTarget(basesBeingResolved: null);
+            if (originalBinder.CanAddLookupSymbolInfo(targetSymbol, options, null))
+            {
+                result.AddSymbol(aliasSymbol, aliasSymbol.Name, 0);
             }
         }
 

@@ -318,7 +318,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void MarkImportDirective(CSharpCompilation compilation, CSharpSyntaxNode directive, bool callerIsSemanticModel)
         {
-            if (directive != null && compilation != null && !callerIsSemanticModel)
+            Debug.Assert(compilation != null); // If any directives are used, then there must be a compilation.
+            if (directive != null && !callerIsSemanticModel)
             {
                 compilation.MarkImportDirectiveAsUsed(directive);
             }
@@ -598,25 +599,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var usingAlias in this.UsingAliases.Values)
             {
-                var usingAliasSymbol = usingAlias.Alias;
-                var usingAliasTargetSymbol = usingAliasSymbol.GetAliasTarget(basesBeingResolved: null);
-                if (originalBinder.CanAddLookupSymbolInfo(usingAliasTargetSymbol, options, null))
-                {
-                    result.AddSymbol(usingAliasSymbol, usingAliasSymbol.Name, 0);
-                }
+                Binder.AddAliasSymbolToResult(result, usingAlias.Alias, options, originalBinder);
             }
 
-            if (this.ExternAliases != null)
+            foreach (var externAlias in this.ExternAliases)
             {
-                foreach (var externAlias in this.ExternAliases)
-                {
-                    var externAliasSymbol = externAlias.Alias;
-                    var externAliasTargetSymbol = externAliasSymbol.GetAliasTarget(basesBeingResolved: null);
-                    if (originalBinder.CanAddLookupSymbolInfo(externAliasTargetSymbol, options, null))
-                    {
-                        result.AddSymbol(externAliasSymbol, externAliasSymbol.Name, 0);
-                    }
-                }
+                Binder.AddAliasSymbolToResult(result, externAlias.Alias, options, originalBinder);
             }
         }
 
