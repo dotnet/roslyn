@@ -81,108 +81,6 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
         }
 
         [Fact]
-        public void ApplyModifications_RootWithZeroChildren_ReturnsUnmodifiedTree()
-        {
-            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
-            var projectTreeProvider = IProjectTreeProviderFactory.Create();
-            var modifier = CreateInstance(features);
-
-            var tree = ProjectTreeParser.Parse(@"
-Root (capabilities: {ProjectRoot})"
-);
-
-            var result = modifier.ApplyModifications(tree, projectTreeProvider);
-
-            AssertAreEquivalent(tree, result);
-        }
-
-        [Fact]
-        public void ApplyModifications_TreeWithMyProjectFolder_ReturnsUnmodifiedTree()
-        {
-            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
-            var projectTreeProvider = IProjectTreeProviderFactory.Create();
-            var modifier = CreateInstance(features);
-
-            var tree = ProjectTreeParser.Parse(@"
-Root (capabilities: {ProjectRoot})
-    My Project (capabilities: {Folder})
-");
-
-            var result = modifier.ApplyModifications(tree, projectTreeProvider);
-
-            AssertAreEquivalent(tree, result);
-        }
-
-        [Fact]
-        public void ApplyModifications_TreeWithNormalFolder_ReturnsUnmodifiedTree()
-        {
-            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => false);
-            var projectTreeProvider = IProjectTreeProviderFactory.Create();
-            var modifier = CreateInstance(features);
-
-            var tree = ProjectTreeParser.Parse(@"
-Root (capabilities: {ProjectRoot})
-    Folder (capabilities: {Folder})
-");
-
-            var result = modifier.ApplyModifications(tree, projectTreeProvider);
-
-            AssertAreEquivalent(tree, result);
-        }
-
-        [Fact]
-        public void ApplyModifications_TreeWithFileCalledProperties_ReturnsUnmodifiedTree()
-        {
-            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
-            var projectTreeProvider = IProjectTreeProviderFactory.Create();
-            var modifier = CreateInstance(features);
-
-            var tree = ProjectTreeParser.Parse(@"
-Root (capabilities: {ProjectRoot})
-    Properties (capabilities: {})
-");
-
-            var result = modifier.ApplyModifications(tree, projectTreeProvider);
-
-            AssertAreEquivalent(tree, result);
-        }
-
-        [Fact]
-        public void ApplyModifications_TreeWithExcludedPropertiesFolder_ReturnsUnmodifiedTree()
-        {
-            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
-            var projectTreeProvider = IProjectTreeProviderFactory.Create();
-            var modifier = CreateInstance(features);
-
-            var tree = ProjectTreeParser.Parse(@"
-Root (capabilities: {ProjectRoot})
-    Properties (capabilities: {Folder IncludeInProjectCandidate})
-");
-
-            var result = modifier.ApplyModifications(tree, projectTreeProvider);
-
-            AssertAreEquivalent(tree, result);
-        }
-
-        [Fact]
-        public void ApplyModifications_TreeWithNestedPropertiesFolder_ReturnsUnmodifiedTree()
-        {
-            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
-            var projectTreeProvider = IProjectTreeProviderFactory.Create();
-            var modifier = CreateInstance(features);
-
-            var tree = ProjectTreeParser.Parse(@"
-Root (capabilities: {ProjectRoot})
-    Parent
-        Properties (capabilities: {Folder})
-");
-
-            var result = modifier.ApplyModifications(tree, projectTreeProvider);
-
-            AssertAreEquivalent(tree, result);
-        }
-
-        [Fact]
         public void ApplyModifications_TreeWithPropertiesCandidateButSupportsProjectDesignerFalse_ReturnsUnmodifiedTree()
         {
             var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => false);   // Don't support AppDesigner
@@ -199,61 +97,241 @@ Root (capabilities: {ProjectRoot})
             AssertAreEquivalent(tree, result);
         }
 
-        [Fact]
-        public void ApplyModifications_TreeWithPropertiesCandidateAlreadyMarkedAsAppDesigner_ReturnsUnmodifiedTree()
+        [Theory]
+        [InlineData(@"
+Root (capabilities: {ProjectRoot})
+    My Project (capabilities: {Folder})
+")]
+        public void ApplyModifications_TreeWithMyProjectFolder_ReturnsUnmodifiedTree(string input)
         {
             var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
             var projectTreeProvider = IProjectTreeProviderFactory.Create();
             var modifier = CreateInstance(features);
 
-            var tree = ProjectTreeParser.Parse(@"
-Root (capabilities: {ProjectRoot})
-    Properties (capabilities: {Folder AppDesignerFolder BubbleUp})
-");
+            var tree = ProjectTreeParser.Parse(input);
+
             var result = modifier.ApplyModifications(tree, projectTreeProvider);
 
             AssertAreEquivalent(tree, result);
         }
 
-        [Fact]
-        public void ApplyModifications_TreeWithPropertiesCandidate_ReturnsCandidateMarkedWithAppDesignerFolderAndBubbleUp()
+        [Theory]
+        [InlineData(@"
+Root (capabilities: {ProjectRoot})
+")]
+        [InlineData(@"
+Root (capabilities: {ProjectRoot})
+    Folder (capabilities: {Folder})
+")]
+        [InlineData(@"
+Root (capabilities: {ProjectRoot})
+    Folder (capabilities: {Folder})
+        AssemblyInfo.cs (capabilities: {})
+")]
+        [InlineData(@"
+Root (capabilities: {ProjectRoot})
+    Folder (capabilities: {Folder})
+        AssemblyInfo.cs (capabilities: {})
+    NotProperties (capabilities: {Folder})
+")]
+        public void ApplyModifications_TreeWithoutPropertiesCandidate_ReturnsUnmodifiedTree(string input)
+        {
+            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => false);
+            var projectTreeProvider = IProjectTreeProviderFactory.Create();
+            var modifier = CreateInstance(features);
+
+            var tree = ProjectTreeParser.Parse(input);
+
+            var result = modifier.ApplyModifications(tree, projectTreeProvider);
+
+            AssertAreEquivalent(tree, result);
+        }
+
+        [Theory]
+        [InlineData(@"
+Root (capabilities: {ProjectRoot})
+    Properties (capabilities: {})
+")]
+        [InlineData(@"
+Root (capabilities: {ProjectRoot})
+    Properties (capabilities: {NotFolder})
+")]
+        [InlineData(@"
+Root (capabilities: {ProjectRoot})
+    Properties (capabilities: {Unrecognized NotAFolder})
+")]
+        public void ApplyModifications_TreeWithFileCalledProperties_ReturnsUnmodifiedTree(string input)
         {
             var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
             var projectTreeProvider = IProjectTreeProviderFactory.Create();
             var modifier = CreateInstance(features);
 
-            var tree = ProjectTreeParser.Parse(@"
+            var tree = ProjectTreeParser.Parse(input);
+
+            var result = modifier.ApplyModifications(tree, projectTreeProvider);
+
+            AssertAreEquivalent(tree, result);
+        }
+
+        [Theory]
+        [InlineData(@"
+Root (capabilities: {ProjectRoot})
+    Properties (capabilities: {Folder IncludeInProjectCandidate})
+")]
+        [InlineData(@"
+Root (capabilities: {ProjectRoot})
+    Properties (capabilities: {IncludeInProjectCandidate Folder})
+")]
+        [InlineData(@"
+Root (capabilities: {ProjectRoot})
+    Properties (capabilities: {IncludeInProjectCandidate})
+")]        
+        public void ApplyModifications_TreeWithExcludedPropertiesFolder_ReturnsUnmodifiedTree(string input)
+        {
+            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
+            var projectTreeProvider = IProjectTreeProviderFactory.Create();
+            var modifier = CreateInstance(features);
+
+            var tree = ProjectTreeParser.Parse(input);
+
+            var result = modifier.ApplyModifications(tree, projectTreeProvider);
+
+            AssertAreEquivalent(tree, result);
+        }
+
+        [Theory]
+        [InlineData(@"
+Root (capabilities: {ProjectRoot})
+    Folder (capabilities: {Folder})
+        Properties (capabilities: {Folder})
+")]
+        [InlineData(@"
+Root (capabilities: {ProjectRoot})
+    Folder (capabilities: {Folder})
+        Folder (capabilities: {Folder})
+            Properties (capabilities: {Folder})
+")]
+        [InlineData(@"
+Root (capabilities: {ProjectRoot})
+    Folder1 (capabilities: {Folder})
+    Folder2 (capabilities: {Folder})
+        Properties (capabilities: {Folder})
+")]        
+        public void ApplyModifications_TreeWithNestedPropertiesFolder_ReturnsUnmodifiedTree(string input)
+        {
+            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
+            var projectTreeProvider = IProjectTreeProviderFactory.Create();
+            var modifier = CreateInstance(features);
+
+            var tree = ProjectTreeParser.Parse(input);
+
+            var result = modifier.ApplyModifications(tree, projectTreeProvider);
+
+            AssertAreEquivalent(tree, result);
+        }
+        
+        [Theory]
+        [InlineData(@"
+Root(capabilities: {ProjectRoot})
+    Properties(capabilities: {Folder AppDesignerFolder BubbleUp})
+")]
+        [InlineData(@"
+Root(capabilities: {ProjectRoot})
+    Properties(capabilities: {Folder AppDesignerFolder})
+")]
+        [InlineData(@"
+Root(capabilities: {ProjectRoot})
+    Properties(capabilities: {Folder Unrecognized AppDesignerFolder})
+")]
+        public void ApplyModifications_TreeWithPropertiesCandidateAlreadyMarkedAsAppDesigner_ReturnsUnmodifiedTree(string input)
+        {
+            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
+            var projectTreeProvider = IProjectTreeProviderFactory.Create();
+            var modifier = CreateInstance(features);
+
+            var tree = ProjectTreeParser.Parse(input);
+            var result = modifier.ApplyModifications(tree, projectTreeProvider);
+
+            AssertAreEquivalent(tree, result);
+        }
+
+        [Theory]
+        [InlineData(@"
 Root (capabilities: {ProjectRoot})
     Properties (capabilities: {Folder})
-");
-            var expected = ProjectTreeParser.Parse(@"
+", @"
 Root (capabilities: {ProjectRoot})
     Properties (capabilities: {Folder AppDesignerFolder BubbleUp})
-");
-            var result = modifier.ApplyModifications(tree, projectTreeProvider);
-
-            AssertAreEquivalent(expected, result);
-        }
-
-        [Fact]
-        public void ApplyModifications_TreeWithPropertiesCandidate_ReturnsCandidateCapabilitiesUnionedWithMarkedWithAppDesignerFolderAndBubbleUp()
+")]
+        [InlineData(@"
+Root (capabilities: {ProjectRoot})
+    Properties (capabilities: {Folder BubbleUp})
+", @"
+Root (capabilities: {ProjectRoot})
+    Properties (capabilities: {Folder AppDesignerFolder BubbleUp})
+")]
+        [InlineData(@"
+Root (capabilities: {ProjectRoot})
+    properties (capabilities: {Folder})
+", @"
+Root (capabilities: {ProjectRoot})
+    properties (capabilities: {Folder AppDesignerFolder BubbleUp})
+")]
+        [InlineData(@"
+Root (capabilities: {ProjectRoot})
+    PROPERTIES (capabilities: {Folder})
+", @"
+Root (capabilities: {ProjectRoot})
+    PROPERTIES (capabilities: {Folder AppDesignerFolder BubbleUp})
+")]
+        [InlineData(@"
+Root (capabilities: {ProjectRoot})
+    Properties (capabilities: {Folder UnrecognizedCapability})
+", @"
+Root (capabilities: {ProjectRoot})
+    Properties (capabilities: {Folder UnrecognizedCapability AppDesignerFolder BubbleUp})
+")]
+        [InlineData(@"
+Root (capabilities: {ProjectRoot})
+    Properties (capabilities: {Folder})
+        AssemblyInfo.cs (capabilities: {IncludeInProjectCandidate})
+", @"
+Root (capabilities: {ProjectRoot})
+    Properties (capabilities: {Folder AppDesignerFolder BubbleUp})
+        AssemblyInfo.cs (capabilities: {IncludeInProjectCandidate})
+")]
+        [InlineData(@"
+Root (capabilities: {ProjectRoot})
+    Properties (capabilities: {Folder})
+        AssemblyInfo.cs (capabilities: {})
+", @"
+Root (capabilities: {ProjectRoot})
+    Properties (capabilities: {Folder AppDesignerFolder BubbleUp})
+        AssemblyInfo.cs (capabilities: {})
+")]
+        [InlineData(@"
+Root (capabilities: {ProjectRoot})
+    Properties (capabilities: {Folder})
+        Folder (capabilities: {Folder})
+", @"
+Root (capabilities: {ProjectRoot})
+    Properties (capabilities: {Folder AppDesignerFolder BubbleUp})
+        Folder (capabilities: {Folder})
+")]
+        public void ApplyModifications_TreeWithPropertiesCandidate_ReturnsCandidateMarkedWithAppDesignerFolderAndBubbleUp(string input, string expected)
         {
             var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
             var projectTreeProvider = IProjectTreeProviderFactory.Create();
             var modifier = CreateInstance(features);
 
-            var tree = ProjectTreeParser.Parse(@"
-Root (capabilities: {ProjectRoot})
-    Properties (capabilities: {Folder NonExistentCapability})
-");
-            var expected = ProjectTreeParser.Parse(@"
-Root (capabilities: {ProjectRoot})
-    Properties (capabilities: {Folder NonExistentCapability AppDesignerFolder BubbleUp})
-");
-            var result = modifier.ApplyModifications(tree, projectTreeProvider);
+            var inputTree = ProjectTreeParser.Parse(input);
+            var expectedTree = ProjectTreeParser.Parse(expected);
 
-            AssertAreEquivalent(expected, result);
+            var result = modifier.ApplyModifications(inputTree, projectTreeProvider);
+
+            AssertAreEquivalent(expectedTree, result);
         }
+
 
         private void AssertAreEquivalent(IProjectTree expected, IProjectTree actual)
         {
