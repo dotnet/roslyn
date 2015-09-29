@@ -842,10 +842,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 binder = new InContainerBinder(
                     binder.Container,
                     binder,
-                    Imports.FromCustomDebugInfo(binder.Compilation, new Dictionary<string, AliasAndUsingDirective>(), ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty, externs));
+                    Imports.FromCustomDebugInfo(binder.Compilation, ImmutableDictionary<string, AliasAndUsingDirective>.Empty, ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty, externs));
             }
 
-            var usingAliases = new Dictionary<string, AliasAndUsingDirective>();
+            var usingAliases = ImmutableDictionary.CreateBuilder<string, AliasAndUsingDirective>();
             var usingsBuilder = ArrayBuilder<NamespaceOrTypeAndUsingDirective>.GetInstance();
 
             foreach (var importRecord in importRecords)
@@ -968,7 +968,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
             }
 
-            return Imports.FromCustomDebugInfo(binder.Compilation, usingAliases, usingsBuilder.ToImmutableAndFree(), externs);
+            return Imports.FromCustomDebugInfo(binder.Compilation, usingAliases.ToImmutableDictionary(), usingsBuilder.ToImmutableAndFree(), externs);
         }
 
         private static NamespaceSymbol BindNamespace(string namespaceName, NamespaceSymbol globalNamespace)
@@ -993,7 +993,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             string alias,
             NamespaceOrTypeSymbol targetSymbol,
             ArrayBuilder<NamespaceOrTypeAndUsingDirective> usingsBuilder,
-            Dictionary<string, AliasAndUsingDirective> usingAliases,
+            ImmutableDictionary<string, AliasAndUsingDirective>.Builder usingAliases,
             InContainerBinder binder,
             ImportRecord importRecord)
         {
