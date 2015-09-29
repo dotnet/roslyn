@@ -110,7 +110,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             Dim name = symbol.ToDisplayString(NameFormat)
 
             If symbol.IsConstructor() Then
-                Return $"{containingType}.#ctor"
+                Return $"{containingType}.New"
             End If
 
             Dim arity = symbol.GetArity()
