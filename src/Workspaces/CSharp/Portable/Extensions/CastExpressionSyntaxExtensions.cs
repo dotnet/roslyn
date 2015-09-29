@@ -325,6 +325,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
+            // A casts to object can always be removed from an expression inside of an interpolation, since it'll be converted to object
+            // in order to call string.Format(...) anyway.
+            if (castType?.SpecialType == SpecialType.System_Object &&
+                cast.WalkUpParentheses().IsParentKind(SyntaxKind.Interpolation))
+            {
+                return true;
+            }
+
             if (speculationAnalyzer.ReplacementChangesSemantics())
             {
                 return false;

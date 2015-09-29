@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.Editor.Interactive;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.InteractiveWindow.Shell;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 
@@ -79,7 +80,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         {
             var evaluator = CreateInteractiveEvaluator(_vsServiceProvider, _classifierAggregator, _contentTypeRegistry, _vsWorkspace);
 
-            var vsWindow = _vsInteractiveWindowFactory.Create(Id, instanceId, Title, evaluator, 0);
+            // ForceCreate means that the window should be created if the persisted layout indicates that it is visible.
+            var vsWindow = _vsInteractiveWindowFactory.Create(Id, instanceId, Title, evaluator, __VSCREATETOOLWIN.CTW_fForceCreate);
             vsWindow.SetLanguage(LanguageServiceGuid, evaluator.ContentType);
 
             // the tool window now owns the engine:

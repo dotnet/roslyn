@@ -59,10 +59,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim symbol = node.InitializedSymbols(symbolIndex)
                 Dim accessExpression As BoundExpression
 
-                ' if there are more than one symbol we need to create a field access for each of them
+                ' if there are more than one symbol we need to create a field or property access for each of them
                 If initializedSymbols.Length > 1 Then
-                    Dim fieldSymbol = DirectCast(symbol, FieldSymbol)
-                    accessExpression = New BoundFieldAccess(syntax, meReferenceOpt, fieldSymbol, True, fieldSymbol.Type)
+                    If symbol.Kind = SymbolKind.Field Then
+                        Dim fieldSymbol = DirectCast(symbol, FieldSymbol)
+                        accessExpression = New BoundFieldAccess(syntax, meReferenceOpt, fieldSymbol, True, fieldSymbol.Type)
+                    Else
+                        ' We can get here when multiple WithEvents fields are initialized with As New ...
+                        Dim propertySymbol = DirectCast(symbol, PropertySymbol)
+                        accessExpression = New BoundPropertyAccess(syntax,
+                                                                   propertySymbol,
+                                                                   propertyGroupOpt:=Nothing,
+                                                                   accessKind:=PropertyAccessKind.Set,
+                                                                   isWriteable:=propertySymbol.HasSet,
+                                                                   receiverOpt:=meReferenceOpt,
+                                                                   arguments:=ImmutableArray(Of BoundExpression).Empty)
+                    End If
                 Else
                     Debug.Assert(node.MemberAccessExpressionOpt IsNot Nothing)
 

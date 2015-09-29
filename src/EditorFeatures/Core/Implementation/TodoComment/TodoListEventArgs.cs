@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.Editor
         public Workspace Workspace { get; }
 
         /// <summary>
+        /// Solution this task items are associated with
+        /// </summary>
+        public Solution Solution { get; }
+
+        /// <summary>
         /// projectId this task items are associated with
         /// </summary>
         public ProjectId ProjectId { get; }
@@ -33,10 +38,11 @@ namespace Microsoft.CodeAnalysis.Editor
         public ImmutableArray<TodoItem> TodoItems { get; }
 
         public TodoListEventArgs(
-            object id, Workspace workspace, ProjectId projectId, DocumentId documentId, ImmutableArray<TodoItem> todoItems)
+            object id, Workspace workspace, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<TodoItem> todoItems)
         {
             this.Id = id;
             this.Workspace = workspace;
+            this.Solution = solution;
             this.ProjectId = projectId;
             this.DocumentId = documentId;
             this.TodoItems = todoItems;

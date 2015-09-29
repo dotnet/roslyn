@@ -39,10 +39,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Outlining
 
             if (firstToken.HasTrailingTrivia)
             {
-                var lastTrailingCommentTrivia = firstToken.TrailingTrivia.GetLastComment();
-                if (lastTrailingCommentTrivia != null)
+                var lastTrailingCommentOrWhitespaceTrivia = firstToken.TrailingTrivia.GetLastCommentOrWhitespace();
+                if (lastTrailingCommentOrWhitespaceTrivia != null)
                 {
-                    start = lastTrailingCommentTrivia.Value.Span.End;
+                    start = lastTrailingCommentOrWhitespaceTrivia.Value.Span.End;
                 }
             }
 

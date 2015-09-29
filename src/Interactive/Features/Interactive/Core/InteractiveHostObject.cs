@@ -2,7 +2,6 @@
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
-    //// TODO: This should be in a separate dll (InteractiveHost.dll)
     public sealed class InteractiveHostObject
     {
         public SearchPaths ReferencePaths { get; }

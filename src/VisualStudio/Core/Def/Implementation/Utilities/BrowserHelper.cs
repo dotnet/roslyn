@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         /// </summary>
         private static readonly string s_requestId = Guid.NewGuid().ToString();
 
-        private const string BingSearchString = "http://bingdev.cloudapp.net/BingUrl.svc/Get?selectedText={0}&mainLanguage={1}&projectType={2}&requestId={3}&clientId={4}&errorCode={5}";
+        private const string BingSearchString = "https://bingdev.cloudapp.net/BingUrl.svc/Get?selectedText={0}&mainLanguage={1}&projectType={2}&requestId={3}&clientId={4}&errorCode={5}";
 
         public static bool TryGetUri(string link, out Uri uri)
         {

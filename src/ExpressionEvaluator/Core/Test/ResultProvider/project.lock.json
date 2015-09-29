@@ -1,0 +1,62 @@
+{
+  "locked": false,
+  "version": 1,
+  "targets": {
+    ".NETFramework,Version=v4.5": {
+      "System.Collections.Immutable/1.1.36": {
+        "compile": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
+        },
+        "runtime": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
+        }
+      },
+      "xunit/1.9.2": {
+        "compile": {
+          "lib/net20/xunit.dll": {}
+        },
+        "runtime": {
+          "lib/net20/xunit.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "System.Collections.Immutable/1.1.36": {
+      "sha512": "MOlivTIeAIQPPMUPWIIoMCvZczjFRLYUWSYwqi1szu8QPyeIbsaPeI+hpXe1DzTxNwnRnmfYaoToi6kXIfSPNg==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.xml",
+        "License-Stable.rtf",
+        "package/services/metadata/core-properties/c8b7b781850445db852bd2d848380ca6.psmdcp",
+        "System.Collections.Immutable.nuspec"
+      ]
+    },
+    "xunit/1.9.2": {
+      "sha512": "c1wppJtYPUGPHVP9U1wjmfii4553MuQSXkAt8rudkXW+eUFJxOOfDvhBJ6S0YHHDMFEJwiMN770AT4Lno8EBpw==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/net20/xunit.dll",
+        "lib/net20/xunit.dll.tdnet",
+        "lib/net20/xunit.runner.msbuild.dll",
+        "lib/net20/xunit.runner.tdnet.dll",
+        "lib/net20/xunit.runner.utility.dll",
+        "lib/net20/xunit.xml",
+        "package/services/metadata/core-properties/cb77589bcde944baab7b67d60ca583c7.psmdcp",
+        "xunit.nuspec"
+      ]
+    }
+  },
+  "projectFileDependencyGroups": {
+    "": [
+      "System.Collections.Immutable >= 1.1.36",
+      "xunit >= 1.9.2"
+    ],
+    ".NETFramework,Version=v4.5": []
+  }
+}

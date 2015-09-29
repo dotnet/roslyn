@@ -81,10 +81,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             ' Maybe we're part of a ConditionalAccessExpression
             Dim conditional = memberAccessExpression.GetCorrespondingConditionalAccessExpression()
             If conditional IsNot Nothing Then
-                If conditional.Parent.IsKind(SyntaxKind.ExpressionStatement) AndAlso conditional.Parent.Parent.IsKind(SyntaxKind.WithBlock) AndAlso
-                    conditional.Expression Is Nothing Then
+                If conditional.Expression Is Nothing Then
 
-                    Return DirectCast(conditional.Parent.Parent, WithBlockSyntax).WithStatement.Expression
+                    ' No expression, maybe we're in a with block
+                    Dim withBlock = conditional.GetAncestor(Of WithBlockSyntax)()
+                    If withBlock IsNot Nothing Then
+                        Return withBlock.WithStatement.Expression
+                    End If
                 End If
 
                 Return conditional.Expression

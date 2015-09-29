@@ -22,6 +22,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
+            // (x); -> x;
+            if (node.IsParentKind(SyntaxKind.ExpressionStatement))
+            {
+                return true;
+            }
+
             // Don't change (x?.Count).GetValueOrDefault() to x?.Count.GetValueOrDefault()
             if (expression.IsKind(SyntaxKind.ConditionalAccessExpression) && parentExpression is MemberAccessExpressionSyntax)
             {

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
                 (responseFileDirectory != null) ? Path.Combine(responseFileDirectory, InteractiveResponseFile) : null,
                 initialWorkingDirectory,
                 typeof(InteractiveHostEntryPoint).Assembly.Location,
-                typeof(CSharpRepl))
+                typeof(CSharpReplServiceProvider))
         {
         }
 
@@ -50,14 +50,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
             get { return s_parseOptions; }
         }
 
-        protected override CompilationOptions GetSubmissionCompilationOptions(string name, MetadataReferenceResolver metadataReferenceResolver)
+        protected override CompilationOptions GetSubmissionCompilationOptions(string name, MetadataReferenceResolver metadataReferenceResolver, SourceReferenceResolver sourceReferenceResolver)
         {
             return new CSharpCompilationOptions(
                 OutputKind.DynamicallyLinkedLibrary,
                 scriptClassName: name,
                 allowUnsafe: true,
                 xmlReferenceResolver: null, // no support for permission set and doc includes in interactive
-                sourceReferenceResolver: SourceFileResolver.Default,
+                sourceReferenceResolver: sourceReferenceResolver,
                 metadataReferenceResolver: metadataReferenceResolver,
                 assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default);
         }

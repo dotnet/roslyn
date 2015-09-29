@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var array = (ArrayTypeSymbol)firstType;
-            return array.Rank == 1 && array.ElementType.SpecialType == SpecialType.System_String;
+            return array.IsSZArray && array.ElementType.SpecialType == SpecialType.System_String;
         }
 
         internal override TResult Accept<TArgument, TResult>(CSharpSymbolVisitor<TArgument, TResult> visitor, TArgument argument)

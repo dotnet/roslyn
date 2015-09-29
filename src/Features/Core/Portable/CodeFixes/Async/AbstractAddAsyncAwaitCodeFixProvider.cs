@@ -4,7 +4,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Async
 {
@@ -28,38 +27,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
             return null;
         }
 
-        protected bool TryGetTypes(
+        protected static bool TryGetExpressionType(
             SyntaxNode expression,
             SemanticModel semanticModel,
-            out INamedTypeSymbol source,
-            out INamedTypeSymbol destination)
+            out INamedTypeSymbol returnType)
         {
-            source = null;
-            destination = null;
+            var typeInfo = semanticModel.GetTypeInfo(expression);
+            returnType = typeInfo.Type as INamedTypeSymbol;
+            return returnType != null;
+        }
 
-            var info = semanticModel.GetSymbolInfo(expression);
-            var methodSymbol = info.Symbol as IMethodSymbol;
-            if (methodSymbol == null)
-            {
-                return false;
-            }
-
+        protected static bool TryGetTaskType(SemanticModel semanticModel, out INamedTypeSymbol taskType)
+        {
             var compilation = semanticModel.Compilation;
-            var taskType = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task");
-            if (taskType == null)
-            {
-                return false;
-            }
-
-            var returnType = methodSymbol.ReturnType as INamedTypeSymbol;
-            if (returnType == null)
-            {
-                return false;
-            }
-
-            source = taskType;
-            destination = returnType;
-            return true;
+            taskType = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task");
+            return taskType != null;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

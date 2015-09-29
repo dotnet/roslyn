@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
             var actualRegion = GetRegion(lambdaExpression);
 
             var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(44, 66),
+                TextSpan.FromBounds(45, 66),
                 TextSpan.FromBounds(36, 66),
                 CSharpOutliningHelpers.Ellipsis,
                 autoCollapse: false);
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
             var actualRegion = GetRegion(lambdaExpression);
 
             var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(95, 131),
+                TextSpan.FromBounds(96, 131),
                 TextSpan.FromBounds(66, 131),
                 CSharpOutliningHelpers.Ellipsis,
                 autoCollapse: false);
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
             var actualRegion = GetRegion(lambdaExpression);
 
             var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(95, 131),
+                TextSpan.FromBounds(96, 131),
                 TextSpan.FromBounds(66, 131),
                 CSharpOutliningHelpers.Ellipsis,
                 autoCollapse: false);

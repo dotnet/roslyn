@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Option Strict Off
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
@@ -15,6 +16,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
             Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, New GenerateTypeCodeFixProvider())
+        End Function
+
+        Protected Overrides Function MassageActions(actions As IList(Of CodeAction)) As IList(Of CodeAction)
+            Return FlattenActions(actions)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -47,6 +52,12 @@ index:=2)
 NewLines("Class C \n dim f as [|Foo|] \n End Class"),
 NewLines("Class C \n dim f as Foo \n End Class \n Friend Class Foo \n End Class"),
 index:=1)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestMissingOnLowercaseName()
+            TestMissing(
+NewLines("Class C \n dim f as [|foo|] \n End Class"))
         End Sub
 
         <WorkItem(539716)>
@@ -461,7 +472,7 @@ Class Program
 End Class
 #End ExternalSource
 </text>.NormalizedValue,
-{String.Format(FeaturesResources.GenerateForInNewFile, "class", "Foo", FeaturesResources.GlobalNamespace), String.Format(FeaturesResources.GenerateForIn, "class", "Foo", "Program"), FeaturesResources.GenerateNewType})
+{String.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Foo", FeaturesResources.GlobalNamespace), String.Format(FeaturesResources.Generate_nested_0_1, "class", "Foo", "Program"), FeaturesResources.GenerateNewType})
         End Sub
 
         <WorkItem(545363)>
@@ -480,7 +491,9 @@ Class Bar
 End Class
 #End ExternalSource
 </text>.NormalizedValue,
-{String.Format(FeaturesResources.GenerateForInNewFile, "class", "Foo", FeaturesResources.GlobalNamespace), String.Format(FeaturesResources.GenerateForIn, "class", "Foo", FeaturesResources.GlobalNamespace), String.Format(FeaturesResources.GenerateForIn, "class", "Foo", "Program"), FeaturesResources.GenerateNewType})
+{String.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Foo", FeaturesResources.GlobalNamespace),
+String.Format(FeaturesResources.Generate_0_1, "class", "Foo", FeaturesResources.GlobalNamespace),
+String.Format(FeaturesResources.Generate_nested_0_1, "class", "Foo"), FeaturesResources.GenerateNewType})
         End Sub
 
         <WorkItem(545363)>
@@ -672,7 +685,7 @@ Namespace A
     End Class
 End Namespace</Text>.NormalizedValue
 
-            Test(initial, expected, compareTokens:=False, isLine:=False)
+            Test(initial, expected, compareTokens:=False)
         End Sub
 
         <WorkItem(940003)>
@@ -752,7 +765,7 @@ index:=0)
         Public Sub TestGenerateTypeInImports()
             Test(
 NewLines("Imports [|Fizz|]"),
-NewLines("Friend Class Fizz\nEnd Class\n"), isAddedDocument:=True)
+NewLines("Friend Class Fizz\nEnd Class\n"))
         End Sub
 
         <WorkItem(1130905)>
@@ -770,8 +783,7 @@ index:=1)
             Test(
 NewLines("Public Class A \n Public B As New [|B|]() \n End Class"),
 NewLines("Public Class B \n Public Sub New() \n End Sub \n End Class"),
-index:=0,
-isAddedDocument:=True)
+index:=0)
         End Sub
 
         <WorkItem(1107929)>
@@ -798,8 +810,7 @@ index:=2)
             Test(
 NewLines("Public Class A \n Public B As New [|B|] \n End Class"),
 NewLines("Public Class B \n End Class"),
-index:=0,
-isAddedDocument:=True)
+index:=0)
         End Sub
 
         <WorkItem(1107929)>
@@ -826,8 +837,7 @@ index:=2)
             Test(
 NewLines("Public Class A \n Public B As New [|B(Of Integer)|] \n End Class"),
 NewLines("Public Class B(Of T) \n End Class"),
-index:=0,
-isAddedDocument:=True)
+index:=0)
         End Sub
 
         <WorkItem(1107929)>
@@ -855,6 +865,10 @@ index:=2)
                 Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
                     New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(),
                     New GenerateTypeCodeFixProvider())
+            End Function
+
+            Protected Overrides Function MassageActions(actions As IList(Of CodeAction)) As IList(Of CodeAction)
+                Return FlattenActions(actions)
             End Function
 
             <WorkItem(829970)>

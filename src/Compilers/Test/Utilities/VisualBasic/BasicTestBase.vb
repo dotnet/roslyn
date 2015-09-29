@@ -371,6 +371,23 @@ Public MustInherit Class BasicTestBaseBase
             options:=DirectCast(options, VisualBasicCompilationOptions))
     End Function
 
+    Public Shared Function CreateSubmission(code As String,
+                                            Optional references As IEnumerable(Of MetadataReference) = Nothing,
+                                            Optional options As VisualBasicCompilationOptions = Nothing,
+                                            Optional parseOptions As VisualBasicParseOptions = Nothing,
+                                            Optional previous As VisualBasicCompilation = Nothing,
+                                            Optional returnType As Type = Nothing,
+                                            Optional hostObjectType As Type = Nothing) As VisualBasicCompilation
+        Return VisualBasicCompilation.CreateSubmission(
+                GetUniqueName(),
+                references:=If(references Is Nothing, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}.Concat(references)),
+                options:=options,
+                syntaxTree:=Parse(code, options:=If(parseOptions, TestOptions.Interactive)),
+                previousSubmission:=previous,
+                returnType:=returnType,
+                hostObjectType:=hostObjectType)
+    End Function
+
     Friend Shared Function GetAttributeNames(attributes As ImmutableArray(Of SynthesizedAttributeData)) As IEnumerable(Of String)
         Return attributes.Select(Function(a) a.AttributeClass.Name)
     End Function

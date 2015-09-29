@@ -289,7 +289,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             arrayTemp = factory.SynthesizedLocal(initializerType);
             ArrayTypeSymbol arrayType = (ArrayTypeSymbol)arrayTemp.Type;
             TypeSymbol arrayElementType = arrayType.ElementType;
-            int arrayRank = arrayType.Rank;
 
             // NOTE: we pin the pointer, not the array.
             Debug.Assert(!arrayTemp.IsPinned);
@@ -303,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression lengthCall;
 
-            if (arrayRank == 1)
+            if (arrayType.IsSZArray)
             {
                 lengthCall = factory.ArrayLength(factory.Local(arrayTemp));
             }

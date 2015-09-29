@@ -97,6 +97,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The interactive window has not yet been initialized..
+        /// </summary>
+        internal static string NotInitialized {
+            get {
+                return ResourceManager.GetString("NotInitialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This method may not be called on the UI thread (to avoid hangs)..
         /// </summary>
         internal static string RequireNonUIThread {

@@ -1171,12 +1171,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // set obj output path if changed
                 _objOutputPathOpt = objOutputPath;
 
-                var metadataService = this.Workspace.Services.GetService<IMetadataService>();
-
-                _compilationOptions = _compilationOptions.WithMetadataReferenceResolver(
-                    new AssemblyReferenceResolver(
-                        CreateMetadataReferenceResolver(projectDirectory: this.ContainingDirectoryPathOpt, outputDirectory: Path.GetDirectoryName(_objOutputPathOpt)),
-                        metadataService.GetProvider()));
+                _compilationOptions = _compilationOptions.WithMetadataReferenceResolver(CreateMetadataReferenceResolver(
+                    metadataService: this.Workspace.Services.GetService<IMetadataService>(), 
+                    projectDirectory: this.ContainingDirectoryPathOpt, 
+                    outputDirectory: Path.GetDirectoryName(_objOutputPathOpt)));
 
                 if (_pushingChangesToWorkspaceHosts)
                 {
@@ -1251,9 +1249,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             project.ProjectTracker.StartPushingToWorkspaceAndNotifyOfOpenDocuments(SpecializedCollections.SingletonEnumerable(project));
         }
 
-        private static MetadataFileReferenceResolver CreateMetadataReferenceResolver(string projectDirectory, string outputDirectory)
+        private static MetadataReferenceResolver CreateMetadataReferenceResolver(IMetadataService metadataService, string projectDirectory, string outputDirectory)
         {
-            var assemblySearchPaths = ImmutableArray.Create<string>();
+            ImmutableArray<string> assemblySearchPaths;
             if (projectDirectory != null && outputDirectory != null)
             {
                 assemblySearchPaths = ImmutableArray.Create(projectDirectory, outputDirectory);
@@ -1266,8 +1264,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 assemblySearchPaths = ImmutableArray.Create(outputDirectory);
             }
+            else
+            {
+                assemblySearchPaths = ImmutableArray<string>.Empty;
+            }
 
-            return new RelativePathReferenceResolver(assemblySearchPaths, baseDirectory: projectDirectory);
+            return new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(assemblySearchPaths, baseDirectory: projectDirectory));
         }
 
         private bool TryGetOutputPathFromBuildManager(out string binOutputPath)

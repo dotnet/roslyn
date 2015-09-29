@@ -101,7 +101,7 @@
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="packages.config" />
+    <None Include="project.json" />
     <None Include="tools\install.ps1">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -172,7 +172,7 @@
     <GetAssemblyIdentity AssemblyFiles="$(OutDir)\BasicAnalyzers.dll">
       <Output TaskParameter="Assemblies" ItemName="BasicAnalyzersAssemblyInfo" />
     </GetAssemblyIdentity>
-    <Exec Command="&quot;$(PackagesDir)\NuGet.CommandLine.2.8.5\tools\NuGet.exe&quot; pack Diagnostic.nuspec -NoPackageAnalysis -Version %(BasicAnalyzersAssemblyInfo.Version) -OutputDirectory ." WorkingDirectory="$(OutDir)" LogStandardErrorAsError="true" ConsoleToMSBuild="true">
+    <Exec Command="&quot;..\..\..\..\..\..\NuGet.exe&quot; pack Diagnostic.nuspec -NoPackageAnalysis -Version %(BasicAnalyzersAssemblyInfo.Version) -OutputDirectory ." WorkingDirectory="$(OutDir)" LogStandardErrorAsError="true" ConsoleToMSBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
     </Exec>
   </Target>

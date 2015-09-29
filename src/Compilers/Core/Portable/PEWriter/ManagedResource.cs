@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
+using System.Globalization;
 
 namespace Microsoft.Cci
 {
@@ -48,7 +49,12 @@ namespace Microsoft.Cci
                         var count = (int)(stream.Length - stream.Position);
                         resourceWriter.WriteInt32(count);
 
-                        resourceWriter.WriteBytes(stream, count);
+                        int bytesWritten = resourceWriter.TryWriteBytes(stream, count);
+                        if (bytesWritten != count)
+                        {
+                            throw new EndOfStreamException(
+                                    string.Format(CultureInfo.CurrentUICulture, CodeAnalysisResources.ResourceStreamEndedUnexpectedly, bytesWritten, count));
+                        }
                         resourceWriter.Align(8);
                     }
                 }

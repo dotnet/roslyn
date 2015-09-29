@@ -616,6 +616,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 #End Region
 
+        <Extension()>
+        Friend Function ContainsCommentTrivia(this As VisualBasicSyntaxNode) As Boolean
+            If this Is Nothing Then
+                Return False
+            End If
+
+            Dim trivia = New SyntaxList(Of VisualBasicSyntaxNode)(this)
+
+            For i = 0 To trivia.Count - 1
+                Dim kind = trivia.ItemUntyped(i).RawKind
+                If kind = SyntaxKind.CommentTrivia Then
+                    Return True
+                End If
+            Next
+
+            Return False
+        End Function
+
         ' This was Semantics::ExtractAnonTypeMemberName in Dev 10
         <Extension()>
         Friend Function ExtractAnonymousTypeMemberName(input As ExpressionSyntax,

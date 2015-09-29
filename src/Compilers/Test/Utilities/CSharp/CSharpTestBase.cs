@@ -493,6 +493,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return c;
         }
 
+        public static CSharpCompilation CreateSubmission(
+           string code,
+           IEnumerable<MetadataReference> references = null,
+           CSharpCompilationOptions options = null,
+           CSharpParseOptions parseOptions = null,
+           CSharpCompilation previous = null,
+           Type returnType = null,
+           Type hostObjectType = null)
+        {
+            return CSharpCompilation.CreateSubmission(
+                GetUniqueName(),
+                references: (references != null) ? new[] { MscorlibRef_v4_0_30316_17626 }.Concat(references) : new[] { MscorlibRef_v4_0_30316_17626 },
+                options: options,
+                syntaxTree: Parse(code, options: parseOptions ?? TestOptions.Interactive),
+                previousSubmission: previous,
+                returnType: returnType,
+                hostObjectType: hostObjectType);
+        }
+
         public CompilationVerifier CompileWithCustomILSource(string cSharpSource, string ilSource, Action<CSharpCompilation> compilationVerifier = null, bool importInternals = true, string expectedOutput = null)
         {
             var compilationOptions = (expectedOutput != null) ? TestOptions.ReleaseExe : TestOptions.ReleaseDll;

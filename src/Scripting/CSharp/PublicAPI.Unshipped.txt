@@ -1,0 +1,33 @@
+Microsoft.CodeAnalysis.Scripting.CSharp.CSharpObjectFormatter
+Microsoft.CodeAnalysis.Scripting.CSharp.CSharpScript
+override Microsoft.CodeAnalysis.Scripting.CSharp.CSharpObjectFormatter.FormatArrayTypeName(System.Type arrayType, System.Array arrayOpt, Microsoft.CodeAnalysis.Scripting.ObjectFormattingOptions options) -> string
+override Microsoft.CodeAnalysis.Scripting.CSharp.CSharpObjectFormatter.FormatGeneratedTypeName(System.Type type) -> string
+override Microsoft.CodeAnalysis.Scripting.CSharp.CSharpObjectFormatter.FormatLiteral(System.DateTime value) -> string
+override Microsoft.CodeAnalysis.Scripting.CSharp.CSharpObjectFormatter.FormatLiteral(bool value) -> string
+override Microsoft.CodeAnalysis.Scripting.CSharp.CSharpObjectFormatter.FormatLiteral(byte value, bool useHexadecimalNumbers = false) -> string
+override Microsoft.CodeAnalysis.Scripting.CSharp.CSharpObjectFormatter.FormatLiteral(char c, bool quote, bool includeCodePoints = false, bool useHexadecimalNumbers = false) -> string
+override Microsoft.CodeAnalysis.Scripting.CSharp.CSharpObjectFormatter.FormatLiteral(decimal value) -> string
+override Microsoft.CodeAnalysis.Scripting.CSharp.CSharpObjectFormatter.FormatLiteral(double value) -> string
+override Microsoft.CodeAnalysis.Scripting.CSharp.CSharpObjectFormatter.FormatLiteral(float value) -> string
+override Microsoft.CodeAnalysis.Scripting.CSharp.CSharpObjectFormatter.FormatLiteral(int value, bool useHexadecimalNumbers = false) -> string
+override Microsoft.CodeAnalysis.Scripting.CSharp.CSharpObjectFormatter.FormatLiteral(long value, bool useHexadecimalNumbers = false) -> string
+override Microsoft.CodeAnalysis.Scripting.CSharp.CSharpObjectFormatter.FormatLiteral(sbyte value, bool useHexadecimalNumbers = false) -> string
+override Microsoft.CodeAnalysis.Scripting.CSharp.CSharpObjectFormatter.FormatLiteral(short value, bool useHexadecimalNumbers = false) -> string
+override Microsoft.CodeAnalysis.Scripting.CSharp.CSharpObjectFormatter.FormatLiteral(string value, bool quote, bool useHexadecimalNumbers = false) -> string
+override Microsoft.CodeAnalysis.Scripting.CSharp.CSharpObjectFormatter.FormatLiteral(uint value, bool useHexadecimalNumbers = false) -> string
+override Microsoft.CodeAnalysis.Scripting.CSharp.CSharpObjectFormatter.FormatLiteral(ulong value, bool useHexadecimalNumbers = false) -> string
+override Microsoft.CodeAnalysis.Scripting.CSharp.CSharpObjectFormatter.FormatLiteral(ushort value, bool useHexadecimalNumbers = false) -> string
+override Microsoft.CodeAnalysis.Scripting.CSharp.CSharpObjectFormatter.FormatMemberName(System.Reflection.MemberInfo member) -> string
+override Microsoft.CodeAnalysis.Scripting.CSharp.CSharpObjectFormatter.GenericParameterClosing.get -> string
+override Microsoft.CodeAnalysis.Scripting.CSharp.CSharpObjectFormatter.GenericParameterOpening.get -> string
+override Microsoft.CodeAnalysis.Scripting.CSharp.CSharpObjectFormatter.GetPrimitiveTypeName(Microsoft.CodeAnalysis.SpecialType type) -> string
+override Microsoft.CodeAnalysis.Scripting.CSharp.CSharpObjectFormatter.IsHiddenMember(System.Reflection.MemberInfo member) -> bool
+override Microsoft.CodeAnalysis.Scripting.CSharp.CSharpObjectFormatter.NullLiteral.get -> string
+override Microsoft.CodeAnalysis.Scripting.CSharp.CSharpObjectFormatter.VoidDisplayString.get -> object
+static Microsoft.CodeAnalysis.Scripting.CSharp.CSharpScript.Create(string code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options = null, System.Type globalsType = null, Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader assemblyLoader = null) -> Microsoft.CodeAnalysis.Scripting.Script<object>
+static Microsoft.CodeAnalysis.Scripting.CSharp.CSharpScript.Create<T>(string code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options = null, System.Type globalsType = null, Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader assemblyLoader = null) -> Microsoft.CodeAnalysis.Scripting.Script<T>
+static Microsoft.CodeAnalysis.Scripting.CSharp.CSharpScript.EvaluateAsync(string code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options = null, object globals = null, System.Type globalsType = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<object>
+static Microsoft.CodeAnalysis.Scripting.CSharp.CSharpScript.EvaluateAsync<T>(string code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options = null, object globals = null, System.Type globalsType = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<T>
+static Microsoft.CodeAnalysis.Scripting.CSharp.CSharpScript.RunAsync(string code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options = null, object globals = null, System.Type globalsType = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Scripting.ScriptState<object>>
+static Microsoft.CodeAnalysis.Scripting.CSharp.CSharpScript.RunAsync<T>(string code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options = null, object globals = null, System.Type globalsType = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Scripting.ScriptState<T>>
+static readonly Microsoft.CodeAnalysis.Scripting.CSharp.CSharpObjectFormatter.Instance -> Microsoft.CodeAnalysis.Scripting.CSharp.CSharpObjectFormatter

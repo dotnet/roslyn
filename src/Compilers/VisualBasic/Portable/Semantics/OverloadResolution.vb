@@ -2994,7 +2994,7 @@ Bailout:
                         ' Perform the conversions to the element type of the ParamArray here.
                         Dim arrayType = DirectCast(targetType, ArrayTypeSymbol)
 
-                        If arrayType.Rank <> 1 Then
+                        If Not arrayType.IsSZArray Then
                             ' ERRID_ParamArrayWrongType
                             candidate.State = CandidateAnalysisResultState.ArgumentMismatch
                             candidate.IgnoreExtensionMethods = False
@@ -4524,7 +4524,7 @@ ContinueCandidatesLoop:
                 ' Both are arrays
                 Dim leftArray = DirectCast(leftType, ArrayTypeSymbol)
                 Dim rightArray = DirectCast(rightType, ArrayTypeSymbol)
-                If leftArray.Rank = rightArray.Rank Then
+                If leftArray.HasSameShapeAs(rightArray) Then
                     Return CompareParameterTypeGenericDepth(leftArray.ElementType, rightArray.ElementType, leftWins, rightWins)
                 End If
             End If

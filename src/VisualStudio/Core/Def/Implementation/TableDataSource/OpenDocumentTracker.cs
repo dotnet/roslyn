@@ -3,15 +3,14 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    internal class OpenDocumentTracker
+    internal class OpenDocumentTracker<T>
     {
         private readonly object _gate = new object();
-        private readonly Dictionary<DocumentId, Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<DiagnosticData>>>> _map =
-            new Dictionary<DocumentId, Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<DiagnosticData>>>>();
+        private readonly Dictionary<DocumentId, Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<T>>>> _map =
+            new Dictionary<DocumentId, Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<T>>>>();
 
         private readonly Workspace _workspace;
 
@@ -22,25 +21,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _workspace.DocumentClosed += OnDocumentClosed;
         }
 
-        public void TrackOpenDocument(DocumentId documentId, object id, AbstractTableEntriesSnapshot<DiagnosticData> snapshot)
+        public void TrackOpenDocument(DocumentId documentId, object id, AbstractTableEntriesSnapshot<T> snapshot)
         {
             lock (_gate)
             {
-                Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<DiagnosticData>>> secondMap;
+                Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<T>>> secondMap;
                 if (!_map.TryGetValue(documentId, out secondMap))
                 {
-                    secondMap = new Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<DiagnosticData>>>();
+                    secondMap = new Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<T>>>();
                     _map.Add(documentId, secondMap);
                 }
 
-                AbstractTableEntriesSnapshot<DiagnosticData> oldSnapshot;
-                WeakReference<AbstractTableEntriesSnapshot<DiagnosticData>> oldWeakSnapshot;
+                AbstractTableEntriesSnapshot<T> oldSnapshot;
+                WeakReference<AbstractTableEntriesSnapshot<T>> oldWeakSnapshot;
                 if (secondMap.TryGetValue(id, out oldWeakSnapshot) && oldWeakSnapshot.TryGetTarget(out oldSnapshot))
                 {
                     oldSnapshot.StopTracking();
                 }
 
-                secondMap[id] = new WeakReference<AbstractTableEntriesSnapshot<DiagnosticData>>(snapshot);
+                secondMap[id] = new WeakReference<AbstractTableEntriesSnapshot<T>>(snapshot);
             }
         }
 
@@ -48,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             lock (_gate)
             {
-                Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<DiagnosticData>>> secondMap;
+                Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<T>>> secondMap;
                 if (!_map.TryGetValue(e.Document.Id, out secondMap))
                 {
                     return;
@@ -57,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 _map.Remove(e.Document.Id);
                 foreach (var weakSnapshot in secondMap.Values)
                 {
-                    AbstractTableEntriesSnapshot<DiagnosticData> snapshot;
+                    AbstractTableEntriesSnapshot<T> snapshot;
                     if (!weakSnapshot.TryGetTarget(out snapshot))
                     {
                         continue;

@@ -30,20 +30,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
         Inherits AbstractCommandHandlerTestState
         Implements IIntelliSenseTestState
 
-        Public Sub New(workspaceElement As XElement, languageName As String, startActiveSession As Boolean, extraParts As IEnumerable(Of Type))
-            MyBase.New(workspaceElement, extraParts:=CreatePartCatalog(extraParts))
+        Public Sub New(workspaceElement As XElement, languageName As String, startActiveSession As Boolean, extraParts As IEnumerable(Of Type), Optional workspaceKind As String = Nothing)
+            MyBase.New(workspaceElement, extraParts:=CreatePartCatalog(extraParts), workspaceKind:=workspaceKind)
 
             Dim optionService = Workspace.Services.GetService(Of IOptionService)()
             optionService.SetOptions(optionService.GetOptions().WithChangedOption(InternalFeatureOnOffOptions.Snippets, True))
             Dim mockEditorAdaptersFactoryService = New Mock(Of IVsEditorAdaptersFactoryService)
             Dim mockSVsServiceProvider = New Mock(Of SVsServiceProvider)
-            _snippetCommandHandler = If(languageName = LanguageNames.CSharp,
+            SnippetCommandHandler = If(languageName = LanguageNames.CSharp,
                 DirectCast(New CSharp.Snippets.SnippetCommandHandler(mockEditorAdaptersFactoryService.Object, mockSVsServiceProvider.Object), AbstractSnippetCommandHandler),
                 New VisualBasic.Snippets.SnippetCommandHandler(mockEditorAdaptersFactoryService.Object, mockSVsServiceProvider.Object))
 
             If languageName = LanguageNames.VisualBasic Then
-                Dim snippetProvider = New VisualBasic.Snippets.SnippetCompletionProvider(Nothing)
-                Dim snippetLazy = New Lazy(Of CompletionListProvider, OrderableLanguageMetadata)(Function() snippetProvider, New TestOrderableLanguageMetadata(languageName))
+                Dim snippetProvider As CompletionListProvider = New VisualBasic.Snippets.SnippetCompletionProvider(Nothing)
 
                 Dim asyncCompletionService = New AsyncCompletionService(
                     GetService(Of IEditorOperationsFactoryService)(),
@@ -51,7 +50,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                     GetService(Of IInlineRenameService)(),
                     New TestCompletionPresenter(Me),
                     GetExports(Of IAsynchronousOperationListener, FeatureMetadata)(),
-                    {snippetLazy},
+                    CreateLazyProviders({snippetProvider}, languageName, roles:=Nothing),
                     GetExports(Of IBraceCompletionSessionProvider, IBraceCompletionMetadata)())
 
                 Dim CompletionCommandHandler = New CompletionCommandHandler(asyncCompletionService)
@@ -63,7 +62,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             TextView.Properties.AddProperty(GetType(AbstractSnippetExpansionClient), SnippetExpansionClient)
         End Sub
 
-        Private ReadOnly _snippetCommandHandler As AbstractSnippetCommandHandler
+        Public ReadOnly SnippetCommandHandler As AbstractSnippetCommandHandler
         Private ReadOnly _completionCommandHandler As CompletionCommandHandler
         Private _currentCompletionPresenterSession As TestCompletionPresenterSession
         Public Property SnippetExpansionClient As MockSnippetExpansionClient
@@ -102,6 +101,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             Return New SnippetTestState(workspaceXml, languageName, startActiveSession, extraParts)
         End Function
 
+        Public Shared Function CreateSubmissionTestState(markup As String, languageName As String, Optional startActiveSession As Boolean = False, Optional extraParts As IEnumerable(Of Type) = Nothing) As SnippetTestState
+            extraParts = If(extraParts, Type.EmptyTypes)
+            Dim workspaceXml = <Workspace>
+                                   <Submission Language=<%= languageName %> CommonReferences="true">
+                                       <%= markup %>
+                                   </Submission>
+                               </Workspace>
+
+            Dim state = New SnippetTestState(workspaceXml, languageName, startActiveSession, extraParts, WorkspaceKind.Interactive)
+            state.Workspace.Options = state.Workspace.Options.WithChangedOption(InternalFeatureOnOffOptions.Snippets, False)
+            Return state
+        End Function
+
         Friend Overloads Sub SendTabToCompletion()
             Dim handler = DirectCast(_completionCommandHandler, ICommandHandler(Of TabKeyCommandArgs))
 
@@ -109,19 +121,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
         End Sub
 
         Friend Overloads Sub SendTab()
-            SendTab(AddressOf _snippetCommandHandler.ExecuteCommand, Function() EditorOperations.InsertText("    "))
+            SendTab(AddressOf SnippetCommandHandler.ExecuteCommand, Function() EditorOperations.InsertText("    "))
         End Sub
 
         Friend Overloads Sub SendBackTab()
-            SendBackTab(AddressOf _snippetCommandHandler.ExecuteCommand, Function() EditorOperations.Unindent())
+            SendBackTab(AddressOf SnippetCommandHandler.ExecuteCommand, Function() EditorOperations.Unindent())
         End Sub
 
         Friend Overloads Sub SendReturn()
-            SendReturn(AddressOf _snippetCommandHandler.ExecuteCommand, Function() EditorOperations.InsertNewLine())
+            SendReturn(AddressOf SnippetCommandHandler.ExecuteCommand, Function() EditorOperations.InsertNewLine())
         End Sub
 
         Friend Overloads Sub SendEscape()
-            SendEscape(AddressOf _snippetCommandHandler.ExecuteCommand, Function() EditorOperations.InsertText("EscapePassedThrough!"))
+            SendEscape(AddressOf SnippetCommandHandler.ExecuteCommand, Function() EditorOperations.InsertText("EscapePassedThrough!"))
         End Sub
 
         Private Class MockOrderableContentTypeMetadata

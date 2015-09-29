@@ -69,11 +69,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var outerClassOfDynamic = _outerClass.Construct(s_dynamicType);
             // Outer<dynamic>.Inner<T[], dynamic>
             var t = _derivedClass.TypeParameters[0];
-            var arrayOfT = new ArrayTypeSymbol(_assembly, t);
+            var arrayOfT = ArrayTypeSymbol.CreateCSharpArray(_assembly, t);
             var innerClassOfTArrDynamic = outerClassOfDynamic.GetTypeMember("Inner").Construct(arrayOfT, s_dynamicType);
             // Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[]
             var memberInnerInnerOfInt = innerClassOfTArrDynamic.GetTypeMember("InnerInner").Construct(_intType);
-            var arrayOfInnerInnerOfInt = new ArrayTypeSymbol(_assembly, memberInnerInnerOfInt);
+            var arrayOfInnerInnerOfInt = ArrayTypeSymbol.CreateCSharpArray(_assembly, memberInnerInnerOfInt);
             // Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>
             var memberComplicatedInner = outerClassOfDynamic.GetTypeMember("Inner").Construct(arrayOfInnerInnerOfInt, s_dynamicType);
             // Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic>
@@ -128,12 +128,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             //public static dynamic[] field2;
             var field2 = _derivedClass.GetMember<FieldSymbol>("field2");
-            var arrayOfDynamic = new ArrayTypeSymbol(_assembly, s_dynamicType, ImmutableArray.Create<CustomModifier>(), 1);
+            var arrayOfDynamic = ArrayTypeSymbol.CreateCSharpArray(_assembly, s_dynamicType, ImmutableArray.Create<CustomModifier>(), 1);
             Assert.Equal(arrayOfDynamic, field2.Type);
 
             //public static dynamic[][] field3;
             var field3 = _derivedClass.GetMember<FieldSymbol>("field3");
-            var arrayOfArrayOfDynamic = new ArrayTypeSymbol(_assembly, arrayOfDynamic, ImmutableArray.Create<CustomModifier>(), 1);
+            var arrayOfArrayOfDynamic = ArrayTypeSymbol.CreateCSharpArray(_assembly, arrayOfDynamic, ImmutableArray.Create<CustomModifier>(), 1);
             Assert.Equal(arrayOfArrayOfDynamic, field3.Type);
 
             //public const dynamic field4 = null;
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var innerOfOuterOfDynamicTWithOuterDynamic = outerClassOfDynamic.GetTypeMember("Inner").Construct(outerClassOfDynamic, derivedTypeParam);
             // Outer<dynamic>.Inner<Outer<dynamic>, T>.InnerInner<dynamic>
             complicatedInnerInner = innerOfOuterOfDynamicTWithOuterDynamic.GetTypeMember("InnerInner").Construct(s_dynamicType);
-            var complicatedInnerInnerArray = new ArrayTypeSymbol(_assembly, complicatedInnerInner, ImmutableArray.Create<CustomModifier>(), 1);
+            var complicatedInnerInnerArray = ArrayTypeSymbol.CreateCSharpArray(_assembly, complicatedInnerInner, ImmutableArray.Create<CustomModifier>(), 1);
             Assert.Equal(complicatedInnerInnerArray, field15.Type);
 
             //public Outer<dynamic>.Inner<Outer<dynamic>.Inner<T, dynamic.InnerInner<int>, dynamic[]>.InnerInner<dynamic>[][] field16 = null;
@@ -226,27 +226,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             complicatedInner = outerClassOfDynamic.GetTypeMember("Inner").Construct(complicatedInnerInner, arrayOfDynamic);
             // Outer<dynamic>.Inner<Outer<dynamic>.Inner<T, dynamic>.InnerInner<int>, dynamic[]>.InnerInner<dynamic>
             complicatedInnerInner = complicatedInner.GetTypeMember("InnerInner").Construct(s_dynamicType);
-            complicatedInnerInnerArray = new ArrayTypeSymbol(_assembly, complicatedInnerInner, ImmutableArray.Create<CustomModifier>(), 1);
-            var complicatedInnerInnerArrayOfArray = new ArrayTypeSymbol(_assembly, complicatedInnerInnerArray, ImmutableArray.Create<CustomModifier>(), 1);
+            complicatedInnerInnerArray = ArrayTypeSymbol.CreateCSharpArray(_assembly, complicatedInnerInner, ImmutableArray.Create<CustomModifier>(), 1);
+            var complicatedInnerInnerArrayOfArray = ArrayTypeSymbol.CreateCSharpArray(_assembly, complicatedInnerInnerArray, ImmutableArray.Create<CustomModifier>(), 1);
             Assert.Equal(complicatedInnerInnerArrayOfArray, field16.Type);
 
             //public static Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic>[][] field17 = null;
             var field17 = _derivedClass.GetMember<FieldSymbol>("field17");
             // T[]
-            var arrayOfDerivedTypeParam = new ArrayTypeSymbol(_assembly, derivedTypeParam, ImmutableArray.Create<CustomModifier>(), 1);
+            var arrayOfDerivedTypeParam = ArrayTypeSymbol.CreateCSharpArray(_assembly, derivedTypeParam, ImmutableArray.Create<CustomModifier>(), 1);
             // Outer<dynamic>.Inner<T[], dynamic>
             complicatedInner = outerClassOfDynamic.GetTypeMember("Inner").Construct(arrayOfDerivedTypeParam, s_dynamicType);
             // Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>
             complicatedInnerInner = complicatedInner.GetTypeMember("InnerInner").Construct(_intType);
             // Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[]
-            complicatedInnerInnerArray = new ArrayTypeSymbol(_assembly, complicatedInnerInner, ImmutableArray.Create<CustomModifier>(), 1);
+            complicatedInnerInnerArray = ArrayTypeSymbol.CreateCSharpArray(_assembly, complicatedInnerInner, ImmutableArray.Create<CustomModifier>(), 1);
             // Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>
             complicatedInner = outerClassOfDynamic.GetTypeMember("Inner").Construct(complicatedInnerInnerArray, s_dynamicType);
             // Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic>
             complicatedInnerInner = complicatedInner.GetTypeMember("InnerInner").Construct(s_dynamicType);
             // Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic>[][]
-            complicatedInnerInnerArray = new ArrayTypeSymbol(_assembly, complicatedInnerInner, ImmutableArray.Create<CustomModifier>(), 1);
-            complicatedInnerInnerArrayOfArray = new ArrayTypeSymbol(_assembly, complicatedInnerInnerArray, ImmutableArray.Create<CustomModifier>(), 1);
+            complicatedInnerInnerArray = ArrayTypeSymbol.CreateCSharpArray(_assembly, complicatedInnerInner, ImmutableArray.Create<CustomModifier>(), 1);
+            complicatedInnerInnerArrayOfArray = ArrayTypeSymbol.CreateCSharpArray(_assembly, complicatedInnerInnerArray, ImmutableArray.Create<CustomModifier>(), 1);
             Assert.Equal(complicatedInnerInnerArrayOfArray, field17.Type);
 
             //public static Outer3.Inner3<dynamic> field1 = null;
@@ -273,13 +273,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             //public static dynamic[] F3(dynamic[] x) { return x; }
             var f3 = _derivedClass.GetMember<MethodSymbol>("F3");
-            var arrayOfDynamic = new ArrayTypeSymbol(_assembly, s_dynamicType);
+            var arrayOfDynamic = ArrayTypeSymbol.CreateCSharpArray(_assembly, s_dynamicType);
             Assert.Equal(arrayOfDynamic, f3.ReturnType);
             Assert.Equal(arrayOfDynamic, f3.ParameterTypes[0]);
             Assert.Equal(RefKind.None, f3.Parameters[0].RefKind);
 
             var derivedTypeParam = _derivedClass.TypeParameters[0];
-            var arrayOfDerivedTypeParam = new ArrayTypeSymbol(_assembly, derivedTypeParam);
+            var arrayOfDerivedTypeParam = ArrayTypeSymbol.CreateCSharpArray(_assembly, derivedTypeParam);
             // Outer<dynamic>
             var outerClassOfDynamic = _outerClass.Construct(s_dynamicType);
             // Outer<dynamic>.Inner<T[], dynamic>
@@ -287,14 +287,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             // Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>
             var complicatedInnerInner = complicatedInner.GetTypeMember("InnerInner").Construct(_intType);
             // Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[]
-            var complicatedInnerInnerArray = new ArrayTypeSymbol(_assembly, complicatedInnerInner);
+            var complicatedInnerInnerArray = ArrayTypeSymbol.CreateCSharpArray(_assembly, complicatedInnerInner);
             // Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>
             complicatedInner = outerClassOfDynamic.GetTypeMember("Inner").Construct(complicatedInnerInnerArray, s_dynamicType);
             // Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic>
             complicatedInnerInner = complicatedInner.GetTypeMember("InnerInner").Construct(s_dynamicType);
             // Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic>[][]
-            complicatedInnerInnerArray = new ArrayTypeSymbol(_assembly, complicatedInnerInner);
-            var complicatedInnerInnerArrayOfArray = new ArrayTypeSymbol(_assembly, complicatedInnerInnerArray);
+            complicatedInnerInnerArray = ArrayTypeSymbol.CreateCSharpArray(_assembly, complicatedInnerInner);
+            var complicatedInnerInnerArrayOfArray = ArrayTypeSymbol.CreateCSharpArray(_assembly, complicatedInnerInnerArray);
 
             //public static Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic>[][] F4(Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic>[][] x) { return x; }
             var f4 = _derivedClass.GetMember<MethodSymbol>("F4");
@@ -327,27 +327,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             var unsafeClassTypeParam = unsafeClass.TypeParameters[0];
             // T[]
-            var arrayOfDerivedTypeParam = new ArrayTypeSymbol(_assembly, unsafeClassTypeParam, ImmutableArray.Create<CustomModifier>(), 1);
+            var arrayOfDerivedTypeParam = ArrayTypeSymbol.CreateCSharpArray(_assembly, unsafeClassTypeParam, ImmutableArray.Create<CustomModifier>(), 1);
             // Outer<dynamic>
             var outerClassOfDynamic = _outerClass.Construct(s_dynamicType);
             // Outer<dynamic>.Inner<T[], dynamic>
             var complicatedInner = outerClassOfDynamic.GetTypeMember("Inner").Construct(arrayOfDerivedTypeParam, s_dynamicType);
             // int*[]
             var pointerToInt = new PointerTypeSymbol(_intType, ImmutableArray.Create<CustomModifier>());
-            var arrayOfPointerToInt = new ArrayTypeSymbol(_assembly, pointerToInt, ImmutableArray.Create<CustomModifier>(), 1);
+            var arrayOfPointerToInt = ArrayTypeSymbol.CreateCSharpArray(_assembly, pointerToInt, ImmutableArray.Create<CustomModifier>(), 1);
             // int*[][]
-            var arrayOfArrayOfPointerToInt = new ArrayTypeSymbol(_assembly, arrayOfPointerToInt, ImmutableArray.Create<CustomModifier>(), 1);
+            var arrayOfArrayOfPointerToInt = ArrayTypeSymbol.CreateCSharpArray(_assembly, arrayOfPointerToInt, ImmutableArray.Create<CustomModifier>(), 1);
             // Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int*[][]>
             var complicatedInnerInner = complicatedInner.GetTypeMember("InnerInner").Construct(arrayOfArrayOfPointerToInt);
             // Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int*[][]>[]
-            var complicatedInnerInnerArray = new ArrayTypeSymbol(_assembly, complicatedInnerInner, ImmutableArray.Create<CustomModifier>(), 1);
+            var complicatedInnerInnerArray = ArrayTypeSymbol.CreateCSharpArray(_assembly, complicatedInnerInner, ImmutableArray.Create<CustomModifier>(), 1);
             // Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int*[][]>[], dynamic>
             complicatedInner = outerClassOfDynamic.GetTypeMember("Inner").Construct(complicatedInnerInnerArray, s_dynamicType);
             // Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int*[][]>[], dynamic>.InnerInner<dynamic>
             complicatedInnerInner = complicatedInner.GetTypeMember("InnerInner").Construct(s_dynamicType);
             // Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int*[][]>[], dynamic>.InnerInner<dynamic>[][]
-            complicatedInnerInnerArray = new ArrayTypeSymbol(_assembly, complicatedInnerInner, ImmutableArray.Create<CustomModifier>(), 1);
-            var complicatedInnerInnerArrayOfArray = new ArrayTypeSymbol(_assembly, complicatedInnerInnerArray, ImmutableArray.Create<CustomModifier>(), 1);
+            complicatedInnerInnerArray = ArrayTypeSymbol.CreateCSharpArray(_assembly, complicatedInnerInner, ImmutableArray.Create<CustomModifier>(), 1);
+            var complicatedInnerInnerArrayOfArray = ArrayTypeSymbol.CreateCSharpArray(_assembly, complicatedInnerInnerArray, ImmutableArray.Create<CustomModifier>(), 1);
             // Base2<int*[], Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int*[][]>[], dynamic>.InnerInner<dynamic>[][]>
             var baseType = _base2Class.Construct(arrayOfPointerToInt, complicatedInnerInnerArrayOfArray);
 

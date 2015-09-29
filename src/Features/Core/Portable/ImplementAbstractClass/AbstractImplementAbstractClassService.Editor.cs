@@ -153,13 +153,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                     setMethod: setMethod);
             }
 
-            private bool ShouldGenerateAccessor(IMethodSymbol method)
-            {
-                return
-                    method != null &&
-                    method.IsAccessibleWithin(_state.ClassType) &&
-                    _state.ClassType.FindImplementationForAbstractMember(method) == null;
-            }
+            private bool ShouldGenerateAccessor(IMethodSymbol method) => method != null && _state.ClassType.FindImplementationForAbstractMember(method) == null;
         }
     }
 }

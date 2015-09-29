@@ -607,7 +607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Coalesce(BoundExpression left, BoundExpression right)
         {
-            Debug.Assert(left.Type.Equals(right.Type, ignoreCustomModifiers: true));
+            Debug.Assert(left.Type.Equals(right.Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true));
             Debug.Assert(left.Type.IsReferenceType);
 
             return new BoundNullCoalescingOperator(Syntax, left, right, Conversion.Identity, left.Type) { WasCompilerGenerated = true };

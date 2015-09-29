@@ -4892,7 +4892,7 @@ class Program
                 // (12,17): error CS0159: No such label 'default:' within the scope of the goto statement
                 //                 goto default;
                 Diagnostic(ErrorCode.ERR_LabelNotFound, "goto default;").WithArguments("default:"),
-                // (11,13): error CS14001: Control cannot fall out of switch from final case label ('case 23:')
+                // (11,13): error CS8070: Control cannot fall out of switch from final case label ('case 23:')
                 //             case 23:
                 Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 23:").WithArguments("case 23:"));
         }
@@ -15121,7 +15121,7 @@ public class Child2 : Parent
 
             compilation.VerifyDiagnostics(expected);
 
-            compilation.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, compilation.SyntaxTrees.Single(), null, true).Verify(expected);
+            compilation.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, compilation.SyntaxTrees.Single(), filterSpanWithinTree: null, includeEarlierStages: true).Verify(expected);
         }
 
         [WorkItem(539631, "DevDiv")]

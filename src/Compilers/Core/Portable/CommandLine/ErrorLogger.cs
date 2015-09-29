@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis
 #pragma warning disable RS0013 // We need to invoke Diagnostic.Descriptor here to log all the metadata properties of the diagnostic.
                 var issue = new Issue(diagnostic.Id, diagnostic.GetMessage(culture),
                     diagnostic.Descriptor.Description.ToString(culture), diagnostic.Descriptor.Title.ToString(culture),
-                    diagnostic.Category, diagnostic.Descriptor.HelpLinkUri, diagnostic.IsEnabledByDefault,
+                    diagnostic.Category, diagnostic.Descriptor.HelpLinkUri, diagnostic.IsEnabledByDefault, diagnostic.IsSuppressed,
                     diagnostic.DefaultSeverity, diagnostic.Severity, diagnostic.WarningLevel, diagnostic.Location,
                     diagnostic.AdditionalLocations, diagnostic.CustomTags, diagnostic.Properties);
 #pragma warning restore RS0013
@@ -218,6 +218,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.IsEnabledByDefault, issue.IsEnabledByDefault.ToString()));
+            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.IsSuppressedInSource, issue.IsSuppressedInSource.ToString()));
 
             if (issue.CustomTags.Count > 0)
             {

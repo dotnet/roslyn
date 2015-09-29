@@ -5132,7 +5132,7 @@ namespace Microsoft.Cci
                 }
 
                 var arrayTypeReference = typeReference as IArrayTypeReference;
-                if (arrayTypeReference?.IsVector == false)
+                if (arrayTypeReference?.IsSZArray == false)
                 {
                     Debug.Assert(noTokens == false, "Custom attributes cannot have multi-dimensional arrays");
 
@@ -5174,7 +5174,7 @@ namespace Microsoft.Cci
                     return;
                 }
 
-                if (arrayTypeReference != null && arrayTypeReference.IsVector)
+                if (arrayTypeReference != null && arrayTypeReference.IsSZArray)
                 {
                     writer.WriteByte(0x1d);
                     typeReference = arrayTypeReference.GetElementType(Context);

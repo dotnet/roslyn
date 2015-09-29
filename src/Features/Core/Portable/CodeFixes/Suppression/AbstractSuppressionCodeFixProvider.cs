@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -16,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
     internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
     {
-        public static string SuppressMessageAttributeName = "System.Diagnostics.CodeAnalysis.SuppressMessageAttribute";
+        public const string SuppressMessageAttributeName = "System.Diagnostics.CodeAnalysis.SuppressMessageAttribute";
         private static readonly string s_globalSuppressionsFileName = "GlobalSuppressions";
         private static readonly string s_suppressionsFileCommentTemplate =
 @"
@@ -26,52 +25,33 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {0} a specific target and scoped to a namespace, type, member, etc.
 
 ";
-
-        private static bool IsNotConfigurableDiagnostic(Diagnostic diagnostic)
+        protected AbstractSuppressionCodeFixProvider()
         {
-            return diagnostic.Descriptor.CustomTags.Any(c => CultureInfo.InvariantCulture.CompareInfo.Compare(c, WellKnownDiagnosticTags.NotConfigurable) == 0);
         }
 
-        private static bool IsCompilerDiagnostic(Diagnostic diagnostic)
+        public FixAllProvider GetFixAllProvider()
         {
-            return diagnostic.Descriptor.CustomTags.Any(c => CultureInfo.InvariantCulture.CompareInfo.Compare(c, WellKnownDiagnosticTags.Compiler) == 0);
+            return SuppressionFixAllProvider.Instance;
         }
 
-        public bool CanBeSuppressed(Diagnostic diagnostic)
+        public bool CanBeSuppressedOrUnsuppressed(Diagnostic diagnostic)
         {
-            if (diagnostic.Location.Kind != LocationKind.SourceFile || IsNotConfigurableDiagnostic(diagnostic))
-            {
-                // Don't offer suppression fixes for diagnostics without a source location and non-configurable diagnostics.
-                return false;
-            }
-
-            switch (diagnostic.Severity)
-            {
-                case DiagnosticSeverity.Error:
-                case DiagnosticSeverity.Hidden:
-                    return false;
-
-                case DiagnosticSeverity.Warning:
-                case DiagnosticSeverity.Info:
-                    return true;
-
-                default:
-                    throw ExceptionUtilities.Unreachable;
-            }
+            return SuppressionHelpers.CanBeSuppressed(diagnostic) || SuppressionHelpers.CanBeUnsuppressed(diagnostic);
         }
 
-        protected abstract string TitleForPragmaWarningSuppressionFix { get; }
-        protected abstract SyntaxTriviaList CreatePragmaDisableDirectiveTrivia(Diagnostic diagnostic, bool needsLeadingEndOfLine);
-        protected abstract SyntaxTriviaList CreatePragmaRestoreDirectiveTrivia(Diagnostic diagnostic, bool needsTrailingEndOfLine);
+        protected abstract SyntaxTriviaList CreatePragmaDisableDirectiveTrivia(Diagnostic diagnostic, Func<SyntaxNode, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine);
+        protected abstract SyntaxTriviaList CreatePragmaRestoreDirectiveTrivia(Diagnostic diagnostic, Func<SyntaxNode, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine);
 
         protected abstract SyntaxNode AddGlobalSuppressMessageAttribute(SyntaxNode newRoot, ISymbol targetSymbol, Diagnostic diagnostic);
-        protected abstract SyntaxNode AddLocalSuppressMessageAttribute(SyntaxNode targetNode, ISymbol targetSymbol, Diagnostic diagnostic);
 
         protected abstract string DefaultFileExtension { get; }
         protected abstract string SingleLineCommentStart { get; }
         protected abstract bool IsAttributeListWithAssemblyAttributes(SyntaxNode node);
         protected abstract bool IsEndOfLine(SyntaxTrivia trivia);
         protected abstract bool IsEndOfFileToken(SyntaxToken token);
+        protected abstract bool IsSingleAttributeInAttributeList(SyntaxNode attribute);
+        protected abstract bool IsAnyPragmaDirectiveForId(SyntaxTrivia trivia, string id, out bool enableDirective, out bool hasMultipleIds);
+        protected abstract SyntaxTrivia TogglePragmaDirective(SyntaxTrivia trivia);
 
         protected string GlobalSuppressionsFileHeaderComment
         {
@@ -91,14 +71,78 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             return token;
         }
 
-        public async Task<IEnumerable<CodeFix>> GetSuppressionsAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        public Task<IEnumerable<CodeFix>> GetSuppressionsAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
-            var suppressableDiagnostics = diagnostics.Where(CanBeSuppressed);
-            if (suppressableDiagnostics.IsEmpty())
+            return GetSuppressionsAsync(document, span, diagnostics, skipSuppressMessage: false, skipUnsuppress: false, cancellationToken: cancellationToken);
+        }
+
+        internal async Task<IEnumerable<PragmaWarningCodeAction>> GetPragmaSuppressionsAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        {
+            var codeFixes = await GetSuppressionsAsync(document, span, diagnostics, skipSuppressMessage: true, skipUnsuppress: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return codeFixes.SelectMany(fix => fix.Action.GetCodeActions()).OfType<PragmaWarningCodeAction>();
+        }
+
+        private async Task<IEnumerable<CodeFix>> GetSuppressionsAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, bool skipSuppressMessage, bool skipUnsuppress, CancellationToken cancellationToken)
+        {
+            // We only care about diagnostics that can be suppressed/unsuppressed.
+            diagnostics = diagnostics.Where(CanBeSuppressedOrUnsuppressed);
+            if (diagnostics.IsEmpty())
             {
-                return null;
+                return SpecializedCollections.EmptyEnumerable<CodeFix>();
             }
 
+            var suppressionTargetInfo = await GetSuppressionTargetInfoAsync(document, span, cancellationToken).ConfigureAwait(false);
+            if (suppressionTargetInfo == null)
+            {
+                return SpecializedCollections.EmptyEnumerable<CodeFix>();
+            }
+
+            if (!skipSuppressMessage)
+            {
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var suppressMessageAttribute = semanticModel.Compilation.SuppressMessageAttributeType();
+                skipSuppressMessage = suppressMessageAttribute == null || !suppressMessageAttribute.IsAttribute();
+            }
+
+            var result = new List<CodeFix>();
+            foreach (var diagnostic in diagnostics)
+            {
+                if (!diagnostic.IsSuppressed)
+                {
+                    var nestedActions = new List<NestedSuppressionCodeAction>();
+
+                    // pragma warning disable.
+                    nestedActions.Add(new PragmaWarningCodeAction(suppressionTargetInfo, document, diagnostic, this));
+
+                    // SuppressMessageAttribute suppression is not supported for compiler diagnostics.
+                    if (!skipSuppressMessage && !SuppressionHelpers.IsCompilerDiagnostic(diagnostic))
+                    {
+                        // global assembly-level suppress message attribute.
+                        nestedActions.Add(new GlobalSuppressMessageCodeAction(suppressionTargetInfo.TargetSymbol, document.Project, diagnostic, this));
+                    }
+
+                    result.Add(new CodeFix(new SuppressionCodeAction(diagnostic, nestedActions), diagnostic));
+                }
+                else if (!skipUnsuppress)
+                {
+                    var codeAcion = await RemoveSuppressionCodeAction.CreateAsync(suppressionTargetInfo, document, diagnostic, this, cancellationToken).ConfigureAwait(false);
+                    result.Add(new CodeFix(codeAcion, diagnostic));
+                }
+            }
+
+            return result;
+        }
+
+        internal class SuppressionTargetInfo
+        {
+            public ISymbol TargetSymbol { get; set; }
+            public SyntaxToken StartToken { get; set; }
+            public SyntaxToken EndToken { get; set; }
+            public SyntaxNode NodeWithTokens { get; set; }
+        }
+
+        private async Task<SuppressionTargetInfo> GetSuppressionTargetInfoAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             if (syntaxTree.GetLineVisibility(span.Start, cancellationToken) == LineVisibility.Hidden)
             {
@@ -130,97 +174,72 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             var endToken = root.FindToken(lineAtPos.End);
             endToken = GetAdjustedTokenForPragmaRestore(endToken, root, lines, indexOfLine);
 
-            SyntaxNode nodeWithTokens = null;
-            if (IsEndOfFileToken(endToken))
-            {
-                nodeWithTokens = root;
-            }
-            else
-            {
-                nodeWithTokens = startToken.GetCommonRoot(endToken);
-            }
+            var nodeWithTokens = GetNodeWithTokens(startToken, endToken, root);
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             ISymbol targetSymbol = null;
-            SyntaxNode targetMemberNode = null;
-            var suppressMessageAttribute = semanticModel.Compilation.SuppressMessageAttributeType();
-            bool skipSuppressMessage = suppressMessageAttribute == null || !suppressMessageAttribute.IsAttribute();
-            if (!skipSuppressMessage)
+            var targetMemberNode = syntaxFacts.GetContainingMemberDeclaration(root, startToken.SpanStart);
+            if (targetMemberNode != null)
             {
-                targetMemberNode = syntaxFacts.GetContainingMemberDeclaration(root, startToken.SpanStart);
-                if (targetMemberNode != null)
+                targetSymbol = semanticModel.GetDeclaredSymbol(targetMemberNode, cancellationToken);
+
+                if (targetSymbol == null)
                 {
-                    targetSymbol = semanticModel.GetDeclaredSymbol(targetMemberNode, cancellationToken);
+                    var analyzerDriverService = document.GetLanguageService<IAnalyzerDriverService>();
 
-                    if (targetSymbol == null)
+                    // targetMemberNode could be a declaration node with multiple decls (e.g. field declaration defining multiple variables).
+                    // Let us compute all the declarations intersecting the span.
+                    var decls = new List<DeclarationInfo>();
+                    analyzerDriverService.ComputeDeclarationsInSpan(semanticModel, span, true, decls, cancellationToken);
+                    if (decls.Any())
                     {
-                        var analyzerDriverService = document.GetLanguageService<IAnalyzerDriverService>();
-
-                        // targetMemberNode could be a declaration node with multiple decls (e.g. field declaration defining multiple variables).
-                        // Let us compute all the declarations intersecting the span.
-                        var decls = analyzerDriverService.GetDeclarationsInSpan(semanticModel, span, true, cancellationToken);
-                        if (decls.Any())
+                        var containedDecls = decls.Where(d => span.Contains(d.DeclaredNode.Span));
+                        if (containedDecls.Count() == 1)
                         {
-                            var containedDecls = decls.Where(d => span.Contains(d.DeclaredNode.Span));
-                            if (containedDecls.Count() == 1)
+                            // Single containing declaration, use this symbol.
+                            var decl = containedDecls.Single();
+                            targetSymbol = decl.DeclaredSymbol;
+                        }
+                        else
+                        {
+                            // Otherwise, use the most enclosing declaration.
+                            TextSpan? minContainingSpan = null;
+                            foreach (var decl in decls)
                             {
-                                // Single containing declaration, use this symbol.
-                                var decl = containedDecls.Single();
-                                targetSymbol = decl.DeclaredSymbol;
-                            }
-                            else
-                            {
-                                // Otherwise, use the most enclosing declaration.
-                                TextSpan? minContainingSpan = null;
-                                foreach (var decl in decls)
+                                var declSpan = decl.DeclaredNode.Span;
+                                if (declSpan.Contains(span) &&
+                                    (!minContainingSpan.HasValue || minContainingSpan.Value.Contains(declSpan)))
                                 {
-                                    var declSpan = decl.DeclaredNode.Span;
-                                    if (declSpan.Contains(span) &&
-                                        (!minContainingSpan.HasValue || minContainingSpan.Value.Contains(declSpan)))
-                                    {
-                                        minContainingSpan = declSpan;
-                                        targetSymbol = decl.DeclaredSymbol;
-                                    }
+                                    minContainingSpan = declSpan;
+                                    targetSymbol = decl.DeclaredSymbol;
                                 }
                             }
                         }
                     }
                 }
-
-                if (targetSymbol == null)
-                {
-                    // Outside of a member declaration, suppress diagnostic for the entire assembly.
-                    targetSymbol = semanticModel.Compilation.Assembly;
-                }
             }
 
-            var result = new List<CodeFix>();
-            foreach (var diagnostic in suppressableDiagnostics)
+            if (targetSymbol == null)
             {
-                var nestedActions = new List<CodeAction>();
-
-                // pragma warning disable.
-                nestedActions.Add(new PragmaWarningCodeAction(this, startToken, endToken, nodeWithTokens, document, diagnostic));
-
-                // SuppressMessageAttribute suppression is not supported for compiler diagnostics.
-                if (!skipSuppressMessage && !IsCompilerDiagnostic(diagnostic))
-                {
-                    // local member-level suppress message attribute.
-                    if (targetMemberNode != null && targetSymbol.Kind != SymbolKind.Namespace)
-                    {
-                        nestedActions.Add(new LocalSuppressMessageCodeAction(this, targetSymbol, targetMemberNode, document, diagnostic));
-                    }
-
-                    // global assembly-level suppress message attribute.
-                    nestedActions.Add(new GlobalSuppressMessageCodeAction(this, targetSymbol, document, diagnostic));
-                }
-
-                result.Add(new CodeFix(new SuppressionCodeAction(diagnostic, nestedActions), diagnostic));
+                // Outside of a member declaration, suppress diagnostic for the entire assembly.
+                targetSymbol = semanticModel.Compilation.Assembly;
             }
 
-            return result;
+            return new SuppressionTargetInfo() { TargetSymbol = targetSymbol, NodeWithTokens = nodeWithTokens, StartToken = startToken, EndToken = endToken };
+        }
+
+        internal SyntaxNode GetNodeWithTokens(SyntaxToken startToken, SyntaxToken endToken, SyntaxNode root)
+        {
+            if (IsEndOfFileToken(endToken))
+            {
+                return root;
+            }
+            else
+            {
+                return startToken.GetCommonRoot(endToken);
+            }
         }
 
         protected string GetScopeString(SymbolKind targetSymbolKind)
