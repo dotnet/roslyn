@@ -27,6 +27,28 @@ class Foo { }
 #End Region
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestDotNetNameFromLanguageSpecific()
+            Dim code =
+<code>
+using N.M;
+
+namespace N
+{
+    namespace M
+    {
+        class Generic&lt;T&gt; { }
+    }
+}
+</code>
+
+            TestRootCodeModelWithCodeFile(code,
+                Sub(rootCodeModel)
+                    Dim dotNetName = rootCodeModel.DotNetNameFromLanguageSpecific("N.M.Generic<string>")
+                    Assert.Equal("N.M.Generic`1[System.String]", dotNetName)
+                End Sub)
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestExternalNamespaceChildren()
             Dim code =
 <code>
