@@ -182,13 +182,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         case StandardTableKeyNames.ErrorRank:
                             // build error gets highest rank
                             content = ValueTypeCache.GetOrCreate(ErrorRank.Lexical);
-                            return true;
+                            return content != null;
                         case StandardTableKeyNames.ErrorSeverity:
                             content = ValueTypeCache.GetOrCreate(GetErrorCategory(data.Severity));
-                            return true;
+                            return content != null;
                         case StandardTableKeyNames.ErrorCode:
                             content = data.Id;
-                            return true;
+                            return content != null;
                         case StandardTableKeyNames.ErrorCodeToolTip:
                             content = GetHelpLinkToolTipText(data);
                             return content != null;
@@ -197,19 +197,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             return content != null;
                         case StandardTableKeyNames.ErrorCategory:
                             content = data.Category;
-                            return true;
+                            return content != null;
                         case StandardTableKeyNames.ErrorSource:
                             content = ValueTypeCache.GetOrCreate(ErrorSource.Build);
-                            return true;
+                            return content != null;
                         case StandardTableKeyNames.BuildTool:
                             content = _source.BuildTool;
-                            return true;
+                            return content != null;
                         case StandardTableKeyNames.Text:
                             content = data.Message;
-                            return true;
+                            return content != null;
                         case StandardTableKeyNames.DocumentName:
                             content = GetFileName(data.DataLocation?.OriginalFilePath, data.DataLocation?.MappedFilePath);
-                            return true;
+                            return content != null;
                         case StandardTableKeyNames.Line:
                             content = data.DataLocation?.MappedStartLine ?? 0;
                             return true;
