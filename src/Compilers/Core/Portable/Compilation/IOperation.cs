@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         UsingWithExpressionStatement,
         YieldReturnStatement,
         FixedStatement,
+        LocalFunctionStatement,
 
         ExpressionStatement,
 
