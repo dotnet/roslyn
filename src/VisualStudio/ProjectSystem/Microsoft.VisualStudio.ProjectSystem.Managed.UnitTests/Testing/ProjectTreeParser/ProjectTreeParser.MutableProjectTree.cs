@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.Testing
             public MutableProjectTree()
             {
                 Children = new Collection<MutableProjectTree>();
-                Capabilities = new Collection<string>();
+                Capabilities = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 Visible = true;
             }
 
@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.Testing
                 set;
             }
 
-            public Collection<string> Capabilities
+            public HashSet<string> Capabilities
             {
                 get;
             }
@@ -123,6 +123,15 @@ namespace Microsoft.VisualStudio.Testing
                 }
             }
 
+
+            public IProjectTree AddCapability(string capability)
+            {
+                if (!Capabilities.Contains(capability))
+                    Capabilities.Add(capability);
+
+                return this;
+            }
+
             int IProjectTree.Size
             {
                 get
@@ -142,11 +151,6 @@ namespace Microsoft.VisualStudio.Testing
             }
 
             IProjectTree IProjectTree.AddCapability(IEnumerable<string> capabilities)
-            {
-                throw new NotImplementedException();
-            }
-
-            IProjectTree IProjectTree.AddCapability(string capability)
             {
                 throw new NotImplementedException();
             }
