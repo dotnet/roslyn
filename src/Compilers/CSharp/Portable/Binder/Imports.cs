@@ -223,14 +223,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundUsings = ArrayBuilder<NamespaceOrTypeAndUsingDirective>.GetInstance();
             var uniqueUsings = PooledHashSet<NamespaceOrTypeSymbol>.GetInstance();
 
-            foreach (string targetString in usings)
+            foreach (string @using in usings)
             {
-                if (!targetString.IsValidClrNamespaceName())
+                if (!@using.IsValidClrNamespaceName())
                 {
                     continue;
                 }
 
-                string[] identifiers = targetString.Split('.');
+                string[] identifiers = @using.Split('.');
                 NameSyntax qualifiedName = SyntaxFactory.IdentifierName(identifiers[0]);
 
                 for (int j = 1; j < identifiers.Length; j++)
