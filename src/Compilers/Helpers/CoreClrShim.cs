@@ -6,7 +6,6 @@ using System.Runtime.ExceptionServices;
 
 namespace Roslyn.Utilities
 {
-
     /// <summary>
     /// This is a bridge for APIs that are only available on CoreCLR or .NET 4.6
     /// and NOT on .NET 4.5. The compiler currently targets .NET 4.5 and CoreCLR
@@ -14,13 +13,20 @@ namespace Roslyn.Utilities
     /// </summary>
     internal static class CoreClrShim
     {
+        
+        internal static class AssemblyLoadContext
+        {
+            internal static readonly Type Type = ReflectionUtilities.TryGetType(
+               "System.Runtime.Loader.AssemblyLoadContext, System.Runtime.Loader, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
+        }
+        
         internal static class CodePagesEncodingProvider
         {
-            internal static readonly Type Type =
-                Type.GetType("System.Text.CodePagesEncodingProvider, " +
-                             "System.Text.Encoding.CodePages, " +
-                             "Version=4.0.0.0, Culture=neutral, " +
-                             "PublicKeyToken=b03f5f7f11d50a3a", throwOnError: false);
+            internal static readonly Type Type = ReflectionUtilities.TryGetType(
+                "System.Text.CodePagesEncodingProvider, " +
+                "System.Text.Encoding.CodePages, " +
+                "Version=4.0.0.0, Culture=neutral, " +
+                "PublicKeyToken=b03f5f7f11d50a3a");
 
             private static PropertyInfo s_instance = Type
                 ?.GetTypeInfo()
