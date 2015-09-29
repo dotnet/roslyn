@@ -235,6 +235,32 @@ class C : B
             End Using
         End Sub
 
+        <WorkItem(932387)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        Public Sub Content_HelpKeyword_Ctor()
+            Dim code =
+<Code>
+namespace N
+{
+    class C
+    {
+        public C() { }
+    }
+}
+</Code>
+
+
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
+                Dim library = state.GetLibrary()
+                Dim list = library.GetProjectList()
+                list = list.GetNamespaceList(0)
+                list = list.GetTypeList(0)
+                list = list.GetMemberList(0)
+
+                list.VerifyHelpKeywords("N.C.#ctor")
+            End Using
+        End Sub
+
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub Description_Project()
             Dim code =
