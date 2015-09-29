@@ -15,6 +15,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     /// </summary>
     internal sealed class GacFileResolver : IEquatable<GacFileResolver>
     {
+        // Consider a better availability check (perhaps the presence of Assembly.GlobalAssemblyCache once CoreCLR mscorlib is cleaned up).
+        // https://github.com/dotnet/roslyn/issues/5538
+
         /// <summary>
         /// Returns true if GAC is available on the platform.
         /// </summary>
