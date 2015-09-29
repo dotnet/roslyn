@@ -1013,7 +1013,7 @@ class D
             string s = o        as       string;
             bool b   = o        is       string;
         }
-    }",  false, changingOptions);
+    }", false, changingOptions);
         }
 
         [WorkItem(772298, "DevDiv")]
@@ -5044,45 +5044,6 @@ class C
         }
 
         [Fact]
-        [WorkItem(849870, "DevDiv")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void PropertyAccessorOptionOff()
-        {
-            var changingOptions = new Dictionary<OptionKey, object>();
-            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInMethods, false);
-
-            var code = @"
-class C
-{
-    int P 
-    {
-        get
-        {
-            return 1;
-        }
-        set
-        {
-        }
-    }
-}
-";
-
-            var expected = @"
-class C
-{
-    int P {
-        get {
-            return 1;
-        }
-        set {
-        }
-    }
-}
-";
-            AssertFormat(expected, code, false, changingOptions);
-        }
-
-        [Fact]
         [WorkItem(844913, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void QueryExpressionInExpression()
@@ -6427,7 +6388,7 @@ class Program
 }";
             AssertFormat(expected, code, changedOptionSet: changingOptions);
         }
-        
+
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormattingCodeWithMissingTokensShouldRespectFormatTabsOption1()
         {
@@ -6447,14 +6408,28 @@ class Program
 	} // The tab here should stay a tab
 }", changedOptionSet: optionSet);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(84, "https://github.com/dotnet/roslyn/issues/84")]
+        [WorkItem(849870, "DevDiv")]
+        public void NewLinesForBracesInPropertiesTest()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInProperties, false);
+            AssertFormat(@"class Class2
+{
+    int Foo {
+        get
+        {
+            return 1;
+        }
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-    public void NewLinesForBracesInPropertiesTest()
+    int MethodFoo()
     {
-        var changingOptions = new Dictionary<OptionKey, object>();
-        changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInProperties, false);
-        AssertFormat(@"class Class2
+        return 42;
+    }
+}", @"class Class2
 {
     int Foo
     {
@@ -6468,10 +6443,35 @@ class Program
     {
         return 42; 
     }
+}", false, changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(849870, "DevDiv")]
+        [WorkItem(84, "https://github.com/dotnet/roslyn/issues/84")]
+        public void NewLinesForBracesInAccessorsTest()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInAccessors, false);
+            AssertFormat(@"class Class2
+{
+    int Foo
+    {
+        get {
+            return 1;
+        }
+    }
+
+    int MethodFoo()
+    {
+        return 42;
+    }
 }", @"class Class2
 {
-    int Foo {
-        get {
+    int Foo
+    {
+        get
+        {
             return 1;
         }
     }
@@ -6481,5 +6481,43 @@ class Program
         return 42; 
     }
 }", false, changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(849870, "DevDiv")]
+        [WorkItem(84, "https://github.com/dotnet/roslyn/issues/84")]
+        public void NewLinesForBracesInPropertiesAndAccessorsTest()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInProperties, false);
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInAccessors, false);
+            AssertFormat(@"class Class2
+{
+    int Foo {
+        get {
+            return 1;
+        }
+    }
+
+    int MethodFoo()
+    {
+        return 42;
+    }
+}", @"class Class2
+{
+    int Foo
+    {
+        get
+        {
+            return 1;
+        }
+    }
+
+    int MethodFoo()
+    {
+        return 42; 
+    }
+}", false, changingOptions);
+        }
     }
 }

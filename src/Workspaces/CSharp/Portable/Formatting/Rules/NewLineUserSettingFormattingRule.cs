@@ -85,11 +85,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var currentTokenParentParent = currentToken.Parent.Parent;
 
             // * { - in the member declaration context
-            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent != null &&
-               (currentTokenParentParent is MemberDeclarationSyntax || currentTokenParentParent is AccessorDeclarationSyntax))
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent != null && currentTokenParentParent is MemberDeclarationSyntax)
             {
-                if (!optionSet.GetOption(currentTokenParentParent is BasePropertyDeclarationSyntax || currentTokenParentParent is AccessorDeclarationSyntax ?
-                    CSharpFormattingOptions.NewLinesForBracesInProperties : CSharpFormattingOptions.NewLinesForBracesInMethods))
+                var option = currentTokenParentParent is BasePropertyDeclarationSyntax
+                    ? CSharpFormattingOptions.NewLinesForBracesInProperties
+                    : CSharpFormattingOptions.NewLinesForBracesInMethods;
+
+                if (!optionSet.GetOption(option))
+                {
+                    operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
+                }
+            }
+
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent != null && currentTokenParentParent is AccessorDeclarationSyntax)
+            {
+                if (!optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInAccessors))
                 {
                     operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
                 }
@@ -255,11 +265,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var currentTokenParentParent = currentToken.Parent.Parent;
 
             // * { - in the member declaration context
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken &&
-                currentTokenParentParent != null && (currentTokenParentParent is MemberDeclarationSyntax || currentTokenParentParent is AccessorDeclarationSyntax))
+            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentTokenParentParent != null && currentTokenParentParent is MemberDeclarationSyntax)
             {
-                if (optionSet.GetOption(currentTokenParentParent is BasePropertyDeclarationSyntax || currentTokenParentParent is AccessorDeclarationSyntax ?
-                    CSharpFormattingOptions.NewLinesForBracesInProperties : CSharpFormattingOptions.NewLinesForBracesInMethods))
+                var option = currentTokenParentParent is BasePropertyDeclarationSyntax
+                    ? CSharpFormattingOptions.NewLinesForBracesInProperties
+                    : CSharpFormattingOptions.NewLinesForBracesInMethods;
+
+                if (optionSet.GetOption(option))
+                {
+                    return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
+            // * { - in the property accessor context
+            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentTokenParentParent != null && currentTokenParentParent is AccessorDeclarationSyntax)
+            {
+                if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInAccessors))
                 {
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                 }
