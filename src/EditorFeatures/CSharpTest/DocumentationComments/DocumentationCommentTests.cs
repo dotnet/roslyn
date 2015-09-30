@@ -503,6 +503,26 @@ class C
             VerifyPressingEnter(code, expected);
         }
 
+        [WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void PressingEnter_InsertComment_Class1_AutoGenerateXmlDocCommentsOff()
+        {
+            var code =
+@"///$$
+class C
+{
+}";
+
+            var expected =
+@"///
+$$
+class C
+{
+}";
+
+            VerifyPressingEnter(code, expected, autoGenerateXmlDocComments: false);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InsertComment_Class2()
         {
@@ -1040,6 +1060,29 @@ class C
             VerifyPressingEnter(code, expected);
         }
 
+        [WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void PressingEnter_InsertSlashes12_AutoGenerateXmlDocCommentsOff()
+        {
+            var code =
+@"///$$
+/// <summary></summary>
+class C
+{
+}";
+
+            var expected =
+@"///
+/// $$
+/// <summary></summary>
+class C
+{
+}";
+
+            VerifyPressingEnter(code, expected, autoGenerateXmlDocComments: false);
+        }
+
+
         [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_DontInsertSlashes1()
         {
@@ -1345,6 +1388,26 @@ class C
 }";
 
             VerifyInsertCommentCommand(code, expected);
+        }
+
+        [WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void Command_Class_AutoGenerateXmlDocCommentsOff()
+        {
+            var code =
+@"class C
+{$$
+}";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+class C
+{
+}";
+
+            VerifyInsertCommentCommand(code, expected, autoGenerateXmlDocComments: false);
         }
 
         [WorkItem(538714)]

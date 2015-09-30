@@ -262,6 +262,22 @@ End Class
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        Public Sub PressingEnter_Class1_AutoGenerateXmlDocCommentsOff()
+            Const code = "
+'''$$
+Class C
+End Class
+"
+            Const expected = "
+'''
+$$
+Class C
+End Class
+"
+            VerifyPressingEnter(code, expected, autoGenerateXmlDocComments:=False)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub PressingEnter_Class2()
             Const code = "
 '''$$Class C
@@ -510,6 +526,23 @@ Class C
 End Class
 "
             VerifyPressingEnter(code, expected)
+        End Sub
+
+        <WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")>
+        <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        Public Sub PressingEnter_InsertApostrophes9_AutoGenerateXmlDocCommentsOff()
+            Const code = "
+''' <summary></summary>$$
+Class C
+End Class
+"
+            Const expected = "
+''' <summary></summary>
+''' $$
+Class C
+End Class
+"
+            VerifyPressingEnter(code, expected, autoGenerateXmlDocComments:=False)
         End Sub
 
         <WorkItem(540017)>
@@ -809,6 +842,25 @@ Class C
 End Class
 "
             VerifyInsertCommentCommand(code, expected)
+        End Sub
+
+        <WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")>
+        <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        Public Sub Command_Class_AutoGenerateXmlDocCommentsOff()
+            Const code = "
+Class C
+    $$
+End Class
+"
+            Const expected = "
+''' <summary>
+''' $$
+''' </summary>
+Class C
+
+End Class
+"
+            VerifyInsertCommentCommand(code, expected, autoGenerateXmlDocComments:=False)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
