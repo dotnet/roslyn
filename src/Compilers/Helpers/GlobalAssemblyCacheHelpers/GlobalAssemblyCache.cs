@@ -87,13 +87,19 @@ namespace Microsoft.CodeAnalysis
 
         private const int ERROR_INSUFFICIENT_BUFFER = unchecked((int)0x8007007A);
 
-        public static readonly ImmutableArray<string> RootLocations;
+        public static ImmutableArray<string> s_rootLocations;
 
-        static GlobalAssemblyCache()
+        public static ImmutableArray<string> RootLocations 
         {
-            RootLocations = ImmutableArray.Create<string>(
-                GetLocation(ASM_CACHE.ROOT),
-                GetLocation(ASM_CACHE.ROOT_EX));
+            get
+            {
+                if (s_rootLocations.IsDefault)
+                {
+                    s_rootLocations = ImmutableArray.Create(GetLocation(ASM_CACHE.ROOT), GetLocation(ASM_CACHE.ROOT_EX));
+                }
+
+                return s_rootLocations;
+            }
         }
 
         private static unsafe string GetLocation(ASM_CACHE gacId)
@@ -105,7 +111,7 @@ namespace Microsoft.CodeAnalysis
                 throw Marshal.GetExceptionForHR(hr);
             }
 
-            byte[] data = new byte[((int)characterCount + 1) * 2];
+            byte[] data = new byte[(characterCount + 1) * 2];
             fixed (byte* p = data)
             {
                 hr = GetCachePath(gacId, p, ref characterCount);

@@ -1916,7 +1916,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     {
                         var objectCreation = (ObjectCreationExpressionSyntax)token.Parent.Parent;
                         var type = semanticModelOpt.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol as ITypeSymbol;
-                        if (type != null && !type.CanSupportCollectionInitializer())
+                        var containingSymbol = semanticModelOpt.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
+                        if (type != null && !type.CanSupportCollectionInitializer(containingSymbol))
                         {
                             return false;
                         }

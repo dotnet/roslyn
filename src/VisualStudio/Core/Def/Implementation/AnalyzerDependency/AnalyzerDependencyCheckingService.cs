@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             DiagnosticData data = new DiagnosticData(
                 IDEDiagnosticIds.AnalyzerDependencyConflictId,
-                ServicesVSResources.ErrorCategory,
+                FeaturesResources.ErrorCategory,
                 message,
                 ServicesVSResources.WRN_AnalyzerDependencyConflictMessage,
                 severity: DiagnosticSeverity.Warning,
@@ -156,7 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             DiagnosticData data = new DiagnosticData(
                 IDEDiagnosticIds.MissingAnalyzerReferenceId,
-                ServicesVSResources.ErrorCategory,
+                FeaturesResources.ErrorCategory,
                 message,
                 ServicesVSResources.WRN_MissingAnalyzerReferenceMessage,
                 severity: DiagnosticSeverity.Warning,

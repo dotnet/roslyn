@@ -84,12 +84,6 @@
     <DebugType>pdbonly</DebugType>
     <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.xml</DocumentationFile>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DogfoodDebug|AnyCPU'">
-    <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.xml</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DogfoodRelease|AnyCPU'">
-    <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.xml</DocumentationFile>
-  </PropertyGroup>
   <ItemGroup>
     <Compile Include="Interactive\VisualBasicInteractiveEvaluator.vb" />
     <Compile Include="Interactive\VisualBasicReplServiceProvider.vb" />

@@ -96,6 +96,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxFactsService),
                 typeof(CodeAnalysis.CSharp.CSharpSymbolDeclarationService),
                 typeof(CodeAnalysis.VisualBasic.VisualBasicSymbolDeclarationService),
+                typeof(CodeAnalysis.Editor.CSharp.LanguageServices.CSharpSymbolDisplayServiceFactory),
+                typeof(CodeAnalysis.Editor.VisualBasic.LanguageServices.VisualBasicSymbolDisplayServiceFactory),
                 typeof(CodeAnalysis.CSharp.Simplification.CSharpSimplificationService),
                 typeof(CodeAnalysis.VisualBasic.Simplification.VisualBasicSimplificationService),
                 typeof(CodeAnalysis.CSharp.Rename.CSharpRenameConflictLanguageService),

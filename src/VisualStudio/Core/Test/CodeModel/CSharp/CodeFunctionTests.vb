@@ -423,6 +423,75 @@ public class C1 : I1
             TestFullName(code, "C1.I1.f1")
         End Sub
 
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub FullName_ImplicitOperator()
+            Dim code =
+<Code>
+public class ComplexType
+{
+    public ComplexType()
+    {
+    }
+    public static implicit operator $$ComplexType(System.Int32 input) { return new ComplexType(); }
+
+
+    public static ComplexType operator +(ComplexType input0, ComplexType input1)
+    {
+        return default(ComplexType);
+    }
+}
+</Code>
+
+            TestFullName(code, "ComplexType.implicit operator ComplexType")
+        End Sub
+
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub FullName_ExplicitOperator()
+            Dim code =
+<Code>
+public class ComplexType
+{
+    public ComplexType()
+    {
+    }
+    public static explicit operator $$ComplexType(System.Int32 input) { return new ComplexType(); }
+
+
+    public static ComplexType operator +(ComplexType input0, ComplexType input1)
+    {
+        return default(ComplexType);
+    }
+}
+</Code>
+
+            TestFullName(code, "ComplexType.explicit operator ComplexType")
+        End Sub
+
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub FullName_OperatorOverload()
+            Dim code =
+<Code>
+public class ComplexType
+{
+    public ComplexType()
+    {
+    }
+    public static explicit operator ComplexType(System.Int32 input) { return new ComplexType(); }
+
+
+    public static ComplexType operator $$+(ComplexType input0, ComplexType input1)
+    {
+        return default(ComplexType);
+    }
+}
+</Code>
+
+            TestFullName(code, "ComplexType.operator +")
+        End Sub
+
 #End Region
 
 #Region "FunctionKind tests"
@@ -621,6 +690,75 @@ class C
 </Code>
 
             TestName(code, "~C")
+        End Sub
+
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Name_ImplicitOperator()
+            Dim code =
+<Code>
+public class ComplexType
+{
+    public ComplexType()
+    {
+    }
+    public static implicit operator $$ComplexType(System.Int32 input) { return new ComplexType(); }
+
+
+    public static ComplexType operator +(ComplexType input0, ComplexType input1)
+    {
+        return default(ComplexType);
+    }
+}
+</Code>
+
+            TestName(code, "implicit operator ComplexType")
+        End Sub
+
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Name_ExplicitOperator()
+            Dim code =
+<Code>
+public class ComplexType
+{
+    public ComplexType()
+    {
+    }
+    public static explicit operator $$ComplexType(System.Int32 input) { return new ComplexType(); }
+
+
+    public static ComplexType operator +(ComplexType input0, ComplexType input1)
+    {
+        return default(ComplexType);
+    }
+}
+</Code>
+
+            TestName(code, "explicit operator ComplexType")
+        End Sub
+
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Name_OperatorOverload()
+            Dim code =
+<Code>
+public class ComplexType
+{
+    public ComplexType()
+    {
+    }
+    public static implicit operator ComplexType(System.Int32 input) { return new ComplexType(); }
+
+
+    public static ComplexType operator $$+(ComplexType input0, ComplexType input1)
+    {
+        return default(ComplexType);
+    }
+}
+</Code>
+
+            TestName(code, "operator +")
         End Sub
 
 #End Region
@@ -2521,6 +2659,26 @@ class C
         End Sub
 
 #End Region
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TypeDescriptor_GetProperties()
+            Dim code =
+<Code>
+class C
+{
+    void $$M() { }
+}
+</Code>
+
+            Dim expectedPropertyNames =
+                {"DTE", "Collection", "Name", "FullName", "ProjectItem", "Kind", "IsCodeType",
+                 "InfoLocation", "Children", "Language", "StartPoint", "EndPoint", "ExtenderNames",
+                 "ExtenderCATID", "Parent", "FunctionKind", "Type", "Parameters", "Access", "IsOverloaded",
+                 "IsShared", "MustImplement", "Overloads", "Attributes", "DocComment", "Comment",
+                 "CanOverride", "OverrideKind", "IsGeneric"}
+
+            TestPropertyDescriptors(code, expectedPropertyNames)
+        End Sub
 
         Private Function GetExtensionMethodExtender(codeElement As EnvDTE80.CodeFunction2) As ICSExtensionMethodExtender
             Return CType(codeElement.Extender(ExtenderNames.ExtensionMethod), ICSExtensionMethodExtender)

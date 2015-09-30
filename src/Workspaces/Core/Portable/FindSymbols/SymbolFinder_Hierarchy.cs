@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var implementingTypes = await namedTypeSymbol.FindImplementingTypesAsync(solution, projects, cancellationToken).ConfigureAwait(false);
                 return implementingTypes.Where(IsAccessible);
             }
-            else if (symbol.IsImplementable())
+            else if (symbol.IsImplementableMember())
             {
                 var containingType = symbol.ContainingType.OriginalDefinition;
                 var allTypes = await containingType.FindImplementingTypesAsync(solution, projects, cancellationToken).ConfigureAwait(false);

@@ -788,7 +788,7 @@ End Class
   IL_0001:  newobj     "Sub c1._Closure$__1-0..ctor(c1._Closure$__1-0)"
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  dup
+  IL_0008:  ldloc.0
   IL_0009:  ldftn      "Function c1._Closure$__1-0._Lambda$__0(Integer) As Integer"
   IL_000f:  newobj     "Sub del..ctor(Object, System.IntPtr)"
   IL_0014:  stfld      "c1._Closure$__1-0.$VB$Local_q As del"

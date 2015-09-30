@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.CSharp
             return new RuntimeMetadataReferenceResolver(
                 new RelativePathResolver(Arguments.ReferencePaths, Arguments.BaseDirectory),
                 null,
-                new GacFileResolver(GacFileResolver.Default.Architectures, CultureInfo.CurrentCulture),
+                GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
                 (path, properties) =>
                 {
                     loggerOpt?.AddRead(path);

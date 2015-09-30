@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                     finders.Add(new InterfaceImplementationCallFinder(implementedInterfaceMember, project, _asyncListener, this));
                 }
 
-                if (symbol.IsImplementable())
+                if (symbol.IsImplementableMember())
                 {
                     finders.Add(new ImplementerFinder(symbol, project, _asyncListener, this));
                 }

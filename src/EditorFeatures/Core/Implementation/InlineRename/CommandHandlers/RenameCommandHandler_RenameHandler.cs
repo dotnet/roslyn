@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private static void ShowErrorDialog(Workspace workspace, string message)
         {
             var notificationService = workspace.Services.GetService<INotificationService>();
-            notificationService.SendNotification(message, EditorFeaturesResources.Rename, NotificationSeverity.Error);
+            notificationService.SendNotification(message, title: EditorFeaturesResources.Rename, severity: NotificationSeverity.Error);
         }
     }
 }

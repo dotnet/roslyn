@@ -1,23 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CompilerServer;
+using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CompilerServer;
 using static Microsoft.CodeAnalysis.BuildTasks.NativeMethods;
 using static Microsoft.CodeAnalysis.CompilerServer.BuildProtocolConstants;
 using static Microsoft.CodeAnalysis.CompilerServer.CompilerServerLogger;
-using Roslyn.Utilities;
-using System.Globalization;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -125,7 +122,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments: false).Skip(1);
         }
 
-        private static int HandleResponse(BuildResponse response, string clientDir, string sdkDir, IAnalyzerAssemblyLoader analyzerLoader, Func<string, string, string[], IAnalyzerAssemblyLoader, int> fallbackCompiler, List<string> parsedArgs)
+        private static int HandleResponse(BuildResponse response,
+                                          string clientDir,
+                                          string sdkDir,
+                                          IAnalyzerAssemblyLoader analyzerLoader,
+                                          Func<string, string, string[], IAnalyzerAssemblyLoader, int> fallbackCompiler,
+                                          List<string> parsedArgs)
         {
             switch (response.Type)
             {
@@ -168,16 +170,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             try
             {
-                NamedPipeClientStream pipe;
-
                 if (clientDir == null)
                     return Task.FromResult<BuildResponse>(null);
 
-                var pipeName = GetPipeName(clientDir);
+                var pipeName = GetBasePipeName(clientDir);
+
+                var clientMutexName = $"{pipeName}.client";
                 bool holdsMutex;
-                using (var mutex = new Mutex(initiallyOwned: true,
-                                             name: pipeName,
-                                             createdNew: out holdsMutex))
+                using (var clientMutex = new Mutex(initiallyOwned: true,
+                                                   name: clientMutexName,
+                                                   createdNew: out holdsMutex))
                 {
                     try
                     {
@@ -185,7 +187,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         {
                             try
                             {
-                                holdsMutex = mutex.WaitOne(TimeOutMsNewProcess);
+                                holdsMutex = clientMutex.WaitOne(TimeOutMsNewProcess);
+
+                                if (!holdsMutex)
+                                    return Task.FromResult<BuildResponse>(null);
                             }
                             catch (AbandonedMutexException)
                             {
@@ -193,38 +198,36 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                             }
                         }
 
-                        if (holdsMutex)
-                        {
-                            var request = BuildRequest.Create(language, workingDir, arguments, keepAlive, libEnvVariable);
-                            // Check for already running processes in case someone came in before us
-                            string availablePipeName;
-                            if (null != (pipe = TryAllProcesses(pipeName,
-                                                                TimeOutMsExistingProcess,
-                                                                cancellationToken,
-                                                                out availablePipeName)))
-                            {
-                                return TryCompile(pipe, request, cancellationToken);
-                            }
-                            else
-                            {
-                                if (TryCreateServerProcess(clientDir, availablePipeName) &&
-                                    null != (pipe = TryConnectToProcess(availablePipeName,
-                                                                        TimeOutMsNewProcess,
-                                                                        cancellationToken)))
-                                {
-                                    // Let everyone else access our process
-                                    mutex.ReleaseMutex();
-                                    holdsMutex = false;
+                        // Check for an already running server
+                        var serverMutexName = $"{pipeName}.server";
+                        Mutex mutexIgnore;
+                        bool wasServerRunning = Mutex.TryOpenExisting(serverMutexName, out mutexIgnore);
+                        var timeout = wasServerRunning ? TimeOutMsExistingProcess : TimeOutMsNewProcess;
 
-                                    return TryCompile(pipe, request, cancellationToken);
-                                }
-                            }
+                        NamedPipeClientStream pipe = null;
+
+                        if (wasServerRunning || TryCreateServerProcess(clientDir, pipeName))
+                        {
+                            pipe = TryConnectToProcess(pipeName,
+                                                       timeout,
+                                                       cancellationToken);
+                        }
+
+                        if (pipe != null)
+                        {
+                            var request = BuildRequest.Create(language,
+                                                              workingDir,
+                                                              arguments,
+                                                              keepAlive,
+                                                              libEnvVariable);
+
+                            return TryCompile(pipe, request, cancellationToken);
                         }
                     }
                     finally
                     {
                         if (holdsMutex)
-                            mutex.ReleaseMutex();
+                            clientMutex.ReleaseMutex();
                     }
                 }
             }
@@ -354,35 +357,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         private const int MAX_PATH_SIZE = 260;
 
         /// <summary>
-        /// Try all processes that start with the current pipe name and return
-        /// the connected pipe if one is found. Otherwise, return null.
-        /// <paramref name="newPipeName" /> will contain the next free pipe
-        /// name if no connection was made.
-        /// </summary>
-        private static NamedPipeClientStream TryAllProcesses(
-            string pipeName,
-            int timeoutMs,
-            CancellationToken cancellationToken,
-            out string newPipeName)
-        {
-            string basePipeName = pipeName;
-            for (int counter = 1; File.Exists($@"\\.\pipe\{pipeName}"); counter++)
-            {
-                NamedPipeClientStream pipe;
-                if (null != (pipe = TryConnectToProcess(pipeName, timeoutMs, cancellationToken)))
-                {
-                    newPipeName = pipeName;
-                    return pipe;
-                }
-
-                // Append an integer counter to the pipe name
-                pipeName = basePipeName + "." + counter.ToString(CultureInfo.InvariantCulture);
-            }
-            newPipeName = pipeName;
-            return null;
-        }
-
-        /// <summary>
         /// Connect to the pipe for a given directory and return it.
         /// Throws on cancellation.
         /// </summary>
@@ -501,12 +475,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 var assembly = typeof(object).GetTypeInfo().Assembly;
 
-                var currentIdentity = assembly
-                    .GetType("System.Security.Principal.WindowsIdentity")
-                    .GetTypeInfo()
-                    .GetDeclaredMethods("GetCurrent")
-                    .Single(x => x.GetParameters().Length == 0)
-                    .Invoke(null, null);
+                var currentIdentity = GetCurrentIdentity(assembly);
 
                 var currentOwner = assembly
                     .GetType("System.Security.Principal.WindowsIdentity")

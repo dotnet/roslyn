@@ -180,7 +180,7 @@ End Class
   .maxstack  2
   .locals init (Integer V_0) //Test
   IL_0000:  ldarg.0
-  IL_0001:  dup
+  IL_0001:  ldarg.0
   IL_0002:  callvirt   ""Function C.get_P() As Integer""
   IL_0007:  callvirt   ""Function B.M(Integer) As Integer""
   IL_000c:  ret

@@ -3,7 +3,7 @@
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Navigation
 
-Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
+Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
     Friend Class MockNavigableItemsPresenter
         Implements INavigableItemsPresenter
 
@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
             _callback = callback
         End Sub
 
-        Public Sub DisplayResult(items As IEnumerable(Of INavigableItem)) Implements INavigableItemsPresenter.DisplayResult
+        Public Sub DisplayResult(title As String, items As IEnumerable(Of INavigableItem)) Implements INavigableItemsPresenter.DisplayResult
             _callback(items.ToList())
         End Sub
     End Class

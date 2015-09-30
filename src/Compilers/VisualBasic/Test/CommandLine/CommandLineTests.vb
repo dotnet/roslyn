@@ -1111,6 +1111,26 @@ a.vb
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("optimize"))
         End Sub
 
+        <WorkItem(5417, "DevDiv")>
+        <Fact>
+        Public Sub Deterministic()
+            Dim ParsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.Equal(False, ParsedArgs.CompilationOptions.Deterministic)
+
+            ParsedArgs = DefaultParse({"/deterministic+", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.Equal(True, ParsedArgs.CompilationOptions.Deterministic)
+
+            ParsedArgs = DefaultParse({"/DETERMINISTIC+", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.Equal(True, ParsedArgs.CompilationOptions.Deterministic)
+
+            ParsedArgs = DefaultParse({"/deterministic-", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.Equal(False, ParsedArgs.CompilationOptions.Deterministic)
+        End Sub
+
         <WorkItem(546301, "DevDiv")>
         <Fact>
         Public Sub Parallel()

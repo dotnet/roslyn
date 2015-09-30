@@ -11,6 +11,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComme
         Inherits AbstractDocumentationCommentTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        Public Sub TypingCharacter_Class_AutoGenerateXmlDocCommentsOff()
+            Const code = "
+''$$
+Class C
+End Class
+"
+            Const expected = "
+'''$$
+Class C
+End Class
+"
+            VerifyTypingCharacter(code, expected, autoGenerateXmlDocComments:=False)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub TypingCharacter_Class()
             Const code = "
 ''$$
@@ -244,6 +259,22 @@ Class C
 End Class
 "
             VerifyPressingEnter(code, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        Public Sub PressingEnter_Class1_AutoGenerateXmlDocCommentsOff()
+            Const code = "
+'''$$
+Class C
+End Class
+"
+            Const expected = "
+'''
+$$
+Class C
+End Class
+"
+            VerifyPressingEnter(code, expected, autoGenerateXmlDocComments:=False)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
@@ -497,6 +528,23 @@ End Class
             VerifyPressingEnter(code, expected)
         End Sub
 
+        <WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")>
+        <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        Public Sub PressingEnter_InsertApostrophes9_AutoGenerateXmlDocCommentsOff()
+            Const code = "
+''' <summary></summary>$$
+Class C
+End Class
+"
+            Const expected = "
+''' <summary></summary>
+''' $$
+Class C
+End Class
+"
+            VerifyPressingEnter(code, expected, autoGenerateXmlDocComments:=False)
+        End Sub
+
         <WorkItem(540017)>
         <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub PressingEnter_DontInsertApostrophes1()
@@ -736,6 +784,48 @@ End Class
             VerifyPressingEnter(code, expected, useTabs:=True)
         End Sub
 
+        <WorkItem(5486, "https://github.com/dotnet/roslyn/issues/5486")>
+        <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        Public Sub PressingEnter_Selection1()
+            Const code = "
+''' <summary>
+''' Hello [|World|]$$!
+''' </summary>
+Class C
+End Class
+"
+            Const expected = "
+''' <summary>
+''' Hello 
+''' $$!
+''' </summary>
+Class C
+End Class
+"
+            VerifyPressingEnter(code, expected)
+        End Sub
+
+        <WorkItem(5486, "https://github.com/dotnet/roslyn/issues/5486")>
+        <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        Public Sub PressingEnter_Selection2()
+            Const code = "
+''' <summary>
+''' Hello $$[|World|]!
+''' </summary>
+Class C
+End Class
+"
+            Const expected = "
+''' <summary>
+''' Hello 
+''' $$!
+''' </summary>
+Class C
+End Class
+"
+            VerifyPressingEnter(code, expected)
+        End Sub
+
         <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub Command_Class()
             Const code = "
@@ -752,6 +842,25 @@ Class C
 End Class
 "
             VerifyInsertCommentCommand(code, expected)
+        End Sub
+
+        <WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")>
+        <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        Public Sub Command_Class_AutoGenerateXmlDocCommentsOff()
+            Const code = "
+Class C
+    $$
+End Class
+"
+            Const expected = "
+''' <summary>
+''' $$
+''' </summary>
+Class C
+
+End Class
+"
+            VerifyInsertCommentCommand(code, expected, autoGenerateXmlDocComments:=False)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
