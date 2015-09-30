@@ -97,6 +97,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(DelaySign), false); }
         }
 
+        public bool Deterministic
+        {
+            set { _store[nameof(Deterministic)] = value; }
+            get { return _store.GetOrDefault(nameof(Deterministic), false); }
+        }
+
         public bool EmitDebugInformation
         {
             set { _store[nameof(EmitDebugInformation)] = value; }
@@ -623,6 +629,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendWhenTrue("/nologo", this._store, "NoLogo");
             commandLine.AppendWhenTrue("/nowin32manifest", this._store, "NoWin32Manifest");
             commandLine.AppendPlusOrMinusSwitch("/optimize", this._store, "Optimize");
+            commandLine.AppendPlusOrMinusSwitch("/deterministic", this._store, "Deterministic");
             commandLine.AppendSwitchIfNotNull("/out:", this.OutputAssembly);
             commandLine.AppendSwitchIfNotNull("/ruleset:", this.CodeAnalysisRuleSet);
             commandLine.AppendSwitchIfNotNull("/errorlog:", this.ErrorLog);

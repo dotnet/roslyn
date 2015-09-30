@@ -3,14 +3,22 @@
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
+using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
 {
     [ComVisible(true)]
     [ComDefaultInterface(typeof(EnvDTE80.CodeClass2))]
-    public sealed class CodeClass : AbstractCodeType, EnvDTE.CodeClass, EnvDTE80.CodeClass2
+    public sealed class CodeClass : AbstractCodeType, EnvDTE.CodeClass, EnvDTE80.CodeClass2, ICodeClassBase
     {
+        private static readonly SymbolDisplayFormat s_BaseNameFormat =
+            new SymbolDisplayFormat(
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                memberOptions: SymbolDisplayMemberOptions.IncludeContainingType,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
         internal static EnvDTE.CodeClass Create(
             CodeModelState state,
             FileCodeModel fileCodeModel,
@@ -191,6 +199,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
                 return FileCodeModel.AddVariable(LookupNode(), name, type, position, access);
             });
+        }
+
+        public int GetBaseName(out string pBaseName)
+        {
+            var typeSymbol = LookupTypeSymbol();
+            if (typeSymbol?.BaseType == null)
+            {
+                pBaseName = null;
+                return VSConstants.E_FAIL;
+            }
+
+            pBaseName = typeSymbol.BaseType.ToDisplayString(s_BaseNameFormat);
+            return VSConstants.S_OK;
         }
     }
 }

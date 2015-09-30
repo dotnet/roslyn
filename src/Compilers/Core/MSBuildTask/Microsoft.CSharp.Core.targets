@@ -100,6 +100,7 @@
           NoStandardLib="$(NoCompilerStandardLib)"
           NoWin32Manifest="$(NoWin32Manifest)"
           Optimize="$(Optimize)"
+          Deterministic="$(Deterministic)"
           OutputAssembly="@(IntermediateAssembly)"
           PdbFile="$(PdbFile)"
           Platform="$(PlatformTarget)"

@@ -1412,6 +1412,22 @@ d.cs
         }
 
         [Fact]
+        public void Deterministic()
+        {
+            var parsedArgs = DefaultParse(new [] { "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(false, parsedArgs.CompilationOptions.Deterministic);
+
+            parsedArgs = DefaultParse(new[] { "/deterministic+", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(true, parsedArgs.CompilationOptions.Deterministic);
+
+            parsedArgs = DefaultParse(new[] { "/deterministic-", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(false, parsedArgs.CompilationOptions.Deterministic);
+        }
+
+        [Fact]
         public void ParseReferences()
         {
             var parsedArgs = DefaultParse(new string[] { "/r:foo.dll", "a.cs" }, _baseDirectory);

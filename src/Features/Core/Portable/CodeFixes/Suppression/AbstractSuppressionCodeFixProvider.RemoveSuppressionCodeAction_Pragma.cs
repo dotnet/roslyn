@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             /// </summary>
             private class PragmaRemoveAction : RemoveSuppressionCodeAction, IPragmaBasedCodeAction
             {
+                private readonly Document _document;
                 private readonly SuppressionTargetInfo _suppressionTargetInfo;
 
                 public static PragmaRemoveAction Create(
@@ -42,8 +43,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     Diagnostic diagnostic,
                     AbstractSuppressionCodeFixProvider fixer,
                     bool forFixMultipleContext = false)
-                    : base(document, diagnostic, fixer, forFixMultipleContext)
+                    : base(diagnostic, fixer, forFixMultipleContext)
                 {
+                    _document = document;
                     _suppressionTargetInfo = suppressionTargetInfo;
                 }
 

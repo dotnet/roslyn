@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
@@ -61,6 +62,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public override Task<object> GetPreviewAsync(CancellationToken cancellationToken)
         {
             return SpecializedTasks.Default<object>();
+        }
+
+        public Solution GetChangedSolution(CancellationToken cancellationToken)
+        {
+            Solution newSolution = null;
+            var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
+            extensionManager.PerformAction(Provider, () =>
+            {
+                newSolution = CodeAction.GetChangedSolutionInternalAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            });
+
+            return newSolution;
         }
 
         public override void Invoke(CancellationToken cancellationToken)

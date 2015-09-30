@@ -1007,33 +1007,6 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to found 1 reference in 1 file.
-        /// </summary>
-        internal static string FoundReferenceInFile {
-            get {
-                return ResourceManager.GetString("FoundReferenceInFile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to found {0} references in 1 file.
-        /// </summary>
-        internal static string FoundReferencesInFile {
-            get {
-                return ResourceManager.GetString("FoundReferencesInFile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to found {0} references in {1} files.
-        /// </summary>
-        internal static string FoundReferencesInMultipleFiles {
-            get {
-                return ResourceManager.GetString("FoundReferencesInMultipleFiles", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to from metadata.
         /// </summary>
         internal static string FromMetadata {
@@ -1169,6 +1142,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Modify any highlighted location to begin renaming..
+        /// </summary>
+        internal static string InlineRenameInstructions {
+            get {
+                return ResourceManager.GetString("InlineRenameInstructions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Inline Rename Resolved Conflict.
         /// </summary>
         internal static string InlineRenameResolvedConflict {
@@ -1273,6 +1255,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string NavigationBars {
             get {
                 return ResourceManager.GetString("NavigationBars", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New name: {0}.
+        /// </summary>
+        internal static string NewName1 {
+            get {
+                return ResourceManager.GetString("NewName1", resourceCulture);
             }
         }
         
@@ -1529,7 +1520,7 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Rename &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Rename: &apos;{0}&apos;.
         /// </summary>
         internal static string Rename1 {
             get {
@@ -1615,6 +1606,33 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string RenameToTitle {
             get {
                 return ResourceManager.GetString("RenameToTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rename will update 1 reference in 1 file..
+        /// </summary>
+        internal static string RenameWillUpdateReferenceInFile {
+            get {
+                return ResourceManager.GetString("RenameWillUpdateReferenceInFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rename will update {0} references in 1 file..
+        /// </summary>
+        internal static string RenameWillUpdateReferencesInFile {
+            get {
+                return ResourceManager.GetString("RenameWillUpdateReferencesInFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rename will update {0} references in {1} files..
+        /// </summary>
+        internal static string RenameWillUpdateReferencesInMultipleFiles {
+            get {
+                return ResourceManager.GetString("RenameWillUpdateReferencesInMultipleFiles", resourceCulture);
             }
         }
         
