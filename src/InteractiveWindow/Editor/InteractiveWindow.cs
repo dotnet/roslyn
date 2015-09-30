@@ -46,6 +46,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// </remarks>
         private readonly UIThreadOnly _uiOnly;
 
+        internal ClipboardWrapper InteractiveWindowClipboard { get; set; } = new ClipboardWrapper();
+
         #region Initialization
 
         public InteractiveWindow(
@@ -538,6 +540,21 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         internal event Action<State> StateChanged;
 
-#endregion
+        #endregion
+
+        internal class ClipboardWrapper
+        {
+            internal virtual void Clear() => Clipboard.Clear();
+
+            internal virtual bool ContainsData(string format) => Clipboard.ContainsData(format);
+
+            internal virtual object GetData(string format) => Clipboard.GetData(format);
+
+            internal virtual bool ContainsText() => Clipboard.ContainsText();
+
+            internal virtual string GetText() => Clipboard.GetText();
+
+            internal virtual void SetDataObject(object data, bool copy) => Clipboard.SetDataObject(data, copy);
+        }
     }
 }
