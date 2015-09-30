@@ -11,37 +11,49 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
     /// <summary>
-    /// Extends MetadataFileReferenceResolver to enable resolution of assembly
-    /// simple names in the GAC.
+    /// Resolves assembly identities in Global Assembly Cache.
     /// </summary>
     internal sealed class GacFileResolver : IEquatable<GacFileResolver>
     {
+        // Consider a better availability check (perhaps the presence of Assembly.GlobalAssemblyCache once CoreCLR mscorlib is cleaned up).
+        // https://github.com/dotnet/roslyn/issues/5538
+
+        /// <summary>
+        /// Returns true if GAC is available on the platform.
+        /// </summary>
+        public static bool IsAvailable => CoreClrShim.AssemblyLoadContext.Type == null;
+
         /// <summary>
         /// Architecture filter used when resolving assembly references.
         /// </summary>
         public ImmutableArray<ProcessorArchitecture> Architectures { get; }
 
         /// <summary>
-        /// CultureInfo used when resolving assembly references.
+        /// <see cref="CultureInfo"/> used when resolving assembly references, or null to prefer no culture.
         /// </summary>
         public CultureInfo PreferredCulture { get; }
 
         /// <summary>
-        /// A resolver that is configured to resolve against the GAC associated
-        /// with the bitness of the currently executing process.
-        /// </summary>
-        internal static GacFileResolver Default = new GacFileResolver(
-            architectures: GlobalAssemblyCache.CurrentArchitectures,
-            preferredCulture: null);
-
-        /// <summary>
-        /// Constructs an instance of a <see cref="GacFileResolver"/>
+        /// Creates an instance of a <see cref="GacFileResolver"/>, if available on the platform (check <see cref="IsAvailable"/>).
         /// </summary>
         /// <param name="architectures">Supported architectures used to filter GAC assemblies.</param>
         /// <param name="preferredCulture">A culture to use when choosing the best assembly from 
         /// among the set filtered by <paramref name="architectures"/></param>
-        public GacFileResolver(ImmutableArray<ProcessorArchitecture> architectures, CultureInfo preferredCulture)
+        /// <exception cref="PlatformNotSupportedException">The platform doesn't support GAC.</exception>
+        public GacFileResolver(
+            ImmutableArray<ProcessorArchitecture> architectures = default(ImmutableArray<ProcessorArchitecture>), 
+            CultureInfo preferredCulture = null)
         {
+            if (!IsAvailable)
+            {
+                throw new PlatformNotSupportedException();
+            }
+
+            if (architectures.IsDefault)
+            {
+                architectures = GlobalAssemblyCache.CurrentArchitectures;
+            }
+
             Architectures = architectures;
             PreferredCulture = preferredCulture;
         }

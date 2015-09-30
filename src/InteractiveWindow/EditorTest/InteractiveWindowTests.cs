@@ -579,7 +579,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
                 new Span(23, 2));
         }
 
-        [Fact]
+        [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
         public void CopyWithinInput()
         {
             Clipboard.Clear();
@@ -598,7 +598,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             VerifyClipboardData(" + ", " + ", @"[{""content"":"" + "",""kind"":2}]");
         }
 
-        [Fact]
+        [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
         public void CopyInputAndOutput()
         {
             Clipboard.Clear();
@@ -641,7 +641,7 @@ System.Console.WriteLine();",
 @"[{""content"":""oreach (var o in new[] { 1, 2, 3 })\u000d\u000a"",""kind"":2},{""content"":""> "",""kind"":2},{""content"":""System.Console.WriteLine();\u000d\u000a"",""kind"":2},{""content"":""1\u000d\u000a2\u000d\u000a3"",""kind"":2}]");
         }
 
-        [Fact]
+        [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
         public void CutWithinInput()
         {
             Clipboard.Clear();
@@ -669,7 +669,7 @@ System.Console.WriteLine()",
                 expectedRepl: null);
         }
 
-        [Fact]
+        [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
         public void CutInputAndOutput()
         {
             Clipboard.Clear();
@@ -695,7 +695,7 @@ System.Console.WriteLine();",
         /// When there is no selection, copy
         /// should copy the current line.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
         public void CopyNoSelection()
         {
             Submit(
@@ -726,7 +726,7 @@ System.Console.WriteLine();",
             }
         }
 
-        [Fact]
+        [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
         public void Paste()
         {
             var blocks = new[]
@@ -1106,7 +1106,7 @@ System.Console.WriteLine();",
             AssertCaretVirtualPosition(3, 2);
         }
 
-        [Fact]
+        [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
         public void CutWithOutSelectionInReadOnlyArea()
         {
             Submit(
@@ -1141,7 +1141,7 @@ System.Console.WriteLine();",
             VerifyClipboardData("2", expectedRtf: null, expectedRepl: null);
         }
 
-        [Fact]
+        [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
         public void CutWithSelectionInReadonlyArea()
         {
             Submit(
@@ -1200,7 +1200,7 @@ System.Console.WriteLine();",
             VerifyClipboardData("2", expectedRtf: null, expectedRepl: null);
         }
 
-        [Fact]
+        [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
         public void PasteWithOutSelectionInReadOnlyArea()
         {
             Submit(
@@ -1236,7 +1236,7 @@ System.Console.WriteLine();",
             AssertCaretVirtualPosition(2, 3);            
         }
 
-        [Fact]
+        [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
         public void PasteWithSelectionInReadonlyArea()
         {
             Submit(

@@ -88,6 +88,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Applying remove suppressions fix....
+        /// </summary>
+        internal static string ApplyingRemoveSuppressionFix {
+            get {
+                return ResourceManager.GetString("ApplyingRemoveSuppressionFix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Applying suppressions fix....
+        /// </summary>
+        internal static string ApplyingSuppressionFix {
+            get {
+                return ResourceManager.GetString("ApplyingSuppressionFix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Building Project.
         /// </summary>
         internal static string BuildingProject {
@@ -142,29 +160,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Computing remove suppressions fix (&apos;{0}&apos;)....
-        /// </summary>
-        internal static string ComputingRemoveSuppressionFixForLanguage {
-            get {
-                return ResourceManager.GetString("ComputingRemoveSuppressionFixForLanguage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Computing suppressions fix....
         /// </summary>
         internal static string ComputingSuppressionFix {
             get {
                 return ResourceManager.GetString("ComputingSuppressionFix", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Computing suppressions fix (&apos;{0}&apos;)....
-        /// </summary>
-        internal static string ComputingSuppressionFixForLanguage {
-            get {
-                return ResourceManager.GetString("ComputingSuppressionFixForLanguage", resourceCulture);
             }
         }
         
@@ -994,15 +994,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Remove suppressions (&apos;{0}&apos;).
-        /// </summary>
-        internal static string RemoveSuppressMultipleOccurrencesForLanguage {
-            get {
-                return ResourceManager.GetString("RemoveSuppressMultipleOccurrencesForLanguage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Resetting Interactive.
         /// </summary>
         internal static string ResettingInteractive {
@@ -1080,15 +1071,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string SuppressMultipleOccurrences {
             get {
                 return ResourceManager.GetString("SuppressMultipleOccurrences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Suppress diagnostics (&apos;{0}&apos;).
-        /// </summary>
-        internal static string SuppressMultipleOccurrencesForLanguage {
-            get {
-                return ResourceManager.GetString("SuppressMultipleOccurrencesForLanguage", resourceCulture);
             }
         }
         

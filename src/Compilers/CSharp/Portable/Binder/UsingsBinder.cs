@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResult tmp = LookupResult.GetInstance();
 
             // usings:
-            Imports.Empty.LookupSymbolInUsings(ConsolidatedUsings, originalBinder, tmp, name, arity, basesBeingResolved, options, diagnose, ref useSiteDiagnostics);
+            Imports.LookupSymbolInUsings(ConsolidatedUsings, originalBinder, tmp, name, arity, basesBeingResolved, options, diagnose, ref useSiteDiagnostics);
 
             // if we found a viable result in imported namespaces, use it instead of unviable symbols found in source:
             if (tmp.IsMultiViable)

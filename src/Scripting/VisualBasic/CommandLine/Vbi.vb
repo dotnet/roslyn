@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Scripting.Hosting.VisualBasic
             Return New RuntimeMetadataReferenceResolver(
                 New RelativePathResolver(Arguments.ReferencePaths, Arguments.BaseDirectory),
                 Nothing,
-                New GacFileResolver(GacFileResolver.Default.Architectures, CultureInfo.CurrentCulture),
+                If(GacFileResolver.IsAvailable, New GacFileResolver(preferredCulture:=CultureInfo.CurrentCulture), Nothing),
                 Function(path, properties)
                     loggerOpt?.AddRead(path)
                     Return MetadataReference.CreateFromFile(path)

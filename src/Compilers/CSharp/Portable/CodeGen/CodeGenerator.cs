@@ -61,20 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Emitted = 2,  // return sequence has been emitted
         }
 
-        private enum ILEmitStyle : byte
-        {
-            // no optimizations
-            // add additional debug specific emit 
-            // like nops for sequence points mapping to no IL
-            Debug = 0,                  
-
-            // do optimizations that do not diminish debug experience
-            DebugFriendlyRelease = 1,   
-
-            // do all optimizations
-            Release = 2,
-        }
-
         private LocalDefinition _returnTemp;
 
         public CodeGenerator(
