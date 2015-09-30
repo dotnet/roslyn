@@ -548,7 +548,7 @@ End Class</a>
         VerifyItemExists(text.Value, "foo(e As Exception)")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <Fact(Skip:="https://github.com/dotnet/roslyn/issues/5555"), Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub EscapedMethodNameInIntelliSenseList()
         Dim markup = <a>Class CBase
     Public Overridable Sub [Class]()
@@ -568,7 +568,7 @@ End Class</a>.Value
         BaseVerifyWorker(code, position, "[Class]()", "Sub CBase.Class()", SourceCodeKind.Regular, False, False, Nothing, experimental:=False)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <Fact(Skip:="https://github.com/dotnet/roslyn/issues/5555"), Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub EscapedPropertyNameInIntelliSenseList()
         Dim markup = <a>Class CBase
     Public Overridable Property [Class] As Integer
