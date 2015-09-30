@@ -29,31 +29,6 @@ if "%TEST_ASSEMBLIES%" == "" (
     set TEST_ASSEMBLIES=*.PerformanceTests.dll
 )
 
-if not exist %~dp0ZipResult.py (
-    echo ERROR: ZipResult.py missing
-    goto :eof
-)
-
-if not exist %~dp0UploadResult.py (
-    echo ERROR: UploadResult.py missing
-    goto :eof
-)
-
-rem ========================================================
-rem Workaround for PYTHONPATH
-rem Helix sets PYTHONPATH to the path to python.exe
-rem However, Python uses PYTHONPATH as a search path to
-rem locate additional libraries (imports)
-rem ========================================================
-if DEFINED PYTHONPATH (
-    if "%PYTHONPATH:~-4%" == ".exe" (
-        set PYTHON=%PYTHONPATH%
-        set PYTHONPATH=%HELIX_SCRIPT_ROOT%
-    )
-) else (
-    set PYTHONPATH=%HELIX_SCRIPT_ROOT%
-)
-
 rem ========================================================
 rem Find the drop folder location.
 rem We could use HELIX_CORRELATION_PAYLOAD, but that usually
@@ -133,13 +108,16 @@ for %%f in (%TEST_ASSEMBLIES%) do (
     for %%g in (%RESULTS%\%RUNID%.*) do (ren %%g %%~nf%%~xg)
 
     if exist %RESULTS%\%%~nf.etl (
-        echo Zipping %%~nf.etl
-        pushd %RESULTS%
-        %PYTHON% %~dp0ZipResult.py %%~nf.etl %%~nf.etl.zip
-        del %%~nf.etl
-        popd
+        if defined PYTHONPATH (
+            if defined HELIX_SCRIPT_ROOT (
+                echo Zipping %%~nf.etl
+                pushd %RESULTS%
+                %PYTHONPATH% %HELIX_SCRIPT_ROOT%\zip_script.py -zipFILE %%~nf.etl.zip %%~nf.etl
+                del %%~nf.etl
+                popd
+            )
+        )
     )
-  )
 )
 
 popd
@@ -151,8 +129,12 @@ rem ========================================================
 rem Upload Results if running under HELIX
 rem ========================================================
 if DEFINED HELIX_RESULTS_CONTAINER_URI (
-    for %%f in (%RESULTS%\*) do (
-       echo Uploading %%f
-       %PYTHON% %~dp0UploadResult.py %%f %%~nxf
+    if defined PYTHONPATH (
+        if defined HELIX_SCRIPT_ROOT (
+            for %%f in (%RESULTS%\*) do (
+                echo Uploading %%f
+               %PYTHONPATH% %HELIX_SCRIPT_ROOT%\upload_result.py -result %%f -result_name %%~nxf -upload_client_type Blob
+            )
+        )
     )
 )
