@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // If one is a keyword, and the other is some other item that inserts the same text as the keyword,
             // keep the keyword
-            var keywordItem = existingItem as KeywordCompletionItem ?? item as KeywordCompletionItem;
+            var keywordItem = TryGetKeywordItem(existingItem) ?? TryGetKeywordItem(item);
             var other = keywordItem == existingItem ? item : existingItem;
             if (keywordItem != null)
             {
@@ -253,6 +253,11 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             return CopyTags(existingItem, item);
+        }
+
+        private static CompletionItem TryGetKeywordItem(CompletionItem item)
+        {
+            return item.Glyph == Glyph.Keyword ? item : null;
         }
 
         private static CompletionItem CopyTags(CompletionItem item1, CompletionItem item2)

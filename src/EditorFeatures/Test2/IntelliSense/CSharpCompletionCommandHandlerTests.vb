@@ -1670,13 +1670,13 @@ class C
 {
     void foo(int x)
     {
-        $$]]></Document>, extraCompletionProviders:={New ExtraListProvider("True")})
+        $$]]></Document>, extraCompletionProviders:={New ExtraListProvider("true")})
 
                 state.SendInvokeCompletionList()
                 state.AssertListCount(2)
                 state.AssertSelectedTab("Extra")
-                state.SendTypeChars("Tr")
-                state.AssertSelectedCompletionItem("True")
+                state.SendTypeChars("tr")
+                state.AssertSelectedCompletionItem("true")
                 Assert.Equal(state.CurrentCompletionPresenterSession.SelectedItem.Glyph, Glyph.Keyword)
             End Using
         End Sub
@@ -1686,6 +1686,7 @@ class C
         Public Sub ModifyModelStatesIndependently()
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
+using System;
 class C
 {
     void foo(int x)
