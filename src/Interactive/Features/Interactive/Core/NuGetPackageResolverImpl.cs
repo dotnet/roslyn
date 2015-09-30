@@ -64,9 +64,16 @@ namespace Microsoft.CodeAnalysis.Interactive
                     var configPath = Path.Combine(tempPath, "nuget.config");
                     File.WriteAllText(configPath, EmptyNuGetConfig);
 
+                    // Copy nuget.exe resource to temp directory. (nuget.exe is an
+                    // implementation detail here and embedding nuget.exe as a
+                    // resource rather than installing nuget.exe as a separate exe
+                    // means we won't add nuget.exe unnecessarily to the path.)
+                    var nugetExePath = Path.Combine(tempPath, "nuget.exe");
+                    File.WriteAllBytes(nugetExePath, Resources.NuGetExe);
+
                     // Run "nuget.exe restore project.json -configfile nuget.config"
                     // to generate project.lock.json.
-                    NuGetRestore(projectJsonPath, configPath);
+                    NuGetRestore(nugetExePath, projectJsonPath, configPath);
 
                     // Read the references from project.lock.json.
                     var projectLockJsonPath = Path.Combine(tempPath, "project.lock.json");
@@ -165,13 +172,8 @@ namespace Microsoft.CodeAnalysis.Interactive
             return value;
         }
 
-        private void NuGetRestore(string projectJsonPath, string configPath)
+        private void NuGetRestore(string nugetExePath, string projectJsonPath, string configPath)
         {
-            // Load nuget.exe from same directory as current assembly.
-            var nugetExePath = Path.Combine(
-                Path.GetDirectoryName(
-                    CorLightup.Desktop.GetAssemblyLocation(typeof(NuGetPackageResolverImpl).GetTypeInfo().Assembly)),
-                "nuget.exe");
             var startInfo = new ProcessStartInfo()
             {
                 FileName = nugetExePath,
@@ -182,6 +184,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 RedirectStandardError = true,
             };
             _restore(startInfo);
+
         }
 
         private static void NuGetRestore(ProcessStartInfo startInfo)
