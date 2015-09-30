@@ -207,14 +207,14 @@
   <data name="RudeEdit" xml:space="preserve">
     <value>Rude Edit</value>
   </data>
-  <data name="FoundReferenceInFile" xml:space="preserve">
-    <value>found 1 reference in 1 file</value>
+  <data name="RenameWillUpdateReferenceInFile" xml:space="preserve">
+    <value>Rename will update 1 reference in 1 file.</value>
   </data>
-  <data name="FoundReferencesInFile" xml:space="preserve">
-    <value>found {0} references in 1 file</value>
+  <data name="RenameWillUpdateReferencesInFile" xml:space="preserve">
+    <value>Rename will update {0} references in 1 file.</value>
   </data>
-  <data name="FoundReferencesInMultipleFiles" xml:space="preserve">
-    <value>found {0} references in {1} files</value>
+  <data name="RenameWillUpdateReferencesInMultipleFiles" xml:space="preserve">
+    <value>Rename will update {0} references in {1} files.</value>
   </data>
   <data name="ConflictsWillBeResolved" xml:space="preserve">
     <value>{0} conflict(s) will be resolved</value>
@@ -538,7 +538,7 @@
     <value>Variadic SignatureHelpItem must have at least one parameter.</value>
   </data>
   <data name="Rename1" xml:space="preserve">
-    <value>Rename '{0}'</value>
+    <value>Rename: '{0}'</value>
   </data>
   <data name="LightBulbSessionIsAlreadyDismissed" xml:space="preserve">
     <value>Light bulb session is already dismissed.</value>
@@ -738,5 +738,11 @@ Do you want to proceed?</value>
   </data>
   <data name="SymbolHasNoImplementations" xml:space="preserve">
     <value>The symbol has no implementations.</value>
+  </data>
+  <data name="NewName1" xml:space="preserve">
+    <value>New name: {0}</value>
+  </data>
+  <data name="InlineRenameInstructions" xml:space="preserve">
+    <value>Modify any highlighted location to begin renaming.</value>
   </data>
 </root>

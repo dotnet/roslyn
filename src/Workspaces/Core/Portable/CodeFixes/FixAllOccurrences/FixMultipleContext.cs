@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         /// <summary>
         /// Creates a new <see cref="FixMultipleContext"/>.
-        /// Use this overload when applying fix multiple diagnostics with a source location.
+        /// Use this overload when applying fix multiple diagnostics with no source location.
         /// </summary>
         /// <param name="diagnosticsToFix">Specific set of diagnostics to fix. Must be a non-empty set.</param>
         /// <param name="codeFixProvider">Underlying <see cref="CodeFixes.CodeFixProvider"/> which triggered this fix all.</param>

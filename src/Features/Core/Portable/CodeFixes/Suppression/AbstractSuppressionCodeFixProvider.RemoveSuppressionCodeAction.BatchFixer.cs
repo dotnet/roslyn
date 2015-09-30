@@ -76,6 +76,24 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     }
                 }
 
+                public async override Task AddProjectFixesAsync(Project project, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix, FixAllContext fixAllContext)
+                {
+                    foreach (var diagnostic in diagnostics.Where(d => !d.Location.IsInSource && d.IsSuppressed))
+                    {
+                        var removeSuppressionFixes = await _suppressionFixProvider.GetSuppressionsAsync(project, SpecializedCollections.SingletonEnumerable(diagnostic), fixAllContext.CancellationToken).ConfigureAwait(false);
+                        var removeSuppressionCodeAction = removeSuppressionFixes.SingleOrDefault()?.Action as RemoveSuppressionCodeAction;
+                        if (removeSuppressionCodeAction != null)
+                        {
+                            if (fixAllContext is FixMultipleContext)
+                            {
+                                removeSuppressionCodeAction = removeSuppressionCodeAction.CloneForFixMultipleContext();
+                            }
+
+                            addFix(removeSuppressionCodeAction);
+                        }
+                    }
+                }
+
                 public override async Task<CodeAction> TryGetMergedFixAsync(IEnumerable<CodeAction> batchOfFixes, FixAllContext fixAllContext)
                 {
                     // Batch all the attribute removal fixes into a single fix.
@@ -83,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     // This ensures no merge conflicts in merging all fixes by our base implementation.
 
                     var cancellationToken = fixAllContext.CancellationToken;
-                    var oldSolution = fixAllContext.Document.Project.Solution;
+                    var oldSolution = fixAllContext.Project.Solution;
                     var currentSolution = oldSolution;
 
                     var attributeRemoveFixes = new List<AttributeRemoveAction>();

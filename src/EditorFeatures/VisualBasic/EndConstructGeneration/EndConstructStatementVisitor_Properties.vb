@@ -41,6 +41,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                 lines.AddRange(GenerateSetAccessor(node, _subjectBuffer.CurrentSnapshot))
             End If
 
+            ' If we didn't need any accessors, that already means there's some accessor after us. Spitting
+            ' End Property (if we have to) after that point would just make more broken code, so just bail
+            If lines.Count = 0 Then
+                Return Nothing
+            End If
+
             ' If we are missing a End Property, then spit it
             If propertyBlock Is Nothing OrElse propertyBlock.EndPropertyStatement.IsMissing Then
                 Dim aligningWhitespace = _subjectBuffer.CurrentSnapshot.GetAligningWhitespace(node.SpanStart)

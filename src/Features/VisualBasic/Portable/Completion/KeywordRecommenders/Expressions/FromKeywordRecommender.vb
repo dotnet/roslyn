@@ -25,8 +25,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
 
                 Dim objectCreation = targetToken.GetAncestor(Of ObjectCreationExpressionSyntax)()
                 Dim type = TryCast(context.SemanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol, ITypeSymbol)
-
-                If type IsNot Nothing AndAlso type.CanSupportCollectionInitializer() Then
+                Dim enclosingSymbol = context.SemanticModel.GetEnclosingNamedTypeOrAssembly(context.Position, cancellationToken)
+                If type IsNot Nothing AndAlso type.CanSupportCollectionInitializer(enclosingSymbol) Then
                     Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("From", VBFeaturesResources.FromCollectionInitializerKeywordToolTip))
                 End If
             End If

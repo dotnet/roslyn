@@ -27,6 +27,24 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("/out:test1.exe test1.cs test2.cs", csc.GenerateResponseFileContents());
         }
 
+        [Fact] 
+        public void DeterministicFlag()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.Deterministic = true;
+            Assert.Equal("/deterministic+ /out:test.exe test.cs", csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.Deterministic = false;
+            Assert.Equal("/deterministic- /out:test.exe test.cs", csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
         [Fact]
         public void TargetTypeDll()
         {

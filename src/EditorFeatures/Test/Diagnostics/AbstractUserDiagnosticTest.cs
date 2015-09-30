@@ -139,11 +139,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                     var diagnosticIds = ImmutableHashSet.Create(diagnostic.Id);
                     var fixAllDiagnosticProvider = new FixAllCodeActionContext.FixAllDiagnosticProvider(diagnosticIds, getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync);
-                    var fixAllContext = new FixAllContext(document, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider, CancellationToken.None);
+                    var fixAllContext = diagnostic.Location.IsInSource ?
+                        new FixAllContext(document, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider, CancellationToken.None) :
+                        new FixAllContext(document.Project, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider, CancellationToken.None);
                     var fixAllFix = fixAllProvider.GetFixAsync(fixAllContext).WaitAndGetResult(CancellationToken.None);
                     if (fixAllFix != null)
                     {
-                        var codeFix = new CodeFixCollection(fixAllProvider, diagnostic.Location.SourceSpan, ImmutableArray.Create(new CodeFix(fixAllFix, diagnostic)));
+                        var diagnosticSpan = diagnostic.Location.IsInSource ? diagnostic.Location.SourceSpan : default(TextSpan);
+                        var codeFix = new CodeFixCollection(fixAllProvider, diagnosticSpan, ImmutableArray.Create(new CodeFix(fixAllFix, diagnostic)));
                         yield return Tuple.Create(diagnostic, codeFix);
                     }
                 }

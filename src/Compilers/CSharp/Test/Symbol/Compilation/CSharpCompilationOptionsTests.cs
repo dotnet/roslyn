@@ -346,6 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             int warningLevel = 0;
             IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions = null;
             bool concurrentBuild = false;
+            bool deterministic = false;
             bool extendedCustomDebugInformation = true;
             bool debugPlusMode = false;
             XmlReferenceResolver xmlReferenceResolver = new XmlFileResolver(null);
@@ -358,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return new CSharpCompilationOptions(OutputKind.ConsoleApplication, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName, usings,
                 optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
                 platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions,
-                concurrentBuild, extendedCustomDebugInformation, debugPlusMode, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
+                concurrentBuild, deterministic, extendedCustomDebugInformation, debugPlusMode, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
                 assemblyIdentityComparer, strongNameProvider, metadataImportOptions);
         }
 

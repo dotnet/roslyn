@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                          </Project>
                      </Workspace>),
                     newName:="",
-                    searchResultText:=EditorFeaturesResources.FoundReferenceInFile,
+                    searchResultText:=EditorFeaturesResources.RenameWillUpdateReferenceInFile,
                     changedOptionSet:=changingOptions)
         End Sub
 
@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                          </Project>
                      </Workspace>),
                     newName:="",
-                    searchResultText:=String.Format(EditorFeaturesResources.FoundReferencesInFile, 2),
+                    searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferencesInFile, 2),
                     hasRenameOverload:=True,
                     changedOptionSet:=changingOptions)
         End Sub
@@ -94,7 +94,7 @@ class Program
                     </Project>
                 </Workspace>,
                 newName:="Bar",
-                searchResultText:=String.Format(EditorFeaturesResources.FoundReferencesInFile, 2),
+                searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferencesInFile, 2),
                 changedOptionSet:=changingOptions,
                 hasRenameOverload:=True,
                 unresolvableConflictText:=String.Format(EditorFeaturesResources.UnresolvableConflicts, 1),
@@ -116,7 +116,7 @@ class AttributeAttribute : System.Attribute { }
                          </Project>
                      </Workspace>),
                     newName:="AttributeAttributeAttribute",
-                    searchResultText:=EditorFeaturesResources.FoundReferenceInFile,
+                    searchResultText:=EditorFeaturesResources.RenameWillUpdateReferenceInFile,
                     resolvableConflictText:=String.Format(EditorFeaturesResources.ConflictsWillBeResolved, 1),
                     severity:=DashboardSeverity.Info)
         End Sub
@@ -155,7 +155,7 @@ class AttributeAttribute : System.Attribute { }
                          </Project>
                      </Workspace>),
                     newName:="",
-                    searchResultText:=String.Format(EditorFeaturesResources.FoundReferencesInFile, 5),
+                    searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferencesInFile, 5),
                     hasRenameOverload:=True,
                     changedOptionSet:=changingOptions)
         End Sub
@@ -196,7 +196,7 @@ class $$Program
                          </Project>
                      </Workspace>),
                     newName:="P",
-                    searchResultText:=String.Format(EditorFeaturesResources.FoundReferencesInFile, 6),
+                    searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferencesInFile, 6),
                     changedOptionSet:=changingOptions)
         End Sub
 
@@ -236,7 +236,7 @@ class $$Program
                          </Project>
                      </Workspace>),
                     newName:="P",
-                    searchResultText:=String.Format(EditorFeaturesResources.FoundReferencesInFile, 2),
+                    searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferencesInFile, 2),
                     changedOptionSet:=changingOptions)
         End Sub
 
@@ -277,7 +277,7 @@ class $$Program
                          </Project>
                      </Workspace>),
                     newName:="P",
-                    searchResultText:=String.Format(EditorFeaturesResources.FoundReferencesInFile, 7),
+                    searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferencesInFile, 7),
                     changedOptionSet:=changingOptions)
         End Sub
 
@@ -299,7 +299,7 @@ class $$Program
                          </Project>
                      </Workspace>),
                     newName:="",
-                    searchResultText:=String.Format(EditorFeaturesResources.FoundReferencesInFile, 3))
+                    searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferencesInFile, 3))
         End Sub
 
         <Fact>
@@ -320,7 +320,7 @@ class $$Program
                          </Project>
                      </Workspace>),
                     newName:="",
-                    searchResultText:=EditorFeaturesResources.FoundReferenceInFile)
+                    searchResultText:=EditorFeaturesResources.RenameWillUpdateReferenceInFile)
         End Sub
 
         <Fact>
@@ -342,7 +342,7 @@ class $$Program
                      </Project>
                  </Workspace>),
                 newName:="foo",
-                searchResultText:=String.Format(EditorFeaturesResources.FoundReferencesInFile, 2),
+                searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferencesInFile, 2),
                 resolvableConflictText:=String.Format(EditorFeaturesResources.ConflictsWillBeResolved, 1),
                 severity:=DashboardSeverity.Info)
         End Sub
@@ -367,7 +367,7 @@ class $$Program
                      </Project>
                  </Workspace>),
                 newName:="foo",
-                searchResultText:=String.Format(EditorFeaturesResources.FoundReferencesInFile, 2),
+                searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferencesInFile, 2),
                 resolvableConflictText:=String.Format(EditorFeaturesResources.ConflictsWillBeResolved, 2),
                 severity:=DashboardSeverity.Info)
         End Sub
@@ -390,7 +390,7 @@ class $$Program
                      </Project>
                  </Workspace>),
                 newName:="foo",
-                searchResultText:=EditorFeaturesResources.FoundReferenceInFile,
+                searchResultText:=EditorFeaturesResources.RenameWillUpdateReferenceInFile,
                 unresolvableConflictText:=String.Format(EditorFeaturesResources.UnresolvableConflicts, 1),
                 severity:=DashboardSeverity.Error)
         End Sub
@@ -415,7 +415,7 @@ class $$Program
                      </Project>
                  </Workspace>),
                 newName:="foo",
-                searchResultText:=String.Format(EditorFeaturesResources.FoundReferencesInFile, 3),
+                searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferencesInFile, 3),
                 unresolvableConflictText:=String.Format(EditorFeaturesResources.UnresolvableConflicts, 3),
                 severity:=DashboardSeverity.Error)
         End Sub
@@ -452,7 +452,7 @@ class $$Program
                      </Project>
                  </Workspace>),
                    newName:="Bar",
-                   searchResultText:=String.Format(EditorFeaturesResources.FoundReferencesInMultipleFiles, 4, 2),
+                   searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferencesInMultipleFiles, 4, 2),
                    resolvableConflictText:=String.Format(EditorFeaturesResources.ConflictsWillBeResolved, 1),
                    severity:=DashboardSeverity.Info)
         End Sub
@@ -476,7 +476,7 @@ class C
                      </Project>
                  </Workspace>),
                    newName:="Mo",
-                   searchResultText:=String.Format(EditorFeaturesResources.FoundReferenceInFile),
+                   searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferenceInFile),
                    hasRenameOverload:=True,
                    isRenameOverloadsEditable:=True)
         End Sub
@@ -500,7 +500,7 @@ class C
                      </Project>
                  </Workspace>),
                    newName:="Mo",
-                   searchResultText:=String.Format(EditorFeaturesResources.FoundReferencesInFile, 3),
+                   searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferencesInFile, 3),
                    hasRenameOverload:=True,
                    isRenameOverloadsEditable:=False)
         End Sub
@@ -537,7 +537,7 @@ class D : B
                      </Project>
                  </Workspace>),
                    newName:="Mo",
-                   searchResultText:=String.Format(EditorFeaturesResources.FoundReferencesInFile, 5),
+                   searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferencesInFile, 5),
                    changedOptionSet:=changingOptions,
                    hasRenameOverload:=True)
         End Sub
