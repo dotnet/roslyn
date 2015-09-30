@@ -27,7 +27,10 @@
     <Compile Include="Collections\ArrayBuilderTests.cs" />
     <Compile Include="Collections\BoxesTest.cs" />
     <Compile Include="Collections\ByteSequenceComparerTests.cs" />
+    <Compile Include="Diagnostics\BoxingOperationAnalyzer.cs" />
     <Compile Include="Diagnostics\DiagnosticLocalizationTests.cs" />
+    <Compile Include="Diagnostics\EmptyArrayOperationAnalyzer.cs" />
+    <Compile Include="Diagnostics\OperationTestAnalyzer.cs" />
     <Compile Include="Emit\EmitOptionsTests.cs" />
     <Compile Include="Emit\CustomDebugInfoTests.cs" />
     <Compile Include="InternalUtilities\StreamExtensionsTests.cs" />
