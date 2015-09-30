@@ -935,7 +935,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             //         the implementation of the getter must make observable mutations to the instance.
             //
             //         At this point it seems more appropriate to continue adding these casts.
-            if (node.ReceiverOpt?.Type.IsTypeParameter() == true)
+            if (node.ReceiverOpt?.Type.IsTypeParameter() == true &&
+                !node.ReceiverOpt.Type.IsReferenceType)
             {
                 receiver = this.Convert(receiver, getMethod.ReceiverType, isChecked: false);
             }
