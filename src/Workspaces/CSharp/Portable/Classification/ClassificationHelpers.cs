@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         private const string FromKeyword = "from";
         private const string ValueKeyword = "value";
         private const string VarKeyword = "var";
+        private const string AwaitKeyword = "await";
 
         /// <summary>
         /// Determine the classification type for a given token.
@@ -259,6 +260,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 switch (token.ValueText)
                 {
+                    case AwaitKeyword:
+                        return token.GetNextToken(includeZeroWidth: true).IsMissing;
+
                     case FromKeyword:
                         var fromClause = token.Parent.FirstAncestorOrSelf<FromClauseSyntax>();
                         return fromClause != null && fromClause.FromKeyword == token;
