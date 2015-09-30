@@ -19,6 +19,16 @@ call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd
 REM Build the compiler so we can self host it for the full build
 nuget.exe restore -verbosity quiet %RoslynRoot%build/ToolsetPackages/project.json
 nuget.exe restore -verbosity quiet %RoslynRoot%build/Toolset.sln
+
+REM Verify that our project.lock.json files didn't change as a result of 
+REM restore.  If they do then the commit changed the dependencies without 
+REM updating the lock files.
+git diff --exit-code --quiet
+if ERRORLEVEL 1 (
+    echo Commit changed dependencies without updating project.lock.json
+    exit /b 1
+)
+
 msbuild /nologo /v:m /m %RoslynRoot%build/Toolset.sln /p:Configuration=%BuildConfiguration%
 
 mkdir %RoslynRoot%Binaries\Bootstrap
