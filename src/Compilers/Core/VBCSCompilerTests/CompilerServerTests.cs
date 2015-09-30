@@ -2394,7 +2394,7 @@ namespace Class____foo____Library1
             Assert.Equal("", result.Errors);
         }
 
-        [Fact]
+        [Fact(Skip = "5572"), WorkItem(5572, "https://github.com/dotnet/roslyn/issues/5572")]
         public void MutexStopsServerStarting()
         {
             var pipename = Guid.NewGuid().ToString("N");
@@ -2427,7 +2427,7 @@ namespace Class____foo____Library1
             }
         }
 
-        [Fact]
+        [Fact(Skip = "5572"), WorkItem(5572, "https://github.com/dotnet/roslyn/issues/5572")]
         public async Task ServerWithSamePipeNameExits()
         {
             var pipename = Guid.NewGuid().ToString("N");
