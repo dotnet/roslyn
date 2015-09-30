@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
         Public Overrides Function ClassifyNode(syntax As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As IEnumerable(Of ClassifiedSpan)
             Dim identifierName = DirectCast(syntax, IdentifierNameSyntax)
             Dim identifier = identifierName.Identifier
-            If StringComparer.OrdinalIgnoreCase.Equals(identifier.ValueText, AwaitText) Then
+            If CaseInsensitiveComparison.Equals(identifier.ValueText, AwaitText) Then
                 Dim symbolInfo = semanticModel.GetSymbolInfo(identifier)
                 If symbolInfo.GetAnySymbol() Is Nothing Then
                     Return SpecializedCollections.SingletonEnumerable(New ClassifiedSpan(ClassificationTypeNames.Keyword, identifier.Span))
