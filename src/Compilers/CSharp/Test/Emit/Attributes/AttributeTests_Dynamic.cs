@@ -1182,5 +1182,61 @@ class C
                 }
             });
         }
+
+        [Fact]
+        public void DynamicLambdaParameterChecksDynamic()
+        {
+            var source =
+@"using System;
+
+public class C
+{
+    public static void Main()
+    {
+        Func<dynamic, object> f = x => x;
+        T(f(null));
+    }
+
+    public static void T(object o) { }
+    
+}";
+
+            // Make sure we emit without errors when dynamic attributes are not present. 
+            CompileAndVerify(source, expectedSignatures: new[]
+            {
+                Signature(
+                    "C+<>c", 
+                    "<Main>b__0_0",
+                    ".method assembly hidebysig instance System.Object <Main>b__0_0(System.Object x) cil managed")
+            });
+        }
+
+        [Fact]
+        [WorkItem(4160, "https://github.com/dotnet/roslyn/issues/4160")]
+        public void DynamicLambdaParametersEmitAsDynamic()
+        {
+            var source =
+@"using System;
+
+public class C
+{
+    public static void Main()
+    {
+        Func<dynamic, object> f = x => x;
+        T(f(null));
+    }
+
+    public static void T(object o) { }
+    
+}";
+
+            CompileAndVerify(source, additionalRefs: new[] { CSharpRef, SystemCoreRef }, expectedSignatures: new[]
+            {
+                Signature(
+                    "C+<>c", 
+                    "<Main>b__0_0",
+                    ".method assembly hidebysig instance System.Object <Main>b__0_0([System.Runtime.CompilerServices.DynamicAttribute()] System.Object x) cil managed")
+            });
+        }
     }
 }
