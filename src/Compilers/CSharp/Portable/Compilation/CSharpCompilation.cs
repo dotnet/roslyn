@@ -2883,6 +2883,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (object)GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags) != null;
         }
 
+        /// <summary>
+        /// Determine if the predefined type is present in this compilation.
+        /// </summary>
+        internal bool HasSpecialType(SpecialType specialType)
+        {
+            var symbol = GetSpecialType(specialType);
+            return symbol.GetUseSiteDiagnostic()?.Severity != DiagnosticSeverity.Error;
+        }
+
         internal override AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager)
         {
             return new AnalyzerDriver<SyntaxKind>(analyzers, n => n.Kind(), analyzerManager);
