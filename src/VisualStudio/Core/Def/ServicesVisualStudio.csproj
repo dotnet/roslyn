@@ -36,6 +36,7 @@
     <Compile Include="Implementation\AnalyzerDependency\AnalyzerDependencyCheckingService.cs" />
     <Compile Include="Implementation\AnalyzerDependency\AnalyzerDependencyConflict.cs" />
     <Compile Include="Implementation\AnalyzerDependency\IgnorableAssemblyIdentityList.cs" />
+    <Compile Include="Implementation\AnalyzerDependency\IgnorableAssemblyNameList.cs" />
     <Compile Include="Implementation\AnalyzerDependency\IgnorableAssemblyNamePrefixList.cs" />
     <Compile Include="Implementation\CompilationErrorTelemetry\CompilationErrorTelemetryIncrementalAnalyzer.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioVenusSpanMappingService.cs" />
