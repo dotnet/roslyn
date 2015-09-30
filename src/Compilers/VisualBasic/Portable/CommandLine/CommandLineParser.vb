@@ -88,6 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim optimize As Boolean = False
             Dim checkOverflow As Boolean = True
             Dim concurrentBuild As Boolean = True
+            Dim deterministic As Boolean = False
             Dim emitPdb As Boolean
             Dim noStdLib As Boolean = False
             Dim utf8output As Boolean = False
@@ -636,6 +637,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
 
                             concurrentBuild = True
+                            Continue For
+
+                        Case "deterministic+"
+                            If value IsNot Nothing Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, name)
+                                Continue For
+                            End If
+
+                            deterministic = True
+                            Continue For
+
+                        Case "deterministic-"
+                            If value IsNot Nothing Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, name)
+                                Continue For
+                            End If
+
+                            deterministic = False
                             Continue For
 
                         Case "parallel+", "p+"
@@ -1191,6 +1210,7 @@ lVbRuntimePlus:
                 embedVbCoreRuntime:=embedVbCoreRuntime,
                 checkOverflow:=checkOverflow,
                 concurrentBuild:=concurrentBuild,
+                deterministic:=deterministic,
                 cryptoKeyContainer:=keyContainerSetting,
                 cryptoKeyFile:=keyFileSetting,
                 delaySign:=delaySignSetting,
