@@ -150,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                            Hash.Combine(diagnostic.DataLocation.OriginalEndLine,
                            Hash.Combine(diagnostic.DataLocation.OriginalFilePath,
                            Hash.Combine(diagnostic.IsSuppressed,
-                           Hash.Combine(diagnostic.Id.GetHashCode(), diagnostic.Message.GetHashCode()))))));
+                           Hash.Combine(diagnostic.Id.GetHashCode(), diagnostic.Message.GetHashCode())))))));
                 }
             }
 
