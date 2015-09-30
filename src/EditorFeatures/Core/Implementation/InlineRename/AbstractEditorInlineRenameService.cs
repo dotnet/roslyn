@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            var symbol = RenameLocationSet.ReferenceProcessing.GetRenamableSymbolAsync(document, triggerToken.SpanStart, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+            var symbol = RenameLocations.ReferenceProcessing.GetRenamableSymbolAsync(document, triggerToken.SpanStart, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
             if (symbol == null)
             {
                 return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameThisElement);

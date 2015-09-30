@@ -82,6 +82,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         public CommandState GetCommandState(TabKeyCommandArgs args, Func<CommandState> nextHandler)
         {
             AssertIsForeground();
+            
+            if (!args.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.Snippets))
+            {
+                return nextHandler();
+            }
+
             Workspace workspace;
             if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out workspace))
             {
@@ -113,6 +119,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         public CommandState GetCommandState(ReturnKeyCommandArgs args, Func<CommandState> nextHandler)
         {
             AssertIsForeground();
+
+            if (!args.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.Snippets))
+            {
+                return nextHandler();
+            }
+
             Workspace workspace;
             if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out workspace))
             {
@@ -144,6 +156,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         public CommandState GetCommandState(EscapeKeyCommandArgs args, Func<CommandState> nextHandler)
         {
             AssertIsForeground();
+
+            if (!args.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.Snippets))
+            {
+                return nextHandler();
+            }
+
             Workspace workspace;
             if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out workspace))
             {
@@ -175,6 +193,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         public CommandState GetCommandState(BackTabKeyCommandArgs args, Func<CommandState> nextHandler)
         {
             AssertIsForeground();
+
+            if (!args.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.Snippets))
+            {
+                return nextHandler();
+            }
+
             Workspace workspace;
             if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out workspace))
             {
@@ -199,6 +223,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public CommandState GetCommandState(InsertSnippetCommandArgs args, Func<CommandState> nextHandler)
         {
+            AssertIsForeground();
+
+            if (!args.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.Snippets))
+            {
+                return nextHandler();
+            }
+
             Workspace workspace;
             if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out workspace))
             {

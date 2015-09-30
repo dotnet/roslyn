@@ -46,25 +46,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return CreateSZArray(declaringAssembly, elementType, customModifiers);
             }
 
-            return CreateMDArray(declaringAssembly, elementType, rank, customModifiers);
+            return CreateMDArray(declaringAssembly, elementType, rank, default(ImmutableArray<int>), default(ImmutableArray<int>), customModifiers);
         }
 
         internal static ArrayTypeSymbol CreateMDArray(
             TypeSymbol elementType,
             int rank,
+            ImmutableArray<int> sizes,
+            ImmutableArray<int> lowerBounds,
             NamedTypeSymbol array,
             ImmutableArray<CustomModifier> customModifiers)
         {
-            return new MDArray(elementType, rank, array, customModifiers);
+            // Optimize for most common case - no sizes and all dimensions are zero lower bound.
+            if (sizes.IsDefaultOrEmpty && lowerBounds.IsDefault)
+            {
+                return new MDArray(elementType, rank, array, customModifiers);
+            }
+
+            return new MDArrayWithSizesAndBounds(elementType, rank, sizes, lowerBounds, array, customModifiers);
         }
 
         internal static ArrayTypeSymbol CreateMDArray(
             AssemblySymbol declaringAssembly,
             TypeSymbol elementType,
             int rank,
+            ImmutableArray<int> sizes,
+            ImmutableArray<int> lowerBounds,
             ImmutableArray<CustomModifier> customModifiers = default(ImmutableArray<CustomModifier>))
         {
-            return CreateMDArray(elementType, rank, declaringAssembly.GetSpecialType(SpecialType.System_Array), customModifiers);
+            return CreateMDArray(elementType, rank, sizes, lowerBounds, declaringAssembly.GetSpecialType(SpecialType.System_Array), customModifiers);
         }
 
         internal static ArrayTypeSymbol CreateSZArray(
@@ -135,6 +145,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return Rank == other.Rank && IsSZArray == other.IsSZArray;
         }
+
+        /// <summary>
+        /// Specified sizes for dimensions, by position. The length can be less than <see cref="Rank"/>,
+        /// meaning that some trailing dimensions don't have the size specified.
+        /// The most common case is none of the dimensions have the size specified - an empty array is returned.
+        /// </summary>
+        internal virtual ImmutableArray<int> Sizes
+        {
+            get
+            {
+                return ImmutableArray<int>.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Specified lower bounds for dimensions, by position. The length can be less than <see cref="Rank"/>,
+        /// meaning that some trailing dimensions don't have the lower bound specified.
+        /// The most common case is all dimensions are zero bound - a null array is returned in this case.
+        /// </summary>
+        internal virtual ImmutableArray<int> LowerBounds
+        {
+            get
+            {
+                return default(ImmutableArray<int>);
+            }
+        }
+
+        /// <summary>
+        /// Note, <see cref="Rank"/> eqality should be checked separately!!!
+        /// </summary>
+        internal bool HasSameSizesAndLowerBoundsAs(ArrayTypeSymbol other)
+        {
+            if (this.Sizes.SequenceEqual(other.Sizes))
+            {
+                var thisLowerBounds = this.LowerBounds;
+
+                if (thisLowerBounds.IsDefault)
+                {
+                    return other.LowerBounds.IsDefault;
+                }
+
+                var otherLowerBounds = other.LowerBounds;
+
+                return !otherLowerBounds.IsDefault && thisLowerBounds.SequenceEqual(otherLowerBounds);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Normally C# arrays have default sizes and lower bounds - sizes are not specified and all dimensions are zero bound.
+        /// This property should return false for any deviations.
+        /// </summary>
+        internal abstract bool HasDefaultSizesAndLowerBounds { get; }
 
         /// <summary>
         /// Gets the type of the elements stored in the array.
@@ -264,9 +328,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return visitor.VisitArrayType(this);
         }
 
-        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiers, bool ignoreDynamic)
+        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
         {
-            return this.Equals(t2 as ArrayTypeSymbol, ignoreCustomModifiers, ignoreDynamic);
+            return this.Equals(t2 as ArrayTypeSymbol, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic);
         }
 
         internal bool Equals(ArrayTypeSymbol other)
@@ -274,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Equals(other, false, false);
         }
 
-        private bool Equals(ArrayTypeSymbol other, bool ignoreCustomModifiers, bool ignoreDynamic)
+        private bool Equals(ArrayTypeSymbol other, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
         {
             if (ReferenceEquals(this, other))
             {
@@ -282,13 +346,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if ((object)other == null || !other.HasSameShapeAs(this) || 
-                !other.ElementType.Equals(ElementType, ignoreCustomModifiers, ignoreDynamic))
+                !other.ElementType.Equals(ElementType, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic))
             {
                 return false;
             }
 
-            // Make sure custom modifiers are the same.
-            if (!ignoreCustomModifiers)
+            // Make sure custom modifiers and bounds are the same.
+            if (!ignoreCustomModifiersAndArraySizesAndLowerBounds)
             {
                 var mod = this.CustomModifiers;
                 var otherMod = other.CustomModifiers;
@@ -305,6 +369,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         return false;
                     }
+                }
+
+                if (!this.HasSameSizesAndLowerBoundsAs(other))
+                {
+                    return false;
                 }
             }
 
@@ -463,12 +532,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return _interfaces;
             }
+
+            internal override bool HasDefaultSizesAndLowerBounds
+            {
+                get
+                {
+                    return true;
+                }
+            }
         }
 
         /// <summary>
         /// Represents MDARRAY - multi-dimensional array (possibly of rank 1)
         /// </summary>
-        private sealed class MDArray : ArrayTypeSymbol
+        private class MDArray : ArrayTypeSymbol
         {
             private readonly int _rank;
 
@@ -483,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _rank = rank;
             }
 
-            public override int Rank
+            public sealed override int Rank
             {
                 get
                 {
@@ -491,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            internal override bool IsSZArray
+            internal sealed override bool IsSZArray
             {
                 get
                 {
@@ -499,9 +576,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved = null)
+            internal sealed override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved = null)
             {
                 return ImmutableArray<NamedTypeSymbol>.Empty;
+            }
+
+            internal override bool HasDefaultSizesAndLowerBounds
+            {
+                get
+                {
+                    return true;
+                }
+            }
+        }
+
+        private sealed class MDArrayWithSizesAndBounds : MDArray
+        {
+            private readonly ImmutableArray<int> _sizes;
+            private readonly ImmutableArray<int> _lowerBounds;
+
+            internal MDArrayWithSizesAndBounds(
+                TypeSymbol elementType,
+                int rank,
+                ImmutableArray<int> sizes,
+                ImmutableArray<int> lowerBounds,
+                NamedTypeSymbol array,
+                ImmutableArray<CustomModifier> customModifiers)
+                : base(elementType, rank, array, customModifiers)
+            {
+                Debug.Assert(!sizes.IsDefaultOrEmpty || !lowerBounds.IsDefault);
+                Debug.Assert(lowerBounds.IsDefaultOrEmpty || (!lowerBounds.IsEmpty && (lowerBounds.Length != rank || !lowerBounds.All(b => b == 0))));
+                _sizes = sizes.NullToEmpty();
+                _lowerBounds = lowerBounds;
+            }
+
+            internal override ImmutableArray<int> Sizes
+            {
+                get
+                {
+                    return _sizes;
+                }
+            }
+
+            internal override ImmutableArray<int> LowerBounds
+            {
+                get
+                {
+                    return _lowerBounds;
+                }
+            }
+
+            internal override bool HasDefaultSizesAndLowerBounds
+            {
+                get
+                {
+                    return false;
+                }
             }
         }
     }

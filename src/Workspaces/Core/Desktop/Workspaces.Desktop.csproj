@@ -46,6 +46,9 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\EncodedStringText.cs">
       <Link>InternalUtilities\EncodedStringText.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\StreamExtensions.cs">
+      <Link>InternalUtilities\StreamExtensions.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Helpers\CoreClrShim.cs">
       <Link>InternalUtilities\CoreClrShim.cs</Link>
     </Compile>
@@ -54,6 +57,9 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Helpers\AbstractAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\AbstractAnalyzerAssemblyLoader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Helpers\AnalyzerAssemblyLoadUtils.cs">
+      <Link>AnalyzerAssemblyLoadUtils.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
       <Link>InternalUtilities\FusionAssemblyIdentity.cs</Link>
@@ -67,10 +73,10 @@
     <Compile Include="..\..\..\Compilers\Helpers\SimpleAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\SimpleAnalyzerAssemblyLoader.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Scripting\Core\DesktopMetadataReferenceResolver.cs">
-      <Link>InternalUtilities\DesktopMetadataReferenceResolver.cs</Link>
+    <Compile Include="..\..\..\Scripting\Core\Resolvers\RuntimeMetadataReferenceResolver.cs">
+      <Link>InternalUtilities\ScriptMetadataReferenceResolver.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Scripting\Core\NuGetPackageResolver.cs">
+    <Compile Include="..\..\..\Scripting\Core\Resolvers\NuGetPackageResolver.cs">
       <Link>InternalUtilities\NuGetPackageResolver.cs</Link>
     </Compile>
     <Compile Include="Options\ExportOptionAttribute.cs" />
@@ -80,7 +86,6 @@
     <Compile Include="Options\Providers\ExportedOptionKeyOptionProvider.cs" />
     <Compile Include="Utilities\Documentation\FileBasedXmlDocumentationProvider.cs" />
     <Compile Include="Utilities\ReferencePathUtilities_Desktop.cs" />
-    <Compile Include="Utilities\ReferencePathUtilities.cs" />
     <Compile Include="WorkspaceDesktopResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -127,6 +132,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Telemetry" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
@@ -163,6 +169,5 @@
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

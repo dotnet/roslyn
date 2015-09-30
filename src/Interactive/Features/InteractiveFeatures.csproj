@@ -22,6 +22,7 @@
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
       <Name>Workspaces.Desktop</Name>
+      <Aliases>global,WORKSPACES</Aliases>
     </ProjectReference>
     <ProjectReference Include="..\..\Scripting\Core\Scripting.csproj">
       <Project>{12A68549-4E8C-42D6-8703-A09335F97997}</Project>
@@ -85,14 +86,15 @@
     <Compile Include="Interactive\Core\InteractiveHost.InitializedRemoteService.cs" />
     <Compile Include="Interactive\Core\InteractiveHost.Service.cs" />
     <Compile Include="Interactive\Core\InteractiveLanguageNames.cs" />
-    <Compile Include="Interactive\Core\IRepl.cs" />
+    <Compile Include="Interactive\Core\ReplServiceProvider.cs" />
     <Compile Include="Interactive\Core\InteractiveHost.RemoteAsyncOperation.cs" />
     <Compile Include="Interactive\Core\ProcessExtensions.cs" />
     <Compile Include="Interactive\Core\RemoteExecutionResult.cs" />
     <Compile Include="Interactive\Core\InteractiveHost.RemoteService.cs" />
-    <Compile Include="Interactive\Core\SearchPaths.cs" />
+    <Compile Include="Interactive\Core\HostObject\SearchPaths.cs" />
     <Compile Include="Interactive\Core\SerializableAssemblyLoadResult.cs" />
-    <Compile Include="Interactive\Core\SynchronizedVersionedList.cs" />
+    <Compile Include="Interactive\Core\HostObject\SynchronizedVersionedList.cs" />
+    <Compile Include="Interactive\Core\NuGetPackageResolverImpl.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Interactive\Core\InteractiveHost.LazyRemoteService.cs" />
@@ -102,6 +104,5 @@
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

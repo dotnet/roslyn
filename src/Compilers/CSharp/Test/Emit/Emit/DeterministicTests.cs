@@ -51,6 +51,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             return compilation.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(pdbFormat), pdbStream: new MemoryStream());
         }
 
+        [Fact, WorkItem(4578, "https://github.com/dotnet/roslyn/issues/4578")]
+        public void BanVersionWildcards()
+        {
+            string source = @"[assembly: System.Reflection.AssemblyVersion(""10101.0.*"")] public class C {}";
+            var compilationDeterministic = CreateCompilation(source, assemblyName: "DeterminismTest", references: new[] { MscorlibRef },
+                parseOptions: TestOptions.Regular.WithFeature("deterministic", "true"));
+            var compilationNonDeterministic = CreateCompilation(source, assemblyName: "DeterminismTest", references: new[] { MscorlibRef });
+
+            var resultDeterministic = compilationDeterministic.Emit(Stream.Null, Stream.Null);
+            var resultNonDeterministic = compilationNonDeterministic.Emit(Stream.Null, Stream.Null);
+
+            Assert.False(resultDeterministic.Success);   
+            Assert.True(resultNonDeterministic.Success);   
+        }
+
         [Fact, WorkItem(372, "https://github.com/dotnet/roslyn/issues/372")]
         public void Simple()
         {

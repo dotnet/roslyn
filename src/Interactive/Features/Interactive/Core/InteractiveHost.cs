@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Interactive
     /// </remarks>
     internal sealed partial class InteractiveHost : MarshalByRefObject
     {
-        private readonly Type _replType;
+        private readonly Type _replServiceProviderType;
         private readonly string _hostPath;
         private readonly string _initialWorkingDirectory;
 
@@ -40,10 +40,10 @@ namespace Microsoft.CodeAnalysis.Interactive
         private TextWriter _output;
         private TextWriter _errorOutput;
 
-        internal event Action<InteractiveHostOptions> ProcessStarting;
+        internal event Action<bool> ProcessStarting;
 
         public InteractiveHost(
-            Type replType,
+            Type replServiceProviderType,
             string hostPath,
             string workingDirectory,
             int millisecondsTimeout = 5000)
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             _millisecondsTimeout = millisecondsTimeout;
             _output = TextWriter.Null;
             _errorOutput = TextWriter.Null;
-            _replType = replType;
+            _replServiceProviderType = replServiceProviderType;
             _hostPath = hostPath;
             _initialWorkingDirectory = workingDirectory;
 
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    newService.Initialize(_replType);
+                    newService.Initialize(_replServiceProviderType);
                 }
                 catch (RemotingException) when (!CheckAlive(newProcess))
                 {
@@ -505,13 +505,13 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// <summary>
         /// Sets the current session's search paths and base directory.
         /// </summary>
-        public Task SetPathsAsync(string[] referenceSearchPaths, string[] sourceSearchPaths, string baseDirectory)
+        public Task<RemoteExecutionResult> SetPathsAsync(string[] referenceSearchPaths, string[] sourceSearchPaths, string baseDirectory)
         {
             Debug.Assert(referenceSearchPaths != null);
             Debug.Assert(sourceSearchPaths != null);
             Debug.Assert(baseDirectory != null);
 
-            return Async<object>((service, operation) => service.SetPathsAsync(operation, referenceSearchPaths, sourceSearchPaths, baseDirectory));
+            return Async<RemoteExecutionResult>((service, operation) => service.SetPathsAsync(operation, referenceSearchPaths, sourceSearchPaths, baseDirectory));
         }
 
         #endregion

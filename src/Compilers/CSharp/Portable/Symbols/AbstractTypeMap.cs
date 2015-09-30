@@ -197,6 +197,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ArrayTypeSymbol.CreateMDArray(
                 element.Type,
                 t.Rank,
+                t.Sizes,
+                t.LowerBounds,
                 t.BaseTypeNoUseSiteDiagnostics,
                 element.CustomModifiers);
         }

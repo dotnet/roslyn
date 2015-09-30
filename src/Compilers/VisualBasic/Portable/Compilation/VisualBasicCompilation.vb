@@ -80,6 +80,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private ReadOnly _syntaxTrees As ImmutableArray(Of SyntaxTree)
 
+        Private ReadOnly _syntaxTreeOrdinalMap As ImmutableDictionary(Of SyntaxTree, Integer)
+
         ''' <summary>
         ''' The syntax trees of this compilation plus all 'hidden' trees 
         ''' added to the compilation by compiler, e.g. Vb Core Runtime.
@@ -411,7 +413,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             reuseReferenceManager As Boolean,
             Optional eventQueue As AsyncQueue(Of CompilationEvent) = Nothing
         )
-            MyBase.New(assemblyName, references, submissionReturnType, hostObjectType, isSubmission, syntaxTreeOrdinalMap, eventQueue)
+            MyBase.New(assemblyName, references, SyntaxTreeCommonFeatures(syntaxTrees), submissionReturnType, hostObjectType, isSubmission, eventQueue)
 
             Debug.Assert(rootNamespaces IsNot Nothing)
             Debug.Assert(declarationTable IsNot Nothing)
@@ -421,6 +423,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             _options = options
             _syntaxTrees = syntaxTrees
+            _syntaxTreeOrdinalMap = syntaxTreeOrdinalMap
             _rootNamespaces = rootNamespaces
             _embeddedTrees = embeddedTrees
             _declarationTable = declarationTable
@@ -486,7 +489,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _options,
                 Me.ExternalReferences,
                 _syntaxTrees,
-                Me.syntaxTreeOrdinalMap,
+                _syntaxTreeOrdinalMap,
                 _rootNamespaces,
                 _embeddedTrees,
                 _declarationTable,
@@ -538,7 +541,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.Options,
                 Me.ExternalReferences,
                 _syntaxTrees,
-                Me.syntaxTreeOrdinalMap,
+                _syntaxTreeOrdinalMap,
                 _rootNamespaces,
                 _embeddedTrees,
                 _declarationTable,
@@ -579,7 +582,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.Options,
                 ValidateReferences(Of VisualBasicCompilationReference)(newReferences),
                 _syntaxTrees,
-                Me.syntaxTreeOrdinalMap,
+                _syntaxTreeOrdinalMap,
                 _rootNamespaces,
                 embeddedTrees,
                 declTable,
@@ -632,7 +635,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 newOptions,
                 Me.ExternalReferences,
                 _syntaxTrees,
-                Me.syntaxTreeOrdinalMap,
+                _syntaxTreeOrdinalMap,
                 declMap,
                 embeddedTrees,
                 declTable,
@@ -660,7 +663,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.Options,
                 Me.ExternalReferences,
                 _syntaxTrees,
-                Me.syntaxTreeOrdinalMap,
+                _syntaxTreeOrdinalMap,
                 _rootNamespaces,
                 _embeddedTrees,
                 _declarationTable,
@@ -681,7 +684,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.Options,
                 Me.ExternalReferences,
                 _syntaxTrees,
-                Me.syntaxTreeOrdinalMap,
+                _syntaxTreeOrdinalMap,
                 _rootNamespaces,
                 _embeddedTrees,
                 _declarationTable,
@@ -845,7 +848,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim referenceDirectivesChanged = False
                 Dim oldTreeCount = _syntaxTrees.Length
 
-                Dim ordinalMap = Me.syntaxTreeOrdinalMap
+                Dim ordinalMap = _syntaxTreeOrdinalMap
                 Dim declMap = _rootNamespaces
                 Dim declTable = _declarationTable
                 Dim i = 0
@@ -1020,7 +1023,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             RemoveSyntaxTreeFromDeclarationMapAndTable(vbOldTree, declMap, declTable, referenceDirectivesChanged)
             AddSyntaxTreeToDeclarationMapAndTable(vbNewTree, _options, Me.IsSubmission, declMap, declTable, referenceDirectivesChanged)
 
-            Dim ordinalMap = Me.syntaxTreeOrdinalMap
+            Dim ordinalMap = _syntaxTreeOrdinalMap
 
             Debug.Assert(ordinalMap.ContainsKey(oldTree)) ' Checked by RemoveSyntaxTreeFromDeclarationMapAndTable
             Dim oldOrdinal = ordinalMap(oldTree)
@@ -1159,6 +1162,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return LexicalSortKey.Compare(first, second, Me)
         End Function
 
+        Friend Overrides Function GetSyntaxTreeOrdinal(tree As SyntaxTree) As Integer
+            Debug.Assert(Me.ContainsSyntaxTree(tree))
+            Return _syntaxTreeOrdinalMap(tree)
+        End Function
+
 #End Region
 
 #Region "References"
@@ -1219,7 +1227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the <see cref="MetadataReference"/> that corresponds to the assembly symbol.
         ''' </summary>
         Friend Shadows Function GetMetadataReference(assemblySymbol As AssemblySymbol) As MetadataReference
-            Return Me.GetBoundReferenceManager().ReferencedAssembliesMap.Where(Function(kvp) kvp.Value.Symbol Is assemblySymbol).Select(Function(kvp) kvp.Key).FirstOrDefault()
+            Return Me.GetBoundReferenceManager().GetMetadataReference(assemblySymbol)
         End Function
 
         Public Overrides ReadOnly Property ReferencedAssemblyNames As IEnumerable(Of AssemblyIdentity)
@@ -1979,7 +1987,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
         End Function
 
-        Friend Function GetDiagnosticsForTree(stage As CompilationStage,
+        Friend Function GetDiagnosticsForSyntaxTree(stage As CompilationStage,
                                               tree As SyntaxTree,
                                               filterSpanWithinTree As TextSpan?,
                                               includeEarlierStages As Boolean,
@@ -2066,10 +2074,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Filter out some warnings based on the compiler options (/nowarn and /warnaserror).
         Friend Overloads Function FilterAndAppendDiagnostics(accumulator As DiagnosticBag, ByRef incoming As IEnumerable(Of Diagnostic)) As Boolean
             Dim hasError As Boolean = False
+            Dim reportSuppressedDiagnostics = Options.ReportSuppressedDiagnostics
 
             For Each diagnostic As Diagnostic In incoming
                 Dim filtered = Me._options.FilterDiagnostic(diagnostic)
-                If filtered Is Nothing Then
+                If filtered Is Nothing OrElse
+                    (Not reportSuppressedDiagnostics AndAlso filtered.IsSuppressed) Then
                     Continue For
                 End If
 
@@ -2629,15 +2639,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me.ObjectType
             End Get
         End Property
-
-        Protected Overrides Function CommonGetMetadataReference(_assemblySymbol As IAssemblySymbol) As MetadataReference
-            Dim symbol = TryCast(_assemblySymbol, AssemblySymbol)
-            If symbol IsNot Nothing Then
-                Return Me.GetMetadataReference(symbol)
-            Else
-                Return Nothing
-            End If
-        End Function
 
         Protected Overrides Function CommonGetEntryPoint(cancellationToken As CancellationToken) As IMethodSymbol
             Return Me.GetEntryPoint(cancellationToken)

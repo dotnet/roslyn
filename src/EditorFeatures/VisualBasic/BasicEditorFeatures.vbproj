@@ -241,6 +241,9 @@
     <Compile Include="SignatureHelp\SignatureHelpUtilities.vb" />
     <Compile Include="TextStructureNavigation\TextStructureNavigatorProvider.vb" />
     <Compile Include="TodoComment\BasicTodoCommentIncrementalAnalyzerProvider.vb" />
+    <Compile Include="UseAutoProperty\UseAutoPropertyAnalyzer.vb" />
+    <Compile Include="UseAutoProperty\UseAutoPropertyCodeFixProvider.vb" />
+    <Compile Include="UseAutoProperty\Utilities.vb" />
     <Compile Include="Utilities\LineAdjustmentFormattingRule.vb" />
     <Compile Include="Utilities\CommandHandlers\AbstractImplementAbstractClassOrInterfaceCommandHandler.vb" />
     <Compile Include="Utilities\NamedTypeSymbolExtensions.vb" />
@@ -316,6 +319,5 @@
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

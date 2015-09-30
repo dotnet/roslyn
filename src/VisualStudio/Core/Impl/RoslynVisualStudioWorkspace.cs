@@ -124,8 +124,22 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             // We need to ensure the file is saved, only if a global undo transaction is open
             var globalUndoService = this.Services.GetService<IGlobalUndoService>();
-            bool needsSave = globalUndoService.IsGlobalTransactionOpen(this);
-            bool needsUndoDisabled = needsSave && this.Services.GetService<IGeneratedCodeRecognitionService>().IsGeneratedCode(this.CurrentSolution.GetDocument(hostDocument.Id));
+            var needsSave = globalUndoService.IsGlobalTransactionOpen(this);
+
+            var needsUndoDisabled = false;
+            if (needsSave)
+            {
+                if (this.CurrentSolution.ContainsDocument(hostDocument.Id))
+                {
+                    // Disable undo on generated documents
+                    needsUndoDisabled = this.Services.GetService<IGeneratedCodeRecognitionService>().IsGeneratedCode(this.CurrentSolution.GetDocument(hostDocument.Id));
+                }
+                else
+                {
+                    // Enable undo on "additional documents" or if no document can be found.
+                    needsUndoDisabled = false;
+                }
+            }
 
             return new InvisibleEditor(ServiceProvider, hostDocument.FilePath, needsSave, needsUndoDisabled);
         }

@@ -443,6 +443,12 @@ DoneWithErrorReporting:
                     Binder.ReportDiagnostic(diagBag, implementedMemberSyntax, ERRID.ERR_PropertyDoesntImplementAllAccessors,
                                             implementedProperty,
                                             implementingProperty.GetPropertyKindText())
+
+                ElseIf ((implementedProperty.GetMethod Is Nothing) Xor (implementedProperty.SetMethod Is Nothing)) AndAlso
+                       implementingProperty.GetMethod IsNot Nothing AndAlso implementingProperty.SetMethod IsNot Nothing
+                    InternalSyntax.Parser.CheckFeatureAvailability(diagBag, implementedMemberSyntax.GetLocation(),
+                                                                   DirectCast(implementedMemberSyntax.SyntaxTree, VisualBasicSyntaxTree).Options.LanguageVersion,
+                                                                   InternalSyntax.Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite)
                 End If
             End If
 

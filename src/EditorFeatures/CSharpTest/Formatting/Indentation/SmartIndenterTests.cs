@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
-    public class SmartIndenterTests : FormatterTestsBase
+    public partial class SmartIndenterTests : FormatterTestsBase
     {
         [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
@@ -2527,6 +2527,26 @@ class Program
                 using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(code, parseOptions: option))
                 {
                     TestIndentation(indentationLine, expectedIndentation, workspace);
+                }
+            }
+        }
+
+        private static void AssertSmartIndent(
+            string code,
+            int? expectedIndentation,
+            CSharpParseOptions options = null)
+        {
+            var optionsSet = options != null
+                ? new[] { options }
+                : new[] { Options.Regular, Options.Script };
+
+            foreach (var option in optionsSet)
+            {
+                using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(code, parseOptions: option))
+                {
+                    var wpfTextView = workspace.Documents.First().GetTextView();
+                    var line = wpfTextView.TextBuffer.CurrentSnapshot.GetLineFromPosition(wpfTextView.Caret.Position.BufferPosition).LineNumber;
+                    TestIndentation(line, expectedIndentation, workspace);
                 }
             }
         }

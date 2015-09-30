@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -9,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Scripting
@@ -46,10 +48,12 @@ namespace Microsoft.CodeAnalysis.Scripting
             s_globalAssemblyNamePrefix = "\u211B*" + Guid.NewGuid().ToString() + "-";
         }
 
-        public ScriptBuilder()
+        public ScriptBuilder(InteractiveAssemblyLoader assemblyLoader)
         {
+            Debug.Assert(assemblyLoader != null);
+
             _assemblyNamePrefix = s_globalAssemblyNamePrefix + "#" + Interlocked.Increment(ref s_engineIdDispenser).ToString();
-            _assemblyLoader = new InteractiveAssemblyLoader();
+            _assemblyLoader = assemblyLoader;
         }
 
         public int GenerateSubmissionId(out string assemblyName, out string typeName)
@@ -69,20 +73,13 @@ namespace Microsoft.CodeAnalysis.Scripting
             {
                 // get compilation diagnostics first.
                 diagnostics.AddRange(compilation.GetParseDiagnostics());
-                if (diagnostics.HasAnyErrors())
-                {
-                    CompilationError(diagnostics, compiler.DiagnosticFormatter);
-                }
-
+                ThrowIfAnyCompilationErrors(diagnostics, compiler.DiagnosticFormatter);
                 diagnostics.Clear();
 
                 var executor = Build<T>(compilation, diagnostics, cancellationToken);
 
                 // emit can fail due to compilation errors or because there is nothing to emit:
-                if (diagnostics.HasAnyErrors())
-                {
-                    CompilationError(diagnostics, compiler.DiagnosticFormatter);
-                }
+                ThrowIfAnyCompilationErrors(diagnostics, compiler.DiagnosticFormatter);
 
                 if (executor == null)
                 {
@@ -97,15 +94,20 @@ namespace Microsoft.CodeAnalysis.Scripting
             }
         }
 
-        private void CompilationError(DiagnosticBag diagnostics, DiagnosticFormatter formatter)
+        private static void ThrowIfAnyCompilationErrors(DiagnosticBag diagnostics, DiagnosticFormatter formatter)
         {
-            var resolvedLocalDiagnostics = diagnostics.AsEnumerable();
-            var firstError = resolvedLocalDiagnostics.FirstOrDefault(d => d.Severity == DiagnosticSeverity.Error);
-            if (firstError != null)
+            if (diagnostics.IsEmptyWithoutResolution)
             {
-                throw new CompilationErrorException(formatter.Format(firstError, CultureInfo.CurrentCulture),
-                    (resolvedLocalDiagnostics.AsImmutable()));
+                return;
             }
+            var filtered = diagnostics.AsEnumerable().Where(d => d.Severity == DiagnosticSeverity.Error).AsImmutable();
+            if (filtered.IsEmpty)
+            {
+                return;
+            }
+            throw new CompilationErrorException(
+                formatter.Format(filtered[0], CultureInfo.CurrentCulture),
+                filtered);
         }
 
         /// <summary>

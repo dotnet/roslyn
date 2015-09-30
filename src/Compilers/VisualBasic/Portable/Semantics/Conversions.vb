@@ -4338,6 +4338,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property HasDefaultSizesAndLowerBounds As Boolean
+            Get
+                Return _arrayLiteral.InferredType.HasDefaultSizesAndLowerBounds
+            End Get
+        End Property
+
         Friend Overrides ReadOnly Property InterfacesNoUseSiteDiagnostics As ImmutableArray(Of NamedTypeSymbol)
             Get
                 Return _arrayLiteral.InferredType.InterfacesNoUseSiteDiagnostics

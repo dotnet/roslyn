@@ -944,6 +944,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 operatorToken = DirectCast(current, KeywordSyntax)
 
+                If operatorToken.Kind = SyntaxKind.IsNotKeyword Then
+                    operatorToken = CheckFeatureAvailability(Feature.TypeOfIsNot, operatorToken)
+                End If
+
                 GetNextToken()
 
                 TryEatNewLine(ScannerState.VB)

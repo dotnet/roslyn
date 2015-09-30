@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             ImmutableArray<AssemblySymbol> underlyingBoundReferences = _underlyingModule.GetReferencedAssemblySymbols();
             ImmutableArray<AssemblySymbol> referencedAssemblySymbols = moduleReferences.Symbols;
 
-            Debug.Assert(referencedAssemblySymbols.Length == moduleReferences.Names.Length);
+            Debug.Assert(referencedAssemblySymbols.Length == moduleReferences.Identities.Length);
             Debug.Assert(referencedAssemblySymbols.Length <= underlyingBoundReferences.Length); // Linked references are filtered out.
 
             int i, j;
@@ -203,8 +203,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         new AssemblyIdentity(name: originatingSourceAssemblyDebugOnly.Name) :
                         referencedAssemblySymbols[i].Identity;
 
-                Debug.Assert(identityComparer.Compare(moduleReferences.Names[i], definitionIdentity) != AssemblyIdentityComparer.ComparisonResult.NotEquivalent);
-                Debug.Assert(identityComparer.Compare(moduleReferences.Names[i], underlyingBoundReferences[j].Identity) != AssemblyIdentityComparer.ComparisonResult.NotEquivalent);
+                Debug.Assert(identityComparer.Compare(moduleReferences.Identities[i], definitionIdentity) != AssemblyIdentityComparer.ComparisonResult.NotEquivalent);
+                Debug.Assert(identityComparer.Compare(moduleReferences.Identities[i], underlyingBoundReferences[j].Identity) != AssemblyIdentityComparer.ComparisonResult.NotEquivalent);
 #endif
 
                 if (!ReferenceEquals(referencedAssemblySymbols[i], underlyingBoundReferences[j]))

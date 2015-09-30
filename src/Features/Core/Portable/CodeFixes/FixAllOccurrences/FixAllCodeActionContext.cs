@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private static IEnumerable<string> GetFixAllDiagnosticIds(FixAllProviderInfo fixAllProviderInfo, IEnumerable<Diagnostic> originalFixDiagnostics)
         {
             return originalFixDiagnostics
-                .Where(d => fixAllProviderInfo.SupportedDiagnosticIds.Contains(d.Id))
+                .Where(fixAllProviderInfo.CanBeFixed)
                 .Select(d => d.Id);
         }
 

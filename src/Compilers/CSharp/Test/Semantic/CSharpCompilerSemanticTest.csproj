@@ -93,6 +93,7 @@
     <Compile Include="Semantics\InterpolationTests.cs" />
     <Compile Include="Semantics\IteratorTests.cs" />
     <Compile Include="Semantics\LambdaTests.cs" />
+    <Compile Include="Semantics\LocalFunctionTests.cs" />
     <Compile Include="Semantics\LockTests.cs" />
     <Compile Include="Semantics\LookupPositionTests.cs" />
     <Compile Include="Semantics\LookupTests.cs" />
@@ -112,6 +113,7 @@
     <Compile Include="Semantics\OverloadResolutionTests.cs" />
     <Compile Include="Semantics\PropertyAccessTests.cs" />
     <Compile Include="Semantics\QueryTests.cs" />
+    <Compile Include="Semantics\InteractiveUsingTests.cs" />
     <Compile Include="Semantics\ScriptSemanticsTests.cs" />
     <Compile Include="Semantics\SemanticAnalyzerTests.cs" />
     <Compile Include="Semantics\SemanticErrorTests.cs" />
@@ -142,6 +144,5 @@
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

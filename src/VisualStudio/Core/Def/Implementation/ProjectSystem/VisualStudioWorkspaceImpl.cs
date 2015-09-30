@@ -776,9 +776,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             switch (hostProject.Language)
             {
                 case LanguageNames.CSharp:
-                    return sourceCodeKind == SourceCodeKind.Regular ? ".cs" : ".csx";
+                    // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
+                    //return sourceCodeKind == SourceCodeKind.Regular ? ".cs" : ".csx";
+                    return ".cs";
                 case LanguageNames.VisualBasic:
-                    return sourceCodeKind == SourceCodeKind.Regular ? ".vb" : ".vbx";
+                    // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
+                    //return sourceCodeKind == SourceCodeKind.Regular ? ".vb" : ".vbx";
+                    return ".vb";
                 default:
                     throw new InvalidOperationException();
             }
@@ -1032,6 +1036,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             where TInterface : class
         {
             return this.ServiceProvider.GetService(typeof(TService)) as TInterface;
+        }
+
+        public object GetVsService(Type serviceType)
+        {
+            return ServiceProvider.GetService(serviceType);
+        }
+
+        public DTE GetVsDte()
+        {
+            return GetVsService<SDTE, DTE>();
         }
 
         /// <summary>

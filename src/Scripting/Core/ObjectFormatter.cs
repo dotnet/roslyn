@@ -490,6 +490,27 @@ namespace Microsoft.CodeAnalysis.Scripting
         public abstract string FormatMemberName(MemberInfo member);
         public abstract string GetPrimitiveTypeName(SpecialType type);
 
+        /// <summary>
+        /// Returns a method signature display string. Used to display stack frames.
+        /// </summary>
+        /// <returns>Null if the method is a compiler generated method that shouldn't be displayed to the user.</returns>
+        public virtual string FormatMethodSignature(MethodBase method)
+        {
+            // TODO: https://github.com/dotnet/roslyn/issues/5250
+
+            if (method.Name.IndexOfAny(s_generatedNameChars) >= 0 ||
+                method.DeclaringType.Name.IndexOfAny(s_generatedNameChars) >= 0 ||
+                method.GetCustomAttributes<DebuggerHiddenAttribute>().Any() ||
+                method.DeclaringType.GetTypeInfo().GetCustomAttributes<DebuggerHiddenAttribute>().Any())
+            {
+                return null;
+            }
+
+            return $"{method.DeclaringType.ToString()}.{method.Name}({string.Join(", ", method.GetParameters().Select(p => p.ToString()))})";
+        }
+
+        private static readonly char[] s_generatedNameChars = { '$', '<' };
+
         public abstract string GenericParameterOpening { get; }
         public abstract string GenericParameterClosing { get; }
 

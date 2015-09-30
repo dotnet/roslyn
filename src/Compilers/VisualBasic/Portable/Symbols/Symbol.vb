@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Imports Display = Microsoft.CodeAnalysis.VisualBasic.SymbolDisplay
+Imports Microsoft.CodeAnalysis.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -185,11 +186,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Debug.Assert(Not (TypeOf Me Is SourceAssemblySymbol), "SourceAssemblySymbol must override DeclaringCompilation")
                         Return Nothing
                     Case SymbolKind.NetModule
-                        Debug.Assert(Not (TypeOf Me Is sourceModuleSymbol), "SourceModuleSymbol must override DeclaringCompilation")
+                        Debug.Assert(Not (TypeOf Me Is SourceModuleSymbol), "SourceModuleSymbol must override DeclaringCompilation")
                         Return Nothing
                 End Select
 
-                Dim sourceModuleSymbol = TryCast(Me.ContainingModule, sourceModuleSymbol)
+                Dim sourceModuleSymbol = TryCast(Me.ContainingModule, SourceModuleSymbol)
                 Return If(sourceModuleSymbol Is Nothing, Nothing, sourceModuleSymbol.DeclaringCompilation)
             End Get
         End Property

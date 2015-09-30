@@ -648,7 +648,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 
         protected override bool IsViableExtensionMethod(IMethodSymbol method, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
         {
-            var leftExpression = syntaxFacts.GetExpressionOfMemberAccessExpression(expression) ?? syntaxFacts.GetExpressionOfConditionalMemberAccessExpression(expression);
+            var leftExpression = syntaxFacts.GetExpressionOfMemberAccessExpression(expression);
             if (leftExpression == null)
             {
                 if (expression.IsKind(SyntaxKind.CollectionInitializerExpression))
@@ -706,11 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                 return false;
             }
 
-            var comparisonType = this.IgnoreCase
-                ? StringComparison.OrdinalIgnoreCase
-                : StringComparison.Ordinal;
-
-            return string.Compare(propertyOrField.ContainingType.Name, leftName.Identifier.Text, comparisonType) == 0;
+            return StringComparer.Ordinal.Compare(propertyOrField.ContainingType.Name, leftName.Identifier.Text) == 0;
         }
 
         internal override bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel)

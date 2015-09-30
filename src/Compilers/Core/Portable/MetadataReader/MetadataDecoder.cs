@@ -193,22 +193,42 @@ namespace Microsoft.CodeAnalysis
 
                 case SignatureTypeCode.Array:
                     int countOfDimensions;
-                    int countOfBounds;
+                    int countOfSizes;
                     int countOfLowerBounds;
 
                     modifiers = DecodeModifiersOrThrow(ref ppSig, out typeCode);
                     typeSymbol = DecodeTypeOrThrow(ref ppSig, typeCode, out refersToNoPiaLocalType);
                     if (!ppSig.TryReadCompressedInteger(out countOfDimensions) ||
-                        !ppSig.TryReadCompressedInteger(out countOfBounds))
+                        !ppSig.TryReadCompressedInteger(out countOfSizes))
                     {
                         throw new UnsupportedSignatureContent();
                     }
 
-                    // If bounds are specified, ignore them -- we don't support it
-                    for (int i = 0; i < countOfBounds; i++)
+                    // The most common case is when countOfSizes is 0.
+                    ImmutableArray<int> sizes;
+
+                    if (countOfSizes == 0)
                     {
-                        int _;
-                        ppSig.TryReadCompressedInteger(out _);
+                        sizes = ImmutableArray<int>.Empty;
+                    }
+                    else
+                    {
+                        var builder = ArrayBuilder<int>.GetInstance(countOfSizes);
+
+                        for (int i = 0; i < countOfSizes; i++)
+                        {
+                            int size;
+                            if (ppSig.TryReadCompressedInteger(out size))
+                            {
+                                builder.Add(size);
+                            }
+                            else
+                            {
+                                throw new UnsupportedSignatureContent();
+                            }
+                        }
+
+                        sizes = builder.ToImmutableAndFree();
                     }
 
                     if (!ppSig.TryReadCompressedInteger(out countOfLowerBounds))
@@ -216,14 +236,46 @@ namespace Microsoft.CodeAnalysis
                         throw new UnsupportedSignatureContent();
                     }
 
-                    // Also ignore lower bounds since we don't support anything but zero
-                    for (int i = 0; i < countOfLowerBounds; i++)
+                    // The most common case is when countOfLowerBounds == countOfDimensions and they are all 0.
+                    // This is what Default will stand for.
+                    ImmutableArray<int> lowerBounds = default(ImmutableArray<int>);
+
+                    if (countOfLowerBounds == 0)
                     {
-                        int _;
-                        ppSig.TryReadCompressedInteger(out _);
+                        lowerBounds = ImmutableArray<int>.Empty;
+                    }
+                    else
+                    {
+                        ArrayBuilder<int> builder = countOfLowerBounds != countOfDimensions ? ArrayBuilder<int>.GetInstance(countOfLowerBounds, 0) : null; 
+
+                        for (int i = 0; i < countOfLowerBounds; i++)
+                        {
+                            int lowerBound;
+                            if (ppSig.TryReadCompressedSignedInteger(out lowerBound))
+                            {
+                                if (lowerBound != 0)
+                                {
+                                    if (builder == null)
+                                    {
+                                        builder = ArrayBuilder<int>.GetInstance(countOfLowerBounds, 0);
+                                    }
+
+                                    builder[i] = lowerBound;
+                                }
+                            }
+                            else
+                            {
+                                throw new UnsupportedSignatureContent();
+                            }
+                        }
+
+                        if (builder != null)
+                        {
+                            lowerBounds = builder.ToImmutableAndFree();
+                        }
                     }
 
-                    typeSymbol = GetMDArrayTypeSymbol(countOfDimensions, typeSymbol, modifiers);
+                    typeSymbol = GetMDArrayTypeSymbol(countOfDimensions, typeSymbol, modifiers, sizes, lowerBounds);
                     break;
 
                 case SignatureTypeCode.SZArray:

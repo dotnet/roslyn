@@ -295,7 +295,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Return ArrayTypeSymbol.CreateSZArray(otherElementType, otherModifiers, Me._otherAssembly)
                 End If
 
-                Return ArrayTypeSymbol.CreateMDArray(otherElementType, otherModifiers, symbol.Rank, Me._otherAssembly)
+                Return ArrayTypeSymbol.CreateMDArray(otherElementType, otherModifiers, symbol.Rank, symbol.Sizes, symbol.LowerBounds, Me._otherAssembly)
             End Function
 
             Public Overrides Function VisitEvent(symbol As EventSymbol) As Symbol
@@ -641,7 +641,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Return ArrayTypeSymbol.CreateSZArray(translatedElementType, translatedModifiers, symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly)
                 End If
 
-                Return ArrayTypeSymbol.CreateMDArray(translatedElementType, translatedModifiers, symbol.Rank, symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly)
+                Return ArrayTypeSymbol.CreateMDArray(translatedElementType, translatedModifiers, symbol.Rank, symbol.Sizes, symbol.LowerBounds, symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly)
             End Function
 
             Public Overrides Function VisitNamedType(type As NamedTypeSymbol) As Symbol

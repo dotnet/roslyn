@@ -1,18 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 using System;
 using System.Linq;
-using System.Collections.Generic;
 using System.IO;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Scripting;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 using System.Runtime.InteropServices;
 
-namespace Roslyn.Services.UnitTests
+namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
 {
     // TODO: clean up and move to portable tests
 

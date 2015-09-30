@@ -6,9 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection.PortableExecutable;
 using System.Threading;
-using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit.NoPia;
 using Roslyn.Utilities;
@@ -237,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return Translate((TTypeSymbol)symbol, (TSyntaxNode)syntaxNodeOpt, diagnostics);
         }
 
-        internal sealed override IMethodReference Translate(IMethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration)
+        internal sealed override Cci.IMethodReference Translate(IMethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration)
         {
             return Translate((TMethodSymbol)symbol, diagnostics, needDeclaration);
         }
@@ -294,28 +292,21 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private ImmutableArray<Cci.AssemblyReferenceAlias> CalculateAssemblyReferenceAliases(EmitContext context)
         {
-            var result = ArrayBuilder<Cci.AssemblyReferenceAlias>.GetInstance(_compilation.ExternalReferences.Length);
+            var result = ArrayBuilder<Cci.AssemblyReferenceAlias>.GetInstance();
 
-            var referenceManager = _compilation.GetBoundReferenceManager();
-
-            // Enumerate external references (#r's don't define aliases) to preserve the order.
-            foreach (MetadataReference reference in _compilation.ExternalReferences)
+            foreach (var assemblyAndAliases in _compilation.GetBoundReferenceManager().GetReferencedAssemblyAliases())
             {
-                // duplicate references might have been skipped by the assembly binder:
+                var assembly = assemblyAndAliases.Item1;
+                var aliases = assemblyAndAliases.Item2;
 
-                IAssemblySymbol symbol;
-                ImmutableArray<string> aliases;
-                if (referenceManager.TryGetReferencedAssemblySymbol(reference, out symbol, out aliases))
+                for (int i = 0; i < aliases.Length; i++)
                 {
-                    for (int i = 0; i < aliases.Length; i++)
-                    {
-                        string alias = aliases[i];
+                    string alias = aliases[i];
 
-                        // filter out duplicates and global aliases:
-                        if (alias != MetadataReferenceProperties.GlobalAlias && aliases.IndexOf(alias, 0, i) < 0)
-                        {
-                            result.Add(new Cci.AssemblyReferenceAlias(alias, Translate(symbol, context.Diagnostics)));
-                        }
+                    // filter out duplicates and global aliases:
+                    if (alias != MetadataReferenceProperties.GlobalAlias && aliases.IndexOf(alias, 0, i) < 0)
+                    {
+                        result.Add(new Cci.AssemblyReferenceAlias(alias, Translate(assembly, context.Diagnostics)));
                     }
                 }
             }

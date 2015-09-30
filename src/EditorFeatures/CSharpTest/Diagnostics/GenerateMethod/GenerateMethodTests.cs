@@ -2810,8 +2810,8 @@ namespace ConsoleApplication1
             }
 
             [WorkItem(774321)]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-            public void TestEquivalenceKey()
+            [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5149"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+            public void TestEquivalenceKey01()
             {
                 TestEquivalenceKey(
     @"class C { void M() { this.[|M1|](System.Exception.M2()); } } ",

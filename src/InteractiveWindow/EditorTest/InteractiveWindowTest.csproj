@@ -28,7 +28,7 @@
     <ProjectReference Include="..\..\InteractiveWindow\Editor\InteractiveWindow.csproj">
       <Project>{01E9BD68-0339-4A13-B42F-A3CA84D164F3}</Project>
       <Name>InteractiveWindow</Name>
-  </ProjectReference>
+    </ProjectReference>
     <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
       <Project>{76c6f005-c89d-4348-bb4a-391898dbeb52}</Project>
       <Name>TestUtilities.Desktop</Name>
@@ -66,10 +66,6 @@
       <HintPath>$(DevEnvDir)\PrivateAssemblies\Microsoft.VisualStudio.Platform.VSEditor.Interop.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-    </Reference>
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
@@ -81,6 +77,8 @@
     </Compile>
     <Compile Include="InteractiveWindowEditorsFactoryService.cs" />
     <Compile Include="InteractiveWindowTestHost.cs" />
+    <Compile Include="HistoryTests.cs" />
+    <Compile Include="InteractiveWindowHistoryTests.cs" />
     <Compile Include="InteractiveWindowTests.cs" />
     <Compile Include="TestContentTypeDefinition.cs" />
     <Compile Include="TestInteractiveEngine.cs" />
@@ -96,6 +94,5 @@
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

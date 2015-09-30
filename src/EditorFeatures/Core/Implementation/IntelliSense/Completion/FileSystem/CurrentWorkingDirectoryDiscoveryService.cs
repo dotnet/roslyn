@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.F
         {
         }
 
-        public string CurrentDirectory
+        public string WorkingDirectory
         {
             get { return Directory.GetCurrentDirectory(); }
         }

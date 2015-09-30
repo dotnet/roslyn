@@ -61,9 +61,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             int pointerCount = 0;
             while (type.IsPointer)
             {
+                var elementType = type.GetElementType();
+                if (elementType == null)
+                {
+                    // Null for function pointers.
+                    break;
+                }
                 index++;
                 pointerCount++;
-                type = type.GetElementType();
+                type = elementType;
             }
 
             int nullableCount = 0;

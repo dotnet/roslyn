@@ -149,15 +149,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         internal Entry GetNext(string pattern)
         {
-            var startPos = _current;
-            Entry next;
-            next = MoveNext(pattern);
+            var next = MoveNext(pattern);
             if (next == null)
             {
-                _current = startPos;
-                return null;
+                // if we hit the end of history list, reset _current to stop navigating history.
+                _current = -1;
             }
-
             return next;
         }
 
@@ -188,7 +185,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             //indicates that history search/navigation is in progress
             _live = true;
 
-            for (_current++; _current <= Length - 1; _current++)
+            _current++;
+
+            for (; _current < Length; _current++)
             {
                 Entry entry;
                 if (TryMatch(pattern, out entry)) return entry;

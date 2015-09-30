@@ -114,8 +114,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return node.IsFoundUnder((PropertyDeclarationSyntax p) => p.Initializer);
 
                 case SyntaxKind.FieldDeclaration:
-                    // Inside a field one can only access static members of a type.
-                    return true;
+                case SyntaxKind.EventFieldDeclaration:
+                    // Inside a field one can only access static members of a type (unless it's top-level).
+                    return !memberDeclaration.Parent.IsKind(SyntaxKind.CompilationUnit);
 
                 case SyntaxKind.DestructorDeclaration:
                     return false;
@@ -175,9 +176,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var endOfLine = Match(SyntaxKind.EndOfLineTrivia, "\\n");
             var singleBlankLine = Matcher.Sequence(whitespace, endOfLine);
 
+            var shebangComment = Match(SyntaxKind.ShebangTrivia, "#!");
             var singleLineComment = Match(SyntaxKind.SingleLineCommentTrivia, "//");
             var multiLineComment = Match(SyntaxKind.MultiLineCommentTrivia, "/**/");
-            var anyCommentMatcher = Matcher.Choice(singleLineComment, multiLineComment);
+            var anyCommentMatcher = Matcher.Choice(shebangComment, singleLineComment, multiLineComment);
 
             var commentLine = Matcher.Sequence(whitespace, anyCommentMatcher, whitespace, endOfLine);
 
@@ -248,6 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.AnonymousMethodExpression:
                 case SyntaxKind.SimpleLambdaExpression:
                 case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.LocalFunctionStatement:
                 case SyntaxKind.MethodDeclaration:
                 case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.DestructorDeclaration:

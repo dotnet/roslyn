@@ -188,11 +188,13 @@
     <Compile Include="Classification\ClassificationBuilder.PunctuationClassificationTypes.cs" />
     <Compile Include="Classification\ClassificationBuilder.XmlDocClassificationTypes.cs" />
     <Compile Include="Classification\ClassificationTestHelper.cs" />
+    <Compile Include="CodeActions\AbstractCodeActionOrUserDiagnosticTest.cs" />
     <Compile Include="CodeActions\AbstractCodeActionTest.cs" />
     <Compile Include="CodeActions\CodeActionSmartTagProducerTests.cs" />
     <Compile Include="CodeAnalysisResources.cs" />
     <Compile Include="CodeFixes\CodeFixServiceTests.cs" />
     <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInFixableDiagnosticIds.cs" />
+    <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInFixableDiagnosticIds2.cs" />
     <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInGetFixAllProvider.cs" />
     <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInRegisterMethod.cs" />
     <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInRegisterMethodAsync.cs" />
@@ -353,6 +355,5 @@
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

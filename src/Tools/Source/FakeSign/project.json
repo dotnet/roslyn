@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "System.Reflection.Metadata": "1.1.0-alpha-00012"
+    "System.Reflection.Metadata": "1.1.0-alpha-00014"
   },
   "frameworks": {
     "net452": {}

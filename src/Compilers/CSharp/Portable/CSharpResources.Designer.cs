@@ -62,6 +62,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot have a previousSubmission when not a submission..
+        /// </summary>
+        internal static string CannotHavePreviousSubmission {
+            get {
+                return ResourceManager.GetString("CannotHavePreviousSubmission", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Can&apos;t reference compilation of type &apos;{0}&apos; from {1} compilation..
         /// </summary>
         internal static string CantReferenceCompilationOf {
@@ -85,6 +94,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string CompilationC {
             get {
                 return ResourceManager.GetString("CompilationC", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not find file..
+        /// </summary>
+        internal static string CouldNotFindFile {
+            get {
+                return ResourceManager.GetString("CouldNotFindFile", resourceCulture);
             }
         }
         
@@ -2339,6 +2357,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot infer the type of &apos;{0}&apos; as it does not return a value..
+        /// </summary>
+        internal static string ERR_CantInferVoid {
+            get {
+                return ResourceManager.GetString("ERR_CantInferVoid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot create temporary file -- {0}.
         /// </summary>
         internal static string ERR_CantMakeTempFile {
@@ -3419,6 +3446,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot invoke the local function &apos;{0}&apos; with dynamic parameters..
+        /// </summary>
+        internal static string ERR_DynamicLocalFunctionParameter {
+            get {
+                return ResourceManager.GetString("ERR_DynamicLocalFunctionParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to One or more types required to compile a dynamic expression cannot be found. Are you missing a reference?.
         /// </summary>
         internal static string ERR_DynamicRequiredTypesMissing {
@@ -3671,6 +3707,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expected a script (.csx file) but none specified.
+        /// </summary>
+        internal static string ERR_ExpectedSingleScript {
+            get {
+                return ResourceManager.GetString("ERR_ExpectedSingleScript", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Keyword, identifier, or string expected after verbatim specifier: @.
         /// </summary>
         internal static string ERR_ExpectedVerbatimLiteral {
@@ -3883,6 +3928,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ExpressionTreeContainsIndexedProperty {
             get {
                 return ResourceManager.GetString("ERR_ExpressionTreeContainsIndexedProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An expression tree may not contain a reference to a local function.
+        /// </summary>
+        internal static string ERR_ExpressionTreeContainsLocalFunction {
+            get {
+                return ResourceManager.GetString("ERR_ExpressionTreeContainsLocalFunction", resourceCulture);
             }
         }
         
@@ -5363,6 +5417,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to #load is only allowed in scripts.
+        /// </summary>
+        internal static string ERR_LoadDirectiveOnlyAllowedInScripts {
+            get {
+                return ResourceManager.GetString("ERR_LoadDirectiveOnlyAllowedInScripts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Local &apos;{0}&apos; or its members cannot have their address taken and be used inside an anonymous method or lambda expression.
         /// </summary>
         internal static string ERR_LocalCantBeFixedAndHoisted {
@@ -5561,7 +5624,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Metadata references not supported..
+        ///   Looks up a localized string similar to Metadata references are not supported..
         /// </summary>
         internal static string ERR_MetadataReferencesNotSupported {
             get {
@@ -6326,15 +6389,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expected at least one script (.csx file) but none specified.
-        /// </summary>
-        internal static string ERR_NoScriptsSpecified {
-            get {
-                return ResourceManager.GetString("ERR_NoScriptsSpecified", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: cannot override because &apos;{1}&apos; does not have an overridable set accessor.
         /// </summary>
         internal static string ERR_NoSetToOverride {
@@ -7028,6 +7082,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot use #load after first token in file.
+        /// </summary>
+        internal static string ERR_PPLoadFollowsToken {
+            get {
+                return ResourceManager.GetString("ERR_PPLoadFollowsToken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot use #r after first token in file.
         /// </summary>
         internal static string ERR_PPReferenceFollowsToken {
@@ -7559,6 +7622,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot infer the return type of &apos;{0}&apos; due to differing return types..
+        /// </summary>
+        internal static string ERR_ReturnTypesDontMatch {
+            get {
+                return ResourceManager.GetString("ERR_ReturnTypesDontMatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The type &apos;{1}&apos; exists in both &apos;{0}&apos; and &apos;{2}&apos;.
         /// </summary>
         internal static string ERR_SameFullNameAggAgg {
@@ -7726,6 +7798,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_SizeofUnsafe {
             get {
                 return ResourceManager.GetString("ERR_SizeofUnsafe", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Source file references are not supported..
+        /// </summary>
+        internal static string ERR_SourceFileReferencesNotSupported {
+            get {
+                return ResourceManager.GetString("ERR_SourceFileReferencesNotSupported", resourceCulture);
             }
         }
         
@@ -9027,6 +9108,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to local functions.
+        /// </summary>
+        internal static string IDS_FeatureLocalFunctions {
+            get {
+                return ResourceManager.GetString("IDS_FeatureLocalFunctions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to module as an attribute target specifier.
         /// </summary>
         internal static string IDS_FeatureModuleAttrLoc {
@@ -9131,6 +9221,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureQueryExpression {
             get {
                 return ResourceManager.GetString("IDS_FeatureQueryExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to readonly automatically implemented properties.
+        /// </summary>
+        internal static string IDS_FeatureReadonlyAutoImplementedProperties {
+            get {
+                return ResourceManager.GetString("IDS_FeatureReadonlyAutoImplementedProperties", resourceCulture);
             }
         }
         
@@ -9693,6 +9792,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SyntaxTree &apos;{0}&apos; resulted from a #load directive and cannot be removed or replaced directly..
+        /// </summary>
+        internal static string SyntaxTreeFromLoadNoRemoveReplace {
+            get {
+                return ResourceManager.GetString("SyntaxTreeFromLoadNoRemoveReplace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SyntaxTree &apos;{0}&apos; not found to remove.
         /// </summary>
         internal static string SyntaxTreeNotFoundTo {
@@ -9761,24 +9869,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string TreeNotPartOfCompilation {
             get {
                 return ResourceManager.GetString("TreeNotPartOfCompilation", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to trees[{0}].
-        /// </summary>
-        internal static string Trees0 {
-            get {
-                return ResourceManager.GetString("Trees0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to trees[{0}] must have root node with SyntaxKind.CompilationUnit..
-        /// </summary>
-        internal static string TreesMustHaveRootNode {
-            get {
-                return ResourceManager.GetString("TreesMustHaveRootNode", resourceCulture);
             }
         }
         

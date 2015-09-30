@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '  get property symbol
                     Dim propertySymbol = DirectCast(Me.MemberSymbol, SourcePropertySymbol)
                     Dim boundInitializers = ArrayBuilder(Of boundInitializer).GetInstance
-                    binder.BindPropertyInitializer(propertySymbol, initializer, boundInitializers, diagnostics)
+                    binder.BindPropertyInitializer(ImmutableArray.Create(Of Symbol)(propertySymbol), initializer, boundInitializers, diagnostics)
                     boundInitializer = boundInitializers.First
                     boundInitializers.Free()
 
