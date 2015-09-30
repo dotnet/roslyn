@@ -669,7 +669,7 @@ System.Console.WriteLine()",
                 expectedRepl: null);
         }
 
-        [Fact]
+        [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
         public void CutInputAndOutput()
         {
             Clipboard.Clear();
@@ -1106,7 +1106,7 @@ System.Console.WriteLine();",
             AssertCaretVirtualPosition(3, 2);
         }
 
-        [Fact]
+        [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
         public void CutWithOutSelectionInReadOnlyArea()
         {
             Submit(
@@ -1141,7 +1141,7 @@ System.Console.WriteLine();",
             VerifyClipboardData("2", expectedRtf: null, expectedRepl: null);
         }
 
-        [Fact]
+        [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
         public void CutWithSelectionInReadonlyArea()
         {
             Submit(
