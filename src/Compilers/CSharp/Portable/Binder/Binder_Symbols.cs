@@ -546,8 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.IsTypeInContextWhichNeedsDynamicAttribute())
             {
-                if ((object)this.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctor) == null ||
-                    (object)this.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags) == null)
+                if (!Compilation.HasDynamicEmitAttributes())
                 {
                     // CONSIDER:    Native compiler reports error CS1980 for each syntax node which binds to dynamic type, we do the same by reporting a diagnostic here.
                     //              However, this means we generate multiple duplicate diagnostics, when a single one would suffice.
