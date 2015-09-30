@@ -352,7 +352,7 @@
   <PropertyGroup>
     <!-- By default we build CoreCLR for Windows on Windows and for Linux on Linux
          For cross-compiling between Windows and Linux, you can set CoreClrTargetOS on the command-line
-         e.g. On a Windows machine, targeting Linux, set /p:TargetOS=Linux -->
+         e.g. On a Windows machine, targeting Linux, set /p:CoreClrTargetOS=Linux -->
 
     <_CoreClrTargetOS Condition="'$(CoreClrTargetOS)' != ''">$(CoreClrTargetOS)</_CoreClrTargetOS>
 
