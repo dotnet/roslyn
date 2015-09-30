@@ -1385,6 +1385,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
+            If InsideNameOfExpression(name) Then
+                ' Nullable(Of T) can't be simplified to T? in nameof expresions.
+                Return False
+            End If
+
             If Not InsideCrefReference(name) Then
                 ' Nullable(Of T) can always be simplified to T? outside crefs.
                 Return True
