@@ -244,23 +244,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 submissionSymbols.Clear();
 
+                var submissionImports = submission.SubmissionImports;
+                if (submission != Compilation)
+                {
+                    submissionImports = Imports.ExpandPreviousSubmissionImports(submissionImports, Compilation);
+                }
+
                 // If a viable using alias and a matching member are both defined in the submission an error is reported elsewhere.
                 // Ignore the member in such case.
                 if ((options & LookupOptions.NamespaceAliasesOnly) == 0 && (object)submission.ScriptClass != null)
                 {
                     LookupMembersWithoutInheritance(submissionSymbols, submission.ScriptClass, name, arity, options, originalBinder, submissionClass, diagnose, ref useSiteDiagnostics, basesBeingResolved);
-                }
 
-                // using aliases:
-                AliasAndUsingDirective directive;
-                var usingAliases = submission.SubmissionUsingAliases;
-                if (usingAliases != null && usingAliases.TryGetValue(name, out directive))
-                {
-                    if (submissionSymbols.Symbols.Count > 0)
+                    if (submissionSymbols.IsMultiViable && submissionImports.IsUsingAlias(name, originalBinder.IsSemanticModelBinder))
                     {
                         // using alias is ambiguous with another definition within the same submission iff the other definition is a 0-ary type or a non-type:
                         Symbol existingDefinition = submissionSymbols.Symbols.First();
-                        if (existingDefinition.Kind == SymbolKind.NamedType && arity == 0 || existingDefinition.Kind != SymbolKind.NamedType)
+                        if (existingDefinition.Kind != SymbolKind.NamedType || arity == 0)
                         {
                             CSDiagnosticInfo diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_ConflictingAliasAndDefinition, name, existingDefinition.GetKindText());
                             var error = new ExtendedErrorTypeSymbol((NamespaceOrTypeSymbol)null, name, arity, diagInfo, unreported: true);
@@ -268,9 +268,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         }
                     }
+                }
 
-                    // Note: all usings are considered used in submissions, so there's no reason to call MarkImportDirectiveAsUsed.
-                    submissionSymbols.MergeEqual(originalBinder.CheckViability(directive.Alias, arity, options, null, diagnose, ref useSiteDiagnostics, basesBeingResolved));
+                if (!submissionSymbols.IsMultiViable)
+                {
+                    // next try using aliases or symbols in imported namespaces
+                    submissionImports.LookupSymbol(originalBinder, submissionSymbols, name, arity, basesBeingResolved, options, diagnose, ref useSiteDiagnostics);
                 }
 
                 if (lookingForOverloadsOfKind == null)
@@ -1499,34 +1502,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (CSharpCompilation submission = Compilation; submission != null; submission = submission.PreviousSubmission)
             {
-                var usingAliases = submission.SubmissionUsingAliases?.Values;
-                if (usingAliases != null)
-                {
-                    foreach (var usingAlias in usingAliases)
-                    {
-                        AddAliasSymbolToResult(result, usingAlias.Alias, options, originalBinder);
-                    }
-                }
-
                 if ((object)submission.ScriptClass != null)
                 {
                     AddMemberLookupSymbolsInfoWithoutInheritance(result, submission.ScriptClass, options, originalBinder, scriptClass);
                 }
-            }
-        }
 
-        /// <remarks>
-        /// Note: we do not mark nodes when looking up arities or names.  This is because these two
-        /// types of lookup are only around to make the public
-        /// SemanticModel.LookupNames/LookupSymbols work and do not count as usages of the directives
-        /// when the actual code is bound.
-        /// </remarks>
-        internal static void AddAliasSymbolToResult(LookupSymbolsInfo result, AliasSymbol aliasSymbol, LookupOptions options, Binder originalBinder)
-        {
-            var targetSymbol = aliasSymbol.GetAliasTarget(basesBeingResolved: null);
-            if (originalBinder.CanAddLookupSymbolInfo(targetSymbol, options, null))
-            {
-                result.AddSymbol(aliasSymbol, aliasSymbol.Name, 0);
+                // If we are looking only for labels we do not need to search through the imports.
+                // Submission imports are handled by AddMemberLookupSymbolsInfo (above).
+                if ((options & LookupOptions.LabelsOnly) == 0)
+                {
+                    var submissionImports = submission.SubmissionImports;
+                    if (submission != Compilation)
+                    {
+                        submissionImports = Imports.ExpandPreviousSubmissionImports(submissionImports, Compilation);
+                    }
+                    submissionImports.AddLookupSymbolsInfo(result, options, originalBinder);
+                }
             }
         }
 

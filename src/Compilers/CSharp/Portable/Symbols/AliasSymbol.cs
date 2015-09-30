@@ -97,6 +97,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new AliasSymbol(binder, targetSymbol, aliasToken, ImmutableArray.Create(aliasToken.GetLocation()));
         }
 
+        internal AliasSymbol ToNewSubmission(CSharpCompilation compilation)
+        {
+            Debug.Assert(_state.HasComplete(CompletionPart.AliasTarget));
+            Debug.Assert(_binder.Compilation.IsSubmission);
+
+            var previousTarget = _aliasTarget;
+            if (previousTarget.Kind != SymbolKind.Namespace)
+            {
+                return this;
+            }
+
+            var expandedGlobalNamespace = compilation.GlobalNamespace;
+            var expandedNamespace = Imports.ExpandPreviousSubmissionNamespace((NamespaceSymbol)previousTarget, expandedGlobalNamespace);
+            var binder = new InContainerBinder(expandedGlobalNamespace, new BuckStopsHereBinder(compilation));
+            return new AliasSymbol(binder, expandedNamespace, _aliasName, _locations);
+        }
+
         public override string Name
         {
             get

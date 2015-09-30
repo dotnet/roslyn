@@ -531,7 +531,7 @@ namespace NOuter
                 // using static NInner.CInner;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NInner").WithArguments("NInner").WithLocation(1, 14));
         }
-
+        
         private static Symbol GetSpeculativeSymbol(CSharpCompilation comp, string name)
         {
             var tree = comp.SyntaxTrees.Single();
