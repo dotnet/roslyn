@@ -25,6 +25,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         {
             _states = new List<InteractiveWindow.State>();
             _testHost = new InteractiveWindowTestHost(_states.Add);
+            ((InteractiveWindow)Window).InteractiveWindowClipboard = new TestClipboard();
+            
         }
 
         void IDisposable.Dispose()
@@ -33,6 +35,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         }
 
         private IInteractiveWindow Window => _testHost.Window;
+
+        private InteractiveWindow.ClipboardWrapper WindowClipboard => ((InteractiveWindow)Window).InteractiveWindowClipboard;
 
         private static IEnumerable<IInteractiveWindowCommand> MockCommands(params string[] commandNames)
         {
@@ -582,7 +586,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
         public void CopyWithinInput()
         {
-            Clipboard.Clear();
+            ClearClipboard();
 
             Window.InsertCode("1 + 2");
             Window.Operations.SelectAll();
@@ -601,7 +605,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
         public void CopyInputAndOutput()
         {
-            Clipboard.Clear();
+            ClearClipboard();
 
             Submit(
 @"foreach (var o in new[] { 1, 2, 3 })
@@ -644,7 +648,7 @@ System.Console.WriteLine();",
         [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
         public void CutWithinInput()
         {
-            Clipboard.Clear();
+            ClearClipboard();
 
             Window.InsertCode("foreach (var o in new[] { 1, 2, 3 })");
             Window.Operations.BreakLine();
@@ -672,7 +676,7 @@ System.Console.WriteLine()",
         [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
         public void CutInputAndOutput()
         {
-            Clipboard.Clear();
+            ClearClipboard();
 
             Submit(
 @"foreach (var o in new[] { 1, 2, 3 })
@@ -719,7 +723,7 @@ System.Console.WriteLine();",
             var snapshot = Window.TextView.TextBuffer.CurrentSnapshot;
             for (int i = start; i < end; i++)
             {
-                Clipboard.Clear();
+                ClearClipboard();
                 caret.MoveTo(new SnapshotPoint(snapshot, i));
                 Window.Operations.Copy();
                 VerifyClipboardData(expectedText, expectedRtf, expectedRepl);
@@ -1115,8 +1119,8 @@ System.Console.WriteLine();",
 ");
             Window.InsertCode("2");
 
-            var caret = Window.TextView.Caret; 
-            Clipboard.Clear();
+            var caret = Window.TextView.Caret;
+            ClearClipboard();
 
             // Cut() with caret in readonly area, no-op       
             caret.MoveToPreviousCaretPosition();
@@ -1152,7 +1156,7 @@ System.Console.WriteLine();",
 
             var caret = Window.TextView.Caret;
             var selection = Window.TextView.Selection;
-            Clipboard.Clear();
+            ClearClipboard();
 
 
             // Cut() with selection in readonly area, no-op       
@@ -1211,7 +1215,7 @@ System.Console.WriteLine();",
 
             var caret = Window.TextView.Caret;
 
-            Clipboard.Clear();
+            ClearClipboard();
             Window.Operations.Home(true);
             Window.Operations.Copy();
             VerifyClipboardData("2", @"\ansi{\fonttbl{\f0 Consolas;}}{\colortbl;\red0\green0\blue0;\red255\green255\blue255;}\f0 \fs24 \cf1 \cb2 \highlight2 2", @"[{""content"":""2"",""kind"":2}]");
@@ -1236,7 +1240,7 @@ System.Console.WriteLine();",
             AssertCaretVirtualPosition(2, 3);            
         }
 
-        [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
+        [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]    
         public void PasteWithSelectionInReadonlyArea()
         {
             Submit(
@@ -1248,7 +1252,7 @@ System.Console.WriteLine();",
             var caret = Window.TextView.Caret;
             var selection = Window.TextView.Selection;
 
-            Clipboard.Clear();
+            ClearClipboard();
             Window.Operations.Home(true);
             Window.Operations.Copy();
             VerifyClipboardData("23", @"\ansi{\fonttbl{\f0 Consolas;}}{\colortbl;\red0\green0\blue0;\red255\green255\blue255;}\f0 \fs24 \cf1 \cb2 \highlight2 23", @"[{""content"":""23"",""kind"":2}]");
@@ -1295,6 +1299,11 @@ System.Console.WriteLine();",
             AssertCaretVirtualPosition(2, 4);             
         }
 
+        private void ClearClipboard()
+        {
+            ((TestClipboard)((InteractiveWindow)Window).InteractiveWindowClipboard).Clear();
+        }
+                                                 
         private void Submit(string submission, string output)
         {
             Task.Run(() => Window.SubmitAsync(new[] { submission })).PumpingWait();
@@ -1361,5 +1370,22 @@ System.Console.WriteLine();",
         {
             ((IInteractiveWindowOperations2)operations).Copy();
         }
+    }
+
+    internal sealed class TestClipboard : InteractiveWindow.ClipboardWrapper
+    {
+        private DataObject _data = null;
+
+        internal void Clear() => _data = null;
+
+        internal new bool ContainsData(string format) =>  _data?.GetData(format) != null;
+
+        internal new object GetData(string format) => _data?.GetData(format);
+
+        internal new bool ContainsText() => _data != null ? _data.ContainsText() : false;
+
+        internal new string GetText() => _data?.GetText();
+
+        internal new void SetDataObject(object data, bool copy) => _data = data as DataObject;
     }
 }

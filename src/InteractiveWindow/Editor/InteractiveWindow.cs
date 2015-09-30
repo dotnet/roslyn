@@ -543,18 +543,16 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         #endregion
 
         internal class ClipboardWrapper
-        {
-            internal virtual void Clear() => Clipboard.Clear();
+        {                                                
+            internal bool ContainsData(string format) => Clipboard.ContainsData(format);
 
-            internal virtual bool ContainsData(string format) => Clipboard.ContainsData(format);
+            internal object GetData(string format) => Clipboard.GetData(format);
 
-            internal virtual object GetData(string format) => Clipboard.GetData(format);
+            internal bool ContainsText() => Clipboard.ContainsText();
 
-            internal virtual bool ContainsText() => Clipboard.ContainsText();
+            internal string GetText() => Clipboard.GetText();
 
-            internal virtual string GetText() => Clipboard.GetText();
-
-            internal virtual void SetDataObject(object data, bool copy) => Clipboard.SetDataObject(data, copy);
+            internal void SetDataObject(object data, bool copy) => Clipboard.SetDataObject(data, copy);
         }
     }
 }
