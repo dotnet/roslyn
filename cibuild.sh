@@ -169,6 +169,7 @@ compile_toolset()
 save_toolset()
 {
     mkdir Binaries/Bootstrap
+<<<<<<< Updated upstream
     cp Binaries/$BUILD_CONFIGURATION/core-clr/* Binaries/Bootstrap
 
     if [ "$OS_NAME" == "Linux" ]; then
@@ -181,6 +182,9 @@ save_toolset()
       chmod +x Binaries/Bootstrap/csc
       chmod +x Binaries/Bootstrap/vbc
     fi 
+=======
+    cp Binaries/$BUILD_CONFIGURATION/core-clr/Linux/* Binaries/Bootstrap
+>>>>>>> Stashed changes
 }
 
 # Clean out all existing binaries.  This ensures the bootstrap phase forces
