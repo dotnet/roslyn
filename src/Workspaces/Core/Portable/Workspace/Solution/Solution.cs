@@ -1754,9 +1754,6 @@ namespace Microsoft.CodeAnalysis
             ImmutableDictionary<string, ImmutableArray<DocumentId>> newLinkedFilesMap = null,
             bool forkTracker = true)
         {
-            // make sure we are getting only known translate actions
-            CompilationTranslationAction.CheckKnownActions(translate);
-
             var projectId = newProjectState.Id;
 
             var newStateMap = _projectIdToProjectStateMap.SetItem(projectId, newProjectState);
