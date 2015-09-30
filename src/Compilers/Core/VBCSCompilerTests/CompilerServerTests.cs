@@ -1683,7 +1683,7 @@ End Module
         [WorkItem(545446, "DevDiv")]
         [Fact()]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
-        public void Utf8Output_WithRedirecting_On_Shared()
+        public void Utf8Output_WithRedirecting_On_Shared_CS()
         {
             var srcFile = _tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
             var tempOut = _tempDirectory.CreateFile("output.txt");
@@ -1701,7 +1701,7 @@ End Module
         [WorkItem(545446, "DevDiv")]
         [Fact()]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
-        public void Utf8Output_WithRedirecting_On_Shared()
+        public void Utf8Output_WithRedirecting_On_Shared_VB()
         {
             var srcFile = _tempDirectory.CreateFile("test.vb").WriteAllText(@"♕").Path;
             var tempOut = _tempDirectory.CreateFile("output.txt");
