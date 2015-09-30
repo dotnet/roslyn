@@ -180,18 +180,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case SpecialType.System_SByte:
                         case SpecialType.System_Byte:
                         case SpecialType.System_Char:
-                            return BinaryOperationKind.IntegerEqual;
+                            return BinaryOperationKind.IntegerEquals;
 
                         case SpecialType.System_Boolean:
-                            return BinaryOperationKind.BooleanEqual;
+                            return BinaryOperationKind.BooleanEquals;
 
                         case SpecialType.System_String:
-                            return BinaryOperationKind.StringEqual;
+                            return BinaryOperationKind.StringEquals;
                     }
 
                     if (caseValue.Type.TypeKind == TypeKind.Enum)
                     {
-                        return BinaryOperationKind.EnumEqual;
+                        return BinaryOperationKind.EnumEquals;
                     }
                 }
 

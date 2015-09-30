@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Semantics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -72,13 +73,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                ImmutableArray<IArgument>.Builder sourceOrderArguments = ImmutableArray.CreateBuilder<IArgument>(this.Arguments.Length);
+                ArrayBuilder<IArgument> sourceOrderArguments = ArrayBuilder<IArgument>.GetInstance(this.Arguments.Length);
                 for (int argumentIndex = 0; argumentIndex < this.Arguments.Length; argumentIndex++)
                 {
                     sourceOrderArguments.Add(DeriveArgument(this.ArgsToParamsOpt.IsDefault ? argumentIndex : this.ArgsToParamsOpt[argumentIndex], argumentIndex, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Method.Parameters));
                 }
 
-                return sourceOrderArguments.ToImmutable();
+                return sourceOrderArguments.ToImmutableAndFree();
             }
         }
         
@@ -103,14 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    for (int candidateIndex = 0; candidateIndex < boundArguments.Length; candidateIndex++)
-                    {
-                        if (argumentsToParameters[candidateIndex] == parameterIndex)
-                        {
-                            argumentIndex = candidateIndex;
-                            break;
-                        }
-                    }
+                    argumentIndex = argumentsToParameters.IndexOf(parameterIndex);
                 }
 
                 if (argumentIndex == -1)
@@ -142,9 +136,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (argumentIndex >= boundArguments.Length)
             {
                 // Check for an omitted argument that becomes an empty params array.
-                if (parameters.Length > 0 && parameters[parameters.Length - 1].IsParams)
+                if (parameters.Length > 0)
                 {
-                    return new Argument(ArgumentKind.ParamArray, parameters[parameters.Length - 1], CreateParamArray(parameters[parameters.Length - 1], boundArguments, argumentIndex));
+                    Symbols.ParameterSymbol lastParameter = parameters[parameters.Length - 1];
+                    if (lastParameter.IsParams)
+                    {
+                        return new Argument(ArgumentKind.ParamArray, lastParameter, CreateParamArray(lastParameter, boundArguments, argumentIndex));
+                    }
                 }
 
                 // There is no supplied argument and there is no params parameter. Any action is suspect at this point.
@@ -156,10 +154,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (argument) =>
                 {
                     string name = !argumentNames.IsDefaultOrEmpty ? argumentNames[argumentIndex] : null;
-                    RefKind refMode = !argumentRefKinds.IsDefaultOrEmpty ? argumentRefKinds[argumentIndex] : RefKind.None;
 
                     if (name == null)
                     {
+                        RefKind refMode = !argumentRefKinds.IsDefaultOrEmpty ? argumentRefKinds[argumentIndex] : RefKind.None;
                         return
                             refMode == RefKind.None
                             ? ((argumentIndex >= parameters.Length - 1 && parameters.Length > 0 && parameters[parameters.Length - 1].IsParams)
@@ -177,13 +175,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (parameter.Type.TypeKind == TypeKind.Array)
             {
                 IArrayTypeSymbol arrayType = (IArrayTypeSymbol)parameter.Type;
-                List<IExpression> paramArrayArguments = new List<IExpression>();
+                ArrayBuilder<IExpression> paramArrayArguments = ArrayBuilder<IExpression>.GetInstance(boundArguments.Length - firstArgumentElementIndex);
                 for (int index = firstArgumentElementIndex; index < boundArguments.Length; index++)
                 {
                     paramArrayArguments.Add(boundArguments[index]);
                 }
 
-                return new ArrayCreation(arrayType, paramArrayArguments, boundArguments.Length > 0 ? boundArguments[0].Syntax : null);
+                return new ArrayCreation(arrayType, paramArrayArguments.ToImmutableAndFree(), boundArguments.Length > 0 ? boundArguments[0].Syntax : null);
             }
 
             return null;
@@ -208,13 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<int> parameterIndices = argumentsToParameters;
                 if (!parameterIndices.IsDefaultOrEmpty)
                 {
-                    for (int index = 0; index < parameterIndices.Length; index++)
-                    {
-                        if (parameterIndices[index] == parameterIndex)
-                        {
-                            return index;
-                        }
-                    }
+                    return parameterIndices.IndexOf(parameterIndex);
                 }
 
                 return parameterIndex;
@@ -225,20 +217,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         class SimpleArgument : IArgument
         {
-            private readonly IExpression _argumentValue;
-            private readonly IParameterSymbol _parameter;
-
             public SimpleArgument(IParameterSymbol parameter, IExpression value)
             {
-                _argumentValue = value;
-                _parameter = parameter;
+                this.Value = value;
+                this.Parameter = parameter;
             }
 
             public ArgumentKind Kind => ArgumentKind.Positional;
 
-            public IParameterSymbol Parameter => _parameter;
-           
-            public IExpression Value => _argumentValue;
+            public IParameterSymbol Parameter { get; }
+
+            public IExpression Value { get; }
 
             public IExpression InConversion => null;
 
@@ -247,22 +236,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         class Argument : IArgument
         {
-            private readonly IExpression _argumentValue;
-            private readonly ArgumentKind _argumentKind;
-            private readonly IParameterSymbol _parameter;
-
             public Argument(ArgumentKind kind, IParameterSymbol parameter, IExpression value)
             {
-                _argumentValue = value;
-                _argumentKind = kind;
-                _parameter = parameter;
+                this.Value = value;
+                this.Kind = kind;
+                this.Parameter = parameter;
             }
 
-            public ArgumentKind Kind => _argumentKind;
+            public ArgumentKind Kind { get; }
 
-            public IParameterSymbol Parameter => _parameter;
+            public IParameterSymbol Parameter { get; }
             
-            public IExpression Value => _argumentValue;
+            public IExpression Value { get; }
 
             public IExpression InConversion => null;
 
@@ -398,9 +383,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CSharp.ConversionKind.PointerToPointer:
                     case CSharp.ConversionKind.PointerToVoid:
                         return Semantics.ConversionKind.CSharp;
-                }
 
-                return Semantics.ConversionKind.None;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(this.ConversionKind);
+                }
             }
         }
 
@@ -553,14 +539,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind ExpressionKind => OperationKind.None;
     }
 
-    partial class BoundBaseReference
+    partial class BoundBaseReference : IInstanceReferenceExpression
     {
-        protected override OperationKind ExpressionKind => OperationKind.BaseClassInstanceExpression;
+        bool IInstanceReferenceExpression.IsExplicit => true;
+
+        IParameterSymbol IParameterReferenceExpression.Parameter => (IParameterSymbol)this.ExpressionSymbol;
+
+        ReferenceKind IReferenceExpression.ReferenceKind => ReferenceKind.Parameter;
+
+        protected override OperationKind ExpressionKind => OperationKind.BaseClassInstanceReferenceExpression;
     }
 
-    partial class BoundThisReference
+    partial class BoundThisReference : IInstanceReferenceExpression
     {
-        protected override OperationKind ExpressionKind => OperationKind.InstanceExpression;
+        bool IInstanceReferenceExpression.IsExplicit => true;
+
+        IParameterSymbol IParameterReferenceExpression.Parameter => (IParameterSymbol)this.ExpressionSymbol;
+
+        ReferenceKind IReferenceExpression.ReferenceKind => ReferenceKind.Parameter;
+
+        protected override OperationKind ExpressionKind => OperationKind.InstanceReferenceExpression;
     }
 
     partial class BoundAssignmentOperator : IAssignmentExpression
@@ -664,9 +662,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BinaryOperatorKind.GreaterThan:
                     case BinaryOperatorKind.GreaterThanOrEqual:
                         return OperationKind.BinaryOperatorExpression;
-                }
 
-                return OperationKind.None;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(this.OperatorKind & BinaryOperatorKind.OpMask);
+                }
             }
         }
     }
@@ -725,9 +724,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind ExpressionKind => OperationKind.AddressOfExpression;
     }
 
-    partial class BoundImplicitReceiver
+    partial class BoundImplicitReceiver : IInstanceReferenceExpression
     {
-        protected override OperationKind ExpressionKind => OperationKind.ImplicitInstanceExpression;
+        bool IInstanceReferenceExpression.IsExplicit => false;
+
+        IParameterSymbol IParameterReferenceExpression.Parameter => (IParameterSymbol)this.ExpressionSymbol;
+
+        ReferenceKind IReferenceExpression.ReferenceKind => ReferenceKind.Parameter;
+
+        protected override OperationKind ExpressionKind => OperationKind.InstanceReferenceExpression;
     }
 
     partial class BoundConditionalAccess : IConditionalAccessExpression
@@ -791,9 +796,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case UnaryOperationKind.DynamicPostfixDecrement:
                 case UnaryOperationKind.DynamicPrefixDecrement:
                     return BinaryOperationKind.DynamicSubtract;
-            }
 
-            return BinaryOperationKind.None;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(incrementKind);
+            }
         }
 
         internal static UnaryOperationKind DeriveUnaryOperationKind(UnaryOperatorKind operatorKind)
@@ -1019,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            return UnaryOperationKind.None;
+            throw ExceptionUtilities.UnexpectedValue(operatorKind & UnaryOperatorKind.TypeMask);
         }
 
         internal static BinaryOperationKind DeriveBinaryOperationKind(BinaryOperatorKind operatorKind)
@@ -1283,21 +1289,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BinaryOperatorKind.Int:
                         case BinaryOperatorKind.Long:
-                            return BinaryOperationKind.IntegerLess;
+                            return BinaryOperationKind.IntegerLessThan;
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return BinaryOperationKind.UnsignedLess;
+                            return BinaryOperationKind.UnsignedLessThan;
                         case BinaryOperatorKind.Float:
                         case BinaryOperatorKind.Double:
-                            return BinaryOperationKind.FloatingLess;
+                            return BinaryOperationKind.FloatingLessThan;
                         case BinaryOperatorKind.Decimal:
-                            return BinaryOperationKind.DecimalLess;
+                            return BinaryOperationKind.DecimalLessThan;
                         case BinaryOperatorKind.Pointer:
-                            return BinaryOperationKind.PointerLess;
+                            return BinaryOperationKind.PointerLessThan;
                         case BinaryOperatorKind.Enum:
-                            return BinaryOperationKind.EnumLess;
+                            return BinaryOperationKind.EnumLessThan;
                         case BinaryOperatorKind.UserDefined:
-                            return BinaryOperationKind.OperatorLess;
+                            return BinaryOperationKind.OperatorLessThan;
                     }
 
                     break;
@@ -1307,21 +1313,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BinaryOperatorKind.Int:
                         case BinaryOperatorKind.Long:
-                            return BinaryOperationKind.IntegerLessEqual;
+                            return BinaryOperationKind.IntegerLessThanOrEqual;
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return BinaryOperationKind.UnsignedLessEqual;
+                            return BinaryOperationKind.UnsignedLessThanOrEqual;
                         case BinaryOperatorKind.Float:
                         case BinaryOperatorKind.Double:
-                            return BinaryOperationKind.FloatingLessEqual;
+                            return BinaryOperationKind.FloatingLessThanOrEqual;
                         case BinaryOperatorKind.Decimal:
-                            return BinaryOperationKind.DecimalLessEqual;
+                            return BinaryOperationKind.DecimalLessThanOrEqual;
                         case BinaryOperatorKind.Pointer:
-                            return BinaryOperationKind.PointerLessEqual;
+                            return BinaryOperationKind.PointerLessThanOrEqual;
                         case BinaryOperatorKind.Enum:
-                            return BinaryOperationKind.EnumLessEqual;
+                            return BinaryOperationKind.EnumLessThanOrEqual;
                         case BinaryOperatorKind.UserDefined:
-                            return BinaryOperationKind.OperatorLessEqual;
+                            return BinaryOperationKind.OperatorLessThanOrEqual;
                     }
 
                     break;
@@ -1333,28 +1339,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BinaryOperatorKind.Long:
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return BinaryOperationKind.IntegerEqual;
+                            return BinaryOperationKind.IntegerEquals;
                         case BinaryOperatorKind.Float:
                         case BinaryOperatorKind.Double:
-                            return BinaryOperationKind.FloatingEqual;
+                            return BinaryOperationKind.FloatingEquals;
                         case BinaryOperatorKind.Decimal:
-                            return BinaryOperationKind.DecimalEqual;
+                            return BinaryOperationKind.DecimalEquals;
                         case BinaryOperatorKind.Pointer:
-                            return BinaryOperationKind.PointerEqual;
+                            return BinaryOperationKind.PointerEquals;
                         case BinaryOperatorKind.Enum:
-                            return BinaryOperationKind.EnumEqual;
+                            return BinaryOperationKind.EnumEquals;
                         case BinaryOperatorKind.Bool:
-                            return BinaryOperationKind.BooleanEqual;
+                            return BinaryOperationKind.BooleanEquals;
                         case BinaryOperatorKind.String:
-                            return BinaryOperationKind.StringEqual;
+                            return BinaryOperationKind.StringEquals;
                         case BinaryOperatorKind.Object:
-                            return BinaryOperationKind.ObjectEqual;
+                            return BinaryOperationKind.ObjectEquals;
                         case BinaryOperatorKind.Delegate:
-                            return BinaryOperationKind.DelegateEqual;
+                            return BinaryOperationKind.DelegateEquals;
                         case BinaryOperatorKind.NullableNull:
-                            return BinaryOperationKind.NullableEqual;
+                            return BinaryOperationKind.NullableEquals;
                         case BinaryOperatorKind.UserDefined:
-                            return BinaryOperationKind.OperatorEqual;
+                            return BinaryOperationKind.OperatorEquals;
                     }
 
                     break;
@@ -1366,28 +1372,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BinaryOperatorKind.Long:
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return BinaryOperationKind.IntegerNotEqual;
+                            return BinaryOperationKind.IntegerNotEquals;
                         case BinaryOperatorKind.Float:
                         case BinaryOperatorKind.Double:
-                            return BinaryOperationKind.FloatingNotEqual;
+                            return BinaryOperationKind.FloatingNotEquals;
                         case BinaryOperatorKind.Decimal:
-                            return BinaryOperationKind.DecimalNotEqual;
+                            return BinaryOperationKind.DecimalNotEquals;
                         case BinaryOperatorKind.Pointer:
-                            return BinaryOperationKind.PointerNotEqual;
+                            return BinaryOperationKind.PointerNotEquals;
                         case BinaryOperatorKind.Enum:
-                            return BinaryOperationKind.EnumNotEqual;
+                            return BinaryOperationKind.EnumNotEquals;
                         case BinaryOperatorKind.Bool:
-                            return BinaryOperationKind.BooleanNotEqual;
+                            return BinaryOperationKind.BooleanNotEquals;
                         case BinaryOperatorKind.String:
-                            return BinaryOperationKind.StringNotEqual;
+                            return BinaryOperationKind.StringNotEquals;
                         case BinaryOperatorKind.Object:
-                            return BinaryOperationKind.ObjectNotEqual;
+                            return BinaryOperationKind.ObjectNotEquals;
                         case BinaryOperatorKind.Delegate:
-                            return BinaryOperationKind.DelegateNotEqual;
+                            return BinaryOperationKind.DelegateNotEquals;
                         case BinaryOperatorKind.NullableNull:
-                            return BinaryOperationKind.NullableNotEqual;
+                            return BinaryOperationKind.NullableNotEquals;
                         case BinaryOperatorKind.UserDefined:
-                            return BinaryOperationKind.OperatorNotEqual;
+                            return BinaryOperationKind.OperatorNotEquals;
                     }
 
                     break;
@@ -1397,21 +1403,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BinaryOperatorKind.Int:
                         case BinaryOperatorKind.Long:
-                            return BinaryOperationKind.IntegerGreaterEqual;
+                            return BinaryOperationKind.IntegerGreaterThanOrEqual;
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return BinaryOperationKind.UnsignedGreaterEqual;
+                            return BinaryOperationKind.UnsignedGreaterThanOrEqual;
                         case BinaryOperatorKind.Float:
                         case BinaryOperatorKind.Double:
-                            return BinaryOperationKind.FloatingGreaterEqual;
+                            return BinaryOperationKind.FloatingGreaterThanOrEqual;
                         case BinaryOperatorKind.Decimal:
-                            return BinaryOperationKind.DecimalGreaterEqual;
+                            return BinaryOperationKind.DecimalGreaterThanOrEqual;
                         case BinaryOperatorKind.Pointer:
-                            return BinaryOperationKind.PointerGreaterEqual;
+                            return BinaryOperationKind.PointerGreaterThanOrEqual;
                         case BinaryOperatorKind.Enum:
-                            return BinaryOperationKind.EnumGreaterEqual;
+                            return BinaryOperationKind.EnumGreaterThanOrEqual;
                         case BinaryOperatorKind.UserDefined:
-                            return BinaryOperationKind.OperatorGreaterEqual;
+                            return BinaryOperationKind.OperatorGreaterThanOrEqual;
                     }
 
                     break;
@@ -1421,27 +1427,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BinaryOperatorKind.Int:
                         case BinaryOperatorKind.Long:
-                            return BinaryOperationKind.IntegerGreater;
+                            return BinaryOperationKind.IntegerGreaterThan;
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return BinaryOperationKind.UnsignedGreater;
+                            return BinaryOperationKind.UnsignedGreaterThan;
                         case BinaryOperatorKind.Float:
                         case BinaryOperatorKind.Double:
-                            return BinaryOperationKind.FloatingGreater;
+                            return BinaryOperationKind.FloatingGreaterThan;
                         case BinaryOperatorKind.Decimal:
-                            return BinaryOperationKind.DecimalGreater;
+                            return BinaryOperationKind.DecimalGreaterThan;
                         case BinaryOperatorKind.Pointer:
-                            return BinaryOperationKind.PointerGreater;
+                            return BinaryOperationKind.PointerGreaterThan;
                         case BinaryOperatorKind.Enum:
-                            return BinaryOperationKind.EnumGreater;
+                            return BinaryOperationKind.EnumGreaterThan;
                         case BinaryOperatorKind.UserDefined:
-                            return BinaryOperationKind.OperatorGreater;
+                            return BinaryOperationKind.OperatorGreaterThan;
                     }
 
                     break;
             }
 
-            return BinaryOperationKind.None;
+            throw ExceptionUtilities.UnexpectedValue(operatorKind & BinaryOperatorKind.TypeMask);
         }
     }
 }

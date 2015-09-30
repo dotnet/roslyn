@@ -769,12 +769,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim diagbag = DiagnosticBag.GetInstance()
                     methodSym.BindSingleHandlesClause(handlesClause,
-                                                                        binder,
-                                                                        diagbag,
-                                                                        eventSymbolBuilder,
-                                                                        containerSymbolBuilder,
-                                                                        propertySymbolBuilder,
-                                                                        resultKind)
+                                                      binder,
+                                                      diagbag,
+                                                      eventSymbolBuilder,
+                                                      containerSymbolBuilder,
+                                                      propertySymbolBuilder,
+                                                      resultKind)
 
                     diagbag.Free()
                 End If

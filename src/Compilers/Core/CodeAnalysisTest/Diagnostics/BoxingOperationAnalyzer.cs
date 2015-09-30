@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         /// <summary>Diagnostic category "Performance".</summary>
         private const string PerformanceCategory = "Performance";
         
-        private static LocalizableString localizableTitle = "Boxing";
-        private static LocalizableString localizableMessage = "Boxing is expensive";
+        private readonly static LocalizableString localizableTitle = "Boxing";
+        private readonly static LocalizableString localizableMessage = "Boxing is expensive";
         
         /// <summary>The diagnostic descriptor used when boxing is detected.</summary>
         public static readonly DiagnosticDescriptor BoxingDescriptor = new DiagnosticDescriptor(

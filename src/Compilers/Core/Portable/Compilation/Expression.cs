@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 case SpecialType.System_Char:
                     return ConstantValue.Create((char)value);
                 case SpecialType.System_Boolean:
-                    return ConstantValue.Create(value != 0 ? true : false);
+                    return ConstantValue.Create(value != 0);
                 case SpecialType.System_Single:
                     return ConstantValue.Create((float)value);
                 case SpecialType.System_Double:
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
     }
 
-    public class ConditionalChoice : IConditionalChoiceExpression
+    public sealed class ConditionalChoice : IConditionalChoiceExpression
     {
         public ConditionalChoice(IExpression condition, IExpression ifTrue, IExpression ifFalse, ITypeSymbol resultType, SyntaxNode syntax)
         {
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public object ConstantValue => null;
     }
 
-    public class Assignment : IExpressionStatement
+    public sealed class Assignment : IExpressionStatement
     {
         private readonly AssignmentExpression _assignment;
 
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
     }
 
-    public class CompoundAssignment : IExpressionStatement
+    public sealed class CompoundAssignment : IExpressionStatement
     {
         private readonly CompoundAssignmentExpression _compoundAssignment;
 
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
     }
 
-    public class IntegerLiteral : ILiteralExpression
+    public sealed class IntegerLiteral : ILiteralExpression
     {
         private readonly long _value;
 
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public SyntaxNode Syntax { get; }
     }
 
-    public class Binary : IBinaryOperatorExpression
+    public sealed class Binary : IBinaryOperatorExpression
     {
         public Binary(BinaryOperationKind binaryKind, IExpression left, IExpression right, ITypeSymbol resultType, SyntaxNode syntax)
         {
@@ -267,11 +267,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         public SyntaxNode Syntax { get; }
     }
 
-    public class ArrayCreation: IArrayCreationExpression
+    public sealed class ArrayCreation: IArrayCreationExpression
     {
         private readonly IArrayTypeSymbol _arrayType;
 
-        public ArrayCreation(IArrayTypeSymbol arrayType, IEnumerable<IExpression> elementValues, SyntaxNode syntax)
+        public ArrayCreation(IArrayTypeSymbol arrayType, ImmutableArray<IExpression> elementValues, SyntaxNode syntax)
         {
             _arrayType = arrayType;
             this.DimensionSizes = ImmutableArray.Create<IExpression>(new IntegerLiteral(elementValues.Count(), null, syntax));
@@ -297,15 +297,15 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             private readonly ImmutableArray<IArrayInitializer> _elementValues;
 
-            public DimensionInitializer(IEnumerable<IExpression> elementValues)
+            public DimensionInitializer(ImmutableArray<IExpression> elementValues)
             {
-                ImmutableArray<IArrayInitializer>.Builder builder = ImmutableArray.CreateBuilder<IArrayInitializer>();
+                ArrayBuilder<IArrayInitializer> builder = ArrayBuilder<IArrayInitializer>.GetInstance();
                 foreach (IExpression element in elementValues)
                 {
                     builder.Add(new ExpressionInitializer(element));
                 }
 
-                _elementValues = builder.ToImmutable();
+                _elementValues = builder.ToImmutableAndFree();
             }
 
             public ArrayInitializerKind ArrayClass => ArrayInitializerKind.Dimension;

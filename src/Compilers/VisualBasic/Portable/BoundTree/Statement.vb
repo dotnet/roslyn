@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IIfClauses As ImmutableArray(Of IIfClause) Implements IIfStatement.IfClauses
             Get
-                ' Apparently the VB bound trees do not preserve multi-clause if statements. This is disappointing.
+                ' Apparently the VB bound trees do not preserve multi-clause if statements.
                 Return ImmutableArray.Create(Of IIfClause)(Me)
             End Get
         End Property
@@ -131,21 +131,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IEquality As BinaryOperationKind Implements ISingleValueCaseClause.Equality
             Get
+                ' Can lifted operators appear here, and if so what is their correct treatment?
                 Dim caseValue As BoundExpression = DirectCast(Me.IValue, BoundExpression)
                 If caseValue IsNot Nothing Then
                     Select Case caseValue.Type.SpecialType
                         Case SpecialType.System_Int32, SpecialType.System_Int64, SpecialType.System_UInt32, SpecialType.System_UInt64, SpecialType.System_UInt16, SpecialType.System_Int16, SpecialType.System_SByte, SpecialType.System_Byte, SpecialType.System_Char
-                            Return BinaryOperationKind.IntegerEqual
+                            Return BinaryOperationKind.IntegerEquals
 
                         Case SpecialType.System_Boolean
-                            Return BinaryOperationKind.BooleanEqual
+                            Return BinaryOperationKind.BooleanEquals
 
                         Case SpecialType.System_String
-                            Return BinaryOperationKind.StringEqual
+                            Return BinaryOperationKind.StringEquals
                     End Select
 
                     If caseValue.Type.TypeKind = TypeKind.Enum Then
-                        Return BinaryOperationKind.EnumEqual
+                        Return BinaryOperationKind.EnumEquals
                     End If
                 End If
 

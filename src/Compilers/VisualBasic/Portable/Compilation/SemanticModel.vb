@@ -441,9 +441,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If CanGetSemanticInfo(expression) Then
                 Dim result = GetExpressionMemberGroup(expression, cancellationToken)
 #If DEBUG Then
-                    For Each item In result
-                        Debug.Assert(item.Kind <> SymbolKind.Namespace)
-                    Next
+                For Each item In result
+                    Debug.Assert(item.Kind <> SymbolKind.Namespace)
+                Next
 #End If
                 Return StaticCast(Of ISymbol).From(result)
             Else
@@ -458,9 +458,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If bnodeSummary.LowestBoundNode IsNot Nothing Then
                 Dim result = Me.GetMemberGroupForNode(bnodeSummary, binderOpt:=Nothing)
 #If DEBUG Then
-                    For Each item In result
-                        Debug.Assert(item.Kind <> SymbolKind.Namespace)
-                    Next
+                For Each item In result
+                    Debug.Assert(item.Kind <> SymbolKind.Namespace)
+                Next
 #End If
                 Return StaticCast(Of ISymbol).From(result)
             Else
@@ -474,9 +474,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If CanGetSemanticInfo(attribute) Then
                 Dim result = GetAttributeMemberGroup(attribute, cancellationToken)
 #If DEBUG Then
-                    For Each item In result
-                        Debug.Assert(item.Kind <> SymbolKind.Namespace)
-                    Next
+                For Each item In result
+                    Debug.Assert(item.Kind <> SymbolKind.Namespace)
+                Next
 #End If
                 Return StaticCast(Of ISymbol).From(result)
             Else

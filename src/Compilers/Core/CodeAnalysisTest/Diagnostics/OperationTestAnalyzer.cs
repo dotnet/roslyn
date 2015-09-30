@@ -129,11 +129,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
                                                          if (advanceOperationCode == BinaryOperationKind.IntegerAdd &&
                                                              incrementValue != 0 &&
-                                                             (condition.BinaryKind == BinaryOperationKind.IntegerLess ||
-                                                              condition.BinaryKind == BinaryOperationKind.IntegerLessEqual ||
-                                                              condition.BinaryKind == BinaryOperationKind.IntegerNotEqual ||
-                                                              condition.BinaryKind == BinaryOperationKind.IntegerGreater ||
-                                                              condition.BinaryKind == BinaryOperationKind.IntegerGreaterEqual))
+                                                             (condition.BinaryKind == BinaryOperationKind.IntegerLessThan ||
+                                                              condition.BinaryKind == BinaryOperationKind.IntegerLessThanOrEqual ||
+                                                              condition.BinaryKind == BinaryOperationKind.IntegerNotEquals ||
+                                                              condition.BinaryKind == BinaryOperationKind.IntegerGreaterThan ||
+                                                              condition.BinaryKind == BinaryOperationKind.IntegerGreaterThanOrEqual))
                                                          {
                                                              int iterationCount = (testValue - initialValue) / incrementValue;
                                                              if (iterationCount >= 1000000)
@@ -250,25 +250,25 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                              int relationalValue = (int)relationalValueExpression.ConstantValue;
                                              switch (relationalClause.Relation)
                                              {
-                                                 case BinaryOperationKind.IntegerEqual:
+                                                 case BinaryOperationKind.IntegerEquals:
                                                      rangeMinValue = relationalValue;
                                                      rangeMaxValue = relationalValue;
                                                      break;
-                                                 case BinaryOperationKind.IntegerNotEqual:
+                                                 case BinaryOperationKind.IntegerNotEquals:
                                                      return;
-                                                 case BinaryOperationKind.IntegerLess:
+                                                 case BinaryOperationKind.IntegerLessThan:
                                                      rangeMinValue = int.MinValue;
                                                      rangeMaxValue = relationalValue - 1;
                                                      break;
-                                                 case BinaryOperationKind.IntegerLessEqual:
+                                                 case BinaryOperationKind.IntegerLessThanOrEqual:
                                                      rangeMinValue = int.MinValue;
                                                      rangeMaxValue = relationalValue;
                                                      break;
-                                                 case BinaryOperationKind.IntegerGreaterEqual:
+                                                 case BinaryOperationKind.IntegerGreaterThanOrEqual:
                                                      rangeMinValue = relationalValue;
                                                      rangeMaxValue = int.MaxValue;
                                                      break;
-                                                 case BinaryOperationKind.IntegerGreater:
+                                                 case BinaryOperationKind.IntegerGreaterThan:
                                                      rangeMinValue = relationalValue + 1;
                                                      rangeMaxValue = int.MaxValue;
                                                      break;

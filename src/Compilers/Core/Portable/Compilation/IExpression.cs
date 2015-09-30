@@ -141,24 +141,51 @@ namespace Microsoft.CodeAnalysis.Semantics
         LateBoundMember
     }
 
+    /// <summary>
+    /// Represents a reference to an array element.
+    /// </summary>
     public interface IArrayElementReferenceExpression : IReferenceExpression
     {
+        /// <summary>
+        /// Array to be indexed.
+        /// </summary>
         IExpression ArrayReference { get; }
+        /// <summary>
+        /// Indices that specify an individual element.
+        /// </summary>
         ImmutableArray<IExpression> Indices { get; }
     }
 
+    /// <summary>
+    /// Represents a reference through a pointer.
+    /// </summary>
     public interface IPointerIndirectionReferenceExpression : IReferenceExpression
     {
+        /// <summary>
+        /// Pointer to be dereferenced.
+        /// </summary>
         IExpression Pointer { get; }
     }
 
+    /// <summary>
+    /// Represents a reference to a declared local variable.
+    /// </summary>
     public interface ILocalReferenceExpression : IReferenceExpression
     {
+        /// <summary>
+        /// Referenced local variable.
+        /// </summary>
         ILocalSymbol Local { get; }
     }
 
+    /// <summary>
+    /// Represents a reference to a parameter.
+    /// </summary>
     public interface IParameterReferenceExpression : IReferenceExpression
     {
+        /// <summary>
+        /// Referenced parameter.
+        /// </summary>
         IParameterSymbol Parameter { get; }
     }
 
@@ -167,6 +194,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public interface ISyntheticLocalReferenceExpression : IReferenceExpression
     {
+        /// <summary>
+        /// Kind of the synthetic local.
+        /// </summary>
         SyntheticLocalKind SyntheticLocalKind { get; }
         /// <summary>
         /// Statement defining the lifetime of the synthetic local.
@@ -191,34 +221,73 @@ namespace Microsoft.CodeAnalysis.Semantics
         ForLoopLimitValue
     }
 
-    public interface IThisReferenceExpression : IParameterReferenceExpression
+    /// <summary>
+    /// Represents a reference to a C# this or VB Me parameter.
+    /// </summary>
+    public interface IInstanceReferenceExpression : IParameterReferenceExpression
     {
+        /// <summary>
+        /// Indicates whether the reference is explicit or implicit in source.
+        /// </summary>
         bool IsExplicit { get; }
     }
 
+    /// <summary>
+    /// Represents a reference to a member of a class or struct.
+    /// </summary>
     public interface IMemberReferenceExpression : IReferenceExpression
     {
+        /// <summary>
+        /// Instance of the class or struct. Null if the reference is to a static/shared member.
+        /// </summary>
         IExpression Instance { get; }
     }
 
+    /// <summary>
+    /// Represents a reference to a field of a class or struct.
+    /// </summary>
     public interface IFieldReferenceExpression : IMemberReferenceExpression
     {
+        /// <summary>
+        /// Referenced field.
+        /// </summary>
         IFieldSymbol Field { get; }
     }
 
+    /// <summary>
+    /// Represents a reference to a method of a class or struct.
+    /// </summary>
     public interface IMethodReferenceExpression : IMemberReferenceExpression
     {
+        /// <summary>
+        /// Referenced method.
+        /// </summary>
         IMethodSymbol Method { get; }
+        /// <summary>
+        /// Indicates whether the reference uses virtual semantics.
+        /// </summary>
         bool IsVirtual { get; }
     }
     
+    /// <summary>
+    /// Represents a reference to a property of a class or struct.
+    /// </summary>
     public interface IPropertyReferenceExpression : IMemberReferenceExpression
     {
+        /// <summary>
+        /// Referenced property.
+        /// </summary>
         IPropertySymbol Property { get; }
     }
 
+    /// <summary>
+    /// Represents a conditional access expression.
+    /// </summary>
     public interface IConditionalAccessExpression : IExpression
     {
+        /// <summary>
+        /// Expression subject to conditional access.
+        /// </summary>
         IExpression Access { get; }
     }
 
@@ -242,7 +311,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public interface IUnaryOperatorExpression : IHasOperatorExpression
     {
+        /// <summary>
+        /// Kind of unary operation.
+        /// </summary>
         UnaryOperationKind UnaryKind { get; }
+        /// <summary>
+        /// Single operand.
+        /// </summary>
         IExpression Operand { get; }
     }
 
@@ -325,8 +400,17 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public interface IBinaryOperatorExpression : IHasOperatorExpression
     {
+        /// <summary>
+        /// Kind of binary operation.
+        /// </summary>
         BinaryOperationKind BinaryKind { get; }
+        /// <summary>
+        /// Left operand.
+        /// </summary>
         IExpression Left { get; }
+        /// <summary>
+        /// Right operand.
+        /// </summary>
         IExpression Right { get; }
     }
 
@@ -432,81 +516,81 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         // Relational operations.
 
-        OperatorEqual,
-        OperatorNotEqual,
-        OperatorLess,
-        OperatorLessEqual,
-        OperatorGreaterEqual,
-        OperatorGreater,
+        OperatorEquals,
+        OperatorNotEquals,
+        OperatorLessThan,
+        OperatorLessThanOrEqual,
+        OperatorGreaterThanOrEqual,
+        OperatorGreaterThan,
 
-        IntegerEqual,
-        IntegerNotEqual,
-        IntegerLess,
-        IntegerLessEqual,
-        IntegerGreaterEqual,
-        IntegerGreater,
-        UnsignedLess,
-        UnsignedLessEqual,
-        UnsignedGreaterEqual,
-        UnsignedGreater,
+        IntegerEquals,
+        IntegerNotEquals,
+        IntegerLessThan,
+        IntegerLessThanOrEqual,
+        IntegerGreaterThanOrEqual,
+        IntegerGreaterThan,
+        UnsignedLessThan,
+        UnsignedLessThanOrEqual,
+        UnsignedGreaterThanOrEqual,
+        UnsignedGreaterThan,
 
-        FloatingEqual,
-        FloatingNotEqual,
-        FloatingLess,
-        FloatingLessEqual,
-        FloatingGreaterEqual,
-        FloatingGreater,
+        FloatingEquals,
+        FloatingNotEquals,
+        FloatingLessThan,
+        FloatingLessThanOrEqual,
+        FloatingGreaterThanOrEqual,
+        FloatingGreaterThan,
 
-        DecimalEqual,
-        DecimalNotEqual,
-        DecimalLess,
-        DecimalLessEqual,
-        DecimalGreaterEqual,
-        DecimalGreater,
+        DecimalEquals,
+        DecimalNotEquals,
+        DecimalLessThan,
+        DecimalLessThanOrEqual,
+        DecimalGreaterThanOrEqual,
+        DecimalGreaterThan,
 
-        BooleanEqual,
-        BooleanNotEqual,
+        BooleanEquals,
+        BooleanNotEquals,
 
-        StringEqual,
-        StringNotEqual,
+        StringEquals,
+        StringNotEquals,
         StringLike,
 
-        DelegateEqual,
-        DelegateNotEqual,
+        DelegateEquals,
+        DelegateNotEquals,
 
-        NullableEqual,
-        NullableNotEqual,
+        NullableEquals,
+        NullableNotEquals,
 
-        ObjectLess,
-        ObjectLessEqual,
-        ObjectEqual,
-        ObjectNotEqual,
-        ObjectVBEqual,
-        ObjectVBNotEqual,
+        ObjectEquals,
+        ObjectNotEquals,
+        ObjectVBEquals,
+        ObjectVBNotEquals,
         ObjectLike,
-        ObjectGreaterEqual,
-        ObjectGreater,
+        ObjectLessThan,
+        ObjectLessThanOrEqual,
+        ObjectGreaterThanOrEqual,
+        ObjectGreaterThan,
 
-        EnumEqual,
-        EnumNotEqual,
-        EnumLess,
-        EnumLessEqual,
-        EnumGreaterEqual,
-        EnumGreater,
+        EnumEquals,
+        EnumNotEquals,
+        EnumLessThan,
+        EnumLessThanOrEqual,
+        EnumGreaterThanOrEqual,
+        EnumGreaterThan,
 
-        PointerEqual,
-        PointerNotEqual,
-        PointerLess,
-        PointerLessEqual,
-        PointerGreaterEqual,
-        PointerGreater,
+        PointerEquals,
+        PointerNotEquals,
+        PointerLessThan,
+        PointerLessThanOrEqual,
+        PointerGreaterThanOrEqual,
+        PointerGreaterThan,
 
-        DynamicEqual,
-        DynamicNotEqual,
-        DynamicLess,
-        DynamicLessEqual,
-        DynamicGreaterEqual,
-        DynamicGreater
+        DynamicEquals,
+        DynamicNotEquals,
+        DynamicLessThan,
+        DynamicLessThanOrEqual,
+        DynamicGreaterThanOrEqual,
+        DynamicGreaterThan
     }
 
     /// <summary>
@@ -514,7 +598,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public interface IConversionExpression : IHasOperatorExpression
     {
+        /// <summary>
+        /// Value to be converted.
+        /// </summary>
         IExpression Operand { get; }
+        /// <summary>
+        /// Kind of conversion.
+        /// </summary>
         ConversionKind Conversion { get; }
         /// <summary>
         /// True if and only if the conversion is indicated explicity by a cast operation in the source code.
@@ -550,28 +640,67 @@ namespace Microsoft.CodeAnalysis.Semantics
         Operator
     }
 
+    /// <summary>
+    /// Represents a C# ?: or VB If expression.
+    /// </summary>
     public interface IConditionalChoiceExpression : IExpression
     {
+        /// <summary>
+        /// Condition to be tested.
+        /// </summary>
         IExpression Condition { get; }
+        /// <summary>
+        /// Value evaluated if the Condition is true.
+        /// </summary>
         IExpression IfTrue { get; }
+        /// <summary>
+        /// Value evaluated if the Condition is false.
+        /// </summary>
         IExpression IfFalse { get; }
     }
 
+    /// <summary>
+    /// Represents a null-coalescing expression.
+    /// </summary>
     public interface INullCoalescingExpression : IExpression
     {
+        /// <summary>
+        /// Value to be unconditionally evaluated.
+        /// </summary>
         IExpression Primary { get; }
+        /// <summary>
+        /// Value to be evaluated if Primary evaluates to null/Nothing.
+        /// </summary>
         IExpression Secondary { get; }
     }
 
+    /// <summary>
+    /// Represents an expression that tests if a value is of a specific type.
+    /// </summary>
     public interface IIsExpression : IExpression
     {
+        /// <summary>
+        /// Value to test.
+        /// </summary>
         IExpression Operand { get; }
+        /// <summary>
+        /// Type for which to test.
+        /// </summary>
         ITypeSymbol IsType { get; }
     }
 
+    /// <summary>
+    /// Represents an expression operating on a type.
+    /// </summary>
     public interface ITypeOperationExpression : IExpression
     {
+        /// <summary>
+        /// Kind of type operation.
+        /// </summary>
         TypeOperationKind TypeOperationClass { get; }
+        /// <summary>
+        /// Type operand.
+        /// </summary>
         ITypeSymbol TypeOperand { get; }
     }
 
@@ -586,32 +715,71 @@ namespace Microsoft.CodeAnalysis.Semantics
         TypeOf
     }
 
+    /// <summary>
+    /// Represents a lambda expression.
+    /// </summary>
     public interface ILambdaExpression : IExpression
     {
+        /// <summary>
+        /// Signature of the lambda.
+        /// </summary>
         IMethodSymbol Signature { get; }
+        /// <summary>
+        /// Body of the lambda.
+        /// </summary>
         IBlockStatement Body { get; }
     }
 
+    /// <summary>
+    /// Represents a textual literal numeric, string, etc. expression.
+    /// </summary>
     public interface ILiteralExpression : IExpression
     {
+        /// <summary>
+        /// Textual representation of the literal.
+        /// </summary>
         string Spelling { get; }
     }
 
+    /// <summary>
+    /// Represents an await expression.
+    /// </summary>
     public interface IAwaitExpression : IExpression
     {
+        /// <summary>
+        /// Value to be awaited.
+        /// </summary>
         IExpression Upon { get; }
     }
 
+    /// <summary>
+    /// Represents an expression that creates a pointer value by taking the address of a reference.
+    /// </summary>
     public interface IAddressOfExpression : IExpression
     {
+        /// <summary>
+        /// Addressed reference.
+        /// </summary>
         IReferenceExpression Addressed { get; }
     }
 
+    /// <summary>
+    /// Represents a new/New expression.
+    /// </summary>
     public interface IObjectCreationExpression : IExpression
     {
+        /// <summary>
+        /// Constructor to be invoked for the created instance.
+        /// </summary>
         IMethodSymbol Constructor { get; }
+        /// <summary>
+        /// Arguments to the constructor.
+        /// </summary>
         ImmutableArray<IArgument> ConstructorArguments { get; }
         IArgument ArgumentMatchingParameter(IParameterSymbol parameter);
+        /// <summary>
+        /// Explicitly-specified member initializers.
+        /// </summary>
         ImmutableArray<IMemberInitializer> MemberInitializers { get; }
     }
 
@@ -630,25 +798,55 @@ namespace Microsoft.CodeAnalysis.Semantics
         Property
     }
 
+    /// <summary>
+    /// Represents an initialization of a field.
+    /// </summary>
     public interface IFieldInitializer : IMemberInitializer
     {
+        /// <summary>
+        /// Initialized field.
+        /// </summary>
         IFieldSymbol Field { get; }
     }
 
+    /// <summary>
+    /// Represents an initialization of a property.
+    /// </summary>
     public interface IPropertyInitializer : IMemberInitializer
     {
+        /// <summary>
+        /// Set method used to initialize the property.
+        /// </summary>
         IMethodSymbol Setter { get; }
     }
 
+    /// <summary>
+    /// Represents the creation of an array instance.
+    /// </summary>
     public interface IArrayCreationExpression : IExpression
     {
+        /// <summary>
+        /// Element type of the created array instance.
+        /// </summary>
         ITypeSymbol ElementType { get; }
+        /// <summary>
+        /// Sizes of the dimensions of the created array instance.
+        /// </summary>
         ImmutableArray<IExpression> DimensionSizes { get; }
+        /// <summary>
+        /// Values of elements of the created array instance.
+        /// </summary>
         IArrayInitializer ElementValues { get; }
     }
 
+    /// <summary>
+    /// Represents the initialization of an array instance.
+    /// </summary>
     public interface IArrayInitializer
     {
+        /// <summary>
+        /// Kind of array initialization.
+        /// </summary>
         ArrayInitializerKind ArrayClass { get; }
     }
 
@@ -667,40 +865,82 @@ namespace Microsoft.CodeAnalysis.Semantics
         Dimension
     }
 
+    /// <summary>
+    /// Represents an initialization of a single element of an array instance.
+    /// </summary>
     public interface IExpressionArrayInitializer : IArrayInitializer
     {
         IExpression ElementValue { get; }
     }
 
+    /// <summary>
+    /// Represents an initialization of a single dimension of an array instance.
+    /// </summary>
     public interface IDimensionArrayInitializer : IArrayInitializer
     {
         ImmutableArray<IArrayInitializer> ElementValues { get; }
     }
 
+    /// <summary>
+    /// Represents an assignment expression.
+    /// </summary>
     public interface IAssignmentExpression : IExpression
     {
+        /// <summary>
+        /// Target of the assignment.
+        /// </summary>
         IReferenceExpression Target { get; }
+        /// <summary>
+        /// Value to be assigned to the target of the assignment.
+        /// </summary>
         IExpression Value { get; }
     }
 
+    /// <summary>
+    /// Represents an assignment expression that includes a binary operation.
+    /// </summary>
     public interface ICompoundAssignmentExpression : IAssignmentExpression, IHasOperatorExpression
     {
+        /// <summary>
+        /// Kind of binary operation.
+        /// </summary>
         BinaryOperationKind BinaryKind { get; }
     }
 
+    /// <summary>
+    /// Represents an increment expression.
+    /// </summary>
     public interface IIncrementExpression : ICompoundAssignmentExpression
     {
+        /// <summary>
+        /// Kind of increment.
+        /// </summary>
         UnaryOperationKind IncrementKind { get; }
     }
 
+    /// <summary>
+    /// Represents a parenthesized expression.
+    /// </summary>
     public interface IParenthesizedExpression : IExpression
     {
+        /// <summary>
+        /// Operand enclosed in parentheses.
+        /// </summary>
         IExpression Operand { get; }
     }
 
+    /// <summary>
+    /// Represents a late-bound reference to a member of a class or struct.
+    /// </summary>
     public interface ILateBoundMemberReferenceExpression : IReferenceExpression
     {
+        /// <summary>
+        /// Instance used to bind the member reference.
+        /// </summary>
         IExpression Instance { get; }
+        /// <summary>
+        /// Name of the member.
+        /// </summary>
         string MemberName { get; }
     }
 
@@ -709,6 +949,11 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public static class IExpressionExtensions
     {
+        /// <summary>
+        /// Tests if an invocation is to a static/shared method.
+        /// </summary>
+        /// <param name="invocation">Invocation to be tested.</param>
+        /// <returns>True if the invoked method is static/shared, false otherwise.</returns>
         public static bool IsStatic(this IInvocationExpression invocation)
         {
             return invocation.TargetMethod.IsStatic;
