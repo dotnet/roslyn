@@ -11,6 +11,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComme
         Inherits AbstractDocumentationCommentTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        Public Sub TypingCharacter_Class_AutoGenerateXmlDocCommentsOff()
+            Const code = "
+''$$
+Class C
+End Class
+"
+            Const expected = "
+'''$$
+Class C
+End Class
+"
+            VerifyTypingCharacter(code, expected, autoGenerateXmlDocComments:=False)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub TypingCharacter_Class()
             Const code = "
 ''$$

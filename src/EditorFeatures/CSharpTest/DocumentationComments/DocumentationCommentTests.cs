@@ -33,6 +33,24 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_Class_AutoGenerateXmlDocCommentsOff()
+        {
+            var code =
+@"//$$
+class C
+{
+}";
+
+            var expected =
+@"///$$
+class C
+{
+}";
+
+            VerifyTypingCharacter(code, expected, autoGenerateXmlDocComments: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TypingCharacter_Method()
         {
             var code =
