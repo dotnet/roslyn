@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 return ClassificationTypeNames.TypeParameterName;
             }
-            else if (IsActualContextualKeyword(token) || CouldBeVarKeywordInDeclaration(token))
+            else if (IsActualContextualKeyword(token))
             {
                 return ClassificationTypeNames.Keyword;
             }
@@ -268,6 +268,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                         return fromClause != null && fromClause.FromKeyword == token;
 
                     case VarKeyword:
+                        // var
+                        if (token.Parent is IdentifierNameSyntax && token.Parent?.Parent is ExpressionStatementSyntax)
+                        {
+                            return true;
+                        }
+
                         // we allow var any time it looks like a variable declaration, and is not in a
                         // field or event field.
                         return
@@ -276,18 +282,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                             !(token.Parent.Parent.Parent is FieldDeclarationSyntax) &&
                             !(token.Parent.Parent.Parent is EventFieldDeclarationSyntax);
                 }
-            }
-
-            return false;
-        }
-
-        private static bool CouldBeVarKeywordInDeclaration(SyntaxToken token)
-        {
-            if (token.ValueText == VarKeyword && token.Parent != null && token.Parent.Parent != null)
-            {
-                // cases:
-                //   var
-                return token.Parent is IdentifierNameSyntax && token.Parent.Parent is ExpressionStatementSyntax;
             }
 
             return false;
