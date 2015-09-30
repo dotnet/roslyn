@@ -10,6 +10,7 @@ Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineHostObject.Args -> string[]
 Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineHostObject.ExitCode -> int
 Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineHostObject.Print(object value) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader
+Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader.Dispose() -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader.InteractiveAssemblyLoader(Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider shadowCopyProvider = null) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader.LoadFromPath(string path) -> Microsoft.CodeAnalysis.Scripting.Hosting.AssemblyLoadResult
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader.RegisterDependency(Microsoft.CodeAnalysis.AssemblyIdentity dependency, string path) -> void

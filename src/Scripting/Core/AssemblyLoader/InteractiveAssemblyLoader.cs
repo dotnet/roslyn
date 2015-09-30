@@ -6,8 +6,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
+using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     /// The class is thread-safe.
     /// </para>
     /// </remarks>
-    public sealed class InteractiveAssemblyLoader
+    public sealed partial class InteractiveAssemblyLoader : IDisposable
     {
         private class LoadedAssembly
         {
@@ -32,6 +31,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             /// </summary>
             public string OriginalPath { get; set; }
         }
+
+        private readonly AssemblyLoaderImpl _runtimeAssemblyLoader;
 
         private readonly MetadataShadowCopyProvider _shadowCopyProvider;
 
@@ -82,36 +83,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
         }
 
-        private struct AssemblyAndLocation : IEquatable<AssemblyAndLocation>
-        {
-            public Assembly Assembly { get; }
-            public string Location { get; }
-            public bool GlobalAssemblyCache { get; }
-
-            internal AssemblyAndLocation(Assembly assembly, string location, bool fromGac)
-            {
-                Debug.Assert(assembly != null && location != null);
-
-                Assembly = assembly;
-                Location = location;
-                GlobalAssemblyCache = fromGac;
-            }
-
-            public bool IsDefault => Assembly == null;
-
-            public bool Equals(AssemblyAndLocation other) =>
-                Assembly == other.Assembly && Location == other.Location && GlobalAssemblyCache == other.GlobalAssemblyCache;
-
-            public override int GetHashCode() => 
-                Hash.Combine(Assembly, Hash.Combine(Location, Hash.Combine(GlobalAssemblyCache, 0)));
-
-            public override bool Equals(object obj) =>
-                obj is AssemblyAndLocation && Equals((AssemblyAndLocation)obj);
-
-            public override string ToString() => 
-                Assembly + " @ " + (GlobalAssemblyCache ? "<GAC>" : Location);
-        }
-
         public InteractiveAssemblyLoader(MetadataShadowCopyProvider shadowCopyProvider = null)
         {
             _shadowCopyProvider = shadowCopyProvider;
@@ -121,32 +92,22 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             _loadedAssembliesBySimpleName = new Dictionary<string, List<Assembly>>(AssemblyIdentityComparer.SimpleNameComparer);
             _dependenciesWithLocationBySimpleName = new Dictionary<string, List<AssemblyIdentityAndLocation>>();
 
-            CorLightup.Desktop.AddAssemblyResolveHandler(AssemblyResolve);
+            _runtimeAssemblyLoader = AssemblyLoaderImpl.Create(this);
         }
 
-        internal Assembly Load(Stream peStream, Stream pdbStream)
+        public void Dispose()
         {
-            byte[] peImage = new byte[peStream.Length];
-            peStream.TryReadAll(peImage, 0, peImage.Length);
-            var assembly = CorLightup.Desktop.LoadAssembly(peImage);
+            _runtimeAssemblyLoader.Dispose();
+        }
 
+        internal Assembly LoadAssemblyFromStream(Stream peStream, Stream pdbStream)
+        {
+            Assembly assembly = _runtimeAssemblyLoader.LoadFromStream(peStream, pdbStream);
             RegisterDependency(assembly);
-
             return assembly;
         }
 
-        private static AssemblyAndLocation LoadAssembly(string path)
-        {
-            // An assembly is loaded into CLR's Load Context if it is in the GAC, otherwise it's loaded into No Context via Assembly.LoadFile(string).
-            // Assembly.LoadFile(string) automatically redirects to GAC if the assembly has a strong name and there is an equivalent assembly in GAC. 
-
-            var assembly = CorLightup.Desktop.LoadAssembly(path);
-            var location = CorLightup.Desktop.GetAssemblyLocation(assembly);
-            var fromGac = CorLightup.Desktop.IsAssemblyFromGlobalAssemblyCache(assembly);
-            return new AssemblyAndLocation(assembly, location, fromGac);
-        }
-
-        private AssemblyAndLocation LoadAssemblyImpl(string reference)
+        private AssemblyAndLocation Load(string reference)
         {
             MetadataShadowCopy copy = null;
             try
@@ -160,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     copy = _shadowCopyProvider.GetMetadataShadowCopy(reference, MetadataImageKind.Assembly);
                 }
 
-                var result = LoadAssembly((copy != null) ? copy.PrimaryModule.FullPath : reference);
+                var result = _runtimeAssemblyLoader.LoadFromPath((copy != null) ? copy.PrimaryModule.FullPath : reference);
 
                 if (_shadowCopyProvider != null && result.GlobalAssemblyCache)
                 {
@@ -168,6 +129,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 }
 
                 return result;
+            }
+            catch (FileNotFoundException)
+            {
+                return default(AssemblyAndLocation);
             }
             finally
             {
@@ -323,19 +288,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
         }
 
-        private AssemblyAndLocation Load(string reference)
-        {
-            try
-            {
-                return LoadAssemblyImpl(reference);
-            }
-            catch (FileNotFoundException)
-            {
-                return default(AssemblyAndLocation);
-            }
-        }
-
-        private Assembly AssemblyResolve(string assemblyDisplayName, Assembly requestingAssemblyOpt)
+        internal Assembly ResolveAssembly(string assemblyDisplayName, Assembly requestingAssemblyOpt)
         {
             AssemblyIdentity identity;
             if (!AssemblyIdentity.TryParseDisplayName(assemblyDisplayName, out identity))
@@ -343,57 +296,60 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 return null;
             }
 
-            return AssemblyResolve(identity, requestingAssemblyOpt);
+            string loadDirectoryOpt;
+            lock (_referencesLock)
+            {
+                LoadedAssembly loadedAssembly;
+                if (requestingAssemblyOpt != null && 
+                    _assembliesLoadedFromLocation.TryGetValue(requestingAssemblyOpt, out loadedAssembly))
+                {
+                    loadDirectoryOpt = Path.GetDirectoryName(loadedAssembly.OriginalPath);
+                }
+                else
+                {
+                    loadDirectoryOpt = null;
+                }
+            }
+
+            return ResolveAssembly(identity, loadDirectoryOpt);
         }
 
-        private Assembly AssemblyResolve(AssemblyIdentity identity, Assembly requestingAssemblyOpt)
+        internal Assembly ResolveAssembly(AssemblyIdentity identity, string loadDirectoryOpt)
         {
-            if (requestingAssemblyOpt != null)
+            // if the referring assembly is already loaded by our loader, load from its directory:
+            if (loadDirectoryOpt != null)
             {
-                string originalDllPath = null, originalExePath = null;
+                string pathWithoutExtension = Path.Combine(loadDirectoryOpt, identity.Name);
+                string originalDllPath = pathWithoutExtension + ".dll";
+                string originalExePath = pathWithoutExtension + ".exe";
 
-                string originalPath = null;
                 lock (_referencesLock)
                 {
-                    LoadedAssembly loadedAssembly;
-                    if (_assembliesLoadedFromLocation.TryGetValue(requestingAssemblyOpt, out loadedAssembly))
+                    AssemblyAndLocation assembly;
+                    if (_assembliesLoadedFromLocationByFullPath.TryGetValue(originalDllPath, out assembly) ||
+                        _assembliesLoadedFromLocationByFullPath.TryGetValue(originalExePath, out assembly))
                     {
-                        originalPath = loadedAssembly.OriginalPath;
-
-                        string pathWithoutExtension = Path.Combine(Path.GetDirectoryName(originalPath), identity.Name);
-                        originalDllPath = pathWithoutExtension + ".dll";
-                        originalExePath = pathWithoutExtension + ".exe";
-
-                        AssemblyAndLocation assembly;
-                        if (_assembliesLoadedFromLocationByFullPath.TryGetValue(originalDllPath, out assembly) ||
-                            _assembliesLoadedFromLocationByFullPath.TryGetValue(originalExePath, out assembly))
-                        {
-                            return assembly.Assembly;
-                        }
+                        return assembly.Assembly;
                     }
                 }
 
-                // if the referring assembly is already loaded by our loader, load from its directory:
-                if (originalPath != null)
+                // Copy & load both .dll and .exe, this is not a common scenario we would need to optimize for.
+                // Remember both loaded assemblies for the next time, even though their versions might not match the current request
+                // they might match the next one and we don't want to load them again.
+                Assembly dll = ShadowCopyAndLoadDependency(originalDllPath).Assembly;
+                Assembly exe = ShadowCopyAndLoadDependency(originalExePath).Assembly;
+
+                if (dll == null ^ exe == null)
                 {
-                    // Copy & load both .dll and .exe, this is not a common scenario we would need to optimize for.
-                    // Remember both loaded assemblies for the next time, even though their versions might not match the current request
-                    // they might match the next one and we don't want to load them again.
-                    Assembly dll = ShadowCopyAndLoadDependency(originalDllPath).Assembly;
-                    Assembly exe = ShadowCopyAndLoadDependency(originalExePath).Assembly;
+                    return dll ?? exe;
+                }
 
-                    if (dll == null ^ exe == null)
-                    {
-                        return dll ?? exe;
-                    }
-
-                    if (dll != null && exe != null)
-                    {
-                        // .dll and an .exe of the same name might have different versions, 
-                        // one of which might match the requested version.
-                        // Prefer .dll if they are both the same. 
-                        return FindHighestVersionOrFirstMatchingIdentity(identity, new[] { dll, exe });
-                    }
+                if (dll != null && exe != null)
+                {
+                    // .dll and an .exe of the same name might have different versions, 
+                    // one of which might match the requested version.
+                    // Prefer .dll if they are both the same. 
+                    return FindHighestVersionOrFirstMatchingIdentity(identity, new[] { dll, exe });
                 }
             }
 
