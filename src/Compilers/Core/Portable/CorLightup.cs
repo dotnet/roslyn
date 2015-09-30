@@ -76,7 +76,7 @@ namespace Roslyn.Utilities
 
             private static class _ResolveEventArgs
             {
-                internal static readonly Type Type = Type.GetType("System.ResolveEventArgs", throwOnError: false);
+                internal static readonly Type Type = ReflectionUtilities.TryGetType("System.ResolveEventArgs");
 
                 internal static readonly MethodInfo get_Name = Type
                     .GetTypeInfo()
@@ -89,8 +89,8 @@ namespace Roslyn.Utilities
 
             private static class _AppDomain
             {
-                internal static readonly Type Type = Type.GetType("System.AppDomain", throwOnError: false);
-                internal static readonly Type ResolveEventHandlerType = Type.GetType("System.ResolveEventHandler", throwOnError: false);
+                internal static readonly Type Type = ReflectionUtilities.TryGetType("System.AppDomain");
+                internal static readonly Type ResolveEventHandlerType = ReflectionUtilities.TryGetType("System.ResolveEventHandler");
 
                 internal static readonly MethodInfo get_CurrentDomain = Type
                     .GetTypeInfo()

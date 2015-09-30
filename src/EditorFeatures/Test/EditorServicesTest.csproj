@@ -194,6 +194,7 @@
     <Compile Include="CodeAnalysisResources.cs" />
     <Compile Include="CodeFixes\CodeFixServiceTests.cs" />
     <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInFixableDiagnosticIds.cs" />
+    <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInFixableDiagnosticIds2.cs" />
     <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInGetFixAllProvider.cs" />
     <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInRegisterMethod.cs" />
     <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInRegisterMethodAsync.cs" />
@@ -221,6 +222,7 @@
     <Compile Include="Diagnostics\AbstractSuppressionDiagnosticTest.cs" />
     <Compile Include="Diagnostics\AbstractDiagnosticProviderBasedUserDiagnosticTest.cs" />
     <Compile Include="Diagnostics\AbstractUserDiagnosticTest.cs" />
+    <Compile Include="Diagnostics\MockDiagnosticUpdateSourceRegistrationService.cs" />
     <Compile Include="Diagnostics\TestDiagnosticAnalyzerDriver.cs" />
     <Compile Include="Diagnostics\TestDiagnosticAnalyzerService.cs" />
     <Compile Include="Diagnostics\DiagnosticDataTests.cs" />
@@ -354,6 +356,5 @@
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

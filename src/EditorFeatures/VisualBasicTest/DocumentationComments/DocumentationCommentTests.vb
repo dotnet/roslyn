@@ -736,6 +736,48 @@ End Class
             VerifyPressingEnter(code, expected, useTabs:=True)
         End Sub
 
+        <WorkItem(5486, "https://github.com/dotnet/roslyn/issues/5486")>
+        <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        Public Sub PressingEnter_Selection1()
+            Const code = "
+''' <summary>
+''' Hello [|World|]$$!
+''' </summary>
+Class C
+End Class
+"
+            Const expected = "
+''' <summary>
+''' Hello 
+''' $$!
+''' </summary>
+Class C
+End Class
+"
+            VerifyPressingEnter(code, expected)
+        End Sub
+
+        <WorkItem(5486, "https://github.com/dotnet/roslyn/issues/5486")>
+        <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        Public Sub PressingEnter_Selection2()
+            Const code = "
+''' <summary>
+''' Hello $$[|World|]!
+''' </summary>
+Class C
+End Class
+"
+            Const expected = "
+''' <summary>
+''' Hello 
+''' $$!
+''' </summary>
+Class C
+End Class
+"
+            VerifyPressingEnter(code, expected)
+        End Sub
+
         <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub Command_Class()
             Const code = "

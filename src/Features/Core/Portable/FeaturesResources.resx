@@ -700,6 +700,12 @@ Do you want to continue?</value>
   <data name="SuppressWithGlobalSuppressMessage" xml:space="preserve">
     <value>in Suppression File</value>
   </data>
+  <data name="RemoveSuppressionForId" xml:space="preserve">
+    <value>Remove Suppression {0}</value>
+  </data>
+  <data name="RemoveSuppressionEquivalenceKeyPrefix" xml:space="preserve">
+    <value>Remove Suppression</value>
+  </data>
   <data name="SuppressionPendingJustification" xml:space="preserve">
     <value>&lt;Pending&gt;</value>
   </data>
@@ -741,6 +747,12 @@ Do you want to continue?</value>
   </data>
   <data name="UnsupportedDiagnosticReported" xml:space="preserve">
     <value>Reported diagnostic with ID '{0}' is not supported by the analyzer.</value>
+  </data>
+  <data name="ComputingFixAllOccurrences" xml:space="preserve">
+    <value>Computing fix all occurrences code fix...</value>
+  </data>
+  <data name="FixAllOccurrences" xml:space="preserve">
+    <value>Fix all occurrences</value>
   </data>
   <data name="FixAllTitle_Document" xml:space="preserve">
     <value>Document</value>
@@ -851,6 +863,17 @@ Do you want to continue?</value>
   </data>
   <data name="ChangeTo" xml:space="preserve">
     <value>Change '{0}' to '{1}'.</value>
->>>>>>> master
+  </data>
+  <data name="ErrorCategory" xml:space="preserve">
+    <value>Roslyn.HostError</value>
+  </data>
+  <data name="WRN_AnalyzerCannotBeCreated" xml:space="preserve">
+    <value>An instance of analyzer {0} cannot be created from {1}: {2}.</value>
+  </data>
+  <data name="WRN_NoAnalyzerInAssembly" xml:space="preserve">
+    <value>The assembly {0} does not contain any analyzers.</value>
+  </data>
+  <data name="WRN_UnableToLoadAnalyzer" xml:space="preserve">
+    <value>Unable to load Analyzer assembly {0}: {1}</value>
   </data>
 </root>

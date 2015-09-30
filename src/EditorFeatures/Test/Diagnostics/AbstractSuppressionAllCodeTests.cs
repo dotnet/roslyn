@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 foreach (var diagnostic in diagnostics)
                 {
-                    if (!fixer.CanBeSuppressed(diagnostic))
+                    if (!fixer.CanBeSuppressedOrUnsuppressed(diagnostic))
                     {
                         continue;
                     }

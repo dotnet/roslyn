@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private readonly ILBuilder _builder;
         private readonly PEModuleBuilder _module;
         private readonly DiagnosticBag _diagnostics;
-        private readonly OptimizationLevel _optimizations;
+        private readonly ILEmitStyle _ilEmitStyle;
         private readonly bool _emitPdbSequencePoints;
 
         private readonly HashSet<LocalSymbol> _stackLocals;
@@ -84,13 +84,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _module = moduleBuilder;
             _diagnostics = diagnostics;
 
-            // Always optimize synthesized methods that don't contain user code.
-            // 
-            // Specifically, always optimize synthesized explicit interface implementation methods
-            // (aka bridge methods) with by-ref returns because peverify produces errors if we
-            // return a ref local (which the return local will be in such cases).
-
-            _optimizations = method.GenerateDebugInfo ? optimizations : OptimizationLevel.Release;
+            if (!method.GenerateDebugInfo)
+            {
+                // Always optimize synthesized methods that don't contain user code.
+                // 
+                // Specifically, always optimize synthesized explicit interface implementation methods
+                // (aka bridge methods) with by-ref returns because peverify produces errors if we
+                // return a ref local (which the return local will be in such cases).
+                _ilEmitStyle = ILEmitStyle.Release;
+            }
+            else
+            {
+                if (optimizations == OptimizationLevel.Debug)
+                {
+                    _ilEmitStyle = ILEmitStyle.Debug;
+                }
+                else
+                {
+                    _ilEmitStyle = IsDebugPlus() ? 
+                        ILEmitStyle.DebugFriendlyRelease : 
+                        ILEmitStyle.Release;
+                }
+            }
 
             // Emit sequence points unless
             // - the PDBs are not being generated
@@ -100,12 +115,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // This setting only affects generating PDB sequence points, it shall not affect generated IL in any way.
             _emitPdbSequencePoints = emittingPdb && method.GenerateDebugInfo;
 
-            if (_optimizations == OptimizationLevel.Release)
-            {
-                _boundBody = Optimizer.Optimize(boundBody, out _stackLocals);
-            }
+            _boundBody = Optimizer.Optimize(
+                boundBody, 
+                debugFriendly: _ilEmitStyle != ILEmitStyle.Release, 
+                stackLocals: out _stackLocals);
 
             _methodBodySyntaxOpt = (method as SourceMethodSymbol)?.BodySyntax;
+        }
+
+        private bool IsDebugPlus()
+        {
+            return this._module.Compilation.Options.DebugPlusMode;
         }
 
         private LocalDefinition LazyReturnTemp
@@ -118,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     Debug.Assert(!_method.ReturnsVoid, "returning something from void method?");
 
                     var bodySyntax = _methodBodySyntaxOpt;
-                    if (_optimizations == OptimizationLevel.Debug && bodySyntax != null)
+                    if (_ilEmitStyle == ILEmitStyle.Debug && bodySyntax != null)
                     {
                         int syntaxOffset = _method.CalculateLocalSyntaxOffset(bodySyntax.SpanStart, bodySyntax.SyntaxTree);
                         var localSymbol = new SynthesizedLocal(_method, _method.ReturnType, SynthesizedLocalKind.FunctionReturnValue, bodySyntax);
@@ -133,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             constraints: LocalSlotConstraints.None,
                             isDynamic: false,
                             dynamicTransformFlags: ImmutableArray<TypedConstant>.Empty,
-                            isSlotReusable: localSymbol.SynthesizedKind.IsSlotReusable(_optimizations));
+                            isSlotReusable:  false);
                     }
                     else
                     {
@@ -303,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 instructionsEmitted = this.EmitStatementAndCountInstructions(statement);
             }
 
-            if (instructionsEmitted == 0 && syntax != null && _optimizations == OptimizationLevel.Debug)
+            if (instructionsEmitted == 0 && syntax != null && _ilEmitStyle == ILEmitStyle.Debug)
             {
                 // if there was no code emitted, then emit nop 
                 // otherwise this point could get associated with some random statement, possibly in a wrong scope
@@ -326,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 instructionsEmitted = this.EmitStatementAndCountInstructions(statement);
             }
 
-            if (instructionsEmitted == 0 && span != default(TextSpan) && _optimizations == OptimizationLevel.Debug)
+            if (instructionsEmitted == 0 && span != default(TextSpan) && _ilEmitStyle == ILEmitStyle.Debug)
             {
                 // if there was no code emitted, then emit nop 
                 // otherwise this point could get associated with some random statement, possibly in a wrong scope

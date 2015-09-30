@@ -94,6 +94,7 @@
     <Compile Include="Interactive\Core\HostObject\SearchPaths.cs" />
     <Compile Include="Interactive\Core\SerializableAssemblyLoadResult.cs" />
     <Compile Include="Interactive\Core\HostObject\SynchronizedVersionedList.cs" />
+    <Compile Include="Interactive\Core\NuGetPackageResolverImpl.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Interactive\Core\InteractiveHost.LazyRemoteService.cs" />
@@ -103,6 +104,5 @@
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

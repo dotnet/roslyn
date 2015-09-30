@@ -73,20 +73,13 @@ namespace Microsoft.CodeAnalysis.Scripting
             {
                 // get compilation diagnostics first.
                 diagnostics.AddRange(compilation.GetParseDiagnostics());
-                if (diagnostics.HasAnyErrors())
-                {
-                    CompilationError(diagnostics, compiler.DiagnosticFormatter);
-                }
-
+                ThrowIfAnyCompilationErrors(diagnostics, compiler.DiagnosticFormatter);
                 diagnostics.Clear();
 
                 var executor = Build<T>(compilation, diagnostics, cancellationToken);
 
                 // emit can fail due to compilation errors or because there is nothing to emit:
-                if (diagnostics.HasAnyErrors())
-                {
-                    CompilationError(diagnostics, compiler.DiagnosticFormatter);
-                }
+                ThrowIfAnyCompilationErrors(diagnostics, compiler.DiagnosticFormatter);
 
                 if (executor == null)
                 {
@@ -101,15 +94,20 @@ namespace Microsoft.CodeAnalysis.Scripting
             }
         }
 
-        private void CompilationError(DiagnosticBag diagnostics, DiagnosticFormatter formatter)
+        private static void ThrowIfAnyCompilationErrors(DiagnosticBag diagnostics, DiagnosticFormatter formatter)
         {
-            var resolvedLocalDiagnostics = diagnostics.AsEnumerable();
-            var firstError = resolvedLocalDiagnostics.FirstOrDefault(d => d.Severity == DiagnosticSeverity.Error);
-            if (firstError != null)
+            if (diagnostics.IsEmptyWithoutResolution)
             {
-                throw new CompilationErrorException(formatter.Format(firstError, CultureInfo.CurrentCulture),
-                    (resolvedLocalDiagnostics.AsImmutable()));
+                return;
             }
+            var filtered = diagnostics.AsEnumerable().Where(d => d.Severity == DiagnosticSeverity.Error).AsImmutable();
+            if (filtered.IsEmpty)
+            {
+                return;
+            }
+            throw new CompilationErrorException(
+                formatter.Format(filtered[0], CultureInfo.CurrentCulture),
+                filtered);
         }
 
         /// <summary>

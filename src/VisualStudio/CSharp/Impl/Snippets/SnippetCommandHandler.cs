@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         {
             AssertIsForeground();
 
-            if (!args.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.Snippets))
+            if (!AreSnippetsEnabled(args))
             {
                 nextHandler();
                 return;
@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         {
             AssertIsForeground();
 
-            if (!args.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.Snippets))
+            if (!AreSnippetsEnabled(args))
             {
                 return nextHandler();
             }

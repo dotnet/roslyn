@@ -4,9 +4,8 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Roslyn.Utilities;
-using System.Runtime.CompilerServices;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -35,13 +34,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private TestDiagnosticAnalyzerService(HostAnalyzerManager hostAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException)
-            : base(hostAnalyzerManager, hostDiagnosticUpdateSource)
+            : base(hostAnalyzerManager, hostDiagnosticUpdateSource, new MockDiagnosticUpdateSourceRegistrationService())
         {
             _onAnalyzerException = onAnalyzerException;
         }
 
         internal TestDiagnosticAnalyzerService(AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
-           : base(SpecializedCollections.EmptyEnumerable<HostDiagnosticAnalyzerPackage>(), hostDiagnosticUpdateSource)
+           : base(SpecializedCollections.EmptyEnumerable<HostDiagnosticAnalyzerPackage>(), hostDiagnosticUpdateSource, new MockDiagnosticUpdateSourceRegistrationService())
         {
             _onAnalyzerException = onAnalyzerException;
         }

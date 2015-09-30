@@ -12,6 +12,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -29,9 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override string RegularFileExtension { get { return ".cs"; } }
         protected override string ScriptFileExtension { get { return ".csx"; } }
 
-        internal sealed override CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories)
+        internal sealed override CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string sdkDirectoryOpt, string additionalReferenceDirectories)
         {
-            return Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories);
+            return Parse(args, baseDirectory, sdkDirectoryOpt, additionalReferenceDirectories);
         }
 
         /// <summary>
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="args">A collection of strings representing the command line arguments.</param>
         /// <param name="baseDirectory">The base directory used for qualifying file locations.</param>
-        /// <param name="sdkDirectory">The directory to search for mscorlib.</param>
+        /// <param name="sdkDirectory">The directory to search for mscorlib, or null if not available.</param>
         /// <param name="additionalReferenceDirectories">A string representing additional reference paths.</param>
         /// <returns>a commandlinearguments object representing the parsed command line.</returns>
         public new CSharpCommandLineArguments Parse(IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories = null)
@@ -57,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowUnsafe = false;
             bool concurrentBuild = true;
             bool emitPdb = false;
+            bool debugPlus = false;
             string pdbPath = null;
             bool noStdLib = false;
             string outputDirectory = baseDirectory;
@@ -118,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     string name, value;
                     if (TryParseOption(arg, out name, out value) && (name == "ruleset"))
                     {
-                        var unquoted = RemoveAllQuotes(value);
+                        var unquoted = RemoveQuotesAndSlashes(value);
 
                         if (string.IsNullOrEmpty(unquoted))
                         {
@@ -173,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         IEnumerable<Diagnostic> defineDiagnostics;
-                        defines.AddRange(ParseConditionalCompilationSymbols(value, out defineDiagnostics));
+                        defines.AddRange(ParseConditionalCompilationSymbols(RemoveQuotesAndSlashes(value), out defineDiagnostics));
                         diagnostics.AddRange(defineDiagnostics);
                         continue;
 
@@ -258,6 +260,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
 
                     case "preferreduilang":
+                        value = RemoveQuotesAndSlashes(value);
+
                         if (string.IsNullOrEmpty(value))
                         {
                             AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", arg);
@@ -362,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "modulename":
-                            var unquotedModuleName = RemoveAllQuotes(value);
+                            var unquotedModuleName = RemoveQuotesAndSlashes(value);
                             if (string.IsNullOrEmpty(unquotedModuleName))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), "modulename");
@@ -387,6 +391,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "recurse":
+                            value = RemoveQuotesAndSlashes(value);
+
                             if (value == null)
                             {
                                 break; // force 'unrecognized option'
@@ -413,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), arg);
                                 continue;
                             }
-                            string unquoted = RemoveAllQuotes(value);
+                            string unquoted = RemoveQuotesAndSlashes(value);
                             if (string.IsNullOrEmpty(unquoted))
                             {
                                 // CONSIDER: This diagnostic exactly matches dev11, but it would be simpler (and more consistent with /out)
@@ -524,6 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
 
                             emitPdb = true;
+                            debugPlus = true;
                             continue;
 
                         case "debug-":
@@ -531,6 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
 
                             emitPdb = false;
+                            debugPlus = false;
                             continue;
 
                         case "o":
@@ -724,7 +732,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                keyFileSetting = RemoveAllQuotes(value);
+                                keyFileSetting = RemoveQuotesAndSlashes(value);
                             }
                             // NOTE: Dev11/VB also clears "keycontainer", see also:
                             //
@@ -777,6 +785,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "baseaddress":
+                            value = RemoveQuotesAndSlashes(value);
+
                             ulong newBaseAddress;
                             if (string.IsNullOrEmpty(value) || !TryParseUInt64(value, out newBaseAddress))
                             {
@@ -817,7 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "touchedfiles":
-                            unquoted = RemoveAllQuotes(value);
+                            unquoted = RemoveQuotesAndSlashes(value);
                             if (string.IsNullOrEmpty(unquoted))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), "touchedfiles");
@@ -845,7 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case "main":
                             // Remove any quotes for consistent behavior as MSBuild can return quoted or 
                             // unquoted main.    
-                            unquoted = RemoveAllQuotes(value);
+                            unquoted = RemoveQuotesAndSlashes(value);
                             if (string.IsNullOrEmpty(unquoted))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
@@ -863,6 +873,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "filealign":
+                            value = RemoveQuotesAndSlashes(value);
+
                             ushort newAlignment;
                             if (string.IsNullOrEmpty(value))
                             {
@@ -924,10 +936,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "errorlog":
-                            unquoted = RemoveAllQuotes(value);
+                            unquoted = RemoveQuotesAndSlashes(value);
                             if (string.IsNullOrEmpty(unquoted))
                             {
-                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, ":<file>", RemoveAllQuotes(arg));
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, ":<file>", RemoveQuotesAndSlashes(arg));
                             }
                             else
                             {
@@ -936,10 +948,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "appconfig":
-                            unquoted = RemoveAllQuotes(value);
+                            unquoted = RemoveQuotesAndSlashes(value);
                             if (string.IsNullOrEmpty(unquoted))
                             {
-                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, ":<text>", RemoveAllQuotes(arg));
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, ":<text>", RemoveQuotesAndSlashes(arg));
                             }
                             else
                             {
@@ -948,7 +960,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "runtimemetadataversion":
-                            unquoted = RemoveAllQuotes(value);
+                            unquoted = RemoveQuotesAndSlashes(value);
                             if (string.IsNullOrEmpty(unquoted))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
@@ -993,7 +1005,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddDiagnostic(diagnostics, diagnosticOptions, ErrorCode.WRN_NoSources);
             }
 
-            if (!noStdLib)
+            if (!noStdLib && sdkDirectory != null)
             {
                 metadataReferences.Insert(0, new CommandLineReference(Path.Combine(sdkDirectory, "mscorlib.dll"), MetadataReferenceProperties.Assembly));
             }
@@ -1056,6 +1068,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script);
 
+            // We want to report diagnostics with source suppression in the error log file.
+            // However, these diagnostics won't be reported on the command line.
+            var reportSuppressedDiagnostics = errorLogPath != null;
+
             var options = new CSharpCompilationOptions
             (
                 outputKind: outputKind,
@@ -1073,8 +1089,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 platform: platform,
                 generalDiagnosticOption: generalDiagnosticOption,
                 warningLevel: warningLevel,
-                specificDiagnosticOptions: diagnosticOptions
+                specificDiagnosticOptions: diagnosticOptions,
+                reportSuppressedDiagnostics: reportSuppressedDiagnostics
             );
+
+            if (debugPlus)
+            {
+                options = options.WithDebugPlusMode(debugPlus);
+            }
 
             var emitOptions = new EmitOptions
             (
@@ -1169,7 +1191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                string noQuotes = RemoveAllQuotes(value);
+                string noQuotes = RemoveQuotesAndSlashes(value);
                 if (string.IsNullOrWhiteSpace(noQuotes))
                 {
                     AddDiagnostic(diagnostics, ErrorCode.ERR_NoFileSpec, arg);
@@ -1254,7 +1276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static ImmutableArray<string> BuildSearchPaths(string sdkDirectory, List<string> libPaths)
+        private static ImmutableArray<string> BuildSearchPaths(string sdkDirectoryOpt, List<string> libPaths)
         {
             var builder = ArrayBuilder<string>.GetInstance();
 
@@ -1263,8 +1285,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // current folder first -- base directory is searched by default
 
-            // SDK path is specified or current runtime directory
-            builder.Add(sdkDirectory);
+            // Add SDK directory if it is available
+            if (sdkDirectoryOpt != null)
+            {
+                builder.Add(sdkDirectoryOpt);
+            }
 
             // libpath
             builder.AddRange(libPaths);

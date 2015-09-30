@@ -4,7 +4,7 @@ Imports System.IO
 Imports System.Reflection
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Host
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
@@ -24,7 +24,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
         <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub AnalyzerErrorsAreUpdated()
-            Dim hostDiagnosticUpdateSource = New HostDiagnosticUpdateSource(Nothing)
+            Dim hostDiagnosticUpdateSource = New HostDiagnosticUpdateSource(Nothing, New MockDiagnosticUpdateSourceRegistrationService())
 
             Dim file = Path.GetTempFileName()
             Dim eventHandler = New EventHandlers(file)

@@ -84,6 +84,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                 }
             }
 
+            public ImmutableArray<DocumentId> GetDocumentIds()
+            {
+                return DataCache.Keys.ToImmutableArrayOrEmpty();
+            }
+
             public ImmutableArray<TodoItem> GetItems_TestingOnly(DocumentId documentId)
             {
                 Data data;

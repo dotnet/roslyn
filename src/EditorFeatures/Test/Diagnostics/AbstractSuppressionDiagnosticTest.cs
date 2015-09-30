@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     public abstract class AbstractSuppressionDiagnosticTest : AbstractUserDiagnosticTest
     {
         protected abstract int CodeActionIndex { get; }
+        protected virtual bool IncludeSuppressedDiagnostics => false;
+        protected virtual bool IncludeUnsuppressedDiagnostics => true;
 
         protected void Test(string initial, string expected)
         {
@@ -52,12 +54,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 document = GetDocumentAndAnnotatedSpan(workspace, out annotation, out span);
             }           
 
-            using (var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, provider))
+            using (var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, provider, includeSuppressedDiagnostics: IncludeSuppressedDiagnostics))
             {
                 var fixer = providerAndFixer.Item2;
                 var diagnostics = testDriver.GetAllDiagnostics(provider, document, span)
-                    .Where(d => fixer.CanBeSuppressed(d))
+                    .Where(d => fixer.CanBeSuppressedOrUnsuppressed(d))
                     .ToImmutableArray();
+
+                if (!IncludeUnsuppressedDiagnostics)
+                {
+                    diagnostics = diagnostics.WhereAsArray(d => d.IsSuppressed);
+                }
 
                 var wrapperCodeFixer = new WrapperCodeFixProvider(fixer, diagnostics);
                 return GetDiagnosticAndFixes(diagnostics, provider, wrapperCodeFixer, testDriver, document, span, annotation, fixAllActionId);

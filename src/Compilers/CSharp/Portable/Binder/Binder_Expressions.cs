@@ -5099,9 +5099,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // be inferred. (In the case of nameof(o.M) or the error case of o.M = null; for instance.)
                 if (analyzedArguments == null)
                 {
-                    for (int i = methodGroup.Methods.Count - 1; i >= 0; i--)
+                    if (expression == EnclosingNameofArgument)
                     {
-                        if ((object)methodGroup.Methods[i].ReduceExtensionMethod(left.Type) == null) methodGroup.Methods.RemoveAt(i);
+                        for (int i = methodGroup.Methods.Count - 1; i >= 0; i--)
+                        {
+                            if ((object)methodGroup.Methods[i].ReduceExtensionMethod(left.Type) == null) methodGroup.Methods.RemoveAt(i);
+                        }
                     }
 
                     if (methodGroup.Methods.Count != 0)

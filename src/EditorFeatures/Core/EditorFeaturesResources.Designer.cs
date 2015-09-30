@@ -403,15 +403,6 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Computing fix all occurrences code fix....
-        /// </summary>
-        internal static string ComputingFixAllOccurrences {
-            get {
-                return ResourceManager.GetString("ComputingFixAllOccurrences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Computing Rename information....
         /// </summary>
         internal static string ComputingRenameInformation {
@@ -616,15 +607,6 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string FindReferences {
             get {
                 return ResourceManager.GetString("FindReferences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fix all occurrences.
-        /// </summary>
-        internal static string FixAllOccurrences {
-            get {
-                return ResourceManager.GetString("FixAllOccurrences", resourceCulture);
             }
         }
         
@@ -1075,6 +1057,24 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string GoToDefinition {
             get {
                 return ResourceManager.GetString("GoToDefinition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Locating implementations....
+        /// </summary>
+        internal static string GoToImplementationMessage {
+            get {
+                return ResourceManager.GetString("GoToImplementationMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Go To Implementation.
+        /// </summary>
+        internal static string GoToImplementationTitle {
+            get {
+                return ResourceManager.GetString("GoToImplementationTitle", resourceCulture);
             }
         }
         
@@ -1696,6 +1696,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string SymbolCannotBeNamespace {
             get {
                 return ResourceManager.GetString("SymbolCannotBeNamespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The symbol has no implementations..
+        /// </summary>
+        internal static string SymbolHasNoImplementations {
+            get {
+                return ResourceManager.GetString("SymbolHasNoImplementations", resourceCulture);
             }
         }
         

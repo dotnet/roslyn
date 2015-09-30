@@ -357,6 +357,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     var originalConversion = this.OriginalSemanticModel.ClassifyConversion(originalOtherPartOfConditional, originalExpressionType);
                     var newConversion = this.SpeculativeSemanticModel.ClassifyConversion(newOtherPartOfConditional, newExpressionType);
 
+                    // If this changes a boxing operation in one of the branches, we assume that semantics will change.
+                    if (originalConversion.IsBoxing != newConversion.IsBoxing)
+                    {
+                        return true;
+                    }
+
                     if (!ConversionsAreCompatible(originalConversion, newConversion))
                     {
                         return true;

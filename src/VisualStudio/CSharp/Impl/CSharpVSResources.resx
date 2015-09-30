@@ -402,4 +402,10 @@
   <data name="Option_RenameTrackingPreview" xml:space="preserve">
     <value>Show preview for _rename tracking</value>
   </data>
+  <data name="NewLinesForBracesAccessors" xml:space="preserve">
+    <value>Place open brace on new line for property, indexer, and event accessors</value>
+  </data>
+  <data name="NewLinesForBracesProperty" xml:space="preserve">
+    <value>Place open brace on new line for properties, indexers, and events</value>
+  </data>
 </root>

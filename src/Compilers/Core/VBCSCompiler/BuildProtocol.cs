@@ -1,15 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static Microsoft.CodeAnalysis.CompilerServer.CompilerServerLogger;
 using static Microsoft.CodeAnalysis.CompilerServer.BuildProtocolConstants;
-using System.Security.Cryptography;
+using static Microsoft.CodeAnalysis.CompilerServer.CompilerServerLogger;
 
 // This file describes data structures about the protocol from client program to server that is 
 // used. The basic protocol is this.
@@ -459,13 +462,58 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// retrieves the name of the pipe for client/server communication on
         /// that instance of the compiler.
         /// </summary>
-        internal static string GetPipeName(string compilerExeDirectory)
+        internal static string GetBasePipeName(string compilerExeDirectory)
         {
+            string basePipeName;
             using (var sha = SHA256.Create())
             {
                 var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(compilerExeDirectory));
-                return BitConverter.ToString(bytes).Replace("-", string.Empty);
+                basePipeName = Convert.ToBase64String(bytes)
+                    .Replace("/", "_")
+                    .Replace("=", string.Empty);
             }
+
+            var assembly = typeof(object).GetTypeInfo().Assembly;
+
+            // Prefix with username and elevation
+            var identity = GetCurrentIdentity(assembly);
+
+            var principalType = assembly
+                .GetType("System.Security.Principal.WindowsPrincipal");
+
+            var principal = principalType
+                .GetTypeInfo()
+                .GetDeclaredConstructor(assembly.GetType("System.Security.Principal.WindowsIdentity"))
+                .Invoke(new[] { identity });
+
+            var windowsBuiltInRole = assembly
+                .GetType("System.Security.Principal.WindowsBuiltInRole");
+
+            const int builtInRole_Administrator = 0x220;
+            var admin = Enum.ToObject(windowsBuiltInRole,
+                builtInRole_Administrator);
+
+            var isAdmin = Convert.ToInt32(principalType
+                .GetTypeInfo()
+                .GetDeclaredMethod("IsInRole", new[] { windowsBuiltInRole })
+                .Invoke(principal, new[] { admin }));
+
+            var userName = typeof(Environment)
+                .GetTypeInfo()
+                .GetDeclaredProperty("UserName")
+                .GetValue(null);
+
+            return $"{userName}.{isAdmin}.{basePipeName}";
+        }
+
+        internal static object GetCurrentIdentity(Assembly assembly)
+        {
+            return assembly
+                    .GetType("System.Security.Principal.WindowsIdentity")
+                    .GetTypeInfo()
+                    .GetDeclaredMethods("GetCurrent")
+                    .Single(x => x.GetParameters().Length == 0)
+                    .Invoke(null, null);
         }
 
         /// <summary>

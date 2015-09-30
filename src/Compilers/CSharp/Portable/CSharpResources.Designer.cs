@@ -3689,6 +3689,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expected a script (.csx file) but none specified.
+        /// </summary>
+        internal static string ERR_ExpectedSingleScript {
+            get {
+                return ResourceManager.GetString("ERR_ExpectedSingleScript", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Keyword, identifier, or string expected after verbatim specifier: @.
         /// </summary>
         internal static string ERR_ExpectedVerbatimLiteral {
@@ -6349,15 +6358,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_NoPIANestedType {
             get {
                 return ResourceManager.GetString("ERR_NoPIANestedType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Expected at least one script (.csx file) but none specified.
-        /// </summary>
-        internal static string ERR_NoScriptsSpecified {
-            get {
-                return ResourceManager.GetString("ERR_NoScriptsSpecified", resourceCulture);
             }
         }
         
@@ -9158,6 +9158,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureQueryExpression {
             get {
                 return ResourceManager.GetString("IDS_FeatureQueryExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to readonly automatically implemented properties.
+        /// </summary>
+        internal static string IDS_FeatureReadonlyAutoImplementedProperties {
+            get {
+                return ResourceManager.GetString("IDS_FeatureReadonlyAutoImplementedProperties", resourceCulture);
             }
         }
         

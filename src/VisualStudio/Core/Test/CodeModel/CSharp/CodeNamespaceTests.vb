@@ -53,6 +53,23 @@ namespace N$$
                          IsElement("C3", EnvDTE.vsCMElement.vsCMElementClass))
         End Sub
 
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TypeDescriptor_GetProperties()
+            Dim code =
+<Code>
+namespace $$N
+{
+}
+</Code>
+
+            Dim expectedPropertyNames =
+                {"DTE", "Collection", "Name", "FullName", "ProjectItem", "Kind", "IsCodeType",
+                 "InfoLocation", "Children", "Language", "StartPoint", "EndPoint", "ExtenderNames",
+                 "ExtenderCATID", "Parent", "Members", "DocComment", "Comment"}
+
+            TestPropertyDescriptors(code, expectedPropertyNames)
+        End Sub
+
         Protected Overrides ReadOnly Property LanguageName As String
             Get
                 Return LanguageNames.CSharp

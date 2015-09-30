@@ -9,21 +9,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     {
         public ITableControlEventProcessor GetAssociatedEventProcessor(IWpfTableControl tableControl)
         {
+            return CreateEventProcessor();
+        }
+
+        protected virtual EventProcessor CreateEventProcessor()
+        {
             return new EventProcessor();
         }
 
-        private class EventProcessor : TableControlEventProcessorBase
+        protected class EventProcessor : TableControlEventProcessorBase
         {
-            public override void PreprocessNavigate(ITableEntryHandle entryHandle, TableEntryNavigateEventArgs e)
+            protected static AbstractTableEntriesSnapshot<TData> GetEntriesSnapshot(ITableEntryHandle entryHandle)
             {
                 int index;
+                return GetEntriesSnapshot(entryHandle, out index);
+            }
+
+            protected static AbstractTableEntriesSnapshot<TData> GetEntriesSnapshot(ITableEntryHandle entryHandle, out int index)
+            {
                 ITableEntriesSnapshot snapshot;
                 if (!entryHandle.TryGetSnapshot(out snapshot, out index))
                 {
-                    return;
+                    return null;
                 }
 
-                var roslynSnapshot = snapshot as AbstractTableEntriesSnapshot<TData>;
+                return snapshot as AbstractTableEntriesSnapshot<TData>;
+            }
+
+            public override void PreprocessNavigate(ITableEntryHandle entryHandle, TableEntryNavigateEventArgs e)
+            {
+                int index;
+                var roslynSnapshot = GetEntriesSnapshot(entryHandle, out index);
                 if (roslynSnapshot == null)
                 {
                     return;
