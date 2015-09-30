@@ -734,8 +734,8 @@ class Container
     }
 }";
 
-            VerifyItemIsAbsent(markup, "S");
-            VerifyItemIsAbsent(markup, "D");
+            VerifyItemExists(markup, "S");
+            VerifyItemExists(markup, "D");
         }
 
         private void VerifyExclusive(string markup, bool exclusive)
