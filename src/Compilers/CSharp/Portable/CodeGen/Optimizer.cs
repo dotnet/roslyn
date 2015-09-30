@@ -135,6 +135,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
             }
 
+            var dummyCnt = defs.Count;
+
             //TODO: perf. This can be simplified to not use a query.
 
             // order definitions by increasing size 
@@ -177,14 +179,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 else
                 {
                     intersects = false;
-                    for (int i = 0; i < cnt; i++)
+                    for (int i = 0; i < dummyCnt; i++)
                     {
                         var def = defs[i];
 
-                        if (newDef.ConflictsWith(def))
+                        if (newDef.ConflictsWithDummy(def))
                         {
                             intersects = true;
                             break;
+                        }
+                    }
+
+                    if (!intersects)
+                    {
+                        for (int i = dummyCnt; i < cnt; i++)
+                        {
+                            var def = defs[i];
+
+                            if (newDef.ConflictsWith(def))
+                            {
+                                intersects = true;
+                                break;
+                            }
                         }
                     }
                 }
@@ -271,36 +287,40 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// when current and other use spans are regular spans we can have only 2 conflict cases:
         /// [1, 3) conflicts with [0, 2)
         /// [1, 3) conflicts with [2, 4)
+        /// 
+        /// NOTE: with regular spans, it is not possible for two spans to share an edge point 
+        /// unless they belong to the same local. (because we cannot aceess two real locals at the same time)
+        /// 
         /// specifically:
-        /// [1, 3) does not conflict with [0, 1)
-        /// 
-        /// NOTE: with regular spans, it is not possible 
-        /// to have start1 == start2 or end1 == end 
-        /// since at the same node we can access only one real local.
-        /// 
-        /// However at the same node we can access one or more dummy locals.
-        /// So we can have start1 == start2 and end1 == end2 scenarios, but only if 
-        /// other span is a span of a dummy.
-        /// 
-        /// In such cases we consider 
-        ///    start2 == span1.start ==> start2 IS included in span1
-        ///    end2 == span1.end ==> end2 IS NOT included in span1
+        /// [1, 3) does not conflict with [0, 1)   since such spans would need to belong to the same local
         /// </summary>
         public bool ConflictsWith(LocalDefUseSpan other)
         {
-            var containsStart = other.ContainsStart(this.start);
-            var containsEnd = other.ContainsEnd(this.end);
-            return containsStart ^ containsEnd;
+            return Contains(other.start) ^ Contains(other.end);
         }
 
-        private bool ContainsStart(int otherStart)
+        private bool Contains(int val)
         {
-            return this.start <= otherStart && this.end > otherStart;
+            return this.start < val && this.end > val;
         }
 
-        private bool ContainsEnd(int otherEnd)
+        /// <summary>
+        /// Dummy locals represent implicit control flow
+        /// It is not allowed for a regular local span to cross into or 
+        /// be immediately adjacent to a dummy span.
+        /// 
+        /// specifically:
+        /// [1, 3) does conflict with [0, 1)   since that would imply a value flowing into or out of a span surrounded by a branch/label
+        /// 
+        /// </summary>
+        public bool ConflictsWithDummy(LocalDefUseSpan dummy)
         {
-            return this.start < otherEnd && this.end > otherEnd;
+            return Includes(dummy.start) ^ Includes(dummy.end);
+        }
+
+        private bool Includes(int val)
+        {
+            return this.start <= val && this.end >= val;
         }
     }
 
@@ -358,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             // this is the top of eval stack
             DeclareLocal(empty, 0);
-            RecordVarWrite(empty);
+            RecordDummyWrite(empty);
         }
 
         public static BoundNode Analyze(
@@ -808,15 +828,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // Such call will push the receiver ref before the arguments
             // so we need to ensure that arguments cannot use stack temps
             BoundExpression right = node.Right;
-            object rhsCookie = null;
-            if (right.Kind == BoundKind.ObjectCreationExpression &&
+            bool mayPushReceiver = (right.Kind == BoundKind.ObjectCreationExpression &&
                 right.Type.IsVerifierValue() &&
-                ((BoundObjectCreationExpression)right).Constructor.ParameterCount != 0)
+                ((BoundObjectCreationExpression)right).Constructor.ParameterCount != 0);
+
+            if (mayPushReceiver)
             {
-                rhsCookie = this.GetStackStateCookie();
+                // push unknown value just to prevent access to stack locals.
+                PushEvalStack(null, ExprContext.Address);
             }
 
             right = VisitExpression(node.Right, rhsContext);
+
+            if (mayPushReceiver)
+            {
+                PopEvalStack();
+            }
 
             // if assigning to a local, now it is the time to record the Write
             if (assignmentLocal != null)
@@ -845,13 +872,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 RecordVarWrite(localSymbol);
                 assignmentLocal = null;
-            }
-
-            if (rhsCookie != null)
-            {
-                // we currently have the rhs on stack, adjust for that.
-                PopEvalStack();
-                this.EnsureStackState(rhsCookie);
             }
 
             return node.Update(left, right, node.RefKind, node.Type);
@@ -1422,7 +1442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var dummy = new DummyLocal();
             _dummyVariables.Add(dummy, dummy);
             _locals.Add(dummy, new LocalDefUseInfo(StackDepth()));
-            RecordVarWrite(dummy);
+            RecordDummyWrite(dummy);
 
             return dummy;
         }
@@ -1446,7 +1466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 dummy = new DummyLocal();
                 _dummyVariables.Add(label, dummy);
                 _locals.Add(dummy, new LocalDefUseInfo(StackDepth()));
-                RecordVarWrite(dummy);
+                RecordDummyWrite(dummy);
             }
         }
 
@@ -1543,8 +1563,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                    ((BoundLocal)top.Item1).LocalSymbol == local;
         }
 
+        private void RecordDummyWrite(LocalSymbol local)
+        {
+            Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.OptimizerTemp);
+
+            var locInfo = _locals[local];
+
+            // dummy must be accessed on same stack.
+            Debug.Assert(local == empty || locInfo.stackAtDeclaration == StackDepth());
+
+            var locDef = new LocalDefUseSpan(_counter);
+            locInfo.LocalDefs.Add(locDef);
+        }
+
         private void RecordVarWrite(LocalSymbol local)
         {
+            Debug.Assert(local.SynthesizedKind != SynthesizedLocalKind.OptimizerTemp);
+
             if (!CanScheduleToStack(local))
             {
                 return;
@@ -1556,23 +1591,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return;
             }
 
-            // if accessing real val, check stack
-            if (local.SynthesizedKind != SynthesizedLocalKind.OptimizerTemp)
-            {
-                // -1 because real assignment "consumes, assigns, and then pushes back" the value.
-                var evalStack = StackDepth() - 1;
+            // check stack
+            // -1 because real assignment "consumes, assigns, and then pushes back" the value.
+            var evalStack = StackDepth() - 1;
 
-                if (locInfo.stackAtDeclaration != evalStack)
-                {
-                    //writing at different eval stack.
-                    locInfo.ShouldNotSchedule();
-                    return;
-                }
-            }
-            else
+            if (locInfo.stackAtDeclaration != evalStack)
             {
-                // dummy must be accessed on same stack.
-                Debug.Assert(local == empty || locInfo.stackAtDeclaration == StackDepth());
+                //writing at different eval stack.
+                locInfo.ShouldNotSchedule();
+                return;
             }
 
             var locDef = new LocalDefUseSpan(_counter);

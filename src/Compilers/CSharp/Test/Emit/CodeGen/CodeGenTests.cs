@@ -14434,5 +14434,155 @@ class Program
   IL_000b:  ret
 }");
         }
+
+        [Fact]
+        public void InplaceCtorUsesLocal()
+        {
+            string source = @"
+
+    class Program
+    {
+        private static S1[] arr = new S1[1];
+
+        struct S1
+        {
+            public int a, b;
+            public S1(int a, int b)
+            {
+                this.a = a;
+                this.b = b;
+            }
+        }
+
+        static void Main(string[] args)
+        {
+            var arg = System.Math.Max(1, 2);
+            var val = new S1(arg, arg);
+            arr[0] = val;
+            System.Console.WriteLine(arr[0].a);
+        }
+    }
+";
+
+            var compilation = CompileAndVerify(source, expectedOutput: "2");
+
+            compilation.VerifyIL("Program.Main",
+@"
+{
+  // Code size       51 (0x33)
+  .maxstack  3
+  .locals init (int V_0, //arg
+                Program.S1 V_1) //val
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.2
+  IL_0002:  call       ""int System.Math.Max(int, int)""
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldloc.0
+  IL_000b:  ldloc.0
+  IL_000c:  call       ""Program.S1..ctor(int, int)""
+  IL_0011:  ldsfld     ""Program.S1[] Program.arr""
+  IL_0016:  ldc.i4.0
+  IL_0017:  ldloc.1
+  IL_0018:  stelem     ""Program.S1""
+  IL_001d:  ldsfld     ""Program.S1[] Program.arr""
+  IL_0022:  ldc.i4.0
+  IL_0023:  ldelema    ""Program.S1""
+  IL_0028:  ldfld      ""int Program.S1.a""
+  IL_002d:  call       ""void System.Console.WriteLine(int)""
+  IL_0032:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TernaryConsequenceUsesLocal()
+        {
+            string source = @"
+
+    class Program
+    {
+        static bool foo()
+        {
+            return true;
+        }
+
+        static void Main(string[] args)
+        {
+            bool arg;
+            var val = (arg = foo())? arg & arg : false;
+
+            System.Console.WriteLine(val);
+        }
+    }
+";
+
+            var compilation = CompileAndVerify(source, expectedOutput: "True");
+
+            compilation.VerifyIL("Program.Main",
+@"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (bool V_0) //arg
+  IL_0000:  call       ""bool Program.foo()""
+  IL_0005:  dup
+  IL_0006:  stloc.0
+  IL_0007:  brtrue.s   IL_000c
+  IL_0009:  ldc.i4.0
+  IL_000a:  br.s       IL_000f
+  IL_000c:  ldloc.0
+  IL_000d:  ldloc.0
+  IL_000e:  and
+  IL_000f:  call       ""void System.Console.WriteLine(bool)""
+  IL_0014:  ret
+}
+");
+        }
+
+        [Fact]
+        public void CoalesceUsesLocal()
+        {
+            string source = @"
+
+    class Program
+    {
+        static string foo()
+        {
+            return ""hi"";
+        }
+
+        static void Main(string[] args)
+        {
+            string str;
+            var val = (str = foo()) ?? str + ""aa"";
+
+            System.Console.WriteLine(val);
+        }
+    }
+";
+
+            var compilation = CompileAndVerify(source, expectedOutput: "hi");
+
+            compilation.VerifyIL("Program.Main",
+@"
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  .locals init (string V_0) //str
+  IL_0000:  call       ""string Program.foo()""
+  IL_0005:  dup
+  IL_0006:  stloc.0
+  IL_0007:  dup
+  IL_0008:  brtrue.s   IL_0016
+  IL_000a:  pop
+  IL_000b:  ldloc.0
+  IL_000c:  ldstr      ""aa""
+  IL_0011:  call       ""string string.Concat(string, string)""
+  IL_0016:  call       ""void System.Console.WriteLine(string)""
+  IL_001b:  ret
+}
+");
+        }
     }
 }
