@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Tries to get the latest snapshot of the compilation without waiting for it to be
             /// fully built. This method takes advantage of the progress side-effect produced during
-            /// BuildCompilation. It will either return the already built compilation, any
+            /// <see cref="BuildCompilationAsync(Solution, CancellationToken)"/>. It will either return the already built compilation, any
             /// in-progress compilation or any known old compilation in that order of preference.
             /// The compilation state that is returned will have a compilation that is retained so
             /// that it cannot disappear.
@@ -562,8 +562,10 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            // Add all appropriate references to the compilation and set it as our final compilation
-            // state.
+            /// <summary>
+            /// Add all appropriate references to the compilation and set it as our final compilation
+            /// state.
+            /// </summary>
             private async Task<Compilation> FinalizeCompilationAsync(
                 Solution solution,
                 Compilation compilation,
