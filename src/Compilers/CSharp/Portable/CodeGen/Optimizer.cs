@@ -16,15 +16,48 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
     internal class Optimizer
     {
-        public static BoundStatement Optimize(BoundStatement src, out HashSet<LocalSymbol> stackLocals)
+        /// <summary>
+        /// Perform IL specific optiomizations (mostly reduction of local slots)
+        /// </summary>
+        /// <param name="src">Method body to optimize</param>
+        /// <param name="debugFriendly">
+        /// When set, do not perform aggressive optimizations that degrade debugging experience.
+        /// In particular we do not do the following:
+        /// 
+        /// 1) Do not elide any user defined locals, even if never read from. 
+        ///    Example:
+        ///      {
+        ///        var dummy = Foo();    // should not become just "Foo"
+        ///      }
+        ///        
+        ///    User might want to examine dummy in the debugger.
+        /// 
+        /// 2) Do not carry values on the stack between statements
+        ///    Example:
+        ///      {
+        ///        var temp = Foo();
+        ///        temp.ToString();       // should not become   Foo().ToString();
+        ///      }
+        ///       
+        ///    User might want to examine temp in the debugger.
+        ///        
+        /// </param>
+        /// <param name="stackLocals">
+        /// Produced list of "ephemeral" locals.
+        /// Essentially, these locals do not need to leave the evaluation stack.
+        /// As such they do not require an allocation of a local slot and 
+        /// their load/store operations are implemented trivially.
+        /// </param>
+        /// <returns></returns>
+        public static BoundStatement Optimize(
+            BoundStatement src, bool debugFriendly,
+            out HashSet<LocalSymbol> stackLocals)
         {
             //TODO: run other optimizing passes here.
             //      stack scheduler must be the last one.
 
             var locals = PooledDictionary<LocalSymbol, LocalDefUseInfo>.GetInstance();
-            var evalStack = ArrayBuilder<ValueTuple<BoundExpression, ExprContext>>.GetInstance();
-            src = (BoundStatement)StackOptimizerPass1.Analyze(src, locals, evalStack);
-            evalStack.Free();
+            src = (BoundStatement)StackOptimizerPass1.Analyze(src, locals, debugFriendly);
 
             FilterValidStackLocals(locals);
 
@@ -294,9 +327,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     //
     internal class StackOptimizerPass1 : BoundTreeRewriter
     {
-        private int _counter;
+        private readonly bool _debugFriendly;
         private readonly ArrayBuilder<ValueTuple<BoundExpression, ExprContext>> _evalStack;
 
+        private int _counter;
         private ExprContext _context;
         private BoundLocal _assignmentLocal;
 
@@ -315,10 +349,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public static readonly DummyLocal empty = new DummyLocal();
 
         private StackOptimizerPass1(Dictionary<LocalSymbol, LocalDefUseInfo> locals,
-            ArrayBuilder<ValueTuple<BoundExpression, ExprContext>> evalStack)
+            ArrayBuilder<ValueTuple<BoundExpression, ExprContext>> evalStack,
+            bool debugFriendly)
         {
             _locals = locals;
             _evalStack = evalStack;
+            _debugFriendly = debugFriendly;
 
             // this is the top of eval stack
             DeclareLocal(empty, 0);
@@ -328,10 +364,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public static BoundNode Analyze(
             BoundNode node, 
             Dictionary<LocalSymbol, LocalDefUseInfo> locals,
-            ArrayBuilder<ValueTuple<BoundExpression, ExprContext>> evalStack)
+            bool debugFriendly)
         {
-            var analyzer = new StackOptimizerPass1(locals, evalStack);
+            var evalStack = ArrayBuilder<ValueTuple<BoundExpression, ExprContext>>.GetInstance();
+            var analyzer = new StackOptimizerPass1(locals, evalStack, debugFriendly);
             var rewritten = analyzer.Visit(node);
+            evalStack.Free();
 
             return rewritten;
         }
@@ -429,6 +467,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var prevContext = _context;
 
             var result = base.Visit(node);
+
+            // prevent cross-statement local optimizations
+            // when emitting debug-friendly code.
+            if (_debugFriendly)
+            {
+                EnsureOnlyEvalStack();
+            }
 
             _context = prevContext;
             SetStackDepth(origStack);
@@ -795,7 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     assignmentLocal.Type.IsPointerType() && right.Kind == BoundKind.Conversion &&
                     ((BoundConversion)right).ConversionKind.IsPointerConversion())
                 {
-                    _locals[localSymbol].ShouldNotSchedule();
+                    ShouldNotSchedule(localSymbol);
                 }
 
                 RecordVarWrite(localSymbol);
@@ -1190,7 +1235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 var localSym = ((BoundLocal)boundExpression).LocalSymbol;
                 if (localSym.RefKind == RefKind.None)
                 {
-                    _locals[localSym].ShouldNotSchedule();
+                    ShouldNotSchedule(localSym);
                 }
             }
 
@@ -1422,6 +1467,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
+        private void ShouldNotSchedule(LocalSymbol localSymbol)
+        {
+            LocalDefUseInfo localDefInfo;
+            if (_locals.TryGetValue(localSymbol, out localDefInfo))
+            {
+                localDefInfo.ShouldNotSchedule();
+            }
+        }
+
         private void RecordVarRef(LocalSymbol local)
         {
             Debug.Assert(local.RefKind == RefKind.None, "cannot take a ref of a ref");
@@ -1432,7 +1486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             // if we ever take a reference of a local, it must be a real local.
-            _locals[local].ShouldNotSchedule();
+            ShouldNotSchedule(local);
         }
 
         private void RecordVarRead(LocalSymbol local)
@@ -1525,9 +1579,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             locInfo.LocalDefs.Add(locDef);
         }
 
-        private static bool CanScheduleToStack(LocalSymbol local)
+        private bool CanScheduleToStack(LocalSymbol local)
         {
-            return local.CanScheduleToStack;
+            return local.CanScheduleToStack &&
+                (!this._debugFriendly || !local.SynthesizedKind.IsLongLived());
         }
 
         private void DeclareLocals(ImmutableArray<LocalSymbol> locals, int stack)

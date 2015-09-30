@@ -978,33 +978,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationReference(this, aliases, embedInteropTypes);
         }
 
-        // Get all modules in this compilation, including the source module, added modules, and all
-        // modules of referenced assemblies that do not come from an assembly with an extern alias.
-        // Metadata imported from aliased assemblies is not visible at the source level except through 
-        // the use of an extern alias directive. So exclude them from this list which is used to construct
-        // the global namespace.
-        private IEnumerable<ModuleSymbol> GetAllUnaliasedModules()
+        /// <summary>
+        /// Get all modules in this compilation, including the source module, added modules, and all
+        /// modules of referenced assemblies that do not come from an assembly with an extern alias.
+        /// Metadata imported from aliased assemblies is not visible at the source level except through 
+        /// the use of an extern alias directive. So exclude them from this list which is used to construct
+        /// the global namespace.
+        /// </summary>
+        private void GetAllUnaliasedModules(ArrayBuilder<ModuleSymbol> modules)
         {
-            // Get all assemblies in this compilation, including the source assembly and all referenced assemblies.
-            ArrayBuilder<ModuleSymbol> modules = new ArrayBuilder<ModuleSymbol>();
-
             // NOTE: This includes referenced modules - they count as modules of the compilation assembly.
-            modules.AddRange(this.Assembly.Modules);
+            modules.AddRange(Assembly.Modules);
 
-            foreach (var pair in GetBoundReferenceManager().ReferencedAssembliesMap)
+            var referenceManager = GetBoundReferenceManager();
+
+            for (int i = 0; i < referenceManager.ReferencedAssemblies.Length; i++)
             {
-                MetadataReference reference = pair.Key;
-                ReferenceManager.ReferencedAssembly referencedAssembly = pair.Value;
-                if (reference.Properties.Kind == MetadataImageKind.Assembly) // Already handled modules above.
+                if (referenceManager.DeclarationsAccessibleWithoutAlias(i))
                 {
-                    if (referencedAssembly.DeclarationsAccessibleWithoutAlias())
-                    {
-                        modules.AddRange(referencedAssembly.Symbol.Modules);
-                    }
+                    modules.AddRange(referenceManager.ReferencedAssemblies[i].Modules);
                 }
             }
+        }
 
-            return modules;
+        /// <summary>
+        /// Return a list of assembly symbols than can be accessed without using an alias.
+        /// For example:
+        ///   1) /r:A.dll /r:B.dll -> A, B
+        ///   2) /r:Foo=A.dll /r:B.dll -> B
+        ///   3) /r:Foo=A.dll /r:A.dll -> A
+        /// </summary>
+        internal void GetUnaliasedReferencedAssemblies(ArrayBuilder<AssemblySymbol> assemblies)
+        {
+            var referenceManager = GetBoundReferenceManager();
+
+            for (int i = 0; i < referenceManager.ReferencedAssemblies.Length; i++)
+            {
+                if (referenceManager.DeclarationsAccessibleWithoutAlias(i))
+                {
+                    assemblies.Add(referenceManager.ReferencedAssemblies[i]);
+                }
+            }
         }
 
         /// <summary>
@@ -1012,7 +1026,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public new MetadataReference GetMetadataReference(IAssemblySymbol assemblySymbol)
         {
-            return this.GetBoundReferenceManager().ReferencedAssembliesMap.Where(kvp => object.ReferenceEquals(kvp.Value.Symbol, assemblySymbol)).Select(kvp => kvp.Key).FirstOrDefault();
+            return base.GetMetadataReference(assemblySymbol);
         }
 
         #endregion
@@ -1066,15 +1080,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)_lazyGlobalNamespace == null)
                 {
                     // Get the root namespace from each module, and merge them all together
-                    HashSet<NamespaceSymbol> allGlobalNamespaces = new HashSet<NamespaceSymbol>();
-                    foreach (ModuleSymbol module in GetAllUnaliasedModules())
-                    {
-                        allGlobalNamespaces.Add(module.GlobalNamespace);
-                    }
+                    // Get all modules in this compilation, ones referenced directly by the compilation 
+                    // as well as those referenced by all referenced assemblies.
 
-                    var result = MergedNamespaceSymbol.Create(new NamespaceExtent(this),
+                    var modules = ArrayBuilder<ModuleSymbol>.GetInstance();
+                    GetAllUnaliasedModules(modules);
+
+                    var result = MergedNamespaceSymbol.Create(
+                        new NamespaceExtent(this),
                         null,
-                        allGlobalNamespaces.AsImmutable());
+                        modules.SelectDistinct(m => m.GlobalNamespace));
+
+                    modules.Free();
+
                     Interlocked.CompareExchange(ref _lazyGlobalNamespace, result, null);
                 }
 
@@ -1126,12 +1144,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ArrayBuilder<NamespaceSymbol> builder = null;
-            foreach (var referencedAssembly in GetBoundReferenceManager().ReferencedAssembliesMap.Values)
+            var referenceManager = GetBoundReferenceManager();
+            for (int i = 0; i < referenceManager.ReferencedAssemblies.Length; i++)
             {
-                if (referencedAssembly.Aliases.Contains(aliasName))
+                if (referenceManager.AliasesOfReferencedAssemblies[i].Contains(aliasName))
                 {
                     builder = builder ?? ArrayBuilder<NamespaceSymbol>.GetInstance();
-                    builder.Add(referencedAssembly.Symbol.GlobalNamespace);
+                    builder.Add(referenceManager.ReferencedAssemblies[i].GlobalNamespace);
                 }
             }
 
@@ -1856,7 +1875,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public override ImmutableArray<Diagnostic> GetParseDiagnostics(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, includeDiagnosticsWithSourceSuppression: false, cancellationToken: cancellationToken);
+            return GetDiagnostics(CompilationStage.Parse, false, cancellationToken);
         }
 
         /// <summary>
@@ -1865,7 +1884,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public override ImmutableArray<Diagnostic> GetDeclarationDiagnostics(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, includeDiagnosticsWithSourceSuppression: false, cancellationToken: cancellationToken);
+            return GetDiagnostics(CompilationStage.Declare, false, cancellationToken);
         }
 
         /// <summary>
@@ -1873,7 +1892,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public override ImmutableArray<Diagnostic> GetMethodBodyDiagnostics(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return GetDiagnostics(CompilationStage.Compile, includeEarlierStages: false, includeDiagnosticsWithSourceSuppression: false, cancellationToken: cancellationToken);
+            return GetDiagnostics(CompilationStage.Compile, false, cancellationToken);
         }
 
         /// <summary>
@@ -1882,10 +1901,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public override ImmutableArray<Diagnostic> GetDiagnostics(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return GetDiagnostics(DefaultDiagnosticsStage, includeEarlierStages: true, includeDiagnosticsWithSourceSuppression: false, cancellationToken: cancellationToken);
+            return GetDiagnostics(DefaultDiagnosticsStage, true, cancellationToken);
         }
 
-        internal override ImmutableArray<Diagnostic> GetDiagnostics(CompilationStage stage, bool includeEarlierStages, bool includeDiagnosticsWithSourceSuppression, CancellationToken cancellationToken)
+        internal ImmutableArray<Diagnostic> GetDiagnostics(CompilationStage stage, bool includeEarlierStages, CancellationToken cancellationToken)
         {
             var builder = DiagnosticBag.GetInstance();
 
@@ -1945,7 +1964,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Before returning diagnostics, we filter warnings
             // to honor the compiler options (e.g., /nowarn, /warnaserror and /warn) and the pragmas.
             var result = DiagnosticBag.GetInstance();
-            FilterAndAppendAndFreeDiagnostics(result, ref builder, includeDiagnosticsWithSourceSuppression);
+            FilterAndAppendAndFreeDiagnostics(result, ref builder);
             return result.ToReadOnlyAndFree<Diagnostic>();
         }
 
@@ -2039,9 +2058,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 'incoming' is freed.
         /// </summary>
         /// <returns>True when there is no error or warning treated as an error.</returns>
-        internal override bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, ref DiagnosticBag incoming, bool includeDiagnosticsWithSourceSuppression = false)
+        internal override bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, ref DiagnosticBag incoming)
         {
-            bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution(), includeDiagnosticsWithSourceSuppression);
+            bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution());
             incoming.Free();
             incoming = null;
             return result;
@@ -2051,15 +2070,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Filter out warnings based on the compiler options (/nowarn, /warn and /warnaserror) and the pragma warning directives.
         /// </summary>
         /// <returns>True when there is no error.</returns>
-        private bool FilterAndAppendDiagnostics(DiagnosticBag accumulator, IEnumerable<Diagnostic> incoming, bool includeDiagnosticsWithSourceSuppression = false)
+        private bool FilterAndAppendDiagnostics(DiagnosticBag accumulator, IEnumerable<Diagnostic> incoming)
         {
             bool hasError = false;
+            bool reportSuppressedDiagnostics = Options.ReportSuppressedDiagnostics;
 
             foreach (Diagnostic d in incoming)
             {
                 var filtered = _options.FilterDiagnostic(d);
                 if (filtered == null ||
-                    (!includeDiagnosticsWithSourceSuppression && filtered.IsSuppressed))
+                    (!reportSuppressedDiagnostics && filtered.IsSuppressed))
                 {
                     continue;
                 }
@@ -2135,13 +2155,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override ImmutableArray<Diagnostic> GetDiagnosticsForSyntaxTree(
+        internal ImmutableArray<Diagnostic> GetDiagnosticsForSyntaxTree(
             CompilationStage stage,
             SyntaxTree syntaxTree,
             TextSpan? filterSpanWithinTree,
             bool includeEarlierStages,
-            bool includeDiagnosticsWithSourceSuppression,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -2186,7 +2205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Before returning diagnostics, we filter warnings
             // to honor the compiler options (/nowarn, /warnaserror and /warn) and the pragmas.
             var result = DiagnosticBag.GetInstance();
-            FilterAndAppendAndFreeDiagnostics(result, ref builder, includeDiagnosticsWithSourceSuppression);
+            FilterAndAppendAndFreeDiagnostics(result, ref builder);
             return result.ToReadOnlyAndFree<Diagnostic>();
         }
 
@@ -2299,8 +2318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // The diagnostics should include syntax and declaration errors. We insert these before calling Emitter.Emit, so that the emitter
             // does not attempt to emit if there are declaration errors (but we do insert all errors from method body binding...)
-            var diags = GetDiagnostics(CompilationStage.Declare, includeEarlierStages: true, includeDiagnosticsWithSourceSuppression: false, cancellationToken: cancellationToken);
-            bool hasDeclarationErrors = !FilterAndAppendDiagnostics(diagnostics, diags);
+            bool hasDeclarationErrors = !FilterAndAppendDiagnostics(diagnostics, GetDiagnostics(CompilationStage.Declare, true, cancellationToken));
 
             // TODO (tomat): NoPIA:
             // EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(this)
@@ -2792,19 +2810,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.ObjectType; }
         }
 
-        protected override MetadataReference CommonGetMetadataReference(IAssemblySymbol assemblySymbol)
-        {
-            var symbol = assemblySymbol as AssemblySymbol;
-            if ((object)symbol != null)
-            {
-                return this.GetMetadataReference(symbol);
-            }
-            else
-            {
-                return null;
-            }
-        }
-
         protected override IMethodSymbol CommonGetEntryPoint(CancellationToken cancellationToken)
         {
             return this.GetEntryPoint(cancellationToken);
@@ -2862,9 +2867,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
-        internal override AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager, bool reportDiagnosticsWithSourceSuppression)
+        internal override AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager)
         {
-            return new AnalyzerDriver<SyntaxKind>(analyzers, n => n.Kind(), analyzerManager, reportDiagnosticsWithSourceSuppression);
+            return new AnalyzerDriver<SyntaxKind>(analyzers, n => n.Kind(), analyzerManager);
         }
 
         internal void SymbolDeclaredEvent(Symbol symbol)

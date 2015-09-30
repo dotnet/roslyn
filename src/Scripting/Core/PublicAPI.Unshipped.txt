@@ -5,6 +5,10 @@ Microsoft.CodeAnalysis.Scripting.Hosting.AssemblyLoadResult.AssemblyLoadResult(s
 Microsoft.CodeAnalysis.Scripting.Hosting.AssemblyLoadResult.IsSuccessful.get -> bool
 Microsoft.CodeAnalysis.Scripting.Hosting.AssemblyLoadResult.OriginalPath.get -> string
 Microsoft.CodeAnalysis.Scripting.Hosting.AssemblyLoadResult.Path.get -> string
+Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineHostObject
+Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineHostObject.Args -> string[]
+Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineHostObject.ExitCode -> int
+Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineHostObject.Print(object value) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader.InteractiveAssemblyLoader(Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider shadowCopyProvider = null) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader.LoadFromPath(string path) -> Microsoft.CodeAnalysis.Scripting.Hosting.AssemblyLoadResult
@@ -109,21 +113,17 @@ Microsoft.CodeAnalysis.Scripting.ScriptRunner<T>
 Microsoft.CodeAnalysis.Scripting.ScriptState
 Microsoft.CodeAnalysis.Scripting.ScriptState.ContinueWithAsync(string code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Scripting.ScriptState<object>>
 Microsoft.CodeAnalysis.Scripting.ScriptState.ContinueWithAsync<TResult>(string code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Scripting.ScriptState<TResult>>
+Microsoft.CodeAnalysis.Scripting.ScriptState.GetVariable(string name) -> Microsoft.CodeAnalysis.Scripting.ScriptVariable
 Microsoft.CodeAnalysis.Scripting.ScriptState.ReturnValue.get -> object
 Microsoft.CodeAnalysis.Scripting.ScriptState.Script.get -> Microsoft.CodeAnalysis.Scripting.Script
-Microsoft.CodeAnalysis.Scripting.ScriptState.Variables.get -> Microsoft.CodeAnalysis.Scripting.ScriptVariables
+Microsoft.CodeAnalysis.Scripting.ScriptState.Variables.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Scripting.ScriptVariable>
 Microsoft.CodeAnalysis.Scripting.ScriptState<T>
 Microsoft.CodeAnalysis.Scripting.ScriptState<T>.ReturnValue.get -> T
 Microsoft.CodeAnalysis.Scripting.ScriptVariable
 Microsoft.CodeAnalysis.Scripting.ScriptVariable.Name.get -> string
 Microsoft.CodeAnalysis.Scripting.ScriptVariable.Type.get -> System.Type
 Microsoft.CodeAnalysis.Scripting.ScriptVariable.Value.get -> object
-Microsoft.CodeAnalysis.Scripting.ScriptVariables
-Microsoft.CodeAnalysis.Scripting.ScriptVariables.ContainsVariable(string name) -> bool
-Microsoft.CodeAnalysis.Scripting.ScriptVariables.Count.get -> int
-Microsoft.CodeAnalysis.Scripting.ScriptVariables.GetEnumerator() -> System.Collections.Generic.IEnumerator<Microsoft.CodeAnalysis.Scripting.ScriptVariable>
-Microsoft.CodeAnalysis.Scripting.ScriptVariables.Names.get -> System.Collections.Generic.IEnumerable<string>
-Microsoft.CodeAnalysis.Scripting.ScriptVariables.this[string name].get -> Microsoft.CodeAnalysis.Scripting.ScriptVariable
+Microsoft.CodeAnalysis.Scripting.ScriptVariable.Value.set -> void
 abstract Microsoft.CodeAnalysis.Scripting.ObjectFormatter.FormatArrayTypeName(System.Type arrayType, System.Array arrayOpt, Microsoft.CodeAnalysis.Scripting.ObjectFormattingOptions options) -> string
 abstract Microsoft.CodeAnalysis.Scripting.ObjectFormatter.FormatGeneratedTypeName(System.Type type) -> string
 abstract Microsoft.CodeAnalysis.Scripting.ObjectFormatter.FormatLiteral(System.DateTime value) -> string
@@ -149,6 +149,8 @@ abstract Microsoft.CodeAnalysis.Scripting.ObjectFormatter.NullLiteral.get -> str
 abstract Microsoft.CodeAnalysis.Scripting.ObjectFormatter.VoidDisplayString.get -> object
 abstract Microsoft.CodeAnalysis.Scripting.Script.ReturnType.get -> System.Type
 override Microsoft.CodeAnalysis.Scripting.Script<T>.ReturnType.get -> System.Type
+readonly Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineHostObject.CancellationToken -> System.Threading.CancellationToken
 static readonly Microsoft.CodeAnalysis.Scripting.ObjectFormattingOptions.Default -> Microsoft.CodeAnalysis.Scripting.ObjectFormattingOptions
 static readonly Microsoft.CodeAnalysis.Scripting.ScriptOptions.Default -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
+virtual Microsoft.CodeAnalysis.Scripting.ObjectFormatter.FormatMethodSignature(System.Reflection.MethodBase method) -> string
 virtual Microsoft.CodeAnalysis.Scripting.ObjectFormatter.IsHiddenMember(System.Reflection.MemberInfo member) -> bool

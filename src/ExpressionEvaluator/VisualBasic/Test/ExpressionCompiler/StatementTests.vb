@@ -473,7 +473,7 @@ End Class
   .maxstack  2
   .locals init (ULong V_0) //l
   IL_0000:  ldloc.0
-  IL_0001:  dup
+  IL_0001:  ldloc.0
   IL_0002:  mul.ovf.un
   IL_0003:  stloc.0
   IL_0004:  ret

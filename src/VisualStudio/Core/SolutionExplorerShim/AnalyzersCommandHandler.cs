@@ -621,11 +621,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 message);
         }
 
-        private void SendErrorNotification(Workspace workspace, string title, string message)
+        private void SendErrorNotification(Workspace workspace, string message1, string message2)
         {
             var notificationService = workspace.Services.GetService<INotificationService>();
 
-            notificationService.SendNotification(message, title, NotificationSeverity.Error);
+            notificationService.SendNotification(message1 + Environment.NewLine + Environment.NewLine + message2, severity: NotificationSeverity.Error);
         }
 
         int IVsUpdateSolutionEvents.UpdateSolution_Begin(ref int pfCancelUpdate)

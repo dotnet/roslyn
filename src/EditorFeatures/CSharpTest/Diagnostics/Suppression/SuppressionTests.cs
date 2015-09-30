@@ -125,8 +125,8 @@ class Class
 {{
     void Method()
     {{
+        // Start comment previous line
 #pragma warning disable CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
-                              // Start comment previous line
                               /* Start comment same line */
         int x = 0; // End comment same line
 #pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
@@ -185,7 +185,7 @@ class Class
 
                         TextSpan span;
                         var document = GetDocumentAndSelectSpan(workspace, out span);
-                        var diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, span, CancellationToken.None)
+                        var diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, span)
                             .WaitAndGetResult(CancellationToken.None)
                             .Where(d => d.Id == "CS0219");
                         Assert.Equal(2, diagnostics.Count());
@@ -296,9 +296,9 @@ class Class
     void Method()
     {{
 
+        // Comment
+        // Comment
 #pragma warning disable CS1633 // {CSharpResources.WRN_IllegalPragma_Title}
-                              // Comment
-                              // Comment
 #pragma abcde
 
     }}    // Comment   
@@ -325,7 +325,7 @@ class Class
                 public void TestPragmaWarningDirectiveAroundTrivia3()
                 {
                     Test(
-        @"  [|#pragma abcde|]  ",
+        @"[|#pragma abcde|]  ",
         $@"#pragma warning disable CS1633 // {CSharpResources.WRN_IllegalPragma_Title}
 #pragma abcde  
 #pragma warning restore CS1633 // {CSharpResources.WRN_IllegalPragma_Title}");
@@ -512,13 +512,25 @@ class Class
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestErrorDiagnosticCannotBeSuppressed()
+                public void TestErrorDiagnosticCanBeSuppressed()
                 {
-                    TestMissing(
+                    Test(
             @"
 using System;
 
 [|class Class|]
+{
+    int Method()
+    {
+        int x = 0;
+    }
+}",
+            @"
+using System;
+
+#pragma warning disable ErrorDiagnostic // ErrorDiagnostic
+class Class
+#pragma warning restore ErrorDiagnostic // ErrorDiagnostic
 {
     int Method()
     {

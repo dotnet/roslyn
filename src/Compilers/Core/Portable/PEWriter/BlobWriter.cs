@@ -186,7 +186,7 @@ namespace Microsoft.Cci
             }
 
             int start = Advance(byteCount);
-            int bytesRead = source.Read(_buffer, start, byteCount);
+            int bytesRead = source.TryReadAll(_buffer, start, byteCount);
             _position = start + bytesRead;
             return bytesRead;
         }

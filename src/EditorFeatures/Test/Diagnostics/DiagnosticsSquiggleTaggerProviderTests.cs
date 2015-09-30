@@ -69,7 +69,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 ValueTuple.Create(FeatureAttribute.ErrorSquiggles, asyncListener));
 
             this.analyzerService = analyzerService;
-            var diagnosticService = new DiagnosticService(SpecializedCollections.SingletonEnumerable(updateSource), listeners);
+            var diagnosticService = new DiagnosticService(listeners);
+            diagnosticService.Register(updateSource);
 
             this.TaggerProvider = new DiagnosticsSquiggleTaggerProvider(
                 workspace.Services.GetService<IOptionService>(), diagnosticService,

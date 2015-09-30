@@ -61,9 +61,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             return false;
         }
 
-        protected void SetDisplayProperties(string filePath, int mappedLineNumber, int mappedOffset, int offset, string lineText, int spanLength, string projectNameDisambiguator)
+        protected void SetDisplayProperties(string filePath, int mappedLineNumber, int mappedOffset, int offset, string lineText, int spanLength, string projectNameDisambiguator, string explicitDisplayText = null)
         {
-            var sourceSnippet = lineText.Replace('\t', ' ').TrimStart(' ');
+            var sourceSnippet = explicitDisplayText ?? lineText.Replace('\t', ' ').TrimStart(' ');
             var displayText = GetDisplayText(filePath, projectNameDisambiguator, mappedLineNumber + 1, mappedOffset + 1, sourceSnippet);
 
             var selectionStart = offset + displayText.Length - lineText.Length;
@@ -75,8 +75,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             }
 
             this.DisplayText = displayText;
-            this.DisplaySelectionStart = checked((ushort)Math.Min(ushort.MaxValue, selectionStart));
-            this.DisplaySelectionLength = checked((ushort)Math.Min(spanLength, DisplayText.Length - DisplaySelectionStart));
+
+            if (explicitDisplayText == null)
+            {
+                this.DisplaySelectionStart = checked((ushort)Math.Min(ushort.MaxValue, selectionStart));
+                this.DisplaySelectionLength = checked((ushort)Math.Min(spanLength, DisplayText.Length - DisplaySelectionStart));
+            }
         }
 
         private static string GetDisplayText(string fileName, string projectNameDisambiguator, int lineNumber, int offset, string sourceText)

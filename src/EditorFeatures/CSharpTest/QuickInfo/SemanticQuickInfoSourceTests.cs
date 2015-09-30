@@ -1333,6 +1333,28 @@ void M()
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void LocalProperty_Minimal_PrivateSet()
+        {
+            TestInClass(@"public DateTime Prop { get; private set; }
+void M()
+{
+    P$$rop.ToString();
+}",
+                MainDescription("DateTime C.Prop { get; private set; }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void LocalProperty_Minimal_PrivateSet1()
+        {
+            TestInClass(@"protected internal int Prop { get; private set; }
+void M()
+{
+    P$$rop.ToString();
+}",
+                MainDescription("int C.Prop { get; private set; }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void LocalProperty_Qualified()
         {
             TestInClass(@"System.IO.FileInfo Prop { get; set; }

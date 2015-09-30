@@ -1,9 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -109,7 +111,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
         private TodoItem CreateItem(Document document, SourceText text, SyntaxTree tree, TodoComment comment)
         {
-            var textSpan = new TextSpan(comment.Position, 0);
+            // make sure given position is within valid text range.
+            var textSpan = new TextSpan(Math.Min(text.Length, Math.Max(0, comment.Position)), 0);
 
             var location = tree == null ? Location.Create(document.FilePath, textSpan, text.Lines.GetLinePositionSpan(textSpan)) : tree.GetLocation(textSpan);
             var originalLineInfo = location.GetLineSpan();
@@ -146,6 +149,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             }
 
             return existingData.Items;
+        }
+
+        public IEnumerable<UpdatedEventArgs> GetTodoItemsUpdatedEventArgs(Workspace workspace, CancellationToken cancellationToken)
+        {
+            foreach (var documentId in _state.GetDocumentIds())
+            {
+                yield return new UpdatedEventArgs(Tuple.Create(this, documentId), workspace, documentId.ProjectId, documentId);
+            }
         }
 
         private static bool CheckVersions(Document document, VersionStamp textVersion, VersionStamp syntaxVersion, Data existingData)

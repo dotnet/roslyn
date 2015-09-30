@@ -17,12 +17,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     {
         private readonly FixAllContext _fixAllContext;
         private readonly FixAllProvider _fixAllProvider;
+        private readonly bool _showPreviewChangesDialog;
         private static readonly HashSet<string> s_predefinedCodeFixProviderNames = GetPredefinedCodeFixProviderNames();
 
-        internal FixAllCodeAction(FixAllContext fixAllContext, FixAllProvider fixAllProvider)
+        internal FixAllCodeAction(FixAllContext fixAllContext, FixAllProvider fixAllProvider, bool showPreviewChangesDialog)
         {
             _fixAllContext = fixAllContext;
             _fixAllProvider = fixAllProvider;
+            _showPreviewChangesDialog = showPreviewChangesDialog;
         }
 
         public override string Title
@@ -43,6 +45,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
         }
 
+        public FixAllContext FixAllContext => _fixAllContext;
+        protected virtual string FixAllPreviewChangesTitle => FeaturesResources.FixAllOccurrences;
+        protected virtual string ComputingFixAllWaitDialogMessage => FeaturesResources.ComputingFixAllOccurrences;
+
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -50,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var service = _fixAllContext.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
             // Use the new cancellation token instead of the stale one present inside _fixAllContext.
-            return await service.GetFixAllOperationsAsync(_fixAllProvider, _fixAllContext.WithCancellationToken(cancellationToken)).ConfigureAwait(false);
+            return await service.GetFixAllOperationsAsync(_fixAllProvider, _fixAllContext.WithCancellationToken(cancellationToken), FixAllPreviewChangesTitle, ComputingFixAllWaitDialogMessage, _showPreviewChangesDialog).ConfigureAwait(false);
         }
 
         private static bool IsInternalCodeFixProvider(CodeFixProvider fixer)

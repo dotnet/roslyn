@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
-    public class SmartIndenterTests : FormatterTestsBase
+    public partial class SmartIndenterTests : FormatterTestsBase
     {
         [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
@@ -2481,6 +2481,56 @@ class Program
                 expectedIndentation: 36);
         }
 
+        [WorkItem(5495, "https://github.com/dotnet/roslyn/issues/5495")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void AfterBadQueryContinuationWithSelectOrGroupClause()
+        {
+            var code = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApplication1
+{
+    class AutomapperConfig
+    {
+        public static IEnumerable<string> ConfigureMappings(string name)
+        {
+            List<User> anEntireSlewOfItems = new List<User>();
+            List<UserViewModel> viewModels = new List<UserViewModel>();
+
+            var items = (from m in anEntireSlewOfItems into man
+
+             join at in viewModels on m.id equals at.id
+             join c in viewModels on m.name equals c.name
+             join ct in viewModels on m.phonenumber equals ct.phonenumber
+             where m.id == 1 &&
+                 m.name == name
+             select new { M = true, I = at, AT = at }).ToList();
+            //Mapper.CreateMap<User, UserViewModel>()
+            //    .ForMember(t => t.)
+        }
+    }
+
+    class User
+    {
+        public int id { get; set; }
+        public string name { get; set; }
+        public int phonenumber { get; set; }
+    }
+
+    class UserViewModel
+    {
+        public int id { get; set; }
+        public string name { get; set; }
+        public int phonenumber { get; set; }
+    }
+}";
+
+            AssertSmartIndent(
+                code,
+                indentationLine: 13,
+                expectedIndentation: 25);
+        }
+
         private static void AssertSmartIndentInProjection(string markup, int expectedIndentation, CSharpParseOptions options = null)
         {
             var optionsSet = options != null
@@ -2527,6 +2577,26 @@ class Program
                 using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(code, parseOptions: option))
                 {
                     TestIndentation(indentationLine, expectedIndentation, workspace);
+                }
+            }
+        }
+
+        private static void AssertSmartIndent(
+            string code,
+            int? expectedIndentation,
+            CSharpParseOptions options = null)
+        {
+            var optionsSet = options != null
+                ? new[] { options }
+                : new[] { Options.Regular, Options.Script };
+
+            foreach (var option in optionsSet)
+            {
+                using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(code, parseOptions: option))
+                {
+                    var wpfTextView = workspace.Documents.First().GetTextView();
+                    var line = wpfTextView.TextBuffer.CurrentSnapshot.GetLineFromPosition(wpfTextView.Caret.Position.BufferPosition).LineNumber;
+                    TestIndentation(line, expectedIndentation, workspace);
                 }
             }
         }

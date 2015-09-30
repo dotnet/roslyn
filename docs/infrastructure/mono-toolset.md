@@ -34,9 +34,11 @@ The cross platform restore works by downloading the contents of the packages dir
 This is done by executing the following on a Windows box.  
 
     - Change to the root of the enlistment.
-    - Delete the contents of the package directory. 
-    - Run .nuget/NuGetRestore.ps1 
-    - Zip the packages directory (via explorer) and name it nuget.X.zip (where X is one higher than the previous number)
+    - delete the contents of the `~\.nuget\packages`
+    - Run
+        - `.\nuget.exe restore Roslyn.sln`
+        - `.\nuget.exe restore build\ToolsetPackages\project.json`
+    - Zip the `~\.nuget` directory (via explorer) and name it nuget.X.zip (where X is one higher than the previous number)
     - Use [azcopy](https://azure.microsoft.com/en-us/documentation/articles/storage-use-azcopy) to upload to https://dotnetci.blob.core.windows.net/roslyn
     - Change cibuild.sh to reference the new package. 
 

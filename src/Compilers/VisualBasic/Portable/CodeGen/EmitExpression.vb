@@ -1022,7 +1022,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             EmitSymbolToken(method, [call].Syntax)
             If Not method.IsSub Then
                 EmitPopIfUnused(used)
-            ElseIf _optimizations = OptimizationLevel.Debug Then
+            ElseIf _ilEmitStyle = ILEmitStyle.Debug Then
                 Debug.Assert(Not used, "Using the return value of a void method.")
                 Debug.Assert(_method.GenerateDebugInfo, "Implied by emitSequencePoints")
 

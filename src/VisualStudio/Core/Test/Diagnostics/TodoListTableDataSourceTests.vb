@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Common
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
@@ -316,7 +317,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Me.Items = items
             End Sub
 
-            Public Event TodoListUpdated As EventHandler(Of TodoListEventArgs) Implements ITodoListProvider.TodoListUpdated
+            Public Event TodoListUpdated As EventHandler(Of TodoItemsUpdatedArgs) Implements ITodoListProvider.TodoListUpdated
 
             Public Function GetTodoItems(workspace As Workspace, documentId As DocumentId, cancellationToken As CancellationToken) As ImmutableArray(Of TodoItem) Implements ITodoListProvider.GetTodoItems
                 Assert.NotNull(workspace)
@@ -325,17 +326,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Return Items.Where(Function(t) t.DocumentId Is documentId).ToImmutableArrayOrEmpty()
             End Function
 
+            Public Function GetTodoItemsUpdatedEventArgs(workspace As Workspace, cancellationToken As CancellationToken) As IEnumerable(Of UpdatedEventArgs) Implements ITodoListProvider.GetTodoItemsUpdatedEventArgs
+                Return Items.Select(Function(t) New UpdatedEventArgs(Tuple.Create(Me, t.DocumentId), t.Workspace, t.DocumentId.ProjectId, t.DocumentId)).ToImmutableArrayOrEmpty()
+            End Function
+
             Public Sub RaiseTodoListUpdated(workspace As Workspace)
                 Dim map = Items.Where(Function(t) t.Workspace Is workspace).ToLookup(Function(t) t.DocumentId)
 
                 For Each group In map
-                    RaiseEvent TodoListUpdated(Me, New TodoListEventArgs(
+                    RaiseEvent TodoListUpdated(Me, New TodoItemsUpdatedArgs(
                         Tuple.Create(Me, group.Key), workspace, workspace.CurrentSolution, group.Key.ProjectId, group.Key, group.ToImmutableArrayOrEmpty()))
                 Next
             End Sub
 
             Public Sub RaiseClearTodoListUpdated(workspace As Workspace, documentId As DocumentId)
-                RaiseEvent TodoListUpdated(Me, New TodoListEventArgs(
+                RaiseEvent TodoListUpdated(Me, New TodoItemsUpdatedArgs(
                     Tuple.Create(Me, documentId), workspace, workspace.CurrentSolution, documentId.ProjectId, documentId, ImmutableArray(Of TodoItem).Empty))
             End Sub
         End Class

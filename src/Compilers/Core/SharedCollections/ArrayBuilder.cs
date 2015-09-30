@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -415,6 +416,42 @@ namespace Microsoft.CodeAnalysis
             {
                 Add(item);
             }
+        }
+
+        public void RemoveDuplicates()
+        {
+            var set = PooledHashSet<T>.GetInstance();
+
+            int j = 0;
+            for (int i = 0; i < Count; i++)
+            {
+                if (set.Add(this[i]))
+                {
+                    this[j] = this[i];
+                    j++;
+                }
+            }
+
+            Clip(j);
+            set.Free();
+        }
+
+        public ImmutableArray<S> SelectDistinct<S>(Func<T, S> selector)
+        {
+            var result = ArrayBuilder<S>.GetInstance(Count);
+            var set = PooledHashSet<S>.GetInstance();
+
+            foreach (var item in this)
+            {
+                var selected = selector(item);
+                if (set.Add(selected))
+                {
+                    result.Add(selected);
+                }
+            }
+
+            set.Free();
+            return result.ToImmutableAndFree();
         }
     }
 }

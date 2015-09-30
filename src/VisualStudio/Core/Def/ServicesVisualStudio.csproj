@@ -30,24 +30,24 @@
     <Compile Include="..\..\..\Compilers\Helpers\ShadowCopyAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\ShadowCopyAnalyzerAssemblyLoader.cs</Link>
     </Compile>
-    <Compile Include="Implementation\AnalyzerDependencyResults.cs" />
+    <Compile Include="Implementation\AnalyzerDependency\AnalyzerDependencyResults.cs" />
     <Compile Include="IAnalyzerNodeSetup.cs" />
-    <Compile Include="Implementation\AnalyzerDependencyChecker.cs" />
-    <Compile Include="Implementation\AnalyzerDependencyCheckingService.cs" />
-    <Compile Include="Implementation\AnalyzerDependencyConflict.cs" />
-    <Compile Include="Implementation\IgnorableAssemblyIdentityList.cs" />
-    <Compile Include="Implementation\IgnorableAssemblyNamePrefixList.cs" />
+    <Compile Include="Implementation\AnalyzerDependency\AnalyzerDependencyChecker.cs" />
+    <Compile Include="Implementation\AnalyzerDependency\AnalyzerDependencyCheckingService.cs" />
+    <Compile Include="Implementation\AnalyzerDependency\AnalyzerDependencyConflict.cs" />
+    <Compile Include="Implementation\AnalyzerDependency\IgnorableAssemblyIdentityList.cs" />
+    <Compile Include="Implementation\AnalyzerDependency\IgnorableAssemblyNamePrefixList.cs" />
     <Compile Include="Implementation\CompilationErrorTelemetry\CompilationErrorTelemetryIncrementalAnalyzer.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioVenusSpanMappingService.cs" />
     <Compile Include="Implementation\EditAndContinue\Interop\NativeMethods.cs" />
-    <Compile Include="Implementation\IIgnorableAssemblyList.cs" />
-    <Compile Include="Implementation\IBindingRedirectionService.cs" />
+    <Compile Include="Implementation\AnalyzerDependency\IIgnorableAssemblyList.cs" />
+    <Compile Include="Implementation\AnalyzerDependency\IBindingRedirectionService.cs" />
     <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.IVsLanguageBlock.cs" />
     <Compile Include="Implementation\Library\FindResults\TreeItems\AbstractSourceTreeItem.cs" />
     <Compile Include="Implementation\Library\FindResults\TreeItems\MetadataDefinitionTreeItem.cs" />
     <Compile Include="Implementation\Library\FindResults\TreeItems\SourceDefinitionTreeItem.cs" />
     <Compile Include="Implementation\Log\VisualStudioErrorLogger.cs" />
-    <Compile Include="Implementation\MissingAnalyzerDependency.cs" />
+    <Compile Include="Implementation\AnalyzerDependency\MissingAnalyzerDependency.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.MetadataReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.AnalyzerReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.ProjectReferenceChange.cs" />
@@ -65,6 +65,14 @@
     <Compile Include="Implementation\ProjectSystem\Interop\IVsUndoState.cs" />
     <Compile Include="Implementation\Serialization\AssemblySerializationInfoService.cs" />
     <Compile Include="Implementation\SolutionSize\SolutionSizeTracker.cs" />
+    <Compile Include="Implementation\TableDataSource\DiagnosticTableControlEventProcessorProvider.AggregateDiagnosticTableControlEventProcessor.cs" />
+    <Compile Include="Implementation\TableDataSource\Suppression\IVisualStudioDiagnosticListSuppressionStateService.cs" />
+    <Compile Include="Implementation\TableDataSource\Suppression\VisualStudioDiagnosticListTableCommandHandler.cs" />
+    <Compile Include="Implementation\TableDataSource\Suppression\VisualStudioDiagnosticListSuppressionStateService.cs" />
+    <Compile Include="Implementation\TableDataSource\Suppression\DiagnosticTableControlEventProcessorProvider.SuppressionStateProcessor.cs" />
+    <Compile Include="Implementation\TableDataSource\Suppression\VisualStudioSuppressionFixService.cs" />
+    <Compile Include="Implementation\TableDataSource\Suppression\IVisualStudioSuppressionFixService.cs" />
+    <Compile Include="Implementation\TableDataSource\Suppression\SuppressionStateColumnDefinition.cs" />
     <Compile Include="Implementation\TableDataSource\AbstractTableDataSource.cs" />
     <Compile Include="Implementation\TableDataSource\AbstractTableEntriesSource.cs" />
     <Compile Include="Implementation\TableDataSource\Extensions.cs" />
@@ -354,7 +362,7 @@
     <Compile Include="Implementation\AbstractOleCommandTarget.Query.cs" />
     <Compile Include="Implementation\AbstractVsTextViewFilter.cs" />
     <Compile Include="Implementation\AbstractVsTextViewFilter`3.cs" />
-    <Compile Include="Implementation\AnalyzerFileWatcherService.cs" />
+    <Compile Include="Implementation\AnalyzerDependency\AnalyzerFileWatcherService.cs" />
     <Compile Include="Implementation\CallHierarchy\CallHierarchyPresenter.cs" />
     <Compile Include="Implementation\ChangeSignature\ChangeSignatureDialog.xaml.cs">
       <DependentUpon>ChangeSignatureDialog.xaml</DependentUpon>
@@ -758,6 +766,5 @@
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

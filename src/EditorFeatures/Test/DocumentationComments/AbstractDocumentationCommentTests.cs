@@ -118,7 +118,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
             using (var workspace = CreateTestWorkspace(initialMarkup))
             {
                 var testDocument = workspace.Documents.Single();
+
+                Assert.True(testDocument.CursorPosition.HasValue, "No caret position set!");
+                var startCaretPosition = testDocument.CursorPosition.Value;
+
                 var view = testDocument.GetTextView();
+
+                if (testDocument.SelectedSpans.Any())
+                {
+                    var selectedSpan = testDocument.SelectedSpans[0];
+
+                    var isReversed = selectedSpan.Start == startCaretPosition
+                        ? true
+                        : false;
+
+                    view.Selection.Select(new SnapshotSpan(view.TextSnapshot, selectedSpan.Start, selectedSpan.Length), isReversed);
+                }
+
                 view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, testDocument.CursorPosition.Value));
 
                 if (useTabs)
@@ -139,9 +155,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
 
                 Assert.Equal(expectedCode, view.TextSnapshot.GetText());
 
-                var caretPosition = view.Caret.Position.BufferPosition.Position;
-                Assert.True(expectedPosition == caretPosition,
-                    string.Format("Caret positioned incorrectly. Should have been {0}, but was {1}.", expectedPosition, caretPosition));
+                var endCaretPosition = view.Caret.Position.BufferPosition.Position;
+                Assert.True(expectedPosition == endCaretPosition,
+                    string.Format("Caret positioned incorrectly. Should have been {0}, but was {1}.", expectedPosition, endCaretPosition));
             }
         }
     }
