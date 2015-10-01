@@ -169,6 +169,75 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     return endToken.WithTrailingTrivia(trivia.InsertRange(index, pragmaTrivia));
                 };
             }
+
+            internal static void NormalizeTriviaOnTokens(AbstractSuppressionCodeFixProvider fixer, ref Document document, ref SuppressionTargetInfo suppressionTargetInfo)
+            {
+                // For pragma suppression fixes, we need to normalize the leading trivia on start token to account for
+                // the trailing trivia on its previous token (and similarly normalize trailing trivia for end token).
+
+                var startToken = suppressionTargetInfo.StartToken;
+                var endToken = suppressionTargetInfo.EndToken;
+                var nodeWithTokens = suppressionTargetInfo.NodeWithTokens;
+                var startAndEndTokensAreSame = startToken == endToken;
+                var isEndTokenEOF = fixer.IsEndOfFileToken(endToken);
+
+                var previousOfStart = startToken.GetPreviousToken(includeZeroWidth: true);
+                var nextOfEnd = !isEndTokenEOF ? endToken.GetNextToken(includeZeroWidth: true) : default(SyntaxToken);
+                if (!previousOfStart.HasTrailingTrivia && !nextOfEnd.HasLeadingTrivia)
+                {
+                    return;
+                }
+
+                var root = nodeWithTokens.SyntaxTree.GetRoot();
+                var spanEnd = !isEndTokenEOF ? nextOfEnd.FullSpan.End : endToken.FullSpan.End;
+                var subtreeRoot = root.FindNode(new TextSpan(previousOfStart.FullSpan.Start, spanEnd - previousOfStart.FullSpan.Start));
+
+                var currentStartToken = startToken;
+                var currentEndToken = endToken;
+                var newStartToken = startToken.WithLeadingTrivia(previousOfStart.TrailingTrivia.Concat(startToken.LeadingTrivia));
+
+                SyntaxToken newEndToken = currentEndToken;
+                if (startAndEndTokensAreSame)
+                {
+                    newEndToken = newStartToken;
+                }
+
+                newEndToken = newEndToken.WithTrailingTrivia(endToken.TrailingTrivia.Concat(nextOfEnd.LeadingTrivia));
+
+                var newPreviousOfStart = previousOfStart.WithTrailingTrivia();
+                var newNextOfEnd = nextOfEnd.WithLeadingTrivia();
+
+                var newSubtreeRoot = subtreeRoot.ReplaceTokens(new[] { startToken, previousOfStart, endToken, nextOfEnd },
+                    (o, n) =>
+                    {
+                        if (o == currentStartToken)
+                        {
+                            return startAndEndTokensAreSame ? newEndToken : newStartToken;
+                        }
+                        else if (o == previousOfStart)
+                        {
+                            return newPreviousOfStart;
+                        }
+                        else if (o == currentEndToken)
+                        {
+                            return newEndToken;
+                        }
+                        else if (o == nextOfEnd)
+                        {
+                            return newNextOfEnd;
+                        }
+                        else
+                        {
+                            return n;
+                        }
+                    });
+
+                root = root.ReplaceNode(subtreeRoot, newSubtreeRoot);
+                document = document.WithSyntaxRoot(root);
+                suppressionTargetInfo.StartToken = root.FindToken(startToken.SpanStart);
+                suppressionTargetInfo.EndToken = root.FindToken(endToken.SpanStart);
+                suppressionTargetInfo.NodeWithTokens = fixer.GetNodeWithTokens(suppressionTargetInfo.StartToken, suppressionTargetInfo.EndToken, root);
+            }
         }
     }
 }
