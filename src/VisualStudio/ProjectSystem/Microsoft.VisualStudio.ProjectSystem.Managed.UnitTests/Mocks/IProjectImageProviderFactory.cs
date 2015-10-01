@@ -10,9 +10,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Imaging
     {
         public static IProjectImageProvider Create()
         {
-            var mock = new Mock<IProjectImageProvider>();
-
-            return mock.Object;
+            return Mock.Of<IProjectImageProvider>();
         }
 
         public static IProjectImageProvider ImplementGetProjectImage(Func<string, ProjectImageMoniker> action)

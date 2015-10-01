@@ -9,9 +9,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
     {
         public static IProjectTreeProvider Create()
         {
-            var mock = new Mock<IProjectTreeProvider>();
-
-            return mock.Object;
+            return Mock.Of<IProjectTreeProvider>();
         }
     }
 }

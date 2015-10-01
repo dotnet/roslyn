@@ -44,5 +44,10 @@ namespace Microsoft.VisualStudio.ProjectSystem
             : base(configuredProject, unconfiguredProject)
         {
         }
+
+        public new ConfiguredProject ConfiguredProject
+        {
+            get { return base.ConfiguredProject; }
+        }
     }
 }

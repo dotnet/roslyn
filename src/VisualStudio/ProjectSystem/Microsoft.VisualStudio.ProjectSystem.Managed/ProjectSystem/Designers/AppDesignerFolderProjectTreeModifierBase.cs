@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.ProjectSystem.Designers.Imaging;
 using Microsoft.VisualStudio.ProjectSystem.Utilities.Designers;
 
@@ -19,19 +20,19 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
                     ProjectTreeCapabilities.EmptyCapabilities.Add(ProjectTreeCapabilities.AppDesignerFolder)
                                                              .Add(ProjectTreeCapabilities.BubbleUp);
 
-        private readonly IProjectFeatures _features;
+        private readonly IUnconfiguredProjectCommonServices _projectServices;
 
-        protected AppDesignerFolderProjectTreeModifierBase(IProjectImageProvider imageProvider, IProjectFeatures features)
+        protected AppDesignerFolderProjectTreeModifierBase(IProjectImageProvider imageProvider, IUnconfiguredProjectCommonServices projectServices)
             : base(imageProvider)
         {
-            Requires.NotNull(features, nameof(features));
+            Requires.NotNull(projectServices, nameof(projectServices));
 
-            _features = features;
+            _projectServices = projectServices;
         }
 
         public override bool IsSupported
         {
-            get { return _features.SupportsProjectDesigner; }
+            get { return _projectServices.Features.SupportsProjectDesigner; }
         }
 
         public override ImmutableHashSet<string> DefaultCapabilities
@@ -57,8 +58,15 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
 
         protected virtual string GetAppDesignerFolderName()
         {
-            // TODO: Read this from AppDesignerFolder MSBuild property 
-            return null;
+            // Returns the <AppDesignerFolder> from the project file
+            return _projectServices.ThreadingPolicy.ExecuteSynchronously(async () => {
+
+                var generalProperties = await _projectServices.ActiveConfiguredProjectProperties.GetConfigurationGeneralPropertiesAsync()
+                                                                                                .ConfigureAwait(false);
+
+                return (string)await generalProperties.AppDesignerFolder.GetValueAsync()
+                                                                        .ConfigureAwait(false);
+            });
         }
     }
 }

@@ -8,9 +8,21 @@ namespace Microsoft.VisualStudio.ProjectSystem
     {
         public static UnconfiguredProject Create()
         {
-            var mock = new Mock<UnconfiguredProject>();
+            var threadingPolicy = IThreadHandlingFactory.Create();
 
-            return mock.Object;
+            var projectServices = new Mock<IProjectServices>();
+            projectServices.Setup(u => u.ThreadingPolicy)
+                               .Returns(threadingPolicy);
+
+            var service = new Mock<ProjectService>();
+            service.Setup(u => u.Services)
+                               .Returns(projectServices.Object);
+
+            var unconfiguredProject = new Mock<UnconfiguredProject>();
+            unconfiguredProject.Setup(u => u.ProjectService)
+                               .Returns(service.Object);
+
+            return unconfiguredProject.Object;
         }
     }
 }

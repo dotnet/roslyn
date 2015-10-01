@@ -13,22 +13,22 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
         [Fact]
         public void Constructor_NullAsImageProvider_ThrowsArgumentNull()
         {
-            var features = IProjectFeaturesFactory.Create();
+            var projectServices = IUnconfiguredProjectCommonServicesFactory.Create();
 
             Assert.Throws<ArgumentNullException>("imageProvider", () => {
 
-                new PropertiesFolderProjectTreeModifier((IProjectImageProvider)null, features);
+                new PropertiesFolderProjectTreeModifier((IProjectImageProvider)null, projectServices);
             });
         }
 
         [Fact]
-        public void Constructor_NullAsFeatures_ThrowsArgumentNull()
+        public void Constructor_NullAsProjectServices_ThrowsArgumentNull()
         {
             var imageProvider = IProjectImageProviderFactory.Create();
 
-            Assert.Throws<ArgumentNullException>("features", () => {
+            Assert.Throws<ArgumentNullException>("projectServices", () => {
 
-                new PropertiesFolderProjectTreeModifier(imageProvider, (IProjectFeatures)null);
+                new PropertiesFolderProjectTreeModifier(imageProvider, (IUnconfiguredProjectCommonServices)null);
             });
         }
 
@@ -332,6 +332,69 @@ Root (capabilities: {ProjectRoot})
             AssertAreEquivalent(expectedTree, result);
         }
 
+        [Fact]
+        public void ApplyModifications_ProjectWithNullPropertiesFolder_DefaultsToProperties()
+        {
+            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
+            var projectTreeProvider = IProjectTreeProviderFactory.Create();
+            var modifier = CreateInstance(features, appDesignerFolder: null);
+
+            var inputTree = ProjectTreeParser.Parse(@"
+Root (capabilities: {ProjectRoot})
+    Properties (capabilities: {Folder})
+");
+            var expectedTree = ProjectTreeParser.Parse(@"
+Root (capabilities: {ProjectRoot})
+    Properties (capabilities: {Folder AppDesignerFolder BubbleUp})
+");
+
+            var result = modifier.ApplyModifications(inputTree, projectTreeProvider);
+
+            AssertAreEquivalent(expectedTree, result);
+        }
+
+        [Fact]
+        public void ApplyModifications_ProjectWithEmptyPropertiesFolder_DefaultsToProperties()
+        {
+            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
+            var projectTreeProvider = IProjectTreeProviderFactory.Create();
+            var modifier = CreateInstance(features, appDesignerFolder: "");
+
+            var inputTree = ProjectTreeParser.Parse(@"
+Root (capabilities: {ProjectRoot})
+    Properties (capabilities: {Folder})
+");
+            var expectedTree = ProjectTreeParser.Parse(@"
+Root (capabilities: {ProjectRoot})
+    Properties (capabilities: {Folder AppDesignerFolder BubbleUp})
+");
+
+            var result = modifier.ApplyModifications(inputTree, projectTreeProvider);
+
+            AssertAreEquivalent(expectedTree, result);
+        }
+
+        [Fact]
+        public void ApplyModifications_ProjectWithNonDefaultPropertiesFolder_ReturnsCandidateMarkedWithAppDesignerFolderAndBubbleUp()
+        {
+            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
+            var projectTreeProvider = IProjectTreeProviderFactory.Create();
+            var modifier = CreateInstance(features, appDesignerFolder: "FooBar");
+
+            var inputTree = ProjectTreeParser.Parse(@"
+Root (capabilities: {ProjectRoot})
+    FooBar (capabilities: {Folder})
+");
+            var expectedTree = ProjectTreeParser.Parse(@"
+Root (capabilities: {ProjectRoot})
+    FooBar (capabilities: {Folder AppDesignerFolder BubbleUp})
+");
+
+            var result = modifier.ApplyModifications(inputTree, projectTreeProvider);
+
+            AssertAreEquivalent(expectedTree, result);
+        }
+
         private void AssertAreEquivalent(IProjectTree expected, IProjectTree actual)
         {
             string expectedAsString = ProjectTreeWriter.WriteToString(expected);
@@ -345,14 +408,25 @@ Root (capabilities: {ProjectRoot})
             return CreateInstance((IProjectImageProvider)null, (IProjectFeatures)null);
         }
 
-        private PropertiesFolderProjectTreeModifier CreateInstance(IProjectFeatures features)
+        private PropertiesFolderProjectTreeModifier CreateInstance(IProjectFeatures features, string appDesignerFolder = "Properties")
         {
-            return CreateInstance((IProjectImageProvider)null, features);
+            return CreateInstance((IProjectImageProvider)null, features, appDesignerFolder);
         }
 
-        private PropertiesFolderProjectTreeModifier CreateInstance(IProjectImageProvider imageProvider, IProjectFeatures features)
+        private PropertiesFolderProjectTreeModifier CreateInstance(IProjectImageProvider imageProvider, IProjectFeatures features, string appDesignerFolder = "Properties")
         {
-            return new PropertiesFolderProjectTreeModifier(imageProvider ?? IProjectImageProviderFactory.Create(), features ?? IProjectFeaturesFactory.Create());
+            var threadingPolicy = IThreadHandlingFactory.Create();
+            var unconfiguredProject = IUnconfiguredProjectFactory.Create();
+            var projectProperties = ProjectPropertiesFactory.Create(unconfiguredProject,
+                new PropertyData() {
+                    Category = nameof(ConfigurationGeneral),
+                    PropertyName = nameof(ConfigurationGeneral.AppDesignerFolder),
+                    Value = appDesignerFolder,
+                });
+
+            var services = IUnconfiguredProjectCommonServicesFactory.Create(features, threadingPolicy, projectProperties.ConfiguredProject, projectProperties);
+
+            return new PropertiesFolderProjectTreeModifier(imageProvider ?? IProjectImageProviderFactory.Create(), services);
         }
     }
 }

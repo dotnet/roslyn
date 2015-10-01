@@ -23,6 +23,7 @@
     <StringProperty Name="TargetFrameworkIdentifier" Visible="False" />
     <StringProperty Name="TargetFrameworkVersion" Visible="False" />
     <StringProperty Name="TargetFrameworkProfile" Visible="False" />
+
     <StringProperty Name="TargetPath" />
     <StringProperty Name="DocumentationFile" DisplayName="XML doc comments file" />
     <StringProperty Name="AssemblyName" />
@@ -93,4 +94,10 @@
     <StringProperty Name="OneAppCapabilities" Visible="False" />
     <StringProperty Name="SharedProjectAppliesTo" Visible="False" Description="Capability match expression that at a minimum tests for the language of the Shared Project; used to filter Add Shared Project Reference choices."/>
     <BoolProperty Name="AlwaysUseNumericalSuffixInItemNames" Visible="False" Description="Indicates if names of newly added items should always be suffixed with a number." />
+    
+    <StringProperty Name="AppDesignerFolder" Visible="false">
+        <StringProperty.DataSource>
+            <DataSource Persistence="ProjectFile" Label="Configuration" HasConfigurationCondition="false" />
+        </StringProperty.DataSource>
+    </StringProperty>
 </Rule>

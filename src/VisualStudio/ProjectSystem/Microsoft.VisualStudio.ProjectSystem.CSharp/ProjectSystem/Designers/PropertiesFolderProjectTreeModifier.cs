@@ -14,8 +14,8 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
     internal class PropertiesFolderProjectTreeModifier : AppDesignerFolderProjectTreeModifierBase
     {
         [ImportingConstructor]
-        public PropertiesFolderProjectTreeModifier([Import(typeof(ProjectImageProviderAggregator))]IProjectImageProvider imageProvider, IProjectFeatures features)
-            : base(imageProvider, features)
+        public PropertiesFolderProjectTreeModifier([Import(typeof(ProjectImageProviderAggregator))]IProjectImageProvider imageProvider, IUnconfiguredProjectCommonServices projectServices)
+            : base(imageProvider, projectServices)
         {
         }
         
