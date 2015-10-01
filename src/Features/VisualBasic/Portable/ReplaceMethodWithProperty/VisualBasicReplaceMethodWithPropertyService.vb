@@ -33,7 +33,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
 
             ' Offer this refactoring anywhere in the signature of the method.
             Dim position = token.SpanStart
-            If position < start OrElse position > containingMethod.ParameterList.Span.End Then
+            If position < start Then
+                Return Nothing
+            End If
+
+            If containingMethod.HasReturnType() AndAlso
+                position > containingMethod.GetReturnType().Span.End Then
+                Return Nothing
+            End If
+
+            If position > containingMethod.ParameterList.Span.End Then
                 Return Nothing
             End If
 
