@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             var compilation = CreateCompilation(source,
                 assemblyName: assemblyName,
                 references: new[] { MscorlibRef },
-                options: (debug ? TestOptions.DebugExe : TestOptions.ReleaseExe).WithDeterminism(true));
+                options: (debug ? TestOptions.DebugExe : TestOptions.ReleaseExe).WithDeterministic(true));
 
             Guid result = default(Guid);
             base.CompileAndVerify(compilation, validator: a =>
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 
         private ImmutableArray<byte> EmitDeterministic(string source, Platform platform, DebugInformationFormat pdbFormat, bool optimize)
         {
-            var options = (optimize ? TestOptions.ReleaseExe : TestOptions.DebugExe).WithPlatform(platform).WithDeterminism(true);
+            var options = (optimize ? TestOptions.ReleaseExe : TestOptions.DebugExe).WithPlatform(platform).WithDeterministic(true);
 
             var compilation = CreateCompilation(source, assemblyName: "DeterminismTest", references: new[] { MscorlibRef }, options: options);
 
@@ -56,12 +56,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             var compilationDeterministic = CreateCompilation(
                 source,
                 assemblyName: "DeterminismTest", references: new[] { MscorlibRef },
-                options: TestOptions.DebugDll.WithDeterminism(true));
+                options: TestOptions.DebugDll.WithDeterministic(true));
             var compilationNonDeterministic = CreateCompilation(
                 source, 
                 assemblyName: "DeterminismTest", 
                 references: new[] { MscorlibRef },
-                options: TestOptions.DebugDll.WithDeterminism(false));
+                options: TestOptions.DebugDll.WithDeterministic(false));
 
             var resultDeterministic = compilationDeterministic.Emit(Stream.Null, Stream.Null);
             var resultNonDeterministic = compilationNonDeterministic.Emit(Stream.Null, Stream.Null);
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             var compilation = CSharpCompilation.Create("Program",
                                                        new[] { tree },
                                                        new[] { MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly) },
-                                                       new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithDeterminism(true));
+                                                       new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithDeterministic(true));
             var output = new WriteOnlyStream();
             compilation.Emit(output);
         }

@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { ConcurrentBuild = concurrentBuild };
         }
 
-        public CSharpCompilationOptions WithDeterminism(bool deterministic)
+        public CSharpCompilationOptions WithDeterministic(bool deterministic)
         {
             if (deterministic == this.Deterministic)
             {
