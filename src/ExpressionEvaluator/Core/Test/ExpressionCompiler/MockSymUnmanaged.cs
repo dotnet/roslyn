@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.InteropServices.ComTypes;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
@@ -229,13 +230,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     {
         private readonly ImmutableArray<ISymUnmanagedScope> _children;
         private readonly ImmutableArray<ISymUnmanagedNamespace> _namespaces;
+        private readonly ISymUnmanagedConstant[] _constants;
         private readonly int _startOffset;
         private readonly int _endOffset;
 
-        public MockSymUnmanagedScope(ImmutableArray<ISymUnmanagedScope> children, ImmutableArray<ISymUnmanagedNamespace> namespaces, int startOffset = 0, int endOffset = 1)
+        public MockSymUnmanagedScope(ImmutableArray<ISymUnmanagedScope> children, ImmutableArray<ISymUnmanagedNamespace> namespaces, ISymUnmanagedConstant[] constants = null, int startOffset = 0, int endOffset = 1)
         {
             _children = children;
             _namespaces = namespaces;
+            _constants = constants ?? new ISymUnmanagedConstant[0];
             _startOffset = startOffset;
             _endOffset = endOffset;
         }
@@ -288,13 +291,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public int GetConstantCount(out int pRetVal)
         {
-            pRetVal = 0;
+            pRetVal = _constants.Length;
             return SymUnmanagedReaderExtensions.S_OK;
         }
 
         public int GetConstants(int cConstants, out int pcConstants, ISymUnmanagedConstant[] constants)
         {
-            pcConstants = 0;
+            pcConstants = _constants.Length;
+            if (constants != null)
+            {
+                Array.Copy(_constants, constants, constants.Length);
+            }
             return SymUnmanagedReaderExtensions.S_OK;
         }
     }
@@ -328,6 +335,44 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         int ISymUnmanagedNamespace.GetVariables(int cVars, out int pcVars, ISymUnmanagedVariable[] pVars)
         {
             throw new NotImplementedException();
+        }
+    }
+
+    internal delegate int GetSignatureDelegate(int bufferLength, out int count, byte[] signature);
+
+    internal sealed class MockSymUnmanagedConstant : ISymUnmanagedConstant
+    {
+        private readonly string _name;
+        private readonly object _value;
+        private readonly GetSignatureDelegate _getSignature;
+
+        public MockSymUnmanagedConstant(string name, object value, GetSignatureDelegate getSignature)
+        {
+            _name = name;
+            _value = value;
+            _getSignature = getSignature;
+        }
+
+        int ISymUnmanagedConstant.GetName(int bufferLength, out int count, char[] name)
+        {
+            count = _name.Length + 1; // + 1 for null terminator
+            Debug.Assert((bufferLength == 0) || (bufferLength == count));
+            for (int i = 0; i < bufferLength - 1; i++)
+            {
+                name[i] = _name[i];
+            }
+            return SymUnmanagedReaderExtensions.S_OK;
+        }
+
+        int ISymUnmanagedConstant.GetSignature(int bufferLength, out int count, byte[] signature)
+        {
+            return _getSignature(bufferLength, out count, signature);
+        }
+
+        int ISymUnmanagedConstant.GetValue(out object value)
+        {
+            value = _value;
+            return SymUnmanagedReaderExtensions.S_OK;
         }
     }
 
