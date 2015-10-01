@@ -154,7 +154,6 @@ NewLines("class C \n async function [||]GetFoo() as Task \n End function \n End 
 NewLines("class C \n function [||]GetFoo(of T)() as integer \n End function \n End class"))
         End Sub
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Sub TestExtensionMethod()
             TestMissing(
