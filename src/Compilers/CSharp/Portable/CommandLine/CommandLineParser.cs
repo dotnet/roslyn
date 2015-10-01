@@ -1136,7 +1136,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 OutputFileName = outputFileName,
                 PdbPath = pdbPath,
                 EmitPdb = emitPdb,
-                // TODO: pipe debugInformationFormat through this
                 OutputDirectory = outputDirectory,
                 DocumentationPath = documentationPath,
                 ErrorLogPath = errorLogPath,
