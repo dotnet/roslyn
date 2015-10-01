@@ -309,8 +309,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solution = CreateSolutionWithProjectDependencyChain(projectCount);
             ProjectId[] projectIds = solution.ProjectIds.ToArray();
 
-            var compilation0 = solution.GetCompilationAsync(projectIds[0], CancellationToken.None).Result;
-            var compilation2 = solution.GetCompilationAsync(projectIds[2], CancellationToken.None).Result;
+            var compilation0 = solution.GetProject(projectIds[0]).GetCompilationAsync(CancellationToken.None).Result;
+            var compilation2 = solution.GetProject(projectIds[2]).GetCompilationAsync(CancellationToken.None).Result;
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
