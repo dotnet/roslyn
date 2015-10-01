@@ -194,7 +194,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             If Not parentExpression.IsParentKind(SyntaxKind.InvocationExpression) OrElse
                Not parentExpression.Parent.IsParentKind(SyntaxKind.ExpressionStatement) Then
 
-
                 ' Wasn't invoked.  Change the name, but report a conflict.
                 Dim annotation = ConflictAnnotation.Create(FeaturesResources.NonInvokedMethodCannotBeReplacedWithProperty)
                 editor.ReplaceNode(nameNode, Function(n, g) newName.WithIdentifier(newName.Identifier.WithAdditionalAnnotations(annotation)))
