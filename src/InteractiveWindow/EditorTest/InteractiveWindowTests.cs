@@ -376,13 +376,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Task.Run(() => Window.Operations.SelectAll()).PumpingWait();
         }
 
-        [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
+        [Fact]
         public void CallPasteOnNonUIThread()
         {
             Task.Run(() => Window.Operations.Paste()).PumpingWait();
         }
 
-        [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
+        [Fact]
         public void CallCutOnNonUIThread()
         {
             Task.Run(() => Window.Operations.Cut()).PumpingWait();
