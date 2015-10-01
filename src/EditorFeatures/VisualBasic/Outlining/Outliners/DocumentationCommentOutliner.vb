@@ -26,22 +26,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
                         AppendTextTokens(sb, textTokens)
                     ElseIf node.Kind() = SyntaxKind.XmlEmptyElement Then
                         Dim elementNode = DirectCast(node, XmlEmptyElementSyntax)
-                        Dim cref = elementNode.Attributes.OfType(Of XmlCrefAttributeSyntax).FirstOrDefault()
-                        If cref IsNot Nothing Then
-                            sb.Append(" ")
-                            sb.Append(cref.Reference.ToString())
-                        End If
-
-                        Dim nameattribute = elementNode.Attributes.OfType(Of XmlNameAttributeSyntax).FirstOrDefault()
-                        If nameattribute IsNot Nothing Then
-                            sb.Append(" ")
-                            sb.Append(nameattribute.Reference.ToString())
-                        End If
-
-                        Dim langword = elementNode.Attributes.OfType(Of XmlAttributeSyntax).FirstOrDefault(Function(a) a.Name.ToString() = "langword")
-                        If langword IsNot Nothing Then
-                            AppendTextTokens(sb, DirectCast(langword.Value, XmlStringSyntax).TextTokens)
-                        End If
+                        For Each attribute In elementNode.Attributes
+                            If TypeOf attribute Is XmlCrefAttributeSyntax Then
+                                sb.Append(" ")
+                                sb.Append(DirectCast(attribute, XmlCrefAttributeSyntax).Reference.ToString())
+                            ElseIf TypeOf attribute Is XmlNameAttributeSyntax Then
+                                sb.Append(" ")
+                                sb.Append(DirectCast(attribute, XmlNameAttributeSyntax).Reference.ToString())
+                            ElseIf TypeOf attribute Is XmlAttributeSyntax Then
+                                AppendTextTokens(sb, DirectCast(DirectCast(attribute, XmlAttributeSyntax).Value, XmlStringSyntax).TextTokens)
+                            Else
+                                Debug.Fail($"Unexpected XML syntax kind {attribute.Kind()}")
+                            End If
+                        Next
                     End If
                 Next
 

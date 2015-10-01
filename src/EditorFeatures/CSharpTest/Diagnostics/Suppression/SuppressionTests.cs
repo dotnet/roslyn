@@ -542,6 +542,9 @@ class Class
 
             public class DiagnosticWithBadIdSuppressionTests : CSharpPragmaWarningDisableSuppressionTests
             {
+                // Analyzer driver generates a no-location analyzer exception diagnostic, which we don't intend to test here.
+                protected override bool IncludeNoLocationDiagnostics => false;
+
                 private class UserDiagnosticAnalyzer : DiagnosticAnalyzer
                 {
                     private DiagnosticDescriptor _descriptor =
@@ -1412,18 +1415,18 @@ class Class { }
 
         #region NoLocation Diagnostics tests
 
-        public class CSharpDiagnosticWithoutLocationSuppressionTests : CSharpSuppressionTests
+        public partial class CSharpDiagnosticWithoutLocationSuppressionTests : CSharpSuppressionTests
         {
             private class UserDiagnosticAnalyzer : DiagnosticAnalyzer
             {
-                private DiagnosticDescriptor _descriptor =
+                public static readonly DiagnosticDescriptor Descriptor =
                     new DiagnosticDescriptor("NoLocationDiagnostic", "NoLocationDiagnostic", "NoLocationDiagnostic", "NoLocationDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
 
                 public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
                 {
                     get
                     {
-                        return ImmutableArray.Create(_descriptor);
+                        return ImmutableArray.Create(Descriptor);
                     }
                 }
 
@@ -1434,7 +1437,7 @@ class Class { }
 
                 public void AnalyzeNode(SyntaxNodeAnalysisContext context)
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(_descriptor, Location.None));
+                    context.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None));
                 }
             }
 
@@ -1454,21 +1457,31 @@ class Class { }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
             [WorkItem(1073825)]
-            public void TestDiagnosticWithoutLocationCannotBeSuppressed()
+            public void TestDiagnosticWithoutLocationCanBeSuppressed()
             {
-                TestMissing(
-        @"
+                Test(
+        @"[||]
 using System;
 
-[|class Class|]
+class Class
 {
     int Method()
     {
         int x = 0;
     }
-}");
+}",
+            $@"
+// This file is used by Code Analysis to maintain SuppressMessage 
+// attributes that are applied to this project.
+// Project-level suppressions either have no target or are given 
+// a specific target and scoped to a namespace, type, member, etc.
+
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""NoLocationDiagnostic"", ""NoLocationDiagnostic:NoLocationDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"")]
+
+");
             }
         }
+
         #endregion
     }
 }

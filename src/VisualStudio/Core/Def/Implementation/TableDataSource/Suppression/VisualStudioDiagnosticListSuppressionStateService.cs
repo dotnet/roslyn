@@ -32,6 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private int _selectedSuppressedItems;
         private int _selectedRoslynItems;
         private int _selectedCompilerDiagnosticItems;
+        private int _selectedNoLocationDiagnosticItems;
         private int _selectedNonSuppressionStateItems;
 
         private const string SynthesizedFxCopDiagnostic = "SynthesizedFxCopDiagnostic";
@@ -62,7 +63,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         // If only Roslyn active items are selected, we enable suppress in source.
         public bool CanSuppressSelectedEntriesInSource => _selectedActiveItems > 0 &&
             _selectedSuppressedItems == 0 &&
-            _selectedRoslynItems == _selectedActiveItems;
+            _selectedRoslynItems == _selectedActiveItems &&
+            (_selectedRoslynItems - _selectedNoLocationDiagnosticItems) > 0;
 
         // If only active items are selected, and there is at least one Roslyn item, we enable suppress in suppression file.
         // Also, compiler diagnostics cannot be suppressed in suppression file, so there must be at least one non-compiler item.
@@ -76,6 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _selectedSuppressedItems = 0;
             _selectedRoslynItems = 0;
             _selectedCompilerDiagnosticItems = 0;
+            _selectedNoLocationDiagnosticItems = 0;
             _selectedNonSuppressionStateItems = 0;
         }
 
@@ -119,14 +122,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private bool ProcessEntries(IEnumerable<ITableEntryHandle> entryHandles, bool added)
         {
-            bool isRoslynEntry, isSuppressedEntry, isCompilerDiagnosticEntry;
+            bool isRoslynEntry, isSuppressedEntry, isCompilerDiagnosticEntry, isNoLocationDiagnosticEntry;
             var hasSuppressionStateEntry = false;
             foreach (var entryHandle in entryHandles)
             {
-                if (EntrySupportsSuppressionState(entryHandle, out isRoslynEntry, out isSuppressedEntry, out isCompilerDiagnosticEntry))
+                if (EntrySupportsSuppressionState(entryHandle, out isRoslynEntry, out isSuppressedEntry, out isCompilerDiagnosticEntry, out isNoLocationDiagnosticEntry))
                 {
                     hasSuppressionStateEntry = true;
-                    HandleSuppressionStateEntry(isRoslynEntry, isSuppressedEntry, isCompilerDiagnosticEntry, added);
+                    HandleSuppressionStateEntry(isRoslynEntry, isSuppressedEntry, isCompilerDiagnosticEntry, isNoLocationDiagnosticEntry, added);
                 }
                 else
                 {
@@ -137,8 +140,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return hasSuppressionStateEntry;
         }
 
-        private static bool EntrySupportsSuppressionState(ITableEntryHandle entryHandle, out bool isRoslynEntry, out bool isSuppressedEntry, out bool isCompilerDiagnosticEntry)
+        private static bool EntrySupportsSuppressionState(ITableEntryHandle entryHandle, out bool isRoslynEntry, out bool isSuppressedEntry, out bool isCompilerDiagnosticEntry, out bool isNoLocationDiagnosticEntry)
         {
+            string filePath;
+            isNoLocationDiagnosticEntry = !entryHandle.TryGetValue(StandardTableColumnDefinitions.DocumentName, out filePath) ||
+                string.IsNullOrEmpty(filePath);
+
             int index;
             var roslynSnapshot = GetEntriesSnapshot(entryHandle, out index);
             if (roslynSnapshot == null)
@@ -183,7 +190,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private static bool IsEntryWithConfigurableSuppressionState(DiagnosticData entry)
         {
             return entry != null &&
-                entry.HasTextSpan &&
                 !SuppressionHelpers.IsNotConfigurableDiagnostic(entry);
         }
 
@@ -381,7 +387,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        private void HandleSuppressionStateEntry(bool isRoslynEntry, bool isSuppressedEntry, bool isCompilerDiagnosticEntry, bool added)
+        private void HandleSuppressionStateEntry(bool isRoslynEntry, bool isSuppressedEntry, bool isCompilerDiagnosticEntry, bool isNoLocationDiagnosticEntry, bool added)
         {
             if (isRoslynEntry)
             {
@@ -391,6 +397,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             if (isCompilerDiagnosticEntry)
             {
                 UpdateSelectedItems(added, ref _selectedCompilerDiagnosticItems);
+            }
+
+            if (isNoLocationDiagnosticEntry)
+            {
+                UpdateSelectedItems(added, ref _selectedNoLocationDiagnosticItems);
             }
 
             if (isSuppressedEntry)

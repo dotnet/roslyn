@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
         {
             var compilationRoot = (CompilationUnitSyntax)newRoot;
             var isFirst = !compilationRoot.AttributeLists.Any();
-            var leadingTriviaForAttributeList = isFirst ?
+            var leadingTriviaForAttributeList = isFirst && !compilationRoot.HasLeadingTrivia ?
                 SyntaxFactory.TriviaList(SyntaxFactory.Comment(GlobalSuppressionsFileHeaderComment)) :
                 default(SyntaxTriviaList);
             var attributeList = CreateAttributeList(targetSymbol, diagnostic, leadingTrivia: leadingTriviaForAttributeList, needsLeadingEndOfLine: !isFirst);

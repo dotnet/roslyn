@@ -3790,6 +3790,28 @@ partial class Foo
 #End Region
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetBaseName1()
+            Dim code =
+<Code>
+using N.M;
+
+namespace N
+{
+    namespace M
+    {
+        class Generic&lt;T&gt; { }
+    }
+}
+
+class $$C : Generic&lt;string&gt;
+{
+}
+</Code>
+
+            TestGetBaseName(code, "N.M.Generic<string>")
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TypeDescriptor_GetProperties()
             Dim code =
 <Code>

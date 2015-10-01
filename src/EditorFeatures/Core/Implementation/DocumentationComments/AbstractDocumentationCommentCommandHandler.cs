@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -220,14 +219,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             ITextView textView,
             CancellationToken cancellationToken)
         {
-            if (!subjectBuffer.GetOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration))
-            {
-                return false;
-            }
+            // Don't attempt to generate a new XML doc comment on ENTER if the option to auto-generate
+            // them isn't set. Regardless of the option, we should generate exterior trivia (i.e. /// or ''')
+            // on ENTER inside an existing XML doc comment.
 
-            if (TryGenerateDocumentationCommentAfterEnter(syntaxTree, text, position, originalPosition, subjectBuffer, textView, cancellationToken))
+            if (subjectBuffer.GetOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration))
             {
-                return true;
+                if (TryGenerateDocumentationCommentAfterEnter(syntaxTree, text, position, originalPosition, subjectBuffer, textView, cancellationToken))
+                {
+                    return true;
+                }
             }
 
             if (TryGenerateExteriorTriviaAfterEnter(syntaxTree, text, position, originalPosition, subjectBuffer, textView, cancellationToken))

@@ -222,5 +222,99 @@ Class C
 End Class</File>, "From")
         End Sub
 
+        <WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub FromForTypeInheritingCollectionInitializerPattern()
+            Dim code = <File>
+Imports System.Collections
+
+Public Class SupportsAdd
+    Implements IEnumerable
+
+    Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
+        Throw New NotImplementedException()
+    End Function
+
+    Public Sub Add(x As Object)
+
+    End Sub
+End Class
+
+Public Class DerivedSupportsAdd
+    Inherits SupportsAdd
+End Class
+
+Class Program
+    Sub Foo()
+        Dim x = New DerivedSupportsAdd |
+    End Sub
+End Class
+
+                       </File>
+
+            VerifyRecommendationsContain(code, "From")
+        End Sub
+
+        <WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub FromForTypeInheritingCollectionInitializerPatternInAccessible()
+            Dim code = <File>
+Imports System.Collections
+
+Public Class SupportsAdd
+    Implements IEnumerable
+
+    Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
+        Throw New NotImplementedException()
+    End Function
+
+    Protected Sub Add(x As Object)
+
+    End Sub
+End Class
+
+Public Class DerivedSupportsAdd
+    Inherits SupportsAdd
+End Class
+
+Class Program
+    Sub Foo()
+        Dim x = New DerivedSupportsAdd |
+    End Sub
+End Class
+
+                       </File>
+
+            VerifyRecommendationsMissing(code, "From")
+        End Sub
+
+        <WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub FromForTypeInheritingCollectionInitializerPatternAccessible()
+            Dim code = <File>
+Imports System.Collections
+
+Public Class SupportsAdd
+    Implements IEnumerable
+
+    Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
+        Throw New NotImplementedException()
+    End Function
+
+    Protected Sub Add(x As Object)
+
+    End Sub
+End Class
+
+Public Class DerivedSupportsAdd
+    Inherits SupportsAdd
+
+    Sub Foo()
+        Dim x = New DerivedSupportsAdd |
+    End Sub
+End Class</File>
+
+            VerifyRecommendationsContain(code, "From")
+        End Sub
     End Class
 End Namespace

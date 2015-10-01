@@ -33,17 +33,17 @@ $$
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Sub TestInvalidInvocationSymbol()
+        Public Sub TestWithSingleClass()
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-class $$C { }
+class [|$$C|] { }
         </Document>
     </Project>
 </Workspace>
 
-            Test(workspace, shouldSucceed:=False)
+            Test(workspace)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
@@ -139,6 +139,69 @@ class C : IDisposable
         IDisposable d;
         d.$$Dispose();
     }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Sub TestWithSimpleMethod()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C 
+{
+    public void [|$$M|]() { }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Sub TestWithOverridableMethodOnBase()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C 
+{
+    public virtual void [|$$M|]() { }
+}
+
+class D : C
+{
+    public override void [|M|]() { }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Sub TestWithOverridableMethodOnImplementation()
+            ' Our philosophy is to only show derived in this case, since we know the implementation of 
+            ' D could never call C.M here
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C 
+{
+    public virtual void M() { }
+}
+
+class D : C
+{
+    public override void [|$$M|]() { }
 }
         </Document>
     </Project>

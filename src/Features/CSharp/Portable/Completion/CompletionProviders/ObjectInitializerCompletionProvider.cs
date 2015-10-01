@@ -71,8 +71,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return false;
             }
 
+            var enclosingSymbol = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
             // Non-exclusive if initializedType can be initialized as a collection.
-            if (initializedType.CanSupportCollectionInitializer())
+            if (initializedType.CanSupportCollectionInitializer(enclosingSymbol))
             {
                 return false;
             }
