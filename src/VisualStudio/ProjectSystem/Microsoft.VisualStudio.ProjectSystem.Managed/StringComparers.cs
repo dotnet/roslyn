@@ -14,10 +14,5 @@ namespace Microsoft.VisualStudio
         {
             get { return StringComparer.OrdinalIgnoreCase; }
         }
-
-        public static IEqualityComparer<string> Capabilities
-        {
-            get { return StringComparer.OrdinalIgnoreCase; }
-        }
     }
 }
