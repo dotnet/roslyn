@@ -18,6 +18,7 @@
     </NuGetPackageImportStamp>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.CSharp.VS.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic.UnitTests" />

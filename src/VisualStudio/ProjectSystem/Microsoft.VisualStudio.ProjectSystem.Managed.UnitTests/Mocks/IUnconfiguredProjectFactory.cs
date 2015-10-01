@@ -6,7 +6,7 @@ namespace Microsoft.VisualStudio.ProjectSystem
 {
     internal static class IUnconfiguredProjectFactory
     {
-        public static UnconfiguredProject Create()
+        public static UnconfiguredProject Create(object hostObject = null)
         {
             var threadingPolicy = IThreadHandlingFactory.Create();
 
@@ -15,12 +15,19 @@ namespace Microsoft.VisualStudio.ProjectSystem
                                .Returns(threadingPolicy);
 
             var service = new Mock<ProjectService>();
-            service.Setup(u => u.Services)
-                               .Returns(projectServices.Object);
+            service.Setup(p => p.Services)
+                   .Returns(projectServices.Object);
+
+            var unconfiguredProjectServices = new Mock<IUnconfiguredProjectServices>();
+            unconfiguredProjectServices.Setup(u => u.HostObject)
+                                       .Returns(hostObject);
 
             var unconfiguredProject = new Mock<UnconfiguredProject>();
             unconfiguredProject.Setup(u => u.ProjectService)
                                .Returns(service.Object);
+
+            unconfiguredProject.Setup(u => u.Services)
+                               .Returns(unconfiguredProjectServices.Object);
 
             return unconfiguredProject.Object;
         }
