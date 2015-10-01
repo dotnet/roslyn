@@ -51,6 +51,9 @@ namespace Microsoft.CodeAnalysis
                 {
                     this.Compilation = compilation;
                     this.DeclarationOnlyCompilation = declarationOnlyCompilation;
+
+                    // Declaration-only compilations should never have any references
+                    Contract.ThrowIfTrue(declarationOnlyCompilation != null && declarationOnlyCompilation.ExternalReferences.Any());
                 }
 
                 public static State Create(
