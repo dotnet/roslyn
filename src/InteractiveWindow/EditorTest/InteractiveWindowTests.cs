@@ -1369,9 +1369,9 @@ System.Console.WriteLine();",
 
     internal sealed class TestClipboard : InteractiveWindowClipboard
     {
-        DataObject _data = new DataObject();
+        DataObject _data = null;
 
-        internal void Clear() => _data = new DataObject();
+        internal void Clear() => _data = null;
 
         internal IDataObject GetDataObject() => _data;
 
