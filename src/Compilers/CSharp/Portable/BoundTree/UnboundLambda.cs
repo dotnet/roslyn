@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Collections;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -163,10 +164,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            public override BoundNode VisitLambda(BoundLambda node)
+            public override BoundNode Visit(BoundNode node)
             {
-                // Do not recurse into nested lambdas; we don't want their returns.
+                if (!(node is BoundExpression))
+                {
+                    return base.Visit(node);
+                }
+
                 return null;
+            }
+
+            protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
+            {
+                throw ExceptionUtilities.Unreachable;
             }
 
             public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)

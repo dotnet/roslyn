@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.Common;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
@@ -17,8 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor
         /// When an event handler is newly added, this event will fire for the currently available todo items and then
         /// afterward for any changes since.
         /// </summary>
-        event EventHandler<TodoListEventArgs> TodoListUpdated;
+        event EventHandler<TodoItemsUpdatedArgs> TodoListUpdated;
 
         ImmutableArray<TodoItem> GetTodoItems(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Get current UpdatedEventArgs stored in ITodoListProvider
+        /// </summary>
+        IEnumerable<UpdatedEventArgs> GetTodoItemsUpdatedEventArgs(Workspace workspace, CancellationToken cancellationToken);
     }
 }

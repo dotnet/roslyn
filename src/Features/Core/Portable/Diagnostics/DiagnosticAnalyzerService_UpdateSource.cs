@@ -2,16 +2,19 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    [Export(typeof(IDiagnosticUpdateSource))]
     internal partial class DiagnosticAnalyzerService : IDiagnosticUpdateSource
     {
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
+
+        private DiagnosticAnalyzerService(IDiagnosticUpdateSourceRegistrationService registrationService) : this()
+        {
+            registrationService.Register(this);
+        }
 
         internal void RaiseDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs state)
         {

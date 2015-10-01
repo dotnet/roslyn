@@ -602,37 +602,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // In case of async lambdas, which synthesize a state machine type during the following rewrite, the containing method has already been uniquely named, 
                 // so there is no need to produce a unique method ordinal for the corresponding state machine type, whose name includes the (unique) containing method name.
                 const int methodOrdinal = -1;
-
-                // Local functions can be iterators as well as be async (lambdas can only be async), so we need to lower both iterators and async
-                IteratorStateMachine iteratorStateMachine;
-                BoundStatement loweredBody = IteratorRewriter.Rewrite(methodWithBody.Body, method, methodOrdinal, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out iteratorStateMachine);
-                StateMachineTypeSymbol stateMachine = iteratorStateMachine;
-
-                if (!loweredBody.HasErrors)
-                {
-                    AsyncStateMachine asyncStateMachine;
-                    loweredBody = AsyncRewriter.Rewrite(loweredBody, method, methodOrdinal, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out asyncStateMachine);
-
-                    Debug.Assert(iteratorStateMachine == null || asyncStateMachine == null);
-                    stateMachine = stateMachine ?? asyncStateMachine;
-                }
-
                 MethodBody emittedBody = null;
-                if (!diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors)
+
+                try
                 {
-                    emittedBody = GenerateMethodBody(
-                        _moduleBeingBuiltOpt,
-                        method,
-                        methodOrdinal,
-                        loweredBody,
-                        ImmutableArray<LambdaDebugInfo>.Empty,
-                        ImmutableArray<ClosureDebugInfo>.Empty,
-                        stateMachine,
-                        variableSlotAllocatorOpt,
-                        diagnosticsThisMethod,
-                        _debugDocumentProvider,
-                        methodWithBody.ImportChainOpt,
-                        emittingPdb: _emittingPdb);
+                    // Local functions can be iterators as well as be async (lambdas can only be async), so we need to lower both iterators and async
+                    IteratorStateMachine iteratorStateMachine;
+                    BoundStatement loweredBody = IteratorRewriter.Rewrite(methodWithBody.Body, method, methodOrdinal, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out iteratorStateMachine);
+                    StateMachineTypeSymbol stateMachine = iteratorStateMachine;
+
+                    if (!loweredBody.HasErrors)
+                    {
+                        AsyncStateMachine asyncStateMachine;
+                        loweredBody = AsyncRewriter.Rewrite(loweredBody, method, methodOrdinal, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out asyncStateMachine);
+
+                        Debug.Assert(iteratorStateMachine == null || asyncStateMachine == null);
+                        stateMachine = stateMachine ?? asyncStateMachine;
+                    }
+
+                    if (!diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors)
+                    {
+                        emittedBody = GenerateMethodBody(
+                            _moduleBeingBuiltOpt,
+                            method,
+                            methodOrdinal,
+                            loweredBody,
+                            ImmutableArray<LambdaDebugInfo>.Empty,
+                            ImmutableArray<ClosureDebugInfo>.Empty,
+                            stateMachine,
+                            variableSlotAllocatorOpt,
+                            diagnosticsThisMethod,
+                            _debugDocumentProvider,
+                            methodWithBody.ImportChainOpt,
+                            emittingPdb: _emittingPdb);
+                    }
+                }
+                catch (BoundTreeVisitor.CancelledByStackGuardException ex)
+                {
+                    ex.AddAnError(_diagnostics);
                 }
 
                 _diagnostics.AddRange(diagnosticsThisMethod);
@@ -1157,6 +1164,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return body;
             }
 
+            try
+            {
             bool sawLambdas;
             bool sawLocalFunctions;
             bool sawAwaitInExceptionHandler;
@@ -1244,6 +1253,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return bodyWithoutAsync;
         }
+            catch (BoundTreeVisitor.CancelledByStackGuardException ex)
+            {
+                ex.AddAnError(diagnostics);
+                return new BoundBadStatement(body.Syntax, ImmutableArray.Create<BoundNode>(body), hasErrors: true);
+            }
+        }
 
         private static MethodBody GenerateMethodBody(
             PEModuleBuilder moduleBuilder,
@@ -1273,6 +1288,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Cci.AsyncMethodBodyDebugInfo asyncDebugInfo = null;
 
                 var codeGen = new CodeGen.CodeGenerator(method, block, builder, moduleBuilder, diagnosticsForThisMethod, optimizations, emittingPdb);
+
+                if (diagnosticsForThisMethod.HasAnyErrors())
+                {
+                    // we are done here. Since there were errors we should not emit anything.
+                    return null;
+                }
 
                 // We need to save additional debugging information for MoveNext of an async state machine.
                 var stateMachineMethod = method as SynthesizedStateMachineMethod;

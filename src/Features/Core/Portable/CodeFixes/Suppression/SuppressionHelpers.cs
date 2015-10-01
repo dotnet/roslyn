@@ -22,14 +22,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
         private static bool CanBeSuppressedOrUnsuppressed(Diagnostic diagnostic, bool checkCanBeSuppressed)
         {
-            if (diagnostic.Location.Kind != LocationKind.SourceFile ||
-                (diagnostic.IsSuppressed == checkCanBeSuppressed) ||
+            if (diagnostic.IsSuppressed == checkCanBeSuppressed ||
                 IsNotConfigurableDiagnostic(diagnostic))
             {
                 // Don't offer suppression fixes for:
-                //   1. Diagnostics without a source location.
-                //   2. Diagnostics with a source suppression.
-                //   3. Non-configurable diagnostics (includes compiler errors).
+                //   1. Diagnostics with a source suppression.
+                //   2. Non-configurable diagnostics (includes compiler errors).
                 return false;
             }
 

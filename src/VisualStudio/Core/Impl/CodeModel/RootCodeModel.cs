@@ -193,8 +193,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public string DotNetNameFromLanguageSpecific(string languageName)
         {
-            // VB implemented this but C# never did. Does it matter?
-            throw Exceptions.ThrowENotImpl();
+            var compilation = GetCompilation();
+            var typeSymbol = CodeModelService.GetTypeSymbolFromFullName(languageName, compilation);
+            if (typeSymbol == null)
+            {
+                throw Exceptions.ThrowEInvalidArg();
+            }
+
+            return MetadataNameHelpers.GetMetadataName(typeSymbol);
         }
 
         public EnvDTE.CodeElement ElementFromID(string id)

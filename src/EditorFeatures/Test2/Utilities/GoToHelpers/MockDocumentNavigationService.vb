@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Text
 
-Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
+Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
     Friend Class MockDocumentNavigationService
         Implements IDocumentNavigationService
 

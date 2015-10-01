@@ -363,9 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Lookup declaration for predefined CorLib type in this Assembly.
         /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        /// <remarks></remarks>
+        /// <returns>The symbol for the pre-defined type or an error type if the type is not defined in the core library.</returns>
         internal abstract NamedTypeSymbol GetDeclaredSpecialType(SpecialType type);
 
         /// <summary>
@@ -455,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Gets the symbol for the pre-defined type from core library associated with this assembly.
         /// </summary>
-        /// <returns>The symbol for the pre-defined type or null if the type is not defined in the core library.</returns>
+        /// <returns>The symbol for the pre-defined type or an error type if the type is not defined in the core library.</returns>
         internal NamedTypeSymbol GetSpecialType(SpecialType type)
         {
             return CorLibrary.GetDeclaredSpecialType(type);

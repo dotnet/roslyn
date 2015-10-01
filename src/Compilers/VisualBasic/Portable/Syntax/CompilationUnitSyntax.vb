@@ -19,10 +19,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         Friend Function GetReferenceDirectives(filter As Func(Of ReferenceDirectiveTriviaSyntax, Boolean)) As IList(Of ReferenceDirectiveTriviaSyntax)
-            ' TODO: tomat
-            ' enable test ReferenceManagerReuse_WithSyntaxTrees when implemented
-            ' Return SyntaxNode.GetDirectives(Me.GetFirstToken(includeZeroWidth:=True), filter)
-            Return SpecializedCollections.EmptyList(Of ReferenceDirectiveTriviaSyntax)()
+            ' #r directives are always on the first token of the compilation unit.
+            Dim firstToken = CType(Me.GetFirstToken(includeZeroWidth:=True), SyntaxNodeOrToken)
+            Return firstToken.GetDirectives(Of ReferenceDirectiveTriviaSyntax)(filter)
         End Function
     End Class
 End Namespace

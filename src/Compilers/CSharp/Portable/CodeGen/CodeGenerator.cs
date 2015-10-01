@@ -61,20 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Emitted = 2,  // return sequence has been emitted
         }
 
-        private enum ILEmitStyle : byte
-        {
-            // no optimizations
-            // add additional debug specific emit 
-            // like nops for sequence points mapping to no IL
-            Debug = 0,                  
-
-            // do optimizations that do not diminish debug experience
-            DebugFriendlyRelease = 1,   
-
-            // do all optimizations
-            Release = 2,
-        }
-
         private LocalDefinition _returnTemp;
 
         public CodeGenerator(
@@ -129,10 +115,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // This setting only affects generating PDB sequence points, it shall not affect generated IL in any way.
             _emitPdbSequencePoints = emittingPdb && method.GenerateDebugInfo;
 
-            _boundBody = Optimizer.Optimize(
-                boundBody, 
-                debugFriendly: _ilEmitStyle != ILEmitStyle.Release, 
-                stackLocals: out _stackLocals);
+            try
+            {
+                _boundBody = Optimizer.Optimize(
+                    boundBody, 
+                    debugFriendly: _ilEmitStyle != ILEmitStyle.Release, 
+                    stackLocals: out _stackLocals);
+            }
+            catch (BoundTreeVisitor.CancelledByStackGuardException ex)
+            {
+                ex.AddAnError(diagnostics);
+                _boundBody = boundBody;
+            }
 
             _methodBodySyntaxOpt = (method as SourceMethodSymbol)?.BodySyntax;
         }
@@ -250,19 +244,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _builder.DefineInitialHiddenSequencePoint();
             }
 
-            EmitStatement(_boundBody);
-
-            if (_indirectReturnState == IndirectReturnState.Needed)
+            try
             {
-                // it is unfortunate that return was not handled while we were in scope of the method
-                // it can happen in rare cases involving exception handling (for example all returns were from a try)
-                // in such case we can still handle return here.
-                HandleReturn();
+                EmitStatement(_boundBody);
+
+                if (_indirectReturnState == IndirectReturnState.Needed)
+                {
+                    // it is unfortunate that return was not handled while we were in scope of the method
+                    // it can happen in rare cases involving exception handling (for example all returns were from a try)
+                    // in such case we can still handle return here.
+                    HandleReturn();
+                }
+
+                if (!_diagnostics.HasAnyErrors())
+                {
+                    _builder.Realize();
+                }
             }
-
-            if (!_diagnostics.HasAnyErrors())
+            catch (EmitCancelledException)
             {
-                _builder.Realize();
+                Debug.Assert(_diagnostics.HasAnyErrors());
             }
 
             _synthesizedLocalOrdinals.Free();

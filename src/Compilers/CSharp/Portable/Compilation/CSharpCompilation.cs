@@ -2867,6 +2867,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
+        /// <summary>
+        /// Returns if the compilation has all of the members necessary to emit metadata about 
+        /// dynamic types.
+        /// </summary>
+        /// <returns></returns>
+        internal bool HasDynamicEmitAttributes()
+        {
+            return
+                (object)GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctor) != null &&
+                (object)GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags) != null;
+        }
+
         internal override AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager)
         {
             return new AnalyzerDriver<SyntaxKind>(analyzers, n => n.Kind(), analyzerManager);

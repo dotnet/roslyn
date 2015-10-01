@@ -612,6 +612,132 @@ End Class";
                 hideAdvancedMembers: false);
         }
 
+        [WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void CollectionInitializerPatternFromBaseType()
+        {
+            var markup = @"
+using System;
+using System.Collections;
+
+public class SupportsAdd : IEnumerable
+{
+    public void Add(int x) { }
+
+    public IEnumerator GetEnumerator()
+    {
+        throw new NotImplementedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class SupportsAddDerived : SupportsAdd { }
+
+class Container
+{
+    public SupportsAdd S { get; }
+    public SupportsAddDerived D { get; }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var y = new Container { $$ };
+    }
+}";
+
+            VerifyItemExists(markup, "S");
+            VerifyItemExists(markup, "D");
+        }
+
+        [WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void CollectionInitializerPatternFromBaseTypeInaccessible()
+        {
+            var markup = @"
+using System;
+using System.Collections;
+
+public class SupportsAdd : IEnumerable
+{
+    protected void Add(int x) { }
+
+    public IEnumerator GetEnumerator()
+    {
+        throw new NotImplementedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class SupportsAddDerived : SupportsAdd { }
+
+class Container
+{
+    public SupportsAdd S { get; }
+    public SupportsAddDerived D { get; }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var y = new Container { $$ };
+    }
+}";
+
+            VerifyItemIsAbsent(markup, "S");
+            VerifyItemIsAbsent(markup, "D");
+        }
+
+        [WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void CollectionInitializerPatternFromBaseTypeAccessible()
+        {
+            var markup = @"
+using System;
+using System.Collections;
+
+public class SupportsAdd : IEnumerable
+{
+    protected void Add(int x) { }
+
+    public IEnumerator GetEnumerator()
+    {
+        throw new NotImplementedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class SupportsAddDerived : SupportsAdd 
+{ 
+class Container
+{
+    public SupportsAdd S { get; }
+    public SupportsAddDerived D { get; }
+}
+    static void Main(string[] args)
+    {
+        var y = new Container { $$ };
+    }
+}";
+
+            VerifyItemExists(markup, "S");
+            VerifyItemExists(markup, "D");
+        }
+
         private void VerifyExclusive(string markup, bool exclusive)
         {
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(markup))

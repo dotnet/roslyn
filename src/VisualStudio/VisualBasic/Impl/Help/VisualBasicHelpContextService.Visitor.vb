@@ -16,15 +16,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             Public result As String = Nothing
             Private ReadOnly _span As TextSpan
             Private ReadOnly _semanticModel As SemanticModel
-            Private ReadOnly _provider As VisualBasicHelpContextService
+            Private ReadOnly _service As VisualBasicHelpContextService
             Private ReadOnly _isNotMetadata As Boolean
             Private ReadOnly _cancellationToken As CancellationToken
 
-            Public Sub New(span As TextSpan, semanticModel As SemanticModel, isNotMetadata As Boolean, provider As VisualBasicHelpContextService, cancellationToken As CancellationToken)
+            Public Sub New(span As TextSpan, semanticModel As SemanticModel, isNotMetadata As Boolean, service As VisualBasicHelpContextService, cancellationToken As CancellationToken)
                 Me._span = span
                 Me._semanticModel = semanticModel
                 Me._isNotMetadata = isNotMetadata
-                Me._provider = provider
+                Me._service = service
                 Me._cancellationToken = cancellationToken
             End Sub
 
@@ -451,7 +451,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                     ElseIf TypeOf symbol Is ITypeSymbol AndAlso DirectCast(symbol, ITypeSymbol).SpecialType <> SpecialType.None Then
                         result = "vb." + symbol.Name
                     Else
-                        result = Format(symbol)
+                        result = _service.FormatSymbol(symbol)
                     End If
                 End If
             End Sub
@@ -594,7 +594,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                     Dim symbol = _semanticModel.GetDeclaredSymbol(node, _cancellationToken)
 
                     If symbol IsNot Nothing Then
-                        result = Format(symbol)
+                        result = _service.FormatSymbol(symbol)
                     End If
                 End If
             End Sub
@@ -784,7 +784,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                         If local.Type.IsAnonymousType Then
                             result = HelpKeywords.AnonymousType
                         Else
-                            result = Format(local.Type)
+                            result = _service.FormatSymbol(local.Type)
                         End If
                     End If
                 End If
@@ -804,7 +804,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                 End If
 
                 If symbol IsNot Nothing Then
-                    result = Format(symbol)
+                    result = _service.FormatSymbol(symbol)
                 End If
 
             End Sub
@@ -817,7 +817,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                 End If
 
                 If symbol IsNot Nothing Then
-                    result = Format(symbol)
+                    result = _service.FormatSymbol(symbol)
                 End If
             End Sub
 
@@ -840,7 +840,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                             symbolType = DirectCast(symbolType.ElementType, IArrayTypeSymbol)
                         End While
 
-                        result = Format(symbolType.ElementType)
+                        result = _service.FormatSymbol(symbolType.ElementType)
                         Return
                     End If
                 End If
@@ -919,69 +919,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
 
                 Dim symbol = _semanticModel.GetDeclaredSymbol(token.Parent, _cancellationToken)
                 If symbol IsNot Nothing Then
-                    result = Format(symbol)
+                    result = _service.FormatSymbol(symbol)
                     Return True
                 End If
 
                 Return False
             End Function
 
-            Private Function FormatTypeOrNamespace(symbol As INamespaceOrTypeSymbol) As String
-                If symbol.IsAnonymousType() Then
-                    Return HelpKeywords.AnonymousType
-                End If
-
-                Dim displayString = symbol.ToDisplayString(TypeFormat)
-                If symbol.GetTypeArguments().Any() Then
-                    Return String.Format("{0}`{1}", displayString, symbol.GetTypeArguments().Count())
-                End If
-
-                Return displayString
-            End Function
-
-            Private Function Format(symbol As ISymbol) As String
-                Return Format(symbol, isContainingType:=False)
-            End Function
-
-            Private Function Format(symbol As ISymbol, isContainingType As Boolean) As String
-                Dim symbolType = symbol.GetSymbolType()
-
-                If TypeOf symbolType Is IArrayTypeSymbol Then
-                    symbolType = DirectCast(symbolType, IArrayTypeSymbol).ElementType
-                End If
-
-                If (symbolType IsNot Nothing AndAlso symbolType.IsAnonymousType) OrElse symbol.IsAnonymousType() OrElse symbol.IsAnonymousTypeProperty() Then
-                    Return HelpKeywords.AnonymousType
-                End If
-
-                If symbol.MatchesKind(SymbolKind.Alias, SymbolKind.Local, SymbolKind.Parameter, SymbolKind.RangeVariable) Then
-                    Return FormatTypeOrNamespace(symbol.GetSymbolType())
-                End If
-
-                If Not isContainingType AndAlso TypeOf symbol Is INamedTypeSymbol Then
-                    Dim type = DirectCast(symbol, INamedTypeSymbol)
-                    If type.SpecialType <> SpecialType.None Then
-                        Return "vb." + type.ToDisplayString(SpecialTypeFormat)
-                    End If
-                End If
-
-                If TypeOf symbol Is ITypeSymbol OrElse TypeOf symbol Is INamespaceSymbol Then
-                    Return FormatTypeOrNamespace(DirectCast(symbol, INamespaceOrTypeSymbol))
-                End If
-
-                Dim containingType = Format(symbol.ContainingType, isContainingType:=True)
-                Dim name = symbol.ToDisplayString(NameFormat)
-
-                If (symbol.IsConstructor()) Then
-                    Return String.Format("{0}.#ctor", containingType)
-                End If
-
-                If symbol.GetArity() > 0 Then
-                    Return String.Format("{0}.{1}``{2}", containingType, name, symbol.GetArity())
-                End If
-
-                Return String.Format("{0}.{1}", containingType, name)
-            End Function
         End Class
     End Class
 End Namespace

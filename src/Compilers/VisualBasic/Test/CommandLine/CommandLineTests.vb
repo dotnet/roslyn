@@ -34,6 +34,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             Return VisualBasicCommandLineParser.Default.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories)
         End Function
 
+        Private Shared Function FullParse(commandLine As String, baseDirectory As String, Optional sdkDirectory As String = Nothing, Optional additionalReferenceDirectories As String = Nothing) As VisualBasicCommandLineArguments
+            sdkDirectory = If(sdkDirectory, s_defaultSdkDirectory)
+            Dim args = CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments:=True)
+            Return VisualBasicCommandLineParser.Default.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories)
+        End Function
+
         Private Shared Function InteractiveParse(args As IEnumerable(Of String), baseDirectory As String, Optional sdkDirectory As String = Nothing, Optional additionalReferenceDirectories As String = Nothing) As VisualBasicCommandLineArguments
             sdkDirectory = If(sdkDirectory, s_defaultSdkDirectory)
             Return VisualBasicCommandLineParser.Interactive.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories)
@@ -1105,6 +1111,26 @@ a.vb
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("optimize"))
         End Sub
 
+        <WorkItem(5417, "DevDiv")>
+        <Fact>
+        Public Sub Deterministic()
+            Dim ParsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.Equal(False, ParsedArgs.CompilationOptions.Deterministic)
+
+            ParsedArgs = DefaultParse({"/deterministic+", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.Equal(True, ParsedArgs.CompilationOptions.Deterministic)
+
+            ParsedArgs = DefaultParse({"/DETERMINISTIC+", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.Equal(True, ParsedArgs.CompilationOptions.Deterministic)
+
+            ParsedArgs = DefaultParse({"/deterministic-", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.Equal(False, ParsedArgs.CompilationOptions.Deterministic)
+        End Sub
+
         <WorkItem(546301, "DevDiv")>
         <Fact>
         Public Sub Parallel()
@@ -2173,30 +2199,47 @@ a.vb
 
             parsedArgs = DefaultParse({"/debug-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
 
             parsedArgs = DefaultParse({"/debug", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
 
             parsedArgs = DefaultParse({"/debug+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
 
             parsedArgs = DefaultParse({"/debug+", "/debug-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
 
             parsedArgs = DefaultParse({"/debug:full", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
 
             parsedArgs = DefaultParse({"/debug:FULL", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
 
             parsedArgs = DefaultParse({"/debug:pdbonly", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
+
+            parsedArgs = DefaultParse({"/debug:portable", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.PortablePdb)
+
+            parsedArgs = DefaultParse({"/debug:embedded", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Embedded)
 
             parsedArgs = DefaultParse({"/debug:PDBONLY", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
 
             parsedArgs = DefaultParse({"/debug:full", "/debug:pdbonly", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
 
             parsedArgs = DefaultParse({"/debug:pdbonly", "/debug:full", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
@@ -2219,7 +2262,7 @@ a.vb
             Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat)
 
             parsedArgs = DefaultParse({"/debug:", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("debug", ":pdbonly|full"))
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("debug", ""))
 
             parsedArgs = DefaultParse({"/debug:+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("debug", "+"))
@@ -2247,12 +2290,16 @@ a.vb
             Assert.Equal("MyBinary.dll", parsedArgs.CompilationOptions.ModuleName)
             Assert.Equal("C:\MyFolder", parsedArgs.OutputDirectory)
 
-            parsedArgs = DefaultParse({"/out:C:\""My Folder""\MyBinary.dll", "/t:library", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/out:""C:\My Folder\MyBinary.dll""", "/t:library", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("MyBinary", parsedArgs.CompilationName)
             Assert.Equal("MyBinary.dll", parsedArgs.OutputFileName)
             Assert.Equal("MyBinary.dll", parsedArgs.CompilationOptions.ModuleName)
             Assert.Equal("C:\My Folder", parsedArgs.OutputDirectory)
+
+            parsedArgs = DefaultParse({"/out:C:\""My Folder""\MyBinary.dll", "/t:library", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                    Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("C:""My Folder\MyBinary.dll").WithLocation(1, 1))
 
             parsedArgs = DefaultParse({"/out:MyBinary.dll", "/t:library", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
@@ -2909,7 +2956,7 @@ End Class
             Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode)
 
             ' Should handle quotes
-            parsedArgs = DefaultParse({"/doc:C:\""My Folder""\MyBinary.xml", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/doc:""C:\My Folder\MyBinary.xml""", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("C:\My Folder\MyBinary.xml", parsedArgs.DocumentationPath)
             Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode)
@@ -3024,10 +3071,15 @@ End Class
             Assert.True(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
 
             ' Should handle quotes
-            parsedArgs = DefaultParse({"/errorlog:C:\""My Folder""\MyBinary.xml", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/errorlog:""C:\My Folder\MyBinary.xml""", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("C:\My Folder\MyBinary.xml", parsedArgs.ErrorLogPath)
             Assert.True(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
+
+            ' Quote after a \ is treated as an escape
+            parsedArgs = DefaultParse({"/errorlog:C:\""My Folder""\MyBinary.xml", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                    Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("C:""My Folder\MyBinary.xml").WithLocation(1, 1))
 
             ' Should expand partially qualified paths
             parsedArgs = DefaultParse({"/errorlog:MyBinary.xml", "a.vb"}, baseDirectory)
@@ -3144,7 +3196,7 @@ End Class
         <Fact>
         Public Sub ReferencePaths()
             Dim parsedArgs As VisualBasicCommandLineArguments
-            parsedArgs = InteractiveParse({"/rp:a;b", "/referencePath:c", "a.vb"}, _baseDirectory)
+            parsedArgs = InteractiveParse({"/rp:a,b", "/referencePath:c", "a.vb"}, _baseDirectory)
             Assert.Equal(False, parsedArgs.Errors.Any())
             AssertEx.Equal({RuntimeEnvironment.GetRuntimeDirectory(),
                             Path.Combine(_baseDirectory, "a"),
@@ -3375,7 +3427,7 @@ End Class
 
         <Fact()>
         Public Sub AddModule()
-            Dim parsedArgs = DefaultParse({"/nostdlib", "/vbruntime-", "/addMODULE:c:\;d:\x\y\z,abc;;", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/nostdlib", "/vbruntime-", "/addMODULE:c:\,d:\x\y\z,abc,,", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(3, parsedArgs.MetadataReferences.Length)
             Assert.Equal("c:\", parsedArgs.MetadataReferences(0).Reference)
@@ -3402,11 +3454,11 @@ End Class
 
         <Fact()>
         Public Sub LibPathsAndLibEnvVariable()
-            Dim parsedArgs = DefaultParse({"/libpath:c:\;d:\x\y\z;abc;;", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/libpath:c:\,d:\x\y\z,abc,,", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             AssertReferencePathsEqual(parsedArgs.ReferencePaths, Nothing, "c:\", "d:\x\y\z", Path.Combine(_baseDirectory, "abc"))
 
-            parsedArgs = DefaultParse({"/libpath:c:\Windows", "/libpath:abc\def; ; ; ", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/libpath:c:\Windows", "/libpath:abc\def, , , ", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             AssertReferencePathsEqual(parsedArgs.ReferencePaths, Nothing, "c:\Windows", Path.Combine(_baseDirectory, "abc\def"))
 
@@ -3463,7 +3515,7 @@ End Class
 
         <Fact()>
         Public Sub SdkPathAndLibEnvVariable()
-            Dim parsedArgs = DefaultParse({"/libpath:c:lib2", "/sdkpath:<>;d:\sdk1", "/vbruntime*", "/nostdlib", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/libpath:c:lib2", "/sdkpath:<>,d:\sdk1", "/vbruntime*", "/nostdlib", "a.vb"}, _baseDirectory)
 
             ' invalid paths are ignored
             parsedArgs.Errors.Verify()
@@ -3473,10 +3525,10 @@ End Class
             parsedArgs.Errors.Verify()
             AssertReferencePathsEqual(parsedArgs.ReferencePaths, "d:\Windows")
 
-            parsedArgs = DefaultParse({"/sdkpath:""c:\Windows;d:\blah""", "a.vb"}, _baseDirectory)   'Entire path string is wrapped in quotes
+            parsedArgs = DefaultParse({"/sdkpath:c:\Windows,d:\blah", "a.vb"}, _baseDirectory)
             AssertReferencePathsEqual(parsedArgs.ReferencePaths, "c:\Windows", "d:\blah")
 
-            parsedArgs = DefaultParse({"/libpath:""c:\Windows;d:\blah""", "/sdkpath:c:\lib2", "a.vb"}, _baseDirectory)   'Entire path string is wrapped in quotes
+            parsedArgs = DefaultParse({"/libpath:c:\Windows,d:\blah", "/sdkpath:c:\lib2", "a.vb"}, _baseDirectory)
             AssertReferencePathsEqual(parsedArgs.ReferencePaths, "c:\lib2", "c:\Windows", "d:\blah")
 
             parsedArgs = DefaultParse({"/sdkpath", "/vbruntime*", "/nostdlib", "a.vb"}, _baseDirectory)
@@ -3765,7 +3817,7 @@ Class C
             Dim file = Temp.CreateDirectory().CreateFile("vb.rsp")
             file.WriteAllText("")
 
-            Dim parsedArgs = DefaultParse({"/libpath:c:\lib2;", "@" & file.ToString(), "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/libpath:c:\lib2,", "@" & file.ToString(), "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             AssertReferencePathsEqual(parsedArgs.ReferencePaths, Nothing, Path.GetDirectoryName(file.ToString()) + "\", "c:\lib2")
 
@@ -7254,6 +7306,119 @@ End Class
         Public Sub SourceFile_BadPath()
             Dim args = DefaultParse({"e:c:\test\test.cs", "/t:library"}, _baseDirectory)
             args.Errors.Verify(Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("e:c:\test\test.cs").WithLocation(1, 1))
+        End Sub
+
+        <ConditionalFact(GetType(WindowsOnly))>
+        Public Sub FilePaths()
+            Dim args = FullParse("\\unc\path\a.vb b.vb c:\path\c.vb", "e:\temp")
+            Assert.Equal(
+                New String() {"\\unc\path\a.vb", "e:\temp\b.vb", "c:\path\c.vb"},
+                args.SourceFiles.Select(Function(x) x.Path))
+
+            args = FullParse("\\unc\path\a.vb ""b.vb"" c:\path\c.vb", "e:\temp")
+            Assert.Equal(
+                New String() {"\\unc\path\a.vb", "e:\temp\b.vb", "c:\path\c.vb"},
+                args.SourceFiles.Select(Function(x) x.Path))
+
+            args = FullParse("""b"".vb""", "e:\temp")
+            Assert.Equal(
+                New String() {"e:\temp\b.vb"},
+                args.SourceFiles.Select(Function(x) x.Path))
+        End Sub
+
+        <ConditionalFact(GetType(WindowsOnly))>
+        Public Sub ReferencePathsEx()
+            Dim args = FullParse("/nostdlib /vbruntime- /noconfig /r:a.dll,b.dll test.vb", "e:\temp")
+            Assert.Equal(
+                New String() {"a.dll", "b.dll"},
+                args.MetadataReferences.Select(Function(x) x.Reference))
+
+            args = FullParse("/nostdlib /vbruntime- /noconfig /r:""a.dll,b.dll"" test.vb", "e:\temp")
+            Assert.Equal(
+                New String() {"a.dll,b.dll"},
+                args.MetadataReferences.Select(Function(x) x.Reference))
+
+            args = FullParse("/nostdlib /vbruntime- /noconfig /r:""lib, ex\a.dll"",b.dll test.vb", "e:\temp")
+            Assert.Equal(
+                New String() {"lib, ex\a.dll", "b.dll"},
+                args.MetadataReferences.Select(Function(x) x.Reference))
+
+            args = FullParse("/nostdlib /vbruntime- /noconfig /r:""lib, ex\a.dll"" test.vb", "e:\temp")
+            Assert.Equal(
+                New String() {"lib, ex\a.dll"},
+                args.MetadataReferences.Select(Function(x) x.Reference))
+        End Sub
+
+        <ConditionalFact(GetType(WindowsOnly))>
+        Public Sub ParseAssemblyReferences()
+
+            Dim parseCore =
+                Sub(value As String, paths As String())
+                    Dim list As New List(Of Diagnostic)
+                    Dim references = VisualBasicCommandLineParser.ParseAssemblyReferences("", value, list, embedInteropTypes:=False)
+                    Assert.Equal(0, list.Count)
+                    Assert.Equal(paths, references.Select(Function(r) r.Reference))
+                End Sub
+
+            parseCore("""a.dll""", New String() {"a.dll"})
+            parseCore("a,b", New String() {"a", "b"})
+            parseCore("""a,b""", New String() {"a,b"})
+
+            ' This is an intentional deviation from the native compiler.  BCL docs on MSDN, MSBuild and the C# compiler 
+            ' treat a semicolon as a separator.  VB compiler was the lone holdout here.  Rather than deviate we decided
+            ' to unify the behavior.
+            parseCore("a;b", New String() {"a", "b"})
+
+            parseCore("""a;b""", New String() {"a;b"})
+
+            ' Note this case can only happen when it is the last option on the command line.  When done
+            ' in another position the command line splitting routine would continue parsing all the text
+            ' after /r:"a as it resides in an unterminated quote.
+            parseCore("""a", New String() {"a"})
+
+            parseCore("a""mid""b", New String() {"amidb"})
+        End Sub
+
+        <ConditionalFact(GetType(WindowsOnly))>
+        Public Sub CommandLineMisc()
+            Dim args As VisualBasicCommandLineArguments
+            Dim baseDir = "c:\test"
+            Dim parse = Function(x As String) FullParse(x, baseDir)
+
+            args = parse("/out:""a.exe""")
+            Assert.Equal("a.exe", args.OutputFileName)
+
+            args = parse("/out:""a-b.exe""")
+            Assert.Equal("a-b.exe", args.OutputFileName)
+
+            args = parse("/out:""a,b.exe""")
+            Assert.Equal("a,b.exe", args.OutputFileName)
+
+            ' The \ here causes " to be treated as a quote, not as an escaping construct
+            args = parse("a\""b c""\d.cs")
+            Assert.Equal(
+                New String() {"c:\test\a""b", "c:\test\c\d.cs"},
+                args.SourceFiles.Select(Function(x) x.Path))
+
+            args = parse("a\\""b c""\d.cs")
+            Assert.Equal(
+                New String() {"c:\test\a\b c\d.cs"},
+                args.SourceFiles.Select(Function(x) x.Path))
+
+            args = parse("/nostdlib /vbruntime- /r:""a.dll"",""b.dll"" c.cs")
+            Assert.Equal(
+                New String() {"a.dll", "b.dll"},
+                args.MetadataReferences.Select(Function(x) x.Reference))
+
+            args = parse("/nostdlib /vbruntime- /r:""a-s.dll"",""b-s.dll"" c.cs")
+            Assert.Equal(
+                New String() {"a-s.dll", "b-s.dll"},
+                args.MetadataReferences.Select(Function(x) x.Reference))
+
+            args = parse("/nostdlib /vbruntime- /r:""a,s.dll"",""b,s.dll"" c.cs")
+            Assert.Equal(
+                New String() {"a,s.dll", "b,s.dll"},
+                args.MetadataReferences.Select(Function(x) x.Reference))
         End Sub
     End Class
 

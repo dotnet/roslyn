@@ -1485,7 +1485,7 @@ End Class
             Assert.False(c3.ReferenceManagerEquals(c2))
         End Sub
 
-        <Fact(Skip:="790235")>
+        <Fact>
         Public Sub ReferenceManagerReuse_WithSyntaxTrees()
             Dim ta = Parse("Imports System")
             Dim tb = Parse("Imports System", options:=TestOptions.Script)
@@ -1536,12 +1536,6 @@ End Class
 
             Dim ars = arc.ReplaceSyntaxTree(tc, ts)
             Assert.True(arc.ReferenceManagerEquals(ars))
-
-            Dim ar3 = arc.ReplaceSyntaxTree(tc, ta)
-            Assert.True(arc.ReferenceManagerEquals(ar3))
-
-            Dim as1 = ars.ReplaceSyntaxTree(tr, ts)
-            Assert.False(ars.ReferenceManagerEquals(as1))
         End Sub
 
         Private Class EvolvingTestReference

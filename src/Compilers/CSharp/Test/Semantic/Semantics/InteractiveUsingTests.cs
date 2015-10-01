@@ -282,6 +282,24 @@ using static Path;
         }
 
         [Fact]
+        public void DuplicateGlobalUsing_SameSubmission()
+        {
+            CreateSubmission("typeof(String)", options: TestOptions.DebugDll.WithUsings("System", "System")).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DuplicateGlobalUsing_PreviousSubmission()
+        {
+            var options = TestOptions.DebugDll.WithUsings("System");
+
+            var sub1 = CreateSubmission("typeof(String)", options: options);
+            sub1.VerifyDiagnostics();
+
+            var sub2 = CreateSubmission("typeof(String)", options: options, previous: sub1);
+            sub2.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void UsingsRebound()
         {
             const string libSourceTemplate = @"

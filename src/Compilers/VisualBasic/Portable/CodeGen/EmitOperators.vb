@@ -100,17 +100,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Return
             End If
 
-            Select Case (operationKind And BinaryOperatorKind.OpMask)
-                Case BinaryOperatorKind.Add,
-                     BinaryOperatorKind.Subtract,
-                     BinaryOperatorKind.Multiply,
-                     BinaryOperatorKind.Modulo,
-                     BinaryOperatorKind.Divide,
-                     BinaryOperatorKind.IntegerDivide,
-                     BinaryOperatorKind.LeftShift,
-                     BinaryOperatorKind.RightShift
-                    EmitBinaryArithOperator(expression)
+            If IsCondOperator(operationKind) Then
+                EmitBinaryCondOperator(expression, True)
+            Else
+                EmitBinaryOperator(expression)
+            End If
 
+            EmitPopIfUnused(used)
+        End Sub
+
+        Private Function IsCondOperator(operationKind As BinaryOperatorKind) As Boolean
+            Select Case (operationKind And BinaryOperatorKind.OpMask)
                 Case BinaryOperatorKind.OrElse,
                      BinaryOperatorKind.AndAlso,
                      BinaryOperatorKind.Equals,
@@ -122,8 +122,77 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                      BinaryOperatorKind.Is,
                      BinaryOperatorKind.IsNot
 
-                    EmitBinaryCondOperator(expression, True)
+                    Return True
 
+                Case Else
+                    Return False
+            End Select
+        End Function
+
+        Private Sub EmitBinaryOperator(expression As BoundBinaryOperator)
+            ' Do not blow the stack due to a deep recursion on the left. 
+
+            Dim child As BoundExpression = expression.Left
+
+            If child.Kind <> BoundKind.BinaryOperator OrElse child.ConstantValueOpt IsNot Nothing Then
+                EmitBinaryOperatorSimple(expression)
+                Return
+            End If
+
+            Dim binary As BoundBinaryOperator = DirectCast(child, BoundBinaryOperator)
+
+            If IsCondOperator(binary.OperatorKind) Then
+                EmitBinaryOperatorSimple(expression)
+                Return
+            End If
+
+            Dim stack = ArrayBuilder(Of BoundBinaryOperator).GetInstance()
+            stack.Push(expression)
+
+            Do
+                stack.Push(binary)
+                child = binary.Left
+
+                If child.Kind <> BoundKind.BinaryOperator OrElse child.ConstantValueOpt IsNot Nothing Then
+                    Exit Do
+                End If
+
+                binary = DirectCast(child, BoundBinaryOperator)
+
+                If IsCondOperator(binary.OperatorKind) Then
+                    Exit Do
+                End If
+            Loop
+
+            EmitExpression(child, True)
+
+            Do
+                binary = stack.Pop()
+
+                EmitExpression(binary.Right, True)
+
+                Select Case (binary.OperatorKind And BinaryOperatorKind.OpMask)
+                    Case BinaryOperatorKind.And
+                        _builder.EmitOpCode(ILOpCode.And)
+
+                    Case BinaryOperatorKind.Xor
+                        _builder.EmitOpCode(ILOpCode.Xor)
+
+                    Case BinaryOperatorKind.Or
+                        _builder.EmitOpCode(ILOpCode.Or)
+
+                    Case Else
+                        EmitBinaryArithOperatorInstructionAndDowncast(binary)
+                End Select
+            Loop While binary IsNot expression
+
+            Debug.Assert(stack.Count = 0)
+            stack.Free()
+        End Sub
+
+        Private Sub EmitBinaryOperatorSimple(expression As BoundBinaryOperator)
+
+            Select Case (expression.OperatorKind And BinaryOperatorKind.OpMask)
                 Case BinaryOperatorKind.And
                     EmitExpression(expression.Left, True)
                     EmitExpression(expression.Right, True)
@@ -140,11 +209,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     _builder.EmitOpCode(ILOpCode.Or)
 
                 Case Else
-                    ' BinaryOperatorKind.Power, BinaryOperatorKind.Like and BinaryOperatorKind.Concatenate should go here.
-                    Throw ExceptionUtilities.UnexpectedValue(operationKind)
+                    EmitBinaryArithOperator(expression)
             End Select
-
-            EmitPopIfUnused(used)
         End Sub
 
         Private Function OperatorHasSideEffects(expression As BoundBinaryOperator) As Boolean
@@ -171,6 +237,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             EmitExpression(expression.Left, True)
             EmitExpression(expression.Right, True)
 
+            EmitBinaryArithOperatorInstructionAndDowncast(expression)
+        End Sub
+
+        Private Sub EmitBinaryArithOperatorInstructionAndDowncast(expression As BoundBinaryOperator)
             Dim targetPrimitiveType = expression.Type.PrimitiveTypeCode
             Dim opKind = expression.OperatorKind And BinaryOperatorKind.OpMask
 
@@ -262,6 +332,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     End If
 
                 Case Else
+                    ' BinaryOperatorKind.Power, BinaryOperatorKind.Like and BinaryOperatorKind.Concatenate should go here.
                     Throw ExceptionUtilities.UnexpectedValue(opKind)
             End Select
 
@@ -527,7 +598,7 @@ BinaryOperatorKindEqual:
 
             Debug.Assert(condition.Type.SpecialType = SpecialType.System_Boolean)
 
-            If _optimizations = OptimizationLevel.Release AndAlso condition.IsConstant Then
+            If _ilEmitStyle = ILEmitStyle.Release AndAlso condition.IsConstant Then
                 Dim constValue = condition.ConstantValueOpt
                 Debug.Assert(constValue.IsBoolean)
                 Dim constant = constValue.BooleanValue

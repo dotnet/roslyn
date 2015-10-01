@@ -143,17 +143,18 @@
   <ImportGroup Label="GlobalNuGets" Condition="'$(BootstrapBuildPath)' == ''">
     <Import Project="$(ToolsetCompilerPropsFilePath)"
             Condition="Exists('$(ToolsetCompilerPropsFilePath)')" />
+  </ImportGroup>
+
+  <ImportGroup>
     <Import Project="$(RoslynDiagnosticsPropsFilePath)"
             Condition="Exists('$(RoslynDiagnosticsPropsFilePath)') And ('$(UseRoslynAnalyzers)' == 'true')" />
   </ImportGroup>
 
   <PropertyGroup Condition="'$(BootstrapBuildPath)' != ''">
     <CscToolPath>$(BootstrapBuildPath)</CscToolPath>
-    <CscToolExe>csc.exe</CscToolExe>
-    <CscToolExe Condition="Exists('$(BootstrapBuildPath)\csc2.exe')">csc2.exe</CscToolExe>
+    <CscToolExe>csc.cmd</CscToolExe>
     <VbcToolPath>$(BootstrapBuildPath)</VbcToolPath>
-    <VbcToolExe>vbc.exe</VbcToolExe>
-    <VbcToolExe Condition="Exists('$(BootstrapBuildPath)\vbc2.exe')">vbc2.exe</VbcToolExe>
+    <VbcToolExe>vbc.cmd</VbcToolExe>
   </PropertyGroup>
 
   <!-- Common project settings -->
