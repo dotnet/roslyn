@@ -301,7 +301,7 @@
         }
       }
     },
-    ".NETFramework,Version=v4.6/win-": {
+    ".NETFramework,Version=v4.6/win7-anycpu": {
       "Microsoft.NETCore.Platforms/1.0.0": {},
       "Newtonsoft.Json/6.0.4": {
         "compile": {
