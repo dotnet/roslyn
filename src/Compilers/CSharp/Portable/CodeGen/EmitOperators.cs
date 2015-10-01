@@ -59,36 +59,119 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (operatorKind.EmitsAsCheckedInstruction())
             {
-                EmitBinaryCheckedOperatorExpression(expression, used);
-                return;
-            }
-
-            // if operator does not have side-effects itself and is not short-circuiting
-            // we can simply emit side-effects from the first operand and then from the second one
-            if (!used && !operatorKind.IsLogical() && !OperatorHasSideEffects(operatorKind))
-            {
-                EmitExpression(expression.Left, false);
-                EmitExpression(expression.Right, false);
-                return;
-            }
-
-            if (IsConditional(operatorKind))
-            {
-                EmitBinaryCondOperator(expression, true);
+                EmitBinaryOperator(expression);
             }
             else
             {
-                EmitBinaryArithOperator(expression);
+                // if operator does not have side-effects itself and is not short-circuiting
+                // we can simply emit side-effects from the first operand and then from the second one
+                if (!used && !operatorKind.IsLogical() && !OperatorHasSideEffects(operatorKind))
+                {
+                    EmitExpression(expression.Left, false);
+                    EmitExpression(expression.Right, false);
+                    return;
+                }
+
+                if (IsConditional(operatorKind))
+                {
+                    EmitBinaryCondOperator(expression, true);
+                }
+                else
+                {
+                    EmitBinaryOperator(expression);
+                }
             }
 
             EmitPopIfUnused(used);
         }
 
-        private void EmitBinaryArithOperator(BoundBinaryOperator expression)
+        private void EmitBinaryOperator(BoundBinaryOperator expression)
+        {
+            BoundExpression child = expression.Left;
+
+            if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+            {
+                EmitBinaryOperatorSimple(expression);
+                return;
+            }
+
+            BoundBinaryOperator binary = (BoundBinaryOperator)child;
+            var operatorKind = binary.OperatorKind;
+
+            if (!operatorKind.EmitsAsCheckedInstruction() && IsConditional(operatorKind))
+            {
+                EmitBinaryOperatorSimple(expression);
+                return;
+            }
+
+            // Do not blow the stack due to a deep recursion on the left.
+            var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
+            stack.Push(expression);
+
+            while (true)
+            {
+                stack.Push(binary);
+                child = binary.Left;
+
+                if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+                {
+                    break;
+                }
+
+                binary = (BoundBinaryOperator)child;
+                operatorKind = binary.OperatorKind;
+
+                if (!operatorKind.EmitsAsCheckedInstruction() && IsConditional(operatorKind))
+                {
+                    break;
+                }
+            }
+
+            EmitExpression(child, true);
+
+            do
+            {
+                binary = stack.Pop();
+
+                EmitExpression(binary.Right, true);
+                bool isChecked = binary.OperatorKind.EmitsAsCheckedInstruction();
+                if (isChecked)
+                {
+                    EmitBinaryCheckedOperatorInstruction(binary);
+                }
+                else
+                {
+                    EmitBinaryOperatorInstruction(binary);
+                }
+
+                EmitConversionToEnumUnderlyingType(binary, @checked: isChecked);
+            }
+            while (stack.Count > 0);
+
+            Debug.Assert((object)binary == expression);
+            stack.Free();
+        }
+
+        private void EmitBinaryOperatorSimple(BoundBinaryOperator expression)
         {
             EmitExpression(expression.Left, true);
             EmitExpression(expression.Right, true);
 
+            bool isChecked = expression.OperatorKind.EmitsAsCheckedInstruction();
+            if (isChecked)
+            {
+                EmitBinaryCheckedOperatorInstruction(expression);
+            }
+            else
+            {
+                EmitBinaryOperatorInstruction(expression);
+            }
+
+            EmitConversionToEnumUnderlyingType(expression, @checked: isChecked);
+        }
+
+        private void EmitBinaryOperatorInstruction(BoundBinaryOperator expression)
+        {
             switch (expression.OperatorKind.Operator())
             {
                 case BinaryOperatorKind.Multiplication:
@@ -155,8 +238,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 default:
                     throw ExceptionUtilities.UnexpectedValue(expression.OperatorKind.Operator());
             }
-
-            EmitConversionToEnumUnderlyingType(expression, @checked: false);
         }
 
         private void EmitShortCircuitingOperator(BoundBinaryOperator condition, bool sense, bool stopSense, bool stopValue)
@@ -530,11 +611,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitBinaryCheckedOperatorExpression(BoundBinaryOperator expression, bool used)
+        private void EmitBinaryCheckedOperatorInstruction(BoundBinaryOperator expression)
         {
-            EmitExpression(expression.Left, true);
-            EmitExpression(expression.Right, true);
-
             var unsigned = IsUnsignedBinaryOperator(expression);
 
             switch (expression.OperatorKind.Operator())
@@ -575,10 +653,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 default:
                     throw ExceptionUtilities.UnexpectedValue(expression.OperatorKind.Operator());
             }
-
-            EmitConversionToEnumUnderlyingType(expression, @checked: true);
-
-            EmitPopIfUnused(used);
         }
 
         private static bool OperatorHasSideEffects(BinaryOperatorKind kind)

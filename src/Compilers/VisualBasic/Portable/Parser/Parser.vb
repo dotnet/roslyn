@@ -20,9 +20,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             IfPrecededByLineBreak
         End Enum
 
-        ' Keep this value in sync with C# LanguageParser
-        Friend Const MaxUncheckedRecursionDepth As Integer = 20
-
         Private _allowLeadingMultilineTrivia As Boolean = True
         Private _hadImplicitLineContinuation As Boolean = False
         Private _hadLineContinuationComment As Boolean = False
@@ -513,9 +510,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim restorePoint = _scanner.CreateRestorePoint()
             Try
                 Return parseFunc()
-                ' TODO (DevDiv workitem 966425): Replace exception name test with a type test once the type 
-                ' Is available in the PCL
-            Catch ex As Exception When ex.GetType().Name = "InsufficientExecutionStackException"
+
+            Catch ex As Exception When StackGuard.IsInsufficientExecutionStackException(ex)
                 Return CreateForInsufficientStack(restorePoint, defaultFunc())
             End Try
         End Function
@@ -915,9 +911,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Try
                 _recursionDepth += 1
-                If _recursionDepth >= MaxUncheckedRecursionDepth Then
-                    PortableShim.RuntimeHelpers.EnsureSufficientExecutionStack()
-                End If
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth)
 
                 Return ParseStatementInMethodBodyCore()
             Finally

@@ -1177,42 +1177,62 @@ d.cs
             var parsedArgs = DefaultParse(new[] { "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb);
 
             parsedArgs = DefaultParse(new[] { "/debug-", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb);
 
             parsedArgs = DefaultParse(new[] { "/debug", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb);
 
             parsedArgs = DefaultParse(new[] { "/debug+", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(true, parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb);
 
             parsedArgs = DefaultParse(new[] { "/debug+", "/debug-", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb);
 
             parsedArgs = DefaultParse(new[] { "/debug:full", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb);
 
             parsedArgs = DefaultParse(new[] { "/debug:FULL", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb);
 
             parsedArgs = DefaultParse(new[] { "/debug:pdbonly", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb);
+
+            parsedArgs = DefaultParse(new[] { "/debug:portable", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.PortablePdb);
+
+            parsedArgs = DefaultParse(new[] { "/debug:embedded", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Embedded);
 
             parsedArgs = DefaultParse(new[] { "/debug:PDBONLY", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb);
 
             parsedArgs = DefaultParse(new[] { "/debug:full", "/debug:pdbonly", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(false, parsedArgs.CompilationOptions.DebugPlusMode);
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb);
 
             parsedArgs = DefaultParse(new[] { "/debug:pdbonly", "/debug:full", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
