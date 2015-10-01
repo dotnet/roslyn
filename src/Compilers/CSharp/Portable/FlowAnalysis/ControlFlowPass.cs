@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly PooledHashSet<LabelSymbol> _labelsDefined = PooledHashSet<LabelSymbol>.GetInstance();
         private readonly PooledHashSet<LabelSymbol> _labelsUsed = PooledHashSet<LabelSymbol>.GetInstance();
+        protected bool _convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = false; // By default, just let the original exception to bubble up.
 
         protected override void Free()
         {
@@ -131,6 +132,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool Analyze(CSharpCompilation compilation, Symbol member, BoundNode node, DiagnosticBag diagnostics)
         {
             var walker = new ControlFlowPass(compilation, member, node);
+
+            if (diagnostics != null)
+            {
+                walker._convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = true;
+            }
+
             try
             {
                 bool badRegion = false;
@@ -138,10 +145,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(!badRegion);
                 return result;
             }
+            catch (BoundTreeVisitor.CancelledByStackGuardException ex) when (diagnostics != null)
+            {
+                ex.AddAnError(diagnostics);
+                return true;
+            }
             finally
             {
                 walker.Free();
             }
+        }
+
+        protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
+        {
+            return _convertInsufficientExecutionStackExceptionToCancelledByStackGuardException;
         }
 
         /// <summary>

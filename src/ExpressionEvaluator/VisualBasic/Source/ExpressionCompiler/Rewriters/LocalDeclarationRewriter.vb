@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         ' Find all implicitly declared locals.
         Private NotInheritable Class LocalDeclarationWalker
-            Inherits BoundTreeWalker
+            Inherits BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
 
             Private ReadOnly _locals As HashSet(Of LocalSymbol)
 

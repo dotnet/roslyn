@@ -548,9 +548,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 return null;
             }
 
-            if (MayHaveSideEffectsVisitor.MayHaveSideEffects(expression))
+            try
             {
-                flags |= DkmClrCompilationResultFlags.PotentialSideEffect;
+                if (MayHaveSideEffectsVisitor.MayHaveSideEffects(expression))
+                {
+                    flags |= DkmClrCompilationResultFlags.PotentialSideEffect;
+                }
+            }
+            catch (BoundTreeVisitor.CancelledByStackGuardException ex)
+            {
+                ex.AddAnError(diagnostics);
+                resultProperties = default(ResultProperties);
+                return null;
             }
 
             var expressionType = expression.Type;

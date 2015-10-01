@@ -49,6 +49,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(info.Symbol.Kind = SymbolKind.Method)
 
             Dim walker As New IteratorAndAsyncCaptureWalker(info)
+
+            walker._convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = True
+
             walker.Analyze()
             Debug.Assert(Not walker.InvalidRegionDetected)
 

@@ -3,7 +3,6 @@
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend NotInheritable Class LocalRewriter
-        Inherits BoundTreeRewriter
 
         <Flags>
         Friend Enum RewritingFlags As Byte

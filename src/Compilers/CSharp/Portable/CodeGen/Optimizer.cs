@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     // NOTE: It is always safe to mark a local as not eligible as a stack local
     //       so when situation gets complicated we just refuse to schedule and move on.
     //
-    internal class StackOptimizerPass1 : BoundTreeRewriter
+    internal sealed class StackOptimizerPass1 : BoundTreeRewriter
     {
         private readonly bool _debugFriendly;
         private readonly ArrayBuilder<ValueTuple<BoundExpression, ExprContext>> _evalStack;
@@ -367,6 +367,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         // fake local that represents the eval stack.
         // when we need to ensure that eval stack is not blocked by stack Locals, we record an access to empty.
         public static readonly DummyLocal empty = new DummyLocal();
+
+        private int _recursionDepth;
 
         private StackOptimizerPass1(Dictionary<LocalSymbol, LocalDefUseInfo> locals,
             ArrayBuilder<ValueTuple<BoundExpression, ExprContext>> evalStack,
@@ -412,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return result;
         }
 
-        public BoundExpression VisitExpression(BoundExpression node, ExprContext context)
+        private BoundExpression VisitExpressionCore(BoundExpression node, ExprContext context)
         {
             var prevContext = _context;
             int prevStack = StackDepth();
@@ -447,6 +449,47 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             return result;
+        }
+
+        private BoundExpression VisitExpression(BoundExpression node, ExprContext context)
+        {
+            BoundExpression result;
+            _recursionDepth++;
+
+            if (_recursionDepth > 1)
+            {
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+
+                result = VisitExpressionCore(node, context);
+            }
+            else
+            {
+                result = VisitExpressionCoreWithStackGuard(node, context);
+            }
+
+            _recursionDepth--;
+            return result;
+        }
+
+        private BoundExpression VisitExpressionCoreWithStackGuard(BoundExpression node, ExprContext context)
+        {
+            Debug.Assert(_recursionDepth == 1);
+
+            try
+            {
+                var result = VisitExpressionCore(node, context);
+                Debug.Assert(_recursionDepth == 1);
+                return result;
+            }
+            catch (Exception ex) when (StackGuard.IsInsufficientExecutionStackException(ex))
+            {
+                throw new CancelledByStackGuardException(ex, node);
+            }
+        }
+
+        protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
+        {
+            throw ExceptionUtilities.Unreachable; 
         }
 
         private void PushEvalStack(BoundExpression result, ExprContext context)
@@ -640,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         // only because it must be returned, otherwise all uses are 
         // confined to the nested sequence that is assigned indirectly of to an instance field (and therefore has +1 stack)
         // in such case the desired stack for this local is +1
-        private static bool IsNestedLocalOfCompoundOperator(LocalSymbol local, BoundSequence node)
+        private bool IsNestedLocalOfCompoundOperator(LocalSymbol local, BoundSequence node)
         {
             var value = node.Value;
 
@@ -660,7 +703,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             assignment.Right.Kind == BoundKind.Sequence)
                         {
                             // and no other side-effects should use the variable
-                            var localUsedWalker = new LocalUsedWalker(local);
+                            var localUsedWalker = new LocalUsedWalker(local, _recursionDepth);
                             for (int i = 0; i < sideeffects.Length - 1; i++)
                             {
                                 if (localUsedWalker.IsLocalUsedIn(sideeffects[i]))
@@ -688,12 +731,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return false;
         }
 
-        private class LocalUsedWalker : BoundTreeWalker
+        private sealed class LocalUsedWalker : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
         {
             private readonly LocalSymbol _local;
             private bool _found;
 
-            internal LocalUsedWalker(LocalSymbol local)
+            internal LocalUsedWalker(LocalSymbol local, int recursionDepth)
+                : base(recursionDepth)
             {
                 _local = local;
             }
@@ -1136,6 +1180,79 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         }
 
         public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
+        {
+            BoundExpression child = node.Left;
+
+            if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+            {
+                return VisitBinaryOperatorSimple(node);
+            }
+
+            // Do not blow the stack due to a deep recursion on the left.
+            var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
+            stack.Push(node);
+
+            BoundBinaryOperator binary = (BoundBinaryOperator)child;
+
+            while (true)
+            {
+                stack.Push(binary);
+                child = binary.Left;
+
+                if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+                {
+                    break;
+                }
+
+                binary = (BoundBinaryOperator)child;
+            }
+
+            var prevContext = _context;
+            int prevStack = StackDepth();
+
+            var left = (BoundExpression)this.Visit(child);
+
+            while (true)
+            {
+                binary = stack.Pop();
+
+                var isLogical = (binary.OperatorKind & BinaryOperatorKind.Logical) != 0;
+
+                object cookie = null;
+                if (isLogical)
+                {
+                    cookie = GetStackStateCookie();     // implicit branch here
+                    SetStackDepth(prevStack);  // right is evaluated with original stack
+                }
+
+                var right = (BoundExpression)this.Visit(binary.Right);
+
+                if (isLogical)
+                {
+                    EnsureStackState(cookie);   // implicit label here
+                }
+
+                var type = this.VisitType(binary.Type);
+                left = binary.Update(binary.OperatorKind, left, right, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, type);
+
+                if (stack.Count == 0)
+                {
+                    break;
+                }
+
+                _context = prevContext;
+                _counter += 1;
+                SetStackDepth(prevStack);
+                PushEvalStack(binary, ExprContext.Value);
+            }
+
+            Debug.Assert((object)binary == node);
+            stack.Free();
+
+            return left;
+        }
+
+        private BoundNode VisitBinaryOperatorSimple(BoundBinaryOperator node)
         {
             var isLogical = (node.OperatorKind & BinaryOperatorKind.Logical) != 0;
             if (isLogical)
@@ -1652,7 +1769,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     //              NotLastUse(X_stackLocal) ===> NotLastUse(Dup)
     //              LastUse(X_stackLocal) ===> LastUse(X_stackLocal)
     //
-    internal class StackOptimizerPass2 : BoundTreeRewriter
+    internal sealed class StackOptimizerPass2 : BoundTreeRewriterWithStackGuard
     {
         private int _nodeCounter;
         private readonly Dictionary<LocalSymbol, LocalDefUseInfo> _info;
@@ -1688,6 +1805,57 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _nodeCounter += 1;
 
             return result;
+        }
+
+        public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
+        {
+            BoundExpression child = node.Left;
+
+            if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+            {
+                return base.VisitBinaryOperator(node);
+            }
+
+            // Do not blow the stack due to a deep recursion on the left.
+            var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
+            stack.Push(node);
+
+            BoundBinaryOperator binary = (BoundBinaryOperator)child;
+
+            while (true)
+            {
+                stack.Push(binary);
+                child = binary.Left;
+
+                if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+                {
+                    break;
+                }
+
+                binary = (BoundBinaryOperator)child;
+            }
+
+            var left = (BoundExpression)this.Visit(child);
+
+            while (true)
+            {
+                binary = stack.Pop();
+                var right = (BoundExpression)this.Visit(binary.Right);
+                var type = this.VisitType(binary.Type);
+                left = binary.Update(binary.OperatorKind, left, right, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, type);
+
+                if (stack.Count == 0)
+                {
+                    break;
+                }
+
+                _nodeCounter += 1;
+            }
+
+            Debug.Assert((object)binary == node);
+            stack.Free();
+
+            return left;
         }
 
         private static bool IsLastAccess(LocalDefUseInfo locInfo, int counter)
