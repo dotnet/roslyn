@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis
                 // we can use current state as it is since we will replace the document with latest document anyway.
                 if (inProgressState != null &&
                     inProgressCompilation != null &&
-                    inProgressState.IntermediateProjects.All(t => TouchDocumentActionForDocument(t, id)))
+                    inProgressState.IntermediateProjects.All(t => IsTouchDocumentActionForDocument(t, id)))
                 {
                     inProgressProject = this.ProjectState;
                     return;
@@ -279,8 +279,8 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private bool TouchDocumentActionForDocument(ValueTuple<ProjectState, CompilationTranslationAction> tuple, DocumentId id)
-            {
+            private static bool IsTouchDocumentActionForDocument(ValueTuple<ProjectState, CompilationTranslationAction> tuple, DocumentId id)
+            { 
                 var touchDocumentAction = tuple.Item2 as CompilationTranslationAction.TouchDocumentAction;
                 return touchDocumentAction != null && touchDocumentAction.DocumentId == id;
             }
