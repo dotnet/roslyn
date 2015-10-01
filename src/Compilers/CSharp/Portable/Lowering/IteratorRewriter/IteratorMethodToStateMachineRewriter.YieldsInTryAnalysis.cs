@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Analyses method body for yields in try blocks and labels that they contain.
         /// </summary>
-        private class YieldsInTryAnalysis : LabelCollector
+        private sealed class YieldsInTryAnalysis : LabelCollector
         {
             // all try blocks with yields in them and complete set of labels inside those try blocks
             // NOTE: non-yielding try blocks are transparently ignored - i.e. their labels are included
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Analyses method body for labels.
     /// </summary>
-    internal abstract class LabelCollector : BoundTreeWalker
+    internal abstract class LabelCollector : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator 
     {
         // transient accumulator.
         protected HashSet<LabelSymbol> currentLabels;

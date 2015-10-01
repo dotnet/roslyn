@@ -20,10 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If node IsNot Nothing Then
                 _recursionDepth += 1
 
-                If _recursionDepth > Syntax.InternalSyntax.Parser.MaxUncheckedRecursionDepth Then
-                    PortableShim.RuntimeHelpers.EnsureSufficientExecutionStack()
-                End If
-
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth)
                 DirectCast(node, VisualBasicSyntaxNode).Accept(Me)
 
                 _recursionDepth -= 1

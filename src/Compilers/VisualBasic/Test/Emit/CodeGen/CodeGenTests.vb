@@ -13171,5 +13171,237 @@ End Module
   IL_000b:  ret
 }]]>)
         End Sub
+
+        <Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        Public Sub EmitSequenceOfBinaryExpressions_01()
+            Dim source =
+$"
+Class Test
+    Shared Sub Main()
+        Dim f = new Long(4096-1) {{}}
+        for i As Integer = 0 To 4095
+            f(i) = 4096 - i
+        Next
+
+        System.Console.WriteLine(If(Calculate1(f) = Calculate2(f), ""True"", ""False""))
+    End Sub
+
+    Shared Function Calculate1(f As Long()) As Long
+        Return {BuildSequenceOfBinaryExpressions_01()}
+    End Function
+
+    Shared Function Calculate2(f As Long()) As Long
+        Dim result as Long = 0
+        Dim i as Integer
+        For i = 0 To f.Length - 1
+            result+=(i + 1)*f(i)
+        Next
+
+        return result + (i + 1)
+    End Function
+End Class
+"
+            Dim compilation = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation, expectedOutput:="True")
+        End Sub
+
+        Private Shared Function BuildSequenceOfBinaryExpressions_01(Optional count As Integer = 4096) As String
+            Dim builder = New System.Text.StringBuilder()
+            Dim i As Integer
+
+            For i = 0 To count - 1
+                builder.Append(i + 1)
+                builder.Append(" * ")
+                builder.Append("f(")
+                builder.Append(i)
+                builder.Append(") + ")
+            Next
+
+            builder.Append(i + 1)
+
+            Return builder.ToString()
+        End Function
+
+        <Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        Public Sub EmitSequenceOfBinaryExpressions_02()
+            Dim source =
+$"
+Class Test
+    Shared Sub Main()
+        Dim f = new Long(4096-1) {{}}
+        for i As Integer = 0 To 4095
+            f(i) = 4096 - i
+        Next
+
+        System.Console.WriteLine(Calculate(f))
+    End Sub
+
+    Shared Function Calculate(f As Long()) As Double
+        Return {BuildSequenceOfBinaryExpressions_01()}
+    End Function
+End Class
+"
+            Dim compilation = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseExe.WithOverflowChecks(True))
+
+            CompileAndVerify(compilation, expectedOutput:="11461640193")
+        End Sub
+
+        <Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        Public Sub EmitSequenceOfBinaryExpressions_03()
+            Dim source =
+$"
+Class Test
+    Shared Sub Main()
+    End Sub
+
+    Shared Function Calculate(a As Boolean(), f As Boolean()) As Boolean
+        Return {BuildSequenceOfBinaryExpressions_03()}
+    End Function
+End Class
+"
+            Dim compilation = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseExe.WithOverflowChecks(True))
+
+            compilation.VerifyEmitDiagnostics(
+    Diagnostic(ERRID.ERR_TooLongOrComplexExpression, "a").WithLocation(7, 16)
+                )
+        End Sub
+
+        Private Shared Function BuildSequenceOfBinaryExpressions_03() As String
+            Dim builder = New System.Text.StringBuilder()
+            Dim i As Integer
+
+            For i = 0 To 4095
+                builder.Append("a(")
+                builder.Append(i)
+                builder.Append(")")
+                builder.Append(" AndAlso ")
+                builder.Append("f(")
+                builder.Append(i)
+                builder.Append(") OrElse ")
+            Next
+
+            builder.Append("a(")
+            builder.Append(i)
+            builder.Append(")")
+
+            Return builder.ToString()
+        End Function
+
+        <Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        Public Sub EmitSequenceOfBinaryExpressions_04()
+            Dim source =
+$"
+Class Test
+    Shared Sub Main()
+        Dim f = new Single?(4096-1) {{}}
+        for i As Integer = 0 To 4095
+            f(i) = 4096 - i
+        Next
+
+        System.Console.WriteLine(Calculate(f))
+    End Sub
+
+    Shared Function Calculate(f As Single?()) As Double?
+        Return {BuildSequenceOfBinaryExpressions_01()}
+    End Function
+End Class
+"
+            Dim compilation = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseExe)
+
+            compilation.VerifyEmitDiagnostics(
+    Diagnostic(ERRID.ERR_TooLongOrComplexExpression, "1").WithLocation(13, 16)
+                )
+        End Sub
+
+        <Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        Public Sub EmitSequenceOfBinaryExpressions_05()
+            Dim count As Integer = 50
+            Dim source =
+$"
+Class Test
+    Shared Sub Main()
+        Test1()
+        Test2()
+    End Sub
+
+    Shared Sub Test1()
+        Dim f = new Double({count}-1) {{}}
+        for i As Integer = 0 To {count}-1
+            f(i) = 4096 - i
+        Next
+
+        System.Console.WriteLine(Calculate(f))
+    End Sub
+
+    Shared Function Calculate(f As Double()) As Double
+        Return {BuildSequenceOfBinaryExpressions_01(count)}
+    End Function
+
+    Shared Sub Test2()
+        Dim f = new Double?({count}-1) {{}}
+        for i As Integer = 0 To {count}-1
+            f(i) = 4096 - i
+        Next
+
+        System.Console.WriteLine(Calculate(f))
+    End Sub
+
+    Shared Function Calculate(f As Double?()) As Double?
+        Return {BuildSequenceOfBinaryExpressions_01(count)}
+    End Function
+
+End Class
+"
+            Dim compilation = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation, expectedOutput:="5180801
+5180801")
+        End Sub
+
+        <Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        Public Sub EmitSequenceOfBinaryExpressions_06()
+            Dim source =
+$"
+Class Test
+    Shared Sub Main()
+    End Sub
+
+    Shared Function Calculate(a As S1(), f As S1()) As Boolean
+        Return {BuildSequenceOfBinaryExpressions_03()}
+    End Function
+End Class
+
+Structure S1
+    Public Shared Operator And(x As S1, y As S1) As S1
+        Return New S1()
+    End Operator
+
+    Public Shared Operator Or(x As S1, y As S1) As S1
+        Return New S1()
+    End Operator
+
+    Public Shared Operator IsTrue(x As S1) As Boolean
+        Return True
+    End Operator
+
+    Public Shared Operator IsFalse(x As S1) As Boolean
+        Return True
+    End Operator
+
+    Public Shared Widening Operator CType(x As S1) As Boolean
+        Return True
+    End Operator
+End Structure
+"
+            Dim compilation = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseExe.WithOverflowChecks(True))
+
+            compilation.VerifyEmitDiagnostics(
+    Diagnostic(ERRID.ERR_TooLongOrComplexExpression, "a").WithLocation(7, 16),
+    Diagnostic(ERRID.ERR_TooLongOrComplexExpression, "a").WithLocation(7, 16),
+    Diagnostic(ERRID.ERR_TooLongOrComplexExpression, "a").WithLocation(7, 16)
+                )
+        End Sub
+
     End Class
 End Namespace
