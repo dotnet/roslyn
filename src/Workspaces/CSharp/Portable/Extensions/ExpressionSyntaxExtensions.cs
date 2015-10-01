@@ -1376,7 +1376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     if (!name.IsVar && (symbol.Kind == SymbolKind.NamedType) && !name.IsLeftSideOfQualifiedName())
                     {
                         var type = (INamedTypeSymbol)symbol;
-                        if (aliasInfo == null && CanSimplifyNullable(type, name))
+                        if (aliasInfo == null && CanSimplifyNullable(type, name, semanticModel))
                         {
                             GenericNameSyntax genericName;
                             if (name.Kind() == SyntaxKind.QualifiedName)
@@ -1451,7 +1451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return name.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken);
         }
 
-        private static bool CanSimplifyNullable(INamedTypeSymbol type, NameSyntax name)
+        private static bool CanSimplifyNullable(INamedTypeSymbol type, NameSyntax name, SemanticModel semanticModel)
         {
             if (!type.IsNullable())
             {
@@ -1461,6 +1461,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (type.IsUnboundGenericType)
             {
                 // Don't simplify unbound generic type "Nullable<>".
+                return false;
+            }
+
+            if (InsideNameOfExpression(name, semanticModel))
+            {
+                // Nullable<T> can't be simplified to T? in nameof expresions.
                 return false;
             }
 

@@ -85,7 +85,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static readonly IAnalyzerAssemblyLoader s_assemblyLoader = new LoadContextAssemblyLoader();
 
         public HostAnalyzerManager(IEnumerable<HostDiagnosticAnalyzerPackage> hostAnalyzerPackages, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource) :
-            this(CreateAnalyzerReferencesFromPackages(hostAnalyzerPackages), hostAnalyzerPackages.ToImmutableArrayOrEmpty(), hostDiagnosticUpdateSource)
+            this(CreateAnalyzerReferencesFromPackages(hostAnalyzerPackages, new HostAnalyzerReferenceDiagnosticReporter(hostDiagnosticUpdateSource)),
+                 hostAnalyzerPackages.ToImmutableArrayOrEmpty(), hostDiagnosticUpdateSource)
         {
         }
 
@@ -466,7 +467,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return builder.ToImmutable();
         }
 
-        private static ImmutableArray<AnalyzerReference> CreateAnalyzerReferencesFromPackages(IEnumerable<HostDiagnosticAnalyzerPackage> analyzerPackages)
+        private static ImmutableArray<AnalyzerReference> CreateAnalyzerReferencesFromPackages(
+            IEnumerable<HostDiagnosticAnalyzerPackage> analyzerPackages,
+            HostAnalyzerReferenceDiagnosticReporter reporter)
         {
             if (analyzerPackages == null || analyzerPackages.IsEmpty())
             {
@@ -478,7 +481,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var builder = ImmutableArray.CreateBuilder<AnalyzerReference>();
             foreach (var analyzerAssembly in analyzerAssemblies.Distinct(StringComparer.OrdinalIgnoreCase))
             {
-                builder.Add(new AnalyzerFileReference(analyzerAssembly, s_assemblyLoader));
+                var reference = new AnalyzerFileReference(analyzerAssembly, s_assemblyLoader);
+                reference.AnalyzerLoadFailed += reporter.OnAnalyzerLoadFailed;
+
+                builder.Add(reference);
             }
 
             return builder.ToImmutable();
@@ -504,6 +510,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return current;
+        }
+
+        private class HostAnalyzerReferenceDiagnosticReporter
+        {
+            private readonly AbstractHostDiagnosticUpdateSource _hostUpdateSource;
+
+            public HostAnalyzerReferenceDiagnosticReporter(AbstractHostDiagnosticUpdateSource hostUpdateSource)
+            {
+                _hostUpdateSource = hostUpdateSource;
+            }
+
+            public void OnAnalyzerLoadFailed(object sender, AnalyzerLoadFailureEventArgs e)
+            {
+                var reference = sender as AnalyzerFileReference;
+                if (reference == null)
+                {
+                    return;
+                }
+
+                var diagnostic = AnalyzerHelper.CreateAnalyzerLoadFailureDiagnostic(reference.FullPath, e);
+
+                // diagnostic from host analyzer can never go away
+                var args = new DiagnosticsUpdatedArgs(
+                    id: Tuple.Create(this, reference.FullPath, e.ErrorCode, e.TypeName),
+                    workspace: PrimaryWorkspace.Workspace,
+                    solution: null,
+                    projectId: null,
+                    documentId: null,
+                    diagnostics: ImmutableArray.Create<DiagnosticData>(diagnostic));
+
+                _hostUpdateSource.RaiseDiagnosticsUpdated(args);
+            }
         }
 
         private class LoadContextAssemblyLoader : IAnalyzerAssemblyLoader

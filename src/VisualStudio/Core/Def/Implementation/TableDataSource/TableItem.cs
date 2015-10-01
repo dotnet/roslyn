@@ -91,10 +91,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             get
             {
+                var projectId = Extensions.GetProjectId(Primary);
+                if (projectId == null)
+                {
+                    return null;
+                }
+
                 if (_cache == null)
                 {
                     // return single project name
-                    return Workspace.GetProjectName(PrimaryDocumentId.ProjectId);
+                    return Workspace.GetProjectName(projectId);
                 }
 
                 // return joined project names
@@ -120,9 +126,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             get
             {
+                var projectId = Extensions.GetProjectId(Primary);
+                if (projectId == null)
+                {
+                    return Guid.Empty;
+                }
+
                 if (_cache == null)
                 {
-                    return Workspace.GetProjectGuid(PrimaryDocumentId.ProjectId);
+                    return Workspace.GetProjectGuid(projectId);
                 }
 
                 // if this is aggregated element, there is no projectguid

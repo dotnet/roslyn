@@ -1333,6 +1333,28 @@ void M()
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void LocalProperty_Minimal_PrivateSet()
+        {
+            TestInClass(@"public DateTime Prop { get; private set; }
+void M()
+{
+    P$$rop.ToString();
+}",
+                MainDescription("DateTime C.Prop { get; private set; }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void LocalProperty_Minimal_PrivateSet1()
+        {
+            TestInClass(@"protected internal int Prop { get; private set; }
+void M()
+{
+    P$$rop.ToString();
+}",
+                MainDescription("int C.Prop { get; private set; }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void LocalProperty_Qualified()
         {
             TestInClass(@"System.IO.FileInfo Prop { get; set; }
@@ -4161,6 +4183,28 @@ namespace MyNs
 }
 ",
                 Exceptions($"\r\n{WorkspacesResources.Exceptions}\r\n  MyException1\r\n  MyException2\r\n  int\r\n  double\r\n  Not_A_Class_But_Still_Displayed"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(1516, "https://github.com/dotnet/roslyn/issues/1516")]
+        public void QuickInfoWithNonStandardSeeAttributesAppear()
+        {
+            Test(@"
+class C
+{
+    /// <summary>
+    /// <see cref=""System.String"" />
+    /// <see href=""http://microsoft.com"" />
+    /// <see langword=""null"" />
+    /// <see unsupported-attribute=""cat"" />
+    /// </summary>
+    void M()
+    {
+        M$$();
+    }
+}
+",
+                Documentation(@"string http://microsoft.com null cat"));
         }
     }
 }

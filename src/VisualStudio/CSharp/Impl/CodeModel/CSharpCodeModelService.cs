@@ -823,8 +823,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return "operator " + ((OperatorDeclarationSyntax)node).OperatorToken.ToString();
                 case SyntaxKind.ConversionOperatorDeclaration:
                     var conversionOperator = (ConversionOperatorDeclarationSyntax)node;
-                    return "operator "
-                        + (conversionOperator.ImplicitOrExplicitKeyword.Kind() == SyntaxKind.ImplicitKeyword ? "implicit " : "explicit ")
+                    return (conversionOperator.ImplicitOrExplicitKeyword.Kind() == SyntaxKind.ImplicitKeyword ? "implicit " : "explicit ")
+                        + "operator "
                         + conversionOperator.Type.ToString();
                 case SyntaxKind.EnumMemberDeclaration:
                     return ((EnumMemberDeclarationSyntax)node).Identifier.ToString();

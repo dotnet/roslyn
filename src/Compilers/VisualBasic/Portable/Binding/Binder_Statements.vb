@@ -381,7 +381,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Report Async/Await diagnostics, which depends on surrounding context.
         ''' </summary>
         Private Class CheckOnErrorAndAwaitWalker
-            Inherits BoundTreeWalker
+            Inherits BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
 
             Private ReadOnly _binder As Binder
             Private ReadOnly _diagnostics As DiagnosticBag
@@ -415,9 +415,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 <Out> ByRef reportedAnError As Boolean
             )
                 Dim walker As New CheckOnErrorAndAwaitWalker(binder, diagnostics)
-                walker.Visit(block)
-                Debug.Assert(walker._enclosingSyncLockOrUsing Is Nothing)
-                Debug.Assert(Not walker._isInCatchFinallyOrSyncLock)
+
+                Try
+                    walker.Visit(block)
+                    Debug.Assert(walker._enclosingSyncLockOrUsing Is Nothing)
+                    Debug.Assert(Not walker._isInCatchFinallyOrSyncLock)
+                Catch ex As CancelledByStackGuardException
+                    ex.AddAnError(diagnostics)
+                    reportedAnError = True
+                End Try
 
                 containsAwait = walker._containsAwait
                 containsOnError = walker._containsOnError
@@ -3577,7 +3583,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Not controlVariable.HasErrors AndAlso IsInAsyncContext() AndAlso
-               SeenAwaitVisitor.SeenAwaitIn(controlVariable) Then
+               SeenAwaitVisitor.SeenAwaitIn(controlVariable, diagnostics) Then
                 ReportDiagnostic(diagnostics, controlVariable.Syntax, ERRID.ERR_LoopControlMustNotAwait)
                 Return False
             End If
@@ -3586,13 +3592,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Class SeenAwaitVisitor
-            Inherits BoundTreeWalker
+            Inherits BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
 
             Private _seenAwait As Boolean
 
-            Public Shared Function SeenAwaitIn(node As BoundNode) As Boolean
+            Private Sub New()
+            End Sub
+
+            Public Shared Function SeenAwaitIn(node As BoundNode, diagnostics As DiagnosticBag) As Boolean
                 Dim visitor = New SeenAwaitVisitor()
-                visitor.Visit(node)
+                Try
+                    visitor.Visit(node)
+                Catch ex As CancelledByStackGuardException
+                    ex.AddAnError(diagnostics)
+                End Try
+
                 Return visitor._seenAwait
             End Function
 

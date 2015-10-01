@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
                                   "{",
                                   "    /// <summary>",
                                   "    /// Summary with <see cref=\"SeeClass\" />, <seealso cref=\"SeeAlsoClass\" />, ",
-                                  "    /// <see langword=\"null\" />, <typeparamref name=\"T\" />, and <paramref name=\"t\" />.",
+                                  "    /// <see langword=\"null\" />, <typeparamref name=\"T\" />, <paramref name=\"t\" />, and <see unsupported-attribute=\"not-supported\" />.",
                                   "    /// </summary>",
                                   "    public void M<T>(T t) { }",
                                   "}");
@@ -402,8 +402,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
             var docComment = (DocumentationCommentTriviaSyntax)trivia.Single(t => t.HasStructure).GetStructure();
             var actualRegion = GetRegion(docComment);
             var expectedRegion = new OutliningSpan(
-                         TextSpan.FromBounds(16, 218),
-                         "/// <summary> Summary with SeeClass , SeeAlsoClass , null , T , and t .",
+                         TextSpan.FromBounds(16, 265),
+                         "/// <summary> Summary with SeeClass , SeeAlsoClass , null , T , t , and not-supported .",
                          autoCollapse: true);
 
             AssertRegion(expectedRegion, actualRegion);

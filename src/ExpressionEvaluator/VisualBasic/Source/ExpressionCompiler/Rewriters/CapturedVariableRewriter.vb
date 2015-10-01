@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     Friend NotInheritable Class CapturedVariableRewriter
-        Inherits BoundTreeRewriter
+        Inherits BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
 
         Friend Shared Function Rewrite(
             targetMethodMeParameter As ParameterSymbol,

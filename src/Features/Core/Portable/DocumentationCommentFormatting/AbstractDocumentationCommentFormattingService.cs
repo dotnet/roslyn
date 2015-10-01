@@ -156,13 +156,21 @@ namespace Microsoft.CodeAnalysis.DocumentationCommentFormatting
             if (name == "see" ||
                 name == "seealso")
             {
-                AppendTextFromAttribute(state, element, "cref");
+                foreach (var attribute in element.Attributes())
+                {
+                    AppendTextFromAttribute(state, element, attribute, attributeNameToParse: "cref");
+                }
+
                 return;
             }
             else if (name == "paramref" ||
                      name == "typeparamref")
             {
-                AppendTextFromAttribute(state, element, "name");
+                foreach (var attribute in element.Attributes())
+                {
+                    AppendTextFromAttribute(state, element, attribute, attributeNameToParse: "name");
+                }
+
                 return;
             }
 
@@ -182,15 +190,20 @@ namespace Microsoft.CodeAnalysis.DocumentationCommentFormatting
             }
         }
 
-        private static void AppendTextFromAttribute(FormatterState state, XElement element, string attributeName)
+        private static void AppendTextFromAttribute(FormatterState state, XElement element, XAttribute attribute, string attributeNameToParse)
         {
-            var attribute = element.Attribute(attributeName);
-            if (attribute == null)
+            var attributeName = attribute.Name.LocalName;
+            if (attributeNameToParse == attributeName)
             {
-                return;
+                state.AppendParts(CrefToSymbolDisplayParts(attribute.Value, state.Position, state.SemanticModel, state.Format));
             }
-
-            state.AppendParts(CrefToSymbolDisplayParts(attribute.Value, state.Position, state.SemanticModel, state.Format));
+            else
+            {
+                var displayKind = attributeName == "langword"
+                    ? SymbolDisplayPartKind.Keyword
+                    : SymbolDisplayPartKind.Text;
+                state.AppendParts(SpecializedCollections.SingletonEnumerable(new SymbolDisplayPart(kind: displayKind, symbol: null, text: attribute.Value)));
+            }
         }
 
         internal static IEnumerable<SymbolDisplayPart> CrefToSymbolDisplayParts(string crefValue, int position, SemanticModel semanticModel, SymbolDisplayFormat format = null)

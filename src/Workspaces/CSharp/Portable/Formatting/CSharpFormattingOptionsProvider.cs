@@ -46,6 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine,
                 CSharpFormattingOptions.NewLinesForBracesInTypes,
                 CSharpFormattingOptions.NewLinesForBracesInMethods,
+                CSharpFormattingOptions.NewLinesForBracesInProperties,
+                CSharpFormattingOptions.NewLinesForBracesInAccessors,
                 CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods,
                 CSharpFormattingOptions.NewLinesForBracesInControlBlocks,
                 CSharpFormattingOptions.NewLinesForBracesInAnonymousTypes,

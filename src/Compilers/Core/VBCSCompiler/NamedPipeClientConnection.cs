@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             while (!cancellationToken.IsCancellationRequested && _pipeStream.IsConnected)
             {
-                // Wait a tenth of a second before trying again
-                await Task.Delay(100, cancellationToken).ConfigureAwait(false);
+                // Wait a second before trying again
+                await Task.Delay(1000, cancellationToken).ConfigureAwait(false);
 
                 try
                 {

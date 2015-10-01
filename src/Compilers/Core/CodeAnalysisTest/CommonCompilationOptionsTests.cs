@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "CryptoKeyFile",
                 "CryptoPublicKey",
                 "DelaySign",
+                "Deterministic",
                 "EnableEditAndContinue",
                 "Errors",
                 "ExtendedCustomDebugInformation",

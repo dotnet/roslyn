@@ -169,13 +169,12 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var packagesDirectory = string.IsNullOrEmpty(userProfilePath) ?
                     null :
                     Path.Combine(userProfilePath, Path.Combine(".nuget", "packages"));
+
                 return new RuntimeMetadataReferenceResolver(
-                   new RelativePathResolver(searchPaths, baseDirectory),
+                    new RelativePathResolver(searchPaths, baseDirectory),
                     string.IsNullOrEmpty(packagesDirectory) ? null : new NuGetPackageResolverImpl(packagesDirectory),
-                   new GacFileResolver(
-                       architectures: GacFileResolver.Default.Architectures,  // TODO (tomat)
-                       preferredCulture: CultureInfo.CurrentCulture), // TODO (tomat)
-                   (path, properties) => _metadataFileProvider.GetReference(path, properties));
+                    GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
+                    (path, properties) => _metadataFileProvider.GetReference(path, properties));
             }
 
             private SourceReferenceResolver CreateSourceReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)

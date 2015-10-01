@@ -1719,5 +1719,43 @@ class C
 }";
             Test(text, "System.Object", testPosition: false);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WorkItem(4486, "https://github.com/dotnet/roslyn/issues/4486")]
+        public void TestReturnInAsyncLambda1()
+        {
+            var text =
+    @"using System;
+using System.IO;
+using System.Threading.Tasks;
+
+public class C
+{
+    public async void M()
+    {
+        Func<Task<int>> t2 = async () => { return [|a|]; };
+    }
+}";
+            Test(text, "System.Int32");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WorkItem(4486, "https://github.com/dotnet/roslyn/issues/4486")]
+        public void TestReturnInAsyncLambda2()
+        {
+            var text =
+    @"using System;
+using System.IO;
+using System.Threading.Tasks;
+
+public class C
+{
+    public async void M()
+    {
+        Func<Task<int>> t2 = async delegate () { return [|a|]; };
+    }
+}";
+            Test(text, "System.Int32");
+        }
     }
 }

@@ -602,9 +602,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 {
                     InsertCode(format);
                 }
-                else if (Clipboard.ContainsData(ClipboardFormat))
+                else if (_window.InteractiveWindowClipboard.ContainsData(ClipboardFormat))
                 {
-                    var blocks = BufferBlock.Deserialize((string)Clipboard.GetData(ClipboardFormat));
+                    var blocks = BufferBlock.Deserialize((string)_window.InteractiveWindowClipboard.GetData(ClipboardFormat));
                     // Paste each block separately.
                     foreach (var block in blocks)
                     {
@@ -618,9 +618,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         }
                     }
                 }
-                else if (Clipboard.ContainsText())
+                else if (_window.InteractiveWindowClipboard.ContainsText())
                 {
-                    InsertCode(Clipboard.GetText());
+                    InsertCode(_window.InteractiveWindowClipboard.GetText());
                 }
                 else
                 {
@@ -2465,7 +2465,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     }
 
                     data.SetText(deletedText.ToString());
-                    Clipboard.SetDataObject(data, true);
+                    _window.InteractiveWindowClipboard.SetDataObject(data, true);
                 }
             }
 
@@ -2485,7 +2485,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 var spans = GetSelectionSpans(TextView);
                 var data = Copy(spans);
-                Clipboard.SetDataObject(data, true);
+                _window.InteractiveWindowClipboard.SetDataObject(data, true);
             }
 
             private static NormalizedSnapshotSpanCollection GetSelectionSpans(ITextView textView)
@@ -2567,7 +2567,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         var intersection = sourceSpan.Span.Intersection(mappedSpan);
                         if (intersection.HasValue && !intersection.Value.IsEmpty)
                         {
-                            var kind = GetSpanKind(span);
+                            var kind = GetSpanKind(sourceSpan);
                             if (kind == ReplSpanKind.LineBreak)
                             {
                                 kind = ReplSpanKind.Output;

@@ -25,9 +25,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             // register work coordinator for this workspace
             _registrationService = this.Services.GetService<ISolutionCrawlerRegistrationService>();
             _registrationService.Register(this);
-
-            // TODO (https://github.com/dotnet/roslyn/issues/5107): Enable in Interactive.
-            this.Options = this.Options.WithChangedOption(InternalFeatureOnOffOptions.Snippets, false);
         }
 
         protected override void Dispose(bool finalize)
