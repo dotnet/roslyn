@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
         Inherits BasicTestBase
 
         Private Function GetBytesEmitted(source As String, platform As Platform, debug As Boolean) As ImmutableArray(Of Byte)
-            Dim options = If(debug, TestOptions.DebugExe, TestOptions.ReleaseExe).WithPlatform(platform).WithDeterminism(True)
+            Dim options = If(debug, TestOptions.DebugExe, TestOptions.ReleaseExe).WithPlatform(platform).WithDeterministic(True)
 
             Dim compilation = CreateCompilationWithMscorlib({source}, assemblyName:="DeterminismTest", options:=options)
 
@@ -35,10 +35,10 @@ Class C
 End Class"
             Dim compilationDeterministic = CreateCompilationWithMscorlib({source},
                                                                          assemblyName:="DeterminismTest",
-                                                                         options:=TestOptions.DebugExe.WithDeterminism(True))
+                                                                         options:=TestOptions.DebugExe.WithDeterministic(True))
             Dim compilationNonDeterministic = CreateCompilationWithMscorlib({source},
                                                                          assemblyName:="DeterminismTest",
-                                                                         options:=TestOptions.DebugExe.WithDeterminism(False))
+                                                                         options:=TestOptions.DebugExe.WithDeterministic(False))
 
             Dim resultDeterministic = compilationDeterministic.Emit(Stream.Null, Stream.Null)
             Dim resultNonDeterministic = compilationNonDeterministic.Emit(Stream.Null, Stream.Null)
