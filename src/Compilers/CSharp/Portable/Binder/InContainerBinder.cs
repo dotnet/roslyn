@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly NamespaceOrTypeSymbol _container;
         private readonly CSharpSyntaxNode _declarationSyntax;
-        private Imports _lazyImports;
+        private readonly bool _allowStaticClassUsings;
+        private Imports _imports; // might be initialized lazily
         private ImportChain _lazyImportChain;
         private readonly bool _inUsing;
 
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Creates a binder for a container with imports (usings and extern aliases) that can be
         /// retrieved from <paramref name="declarationSyntax"/>.
         /// </summary>
-        internal InContainerBinder(NamespaceOrTypeSymbol container, Binder next, CSharpSyntaxNode declarationSyntax, bool inUsing)
+        internal InContainerBinder(NamespaceOrTypeSymbol container, Binder next, CSharpSyntaxNode declarationSyntax, bool allowStaticClassUsings, bool inUsing)
             : base(next)
         {
             Debug.Assert((object)container != null);
@@ -32,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _declarationSyntax = declarationSyntax;
             _container = container;
+            _allowStaticClassUsings = allowStaticClassUsings;
             _inUsing = inUsing;
         }
 
@@ -41,10 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal InContainerBinder(NamespaceOrTypeSymbol container, Binder next, Imports imports = null)
             : base(next)
         {
-            Debug.Assert((object)container != null || imports != null);
+            Debug.Assert((object)container != null);
 
             _container = container;
-            _lazyImports = imports ?? Imports.Empty;
+            _imports = imports ?? Imports.Empty;
         }
 
         internal NamespaceOrTypeSymbol Container
@@ -55,6 +57,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal bool AllowStaticClassUsings
+        {
+            get
+            {
+                return _allowStaticClassUsings;
+            }
+        }
+
         internal Imports GetImports()
         {
             return GetImports(basesBeingResolved: null);
@@ -62,12 +72,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Imports GetImports(ConsList<Symbol> basesBeingResolved)
         {
-            if (_lazyImports == null)
+            if (_imports == null)
             {
-                Interlocked.CompareExchange(ref _lazyImports, Imports.FromSyntax(_declarationSyntax, this, basesBeingResolved, _inUsing), null);
+                Interlocked.CompareExchange(ref _imports, Imports.FromSyntax(_declarationSyntax, this, basesBeingResolved, _inUsing), null);
             }
 
-            return _lazyImports;
+            return _imports;
         }
 
         internal override ImportChain ImportChain
@@ -77,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_lazyImportChain == null)
                 {
                     ImportChain importChain = this.Next.ImportChain;
-                    if ((object)_container == null || _container.Kind == SymbolKind.Namespace)
+                    if (_container.Kind == SymbolKind.Namespace)
                     {
                         importChain = new ImportChain(GetImports(), importChain);
                     }
@@ -102,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool IsSubmissionClass
         {
-            get { return (_container?.Kind == SymbolKind.NamedType) && ((NamedTypeSymbol)_container).IsSubmissionClass; }
+            get { return (_container.Kind == SymbolKind.NamedType) && ((NamedTypeSymbol)_container).IsSubmissionClass; }
         }
 
         internal override bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved)
@@ -135,15 +145,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 this.GetImports().LookupExtensionMethodsInUsings(methods, name, arity, options, isCallerSemanticModel);
             }
-            else if (_container?.Kind == SymbolKind.Namespace)
+            else
             {
-                ((NamespaceSymbol)_container).GetExtensionMethods(methods, name, arity, options);
-            }
-            else if (IsSubmissionClass)
-            {
-                for (var submission = this.Compilation; submission != null; submission = submission.PreviousSubmission)
+                if (_container.Kind == SymbolKind.Namespace)
                 {
-                    submission.ScriptClass?.GetExtensionMethods(methods, name, arity, options);
+                    ((NamespaceSymbol)_container).GetExtensionMethods(methods, name, arity, options);
+                }
+                else if (((NamedTypeSymbol)_container).IsScriptClass)
+                {
+                    for (var submission = this.Compilation; submission != null; submission = submission.PreviousSubmission)
+                    {
+                        var scriptClass = submission.ScriptClass;
+                        if ((object)scriptClass != null)
+                        {
+                            scriptClass.GetExtensionMethods(methods, name, arity, options);
+                        }
+                    }
                 }
             }
         }
@@ -153,16 +170,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(result.IsClear);
 
-            var imports = GetImports(basesBeingResolved);
-
             if (IsSubmissionClass)
             {
                 this.LookupMembersInternal(result, _container, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteDiagnostics);
                 return;
             }
 
+            var imports = GetImports(basesBeingResolved);
+
             // first lookup members of the namespace
-            if ((options & LookupOptions.NamespaceAliasesOnly) == 0 && _container != null)
+            if ((options & LookupOptions.NamespaceAliasesOnly) == 0)
             {
                 this.LookupMembersInternal(result, _container, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteDiagnostics);
 
@@ -186,17 +203,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
         {
-            if (_container != null)
-            {
-                this.AddMemberLookupSymbolsInfo(result, _container, options, originalBinder);
-            }
+            this.AddMemberLookupSymbolsInfo(result, _container, options, originalBinder);
 
-            // If we are looking only for labels we do not need to search through the imports.
-            // Submission imports are handled by AddMemberLookupSymbolsInfo (above).
+            // if we are looking only for labels we do not need to search through the imports
             if (!IsSubmissionClass && ((options & LookupOptions.LabelsOnly) == 0))
             {
                 var imports = GetImports(basesBeingResolved: null);
-                imports.AddLookupSymbolsInfo(result, options, originalBinder);
+
+                imports.AddLookupSymbolsInfoInAliases(originalBinder, result, options);
+
+                // Add types within namespaces imported through usings, but don't add nested namespaces.
+                LookupOptions usingOptions = (options & ~(LookupOptions.NamespaceAliasesOnly | LookupOptions.NamespacesOrTypesOnly)) | LookupOptions.MustNotBeNamespace;
+                Imports.AddLookupSymbolsInfoInUsings(imports.Usings, originalBinder, result, usingOptions);
             }
         }
 
