@@ -28,7 +28,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             New HandlesClauseCompletionProvider(),
             New PartialTypeCompletionProvider(),
             New CrefCompletionProvider(),
-            New CompletionListTagCompletionProvider
+            New CompletionListTagCompletionProvider,
+            New BooleanCompletionProvider()
         }.ToImmutableArray()
 
         Public Overrides Function GetDefaultCompletionProviders() As IEnumerable(Of CompletionListProvider)

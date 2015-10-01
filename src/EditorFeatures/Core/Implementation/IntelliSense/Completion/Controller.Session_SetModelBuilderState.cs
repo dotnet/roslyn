@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
@@ -12,30 +13,40 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             {
                 AssertIsForeground();
 
-                Computation.ChainTaskAndNotifyControllerWhenFinished(model => SetModelBuilderStateInBackground(model, includeBuilder));
+                Computation.ChainTaskAndNotifyControllerWhenFinished(models => SetModelBuilderStateInBackground(models, includeBuilder));
             }
 
-            private Model SetModelBuilderStateInBackground(
-                Model model,
+            private ImmutableArray<Model> SetModelBuilderStateInBackground(
+                ImmutableArray<Model> models,
                 bool includeBuilder)
             {
-                if (model == null)
+                if (models == default(ImmutableArray<Model>))
                 {
-                    return null;
+                    return default(ImmutableArray<Model>);
                 }
 
-                // We want to soft select if the user is switching the builder on, or if we were
-                // already in soft select mode.
-                var softSelect = includeBuilder || model.IsSoftSelection;
-
-                // If the selected item is the builder, select the first filtered item instead.
-                if (model.SelectedItem == model.DefaultBuilder)
+                var result = ImmutableArray.CreateBuilder<Model>(models.Length);
+                for (int i = 0; i < models.Length; i++)
                 {
-                    return model.WithSelectedItem(model.FilteredItems.First())
-                                .WithHardSelection(!softSelect);
+                    var model = models[i];
+                    // We want to soft select if the user is switching the builder on, or if we were
+                    // already in soft select mode.
+                    var softSelect = includeBuilder || model.IsSoftSelection;
+
+                    // If the selected item is the builder, select the first filtered item instead.
+                    if (model.SelectedItem == model.DefaultBuilder)
+                    {
+                        result.Add(model.WithSelectedItem(model.FilteredItems.First())
+                                    .WithHardSelection(!softSelect)
+                                    .WithUseSuggestionCompletionMode(includeBuilder));
+                    }
+                    else
+                    {
+                        result.Add(model.WithHardSelection(!softSelect).WithUseSuggestionCompletionMode(includeBuilder));
+                    }
                 }
 
-                return model.WithHardSelection(!softSelect).WithUseSuggestionCompletionMode(includeBuilder);
+                return result.ToImmutable();
             }
         }
     }

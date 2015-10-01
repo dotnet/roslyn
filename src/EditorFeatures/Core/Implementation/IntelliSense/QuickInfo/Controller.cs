@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Commands;
@@ -68,10 +69,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                     allProviders));
         }
 
-        internal override void OnModelUpdated(Model modelOpt)
+        internal override void OnModelsUpdated(ImmutableArray<Model> modelsOpt)
         {
             AssertIsForeground();
-            if (modelOpt == null || modelOpt.TextVersion != this.SubjectBuffer.CurrentSnapshot.Version)
+
+            if (modelsOpt == default(ImmutableArray<Model>))
+            {
+                this.StopModelComputation();
+                return;
+            }
+
+            // QuickInfo only computes one model
+            var modelOpt = modelsOpt[0];
+            if (modelOpt.TextVersion != this.SubjectBuffer.CurrentSnapshot.Version)
             {
                 this.StopModelComputation();
             }
@@ -126,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             return _providers;
         }
 
-        private async Task<Model> ComputeModelInBackgroundAsync(
+        private async Task<ImmutableArray<Model>> ComputeModelInBackgroundAsync(
                int position,
                ITextSnapshot snapshot,
                IList<IQuickInfoProvider> providers,
@@ -144,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                     var document = await DocumentProvider.GetDocumentAsync(snapshot, cancellationToken).ConfigureAwait(false);
                     if (document == null)
                     {
-                        return null;
+                        return default(ImmutableArray<Model>);
                     }
 
                     foreach (var provider in providers)
@@ -154,11 +164,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                         var item = await provider.GetItemAsync(document, position, cancellationToken).ConfigureAwait(false);
                         if (item != null)
                         {
-                            return new Model(snapshot.Version, item, provider, trackMouse);
+                            return new [] { new Model(snapshot.Version, item, provider, trackMouse) }.ToImmutableArray();
                         }
                     }
 
-                    return null;
+                    return default(ImmutableArray<Model>);
                 }
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))

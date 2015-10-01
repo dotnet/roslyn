@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -72,8 +73,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             return this.TextView.Caret.Position.BufferPosition;
         }
 
-        internal override void OnModelUpdated(Model modelOpt)
+        internal override void OnModelsUpdated(ImmutableArray<Model> modelsOpt)
         {
+            if (modelsOpt == default(ImmutableArray<Model>))
+            {
+                this.StopModelComputation();
+                return;
+            }
+
+            // Signature Help only computes one model
+            var modelOpt = modelsOpt[0];
+
             AssertIsForeground();
             if (modelOpt == null)
             {

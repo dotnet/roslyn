@@ -2,9 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
         /// <summary>
         /// Set when the first compute task completes
         /// </summary>
-        private TModel _initialUnfilteredModel = default(TModel);
+        private ImmutableArray<TModel> _initialUnfilteredModels = default(ImmutableArray<TModel>);
 
         #endregion
 
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
         // *last* compute task, then we will want to stop everything.  However, if it is not the
         // last compute task, then we just want to ignore that result and allow the actual
         // latest compute task to proceed.
-        private Task<TModel> _lastTask;
+        private Task<ImmutableArray<TModel>> _lastTask;
         private Task _notifyControllerTask;
 
         #endregion
@@ -61,19 +63,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             _stopCancellationToken = _stopTokenSource.Token;
 
             // Dummy up a new task so we don't need to check for null.
-            _notifyControllerTask = _lastTask = SpecializedTasks.Default<TModel>();
+            _notifyControllerTask = _lastTask = SpecializedTasks.Default<ImmutableArray<TModel>>();
         }
 
-        public TModel InitialUnfilteredModel
+        public ImmutableArray<TModel> InitialUnfilteredModels
         {
             get
             {
                 AssertIsForeground();
-                return _initialUnfilteredModel;
+                return _initialUnfilteredModels;
             }
         }
 
-        public Task<TModel> ModelTask
+        public Task<ImmutableArray<TModel>> ModelTask
         {
             get
             {
@@ -85,20 +87,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             }
         }
 
-        public TModel WaitForController()
+        public ImmutableArray<TModel> WaitForController()
         {
             AssertIsForeground();
 
-            var model = ModelTask.WaitAndGetResult(CancellationToken.None);
+            var models = ModelTask.WaitAndGetResult(CancellationToken.None);
             if (!_notifyControllerTask.IsCompleted)
             {
-                OnModelUpdated(model, updateController: true);
+                OnModelsUpdated(models, updateController: true);
 
                 // Reset lastTask so controller.OnModelUpdated is only called once
-                _lastTask = Task.FromResult(model);
+                _lastTask = Task.FromResult(models);
             }
 
-            return model;
+            return models;
         }
 
         public virtual void Stop()
@@ -109,18 +111,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             _stopTokenSource.Cancel();
 
             // reset task so that it doesn't hold onto things like WpfTextView
-            _notifyControllerTask = _lastTask = SpecializedTasks.Default<TModel>();
+            _notifyControllerTask = _lastTask = SpecializedTasks.Default<ImmutableArray<TModel>>();
         }
 
         public void ChainTaskAndNotifyControllerWhenFinished(
-                Func<TModel, TModel> transformModel,
+                Func<ImmutableArray<TModel>, ImmutableArray<TModel>> transformModel,
                 bool updateController = true)
         {
             ChainTaskAndNotifyControllerWhenFinished((m, c) => Task.FromResult(transformModel(m)), updateController);
         }
 
         public void ChainTaskAndNotifyControllerWhenFinished(
-            Func<TModel, CancellationToken, Task<TModel>> transformModelAsync,
+            Func<ImmutableArray<TModel>, CancellationToken, Task<ImmutableArray<TModel>>> transformModelAsync,
             bool updateController = true)
         {
             AssertIsForeground();
@@ -157,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                             // don't need to update the controller (and the presenters) until our
                             // chain is finished.
                             updateController &= nextTask == _lastTask;
-                            OnModelUpdated(nextTask.Result, updateController);
+                            OnModelsUpdated(nextTask.Result, updateController);
                         }
                     },
                 _stopCancellationToken, TaskContinuationOptions.None, ForegroundTaskScheduler);
@@ -167,19 +169,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             _notifyControllerTask.CompletesAsyncOperation(asyncToken);
         }
 
-        private void OnModelUpdated(TModel result, bool updateController)
+        private void OnModelsUpdated(ImmutableArray<TModel> result, bool updateController)
         {
             this.AssertIsForeground();
 
             // Store the first result so that anyone who cares knows we've computed something
-            if (_initialUnfilteredModel == null)
+            if (_initialUnfilteredModels == null)
             {
-                _initialUnfilteredModel = result;
+                _initialUnfilteredModels = result;
             }
 
             if (updateController)
             {
-                _controller.OnModelUpdated(result);
+                _controller.OnModelsUpdated(result);
             }
         }
     }

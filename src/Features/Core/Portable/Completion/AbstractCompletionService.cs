@@ -240,18 +240,34 @@ namespace Microsoft.CodeAnalysis.Completion
             // if they are snippets and the other candidate is preselected.
             if (existingItem.Preselect && item.CompletionProvider is ISnippetCompletionProvider)
             {
-                return existingItem;
+                return CopyTags(item, existingItem);
             }
 
             // If one is a keyword, and the other is some other item that inserts the same text as the keyword,
             // keep the keyword
-            var keywordItem = existingItem as KeywordCompletionItem ?? item as KeywordCompletionItem;
+            var keywordItem = TryGetKeywordItem(existingItem) ?? TryGetKeywordItem(item);
+            var other = keywordItem == existingItem ? item : existingItem;
             if (keywordItem != null)
             {
-                return keywordItem;
+                return CopyTags(other, keywordItem);
             }
 
-            return item;
+            return CopyTags(existingItem, item);
+        }
+
+        private static CompletionItem TryGetKeywordItem(CompletionItem item)
+        {
+            return item.Glyph == Glyph.Keyword ? item : null;
+        }
+
+        private static CompletionItem CopyTags(CompletionItem item1, CompletionItem item2)
+        {
+            foreach (var tag in item1.Tags)
+            {
+                item2.AddTag(tag);
+            }
+
+            return item2;
         }
 
         private Dictionary<CompletionListProvider, int> GetCompletionProviderToIndex(IEnumerable<CompletionListProvider> completionProviders)

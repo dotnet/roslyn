@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
@@ -53,19 +54,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Sub ChainingTaskThatCompletesNotifiesController()
             Dim controller = New Mock(Of IController(Of Model))
             Dim modelComputation = TestModelComputation.Create(controller:=controller.Object)
-            Dim model = New Model()
+            Dim model = {New Model()}.ToImmutableArray()
 
             modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m) model)
             modelComputation.Wait()
 
-            controller.Verify(Sub(c) c.OnModelUpdated(model))
+            controller.Verify(Sub(c) c.OnModelsUpdated(model))
         End Sub
 
         <Fact>
         Public Sub ControllerIsOnlyUpdatedAfterLastTaskCompletes()
             Dim controller = New Mock(Of IController(Of Model))
             Dim modelComputation = TestModelComputation.Create(controller:=controller.Object)
-            Dim model = New Model()
+            Dim model = {New Model()}.ToImmutableArray()
             Dim gate = New Object
 
             Monitor.Enter(gate)
@@ -78,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Monitor.Exit(gate)
             modelComputation.Wait()
 
-            controller.Verify(Sub(c) c.OnModelUpdated(model), Times.Once)
+            controller.Verify(Sub(c) c.OnModelsUpdated(model), Times.Once)
         End Sub
 
         <Fact>
@@ -87,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim token = New Mock(Of IAsyncToken)
             controller.Setup(Function(c) c.BeginAsyncOperation()).Returns(token.Object)
             Dim modelComputation = TestModelComputation.Create(controller:=controller.Object)
-            Dim model = New Model()
+            Dim model = {New Model()}.ToImmutableArray()
             Dim checkpoint1 = New Checkpoint
             Dim checkpoint2 = New Checkpoint
             Dim checkpoint3 = New Checkpoint
@@ -105,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             checkpoint2.Release()
             checkpoint3.PumpingWait()
 
-            controller.Verify(Sub(c) c.OnModelUpdated(model), Times.Never)
+            controller.Verify(Sub(c) c.OnModelsUpdated(model), Times.Never)
         End Sub
 
     End Class

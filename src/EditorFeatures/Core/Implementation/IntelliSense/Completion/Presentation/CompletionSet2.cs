@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 using VSCompletion = Microsoft.VisualStudio.Language.Intellisense.Completion;
+using System;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
 {
@@ -18,13 +19,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         private readonly CompletionPresenterSession _completionPresenterSession;
         private Dictionary<CompletionItem, VSCompletion> _completionItemMap;
 
-        public CompletionSet2(CompletionPresenterSession completionPresenterSession, ITextView textView, ITextBuffer subjectBuffer)
+        public int Id { get; }
+
+        public CompletionSet2(CompletionPresenterSession completionPresenterSession, ITextView textView, ITextBuffer subjectBuffer, int id, string title)
         {
             _completionPresenterSession = completionPresenterSession;
             _textView = textView;
             _subjectBuffer = subjectBuffer;
-            this.Moniker = "All";
-            this.DisplayName = "All";
+            this.Moniker = title;
+            this.DisplayName = title;
+            this.Id = id;
         }
 
         internal void SetTrackingSpan(ITrackingSpan trackingSpan)
@@ -132,6 +136,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         {
             // Do nothing.  We do *not* want the default behavior that the editor has.  We've
             // already computed the best match.
+
+            if (Selected)
+            {
+                this._completionPresenterSession._editorSessionOpt.SelectedCompletionSet = this;
+            }
         }
 
         public override void Filter()
@@ -144,5 +153,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         {
             // Do nothing.  Our controller will already recalculate if necessary.
         }
+
+        // Hack: When our presenter "augments" the editor's session, we're
+        // unable to specify the selected CompletionSet. Use the call to 
+        // SelectBestMatch to set it
+        internal bool Selected { get; set; }
+
     }
 }

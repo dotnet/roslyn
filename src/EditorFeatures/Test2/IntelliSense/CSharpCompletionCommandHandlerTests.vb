@@ -3,6 +3,7 @@
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.CSharp.Completion.Providers
 Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
@@ -1562,11 +1563,151 @@ class C
 
                     Dim editorOperations = editorOperationsFactory.GetEditorOperations(view)
                     state.CompletionCommandHandler.ExecuteCommand(New DeleteKeyCommandArgs(view, state.SubjectBuffer), Sub() editorOperations.Delete())
-
                     state.AssertNoCompletionSession()
                 Finally
                     view.Close()
                 End Try
+            End Using
+        End Sub
+
+        Private Class ExtraListProvider
+            Inherits CompletionListProvider
+
+            Private ReadOnly text As String
+
+            Sub New()
+                Me.text = "Extra"
+            End Sub
+            Sub New(text As String)
+                Me.text = text
+            End Sub
+
+            Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+                Return True
+            End Function
+
+            Public Overrides Async Function ProduceCompletionListAsync(context As CompletionListContext) As Task
+                Dim text = Await context.Document.GetTextAsync().ConfigureAwait(False)
+                Dim item = New CompletionItem(Me, Me.text, CompletionUtilities.GetTextChangeSpan(text, context.Position))
+                item.AddTag("Extra")
+                context.AddItem(item)
+
+                Dim item2 = New CompletionItem(Me, Me.text & "2", CompletionUtilities.GetTextChangeSpan(text, context.Position))
+                item2.AddTag("Extra")
+                context.AddItem(item2)
+            End Function
+        End Class
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub CompletionStartedWithMultipleLists()
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+class C
+{
+    void foo(int x)
+    {
+        $$]]></Document>, extraCompletionProviders:={New ExtraListProvider()})
+                ' Note: the caret is at the file, so the Select All command's movement
+                ' of the caret to the end of the selection isn't responsible for 
+                ' dismissing the session.
+                state.SendInvokeCompletionList()
+                state.AssertListCount(2)
+                state.AssertSelectedTab("Extra")
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub ToggleBetweenRoslynOwnedCompletionTabs()
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+class C
+{
+    void foo(int x)
+    {
+        $$]]></Document>, extraCompletionProviders:={New ExtraListProvider()})
+
+                state.SendInvokeCompletionList()
+                state.AssertListCount(2)
+                state.AssertSelectedTab("Extra")
+                state.CurrentCompletionPresenterSession.SelectTab("All")
+                state.AssertSelectedTab("All")
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SwitchAwayFromRoslynOwnedTabs()
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+class C
+{
+    void foo(int x)
+    {
+        $$]]></Document>, extraCompletionProviders:={New ExtraListProvider()})
+
+                state.SendInvokeCompletionList()
+                state.AssertListCount(2)
+                state.AssertSelectedTab("Extra")
+                state.SendTypeChars("Ex")
+                state.AssertSelectedCompletionItem("Extra")
+                state.CurrentCompletionPresenterSession.SelectNoTab()
+
+                ' Enter should not commit
+                state.SendReturn()
+                Assert.False(state.TextView.TextBuffer.CurrentSnapshot.GetText().Contains("Extra"))
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub TagsMergedBetweenItemsWithSameText()
+            ' We have code that sometimes takes items with a specific glyph.
+            ' However, we still need CompletionListProviders to be able to
+            ' specify altnerate lists for those items. This test uses
+            ' a provider that provides "True" to verify that we show
+            ' a True (Keyword) in an additional list.
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+class C
+{
+    void foo(int x)
+    {
+        $$]]></Document>, extraCompletionProviders:={New ExtraListProvider("true")})
+
+                state.SendInvokeCompletionList()
+                state.AssertListCount(2)
+                state.AssertSelectedTab("Extra")
+                state.SendTypeChars("tr")
+                state.AssertSelectedCompletionItem("true")
+                Assert.Equal(state.CurrentCompletionPresenterSession.SelectedItem.Glyph, Glyph.Keyword)
+            End Using
+        End Sub
+
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub ModifyModelStatesIndependently()
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+class C
+{
+    void foo(int x)
+    {
+        $$]]></Document>, extraCompletionProviders:={New ExtraListProvider()})
+
+                state.SendInvokeCompletionList()
+                state.AssertListCount(2)
+                state.AssertSelectedTab("Extra")
+                state.SendTypeChars("Ex")
+                state.AssertSelectedCompletionItem("Extra")
+                state.CurrentCompletionPresenterSession.SelectTab("All")
+                state.AssertSelectedCompletionItem("Exception")
+                state.SendDownKey()
+                state.AssertSelectedCompletionItem("ExecutionEngineException")
+                state.CurrentCompletionPresenterSession.SelectTab("Extra")
+
+                ' First tab should still commit its originally selected item
+                state.SendReturn()
+                Assert.True(state.TextView.TextBuffer.CurrentSnapshot.GetText().Contains("Extra"))
+                Assert.False(state.TextView.TextBuffer.CurrentSnapshot.GetText().Contains("Extra2"))
             End Using
         End Sub
     End Class

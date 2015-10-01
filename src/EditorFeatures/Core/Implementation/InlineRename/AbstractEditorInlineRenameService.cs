@@ -62,7 +62,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return new FailureInlineRenameInfo(EditorFeaturesResources.YouMustRenameAnIdentifier);
             }
 
-            var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var span = new TextSpan(triggerToken.SpanStart, 0);
+            var semanticModel = document.GetSemanticModelForSpanAsync(span, cancellationToken).WaitAndGetResult(cancellationToken);
             var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
             var tokenRenameInfo = RenameUtilities.GetTokenRenameInfo(semanticFacts, semanticModel, triggerToken, cancellationToken);
