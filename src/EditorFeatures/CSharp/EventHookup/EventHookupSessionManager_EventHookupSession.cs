@@ -154,7 +154,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                         return null;
                     }
 
-                    var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    var span = new TextSpan(position, 0);
+                    var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
 
                     var eventSymbol = GetEventSymbol(semanticModel, plusEqualsToken.Value, cancellationToken);
                     if (eventSymbol == null)
