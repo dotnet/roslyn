@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.builtInOperators = new BuiltInOperators(this);
             _scriptClass = new Lazy<ImplicitNamedTypeSymbol>(BindScriptClass);
-            _globalImports = new Lazy<Imports>(BindGlobalUsings);
+            _globalImports = new Lazy<Imports>(BindGlobalImports);
             _globalNamespaceAlias = new Lazy<AliasSymbol>(CreateGlobalNamespaceAlias);
             _anonymousTypeManager = new AnonymousTypeManager(this);
             this.LanguageVersion = CommonLanguageVersion(syntaxAndDeclarations.ExternalSyntaxTrees);
@@ -1195,16 +1195,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             return namespaceOrType as ImplicitNamedTypeSymbol;
         }
 
-        internal Imports GlobalImports
-        {
-            get { return _globalImports.Value; }
-        }
+        /// <summary>
+        /// Global imports (including those from previous submissions, if there are any).
+        /// </summary>
+        internal Imports GlobalImports => _globalImports.Value;
 
-        internal IEnumerable<NamespaceOrTypeSymbol> GlobalUsings
+        private Imports BindGlobalImports() => Imports.FromGlobalUsings(this);
+
+        /// <summary>
+        /// Imports declared by this submission (null if this isn't one).
+        /// </summary>
+        internal Imports SubmissionImports
         {
             get
             {
-                return GlobalImports.Usings.Select(u => u.NamespaceOrType);
+                if (!this.IsSubmission)
+                {
+                    return null;
+                }
+
+                // A submission may be empty or comprised of a single script file.
+                var tree = _syntaxAndDeclarations.ExternalSyntaxTrees.SingleOrDefault();
+                if (tree == null)
+                {
+                    return Imports.Empty;
+                }
+
+                var binder = GetBinderFactory(tree).GetImportsBinder((CSharpSyntaxNode)tree.GetRoot());
+                return binder.GetImports();
             }
         }
 
@@ -1658,30 +1676,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetBinderFactory(declaration.SyntaxReference.SyntaxTree).GetImportsBinder((CSharpSyntaxNode)declaration.SyntaxReference.GetSyntax()).GetImports();
         }
 
-        internal Imports GetSubmissionImports()
-        {
-            return ((SourceNamespaceSymbol)SourceModule.GlobalNamespace).GetBoundImportsMerged().SingleOrDefault() ?? Imports.Empty;
-        }
-
-        internal InteractiveUsingsBinder GetInteractiveUsingsBinder()
-        {
-            Debug.Assert(IsSubmission);
-
-            // empty compilation:
-            if ((object)ScriptClass == null)
-            {
-                Debug.Assert(_syntaxAndDeclarations.ExternalSyntaxTrees.Length == 0);
-                return null;
-            }
-
-            return GetBinderFactory(_syntaxAndDeclarations.ExternalSyntaxTrees.Single()).GetInteractiveUsingsBinder();
-        }
-
-        private Imports BindGlobalUsings()
-        {
-            return Imports.FromGlobalUsings(this);
-        }
-
         private AliasSymbol CreateGlobalNamespaceAlias()
         {
             return AliasSymbol.CreateGlobalNamespaceAlias(this.GlobalNamespace, new InContainerBinder(this.GlobalNamespace, new BuckStopsHereBinder(this)));
@@ -2096,7 +2090,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<Diagnostic> GetSourceDeclarationDiagnostics(SyntaxTree syntaxTree = null, TextSpan? filterSpanWithinTree = null, Func<IEnumerable<Diagnostic>, SyntaxTree, TextSpan?, IEnumerable<Diagnostic>> locationFilterOpt = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            // global imports diagnostics (specified via compilation options):
             GlobalImports.Complete(cancellationToken);
 
             SourceLocation location = null;

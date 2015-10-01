@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [WorkItem(5450, "https://github.com/dotnet/roslyn/issues/5450")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5450")]
+        [Fact]
         public void GlobalUsings()
         {
             var sub1 = CreateSubmission(
@@ -319,15 +319,15 @@ namespace B
 
             var options = TestOptions.DebugDll.WithUsings("B");
 
-            var sub1 = CreateSubmission("using A;", new[] { lib1 }, options);
+            var sub1 = CreateSubmission("using A; typeof(A1) == typeof(B1)", new[] { lib1 }, options);
             sub1.VerifyDiagnostics();
 
-            var sub2 = CreateSubmission("typeof(A1) == typeof(A2) && typeof(B1) == typeof(B2)", new[] { lib1, lib2 }, options: options, previous: sub1);
+            var sub2 = CreateSubmission("typeof(A1) == typeof(B1) && typeof(A2) == typeof(B2)", new[] { lib1, lib2 }, options: options, previous: sub1);
             sub2.VerifyDiagnostics();
         }
 
         [WorkItem(5423, "https://github.com/dotnet/roslyn/issues/5423")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5423")]
+        [Fact]
         void UsingsFromLoadedScript()
         {
             const string scriptSource = @"
@@ -442,6 +442,96 @@ t = typeof(File); // global using exposed
             compilation.VerifyDiagnostics();
         }
 
+        [WorkItem(4811, "https://github.com/dotnet/roslyn/issues/4811")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/4811")]
+        public void ConsumePreviousSubmissionUsings_Valid()
+        {
+            const string libSource = @"
+namespace NOuter
+{
+    public class Test { }
+
+    namespace NInner
+    {
+        public static class COuter
+        {
+            public static void M() { }
+
+            public static class CInner
+            {
+                public static void N() { }
+            }
+        }
+    }
+}
+";
+
+            var lib = CreateCompilationWithMscorlib(libSource).EmitToImageReference();
+            var refs = new[] { lib };
+
+            var submissions = new[]
+            {
+                "using NOuter;",
+                "typeof(Test)",
+                "using NI = NOuter.NInner;",
+                "typeof(NI.COuter)",
+                "using static NI.COuter;",
+                "M()",
+                "using static CInner;",
+                "N()",
+            };
+
+            CSharpCompilation prev = null;
+            foreach (var submission in submissions)
+            {
+                System.Console.WriteLine(submission);
+                var curr = CreateSubmission(submission, refs, previous: prev);
+                curr.VerifyDiagnostics();
+                prev = curr;
+            }
+        }
+
+        [Fact]
+        public void ConsumePreviousSubmissionUsings_Invalid()
+        {
+            const string libSource = @"
+namespace NOuter
+{
+    public class COuter { }
+
+    namespace NInner
+    {
+        public static class CInner
+        {
+        }
+    }
+}
+";
+
+            var lib = CreateCompilationWithMscorlib(libSource).EmitToImageReference();
+            var refs = new[] { lib };
+
+            CreateSubmission("using NInner;", refs, previous: CreateSubmission("using NOuter;", refs)).VerifyDiagnostics(
+                // (1,7): error CS0246: The type or namespace name 'NInner' could not be found (are you missing a using directive or an assembly reference?)
+                // using NInner;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NInner").WithArguments("NInner").WithLocation(1, 7));
+
+            CreateSubmission("using NI = NInner;", refs, previous: CreateSubmission("using NOuter;", refs)).VerifyDiagnostics(
+                // (1,12): error CS0246: The type or namespace name 'NInner' could not be found (are you missing a using directive or an assembly reference?)
+                // using NI = NInner;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NInner").WithArguments("NInner").WithLocation(1, 12));
+
+            CreateSubmission("using static COuter;", refs, previous: CreateSubmission("using NOuter;", refs)).VerifyDiagnostics(
+                // (1,14): error CS0246: The type or namespace name 'COuter' could not be found (are you missing a using directive or an assembly reference?)
+                // using static COuter;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "COuter").WithArguments("COuter").WithLocation(1, 14));
+
+            CreateSubmission("using static NInner.CInner;", refs, previous: CreateSubmission("using NOuter;", refs)).VerifyDiagnostics(
+                // (1,14): error CS0246: The type or namespace name 'NInner' could not be found (are you missing a using directive or an assembly reference?)
+                // using static NInner.CInner;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NInner").WithArguments("NInner").WithLocation(1, 14));
+        }
+        
         private static Symbol GetSpeculativeSymbol(CSharpCompilation comp, string name)
         {
             var tree = comp.SyntaxTrees.Single();

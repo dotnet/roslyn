@@ -154,26 +154,5 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
             }
         }
-
-        internal InteractiveUsingsBinder GetInteractiveUsingsBinder()
-        {
-            Debug.Assert(_compilation.IsSubmission);
-
-            BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
-            visitor.Position = 0;
-
-            Binder binder = visitor.VisitCompilationUnit(_syntaxTree.GetCompilationUnitRoot(), inUsing: false, inScript: true);
-            _binderFactoryVisitorPool.Free(visitor);
-
-            if (_compilation.HostObjectType != null)
-            {
-                binder = binder.Next;
-                Debug.Assert(binder is HostObjectModelBinder);
-            }
-
-            Debug.Assert(binder.Next is InContainerBinder);
-
-            return (InteractiveUsingsBinder)binder.Next.Next;
-        }
     }
 }

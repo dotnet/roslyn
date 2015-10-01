@@ -758,7 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamespaceOrTypeSymbol container = outer.Container;
                 NamespaceSymbol ns = ((NamespaceSymbol)container).GetNestedNamespace(name);
                 if ((object)ns == null) return outer;
-                return new InContainerBinder(ns, outer, node, allowStaticClassUsings: ((CSharpParseOptions)syntaxTree.Options).LanguageVersion >= LanguageVersion.CSharp6, inUsing: inUsing);
+                return new InContainerBinder(ns, outer, node, inUsing: inUsing);
             }
 
             public override Binder VisitCompilationUnit(CompilationUnitSyntax parent)
@@ -803,15 +803,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         //           + script class members & top-level using aliases
                         //
 
-                        if (compilation.GlobalImports.Usings.Length > 0)
-                        {
-                            result = new UsingsBinder(result, compilation.GlobalImports.Usings);
-                        }
-
-                        if (compilation.IsSubmission)
-                        {
-                            result = new InteractiveUsingsBinder(result);
-                        }
+                        result = new InContainerBinder(container: null, next: result, imports: compilation.GlobalImports);
 
                         result = new InContainerBinder(compilation.GlobalNamespace, result);
 
@@ -832,7 +824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         importsContainer = compilation.GlobalNamespace;
                     }
 
-                    result = new InContainerBinder(importsContainer, result, compilationUnit, allowStaticClassUsings: ((CSharpParseOptions)syntaxTree.Options).LanguageVersion >= LanguageVersion.CSharp6, inUsing: inUsing);
+                    result = new InContainerBinder(importsContainer, result, compilationUnit, inUsing: inUsing);
                     binderCache.TryAdd(key, result);
                 }
 
