@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
                 /// <summary>
                 /// The base <see cref="State"/> that starts with everything empty.
                 /// </summary>
-                public static readonly State Empty = new State();
+                public static readonly State Empty = new State(compilation: ConstantValueSource<Compilation>.Empty, declarationOnlyCompilation: null);
 
                 /// <summary>
                 /// A strong reference to the declaration-only compilation. This compilation isn't used to produce symbols,
@@ -46,20 +46,6 @@ namespace Microsoft.CodeAnalysis
                     get { return ConstantValueSource<Compilation>.Empty; }
                 }
 
-                private State()
-                    : this(ConstantValueSource<Compilation>.Empty, null)
-                {
-                }
-
-                protected State(ValueSource<Compilation> compilation)
-                    : this(compilation, null)
-                {
-                }
-
-                protected State(Compilation declarationOnlyCompilation)
-                    : this(ConstantValueSource<Compilation>.Empty, declarationOnlyCompilation)
-                {
-                }
 
                 protected State(ValueSource<Compilation> compilation, Compilation declarationOnlyCompilation)
                 {
@@ -102,7 +88,7 @@ namespace Microsoft.CodeAnalysis
                 public InProgressState(
                     Compilation inProgressCompilation,
                     ImmutableArray<ValueTuple<ProjectState, CompilationTranslationAction>> intermediateProjects)
-                    : base(new ConstantValueSource<Compilation>(inProgressCompilation))
+                    : base(compilation: new ConstantValueSource<Compilation>(inProgressCompilation), declarationOnlyCompilation: null)
                 {
                     Contract.ThrowIfNull(inProgressCompilation);
                     Contract.ThrowIfTrue(intermediateProjects.IsDefault);
@@ -118,7 +104,7 @@ namespace Microsoft.CodeAnalysis
             private sealed class LightDeclarationState : State
             {
                 public LightDeclarationState(Compilation declarationOnlyCompilation)
-                    : base(declarationOnlyCompilation)
+                    : base(compilation: ConstantValueSource<Compilation>.Empty, declarationOnlyCompilation: declarationOnlyCompilation)
                 {
                 }
             }
