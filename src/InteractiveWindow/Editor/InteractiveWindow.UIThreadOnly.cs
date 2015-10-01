@@ -832,6 +832,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         {
                             FinishExecute(executionResult.IsSuccessful);
                         }
+                        _window.SubmissionCounter++;
                     }
                 }
                 catch (Exception e) when (_window.ReportAndPropagateException(e))

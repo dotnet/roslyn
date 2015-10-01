@@ -65,8 +65,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
                 CommonVsUtils.GetWorkingDirectory())
         End Function
 
-        Protected Overrides Sub LogSession(key As String, value As String)
-            Logger.Log(FunctionId.VisualBasic_Interactive_Window, KeyValueLogMessage.Create(Sub(m) m.Add(key, value)))
+        Protected Overrides Sub LogSession(key As String, value As String, ParamArray objects() As Object)
+            Dim propertySetter As Action(Of Dictionary(Of String, Object))
+            If value.Equals(LanguageServices.Interactive.LogMessage.Close) Then
+                Debug.Assert(objects.Length > 0)
+                propertySetter = Sub(m)
+                                     m.Add(key, value)
+                                     m.Add(LanguageServices.Interactive.LogMessage.SubmissionCount, objects(0))
+                                 End Sub
+            Else
+                propertySetter = Sub(m) m.Add(key, value)
+            End If
+            Logger.Log(FunctionId.VisualBasic_Interactive_Window, KeyValueLogMessage.Create(propertySetter))
         End Sub
     End Class
 End Namespace

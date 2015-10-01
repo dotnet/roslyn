@@ -8,5 +8,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         public const string Create = "Create";
         public const string Open = "Open";
         public const string Close = "Close";
+        public const string SubmissionCount = "SubmissionCount";
     }
 }

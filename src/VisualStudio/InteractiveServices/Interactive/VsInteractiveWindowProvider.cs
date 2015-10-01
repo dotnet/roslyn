@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         protected abstract Guid LanguageServiceGuid { get; }
         protected abstract Guid Id { get; }
         protected abstract string Title { get; }
-        protected abstract void LogSession(string key, string value);
+        protected abstract void LogSession(string key, string value, params object[] objects);
 
         protected IInteractiveWindowCommandsFactory CommandsFactory
         {
@@ -85,9 +85,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             vsWindow.SetLanguage(LanguageServiceGuid, evaluator.ContentType);
 
             // the tool window now owns the engine:
-            vsWindow.InteractiveWindow.TextView.Closed += new EventHandler((_, __) => 
+            vsWindow.InteractiveWindow.TextView.Closed += new EventHandler((_, __) =>
             {
-                LogSession(LogMessage.Window, LogMessage.Close);
+                InteractiveWindow.InteractiveWindow intWindow = vsWindow.InteractiveWindow as InteractiveWindow.InteractiveWindow; 
+                    LogSession(LogMessage.Window, 
+                               LogMessage.Close, 
+                               intWindow == null 
+                                    ? Array.Empty<Object>() 
+                                    : new object[] { intWindow.SubmissionCounter });
                 evaluator.Dispose();
             });
             // vsWindow.AutoSaveOptions = true;

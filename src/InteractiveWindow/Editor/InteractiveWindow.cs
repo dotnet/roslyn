@@ -34,6 +34,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     internal partial class InteractiveWindow : IInteractiveWindow, IInteractiveWindowOperations2
     {
         internal const string ClipboardFormat = "89344A36-9821-495A-8255-99A63969F87D";
+        internal int SubmissionCounter = 0;
 
         public event EventHandler<SubmissionBufferAddedEventArgs> SubmissionBufferAdded;
 
