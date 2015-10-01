@@ -320,7 +320,7 @@
         }
       }
     },
-    ".NETFramework,Version=v4.6/win-anycpu": {
+    ".NETFramework,Version=v4.6/win7-anycpu": {
       "BasicUndo/0.9.3": {
         "compile": {
           "lib/net45/BasicUndo.dll": {}

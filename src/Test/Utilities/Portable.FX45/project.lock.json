@@ -48,7 +48,7 @@
         }
       }
     },
-    ".NETFramework,Version=v4.5/win-anycpu": {
+    ".NETFramework,Version=v4.5/win7-anycpu": {
       "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.1.0-beta1-20150824-02": {
         "compile": {
           "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll": {}
