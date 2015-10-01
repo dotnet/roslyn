@@ -184,7 +184,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                 RedirectStandardError = true,
             };
             _restore(startInfo);
-
         }
 
         private static void NuGetRestore(ProcessStartInfo startInfo)
