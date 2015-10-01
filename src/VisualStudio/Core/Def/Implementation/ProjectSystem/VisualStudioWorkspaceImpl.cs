@@ -8,6 +8,7 @@ using System.Text;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
@@ -46,6 +47,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         // document worker coordinator
         private ISolutionCrawlerRegistrationService _registrationService;
+
+        private readonly ForegroundThreadAffinitizedObject foregroundObject = new ForegroundThreadAffinitizedObject();
 
         public VisualStudioWorkspaceImpl(
             SVsServiceProvider serviceProvider,
@@ -670,6 +673,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (documentId == null)
             {
                 throw new ArgumentNullException(nameof(documentId));
+            }
+
+            if (!foregroundObject.IsForeground())
+            {
+                throw new NotSupportedException(ServicesVSResources.ThisWorkspaceOnlySupportsOpeningDocumentsOnTheUIThread);
             }
 
             var document = this.GetHostDocument(documentId);
