@@ -2521,7 +2521,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         var intersection = sourceSpan.Span.Intersection(mappedSpan);
                         if (intersection.HasValue && !intersection.Value.IsEmpty)
                         {
-                            var kind = GetSpanKind(span);
+                            var kind = GetSpanKind(sourceSpan);
                             if (kind == ReplSpanKind.LineBreak)
                             {
                                 kind = ReplSpanKind.Output;

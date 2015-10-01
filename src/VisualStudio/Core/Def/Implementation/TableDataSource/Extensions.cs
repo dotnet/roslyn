@@ -187,6 +187,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return todo.DocumentId;
         }
 
+        public static ProjectId GetProjectId<T>(T item)
+        {
+            // item must be either one of diagnostic data and todo item
+            var diagnostic = item as DiagnosticData;
+            if (diagnostic != null)
+            {
+                return diagnostic.ProjectId;
+            }
+
+            var todo = item as TodoItem;
+            Contract.ThrowIfNull(todo);
+
+            return todo.DocumentId.ProjectId;
+        }
+
         public static Workspace GetWorkspace<T>(T item)
         {
             // item must be either one of diagnostic data and todo item

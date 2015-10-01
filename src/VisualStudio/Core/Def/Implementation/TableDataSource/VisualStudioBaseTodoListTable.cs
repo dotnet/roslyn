@@ -253,13 +253,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     {
                         case StandardTableKeyNames.Priority:
                             content = ValueTypeCache.GetOrCreate((VSTASKPRIORITY)data.Priority);
-                            return true;
+                            return content != null;
                         case StandardTableKeyNames.Text:
                             content = data.Message;
-                            return true;
+                            return content != null;
                         case StandardTableKeyNames.DocumentName:
                             content = GetFileName(data.OriginalFilePath, data.MappedFilePath);
-                            return true;
+                            return content != null;
                         case StandardTableKeyNames.Line:
                             content = GetLineColumn(data).Line;
                             return true;
@@ -268,7 +268,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             return true;
                         case StandardTableKeyNames.TaskCategory:
                             content = ValueTypeCache.GetOrCreate(VSTASKCATEGORY.CAT_COMMENTS);
-                            return true;
+                            return content != null;
                         case StandardTableKeyNames.ProjectName:
                             content = item.ProjectName;
                             return content != null;

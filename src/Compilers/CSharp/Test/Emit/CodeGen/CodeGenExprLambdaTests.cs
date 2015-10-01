@@ -4316,6 +4316,226 @@ class Test
                 expectedOutput: expectedOutput);
         }
 
+        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/4471")]
+        public void GenericPropertyReceiverCastClass()
+        {
+            string source =
+@"using System;
+using System.Linq.Expressions;
+class Test
+{
+    public interface IDeletedID
+    {
+        int DeletedID { get; }
+    }
+
+    public class C1 : IDeletedID
+    {
+        int IDeletedID.DeletedID
+        {
+            get
+            {
+                return 1;
+            }
+        }
+    }
+
+    public static void Main()
+    {
+        Test1(new C1());
+    }
+
+    public static void Test1<T>(T x) where T: class, IDeletedID
+    {
+        Expression<Func<bool>> expr = () => x.DeletedID == 1;
+        Console.WriteLine(expr.Dump());
+    }
+
+}";
+            string expectedOutput = "Equal(MemberAccess(MemberAccess(Constant(Test+<>c__DisplayClass3_0`1[Test+C1] Type:Test+<>c__DisplayClass3_0`1[Test+C1]).x Type:Test+C1).DeletedID Type:System.Int32) Constant(1 Type:System.Int32) Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/4471")]
+        public void GenericPropertyReceiverCastClass1()
+        {
+            string source =
+@"using System;
+using System.Linq.Expressions;
+class Test
+{
+    public interface IDeletedID
+    {
+        int DeletedID { get; }
+    }
+
+    public class C1 : IDeletedID
+    {
+        int IDeletedID.DeletedID
+        {
+            get
+            {
+                return 1;
+            }
+        }
+    }
+
+    public static void Main()
+    {
+        Test1(new C1());
+    }
+
+    public static void Test1<T>(T x) where T: C1, IDeletedID
+    {
+        Expression<Func<bool>> expr = () => x.DeletedID == 1;
+        Console.WriteLine(expr.Dump());
+    }
+
+}";
+            string expectedOutput = "Equal(MemberAccess(MemberAccess(Constant(Test+<>c__DisplayClass3_0`1[Test+C1] Type:Test+<>c__DisplayClass3_0`1[Test+C1]).x Type:Test+C1).DeletedID Type:System.Int32) Constant(1 Type:System.Int32) Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/4471")]
+        public void GenericPropertyReceiverCastClass2()
+        {
+            string source =
+@"using System;
+using System.Linq.Expressions;
+class Test
+{
+    public interface IDeletedID
+    {
+        int DeletedID { get; }
+    }
+
+    public class C1 : IDeletedID
+    {
+        int IDeletedID.DeletedID
+        {
+            get
+            {
+                return 1;
+            }
+        }
+    }
+
+    public static void Main()
+    {
+        Test1(new C1(), new C1());
+    }
+
+    public static void Test1<T, U>(T x, U u)
+        where T: U, IDeletedID
+        where U: C1
+    {
+        Expression<Func<bool>> expr = () => x.DeletedID == 1;
+        Console.WriteLine(expr.Dump());
+    }
+
+}";
+            string expectedOutput = "Equal(MemberAccess(MemberAccess(Constant(Test+<>c__DisplayClass3_0`2[Test+C1,Test+C1] Type:Test+<>c__DisplayClass3_0`2[Test+C1,Test+C1]).x Type:Test+C1).DeletedID Type:System.Int32) Constant(1 Type:System.Int32) Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/4471")]
+        public void GenericPropertyReceiverCastClass3()
+        {
+            string source =
+@"using System;
+using System.Linq.Expressions;
+class Test
+{
+    public interface IDeletedID
+    {
+        int DeletedID { get; }
+    }
+
+    public class C1 : IDeletedID
+    {
+        int IDeletedID.DeletedID
+        {
+            get
+            {
+                return 1;
+            }
+        }
+    }
+
+    public static void Main()
+    {
+        Test1(new C1(), new C1());
+    }
+
+    public static void Test1<T, U>(T x, U u)
+        where T: U, IDeletedID
+        where U: class
+    {
+        Expression<Func<bool>> expr = () => x.DeletedID == 1;
+        Console.WriteLine(expr.Dump());
+    }
+
+}";
+            string expectedOutput = "Equal(MemberAccess(Convert(MemberAccess(Constant(Test+<>c__DisplayClass3_0`2[Test+C1,Test+C1] Type:Test+<>c__DisplayClass3_0`2[Test+C1,Test+C1]).x Type:Test+C1) Type:Test+IDeletedID).DeletedID Type:System.Int32) Constant(1 Type:System.Int32) Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+
+        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/4471")]
+        public void GenericPropertyReceiverCastStruct()
+        {
+            string source =
+@"using System;
+using System.Linq.Expressions;
+class Test
+{
+    public interface IDeletedID
+    {
+        int DeletedID { get; }
+    }
+
+    public struct C1 : IDeletedID
+    {
+        int IDeletedID.DeletedID
+        {
+            get
+            {
+                return 1;
+            }
+        }
+    }
+
+    public static void Main()
+    {
+        Test1(new C1());
+    }
+
+    public static void Test1<T>(T x) where T: struct, IDeletedID
+    {
+        Expression<Func<bool>> expr = () => x.DeletedID == 1;
+        Console.WriteLine(expr.Dump());
+    }
+
+}";
+            string expectedOutput = "Equal(MemberAccess(Convert(MemberAccess(Constant(Test+<>c__DisplayClass3_0`1[Test+C1] Type:Test+<>c__DisplayClass3_0`1[Test+C1]).x Type:Test+C1) Type:Test+IDeletedID).DeletedID Type:System.Int32) Constant(1 Type:System.Int32) Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
         [WorkItem(546618, "DevDiv")]
         [Fact]
         public void TildeNullableEnum()
