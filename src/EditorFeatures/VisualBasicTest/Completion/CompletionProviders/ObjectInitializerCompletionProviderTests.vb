@@ -48,7 +48,7 @@ End Class</a>.Value
             VerifyNoItemsExist(text)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/5555"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub OneItem()
             Dim text = <a>Public Class C
     Public bar as Integer
@@ -63,7 +63,7 @@ End Program</a>.Value
             VerifyItemExists(text, "bar")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/5555"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub FieldAndProperty()
             Dim text = <a>Public Class C
     Public bar as Integer
@@ -80,7 +80,7 @@ End Program</a>.Value
             VerifyItemExists(text, "foo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/5555"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub FieldAndPropertyBaseTypes()
             Dim text = <a>Public Class C
     Public bar as Integer
@@ -101,7 +101,7 @@ End Program</a>.Value
             VerifyItemExists(text, "foo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/5555"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub MembersFromObjectInitializerSyntax()
             Dim text = <a>Public Class C
 End Class
@@ -123,7 +123,7 @@ End Program</a>.Value
             VerifyItemExists(text, "foo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/5555"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub OneItemAfterComma()
             Dim text = <a>Public Class C
     Public bar as Integer
@@ -156,7 +156,7 @@ End Program</a>.Value
             VerifyNoItemsExist(text)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/5555"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub WithoutAsClause()
             Dim text = <a>Public Class C
     Public bar as Integer
@@ -205,7 +205,7 @@ End Module</a>.Value
             VerifyNoItemsExist(text)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/5555"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoBackingFields()
             Dim text = <a>Class C
     Public Property Foo As Integer
@@ -219,7 +219,7 @@ End Class</a>.Value
             VerifyItemIsAbsent(text, "_Foo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/5555"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ReadOnlyPropertiesAreNotPresentOnLeftSide()
             Dim text = <a>Class C
     Public Property Foo As Integer
@@ -264,7 +264,7 @@ End Module
         End Sub
 
         <WorkItem(545844)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/5555"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ShowParameterizedPropertiesWithAllOptionalArguments()
             Dim text = <a>Imports System
 Public Class AImpl
@@ -310,7 +310,7 @@ End Class</a>.Value
         End Sub
 
         <WorkItem(545844)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/5555"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ParameterizedPropertiesWithParamArrays()
             Dim text = <a>Option Strict On
 Class C
@@ -339,7 +339,7 @@ End Class
         End Sub
 
         <WorkItem(530491)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/5555"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ObjectInitializerOnInterface()
             Dim text = <a><![CDATA[Option Strict On
 Imports System.Runtime.InteropServices

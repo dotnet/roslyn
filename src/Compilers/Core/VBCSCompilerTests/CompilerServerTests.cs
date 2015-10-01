@@ -326,7 +326,7 @@ End Module")
 
         #endregion
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         public void FallbackToCsc()
         {
             // Delete VBCSCompiler.exe so /shared is forced to fall back to csc.exe
@@ -335,7 +335,7 @@ End Module")
             VerifyResultAndOutput(result, _tempDirectory, "Hello, world.\r\n");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         public void CscFallBackOutputNoUtf8()
         {
             var files = new Dictionary<string, string> { { "hello.cs", "♕" } };
@@ -348,7 +348,7 @@ End Module")
             Assert.Equal("hello.cs(1,1): error CS1056: Unexpected character '?'", result.Output.Trim());
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         public void CscFallBackOutputUtf8()
         {
             var srcFile = _tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
@@ -368,7 +368,7 @@ End Module")
             Assert.Equal(1, result.ExitCode);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         public void VbcFallbackNoUtf8()
         {
             var srcFile = _tempDirectory.CreateFile("test.vb").WriteAllText("♕").Path;
@@ -389,7 +389,7 @@ End Module")
 ~", result.Output.Trim().Replace(srcFile, "test.vb"));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         public void VbcFallbackUtf8()
         {
             var srcFile = _tempDirectory.CreateFile("test.vb").WriteAllText("♕").Path;
@@ -411,7 +411,7 @@ End Module")
             Assert.Equal(1, result.ExitCode);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         public void FallbackToVbc()
         {
             // Delete VBCSCompiler.exe so /shared is forced to fall back to vbc.exe
@@ -420,7 +420,7 @@ End Module")
             VerifyResultAndOutput(result, _tempDirectory, "Hello from VB\r\n");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void HelloWorldCS()
         {
@@ -428,8 +428,7 @@ End Module")
             VerifyResultAndOutput(result, _tempDirectory, "Hello, world.\r\n");
         }
 
-        [Fact]
-        [WorkItem(946954)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         public void CompilerBinariesAreNotX86()
         {
             Assert.NotEqual(ProcessorArchitecture.X86,
@@ -443,7 +442,7 @@ End Module")
         /// The test should pass on x86 or amd64, but can only fail on
         /// amd64.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void Platformx86MscorlibCsc()
         {
@@ -455,7 +454,7 @@ End Module")
             VerifyResult(result);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void Platformx86MscorlibVbc()
         {
@@ -467,7 +466,7 @@ End Module")
             VerifyResult(result);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void ExtraMSCorLibCS()
         {
@@ -478,7 +477,7 @@ End Module")
             VerifyResultAndOutput(result, _tempDirectory, "Hello, world.\r\n");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void HelloWorldVB()
         {
@@ -489,7 +488,7 @@ End Module")
             VerifyResultAndOutput(result, _tempDirectory, "Hello from VB\r\n");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void ExtraMSCorLibVB()
         {
@@ -500,7 +499,7 @@ End Module")
             VerifyResultAndOutput(result, _tempDirectory, "Hello from VB\r\n");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void CompileErrorsCS()
         {
@@ -524,7 +523,7 @@ class Hello
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void CompileErrorsVB()
         {
@@ -550,7 +549,7 @@ End Class"}};
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void MissingFileErrorCS()
         {
@@ -564,7 +563,7 @@ End Class"}};
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "missingfile.exe")));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void MissingReferenceErrorCS()
         {
@@ -578,8 +577,7 @@ End Class"}};
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
         }
 
-        [WorkItem(546067, "DevDiv")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void InvalidMetadataFileErrorCS()
         {
@@ -599,7 +597,7 @@ End Class"}};
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "app.exe")));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void MissingFileErrorVB()
         {
@@ -613,7 +611,7 @@ End Class"}};
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "missingfile.exe")));
         }
 
-        [Fact(), WorkItem(761131, "DevDiv")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void MissingReferenceErrorVB()
         {
@@ -638,8 +636,7 @@ End Module"}};
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hellovb.exe")));
         }
 
-        [WorkItem(546067, "DevDiv")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void InvalidMetadataFileErrorVB()
         {
@@ -663,8 +660,7 @@ End Module"}};
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "app.exe")));
         }
 
-        [Fact()]
-        [WorkItem(723280, "DevDiv")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void ReferenceCachingVB()
         {
@@ -784,8 +780,7 @@ End Module
             GC.KeepAlive(rootDirectory);
         }
 
-        [Fact()]
-        [WorkItem(723280, "DevDiv")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void ReferenceCachingCS()
         {
@@ -950,9 +945,7 @@ End Module", i));
             Assert.Equal(string.Format("VB Hello number {0}\r\n", i), runningResult.Output);
         }
 
-
-        [WorkItem(997372)]
-        [Fact, WorkItem(761326, "DevDiv")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void MultipleSimultaneousCompiles()
         {
@@ -1544,7 +1537,7 @@ End Class
             };
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void UseLibVariableCS()
         {
@@ -1590,7 +1583,7 @@ class Hello
             var resultFile = Temp.AddFile(GetResultFile(_tempDirectory, "hello1.exe"));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void UseLibVariableVB()
         {
@@ -1639,8 +1632,7 @@ End Module
             var resultFile = Temp.AddFile(GetResultFile(_tempDirectory, "hello1.exe"));
         }
 
-        [WorkItem(545446, "DevDiv")]
-        [Fact()]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void Utf8Output_WithRedirecting_Off_Shared()
         {
@@ -1658,8 +1650,7 @@ End Module
             Assert.Equal(1, result.ExitCode);
         }
 
-        [WorkItem(545446, "DevDiv")]
-        [Fact()]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void Utf8Output_WithRedirecting_Off_Share()
         {
@@ -1680,8 +1671,7 @@ End Module
             Assert.Equal(1, result.ExitCode);
         }
 
-        [WorkItem(545446, "DevDiv")]
-        [Fact()]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void Utf8Output_WithRedirecting_On_Shared_CS()
         {
@@ -1699,7 +1689,7 @@ End Module
         }
 
         [WorkItem(545446, "DevDiv")]
-        [Fact()]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void Utf8Output_WithRedirecting_On_Shared_VB()
         {
@@ -1720,8 +1710,7 @@ End Module
             Assert.Equal(1, result.ExitCode);
         }
 
-        [WorkItem(871477, "DevDiv")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void AssemblyIdentityComparer1()
         {
@@ -1774,8 +1763,7 @@ class Program
             Assert.Equal(0, result.ExitCode);
         }
 
-        [WorkItem(979588)]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         public void Utf8OutputInRspFileCsc()
         {
             var srcFile = _tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
@@ -1796,8 +1784,7 @@ class Program
             Assert.Equal(1, result.ExitCode);
         }
 
-        [WorkItem(979588)]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         public void Utf8OutputInRspFileVbc()
         {
             var srcFile = _tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
@@ -1845,7 +1832,7 @@ class Program
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         public void BadKeepAlive1()
         {
             var result = RunCommandLineCompiler(_csharpCompilerClientExecutable, "/shared /keepalive", _tempDirectory.Path);
@@ -1856,7 +1843,7 @@ class Program
             Assert.Equal("", result.Errors);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         public void BadKeepAlive2()
         {
             var result = RunCommandLineCompiler(_csharpCompilerClientExecutable, "/shared /keepalive:foo", _tempDirectory.Path);
@@ -1867,7 +1854,7 @@ class Program
             Assert.Equal("", result.Errors);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         public void BadKeepAlive3()
         {
             var result = RunCommandLineCompiler(_csharpCompilerClientExecutable, "/shared /keepalive:-100", _tempDirectory.Path);
@@ -1878,7 +1865,7 @@ class Program
             Assert.Equal("", result.Errors);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         public void BadKeepAlive4()
         {
             var result = RunCommandLineCompiler(_csharpCompilerClientExecutable, "/shared /keepalive:9999999999", _tempDirectory.Path);
@@ -1889,7 +1876,7 @@ class Program
             Assert.Equal("", result.Errors);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         public void SimpleKeepAlive()
         {
             var result = RunCommandLineCompiler(_csharpCompilerClientExecutable,
@@ -1899,7 +1886,7 @@ class Program
             VerifyResultAndOutput(result, _tempDirectory, "Hello, world.\r\n");
         }
 
-        [Fact, WorkItem(1024619, "DevDiv")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         public void Bug1024619_01()
         {
             var srcFile = _tempDirectory.CreateFile("test.cs").WriteAllText("").Path;
@@ -1925,7 +1912,7 @@ class Program
             Assert.Equal(0, result.ExitCode);
         }
 
-        [Fact, WorkItem(1024619, "DevDiv")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         public void Bug1024619_02()
         {
             var srcFile = _tempDirectory.CreateFile("test.vb").WriteAllText("").Path;
@@ -1951,7 +1938,7 @@ class Program
             Assert.Equal(0, result.ExitCode);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         public void ExecuteCscBuildTaskWithServer()
         {
             var csc = new Csc();
@@ -1980,7 +1967,7 @@ class Program
             Assert.Equal("Hello, world.", result.Output.Trim());
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         public void ExecuteVbcBuildTaskWithServer()
         {
             var vbc = new Vbc();
@@ -2009,7 +1996,7 @@ class Program
             Assert.Equal("Hello from VB", result.Output.Trim());
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         public void ServerExitsWhenRunWithNoArgs()
         {
             var result = ProcessUtilities.Run(_compilerServerExecutable, "");
@@ -2018,7 +2005,7 @@ class Program
             Assert.Equal("", result.Output);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         public void OnlyStartsOneServer()
         {
             var result = ProcessUtilities.Run(_csharpCompilerClientExecutable, "/shared");
@@ -2206,7 +2193,7 @@ End Class
 "}
             };
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5550")]
         public void ReportAnalyzerMSBuild()
         {
             string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseRoslyn=1 HelloSolution.sln");
