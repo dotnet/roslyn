@@ -27,8 +27,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _states = new List<InteractiveWindow.State>();
             _testHost = new InteractiveWindowTestHost(_states.Add);
             _testClipboard = new TestClipboard();
-            ((InteractiveWindow)Window).InteractiveWindowClipboard = _testClipboard;
-            
+            ((InteractiveWindow)Window).InteractiveWindowClipboard = _testClipboard;            
         }
 
         void IDisposable.Dispose()
@@ -1365,24 +1364,5 @@ System.Console.WriteLine();",
         {
             ((IInteractiveWindowOperations2)operations).Copy();
         }
-    }
-
-    internal sealed class TestClipboard : InteractiveWindowClipboard
-    {
-        DataObject _data = null;
-
-        internal void Clear() => _data = null;
-
-        internal IDataObject GetDataObject() => _data;
-
-        internal override bool ContainsData(string format) =>  _data?.GetData(format) != null;
-
-        internal override object GetData(string format) => _data?.GetData(format);
-
-        internal override bool ContainsText() => _data != null ? _data.ContainsText() : false;
-
-        internal override string GetText() => _data?.GetText();
-
-        internal override void SetDataObject(object data, bool copy) => _data = (DataObject)data;
     }
 }

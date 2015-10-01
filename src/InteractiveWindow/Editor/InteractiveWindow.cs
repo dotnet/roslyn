@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// </remarks>
         private readonly UIThreadOnly _uiOnly;
 
-        internal InteractiveWindowClipboard InteractiveWindowClipboard { get; set; } = new SystemWindowsClipboardWrapper();
+        internal InteractiveWindowClipboard InteractiveWindowClipboard { get; set; } = new SystemClipboard();
 
         #region Initialization
 
@@ -540,32 +540,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         internal event Action<State> StateChanged;
 
-        #endregion
-
-        private sealed class SystemWindowsClipboardWrapper : InteractiveWindowClipboard
-        {                                                
-            internal override bool ContainsData(string format) => Clipboard.ContainsData(format);
-
-            internal override object GetData(string format) => Clipboard.GetData(format);
-
-            internal override bool ContainsText() => Clipboard.ContainsText();
-
-            internal override string GetText() => Clipboard.GetText();
-
-            internal override void SetDataObject(object data, bool copy) => Clipboard.SetDataObject(data, copy);
-        }
-    }
-
-    internal abstract class InteractiveWindowClipboard
-    {
-        internal abstract bool ContainsData(string format);
-
-        internal abstract object GetData(string format);
-
-        internal abstract bool ContainsText();
-
-        internal abstract string GetText();
-
-        internal abstract void SetDataObject(object data, bool copy);
+#endregion
     }
 }
