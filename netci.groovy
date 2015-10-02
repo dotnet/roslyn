@@ -144,21 +144,33 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
             def jobName = "roslyn_${branchName.substring(0, 6)}_${opsys.substring(0, 3)}_${configuration}_${buildTarget}"
             def myJob = job(jobName) {
               description('')
-              label('windows-roslyn')
             }
 
-            if (opsys == 'win') {
-              myJob.with {
-                steps {
-                  batchFile(".\\cibuild.cmd ${(configuration == 'dbg') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'}")
+            switch (opsys) {
+              case 'win':
+                myJob.with {
+                  label('windows-roslyn')
+                  steps {
+                    batchFile(".\\cibuild.cmd ${(configuration == 'dbg') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'}")
+                  }
                 }
-              }
-            } else {
-              myJob.with {
-                steps {
-                  shell("./cibuild.sh")
+                break;
+              case 'linux':
+                myJob.with {
+                  label('ubuntu-fast')
+                  steps {
+                    shell("./cibuild.sh")
+                  }
                 }
-              }
+                break;
+              case 'mac':
+                myJob.with {
+                  label('mac-roslyn')
+                  steps {
+                    shell("./cibuild.sh")
+                  }
+                }
+                break;
             }
 
             addLogRotator(myJob)
