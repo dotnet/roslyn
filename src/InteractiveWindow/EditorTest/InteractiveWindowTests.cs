@@ -858,14 +858,14 @@ System.Console.WriteLine();",
             caret.MoveToPreviousCaretPosition();
             AssertCaretVirtualPosition(1, 1);
 
-            Task.Run(() => Window.Operations.Delete()).PumpingWait();
+            Window.Operations.Delete();
             AssertCaretVirtualPosition(1, 1);
 
             // Delete() with caret in active prompt, move caret to 
             // closest editable buffer
             caret.MoveToNextCaretPosition();
             AssertCaretVirtualPosition(2, 0);
-            Task.Run(() => Window.Operations.Delete()).PumpingWait();
+            Window.Operations.Delete();
             AssertCaretVirtualPosition(2, 2);
         }
         
@@ -892,7 +892,7 @@ System.Console.WriteLine();",
 
             Window.Operations.SelectAll();
 
-            Task.Run(() => Window.Operations.Delete()).PumpingWait();
+            Window.Operations.Delete();
             Assert.Equal("> 1\r\n1\r\n> 23", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
 
             // Delete() with selection in active prompt, no-op
@@ -904,7 +904,7 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Task.Run(() => Window.Operations.Delete()).PumpingWait();
+            Window.Operations.Delete();
             Assert.Equal("> 1\r\n1\r\n> 23", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
 
             // Delete() with selection overlaps with editable buffer, 
@@ -919,7 +919,7 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Task.Run(() => Window.Operations.Delete()).PumpingWait();
+            Window.Operations.Delete();
             Assert.Equal("> 1\r\n1\r\n> 3", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
             AssertCaretVirtualPosition(2, 2);
         }
@@ -949,7 +949,7 @@ System.Console.WriteLine();",
             caret.MoveToPreviousCaretPosition();  
             AssertCaretVirtualPosition(1, 1);
 
-            Task.Run(() => Window.Operations.Backspace()).PumpingWait();
+            Window.Operations.Backspace();
             AssertCaretVirtualPosition(1, 1);
             Assert.Equal("> 1\r\n1\r\n> int x\r\n> ;", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
 
@@ -961,7 +961,7 @@ System.Console.WriteLine();",
             caret.MoveToNextCaretPosition();
             AssertCaretVirtualPosition(3, 1);
 
-            Task.Run(() => Window.Operations.Backspace()).PumpingWait();
+            Window.Operations.Backspace();
             AssertCaretVirtualPosition(2, 7);
             Assert.Equal("> 1\r\n1\r\n> int x;", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
         }
@@ -995,7 +995,7 @@ System.Console.WriteLine();",
 
             Window.Operations.SelectAll();
 
-            Task.Run(() => Window.Operations.Backspace()).PumpingWait();
+            Window.Operations.Backspace();
             Assert.Equal("> 1\r\n1\r\n> int x\r\n> ;", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
 
             // Backspace() with selection in active prompt, no-op
@@ -1007,7 +1007,7 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Task.Run(() => Window.Operations.Backspace()).PumpingWait();
+            Window.Operations.Backspace();
             Assert.Equal("> 1\r\n1\r\n> int x\r\n> ;", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
 
             // Backspace() with selection overlaps with editable buffer
@@ -1021,7 +1021,7 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Task.Run(() => Window.Operations.Backspace()).PumpingWait();
+            Window.Operations.Backspace();
             Assert.Equal("> 1\r\n1\r\n> int x;", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
             AssertCaretVirtualPosition(2, 7);
         }
@@ -1042,7 +1042,7 @@ System.Console.WriteLine();",
             caret.MoveToPreviousCaretPosition();   
             AssertCaretVirtualPosition(1, 1);
 
-            Task.Run(() => Window.Operations.Return()).PumpingWait();
+            Window.Operations.Return();
             AssertCaretVirtualPosition(1, 1);
 
             // Return() with caret in active prompt, move caret to 
@@ -1050,7 +1050,7 @@ System.Console.WriteLine();",
             caret.MoveToNextCaretPosition();
             AssertCaretVirtualPosition(2, 0);
 
-            Task.Run(() => Window.Operations.Return()).PumpingWait();
+            Window.Operations.Return();
             AssertCaretVirtualPosition(3, 2);
         }
 
@@ -1077,7 +1077,7 @@ System.Console.WriteLine();",
 
             Window.Operations.SelectAll();
 
-            Task.Run(() => Window.Operations.Return()).PumpingWait();
+            Window.Operations.Return();
             Assert.Equal("> 1\r\n1\r\n> 23", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
 
             // Return() with selection in active prompt, no-op
@@ -1089,7 +1089,7 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Task.Run(() => Window.Operations.Return()).PumpingWait();
+            Window.Operations.Return();
             Assert.Equal("> 1\r\n1\r\n> 23", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
 
             // Delete() with selection overlaps with editable buffer, 
@@ -1104,7 +1104,7 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Task.Run(() => Window.Operations.Return()).PumpingWait();
+            Window.Operations.Return();
             Assert.Equal("> 1\r\n1\r\n> \r\n> 3", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
             AssertCaretVirtualPosition(3, 2);
         }
@@ -1128,7 +1128,7 @@ System.Console.WriteLine();",
             caret.MoveToPreviousCaretPosition();
             AssertCaretVirtualPosition(1, 1);
 
-            Task.Run(() => Window.Operations.Cut()).PumpingWait();
+            Window.Operations.Cut();
             Assert.Equal("> 1\r\n1\r\n> 2", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
             AssertCaretVirtualPosition(1, 1);
 
@@ -1137,7 +1137,7 @@ System.Console.WriteLine();",
             // Cut() with caret in active prompt
             caret.MoveToNextCaretPosition();
             AssertCaretVirtualPosition(2, 0);
-            Task.Run(() => Window.Operations.Cut()).PumpingWait();
+            Window.Operations.Cut();
 
             Assert.Equal("> 1\r\n1\r\n> ", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
             AssertCaretVirtualPosition(2, 2);
@@ -1168,7 +1168,7 @@ System.Console.WriteLine();",
 
             Window.Operations.SelectAll();
 
-            Task.Run(() => Window.Operations.Cut()).PumpingWait();
+            Window.Operations.Cut();
             Assert.Equal("> 1\r\n1\r\n> 23", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
             VerifyClipboardData(null, null, null);
 
@@ -1181,7 +1181,7 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Task.Run(() => Window.Operations.Cut()).PumpingWait();
+            Window.Operations.Cut();
             Assert.Equal("> 1\r\n1\r\n> 23", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
             VerifyClipboardData(null, null, null);
 
@@ -1197,7 +1197,7 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Task.Run(() => Window.Operations.Cut()).PumpingWait();
+            Window.Operations.Cut();
             Assert.Equal("> 1\r\n1\r\n> 3", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
             AssertCaretVirtualPosition(2, 2);
             VerifyClipboardData("2", expectedRtf: null, expectedRepl: null);
@@ -1226,14 +1226,14 @@ System.Console.WriteLine();",
             caret.MoveToPreviousCaretPosition();  
             AssertCaretVirtualPosition(1, 1);
 
-            Task.Run(() => Window.Operations.Paste()).PumpingWait();
+            Window.Operations.Paste();
             Assert.Equal("> 1\r\n1\r\n> 2", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
             AssertCaretVirtualPosition(1, 1);
 
             // Paste() with caret in active prompt
             caret.MoveToNextCaretPosition();
             AssertCaretVirtualPosition(2, 0);                                                                                                                     
-            Task.Run(() => Window.Operations.Paste()).PumpingWait();
+            Window.Operations.Paste();
 
             Assert.Equal("> 1\r\n1\r\n> 22", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
             AssertCaretVirtualPosition(2, 3);            
@@ -1266,7 +1266,7 @@ System.Console.WriteLine();",
 
             Window.Operations.SelectAll();
 
-            Task.Run(() => Window.Operations.Paste()).PumpingWait();
+            Window.Operations.Paste();
             Assert.Equal("> 1\r\n1\r\n> 23", Window.TextView.TextBuffer.CurrentSnapshot.GetText());  
 
             // Paste() with selection in active prompt, no-op
@@ -1278,7 +1278,7 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Task.Run(() => Window.Operations.Paste()).PumpingWait();
+            Window.Operations.Paste();
             Assert.Equal("> 1\r\n1\r\n> 23", Window.TextView.TextBuffer.CurrentSnapshot.GetText()); 
 
             // Paste() with selection overlaps with editable buffer, 
@@ -1293,7 +1293,7 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Task.Run(() => Window.Operations.Paste()).PumpingWait();
+            Window.Operations.Paste();
             Assert.Equal("> 1\r\n1\r\n> 233", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
             AssertCaretVirtualPosition(2, 4);
         }
@@ -1313,7 +1313,7 @@ System.Console.WriteLine();",
             caret.MoveToPreviousCaretPosition();
 
             AssertCaretVirtualPosition(1, 1);
-            Task.Run(() => Window.Operations.DeleteLine()).PumpingWait();
+            Window.Operations.DeleteLine();
             Assert.Equal("> 1\r\n1\r\n> ", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
             AssertCaretVirtualPosition(1, 1);
 
@@ -1330,14 +1330,14 @@ System.Console.WriteLine();",
             }                                          
 
             AssertCaretVirtualPosition(2, 0);
-            Task.Run(() => Window.Operations.DeleteLine()).PumpingWait();
+            Window.Operations.DeleteLine();
             Assert.Equal("> 1\r\n1\r\n> ;", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
             AssertCaretVirtualPosition(2, 2);
 
             // DeleteLine with caret in editable area   
             caret.MoveToNextCaretPosition();
 
-            Task.Run(() => Window.Operations.DeleteLine()).PumpingWait();
+            Window.Operations.DeleteLine();
             Assert.Equal("> 1\r\n1\r\n> ", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
             AssertCaretVirtualPosition(2, 2);
         }
@@ -1357,7 +1357,7 @@ System.Console.WriteLine();",
             caret.MoveToPreviousCaretPosition();
             caret.MoveToPreviousCaretPosition();
             Window.Operations.SelectAll();
-            Task.Run(() => Window.Operations.DeleteLine()).PumpingWait();
+            Window.Operations.DeleteLine();
             Assert.Equal("> 1\r\n1\r\n> ", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
 
             // DeleteLine with selection in active prompt
@@ -1373,7 +1373,7 @@ System.Console.WriteLine();",
                 caret.MoveToPreviousCaretPosition();
             }
             selection.Select(caret.MoveToNextCaretPosition().VirtualBufferPosition, caret.MoveToNextCaretPosition().VirtualBufferPosition);
-            Task.Run(() => Window.Operations.DeleteLine()).PumpingWait();
+            Window.Operations.DeleteLine();
             Assert.Equal("> 1\r\n1\r\n> ;", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
             AssertCaretVirtualPosition(2, 2);
             Assert.True(selection.IsEmpty);
@@ -1381,7 +1381,7 @@ System.Console.WriteLine();",
             // DeleteLine with selection in editable area   
             Window.InsertCode("int x");
             selection.Select(caret.MoveToPreviousCaretPosition().VirtualBufferPosition, caret.MoveToPreviousCaretPosition().VirtualBufferPosition);
-            Task.Run(() => Window.Operations.DeleteLine()).PumpingWait();
+            Window.Operations.DeleteLine();
             Assert.Equal("> 1\r\n1\r\n> ", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
             AssertCaretVirtualPosition(2, 2);
             Assert.True(selection.IsEmpty);
@@ -1392,7 +1392,7 @@ System.Console.WriteLine();",
             Window.InsertCode(";");
             Window.Operations.SelectAll();
             Window.Operations.SelectAll();
-            Task.Run(() => Window.Operations.DeleteLine()).PumpingWait();
+            Window.Operations.DeleteLine();
             Assert.Equal("> 1\r\n1\r\n> ", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
             AssertCaretVirtualPosition(2, 2);
             Assert.True(selection.IsEmpty);
@@ -1406,7 +1406,7 @@ System.Console.WriteLine();",
 @"1
 ");
             var caret = Window.TextView.Caret;
-            Clipboard.Clear();
+            _testClipboard.Clear();
 
             // CutLine with caret in readonly area
             caret.MoveToPreviousCaretPosition();
@@ -1414,7 +1414,7 @@ System.Console.WriteLine();",
             caret.MoveToPreviousCaretPosition();
 
             AssertCaretVirtualPosition(1, 1);
-            Task.Run(() => Window.Operations.CutLine()).PumpingWait();
+            Window.Operations.CutLine();
             Assert.Equal("> 1\r\n1\r\n> ", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
             AssertCaretVirtualPosition(1, 1);
             VerifyClipboardData(null, null, null);
@@ -1432,7 +1432,7 @@ System.Console.WriteLine();",
             }
 
             AssertCaretVirtualPosition(2, 0);
-            Task.Run(() => Window.Operations.CutLine()).PumpingWait();
+            Window.Operations.CutLine();
             Assert.Equal("> 1\r\n1\r\n> ;", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
             AssertCaretVirtualPosition(2, 2);
             VerifyClipboardData("int x\r\n", null, null);
@@ -1440,7 +1440,7 @@ System.Console.WriteLine();",
             // CutLine with caret in editable area   
             caret.MoveToNextCaretPosition();
 
-            Task.Run(() => Window.Operations.CutLine()).PumpingWait();
+            Window.Operations.CutLine();
             Assert.Equal("> 1\r\n1\r\n> ", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
             AssertCaretVirtualPosition(2, 2);
             VerifyClipboardData(";", null, null);
@@ -1455,14 +1455,14 @@ System.Console.WriteLine();",
 ");
             var caret = Window.TextView.Caret;
             var selection = Window.TextView.Selection;
-            Clipboard.Clear();
+            _testClipboard.Clear();
 
             // CutLine with selection in readonly area  
             caret.MoveToPreviousCaretPosition();
             caret.MoveToPreviousCaretPosition();
             caret.MoveToPreviousCaretPosition();
             Window.Operations.SelectAll();
-            Task.Run(() => Window.Operations.CutLine()).PumpingWait();
+            Window.Operations.CutLine();
             Assert.Equal("> 1\r\n1\r\n> ", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
             VerifyClipboardData(null, null, null);
 
@@ -1479,7 +1479,7 @@ System.Console.WriteLine();",
                 caret.MoveToPreviousCaretPosition();
             }
             selection.Select(caret.MoveToNextCaretPosition().VirtualBufferPosition, caret.MoveToNextCaretPosition().VirtualBufferPosition);
-            Task.Run(() => Window.Operations.CutLine()).PumpingWait();
+            Window.Operations.CutLine();
             Assert.Equal("> 1\r\n1\r\n> ;", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
             AssertCaretVirtualPosition(2, 2);
             Assert.True(selection.IsEmpty);
@@ -1488,7 +1488,7 @@ System.Console.WriteLine();",
             // CutLine with selection in editable area   
             Window.InsertCode("int x");
             selection.Select(caret.MoveToPreviousCaretPosition().VirtualBufferPosition, caret.MoveToPreviousCaretPosition().VirtualBufferPosition);
-            Task.Run(() => Window.Operations.CutLine()).PumpingWait();
+            Window.Operations.CutLine();
             Assert.Equal("> 1\r\n1\r\n> ", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
             AssertCaretVirtualPosition(2, 2);
             Assert.True(selection.IsEmpty);
@@ -1500,7 +1500,7 @@ System.Console.WriteLine();",
             Window.InsertCode(";");
             Window.Operations.SelectAll();
             Window.Operations.SelectAll();
-            Task.Run(() => Window.Operations.CutLine()).PumpingWait();
+            Window.Operations.CutLine();
             Assert.Equal("> 1\r\n1\r\n> ", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
             AssertCaretVirtualPosition(2, 2);
             Assert.True(selection.IsEmpty);
