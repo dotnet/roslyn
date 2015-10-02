@@ -120,8 +120,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                     return;
                 }
 
+                // only valid if the user has started to actually type a constructor initializer
                 var constructorInitializer = node as ConstructorInitializerSyntax;
-                if (constructorInitializer != null && constructorInitializer.ArgumentList.OpenParenToken.Kind() != SyntaxKind.None)
+                if (constructorInitializer != null &&
+                    constructorInitializer.ArgumentList.OpenParenToken.Kind() != SyntaxKind.None &&
+                    !constructorInitializer.ThisOrBaseKeyword.IsMissing)
                 {
                     var text = node.SyntaxTree.GetText();
 
