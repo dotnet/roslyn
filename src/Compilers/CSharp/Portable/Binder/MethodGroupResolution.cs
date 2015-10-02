@@ -19,9 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly AnalyzedArguments AnalyzedArguments;
         public readonly ImmutableArray<Diagnostic> Diagnostics;
         public readonly LookupResultKind ResultKind;
+        public readonly bool ExtensionMethodsOfSameViabilityAreAvailable;
 
         public MethodGroupResolution(MethodGroup methodGroup, ImmutableArray<Diagnostic> diagnostics)
-            : this(methodGroup, null, null, null, methodGroup.ResultKind, diagnostics)
+            : this(methodGroup, null, null, null, methodGroup.ResultKind, diagnostics, false)
         {
         }
 
@@ -30,12 +31,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             OverloadResolutionResult<MethodSymbol> overloadResolutionResult,
             AnalyzedArguments analyzedArguments,
             ImmutableArray<Diagnostic> diagnostics)
-            : this(methodGroup, null, overloadResolutionResult, analyzedArguments, methodGroup.ResultKind, diagnostics)
+            : this(methodGroup, null, overloadResolutionResult, analyzedArguments, methodGroup.ResultKind, diagnostics, false)
         {
         }
 
         public MethodGroupResolution(Symbol otherSymbol, LookupResultKind resultKind, ImmutableArray<Diagnostic> diagnostics)
-            : this(null, otherSymbol, null, null, resultKind, diagnostics)
+            : this(null, otherSymbol, null, null, resultKind, diagnostics, false)
         {
         }
 
@@ -45,7 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             OverloadResolutionResult<MethodSymbol> overloadResolutionResult,
             AnalyzedArguments analyzedArguments,
             LookupResultKind resultKind,
-            ImmutableArray<Diagnostic> diagnostics)
+            ImmutableArray<Diagnostic> diagnostics,
+            bool extensionMethodsOfSameViabilityAreAvailable)
         {
             Debug.Assert((methodGroup == null) || (methodGroup.Methods.Count > 0));
             Debug.Assert((methodGroup == null) || ((object)otherSymbol == null));
@@ -53,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(((object)otherSymbol == null) || (otherSymbol.Kind != SymbolKind.Method));
             Debug.Assert(resultKind != LookupResultKind.Ambiguous); // HasAnyApplicableMethod is expecting Viable methods.
             Debug.Assert(!diagnostics.IsDefault);
+            Debug.Assert(!extensionMethodsOfSameViabilityAreAvailable || methodGroup == null || !methodGroup.IsExtensionMethodGroup);
 
             this.MethodGroup = methodGroup;
             this.OtherSymbol = otherSymbol;
@@ -60,6 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.AnalyzedArguments = analyzedArguments;
             this.ResultKind = resultKind;
             this.Diagnostics = diagnostics;
+            this.ExtensionMethodsOfSameViabilityAreAvailable = extensionMethodsOfSameViabilityAreAvailable;
         }
 
         public bool IsEmpty
