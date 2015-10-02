@@ -461,7 +461,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         {
             try
             {
-                var options = InteractiveHostOptions.Default.WithInitializationFile(initialize ? _responseFilePath : null);
+                var options = new InteractiveHostOptions(
+                    initializationFile: initialize ? _responseFilePath : null,
+                    culture: CultureInfo.CurrentUICulture);
 
                 var result = await _interactiveHost.ResetAsync(options).ConfigureAwait(false);
 

@@ -129,7 +129,6 @@
     <Compile Include="Extensibility\Interactive\CSharpVBResetCommand.cs" />
     <Compile Include="Extensibility\Interactive\InteractiveCommandHandler.cs" />
     <Compile Include="Extensibility\Interactive\InteractiveEvaluator.cs" />
-    <Compile Include="Extensibility\Interactive\InteractiveMetadataReferenceResolver.cs" />
     <Compile Include="Extensibility\Interactive\CSharpVBInteractiveCommandContentTypes.cs" />
     <Compile Include="Implementation\Completion\InteractiveCommandCompletionService.cs" />
     <Compile Include="Implementation\Completion\Presentation\CompletionPresenter.cs" />

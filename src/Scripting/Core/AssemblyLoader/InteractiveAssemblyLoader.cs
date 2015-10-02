@@ -138,10 +138,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             {
                 // copy holds on the file handle, we need to keep the handle 
                 // open until the file is locked by the CLR assembly loader:
-                if (copy != null)
-                {
-                    copy.DisposeFileHandles();
-                }
+                copy?.DisposeFileHandles();
             }
         }
 
