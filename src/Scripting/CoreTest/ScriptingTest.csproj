@@ -56,6 +56,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="NuGetPackageResolverTests.cs" />
     <Compile Include="ObjectFormatterTestBase.cs" />
     <Compile Include="ObjectFormatterTests.Fixtures.cs" />
     <Compile Include="RedirectedOutput.cs" />
