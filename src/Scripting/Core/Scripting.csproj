@@ -41,6 +41,10 @@
     <DefineConstants>$(DefineConstants);SCRIPTING</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <!-- Workaround for https://github.com/NuGet/Home/issues/1471 --> 
+    <Reference Include="$(NuGetPackageRoot)\System.Runtime.Loader\4.0.0-beta-23321\ref\dotnet\System.Runtime.Loader.dll" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
       <Link>Resolvers\FusionAssemblyIdentity.cs</Link>
     </Compile>
@@ -50,7 +54,11 @@
     <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GlobalAssemblyCache.cs">
       <Link>Resolvers\GlobalAssemblyCache.cs</Link>
     </Compile>
+    <Compile Include="AssemblyLoader\AssemblyAndLocation.cs" />
     <Compile Include="AssemblyLoader\AssemblyLoadResult.cs" />
+    <Compile Include="AssemblyLoader\CoreAssemblyLoaderImpl.cs" />
+    <Compile Include="AssemblyLoader\DesktopAssemblyLoaderImpl.cs" />
+    <Compile Include="AssemblyLoader\AssemblyLoaderImpl.cs" />
     <Compile Include="CommandLine\CommandLineHostObject.cs" />
     <Compile Include="CommandLine\CommandLineRunner.cs" />
     <Compile Include="CommandLine\ConsoleIO.cs" />
