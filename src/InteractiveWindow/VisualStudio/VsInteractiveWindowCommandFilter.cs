@@ -188,7 +188,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                     // https://github.com/dotnet/roslyn/issues/5651
                     case VSConstants.VSStd97CmdID.PasteNextTBXCBItem:
                         prgCmds[0].cmdf = CommandDisabled;
-                        prgCmds[0].cmdf |= (uint)OLECMDF.OLECMDF_DEFHIDEONCTXTMENU;
                         return VSConstants.S_OK;
                 }
             }
@@ -284,7 +283,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                     // TODO: Add support of rotating clipboard ring 
                     // https://github.com/dotnet/roslyn/issues/5651
                     case VSConstants.VSStd97CmdID.PasteNextTBXCBItem:
-                        return VSConstants.E_FAIL;
+                        return (int)OLE.Interop.Constants.OLECMDERR_E_NOTSUPPORTED;
 
                     case VSConstants.VSStd97CmdID.Paste:
                         _window.Operations.Paste();
