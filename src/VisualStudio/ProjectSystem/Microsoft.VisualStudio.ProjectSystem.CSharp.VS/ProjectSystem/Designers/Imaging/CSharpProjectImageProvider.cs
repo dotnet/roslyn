@@ -11,15 +11,17 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Imaging
     /// </summary>
     [Export(typeof(IProjectImageProvider))]
     [AppliesTo(ProjectCapability.CSharp)]
-    internal class CSharpProjectImageMonikerProvider : IProjectImageProvider
+    internal class CSharpProjectImageProvider : IProjectImageProvider
     {
         [ImportingConstructor]
-        public CSharpProjectImageMonikerProvider()
+        public CSharpProjectImageProvider()
         {
         }
 
         public ProjectImageMoniker GetProjectImage(string key)
         {
+            Requires.NotNullOrEmpty(key, nameof(key));
+
             switch (key)
             {
                 case ProjectImageKey.ProjectRoot:

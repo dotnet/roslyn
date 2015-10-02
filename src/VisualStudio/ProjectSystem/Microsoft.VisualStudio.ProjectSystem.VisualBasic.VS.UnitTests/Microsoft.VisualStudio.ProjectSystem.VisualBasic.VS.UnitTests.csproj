@@ -174,6 +174,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ProjectSystem\Designers\Imaging\VisualBasicProjectImageProviderTests.cs" />
     <Compile Include="ProjectSystem\Designers\VisualBasicProjectDesignerPageProviderTests.cs" />
     <Compile Include="ProjectSystem\LanguageServices\VisualBasicCodeDomProviderTests.cs" />
   </ItemGroup>

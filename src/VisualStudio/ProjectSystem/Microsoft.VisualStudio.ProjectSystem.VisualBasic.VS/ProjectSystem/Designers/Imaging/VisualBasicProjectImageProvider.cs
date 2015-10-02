@@ -20,6 +20,8 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Imaging
 
         public ProjectImageMoniker GetProjectImage(string key)
         {
+            Requires.NotNullOrEmpty(key, nameof(key));
+
             switch (key)
             {
                 case ProjectImageKey.ProjectRoot:

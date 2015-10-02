@@ -177,6 +177,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ProjectSystem\Designers\CSharpProjectDesignerPageProviderTests.cs" />
+    <Compile Include="ProjectSystem\Designers\Imaging\CSharpProjectImageProviderTests.cs" />
     <Compile Include="ProjectSystem\LanguageServices\CSharpCodeDomProviderTests.cs" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
