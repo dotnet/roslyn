@@ -405,6 +405,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                 // undo/redo support:
                 switch ((VSConstants.VSStd97CmdID)nCmdID)
                 {
+                    // TODO: remove (https://github.com/dotnet/roslyn/issues/5642)
+                    case VSConstants.VSStd97CmdID.FindReferences:
+                        return VSConstants.S_OK;
                     case VSConstants.VSStd97CmdID.Undo:
                     case VSConstants.VSStd97CmdID.MultiLevelUndo:
                     case VSConstants.VSStd97CmdID.MultiLevelUndoList:
