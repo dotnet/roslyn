@@ -677,7 +677,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (!foregroundObject.IsForeground())
             {
-                throw new NotSupportedException(ServicesVSResources.ThisWorkspaceOnlySupportsOpeningDocumentsOnTheUIThread);
+                throw new InvalidOperationException(ServicesVSResources.ThisWorkspaceOnlySupportsOpeningDocumentsOnTheUIThread);
             }
 
             var document = this.GetHostDocument(documentId);
