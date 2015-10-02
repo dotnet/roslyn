@@ -518,5 +518,31 @@ End Class
                  Keyword("My"))
         End Sub
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Sub TestAwaitInNonAsyncFunction1()
+            Dim text =
+<code>
+dim m = Await
+</code>.NormalizedValue()
+
+            TestInMethod(text,
+                 Keyword("Await"))
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Sub TestAwaitInNonAsyncFunction2()
+            Dim text =
+<code>
+sub await()
+end sub
+
+sub test()
+    dim m = Await
+end sub
+</code>.NormalizedValue()
+
+            TestInClass(text)
+        End Sub
+
     End Class
 End Namespace

@@ -85,6 +85,7 @@
     <Compile Include="Interactive\Core\InteractiveHost.cs" />
     <Compile Include="Interactive\Core\InteractiveHost.InitializedRemoteService.cs" />
     <Compile Include="Interactive\Core\InteractiveHost.Service.cs" />
+    <Compile Include="Interactive\Core\InteractiveHost.ShadowCopyReference.cs" />
     <Compile Include="Interactive\Core\InteractiveLanguageNames.cs" />
     <Compile Include="Interactive\Core\ReplServiceProvider.cs" />
     <Compile Include="Interactive\Core\InteractiveHost.RemoteAsyncOperation.cs" />

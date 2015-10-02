@@ -47,6 +47,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// </remarks>
         private readonly UIThreadOnly _uiOnly;
 
+        internal InteractiveWindowClipboard InteractiveWindowClipboard { get; set; } = new SystemClipboard();
+
         #region Initialization
 
         public InteractiveWindow(
