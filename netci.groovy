@@ -116,11 +116,11 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
       pullRequest {
         admin('Microsoft')
         useGitHubHooks(true)
-        triggerPhrase("(?i).*test\\W(${opsysName}|${triggerKeyword}|${opsysName}\\W${triggerKeyword}||${triggerKeyword}\\W${opsysName})\\Wplease.*")
+        triggerPhrase("(?i).*test\\W+(${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}||${triggerKeyword}\\W+${opsysName})\\W+please.*")
         onlyTriggerPhrase(triggerOnly)
         autoCloseFailedPullRequests(false)
         orgWhitelist('Microsoft')
-        allowMembersOfWhitelistedOrgsAsAdmin(false)
+        allowMembersOfWhitelistedOrgsAsAdmin(true)
         permitAll(false)
         extensions {
           commitStatus {
@@ -182,10 +182,10 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
             if (branchName == 'prtest') {
               switch (buildTarget) {
                 case 'unit32':
-                  addPullRequestTrigger(myJob, jobName, opsys, "unit((\\W)?(32)?)")
+                  addPullRequestTrigger(myJob, jobName, opsys, "(unit|unit32|unit\\W+32)")
                   break;
                 case 'unit64':
-                  addPullRequestTrigger(myJob, jobName, opsys, 'unit((\\W)?(64)?)')
+                  addPullRequestTrigger(myJob, jobName, opsys, '(unit|unit64|unit\\W+64)')
                   break;
               }
               addScm(myJob, '${sha1}', '+refs/pull/*:refs/remotes/origin/pr/*')
