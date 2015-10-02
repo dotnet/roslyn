@@ -475,7 +475,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
     <value>MissingAnalyzerReference</value>
   </data>
   <data name="WRN_MissingAnalyzerReferenceMessage" xml:space="preserve">
-    <value>Analyzer assembly '{0}' depends on '{1}' but it was not found. Analyzers may not run correctly.</value>
+    <value>Analyzer assembly '{0}' depends on '{1}' but it was not found. Analyzers may not run correctly unless the missing assembly is added as an analyzer reference as well.</value>
   </data>
   <data name="SuppressionStateColumnHeader" xml:space="preserve">
     <value>Suppression State</value>
