@@ -84,17 +84,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             var vsWindow = _vsInteractiveWindowFactory.Create(Id, instanceId, Title, evaluator, __VSCREATETOOLWIN.CTW_fForceCreate);
             vsWindow.SetLanguage(LanguageServiceGuid, evaluator.ContentType);
 
-            // the tool window now owns the engine:
-            vsWindow.InteractiveWindow.TextView.Closed += new EventHandler((_, __) =>
+            EventHandler closeEventDelegate = null;
+            closeEventDelegate = (sender, e) =>
             {
-                InteractiveWindow.InteractiveWindow intWindow = vsWindow.InteractiveWindow as InteractiveWindow.InteractiveWindow; 
-                    LogSession(LogMessage.Window, 
-                               LogMessage.Close, 
-                               intWindow == null 
-                                    ? Array.Empty<Object>() 
-                                    : new object[] { intWindow.SubmissionCounter });
+                vsWindow.InteractiveWindow.TextView.Closed -= closeEventDelegate;
+
+                InteractiveWindow.InteractiveWindow intWindow = vsWindow.InteractiveWindow as InteractiveWindow.InteractiveWindow;
+                LogSession(LogMessage.Window,
+                           LogMessage.Close,
+                           intWindow == null
+                                ? Array.Empty<Object>()
+                                : new object[] { intWindow.SubmissionCounter });
+
                 evaluator.Dispose();
-            });
+            };
+
+            // the tool window now owns the engine:
+            vsWindow.InteractiveWindow.TextView.Closed += closeEventDelegate;
             // vsWindow.AutoSaveOptions = true;
 
             var window = vsWindow.InteractiveWindow;
@@ -118,8 +124,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             }
 
             _vsInteractiveWindow.Show(focus);
-
-            LogSession(LogMessage.Window, LogMessage.Open);
 
             return _vsInteractiveWindow;
         }
