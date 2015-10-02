@@ -1084,6 +1084,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This workspace only supports opening documents on the UI thread..
+        /// </summary>
+        internal static string ThisWorkspaceOnlySupportsOpeningDocumentsOnTheUIThread {
+            get {
+                return ResourceManager.GetString("ThisWorkspaceOnlySupportsOpeningDocumentsOnTheUIThread", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to C#/VB Todo List Table Data Source.
         /// </summary>
         internal static string TodoTableSourceName {
