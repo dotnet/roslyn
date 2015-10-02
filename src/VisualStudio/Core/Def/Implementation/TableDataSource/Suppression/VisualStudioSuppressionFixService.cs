@@ -237,7 +237,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     newSolution,
                     fixAllPreviewChangesTitle: title,
                     fixAllTopLevelHeader: title,
-                    languageOpt: languages.SingleOrDefault(),
+                    languageOpt: languages.Count == 1 ? languages.Single() : null,
                     workspace: _workspace);
                 if (newSolution == null)
                 {
