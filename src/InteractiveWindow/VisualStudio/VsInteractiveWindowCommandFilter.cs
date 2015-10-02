@@ -368,11 +368,29 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                 switch ((CommandIds)nCmdID)
                 {
                     case CommandIds.AbortExecution: _window.Evaluator.AbortExecution(); return VSConstants.S_OK;
-                    case CommandIds.Reset: _window.Operations.ResetAsync(); return VSConstants.S_OK;
+                    case CommandIds.Reset:
+                        {
+                            _window.Operations.ResetAsync();
+                            var intWindow = _window as InteractiveWindow;
+                            if (intWindow != null)
+                            {
+                                intWindow.SubmissionCounter++;
+                            }
+                            return VSConstants.S_OK;
+                        }
                     case CommandIds.SmartExecute: _window.Operations.ExecuteInput(); return VSConstants.S_OK;
                     case CommandIds.HistoryNext: _window.Operations.HistoryNext(); return VSConstants.S_OK;
                     case CommandIds.HistoryPrevious: _window.Operations.HistoryPrevious(); return VSConstants.S_OK;
-                    case CommandIds.ClearScreen: _window.Operations.ClearView(); return VSConstants.S_OK;
+                    case CommandIds.ClearScreen:
+                        {
+                            _window.Operations.ClearView();
+                            var intWindow = _window as InteractiveWindow;
+                            if (intWindow != null)
+                            {
+                                intWindow.SubmissionCounter++;
+                            }
+                            return VSConstants.S_OK;
+                        }
                     case CommandIds.SearchHistoryNext:
                         _window.Operations.HistorySearchNext();
                         return VSConstants.S_OK;
