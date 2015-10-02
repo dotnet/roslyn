@@ -256,7 +256,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Friend Function CreateAndSetSourceAssemblyFullBind(compilation As VisualBasicCompilation) As Boolean
 
                 Dim resolutionDiagnostics = DiagnosticBag.GetInstance()
-                Dim implicitlyResolvedReferences = ArrayBuilder(Of MetadataReference).GetInstance()
 
                 Try
                     Dim boundReferenceDirectiveMap As IDictionary(Of String, MetadataReference) = Nothing
@@ -275,20 +274,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         resolutionDiagnostics)
 
                     Dim assemblyBeingBuiltData As New AssemblyDataForAssemblyBeingBuilt(New AssemblyIdentity(name:=SimpleAssemblyName), referencedAssemblies, modules)
-                    Dim allAssemblyData = referencedAssemblies.Insert(0, assemblyBeingBuiltData)
+                    Dim explicitAssemblyData = referencedAssemblies.Insert(0, assemblyBeingBuiltData)
 
                     ' Let's bind all the references and resolve missing one (if resolver is available)
                     Dim corLibraryIndex As Integer
                     Dim hasCircularReference As Boolean
-                    Dim bindingResult() As BoundInputAssembly = Bind(allAssemblyData,
+                    Dim implicitlyResolvedReferences As ImmutableArray(Of MetadataReference) = Nothing
+                    Dim implicitlyResolvedReferenceMap As ImmutableArray(Of ResolvedReference) = Nothing
+                    Dim allAssemblyData As ImmutableArray(Of AssemblyData) = Nothing
+
+                    Dim bindingResult() As BoundInputAssembly = Bind(explicitAssemblyData,
                                                                      compilation.Options.MetadataReferenceResolver,
                                                                      compilation.Options.MetadataImportOptions,
+                                                                     allAssemblyData,
                                                                      implicitlyResolvedReferences,
+                                                                     implicitlyResolvedReferenceMap,
                                                                      resolutionDiagnostics,
                                                                      hasCircularReference,
                                                                      corLibraryIndex)
 
                     Debug.Assert(bindingResult.Length = allAssemblyData.Length)
+
+                    referenceMap = referenceMap.AddRange(implicitlyResolvedReferenceMap)
 
                     Dim referencedAssembliesMap As Dictionary(Of MetadataReference, Integer) = Nothing
                     Dim referencedModulesMap As Dictionary(Of MetadataReference, Integer) = Nothing
@@ -297,8 +304,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     BuildReferencedAssembliesAndModulesMaps(
                         references,
                         referenceMap,
-                        implicitlyResolvedReferences,
-                        referencedAssemblies.Length,
                         modules.Length,
                         referencedAssembliesMap,
                         referencedModulesMap,

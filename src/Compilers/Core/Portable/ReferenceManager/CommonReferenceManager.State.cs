@@ -383,16 +383,14 @@ namespace Microsoft.CodeAnalysis
         protected static void BuildReferencedAssembliesAndModulesMaps(
             ImmutableArray<MetadataReference> references,
             ImmutableArray<ResolvedReference> referenceMap,
-            IReadOnlyList<MetadataReference> implicitlyResolvedReferences,
-            int referencedAssemblyCount,
             int referencedModuleCount,
             out Dictionary<MetadataReference, int> referencedAssembliesMap,
             out Dictionary<MetadataReference, int> referencedModulesMap,
             out ImmutableArray<ImmutableArray<string>> aliasesOfReferencedAssemblies)
         {
-            referencedAssembliesMap = new Dictionary<MetadataReference, int>(referenceMap.Length + implicitlyResolvedReferences.Count);
+            referencedAssembliesMap = new Dictionary<MetadataReference, int>(referenceMap.Length);
             referencedModulesMap = new Dictionary<MetadataReference, int>(referencedModuleCount);
-            var aliasesOfReferencedAssembliesBuilder = ArrayBuilder<ImmutableArray<string>>.GetInstance(referencedAssemblyCount);
+            var aliasesOfReferencedAssembliesBuilder = ArrayBuilder<ImmutableArray<string>>.GetInstance(referenceMap.Length - referencedModuleCount);
 
             for (int i = 0; i < referenceMap.Length; i++)
             {
@@ -416,22 +414,6 @@ namespace Microsoft.CodeAnalysis
                     referencedAssembliesMap.Add(references[i], assemblyIndex);
                     aliasesOfReferencedAssembliesBuilder.Add(referenceMap[i].Aliases);
                 }
-            }
-
-            for (int i = 0; i < implicitlyResolvedReferences.Count; i++)
-            {
-                var assemblyIndex = referencedAssemblyCount + i;
-                Debug.Assert(aliasesOfReferencedAssembliesBuilder.Count == assemblyIndex);
-
-                referencedAssembliesMap.Add(implicitlyResolvedReferences[i], assemblyIndex);
-
-                // Use aliases specified on the reference returned by the missing assembly resolver.
-                // Unlike explicitly given references, we don't apply de-duplication logic on references 
-                // returned by the resolver. This is because we already have an assembly identity 
-                // (rather than an opaque reference string or a preexisting metadata reference) 
-                // and we don't ask the resolver to resolve an identity that matches identities 
-                // we have already resolved. Hence there are no opportunities for reference duplication.
-                aliasesOfReferencedAssembliesBuilder.Add(implicitlyResolvedReferences[i].Properties.Aliases);
             }
 
             aliasesOfReferencedAssemblies = aliasesOfReferencedAssembliesBuilder.ToImmutableAndFree();

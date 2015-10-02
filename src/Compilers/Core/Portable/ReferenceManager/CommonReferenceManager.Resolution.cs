@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis
 
             private string GetDebuggerDisplay()
             {
-                return IsSkipped ? "<skipped>" : (_kind == MetadataImageKind.Assembly ? "A[" : "M[") + Index + "]: aliases=" + _aliases.ToString();
+                return IsSkipped ? "<skipped>" : $"{(_kind == MetadataImageKind.Assembly ? "A" : "M")}[{Index}]: aliases='{string.Join("','", _aliases)}'";
             }
         }
 
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis
                         : ((object)modulesBuilder == null ? 0 : modulesBuilder.Count);
 
                     int reversedIndex = count - 1 - referenceMap[i].Index;
-                    referenceMap[i] = new ResolvedReference(reversedIndex, referenceMap[i].Kind, GetAliases(references[i], aliasMap));
+                    referenceMap[i] = new ResolvedReference(reversedIndex, referenceMap[i].Kind, GetAndFreeAliases(references[i], aliasMap));
                 }
             }
 
@@ -371,10 +371,10 @@ namespace Microsoft.CodeAnalysis
             return ImmutableArray.CreateRange(referenceMap);
         }
 
-        private static ImmutableArray<string> GetAliases(MetadataReference reference, Dictionary<MetadataReference, ArrayBuilder<string>> aliasMap)
+        private static ImmutableArray<string> GetAndFreeAliases(MetadataReference reference, Dictionary<MetadataReference, ArrayBuilder<string>> aliasMapOpt)
         {
             ArrayBuilder<string> aliases;
-            if (aliasMap != null && aliasMap.TryGetValue(reference, out aliases))
+            if (aliasMapOpt != null && aliasMapOpt.TryGetValue(reference, out aliases))
             {
                 return aliases.ToImmutableAndFree();
             }
@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis
         // Returns null if an assembly of an equivalent identity has not been added previously, otherwise returns the reference that added it.
         // - Both assembly names are strong (have keys) and are either equal or FX unified 
         // - Both assembly names are weak (no keys) and have the same simple name.
-        private MetadataReference TryAddAssembly(AssemblyIdentity identity, MetadataReference boundReference, DiagnosticBag diagnostics, Location location,
+        private MetadataReference TryAddAssembly(AssemblyIdentity identity, MetadataReference boundReference, DiagnosticBag diagnosticsOpt, Location location,
             ref Dictionary<string, List<ReferencedAssemblyIdentity>> referencesBySimpleName)
         {
             if (referencesBySimpleName == null)
@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis
                     // BREAKING CHANGE in VB: we report an error for both languages
 
                     // Multiple assemblies with equivalent identity have been imported: '{0}' and '{1}'. Remove one of the duplicate references.
-                    MessageProvider.ReportDuplicateMetadataReferenceStrong(diagnostics, location, boundReference, identity, equivalent.MetadataReference, equivalent.Identity);
+                    MessageProvider.ReportDuplicateMetadataReferenceStrong(diagnosticsOpt, location, boundReference, identity, equivalent.MetadataReference, equivalent.Identity);
                 }
                 // If the versions match exactly we ignore duplicates w/o reporting errors while 
                 // Dev12 C# reports:
@@ -664,7 +664,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (identity != equivalent.Identity)
                 {
-                    MessageProvider.ReportDuplicateMetadataReferenceWeak(diagnostics, location, boundReference, identity, equivalent.MetadataReference, equivalent.Identity);
+                    MessageProvider.ReportDuplicateMetadataReferenceWeak(diagnosticsOpt, location, boundReference, identity, equivalent.MetadataReference, equivalent.Identity);
                 }
             }
 
@@ -840,6 +840,9 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         continue;
+
+                    default:
+                        throw ExceptionUtilities.Unreachable;
                 }
             }
 
@@ -908,29 +911,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return new AssemblyReferenceBinding(reference);
-        }
-
-        private static bool IsBetterVersionMatch(AssemblyIdentity reference, ImmutableArray<AssemblyData> definitions, AssemblyReferenceBinding previousBinding, AssemblyReferenceBinding newBinding)
-        {
-            Debug.Assert(newBinding.IsBound);
-
-            // Previous binding failed or new binding is an exact match
-            if (!previousBinding.IsBound || newBinding.VersionDifference == 0)
-            {
-                return true;
-            }
-
-            if (previousBinding.VersionDifference != newBinding.VersionDifference)
-            {
-                // lesser than reference version is worst than higher than reference version
-                return previousBinding.VersionDifference < 0;
-            }
-
-            var previousVersion = definitions[previousBinding.DefinitionIndex].Identity.Version;
-            var newVersion = definitions[newBinding.DefinitionIndex].Identity.Version;
-
-            // closer version is better:
-            return (newBinding.VersionDifference > 0) ? newVersion < previousVersion : newVersion > previousVersion;
         }
     }
 }

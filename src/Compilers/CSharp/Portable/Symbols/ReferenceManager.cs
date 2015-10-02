@@ -8,11 +8,11 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    using Symbols.Retargeting;
     using MetadataOrDiagnostic = System.Object;
 
     public partial class CSharpCompilation
@@ -307,7 +307,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             private bool CreateAndSetSourceAssemblyFullBind(CSharpCompilation compilation)
             {
                 var resolutionDiagnostics = DiagnosticBag.GetInstance();
-                var implicitlyResolvedReferences = ArrayBuilder<MetadataReference>.GetInstance();
 
                 try
                 {
@@ -327,29 +326,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                         resolutionDiagnostics);
 
                     var assemblyBeingBuiltData = new AssemblyDataForAssemblyBeingBuilt(new AssemblyIdentity(name: SimpleAssemblyName), referencedAssemblies, modules);
-                    var allAssemblyData = referencedAssemblies.Insert(0, assemblyBeingBuiltData);
+                    var explicitAssemblyData = referencedAssemblies.Insert(0, assemblyBeingBuiltData);
 
                     // Let's bind all the references and resolve missing one (if resolver is available)
                     bool hasCircularReference;
                     int corLibraryIndex;
+                    ImmutableArray<MetadataReference> implicitlyResolvedReferences;
+                    ImmutableArray<ResolvedReference> implicitlyResolvedReferenceMap;
+                    ImmutableArray<AssemblyData> allAssemblyData;
+
                     BoundInputAssembly[] bindingResult = Bind(
-                        ref allAssemblyData,
+                        explicitAssemblyData,
                         compilation.Options.MetadataReferenceResolver,
                         compilation.Options.MetadataImportOptions,
-                        implicitlyResolvedReferences,
+                        out allAssemblyData,
+                        out implicitlyResolvedReferences,
+                        out implicitlyResolvedReferenceMap,
                         resolutionDiagnostics,
                         out hasCircularReference,
                         out corLibraryIndex);
 
                     Debug.Assert(bindingResult.Length == allAssemblyData.Length);
 
+                    references = references.AddRange(implicitlyResolvedReferences);
+                    referenceMap = referenceMap.AddRange(implicitlyResolvedReferenceMap);
+
                     Dictionary<MetadataReference, int> referencedAssembliesMap, referencedModulesMap;
                     ImmutableArray<ImmutableArray<string>> aliasesOfReferencedAssemblies;
                     BuildReferencedAssembliesAndModulesMaps(
                         references,
                         referenceMap,
-                        implicitlyResolvedReferences,
-                        referencedAssemblies.Length,
                         modules.Length,
                         out referencedAssembliesMap,
                         out referencedModulesMap,
@@ -394,12 +400,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // This should be done after we created/found all AssemblySymbols 
                     Dictionary<AssemblyIdentity, MissingAssemblySymbol> missingAssemblies = null;
 
+                    // -1 for assembly being built:
+                    int totalReferencedAssemblyCount = allAssemblyData.Length - 1;
+
                     // Setup bound references for newly created SourceAssemblySymbol
                     ImmutableArray<ModuleReferences<AssemblySymbol>> moduleReferences;
                     SetupReferencesForSourceAssembly(
-                        allAssemblyData,
                         assemblySymbol,
                         modules,
+                        totalReferencedAssemblyCount,
                         bindingResult,
                         ref missingAssemblies,
                         out moduleReferences);
@@ -461,7 +470,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 finally
                 {
                     resolutionDiagnostics.Free();
-                    implicitlyResolvedReferences.Free();
                 }
             }
 
@@ -678,9 +686,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private static void SetupReferencesForSourceAssembly(
-                ImmutableArray<AssemblyData> allAssemblyData,
                 SourceAssemblySymbol sourceAssembly,
                 ImmutableArray<PEModule> modules,
+                int totalReferencedAssemblyCount,
                 BoundInputAssembly[] bindingResult,
                 ref Dictionary<AssemblyIdentity, MissingAssemblySymbol> missingAssemblies,
                 out ImmutableArray<ModuleReferences<AssemblySymbol>> moduleReferences)
@@ -693,8 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int refsUsed = 0;
                 for (int moduleIndex = 0; moduleIndex < moduleSymbols.Length; moduleIndex++)
                 {
-                    // -1 for assembly being built
-                    int refsCount = (moduleIndex == 0) ? (allAssemblyData.Length - 1) : modules[moduleIndex - 1].ReferencedAssemblies.Length;
+                    int refsCount = (moduleIndex == 0) ? totalReferencedAssemblyCount : modules[moduleIndex - 1].ReferencedAssemblies.Length;
 
                     var identities = new AssemblyIdentity[refsCount];
                     var symbols = new AssemblySymbol[refsCount];
@@ -731,7 +738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     refsUsed += refsCount;
                 }
 
-                moduleReferences = moduleReferencesBuilder.AsImmutableOrEmpty();
+                moduleReferences = moduleReferencesBuilder.ToImmutableOrEmptyAndFree();
             }
 
             private static AssemblySymbol GetAssemblyDefinitionSymbol(
