@@ -2366,7 +2366,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         IsInActivePrompt(position))
                     {
                         CutOrDeleteCurrentLine(isCut); 
-                        Home(false);                
+                        Home(extendSelection: false);                
                     }
                 }
                 else
@@ -2409,9 +2409,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     // Even though `OverlapsWithEditableBuffer` and `CutOrDelete` is sufficient to 
                     // delete editable selection,  we still need to handle box selection 
                     // differently to move caret to appropiate location after deletion.
-                    bool isEditable = selection.Mode == TextSelectionMode.Stream ?
-                                        OverlapsWithEditableBuffer(selection.SelectedSpans) :
-                                        ReduceBoxSelectionToEditableBox();
+                    bool isEditable = selection.Mode == TextSelectionMode.Stream 
+                                                            ? OverlapsWithEditableBuffer(selection.SelectedSpans) 
+                                                            : ReduceBoxSelectionToEditableBox();
                     if (isEditable)
                     {                               
                         CutOrDelete(selection.SelectedSpans, isCut);

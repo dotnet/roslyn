@@ -390,6 +390,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             UIThread(uiOnly => uiOnly.CutLine());
         }
+
         #endregion
 
         #region Command Debugging
