@@ -66,23 +66,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
                 CommonVsUtils.GetWorkingDirectory());
         }
 
-        protected override void LogSession(string key, string value, params object[] objects)
+        protected override void LogSession(string key, string value)
         {
-            Action<Dictionary<string, object>> propertySetter;
-            if (value.Equals(LanguageServices.Interactive.LogMessage.Close))
-            {
-                Debug.Assert(objects.Length > 0);
-                propertySetter = m =>
-                                    {
-                                        m.Add(key, value);
-                                        m.Add(LanguageServices.Interactive.LogMessage.SubmissionCount, objects[0]);
-                                    };
-            }
-            else
-            {
-                propertySetter = m => m.Add(key, value);
-            }
-            Logger.Log(FunctionId.CSharp_Interactive_Window, KeyValueLogMessage.Create(propertySetter));
+            Logger.Log(FunctionId.CSharp_Interactive_Window, KeyValueLogMessage.Create(m => m.Add(key, value)));
+        }
+
+        protected override void LogCloseSession(int submissionCount)
+        {
+            Logger.Log(FunctionId.CSharp_Interactive_Window, 
+                       KeyValueLogMessage.Create(m =>
+                            {
+                                m.Add(LanguageServices.Interactive.LogMessage.Window, LanguageServices.Interactive.LogMessage.Close);
+                                m.Add(LanguageServices.Interactive.LogMessage.SubmissionCount, submissionCount);
+                            }));
         }
     }
 }
