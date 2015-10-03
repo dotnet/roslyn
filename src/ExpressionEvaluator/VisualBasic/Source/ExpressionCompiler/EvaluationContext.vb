@@ -603,6 +603,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Debug.Assert(Not info.IsByRef)
                     Debug.Assert(Not info.IsPinned)
                     Dim type As TypeSymbol = info.Type
+                    If type.IsErrorType() Then
+                        Continue For
+                    End If
 
                     Dim constantValue = PdbHelpers.GetConstantValue(type.GetEnumUnderlyingTypeOrSelf(), rawValue)
 
