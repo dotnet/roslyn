@@ -71,13 +71,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
             Logger.Log(FunctionId.CSharp_Interactive_Window, KeyValueLogMessage.Create(m => m.Add(key, value)));
         }
 
-        protected override void LogCloseSession(int submissionCount)
+        protected override void LogCloseSession(int languageBufferCount)
         {
             Logger.Log(FunctionId.CSharp_Interactive_Window, 
                        KeyValueLogMessage.Create(m =>
                             {
                                 m.Add(LanguageServices.Interactive.LogMessage.Window, LanguageServices.Interactive.LogMessage.Close);
-                                m.Add(LanguageServices.Interactive.LogMessage.SubmissionCount, submissionCount);
+                                m.Add(LanguageServices.Interactive.LogMessage.LanguageBufferCount, languageBufferCount);
                             }));
         }
     }

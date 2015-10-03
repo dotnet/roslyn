@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         protected abstract Guid Id { get; }
         protected abstract string Title { get; }
         protected abstract void LogSession(string key, string value);
-        protected abstract void LogCloseSession(int submissionCount);
+        protected abstract void LogCloseSession(int languageBufferCount);
 
         protected IInteractiveWindowCommandsFactory CommandsFactory
         {
@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                 vsWindow.InteractiveWindow.TextView.Closed -= closeEventDelegate;
 
                 InteractiveWindow.InteractiveWindow intWindow = vsWindow.InteractiveWindow as InteractiveWindow.InteractiveWindow;
-                LogCloseSession(intWindow.SubmissionCounter);
+                LogCloseSession(intWindow.LanguageBufferCounter);
 
                 evaluator.Dispose();
             };

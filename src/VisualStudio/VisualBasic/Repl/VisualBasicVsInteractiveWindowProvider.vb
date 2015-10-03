@@ -69,11 +69,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
             Logger.Log(FunctionId.VisualBasic_Interactive_Window, KeyValueLogMessage.Create(Sub(m) m.Add(key, value)))
         End Sub
 
-        Protected Overrides Sub LogCloseSession(submissionCount As Integer)
+        Protected Overrides Sub LogCloseSession(languageBufferCount As Integer)
             Logger.Log(FunctionId.VisualBasic_Interactive_Window,
                        KeyValueLogMessage.Create(Sub(m)
                                                      m.Add(LanguageServices.Interactive.LogMessage.Window, LanguageServices.Interactive.LogMessage.Close)
-                                                     m.Add(LanguageServices.Interactive.LogMessage.SubmissionCount, submissionCount)
+                                                     m.Add(LanguageServices.Interactive.LogMessage.LanguageBufferCount, languageBufferCount)
                                                  End Sub))
         End Sub
     End Class
