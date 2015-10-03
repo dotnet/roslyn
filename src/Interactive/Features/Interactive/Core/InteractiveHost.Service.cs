@@ -172,14 +172,9 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             private MetadataReferenceResolver CreateMetadataReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)
             {
-                var userProfilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                var packagesDirectory = string.IsNullOrEmpty(userProfilePath) ?
-                    null :
-                    Path.Combine(userProfilePath, Path.Combine(".nuget", "packages"));
-
                 return new RuntimeMetadataReferenceResolver(
                     new RelativePathResolver(searchPaths, baseDirectory),
-                    string.IsNullOrEmpty(packagesDirectory) ? null : new NuGetPackageResolverImpl(packagesDirectory),
+                    null,
                     GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
                     (path, properties) => new ShadowCopyReference(_metadataFileProvider, path, properties));
             }
