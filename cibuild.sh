@@ -89,7 +89,7 @@ run_msbuild()
     
     for i in `seq 1 $RETRY_COUNT`
     do
-        mono $MONO_ARGS ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe /v:m /p:SignAssembly=false /p:UseRoslynAnalyzers=false /p:DebugSymbols=false "$@"
+        mono $MONO_ARGS ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe /v:m /p:SignAssembly=false /p:DebugSymbols=false "$@"
         if [ $? -eq 0 ]; then
             is_good=true
             break
