@@ -25,6 +25,7 @@
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
+      <Aliases>global</Aliases>
     </ProjectReference>
     <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
       <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
@@ -45,6 +46,7 @@
     <ProjectReference Include="..\Core\Scripting.csproj">
       <Project>{12A68549-4E8C-42D6-8703-A09335F97997}</Project>
       <Name>Scripting</Name>
+      <Aliases>global,Scripting</Aliases>
     </ProjectReference>
     <ProjectReference Include="..\CSharp\CSharpScripting.csproj">
       <Project>{066F0DBD-C46C-4C20-AFEC-99829A172625}</Project>

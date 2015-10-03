@@ -204,7 +204,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                 return null;
             }
 
-            // TODO: This shouldn't directly depend on GAC, rather we should have some kind of "reference simplifier".
+            return reference.Path;
+
+#if TODO // TODO: This shouldn't directly depend on GAC, rather we should have some kind of "reference simplifier".
             var possibleGacNames = GlobalAssemblyCache.GetAssemblyIdentities(name).ToArray();
             if (possibleGacNames.Length == 0)
             {
@@ -268,6 +270,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             // We found a single simple name match that is equivalent to the given reference.
             // We can use the simple name to load the GAC'd assembly.
             return name;
+#endif
         }
 
         private static void SafeRelease(IntPtr pointer)

@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-extern alias WORKSPACES;
+extern alias Scripting;
 
 using System;
 using System.Collections.Generic;
@@ -24,11 +23,10 @@ using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Utilities;
 
-using RuntimeMetadataReferenceResolver = WORKSPACES::Microsoft.CodeAnalysis.Scripting.Hosting.RuntimeMetadataReferenceResolver;
-using GacFileResolver = WORKSPACES::Microsoft.CodeAnalysis.Scripting.Hosting.GacFileResolver;
-
 namespace Microsoft.CodeAnalysis.Interactive
 {
+    using RelativePathResolver = Scripting::Microsoft.CodeAnalysis.RelativePathResolver;
+
     internal partial class InteractiveHost
     {
         /// <summary>
