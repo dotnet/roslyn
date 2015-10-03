@@ -61,10 +61,14 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="vbi" />
+    <!-- TODO: remove, see https://github.com/dotnet/roslyn/issues/5661 -->
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
+    <!-- /TODO -->
     <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Emit.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.Desktop.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />

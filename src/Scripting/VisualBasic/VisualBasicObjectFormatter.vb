@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
 
-    Public NotInheritable Class VisualBasicObjectFormatter
+    Friend NotInheritable Class VisualBasicObjectFormatter
         Inherits ObjectFormatter
 
         Public Shared ReadOnly Instance As VisualBasicObjectFormatter = New VisualBasicObjectFormatter()

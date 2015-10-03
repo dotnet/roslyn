@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// <exception cref="ArgumentException"><paramref name="path"/> is not an existing path.</exception>
         /// <exception cref="ArgumentException"><paramref name="path"/> is not an existing assembly file path.</exception>
         /// <exception cref="TargetInvocationException">The assembly resolver threw an exception.</exception>
-        public AssemblyLoadResult LoadFromPath(string path)
+        internal AssemblyLoadResult LoadFromPath(string path)
         {
             if (path == null)
             {

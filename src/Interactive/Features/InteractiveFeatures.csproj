@@ -18,12 +18,10 @@
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
-      <Aliases>global</Aliases>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
       <Name>Workspaces.Desktop</Name>
-      <Aliases>global</Aliases>
     </ProjectReference>
     <ProjectReference Include="..\..\Scripting\Core\Scripting.csproj">
       <Project>{12A68549-4E8C-42D6-8703-A09335F97997}</Project>
@@ -95,7 +93,6 @@
     <Compile Include="Interactive\Core\RemoteExecutionResult.cs" />
     <Compile Include="Interactive\Core\InteractiveHost.RemoteService.cs" />
     <Compile Include="Interactive\Core\HostObject\SearchPaths.cs" />
-    <Compile Include="Interactive\Core\SerializableAssemblyLoadResult.cs" />
     <Compile Include="Interactive\Core\HostObject\SynchronizedVersionedList.cs" />
   </ItemGroup>
   <ItemGroup>
