@@ -20,6 +20,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
     using Microsoft.CodeAnalysis.ErrorLogger;
+    using System.Diagnostics;
     using DiagnosticId = String;
     using LanguageKind = String;
 
@@ -146,7 +147,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 result.Sort((d1, d2) => priorityMap.ContainsKey((CodeFixProvider)d1.Provider) ? (priorityMap.ContainsKey((CodeFixProvider)d2.Provider) ? priorityMap[(CodeFixProvider)d1.Provider] - priorityMap[(CodeFixProvider)d2.Provider] : -1) : 1);
             }
 
-            if (includeSuppressionFixes)
+            // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
+            if (document.Project.Solution.Workspace.Kind != WorkspaceKind.Interactive && includeSuppressionFixes)
             {
                 foreach (var spanAndDiagnostic in aggregatedDiagnostics)
                 {
@@ -179,19 +181,36 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             List<CodeFixProvider> projectFixers;
             var allFixers = new List<CodeFixProvider>();
 
+            // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
+            bool isInteractive = document.Project.Solution.Workspace.Kind == WorkspaceKind.Interactive;
+
             foreach (var diagnosticId in diagnosticDataCollection.Select(d => d.Id).Distinct())
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (hasAnySharedFixer && fixerMap.Value.TryGetValue(diagnosticId, out workspaceFixers))
                 {
-                    allFixers.AddRange(workspaceFixers);
+                    if (isInteractive)
+                    {
+                        allFixers.AddRange(workspaceFixers.Where(IsInteractiveCodeFixProvider));
+                    }
+                    else
+                    {
+                        allFixers.AddRange(workspaceFixers);
+                    }
                 }
 
                 if (hasAnyProjectFixer && projectFixersMap.TryGetValue(diagnosticId, out projectFixers))
                 {
+                    Debug.Assert(!isInteractive);
                     allFixers.AddRange(projectFixers);
                 }
+            }
+
+            if (allFixers.Count == 0)
+            {
+                Debug.Assert(isInteractive);
+                return result;
             }
 
             var diagnostics = await DiagnosticData.ToDiagnosticsAsync(document.Project, diagnosticDataCollection, cancellationToken).ConfigureAwait(false);
@@ -350,6 +369,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             bool hasAnySharedFixer = _workspaceFixersMap.TryGetValue(document.Project.Language, out fixerMap) && fixerMap.Value.TryGetValue(diagnostic.Id, out workspaceFixers);
             var hasAnyProjectFixer = GetProjectFixers(document.Project).TryGetValue(diagnostic.Id, out projectFixers);
 
+            // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
+            if (hasAnySharedFixer && document.Project.Solution.Workspace.Kind == WorkspaceKind.Interactive)
+            {
+                workspaceFixers = workspaceFixers.WhereAsArray(IsInteractiveCodeFixProvider);
+                hasAnySharedFixer = workspaceFixers.Any();
+            }
+
             Lazy<ISuppressionFixProvider> lazySuppressionProvider = null;
             var hasSuppressionFixer =
                 considerSuppressionFixes &&
@@ -409,6 +435,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             return false;
+        }
+
+        private bool IsInteractiveCodeFixProvider(CodeFixProvider provider)
+        {
+            // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
+            return provider is AddImport.AbstractAddImportCodeFixProvider ||
+                provider is FullyQualify.AbstractFullyQualifyCodeFixProvider;
         }
 
         private static readonly Func<DiagnosticId, List<CodeFixProvider>> s_createList = _ => new List<CodeFixProvider>();
@@ -537,7 +570,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private ImmutableDictionary<DiagnosticId, List<CodeFixProvider>> GetProjectFixers(Project project)
         {
-            return _projectFixersMap.GetValue(project.AnalyzerReferences, pId => ComputeProjectFixers(project));
+            // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
+            return project.Solution.Workspace.Kind == WorkspaceKind.Interactive
+                ? ImmutableDictionary < DiagnosticId, List<CodeFixProvider>>.Empty
+                : _projectFixersMap.GetValue(project.AnalyzerReferences, pId => ComputeProjectFixers(project));
         }
 
         private ImmutableDictionary<DiagnosticId, List<CodeFixProvider>> ComputeProjectFixers(Project project)

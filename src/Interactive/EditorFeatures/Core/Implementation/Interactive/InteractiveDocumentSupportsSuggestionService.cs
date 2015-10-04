@@ -11,7 +11,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
     {
         public bool SupportsCodeFixes(Document document)
         {
-            return false;
+            // TODO (acasey): confirm with IDE team
+            var project = document.Project;
+            var projectIds = project.Solution.ProjectIds;
+            return project.DocumentIds[0] == document.Id && projectIds[projectIds.Count - 1] == project.Id;
         }
 
         public bool SupportsRefactorings(Document document)
