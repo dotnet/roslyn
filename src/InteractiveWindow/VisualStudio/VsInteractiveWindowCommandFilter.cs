@@ -180,6 +180,17 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                         return VSConstants.S_OK;
                 }
             }
+            else if (pguidCmdGroup == VSConstants.GUID_VSStandardCommandSet97)
+            {
+                switch ((VSConstants.VSStd97CmdID)prgCmds[0].cmdID)
+                {
+                    // TODO: Add support of rotating clipboard ring 
+                    // https://github.com/dotnet/roslyn/issues/5651
+                    case VSConstants.VSStd97CmdID.PasteNextTBXCBItem:
+                        prgCmds[0].cmdf = CommandDisabled;
+                        return VSConstants.S_OK;
+                }
+            }
 
             return _editorCommandFilter.QueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
         }
@@ -269,6 +280,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
             {
                 switch ((VSConstants.VSStd97CmdID)nCmdID)
                 {
+                    // TODO: Add support of rotating clipboard ring 
+                    // https://github.com/dotnet/roslyn/issues/5651
+                    case VSConstants.VSStd97CmdID.PasteNextTBXCBItem:
+                        return (int)OLE.Interop.Constants.OLECMDERR_E_NOTSUPPORTED;
+
                     case VSConstants.VSStd97CmdID.Paste:
                         _window.Operations.Paste();
                         return VSConstants.S_OK;
