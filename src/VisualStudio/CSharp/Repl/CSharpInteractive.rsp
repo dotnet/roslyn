@@ -1,6 +1,6 @@
-﻿# This file contains command-line options that the C# repl
+﻿# This file contains command-line options that the C# REPL
 # will process as part of every compilation, unless 
-# the "/noconfig" option is specified in reset command.
+# "/noconfig" option is specified in the reset command.
 /r:System
 /r:System.Core
 /r:Microsoft.CSharp
