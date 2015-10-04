@@ -8,7 +8,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend Class DiagnosticsPass
-        Inherits BoundTreeWalker
 
         Private ReadOnly _expressionTreePlaceholders As New HashSet(Of BoundNode)(ReferenceEqualityComparer.Instance)
 

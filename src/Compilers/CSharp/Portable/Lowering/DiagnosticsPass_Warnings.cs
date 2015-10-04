@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// This pass detects and reports diagnostics that do not affect lambda convertibility.
     /// This part of the partial class focuses on expression and operator warnings.
     /// </summary>
-    internal sealed partial class DiagnosticsPass : BoundTreeWalker
+    internal sealed partial class DiagnosticsPass : BoundTreeWalkerWithStackGuard
     {
         private void CheckArguments(ImmutableArray<RefKind> argumentRefKindsOpt, ImmutableArray<BoundExpression> arguments, Symbol method)
         {

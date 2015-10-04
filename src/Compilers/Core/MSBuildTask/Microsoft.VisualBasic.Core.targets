@@ -87,7 +87,7 @@
           NoWarnings="$(_NoWarnings)"
           NoWin32Manifest="$(NoWin32Manifest)"
           Optimize="$(Optimize)"
-          Deterministic="$Deterministic"
+          Deterministic="$(Deterministic)"
           OptionCompare="$(OptionCompare)"
           OptionExplicit="$(OptionExplicit)"
           OptionInfer="$(OptionInfer)"

@@ -40,6 +40,7 @@ using System;
 class Class2
 {
 }
+class Class3 { }
         </Document>
         <Document>
 class Class3
@@ -85,6 +86,9 @@ class Class2
 #pragma warning restore InfoDiagnostic // InfoDiagnostic Title
 {
 }
+#pragma warning disable InfoDiagnostic // InfoDiagnostic Title
+class Class3 { }
+#pragma warning restore InfoDiagnostic // InfoDiagnostic Title
         </Document>
         <Document>
 class Class3

@@ -2280,7 +2280,7 @@ Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
             builder.Free();
         }
 
-        private class NonMoveableVariableVisitor : BoundTreeWalker
+        private class NonMoveableVariableVisitor : BoundTreeWalkerWithStackGuard
         {
             private readonly Binder _binder;
             private readonly ArrayBuilder<string> _builder;
@@ -2324,6 +2324,11 @@ Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
                 }
 
                 return base.Visit(node);
+            }
+
+            protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
+            {
+                return false;
             }
         }
 

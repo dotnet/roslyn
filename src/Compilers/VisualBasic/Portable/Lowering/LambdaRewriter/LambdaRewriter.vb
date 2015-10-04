@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' the returned bound node.  For example, the caller will typically perform iterator method and
     ''' asynchronous method transformations, and emit IL instructions into an assembly.
     ''' </summary>
-    Partial Friend Class LambdaRewriter
+    Partial Friend NotInheritable Class LambdaRewriter
         Inherits MethodToClassRewriter(Of FieldSymbol)
 
         Private ReadOnly _analysis As Analysis
@@ -1029,7 +1029,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If Not wasInExpressionLambda Then
                     ' Rewritten outermost lambda as expression tree
                     Dim delegateType = type.ExpressionTargetDelegate(CompilationState.Compilation)
-                    rewrittenNode = ExpressionLambdaRewriter.RewriteLambda(node, Me._currentMethod, delegateType, Me.CompilationState, Me.TypeMap, Me.Diagnostics, Me._rewrittenNodes)
+                    rewrittenNode = ExpressionLambdaRewriter.RewriteLambda(node, Me._currentMethod, delegateType, Me.CompilationState, Me.TypeMap, Me.Diagnostics, Me._rewrittenNodes, Me.RecursionDepth)
                 End If
 
                 _inExpressionLambda = wasInExpressionLambda

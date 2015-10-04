@@ -250,14 +250,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         private static MetadataReferenceResolver CreateMetadataReferenceResolver(IMetadataService metadataService, ImmutableArray<string> searchPaths, string baseDirectory)
         {
-            var userProfilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            var packagesDirectory = (userProfilePath == null) ?
-                null :
-                PathUtilities.CombineAbsoluteAndRelativePaths(userProfilePath, PathUtilities.CombinePossiblyRelativeAndRelativePaths(".nuget", "packages"));
-
             return new RuntimeMetadataReferenceResolver(
                 new RelativePathResolver(searchPaths, baseDirectory),
-                string.IsNullOrEmpty(packagesDirectory) ? null : new NuGetPackageResolverImpl(packagesDirectory),
+                null,
                 GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
                 (path, properties) => metadataService.GetReference(path, properties));
         }
@@ -461,7 +456,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         {
             try
             {
-                var options = InteractiveHostOptions.Default.WithInitializationFile(initialize ? _responseFilePath : null);
+                var options = new InteractiveHostOptions(
+                    initializationFile: initialize ? _responseFilePath : null,
+                    culture: CultureInfo.CurrentUICulture);
 
                 var result = await _interactiveHost.ResetAsync(options).ConfigureAwait(false);
 

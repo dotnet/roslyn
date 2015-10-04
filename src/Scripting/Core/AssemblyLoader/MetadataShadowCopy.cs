@@ -17,19 +17,22 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// <summary>
         /// Documentation file copy or null if there is none.
         /// </summary>
+        /// <remarks>
+        /// Documentation files are currently only supported for manifest modules, not modules included in an assembly.
+        /// </remarks>
         public ShadowCopy DocumentationFile { get; }
 
         // this instance doesn't own the image
         public Metadata Metadata { get; }
 
-        internal MetadataShadowCopy(ShadowCopy primaryModule, ShadowCopy documentationFile, Metadata metadataCopy)
+        internal MetadataShadowCopy(ShadowCopy primaryModule, ShadowCopy documentationFileOpt, Metadata metadataCopy)
         {
             Debug.Assert(primaryModule != null);
             Debug.Assert(metadataCopy != null);
             ////Debug.Assert(!metadataCopy.IsImageOwner); property is now internal
 
             PrimaryModule = primaryModule;
-            DocumentationFile = documentationFile;
+            DocumentationFile = documentationFileOpt;
             Metadata = metadataCopy;
         }
 
@@ -37,11 +40,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         internal void DisposeFileHandles()
         {
             PrimaryModule.DisposeFileStream();
-
-            if (DocumentationFile != null)
-            {
-                DocumentationFile.DisposeFileStream();
-            }
+            DocumentationFile?.DisposeFileStream();
         }
     }
 }

@@ -466,9 +466,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             If Not IsAssignableExpression(binder, expression) Then
                 flags = flags Or DkmClrCompilationResultFlags.ReadOnlyResult
             End If
-            If MayHaveSideEffectsVisitor.MayHaveSideEffects(expression) Then
-                flags = flags Or DkmClrCompilationResultFlags.PotentialSideEffect
-            End If
+
+            Try
+                If MayHaveSideEffectsVisitor.MayHaveSideEffects(expression) Then
+                    flags = flags Or DkmClrCompilationResultFlags.PotentialSideEffect
+                End If
+            Catch ex As BoundTreeVisitor.CancelledByStackGuardException
+                ex.AddAnError(diagnostics)
+            End Try
 
             If IsStatement(expression) Then
                 expression = binder.ReclassifyInvocationExpressionAsStatement(expression, diagnostics)
