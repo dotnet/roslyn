@@ -175,12 +175,19 @@ class Test
 {
 	public static void Main(string[] args)
 	{
-        const dynamic d = null;
+        {
+            const dynamic d = null;
+            const string c = null;
+        }
+        {
+            const dynamic c = null;
+            const dynamic d = null;
+        }
 	}
 }";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
-<symbols>
+            c.VerifyPdb(
+@"<symbols>
   <methods>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -189,19 +196,148 @@ class Test
         </using>
         <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
+          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""c"" />
+          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
         </dynamicLocals>
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""5"" startColumn=""2"" endLine=""5"" endColumn=""3"" />
-        <entry offset=""0x1"" startLine=""7"" startColumn=""2"" endLine=""7"" endColumn=""3"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""10"" />
+        <entry offset=""0x2"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
+        <entry offset=""0x3"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" />
+        <entry offset=""0x4"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
+        <entry offset=""0x5"" startLine=""14"" startColumn=""2"" endLine=""14"" endColumn=""3"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x2"">
-        <constant name=""d"" value=""null"" type=""Object"" />
+      <scope startOffset=""0x0"" endOffset=""0x6"">
+        <scope startOffset=""0x1"" endOffset=""0x3"">
+          <constant name=""d"" value=""null"" type=""Object"" />
+          <constant name=""c"" value=""null"" type=""String"" />
+        </scope>
+        <scope startOffset=""0x3"" endOffset=""0x5"">
+          <constant name=""c"" value=""null"" type=""Object"" />
+          <constant name=""d"" value=""null"" type=""Object"" />
+        </scope>
       </scope>
     </method>
   </methods>
-</symbols>
-");
+</symbols>");
+        }
+
+        [Fact]
+        public void EmitPDBDynamicDuplicateName()
+        {
+            string source = @"
+class Test
+{
+	public static void Main(string[] args)
+	{
+        {
+            dynamic a = null;
+            object b = null;
+        }
+        {
+            dynamic[] a = null;
+            dynamic b = null;
+        }
+	}
+}";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyPdb(
+@"<symbols>
+  <methods>
+    <method containingType=""Test"" name=""Main"" parameterNames=""args"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+        <dynamicLocals>
+          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""a"" />
+          <bucket flagCount=""2"" flags=""01"" slotId=""2"" localName=""a"" />
+          <bucket flagCount=""1"" flags=""1"" slotId=""3"" localName=""b"" />
+        </dynamicLocals>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""34"" />
+          <slot kind=""0"" offset=""64"" />
+          <slot kind=""0"" offset=""119"" />
+          <slot kind=""0"" offset=""150"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""2"" endLine=""5"" endColumn=""3"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""10"" />
+        <entry offset=""0x2"" startLine=""7"" startColumn=""13"" endLine=""7"" endColumn=""30"" />
+        <entry offset=""0x4"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""29"" />
+        <entry offset=""0x6"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
+        <entry offset=""0x7"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" />
+        <entry offset=""0x8"" startLine=""11"" startColumn=""13"" endLine=""11"" endColumn=""32"" />
+        <entry offset=""0xa"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""30"" />
+        <entry offset=""0xc"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
+        <entry offset=""0xd"" startLine=""14"" startColumn=""2"" endLine=""14"" endColumn=""3"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0xe"">
+        <scope startOffset=""0x1"" endOffset=""0x7"">
+          <local name=""a"" il_index=""0"" il_start=""0x1"" il_end=""0x7"" attributes=""0"" />
+          <local name=""b"" il_index=""1"" il_start=""0x1"" il_end=""0x7"" attributes=""0"" />
+        </scope>
+        <scope startOffset=""0x7"" endOffset=""0xd"">
+          <local name=""a"" il_index=""2"" il_start=""0x7"" il_end=""0xd"" attributes=""0"" />
+          <local name=""b"" il_index=""3"" il_start=""0x7"" il_end=""0xd"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact]
+        public void EmitPDBDynamicVariableNameTooLong()
+        {
+            string source = @"
+class Test
+{
+	public static void Main(string[] args)
+	{
+        const dynamic a123456789012345678901234567890123456789012345678901234567890123 = null; // 64 chars
+        const dynamic b12345678901234567890123456789012345678901234567890123456789012 = null; // 63 chars
+        dynamic c123456789012345678901234567890123456789012345678901234567890123 = null; // 64 chars
+        dynamic d12345678901234567890123456789012345678901234567890123456789012 = null; // 63 chars
+	}
+}";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyPdb(
+@"<symbols>
+  <methods>
+    <method containingType=""Test"" name=""Main"" parameterNames=""args"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+        <dynamicLocals>
+          <bucket flagCount=""0"" flags="""" slotId=""0"" localName="""" />
+          <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""d12345678901234567890123456789012345678901234567890123456789012"" />
+          <bucket flagCount=""0"" flags="""" slotId=""0"" localName="""" />
+          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""b12345678901234567890123456789012345678901234567890123456789012"" />
+        </dynamicLocals>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""234"" />
+          <slot kind=""0"" offset=""336"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""2"" endLine=""5"" endColumn=""3"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""89"" />
+        <entry offset=""0x3"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""88"" />
+        <entry offset=""0x5"" startLine=""10"" startColumn=""2"" endLine=""10"" endColumn=""3"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x6"">
+        <local name=""c123456789012345678901234567890123456789012345678901234567890123"" il_index=""0"" il_start=""0x0"" il_end=""0x6"" attributes=""0"" />
+        <local name=""d12345678901234567890123456789012345678901234567890123456789012"" il_index=""1"" il_start=""0x0"" il_end=""0x6"" attributes=""0"" />
+        <constant name=""a123456789012345678901234567890123456789012345678901234567890123"" value=""null"" type=""Object"" />
+        <constant name=""b12345678901234567890123456789012345678901234567890123456789012"" value=""null"" type=""Object"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
         }
 
         [Fact]
