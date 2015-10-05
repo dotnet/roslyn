@@ -1065,6 +1065,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return ((EventDeclarationSyntax)declaration).AttributeLists;
                 case SyntaxKind.Parameter:
                     return ((ParameterSyntax)declaration).AttributeLists;
+                case SyntaxKind.AddAccessorDeclaration:
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.RemoveAccessorDeclaration:
+                    return ((AccessorDeclarationSyntax)declaration).AttributeLists;
                 case SyntaxKind.CompilationUnit:
                     return ((CompilationUnitSyntax)declaration).AttributeLists;
                 default:
@@ -1108,6 +1113,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return ((EventDeclarationSyntax)declaration).WithAttributeLists(attributeLists);
                 case SyntaxKind.Parameter:
                     return ((ParameterSyntax)declaration).WithAttributeLists(attributeLists);
+                case SyntaxKind.AddAccessorDeclaration:
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.RemoveAccessorDeclaration:
+                    return ((AccessorDeclarationSyntax)declaration).WithAttributeLists(attributeLists);
                 case SyntaxKind.CompilationUnit:
                     return ((CompilationUnitSyntax)declaration).WithAttributeLists(AsAssemblyAttributes(attributeLists));
                 default:
