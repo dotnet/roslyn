@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Creates a new command line parser.
         ''' </summary>
-        ''' <param name="isInteractive">An optional parameter indicating indicating whether to create a interactive command line parser.</param>
+        ''' <param name="isInteractive">An optional parameter indicating whether to create a interactive command line parser.</param>
         Friend Sub New(Optional isInteractive As Boolean = False)
             MyBase.New(VisualBasic.MessageProvider.Instance, isInteractive)
         End Sub
@@ -935,7 +935,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Continue For
 
                         Case "m", "main"
-                            ' MSBuild can result in maintypename being passed in quoted when cyrillic namespace was being used resulting
+                            ' MSBuild can result in maintypename being passed in quoted when Cyrillic namespace was being used resulting
                             ' in ERRID.ERR_StartupCodeNotFound1 diagnostic.   The additional quotes cause problems and quotes are not a 
                             ' valid character in typename.
                             value = RemoveQuotesAndSlashes(value)
@@ -1552,7 +1552,7 @@ lVbRuntimePlus:
         End Function
 
         ''' <summary>
-        ''' Converts ImmutableDictionary of definitions used internallyinto IReadOnlyDictionary of definitions 
+        ''' Converts ImmutableDictionary of definitions used internally into IReadOnlyDictionary of definitions 
         ''' returned to a caller (of public API)
         ''' </summary>
         Private Shared Function InternalDefinesToPublicSymbols(defines As ImmutableDictionary(Of String, InternalSyntax.CConst)) As IReadOnlyDictionary(Of String, Object)

@@ -934,7 +934,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim useOfLocalBeforeDeclaration As Boolean = False
 
-            ' Use of local befor declaration requires some additional fixup.
+            ' Use of local before declaration requires some additional fixup.
             ' Due complications around implicit locals and type inference, we do not
             ' try to obtain a type of a local when it is used before declaration, we use
             ' a special error type symbol. However, semantic model should return the same
@@ -1202,7 +1202,7 @@ _Default:
 
                     Else
                         If referenceType = ErrorTypeSymbol.UnknownResultType Then
-                            ' in an instance member, but binder considered Me/MyBase/MyClass unreferencable
+                            ' in an instance member, but binder considered Me/MyBase/MyClass unreferenceable
                             meParam = New MeParameterSymbol(containingMember, containingType)
                             resultKind = LookupResultKind.NotReferencable
                         Else

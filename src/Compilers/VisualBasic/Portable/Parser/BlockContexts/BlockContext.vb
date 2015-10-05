@@ -245,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' Same as Body(), but use a SyntaxListWithManyChildren if the
-        ' body is large enough, so we get red node with with weak children.
+        ' body is large enough, so we get red node with weak children.
         Friend Function BodyWithWeakChildren() As SyntaxList(Of StatementSyntax)
             If IsLargeEnoughNonEmptyStatementList(_statements) Then
                 Dim result = New SyntaxList(Of StatementSyntax)(SyntaxList.List(CType(_statements, SyntaxListBuilder).ToArray))

@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        ' Instance types are always constructable if they have arity >= 1
+        ' Instance types are always constructible if they have arity >= 1
         Friend Overrides ReadOnly Property CanConstruct As Boolean
             Get
                 Return Arity > 0
