@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 {
     internal sealed class Commands : IInteractiveWindowCommands
     {
-        private const string _commandSeparator = ",";
+        private const string _commandSeparator = ", ";
 
         private readonly Dictionary<string, IInteractiveWindowCommand> _commands;
         private readonly int _maxCommandNameLength;
@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
                 {
                     if (commandsDict.ContainsKey(name))
                     {
-                        throw new InvalidOperationException(string.Format(InteractiveWindowResources.DuplicateCommand, string.Join(", ", command.Names)));
+                        throw new InvalidOperationException(string.Format(InteractiveWindowResources.DuplicateCommand, string.Join(_commandSeparator, command.Names)));
                     }
                     if (length != 0)
                     {
@@ -166,7 +166,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
         internal IEnumerable<string> Help()
         {
             string format = "{0,-" + _maxCommandNameLength + "}  {1}";
-            return _commands.OrderBy(entry => entry.Key).Select(cmd => string.Format(format, cmd.Key, cmd.Value.Description));
+            return _commands.GroupBy(entry => entry.Value).
+                Select(group => string.Format(format, string.Join(_commandSeparator, group.Key.Names), group.Key.Description)).
+                OrderBy(line => line);
         }
 
         public IEnumerable<ClassificationSpan> Classify(SnapshotSpan span)
@@ -227,7 +229,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             }
             catch (Exception e)
             {
-                _window.ErrorOutputWriter.WriteLine($"Command '{command.Names.First()}' failed: {e.Message}");
+                _window.ErrorOutputWriter.WriteLine(InteractiveWindowResources.CommandFailed, command.Names.First(), e.Message);
                 return ExecutionResult.Failure;
             }
         }
@@ -236,34 +238,34 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 
         private static readonly string[] s_shortcutDescriptions = new[]
         {
-"Enter                If the current submission appears to be complete, evaluate it.  Otherwise, insert a new line.",
-"Ctrl-Enter           Within the current submission, evaluate the current submission.",
-"                     Within a previous submission, append the previous submission to the current submission.",
-"Shift-Enter          Insert a new line.",
-"Escape               Clear the current submission.",
-"Alt-UpArrow          Replace the current submission with a previous submission.",
-"Alt-DownArrow        Replace the current submission with a subsequent submission (after having previously navigated backwards).",
-"Ctrl-Alt-UpArrow     Replace the current submission with a previous submission beginning with the same text.",
-"Ctrl-Alt-DownArrow   Replace the current submission with a subsequent submission beginning with the same text (after having previously navigated backwards).",
-"UpArrow              At the end of the current submission, replace the current submission with a previous submission.",
-"                     Elsewhere, move the cursor up one line.",
-"DownArrow            At the end of the current submission, replace the current submission with a subsequent submission (after having previously navigated backwards).",
-"                     Elsewhere, move the cursor down one line.",
-"Ctrl-K, Ctrl-Enter   Paste the selection at the end of interactive buffer, leave caret at the end of input.",
-"Ctrl-E, Ctrl-Enter   Paste and execute the selection before any pending input in the interactive buffer.",
-"Ctrl-A               First press, select the submission containing the cursor.  Second press, select all text in the window.",
+"Enter                " + InteractiveWindowResources.EnterHelp,
+"Ctrl-Enter           " + InteractiveWindowResources.CtrlEnterHelp1,
+"                     " + InteractiveWindowResources.CtrlEnterHelp1,
+"Shift-Enter          " + InteractiveWindowResources.ShiftEnterHelp,
+"Escape               " + InteractiveWindowResources.EscapeHelp,
+"Alt-UpArrow          " + InteractiveWindowResources.AltUpArrowHelp,
+"Alt-DownArrow        " + InteractiveWindowResources.AltDownArrowHelp,
+"Ctrl-Alt-UpArrow     " + InteractiveWindowResources.CtrlAltUpArrowHelp,
+"Ctrl-Alt-DownArrow   " + InteractiveWindowResources.CtrlAltDownArrowHelp,
+"UpArrow              " + InteractiveWindowResources.UpArrowHelp1,
+"                     " + InteractiveWindowResources.UpArrowHelp2,
+"DownArrow            " + InteractiveWindowResources.DownArrowHelp1,
+"                     " + InteractiveWindowResources.DownArrowHelp2,
+"Ctrl-K, Ctrl-Enter   " + InteractiveWindowResources.CtrlKCtrlEnterHelp,
+"Ctrl-E, Ctrl-Enter   " + InteractiveWindowResources.CtrlECtrlEnterHelp,
+"Ctrl-A               " + InteractiveWindowResources.CtrlAHelp,
         };
 
         public void DisplayHelp()
         {
-            _window.WriteLine("Keyboard shortcuts:");
+            _window.WriteLine(InteractiveWindowResources.KeyboardShortcuts);
             foreach (var line in s_shortcutDescriptions)
             {
                 _window.Write(HelpIndent);
                 _window.WriteLine(line);
             }
 
-            _window.WriteLine("REPL commands:");
+            _window.WriteLine(InteractiveWindowResources.ReplCommands);
             foreach (var line in Help())
             {
                 _window.Write(HelpIndent);
@@ -279,10 +281,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
                 writer.WriteLine(string.Empty);
             }
 
-            writer.WriteLine("Usage:");
+            writer.WriteLine(InteractiveWindowResources.Usage);
             writer.Write(HelpIndent);
             writer.Write(CommandPrefix);
-            writer.Write(string.Join(_commandSeparator, command.Names));
+            writer.Write(string.Join(_commandSeparator + CommandPrefix, command.Names));
 
             string commandLine = command.CommandLine;
             if (commandLine != null)
@@ -299,7 +301,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
                 if (paramsDesc != null && paramsDesc.Any())
                 {
                     writer.WriteLine(string.Empty);
-                    writer.WriteLine("Parameters:");
+                    writer.WriteLine(InteractiveWindowResources.Parameters);
 
                     int maxParamNameLength = paramsDesc.Max(entry => entry.Key.Length);
                     string paramHelpLineFormat = HelpIndent + "{0,-" + maxParamNameLength + "}  {1}";

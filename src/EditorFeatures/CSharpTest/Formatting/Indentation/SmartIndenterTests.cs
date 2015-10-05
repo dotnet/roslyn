@@ -2551,6 +2551,25 @@ class C
                 expectedIndentation: 16);
         }
 
+        [WorkItem(5635, "https://github.com/dotnet/roslyn/issues/5635")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void ConstructorInitializerMissingBaseOrThisKeyword()
+        {
+            var code = @"
+class C
+{
+     C(string s)
+         :
+
+}
+";
+
+            AssertSmartIndent(
+                code,
+                indentationLine: 5,
+                expectedIndentation: 8);
+        }
+
         private static void AssertSmartIndentInProjection(string markup, int expectedIndentation, CSharpParseOptions options = null)
         {
             var optionsSet = options != null

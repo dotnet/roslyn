@@ -39,8 +39,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
 
         Private Sub VerifySyntaxRaw(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)
             Assert.IsAssignableFrom(GetType(TSyntax), type)
-            Dim normalized = type.ToFullString()
-            Assert.Equal(expectedText, normalized)
+            Dim text = type.ToFullString()
+            Assert.Equal(expectedText, text)
         End Sub
 
         Private Function ParseCompilationUnit(text As String) As CompilationUnitSyntax
@@ -2782,6 +2782,77 @@ End Structure</x>.Value)
     Inherits T
 
 End Interface</x>.Value)
+
+        End Sub
+
+        <Fact>
+        <WorkItem(5097, "https://github.com/dotnet/roslyn/issues/5097")>
+        Public Sub TestAddInterfaceWithEOLs()
+            Dim classC = SyntaxFactory.ParseCompilationUnit("
+Public Class C
+End Class").Members(0)
+
+            VerifySyntaxRaw(Of ClassBlockSyntax)(
+                _g.AddInterfaceType(classC, _g.IdentifierName("X")), "
+Public Class C
+ImplementsXEnd Class")
+
+            Dim interfaceI = SyntaxFactory.ParseCompilationUnit("
+Public Interface I
+End Interface").Members(0)
+
+            VerifySyntaxRaw(Of InterfaceBlockSyntax)(
+                _g.AddInterfaceType(interfaceI, _g.IdentifierName("X")), "
+Public Interface I
+InheritsXEnd Interface")
+
+            Dim classCX = SyntaxFactory.ParseCompilationUnit("
+Public Class C
+    Implements X
+End Class").Members(0)
+
+            VerifySyntaxRaw(Of ClassBlockSyntax)(
+                _g.AddInterfaceType(classCX, _g.IdentifierName("Y")), "
+Public Class C
+    Implements X,Y
+End Class")
+
+            Dim interfaceIX = SyntaxFactory.ParseCompilationUnit("
+Public Interface I
+    Inherits X
+End Interface").Members(0)
+
+            VerifySyntaxRaw(Of InterfaceBlockSyntax)(
+                _g.AddInterfaceType(interfaceIX, _g.IdentifierName("Y")), "
+Public Interface I
+    Inherits X,Y
+End Interface")
+
+            Dim classCXY = SyntaxFactory.ParseCompilationUnit("
+Public Class C
+    Implements X
+    Implements Y
+End Class").Members(0)
+
+            VerifySyntaxRaw(Of ClassBlockSyntax)(
+                _g.AddInterfaceType(classCXY, _g.IdentifierName("Z")), "
+Public Class C
+    Implements X
+    Implements Y
+ImplementsZEnd Class")
+
+            Dim interfaceIXY = SyntaxFactory.ParseCompilationUnit("
+Public Interface I
+    Inherits X
+    Inherits Y
+End Interface").Members(0)
+
+            VerifySyntaxRaw(Of InterfaceBlockSyntax)(
+                _g.AddInterfaceType(interfaceIXY, _g.IdentifierName("Z")), "
+Public Interface I
+    Inherits X
+    Inherits Y
+InheritsZEnd Interface")
 
         End Sub
 

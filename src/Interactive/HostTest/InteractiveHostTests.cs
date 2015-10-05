@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
             RedirectOutput();
 
-            Host.ResetAsync(InteractiveHostOptions.Default).Wait();
+            Host.ResetAsync(new InteractiveHostOptions(initializationFile: null, culture: CultureInfo.InvariantCulture)).Wait();
 
             var remoteService = Host.TryGetService();
             Assert.NotNull(remoteService);
@@ -127,7 +128,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         {
             ClearOutput();
 
-            var initTask = Host.ResetAsync(InteractiveHostOptions.Default.WithInitializationFile(rspFile));
+            var initTask = Host.ResetAsync(new InteractiveHostOptions(initializationFile: rspFile, culture: CultureInfo.InvariantCulture));
             initTask.Wait();
         }
 
@@ -524,7 +525,8 @@ WriteLine(5);
             Assert.True(Execute("System.Diagnostics.Process.GetCurrentProcess().HasExited"));
         }
 
-        [Fact(Skip = "530414")]
+        // Caused by submission not inheriting references.
+        [Fact(Skip = "101161")]
         public void AddReference_ShadowCopy()
         {
             var dir = Temp.CreateDirectory();
@@ -649,7 +651,7 @@ WriteLine(5);
             Assert.Equal("1", ReadOutputToEnd().Trim());
         }
 
-        [Fact(Skip = "530414")]
+        [Fact(Skip = "101161")]
         public void AddReference_LoadUpdatedReference()
         {
             var dir = Temp.CreateDirectory();
@@ -659,10 +661,9 @@ WriteLine(5);
             var file = dir.CreateFile("c.dll").WriteAllBytes(c1.EmitToArray());
 
             // use:
-            Execute(@"
-#r """ + file.Path + @"""
-C foo() { return new C(); }
-
+            Execute($@"
+#r ""{file.Path}""
+C foo() => new C();
 new C().X
 ");
 
@@ -672,18 +673,21 @@ new C().X
             file.WriteAllBytes(c2.EmitToArray());
 
             // add the reference again:
-            Execute(@"
-#r """ + file.Path + @"""
+            Execute($@"
+#r ""{file.Path}""
 
 new D().Y
 ");
+            // TODO: We should report an error that assembly named 'a' was already loaded with different content.
+            // In future we can let it load and improve error reporting around type conversions.
+
             Assert.Equal("", ReadErrorOutputToEnd().Trim());
             Assert.Equal(
 @"1
 2", ReadOutputToEnd().Trim());
         }
 
-        [Fact(Skip = "987032")]
+        [Fact(Skip = "129388")]
         public void AddReference_MultipleReferencesWithSameWeakIdentity()
         {
             var dir = Temp.CreateDirectory();
@@ -699,18 +703,51 @@ new D().Y
             var c2 = CreateCompilationWithMscorlib(source2, assemblyName: "C");
             var file2 = dir2.CreateFile("c.dll").WriteAllBytes(c2.EmitToArray());
 
-            Execute(@"
-#r """ + file1.Path + @"""
-#r """ + file2.Path + @"""
+            Execute($@"
+#r ""{file1.Path}""
+#r ""{file2.Path}""
 ");
             Execute("new C1()");
             Execute("new C2()");
+
+            // TODO: We should report an error that assembly named 'c' was already loaded with different content.
+            // In future we can let it load and let the compiler report the error CS1704: "An assembly with the same simple name 'C' has already been imported".
 
             Assert.Equal(
 @"(2,1): error CS1704: An assembly with the same simple name 'C' has already been imported. Try removing one of the references (e.g. '" + file1.Path + @"') or sign them to enable side-by-side.
 (1,5): error CS0246: The type or namespace name 'C1' could not be found (are you missing a using directive or an assembly reference?)
 (1,5): error CS0246: The type or namespace name 'C2' could not be found (are you missing a using directive or an assembly reference?)", ReadErrorOutputToEnd().Trim());
 
+            Assert.Equal("", ReadOutputToEnd().Trim());
+        }
+
+        [Fact(Skip = "129388")]
+        public void AddReference_MultipleReferencesWeakVersioning()
+        {
+            var dir = Temp.CreateDirectory();
+
+            var dir1 = dir.CreateDirectory("1");
+            var dir2 = dir.CreateDirectory("2");
+
+            var source1 = @"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C1 { }";
+            var c1 = CreateCompilationWithMscorlib(source1, assemblyName: "C");
+            var file1 = dir1.CreateFile("c.dll").WriteAllBytes(c1.EmitToArray());
+
+            var source2 = @"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C2 { }";
+            var c2 = CreateCompilationWithMscorlib(source2, assemblyName: "C");
+            var file2 = dir2.CreateFile("c.dll").WriteAllBytes(c2.EmitToArray());
+
+            Execute($@"
+#r ""{file1.Path}""
+#r ""{file2.Path}""
+");
+            Execute("new C1()");
+            Execute("new C2()");
+
+            // TODO: We should report an error that assembly named 'c' was already loaded with different content.
+            // In future we can let it load and improve error reporting around type conversions.
+
+            Assert.Equal("TODO: error", ReadErrorOutputToEnd().Trim());
             Assert.Equal("", ReadOutputToEnd().Trim());
         }
 
@@ -804,7 +841,7 @@ new D().Y
             CompileLibrary(directory, assemblyName + ".dll", assemblyName, @"public class C { }");
             var rspFile = Temp.CreateFile();
             rspFile.WriteAllText("/rp:" + directory.Path);
-            var task = Host.ResetAsync(InteractiveHostOptions.Default.WithInitializationFile(rspFile.Path));
+            var task = Host.ResetAsync(new InteractiveHostOptions(initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture));
             task.Wait();
             Execute(
 $@"#r ""{assemblyName}.dll""
