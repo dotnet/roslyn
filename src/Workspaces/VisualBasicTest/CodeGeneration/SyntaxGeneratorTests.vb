@@ -1864,11 +1864,27 @@ Delegate Sub d()</x>.Value)
         <WorkItem(5066, "https://github.com/dotnet/roslyn/issues/5066")>
         Public Sub TestAddAttributesOnAccessors()
             Dim prop = _g.PropertyDeclaration("P", _g.IdentifierName("T"))
-            Dim evnt = _g.CustomEventDeclaration("E", _g.IdentifierName("T"))
+
+            Dim evnt = DirectCast(SyntaxFactory.ParseCompilationUnit("
+Class C
+  Custom Event MyEvent As MyDelegate
+      AddHandler(ByVal value As MyDelegate)
+      End AddHandler
+ 
+      RemoveHandler(ByVal value As MyDelegate)
+      End RemoveHandler
+ 
+      RaiseEvent(ByVal message As String)
+      End RaiseEvent
+  End Event
+End Class
+").Members(0), ClassBlockSyntax).Members(0)
+
             CheckAddRemoveAttribute(_g.GetAccessor(prop, DeclarationKind.GetAccessor))
             CheckAddRemoveAttribute(_g.GetAccessor(prop, DeclarationKind.SetAccessor))
             CheckAddRemoveAttribute(_g.GetAccessor(evnt, DeclarationKind.AddAccessor))
             CheckAddRemoveAttribute(_g.GetAccessor(evnt, DeclarationKind.RemoveAccessor))
+            CheckAddRemoveAttribute(_g.GetAccessor(evnt, DeclarationKind.RaiseAccessor))
         End Sub
 
         Private Sub CheckAddRemoveAttribute(declaration As SyntaxNode)
