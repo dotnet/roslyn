@@ -2,7 +2,6 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.ProjectSystem.Designers.Imaging;
 using Microsoft.VisualStudio.ProjectSystem.Utilities.Designers;
 

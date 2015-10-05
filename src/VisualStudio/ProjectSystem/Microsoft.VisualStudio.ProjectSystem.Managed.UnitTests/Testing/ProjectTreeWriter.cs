@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.VisualStudio.ProjectSystem.Designers;
@@ -12,7 +11,7 @@ namespace Microsoft.VisualStudio.Testing
     {
         private readonly StringBuilder _builder  = new StringBuilder();
         private readonly ProjectTreeWriterOptions _options;
-        private readonly IProjectTree _parent;        
+        private readonly IProjectTree _parent;
 
         public ProjectTreeWriter(IProjectTree tree, ProjectTreeWriterOptions options)
         {
