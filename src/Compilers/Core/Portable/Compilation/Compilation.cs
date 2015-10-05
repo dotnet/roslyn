@@ -33,6 +33,11 @@ namespace Microsoft.CodeAnalysis
     public abstract partial class Compilation
     {
         /// <summary>
+        /// For use only in <see cref="Microsoft.CodeAnalysis.Collections.CompilationStuff"/>.
+        /// </summary>
+        internal ConcurrentDictionary<object, object> _compilationStuff = new ConcurrentDictionary<object, object>();
+
+        /// <summary>
         /// Returns true if this is a case sensitive compilation, false otherwise.  Case sensitivity
         /// affects compilation features such as name lookup as well as choosing what names to emit
         /// when there are multiple different choices (for example between a virtual method and an
