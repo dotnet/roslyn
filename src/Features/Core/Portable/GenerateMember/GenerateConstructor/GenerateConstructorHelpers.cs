@@ -57,20 +57,22 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 return false;
             }
 
-            if (parameterTypes.Count <= method.Parameters.Length)
+            if (parameterTypes.Count < method.Parameters.Length)
             {
-                var compilation = document.SemanticModel.Compilation;
-                var semanticFactsService = document.Document.GetLanguageService<ISemanticFactsService>();
+                return false;
+            }
 
-                for (var i = 0; i < parameterTypes.Count; i++)
+            var compilation = document.SemanticModel.Compilation;
+            var semanticFactsService = document.Document.GetLanguageService<ISemanticFactsService>();
+
+            for (var i = 0; i < parameterTypes.Count; i++)
+            {
+                var type1 = parameterTypes[i];
+                var type2 = method.Parameters[i].Type;
+
+                if (!semanticFactsService.IsAssignableTo(type1, type2, compilation))
                 {
-                    var type1 = parameterTypes[i];
-                    var type2 = method.Parameters[i].Type;
-
-                    if (!semanticFactsService.IsAssignableTo(type1, type2, compilation))
-                    {
-                        return false;
-                    }
+                    return false;
                 }
             }
 
