@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-extern alias WORKSPACES;
+extern alias Scripting;
 
 using System;
 using System.Collections.Generic;
@@ -24,11 +23,10 @@ using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Utilities;
 
-using RuntimeMetadataReferenceResolver = WORKSPACES::Microsoft.CodeAnalysis.Scripting.Hosting.RuntimeMetadataReferenceResolver;
-using GacFileResolver = WORKSPACES::Microsoft.CodeAnalysis.Scripting.Hosting.GacFileResolver;
-
 namespace Microsoft.CodeAnalysis.Interactive
 {
+    using RelativePathResolver = Scripting::Microsoft.CodeAnalysis.RelativePathResolver;
+
     internal partial class InteractiveHost
     {
         /// <summary>
@@ -40,8 +38,8 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             private static TaskScheduler s_UIThreadScheduler;
 
-            private readonly InteractiveAssemblyLoader _assemblyLoader;
-            private readonly MetadataShadowCopyProvider _metadataFileProvider;
+            private InteractiveAssemblyLoader _assemblyLoader;
+            private MetadataShadowCopyProvider _metadataFileProvider;
             private ReplServiceProvider _replServiceProvider;
 
             private readonly InteractiveHostObject _hostObject;
@@ -107,13 +105,6 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             public Service()
             {
-                // TODO (tomat): we should share the copied files with the host
-                _metadataFileProvider = new MetadataShadowCopyProvider(
-                    Path.Combine(Path.GetTempPath(), "InteractiveHostShadow"),
-                    noShadowCopyDirectories: s_systemNoShadowCopyDirectories);
-
-                _assemblyLoader = new InteractiveAssemblyLoader(_metadataFileProvider);
-
                 _formattingOptions = new ObjectFormattingOptions(
                     memberFormat: MemberDisplayFormat.Inline,
                     quoteStrings: true,
@@ -157,24 +148,33 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return null;
             }
 
-            public void Initialize(Type replServiceProviderType)
+            public void Initialize(Type replServiceProviderType, string cultureName)
             {
-                Contract.ThrowIfNull(replServiceProviderType);
+                Debug.Assert(replServiceProviderType != null);
+                Debug.Assert(cultureName != null);
+
+                Debug.Assert(_metadataFileProvider == null);
+                Debug.Assert(_assemblyLoader == null);
+                Debug.Assert(_replServiceProvider == null);
+
+                // TODO (tomat): we should share the copied files with the host
+                _metadataFileProvider = new MetadataShadowCopyProvider(
+                    Path.Combine(Path.GetTempPath(), "InteractiveHostShadow"),
+                    noShadowCopyDirectories: s_systemNoShadowCopyDirectories,
+                    documentationCommentsCulture: new CultureInfo(cultureName));
+
+                _assemblyLoader = new InteractiveAssemblyLoader(_metadataFileProvider);
+
                 _replServiceProvider = (ReplServiceProvider)Activator.CreateInstance(replServiceProviderType);
             }
 
             private MetadataReferenceResolver CreateMetadataReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)
             {
-                var userProfilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                var packagesDirectory = string.IsNullOrEmpty(userProfilePath) ?
-                    null :
-                    Path.Combine(userProfilePath, Path.Combine(".nuget", "packages"));
-
                 return new RuntimeMetadataReferenceResolver(
                     new RelativePathResolver(searchPaths, baseDirectory),
-                    string.IsNullOrEmpty(packagesDirectory) ? null : new NuGetPackageResolverImpl(packagesDirectory),
+                    null,
                     GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
-                    (path, properties) => _metadataFileProvider.GetReference(path, properties));
+                    (path, properties) => new ShadowCopyReference(_metadataFileProvider, path, properties));
             }
 
             private SourceReferenceResolver CreateSourceReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)

@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                             var attributesToRemove = await GetAttributeNodesToFixAsync(attributeRemoveFixesForTree, cancellationToken).ConfigureAwait(false);
                             var document = oldSolution.GetDocument(tree);
                             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                            var newRoot = root.RemoveNodes(attributesToRemove, SyntaxRemoveOptions.KeepLeadingTrivia);
+                            var newRoot = root.RemoveNodes(attributesToRemove, SyntaxRemoveOptions.KeepLeadingTrivia | SyntaxRemoveOptions.AddElasticMarker);
                             currentSolution = currentSolution.WithDocumentSyntaxRoot(document.Id, newRoot);
                         }
 

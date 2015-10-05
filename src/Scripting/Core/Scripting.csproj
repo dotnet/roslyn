@@ -41,6 +41,13 @@
     <DefineConstants>$(DefineConstants);SCRIPTING</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <!-- Workaround for https://github.com/NuGet/Home/issues/1471 -->
+    <Reference Include="$(NuGetPackageRoot)\System.Runtime.Loader\4.0.0-beta-23321\ref\dotnet\System.Runtime.Loader.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs">
+      <Link>Resolvers\RelativePathResolver.cs</Link>
+    </Compile>
     <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
       <Link>Resolvers\FusionAssemblyIdentity.cs</Link>
     </Compile>
@@ -50,7 +57,14 @@
     <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GlobalAssemblyCache.cs">
       <Link>Resolvers\GlobalAssemblyCache.cs</Link>
     </Compile>
+    <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
+      <Link>Resolvers\GlobalAssemblyCache.Location.cs</Link>
+    </Compile>
+    <Compile Include="AssemblyLoader\AssemblyAndLocation.cs" />
     <Compile Include="AssemblyLoader\AssemblyLoadResult.cs" />
+    <Compile Include="AssemblyLoader\CoreAssemblyLoaderImpl.cs" />
+    <Compile Include="AssemblyLoader\DesktopAssemblyLoaderImpl.cs" />
+    <Compile Include="AssemblyLoader\AssemblyLoaderImpl.cs" />
     <Compile Include="CommandLine\CommandLineHostObject.cs" />
     <Compile Include="CommandLine\CommandLineRunner.cs" />
     <Compile Include="CommandLine\ConsoleIO.cs" />
@@ -70,7 +84,6 @@
     <Compile Include="ScriptRunner.cs" />
     <Compile Include="ObjectFormatter.cs" />
     <Compile Include="ObjectFormatter.Formatter.cs" />
-    <Compile Include="XmlFileResolverForAssemblies.cs" />
     <Compile Include="Script.cs" />
     <Compile Include="ScriptBuilder.cs" />
     <Compile Include="CompilationErrorException.cs" />
@@ -87,7 +100,14 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.CSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.VisualBasic" />
     <InternalsVisibleTo Include="csi" />
-    <InternalsVisibleTo Include="vbi" />
+    <InternalsVisibleTo Include="vbi" />    
+    <!-- TODO: remove, see https://github.com/dotnet/roslyn/issues/5661 -->
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
+    <!-- /TODO -->
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests" />
@@ -95,6 +115,7 @@
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
+    <InternalsVisibleToTest Include="RoslynETAHost" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ScriptingResources.resx">

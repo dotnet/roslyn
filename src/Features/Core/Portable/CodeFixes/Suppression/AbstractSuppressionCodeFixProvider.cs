@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     if (diagnostic.Location.IsInSource && documentOpt != null)
                     {
                         // pragma warning disable.
-                        nestedActions.Add(new PragmaWarningCodeAction(suppressionTargetInfo, documentOpt, diagnostic, this));
+                        nestedActions.Add(PragmaWarningCodeAction.Create(suppressionTargetInfo, documentOpt, diagnostic, this));
                     }
 
                     // SuppressMessageAttribute suppression is not supported for compiler diagnostics.
