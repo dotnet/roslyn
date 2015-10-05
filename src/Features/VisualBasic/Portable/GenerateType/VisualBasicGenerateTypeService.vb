@@ -716,7 +716,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Return True
         End Function
 
-        Friend Overrides Function GetDelegatingConstructor(objectCreation As ObjectCreationExpressionSyntax, namedType As INamedTypeSymbol, model As SemanticModel, candidates As ISet(Of IMethodSymbol), cancellationToken As CancellationToken) As IMethodSymbol
+        Friend Overrides Function GetDelegatingConstructor(document As SemanticDocument,
+                                                           objectCreation As ObjectCreationExpressionSyntax,
+                                                           namedType As INamedTypeSymbol,
+                                                           candidates As ISet(Of IMethodSymbol),
+                                                           parameterTypes As IList(Of ITypeSymbol),
+                                                           cancellationToken As CancellationToken) As IMethodSymbol
+            Dim model = document.SemanticModel
             Dim oldNode = objectCreation _
                 .AncestorsAndSelf(ascendOutOfTrivia:=False) _
                 .Where(Function(node) SpeculationAnalyzer.CanSpeculateOnNode(node)) _
@@ -731,7 +737,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             If speculativeModel IsNot Nothing Then
                 newObjectCreation = DirectCast(newNode.GetAnnotatedNodes(s_annotation).Single(), ObjectCreationExpressionSyntax)
                 Dim symbolInfo = speculativeModel.GetSymbolInfo(newObjectCreation, cancellationToken)
-                Return GenerateConstructorHelpers.GetDelegatingConstructor(symbolInfo, candidates, namedType)
+                Return GenerateConstructorHelpers.GetDelegatingConstructor(
+                    document, symbolInfo, candidates, namedType, parameterTypes)
             End If
 
             Return Nothing

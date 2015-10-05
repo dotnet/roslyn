@@ -917,8 +917,16 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             return true;
         }
 
-        internal override IMethodSymbol GetDelegatingConstructor(ObjectCreationExpressionSyntax objectCreation, INamedTypeSymbol namedType, SemanticModel model, ISet<IMethodSymbol> candidates, CancellationToken cancellationToken)
+        internal override IMethodSymbol GetDelegatingConstructor(
+            SemanticDocument document,
+            ObjectCreationExpressionSyntax objectCreation,
+            INamedTypeSymbol namedType,
+            ISet<IMethodSymbol> candidates,
+            IList<ITypeSymbol> parameterTypes,
+            CancellationToken cancellationToken)
         {
+            var model = document.SemanticModel;
+
             var oldNode = objectCreation
                     .AncestorsAndSelf(ascendOutOfTrivia: false)
                     .Where(node => SpeculationAnalyzer.CanSpeculateOnNode(node))
@@ -934,7 +942,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             {
                 newObjectCreation = (ObjectCreationExpressionSyntax)newNode.GetAnnotatedNodes(s_annotation).Single();
                 var symbolInfo = speculativeModel.GetSymbolInfo(newObjectCreation, cancellationToken);
-                return GenerateConstructorHelpers.GetDelegatingConstructor(symbolInfo, candidates, namedType);
+                return GenerateConstructorHelpers.GetDelegatingConstructor(
+                    document, symbolInfo, candidates, namedType, parameterTypes);
             }
 
             return null;
