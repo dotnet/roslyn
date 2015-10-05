@@ -4,7 +4,7 @@ using System;
 using System.Text.RegularExpressions;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Scripting.UnitTests
+namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
 {
     public abstract class ObjectFormatterTestBase
     {

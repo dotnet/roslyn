@@ -1,21 +1,17 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Scripting.UnitTests;
+using Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests;
 using ObjectFormatterFixtures;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.Scripting.Hosting.CSharp.UnitTests
 {
     public class ObjectFormatterTests : ObjectFormatterTestBase
     {

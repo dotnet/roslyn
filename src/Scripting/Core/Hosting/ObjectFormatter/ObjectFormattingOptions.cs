@@ -2,29 +2,29 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Scripting
+namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
-    internal sealed class ObjectFormattingOptions
+    public sealed class ObjectFormattingOptions
     {
-        public static readonly ObjectFormattingOptions Default = new ObjectFormattingOptions();
+        public static ObjectFormattingOptions Default { get; } = new ObjectFormattingOptions();
 
-        public bool QuoteStrings { get; }
-        public MemberDisplayFormat MemberFormat { get; }
-        public int MaxLineLength { get; }
-        public int MaxOutputLength { get; }
-        public bool UseHexadecimalNumbers { get; }
-        public string MemberIndentation { get; }
-        public string Ellipsis { get; }
-        public string NewLine { get; }
-        public bool IncludeCodePoints { get; }
+        internal bool QuoteStrings { get; }
+        internal MemberDisplayFormat MemberFormat { get; }
+        internal int MaxLineLength { get; }
+        internal int MaxOutputLength { get; }
+        internal bool UseHexadecimalNumbers { get; }
+        internal string MemberIndentation { get; }
+        internal string Ellipsis { get; }
+        internal string NewLine { get; }
+        internal bool IncludeCodePoints { get; }
 
-        public ObjectFormattingOptions(
-            MemberDisplayFormat memberFormat = MemberDisplayFormat.NoMembers,
+        internal ObjectFormattingOptions(
+            MemberDisplayFormat memberFormat = MemberDisplayFormat.Inline,
             bool quoteStrings = true,
             bool useHexadecimalNumbers = false,
             bool includeCodePoints = false,
-            int maxLineLength = Int32.MaxValue,
-            int maxOutputLength = Int32.MaxValue,
+            int maxLineLength = int.MaxValue,
+            int maxOutputLength = 1024,
             string memberIndentation = null,
             string ellipsis = null,
             string lineBreak = null)
@@ -37,15 +37,15 @@ namespace Microsoft.CodeAnalysis.Scripting
             this.MemberFormat = memberFormat;
             this.QuoteStrings = quoteStrings;
             this.IncludeCodePoints = includeCodePoints;
-            this.MaxOutputLength = (maxOutputLength >= 0) ? maxOutputLength : int.MaxValue;
-            this.MaxLineLength = (maxLineLength >= 0) ? maxLineLength : int.MaxValue;
+            this.MaxOutputLength = maxOutputLength;
+            this.MaxLineLength = maxLineLength;
             this.UseHexadecimalNumbers = useHexadecimalNumbers;
             this.MemberIndentation = memberIndentation ?? "  ";
             this.Ellipsis = ellipsis ?? "...";
             this.NewLine = lineBreak ?? Environment.NewLine;
         }
 
-        public ObjectFormattingOptions Copy(
+        internal ObjectFormattingOptions Copy(
             MemberDisplayFormat? memberFormat = null,
             bool? quoteStrings = null,
             bool? useHexadecimalNumbers = null,

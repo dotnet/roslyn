@@ -1,14 +1,22 @@
 Microsoft.CodeAnalysis.Scripting.CompilationErrorException
 Microsoft.CodeAnalysis.Scripting.CompilationErrorException.Diagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
-Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineHostObject
-Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineHostObject.Args -> string[]
-Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineHostObject.ExitCode -> int
-Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineHostObject.Print(object value) -> void
+Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals
+Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.Args.get -> System.Collections.Generic.IList<string>
+Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.CommandLineScriptGlobals(System.IO.TextWriter outputWriter, Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter objectFormatter) -> void
+Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.ExitCode.get -> int
+Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.ExitCode.set -> void
+Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.Print(object value) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader.Dispose() -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader.InteractiveAssemblyLoader(Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider shadowCopyProvider = null) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader.RegisterDependency(Microsoft.CodeAnalysis.AssemblyIdentity dependency, string path) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader.RegisterDependency(System.Reflection.Assembly dependency) -> void
+Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveScriptGlobals
+Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveScriptGlobals.Args.get -> System.Collections.Generic.IList<string>
+Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveScriptGlobals.InteractiveScriptGlobals(System.IO.TextWriter outputWriter, Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter objectFormatter) -> void
+Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveScriptGlobals.Print(object value) -> void
+Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveScriptGlobals.ReferencePaths.get -> System.Collections.Generic.IList<string>
+Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveScriptGlobals.SourcePaths.get -> System.Collections.Generic.IList<string>
 Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopy
 Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopy.DocumentationFile.get -> Microsoft.CodeAnalysis.Scripting.Hosting.ShadowCopy
 Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopy.Metadata.get -> Microsoft.CodeAnalysis.Metadata
@@ -21,6 +29,9 @@ Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.IsShadowCopy
 Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.MetadataShadowCopyProvider(string directory = null, System.Collections.Generic.IEnumerable<string> noShadowCopyDirectories = null, System.Globalization.CultureInfo documentationCommentsCulture = null) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.NeedsShadowCopy(string fullPath) -> bool
 Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.SuppressShadowCopy(string originalPath) -> void
+Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter
+Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter.FormatObject(object obj, Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormattingOptions options = null) -> string
+Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormattingOptions
 Microsoft.CodeAnalysis.Scripting.Hosting.ShadowCopy
 Microsoft.CodeAnalysis.Scripting.Hosting.ShadowCopy.FullPath.get -> string
 Microsoft.CodeAnalysis.Scripting.Hosting.ShadowCopy.OriginalPath.get -> string
@@ -99,5 +110,5 @@ Microsoft.CodeAnalysis.Scripting.ScriptVariable.Value.get -> object
 Microsoft.CodeAnalysis.Scripting.ScriptVariable.Value.set -> void
 abstract Microsoft.CodeAnalysis.Scripting.Script.ReturnType.get -> System.Type
 override Microsoft.CodeAnalysis.Scripting.Script<T>.ReturnType.get -> System.Type
-readonly Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineHostObject.CancellationToken -> System.Threading.CancellationToken
+static Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormattingOptions.Default.get -> Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormattingOptions
 static readonly Microsoft.CodeAnalysis.Scripting.ScriptOptions.Default -> Microsoft.CodeAnalysis.Scripting.ScriptOptions

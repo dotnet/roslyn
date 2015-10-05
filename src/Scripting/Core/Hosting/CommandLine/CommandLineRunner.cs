@@ -104,21 +104,18 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
 
             var cancellationToken = new CancellationToken();
-            var hostObject = new CommandLineHostObject(_console.Out, _objectFormatter, cancellationToken);
-            hostObject.Args = _compiler.Arguments.ScriptArguments.ToArray();
-
+            
             var scriptOptions = GetScriptOptions(_compiler.Arguments);
 
             if (sourceFiles.IsEmpty)
             {
-                RunInteractiveLoop(scriptOptions, hostObject);
+                RunInteractiveLoop(scriptOptions, cancellationToken);
+                return CommonCompiler.Succeeded;
             }
             else
             {
-                RunScript(scriptOptions, code.ToString(), sourceFiles[0].Path, hostObject, errorLogger);
+                return RunScript(scriptOptions, code.ToString(), sourceFiles[0].Path, errorLogger, cancellationToken);
             }
-
-            return hostObject.ExitCode;
         }
 
         private static ScriptOptions GetScriptOptions(CommandLineArguments arguments)
@@ -126,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             // TODO: reference paths, usings from arguments (https://github.com/dotnet/roslyn/issues/5277)
             // TODO: auto -add facades
             return ScriptOptions.Default.
-                AddReferences("System", "System.Core", "System.Runtime", "System.IO.FileSystem", "System.IO.FileSystem.Primitives").
+                AddReferences("System", "System.Core", "System.Runtime", "System.IO.FileSystem", "System.IO.FileSystem.Primitives", "System.Collections").
                 AddNamespaces("System", "System.IO", "System.Threading.Tasks", "System.Linq");
         }
 
@@ -143,25 +140,31 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 });
         }
 
-        private void RunScript(ScriptOptions options, string code, string scriptPath, CommandLineHostObject globals, ErrorLogger errorLogger)
+        private int RunScript(ScriptOptions options, string code, string scriptPath, ErrorLogger errorLogger, CancellationToken cancellationToken)
         {
+            var globals = new CommandLineScriptGlobals(_console.Out, _objectFormatter);
+            globals.Args.AddRange(_compiler.Arguments.ScriptArguments);
+
             options = options.WithPath(scriptPath).WithIsInteractive(false);
             var script = Script.CreateInitialScript<object>(_scriptCompiler, code, options, globals.GetType(), assemblyLoaderOpt: null);
             try
             {
-                script.RunAsync(globals, globals.CancellationToken).Wait();
+                script.RunAsync(globals, cancellationToken).Wait();
+                return globals.ExitCode;
             }
             catch (CompilationErrorException e)
             {
                 _compiler.ReportErrors(e.Diagnostics, _console.Out, errorLogger);
-                globals.ExitCode = CommonCompiler.Failed;
+                return CommonCompiler.Failed;
             }
         }
 
-        private void RunInteractiveLoop(ScriptOptions options, CommandLineHostObject globals)
+        private void RunInteractiveLoop(ScriptOptions options, CancellationToken cancellationToken)
         {
-            ScriptState<object> state = null;
-            var cancellationToken = globals.CancellationToken;
+            var globals = new InteractiveScriptGlobals(_console.Out, _objectFormatter);
+            globals.Args.AddRange(_compiler.Arguments.ScriptArguments);
+
+            ScriptState <object> state = null;
 
             while (true)
             {

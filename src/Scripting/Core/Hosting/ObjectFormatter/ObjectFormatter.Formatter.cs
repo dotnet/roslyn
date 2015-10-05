@@ -9,11 +9,11 @@ using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 using System.Reflection;
 
-namespace Microsoft.CodeAnalysis.Scripting
+namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
     using TypeInfo = System.Reflection.TypeInfo;
 
-    internal abstract partial class ObjectFormatter
+    public abstract partial class ObjectFormatter
     {
         // internal for testing
         internal sealed class Formatter
