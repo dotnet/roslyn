@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -347,13 +346,6 @@ class C
 }";
 
             Test(code, expected, index: 0, compareTokens: false);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestAnonymousType1()
-        {
-            TestFixOne(@"{ int [||]x = 42; var a = new { x }; }",
-                       @"{ var a = new { x = 42 }; }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1460,9 +1452,17 @@ compareTokens: false);
             Test(initial, expected, index: 0, compareTokens: false);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public void TestAnonymousType1()
+        {
+            TestFixOne(@"{ int [||]x = 42; var a = new { x }; }",
+                       @"{ var a = new { x = 42 }; }");
+        }
+
+        [WorkItem(3589, "https://github.com/dotnet/roslyn/issues/3589")]
         [WorkItem(540186)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void ProperlyFormatAnonymousTypeMember()
+        public void InlineConstantToAnonymousTypeImplicitlyNamedProperty()
         {
             var initial =
 @"class C
@@ -1486,9 +1486,10 @@ compareTokens: false);
             Test(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(6356, "DevDiv_Projects/Roslyn")]
+        [WorkItem(3589, "https://github.com/dotnet/roslyn/issues/3589")]
+        [WorkItem(540186)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InlineToAnonymousTypeProperty()
+        public void InlineConstantToAnonymousTypeExplicitlyNamedProperty()
         {
             var initial =
 @"class C
@@ -1506,6 +1507,148 @@ compareTokens: false);
     void M()
     {
         var y = new { x = 123 };
+    }
+}";
+
+            Test(initial, expected, index: 0, compareTokens: false);
+        }
+
+        [WorkItem(3589, "https://github.com/dotnet/roslyn/issues/3589")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public void InlineMemberAccessToAnonymousTypeImplicitlyNamedProperty_ExplicitNameNotNeeded()
+        {
+            var initial =
+@"class D
+{
+    public static int x;
+}
+class C
+{
+    void M()
+    {
+        var [||]x = D.x;
+        var y = new { x };
+    }
+}";
+
+            var expected =
+@"class D
+{
+    public static int x;
+}
+class C
+{
+    void M()
+    {
+        var y = new { D.x };
+    }
+}";
+
+            Test(initial, expected, index: 0, compareTokens: false);
+        }
+
+        [WorkItem(3589, "https://github.com/dotnet/roslyn/issues/3589")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public void InlineMemberAccessToAnonymousTypeImplicitlyNamedProperty_ExplicitNameNeeded()
+        {
+            var initial =
+@"class D
+{
+    public static int z;
+}
+class C
+{
+    void M()
+    {
+        var [||]x = D.z;
+        var y = new { x };
+    }
+}";
+
+            var expected =
+@"class D
+{
+    public static int z;
+}
+class C
+{
+    void M()
+    {
+        var y = new { x = D.z };
+    }
+}";
+
+            Test(initial, expected, index: 0, compareTokens: false);
+        }
+
+        [WorkItem(3589, "https://github.com/dotnet/roslyn/issues/3589")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public void InlineMemberAccessToAnonymousTypeExplicitlyNamedPropertyWithSameName_KeepsExplicitName()
+        {
+            var initial =
+@"class D
+{
+    public static int x;
+}
+class C
+{
+    void M()
+    {
+        var [||]x = D.x;
+        var y = new { x = x };
+    }
+}";
+
+            var expected =
+@"class D
+{
+    public static int x;
+}
+class C
+{
+    void M()
+    {
+        var y = new { x = D.x };
+    }
+}";
+
+            Test(initial, expected, index: 0, compareTokens: false);
+        }
+
+        [WorkItem(3589, "https://github.com/dotnet/roslyn/issues/3589")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public void InlineMemberAccessToAnonymousTypeImplicitlyNamedProperty_ExpressionNotReduced()
+        {
+            var initial =
+@"namespace N
+{
+    class D
+    {
+        public static int x;
+    }
+    class C
+    {
+        void M()
+        {
+            var [||]x = N.D.x;
+            var y = new { x };
+        }
+    }
+}";
+
+            var expected =
+@"namespace N
+{
+    class D
+    {
+        public static int x;
+    }
+    class C
+    {
+        void M()
+        {
+            var y = new { N.D.x };
+        }
     }
 }";
 

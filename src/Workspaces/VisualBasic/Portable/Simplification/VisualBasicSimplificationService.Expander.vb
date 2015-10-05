@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
+Imports Microsoft.CodeAnalysis.Formatting
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
     Partial Friend Class VisualBasicSimplificationService
@@ -756,6 +757,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 End If
 
                 Return newLabelStatement
+            End Function
+
+            Public Overrides Function VisitInferredFieldInitializer(node As InferredFieldInitializerSyntax) As SyntaxNode
+                ' Expands "New With {X}" (InferredFieldInitializer) into "New With {.X = X}" (NamedFieldInitializer)
+
+                Dim rewrittenNode = DirectCast(MyBase.VisitInferredFieldInitializer(node), InferredFieldInitializerSyntax)
+
+                Dim implicitName As String = Nothing
+
+                Dim identifier = TryCast(rewrittenNode.Expression, IdentifierNameSyntax)
+                Dim memberAccess = TryCast(rewrittenNode.Expression, MemberAccessExpressionSyntax)
+
+                If identifier IsNot Nothing Then
+                    implicitName = identifier.Identifier.Text
+                ElseIf memberAccess IsNot Nothing Then
+                    implicitName = memberAccess.Name?.Identifier.Text
+                End If
+
+                If implicitName IsNot Nothing Then
+                    Return SyntaxFactory.NamedFieldInitializer(
+                        SyntaxFactory.IdentifierName(implicitName).WithAdditionalAnnotations(Formatter.Annotation), rewrittenNode.Expression) _
+                    .WithAdditionalAnnotations(Simplifier.Annotation)
+                End If
+
+                Return MyBase.VisitInferredFieldInitializer(rewrittenNode)
             End Function
 
         End Class

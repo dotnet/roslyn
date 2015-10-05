@@ -4180,5 +4180,161 @@ End Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
+        <WorkItem(3589, "https://github.com/dotnet/roslyn/issues/3589")>
+        <WorkItem(540186)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Sub InlineConstantToAnonymousTypeExplicitlyNamedProperty()
+            Dim initial =
+"Class C
+    Sub M()
+        Dim [||]x = 123
+        Dim y = New With {.x = x}
+    End Sub
+End Class"
+
+            Dim expected =
+"Class C
+    Sub M()
+        Dim y = New With {.x = 123}
+    End Sub
+End Class"
+
+            Test(initial, expected, index:=0, compareTokens:=False)
+        End Sub
+
+        <WorkItem(3589, "https://github.com/dotnet/roslyn/issues/3589")>
+        <WorkItem(540186)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Sub InlineConstantToAnonymousTypeImplicitlyNamedProperty()
+            Dim initial =
+"Class C
+    Sub M()
+        Dim [||]x = 123
+        Dim y = New With {x}
+    End Sub
+End Class"
+
+            Dim expected =
+"Class C
+    Sub M()
+        Dim y = New With {.x = 123}
+    End Sub
+End Class"
+
+            Test(initial, expected, index:=0, compareTokens:=False)
+        End Sub
+
+        <WorkItem(3589, "https://github.com/dotnet/roslyn/issues/3589")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Sub InlineMemberAccessToAnonymousTypeImplicitlyNamedProperty_ExplicitNameNotNeeded()
+            Dim initial =
+"Class D
+    Public Shared x As Integer
+End Class
+Class C
+    Sub M()
+        Dim [||]x = D.x
+        Dim y = New With {x}
+    End Sub
+End Class"
+
+            Dim expected =
+"Class D
+    Public Shared x As Integer
+End Class
+Class C
+    Sub M()
+        Dim y = New With {D.x}
+    End Sub
+End Class"
+
+            Test(initial, expected, index:=0, compareTokens:=False)
+        End Sub
+
+        <WorkItem(3589, "https://github.com/dotnet/roslyn/issues/3589")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Sub InlineMemberAccessToAnonymousTypeImplicitlyNamedProperty_ExplicitNameNeeded()
+            Dim initial =
+"Class D
+    Public Shared z As Integer
+End Class
+Class C
+    Sub M()
+        Dim [||]x = D.z
+        Dim y = New With {x}
+    End Sub
+End Class"
+
+            Dim expected =
+"Class D
+    Public Shared z As Integer
+End Class
+Class C
+    Sub M()
+        Dim y = New With {.x = D.z}
+    End Sub
+End Class"
+
+            Test(initial, expected, index:=0, compareTokens:=False)
+        End Sub
+
+        <WorkItem(3589, "https://github.com/dotnet/roslyn/issues/3589")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Sub InlineMemberAccessToAnonymousTypeExplicitlyNamedPropertyWithSameName_KeepsExplicitName()
+            Dim initial =
+"Class D
+    Public Shared x As Integer
+End Class
+Class C
+    Sub M()
+        Dim [||]x = D.x
+        Dim y = New With {.x = x}
+    End Sub
+End Class"
+
+            Dim expected =
+"Class D
+    Public Shared x As Integer
+End Class
+Class C
+    Sub M()
+        Dim y = New With {.x = D.x}
+    End Sub
+End Class"
+
+            Test(initial, expected, index:=0, compareTokens:=False)
+        End Sub
+
+        <WorkItem(3589, "https://github.com/dotnet/roslyn/issues/3589")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Sub InlineMemberAccessToAnonymousTypeImplicitlyNamedProperty_ExpressionNotReduced()
+            Dim initial =
+"Namespace N
+    Class D
+        Public Shared x As Integer
+    End Class
+    Class C
+        Sub M()
+            Dim [||]x = N.D.x
+            Dim y = New With {x}
+        End Sub
+    End Class
+End Namespace"
+
+            Dim expected =
+"Namespace N
+    Class D
+        Public Shared x As Integer
+    End Class
+    Class C
+        Sub M()
+            Dim y = New With {N.D.x}
+        End Sub
+    End Class
+End Namespace"
+
+            Test(initial, expected, index:=0, compareTokens:=False)
+        End Sub
+
     End Class
 End Namespace

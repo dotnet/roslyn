@@ -194,6 +194,7 @@
     <Compile Include="Simplification\AbstractCSharpReducer.AbstractExpressionRewriter.cs" />
     <Compile Include="Simplification\AbstractCSharpReducer.cs" />
     <Compile Include="Simplification\CSharpCastReducer.cs" />
+    <Compile Include="Simplification\CSharpAnonymousTypePropertyReducer.Rewriter.cs" />
     <Compile Include="Simplification\CSharpCastReducer.Rewriter.cs" />
     <Compile Include="Simplification\CSharpEscapingReducer.cs" />
     <Compile Include="Simplification\CSharpEscapingReducer.Rewriter.cs" />
@@ -208,6 +209,7 @@
     <Compile Include="Simplification\CSharpSimplificationService.cs" />
     <Compile Include="Simplification\CSharpSimplificationService.Expander.cs" />
     <Compile Include="Simplification\CSharpSimplificationService.NodesAndTokensToReduceComputer.cs" />
+    <Compile Include="Simplification\CSharpAnonymousTypePropertyReducer.cs" />
     <Compile Include="Utilities\CompilationOptionsConversion.cs" />
     <Compile Include="Utilities\FormattingRangeHelper.cs" />
     <Compile Include="Utilities\NameSyntaxComparer.cs" />

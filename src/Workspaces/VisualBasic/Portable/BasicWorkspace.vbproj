@@ -194,6 +194,8 @@
     <Compile Include="Rename\VisualBasicRenameRewriterLanguageServiceFactory.vb" />
     <Compile Include="Simplification\AbstractVisualBasicReducer.vb" />
     <Compile Include="Simplification\AbstractVisualBasicSimplifier.AbstractExpressionRewriter.vb" />
+    <Compile Include="Simplification\VisualBasicNamedFieldInitializerReducer.Rewriter.vb" />
+    <Compile Include="Simplification\VisualBasicNamedFieldInitializerReducer.vb" />
     <Compile Include="Simplification\VisualBasicCallReducer.Rewriter.vb" />
     <Compile Include="Simplification\VisualBasicCallReducer.vb" />
     <Compile Include="Simplification\VisualBasicCastReducer.Rewriter.vb" />

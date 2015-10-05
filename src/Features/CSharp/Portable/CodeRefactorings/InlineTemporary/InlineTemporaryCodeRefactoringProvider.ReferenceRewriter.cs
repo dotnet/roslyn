@@ -65,30 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 return base.VisitIdentifierName(node);
             }
 
-            public override SyntaxNode VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
-            {
-                var nameEquals = node.NameEquals;
-                var expression = node.Expression;
-                var identifier = expression as IdentifierNameSyntax;
-
-                if (nameEquals != null || identifier == null || !IsReference(identifier) || HasConflict(identifier, _variableDeclarator))
-                {
-                    return base.VisitAnonymousObjectMemberDeclarator(node);
-                }
-
-                // Special case inlining into anonymous types to ensure that we keep property names:
-                //
-                // E.g.
-                //     int x = 42;
-                //     var a = new { x; };
-                //
-                // Should become:
-                //     var a = new { x = 42; };
-                nameEquals = SyntaxFactory.NameEquals(identifier);
-                expression = (ExpressionSyntax)this.Visit(expression);
-                return node.Update(nameEquals, expression).WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
-            }
-
             public static SyntaxNode Visit(
                 SemanticModel semanticModel,
                 SyntaxNode scope,

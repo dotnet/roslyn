@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
@@ -977,6 +978,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                 // This Annotation copy is for the InvocationExpression
                 return originalNode.CopyAnnotationsTo(replacementNode).WithAdditionalAnnotations(Simplifier.Annotation);
+            }
+
+            public override SyntaxNode VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
+            {
+                // Expands "var a = new { A.B.C }" into "var a = new { C = A.B.C }"
+
+                var rewrittenNode = base.VisitAnonymousObjectMemberDeclarator(node) as AnonymousObjectMemberDeclaratorSyntax;
+                if (rewrittenNode.NameEquals != null)
+                {
+                    return rewrittenNode;
+                }
+
+                // Try to get the implicit property name from the expression
+                string implicitPropertyName = null;
+
+                var identifier = rewrittenNode.Expression as IdentifierNameSyntax;
+                var memberAccess = rewrittenNode.Expression as MemberAccessExpressionSyntax;
+                if (identifier != null)
+                {
+                    implicitPropertyName = identifier.Identifier.Text;
+                }
+                else if (memberAccess != null)
+                {
+                    implicitPropertyName = memberAccess.Name?.Identifier.Text;
+                }
+
+                if (implicitPropertyName == null)
+                {
+                    return rewrittenNode;
+                }
+
+                var updatedNameEquals = SyntaxFactory.NameEquals(implicitPropertyName).WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
+                return rewrittenNode.WithNameEquals(updatedNameEquals);
             }
         }
     }
