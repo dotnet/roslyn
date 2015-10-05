@@ -1092,15 +1092,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private bool ShouldExecuteOperationActions(AnalysisScope analysisScope)
         {
-            foreach (var analyzer in analysisScope.Analyzers)
-            {
-                if (this.OperationActionsByAnalyzerAndKind.ContainsKey(analyzer))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return analysisScope.Analyzers.Any(analyzer => this.OperationActionsByAnalyzerAndKind.ContainsKey(analyzer));
         }
 
         private bool ShouldExecuteCodeBlockActions(AnalysisScope analysisScope, ISymbol symbol)
@@ -1466,7 +1458,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            List<IOperation> operationsToAnalyze = new List<IOperation>();
+            ArrayBuilder<IOperation> operationsToAnalyze = ArrayBuilder<IOperation>.GetInstance();
 
             foreach (SyntaxNode executableBlock in executableBlocks)
             {
@@ -1477,7 +1469,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            return operationsToAnalyze.ToImmutableArray();
+            return operationsToAnalyze.ToImmutableAndFree();
         }
 
         private static IEnumerable<SyntaxNode> GetSyntaxNodesToAnalyze(SyntaxNode declaredNode, HashSet<SyntaxNode> descendantDeclsToSkip)

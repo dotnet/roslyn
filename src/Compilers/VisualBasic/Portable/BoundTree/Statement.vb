@@ -30,30 +30,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Class BoundIfStatement
         Implements IIfStatement
-        Implements IIfClause
 
-        Private ReadOnly Property IElse As IStatement Implements IIfStatement.Else
+        Private ReadOnly Property ICondition As IExpression Implements IIfStatement.Condition
             Get
-                Return Me.AlternativeOpt
+                Return Me.Condition
             End Get
         End Property
 
-        Private ReadOnly Property IIfClauses As ImmutableArray(Of IIfClause) Implements IIfStatement.IfClauses
-            Get
-                ' Apparently the VB bound trees do not preserve multi-clause if statements.
-                Return ImmutableArray.Create(Of IIfClause)(Me)
-            End Get
-        End Property
-
-        Private ReadOnly Property IBody As IStatement Implements IIfClause.Body
+        Private ReadOnly Property IIfTrue As IStatement Implements IIfStatement.IfTrue
             Get
                 Return Me.Consequence
             End Get
         End Property
 
-        Private ReadOnly Property ICondition As IExpression Implements IIfClause.Condition
+        Private ReadOnly Property IIfFalse As IStatement Implements IIfStatement.IfFalse
             Get
-                Return Me.Condition
+                Return Me.AlternativeOpt
             End Get
         End Property
 
@@ -187,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return Me.UpperBoundOpt
                 End If
 
-                If Me.UpperBoundConditionOpt IsNot Nothing AndAlso Me.UpperBoundConditionOpt.Kind = BoundKind.BinaryOperator Then
+                If Me.UpperBoundConditionOpt.Kind = BoundKind.BinaryOperator Then
                     Dim upperBound As BoundBinaryOperator = DirectCast(Me.UpperBoundConditionOpt, BoundBinaryOperator)
                     If upperBound.OperatorKind = BinaryOperatorKind.LessThanOrEqual Then
                         Return upperBound.Right
@@ -204,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return Me.LowerBoundOpt
                 End If
 
-                If Me.LowerBoundConditionOpt IsNot Nothing AndAlso Me.LowerBoundConditionOpt.Kind = BoundKind.BinaryOperator Then
+                If Me.LowerBoundConditionOpt.Kind = BoundKind.BinaryOperator Then
                     Dim lowerBound As BoundBinaryOperator = DirectCast(Me.LowerBoundConditionOpt, BoundBinaryOperator)
                     If lowerBound.OperatorKind = BinaryOperatorKind.GreaterThanOrEqual Then
                         Return lowerBound.Right

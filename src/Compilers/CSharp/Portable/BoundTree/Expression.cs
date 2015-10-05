@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
        
         IFieldSymbol IFieldReferenceExpression.Field => this.FieldSymbol;
        
-        ReferenceKind IReferenceExpression.ReferenceKind => this.FieldSymbol.IsStatic ? ReferenceKind.StaticField : ReferenceKind.InstanceField;
+        ReferenceKind IReferenceExpression.ReferenceKind => ReferenceKind.Field;
 
         protected override OperationKind ExpressionKind => OperationKind.FieldReferenceExpression;
     }
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
        
         IExpression IMemberReferenceExpression.Instance => this.ReceiverOpt;
        
-        ReferenceKind IReferenceExpression.ReferenceKind => this.PropertySymbol.IsStatic ? ReferenceKind.StaticProperty : ReferenceKind.InstanceProperty;
+        ReferenceKind IReferenceExpression.ReferenceKind => ReferenceKind.Property;
 
         protected override OperationKind ExpressionKind => OperationKind.PropertyReferenceExpression;
     }

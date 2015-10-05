@@ -54,15 +54,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind StatementKind => OperationKind.EmptyStatement;
     }
 
-    partial class BoundIfStatement : IIfStatement, IIfClause
+    partial class BoundIfStatement : IIfStatement
     {
-        ImmutableArray<IIfClause> IIfStatement.IfClauses => ImmutableArray.Create<IIfClause>(this);
+        IExpression IIfStatement.Condition => this.Condition;
 
-        IStatement IIfStatement.Else => this.AlternativeOpt;
+        IStatement IIfStatement.IfTrue => this.Consequence;
 
-        IExpression IIfClause.Condition => this.Condition;
-
-        IStatement IIfClause.Body => this.Consequence;
+        IStatement IIfStatement.IfFalse => this.AlternativeOpt;
 
         protected override OperationKind StatementKind => OperationKind.IfStatement;
     }

@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// <summary>
             /// Partial analysis state for code block actions executed on the declaration.
             /// </summary>
-            public CodeBlockAnalyzerStateData CodeBlockAnalysisState { get; set; }
+            public CodeBlockAnalyzerStateData CodeBlockAnalysisState { get; }
 
             /// <summary>
             /// Partial analysis state for operation actions executed on the declaration.
             /// </summary>
-            public OperationAnalyzerStateData OperationAnalysisState { get; set; }
+            public OperationAnalyzerStateData OperationAnalysisState { get; }
 
             public DeclarationAnalyzerStateData()
             {
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         internal class SyntaxNodeAnalyzerStateData : AnalyzerStateData
         {
-            public HashSet<SyntaxNode> ProcessedNodes { get; set; }
+            public HashSet<SyntaxNode> ProcessedNodes { get; }
             public SyntaxNode CurrentNode { get; set; }
 
             public SyntaxNodeAnalyzerStateData()
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         internal class OperationAnalyzerStateData : AnalyzerStateData
         {
-            public HashSet<IOperation> ProcessedOperations { get; set; }
+            public HashSet<IOperation> ProcessedOperations { get; }
             public IOperation CurrentOperation { get; set; }
 
             public OperationAnalyzerStateData()

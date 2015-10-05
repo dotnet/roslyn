@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="symbolKinds">Action will be executed only if an <see cref="ISymbol"/>'s Kind matches one of the <see cref="SymbolKind"/> values.</param>
         public void RegisterSymbolAction(Action<SymbolAnalysisContext> action, params SymbolKind[] symbolKinds)
         {
-            this.RegisterSymbolAction(action, symbolKinds.AsImmutableOrNull());
+            this.RegisterSymbolAction(action, symbolKinds.AsImmutableOrEmpty());
         }
 
         /// <summary>
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
         public void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds) where TLanguageKindEnum : struct
         {
-            this.RegisterSyntaxNodeAction(action, syntaxKinds.AsImmutableOrNull());
+            this.RegisterSyntaxNodeAction(action, syntaxKinds.AsImmutableOrEmpty());
         }
 
         /// <summary>
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
         public void RegisterOperationAction(Action<OperationAnalysisContext> action, params OperationKind[] operationKinds)
         {
-            this.RegisterOperationAction(action, operationKinds.AsImmutableOrNull());
+            this.RegisterOperationAction(action, operationKinds.AsImmutableOrEmpty());
         }
 
         /// <summary>
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="symbolKinds">Action will be executed only if an <see cref="ISymbol"/>'s Kind matches one of the <see cref="SymbolKind"/> values.</param>
         public void RegisterSymbolAction(Action<SymbolAnalysisContext> action, params SymbolKind[] symbolKinds)
         {
-            this.RegisterSymbolAction(action, symbolKinds.AsImmutableOrNull());
+            this.RegisterSymbolAction(action, symbolKinds.AsImmutableOrEmpty());
         }
 
         /// <summary>
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
         public void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds) where TLanguageKindEnum : struct
         {
-            this.RegisterSyntaxNodeAction(action, syntaxKinds.AsImmutableOrNull());
+            this.RegisterSyntaxNodeAction(action, syntaxKinds.AsImmutableOrEmpty());
         }
 
         /// <summary>
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
         public void RegisterOperationAction(Action<OperationAnalysisContext> action, params OperationKind[] operationKinds)
         {
-            this.RegisterOperationAction(action, operationKinds.AsImmutableOrNull());
+            this.RegisterOperationAction(action, operationKinds.AsImmutableOrEmpty());
         }
 
         /// <summary>
@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
         public void RegisterSyntaxNodeAction(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds)
         {
-            this.RegisterSyntaxNodeAction(action, syntaxKinds.AsImmutableOrNull());
+            this.RegisterSyntaxNodeAction(action, syntaxKinds.AsImmutableOrEmpty());
         }
 
         /// <summary>

@@ -173,18 +173,13 @@ Microsoft.CodeAnalysis.Semantics.ReferenceKind.Parameter = 1 -> Microsoft.CodeAn
 Microsoft.CodeAnalysis.Semantics.ReferenceKind.SyntheticLocal = 2 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
 Microsoft.CodeAnalysis.Semantics.ReferenceKind.ArrayElement = 3 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
 Microsoft.CodeAnalysis.Semantics.ReferenceKind.PointerIndirection = 4 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
-Microsoft.CodeAnalysis.Semantics.ReferenceKind.StaticField = 5 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
-Microsoft.CodeAnalysis.Semantics.ReferenceKind.InstanceField = 6 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
-Microsoft.CodeAnalysis.Semantics.ReferenceKind.StaticMethod = 7 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
-Microsoft.CodeAnalysis.Semantics.ReferenceKind.InstanceMethod = 8 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
-Microsoft.CodeAnalysis.Semantics.ReferenceKind.StaticPropertyGet = 9 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
-Microsoft.CodeAnalysis.Semantics.ReferenceKind.InstancePropertyGet = 10 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
-Microsoft.CodeAnalysis.Semantics.ReferenceKind.StaticPropertySet = 11 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
-Microsoft.CodeAnalysis.Semantics.ReferenceKind.InstancePropertySet = 12 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
-Microsoft.CodeAnalysis.Semantics.ReferenceKind.StaticProperty = 13 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
-Microsoft.CodeAnalysis.Semantics.ReferenceKind.InstanceProperty = 14 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
-Microsoft.CodeAnalysis.Semantics.ReferenceKind.ConstantField = 15 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
-Microsoft.CodeAnalysis.Semantics.ReferenceKind.LateBoundMember = 16 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
+Microsoft.CodeAnalysis.Semantics.ReferenceKind.Field = 5 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
+Microsoft.CodeAnalysis.Semantics.ReferenceKind.Method = 6 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
+Microsoft.CodeAnalysis.Semantics.ReferenceKind.PropertyGet = 7 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
+Microsoft.CodeAnalysis.Semantics.ReferenceKind.PropertySet = 8 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
+Microsoft.CodeAnalysis.Semantics.ReferenceKind.Property = 9 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
+Microsoft.CodeAnalysis.Semantics.ReferenceKind.ConstantField = 10 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
+Microsoft.CodeAnalysis.Semantics.ReferenceKind.LateBoundMember = 11 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
 Microsoft.CodeAnalysis.Semantics.IHasOperatorExpression
 Microsoft.CodeAnalysis.Semantics.IHasOperatorExpression.UsesOperatorMethod.get -> bool
 Microsoft.CodeAnalysis.Semantics.IHasOperatorExpression.Operator.get -> Microsoft.CodeAnalysis.IMethodSymbol
@@ -517,11 +512,9 @@ Microsoft.CodeAnalysis.Semantics.CaseKind.Relational = 1 -> Microsoft.CodeAnalys
 Microsoft.CodeAnalysis.Semantics.CaseKind.Range = 2 -> Microsoft.CodeAnalysis.Semantics.CaseKind
 Microsoft.CodeAnalysis.Semantics.CaseKind.Default = 3 -> Microsoft.CodeAnalysis.Semantics.CaseKind
 Microsoft.CodeAnalysis.Semantics.IIfStatement
-Microsoft.CodeAnalysis.Semantics.IIfStatement.IfClauses.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IIfClause>
-Microsoft.CodeAnalysis.Semantics.IIfStatement.Else.get -> Microsoft.CodeAnalysis.Semantics.IStatement
-Microsoft.CodeAnalysis.Semantics.IIfClause
-Microsoft.CodeAnalysis.Semantics.IIfClause.Condition.get -> Microsoft.CodeAnalysis.Semantics.IExpression
-Microsoft.CodeAnalysis.Semantics.IIfClause.Body.get -> Microsoft.CodeAnalysis.Semantics.IStatement
+Microsoft.CodeAnalysis.Semantics.IIfStatement.Condition.get -> Microsoft.CodeAnalysis.Semantics.IExpression
+Microsoft.CodeAnalysis.Semantics.IIfStatement.IfTrue.get -> Microsoft.CodeAnalysis.Semantics.IStatement
+Microsoft.CodeAnalysis.Semantics.IIfStatement.IfFalse.get -> Microsoft.CodeAnalysis.Semantics.IStatement
 Microsoft.CodeAnalysis.Semantics.ILoopStatement
 Microsoft.CodeAnalysis.Semantics.ILoopStatement.LoopKind.get -> Microsoft.CodeAnalysis.Semantics.LoopKind
 Microsoft.CodeAnalysis.Semantics.ILoopStatement.Body.get -> Microsoft.CodeAnalysis.Semantics.IStatement

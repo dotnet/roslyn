@@ -146,7 +146,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         BinaryOperationKind Relation { get; }
     }
 
-    // Represents Case x To y in VB.
+    /// <summary>
+    /// Represents Case x To y in VB.
+    /// </summary>
     public interface IRangeCaseClause : ICaseClause
     {
         /// <summary>
@@ -165,28 +167,17 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface IIfStatement : IStatement
     {
         /// <summary>
-        /// Clauses of the if. For C# there is one clause per if, but for VB there can be multiple.
-        /// </summary>
-        ImmutableArray<IIfClause> IfClauses { get; }
-        /// <summary>
-        /// Else of the if statement.
-        /// </summary>
-        IStatement Else { get; }
-    }
-
-    /// <summary>
-    /// Represents a conditional clause of an if statement.
-    /// </summary>
-    public interface IIfClause
-    {
-        /// <summary>
-        /// Condition of the clause.
+        /// Condition of the if statement. For C# there is naturally one clause per if, but for VB If statements with multiple clauses are rewritten to have only one.
         /// </summary>
         IExpression Condition { get; }
         /// <summary>
-        /// Body of the clause.
+        /// Statement executed if the condition is true.
         /// </summary>
-        IStatement Body { get; }
+        IStatement IfTrue { get; }
+        /// <summary>
+        /// Statement executed if the condition is false.
+        /// </summary>
+        IStatement IfFalse { get; }
     }
 
     /// <summary>

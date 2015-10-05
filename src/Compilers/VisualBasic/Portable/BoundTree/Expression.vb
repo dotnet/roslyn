@@ -1117,7 +1117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IReferenceKind As ReferenceKind Implements IReferenceExpression.ReferenceKind
             Get
-                Return If(Me.ReceiverOpt IsNot Nothing, ReferenceKind.InstanceProperty, ReferenceKind.StaticProperty)
+                Return ReferenceKind.Property
             End Get
         End Property
 
@@ -1143,7 +1143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IReferenceKind As ReferenceKind Implements IReferenceExpression.ReferenceKind
             Get
-                Return If(Me.ReceiverOpt IsNot Nothing, ReferenceKind.InstanceField, ReferenceKind.StaticField)
+                Return ReferenceKind.Field
             End Get
         End Property
 
