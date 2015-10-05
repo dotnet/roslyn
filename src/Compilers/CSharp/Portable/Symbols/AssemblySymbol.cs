@@ -535,22 +535,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool useCLSCompliantNameArityEncoding = false,
             DiagnosticBag warnings = null)
         {
-            NamedTypeSymbol type = null;
+            NamedTypeSymbol type;
             MetadataTypeName mdName;
 
             if (metadataName.IndexOf('+') >= 0)
             {
                 var parts = metadataName.Split(s_nestedTypeNameSeparators);
-                if (parts.Length > 0)
+                Debug.Assert(parts.Length > 0);
+                mdName = MetadataTypeName.FromFullName(parts[0], useCLSCompliantNameArityEncoding);
+                type = GetTopLevelTypeByMetadataName(ref mdName, assemblyOpt: null, includeReferences: includeReferences, isWellKnownType: isWellKnownType, warnings: warnings);
+                for (int i = 1; (object)type != null && !type.IsErrorType() && i < parts.Length; i++)
                 {
-                    mdName = MetadataTypeName.FromFullName(parts[0], useCLSCompliantNameArityEncoding);
-                    type = GetTopLevelTypeByMetadataName(ref mdName, assemblyOpt: null, includeReferences: includeReferences, isWellKnownType: isWellKnownType, warnings: warnings);
-                    for (int i = 1; (object)type != null && !type.IsErrorType() && i < parts.Length; i++)
-                    {
-                        mdName = MetadataTypeName.FromTypeName(parts[i]);
-                        NamedTypeSymbol temp = type.LookupMetadataType(ref mdName);
-                        type = (!isWellKnownType || IsValidWellKnownType(temp)) ? temp : null;
-                    }
+                    mdName = MetadataTypeName.FromTypeName(parts[i]);
+                    NamedTypeSymbol temp = type.LookupMetadataType(ref mdName);
+                    type = (!isWellKnownType || IsValidWellKnownType(temp)) ? temp : null;
                 }
             }
             else
