@@ -1461,6 +1461,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Return DirectCast(node, EventBlockSyntax).EventStatement.AttributeLists
                 Case SyntaxKind.EventStatement
                     Return DirectCast(node, EventStatementSyntax).AttributeLists
+                Case SyntaxKind.GetAccessorBlock,
+                    SyntaxKind.SetAccessorBlock,
+                    SyntaxKind.AddHandlerAccessorBlock,
+                    SyntaxKind.RemoveHandlerAccessorBlock,
+                    SyntaxKind.RaiseEventAccessorBlock
+                    Return DirectCast(node, AccessorBlockSyntax).AccessorStatement.AttributeLists
+                Case SyntaxKind.GetAccessorStatement,
+                    SyntaxKind.SetAccessorStatement,
+                    SyntaxKind.AddHandlerAccessorStatement,
+                    SyntaxKind.RemoveHandlerAccessorStatement,
+                    SyntaxKind.RaiseEventAccessorStatement
+                    Return DirectCast(node, AccessorStatementSyntax).AttributeLists
                 Case Else
                     Return Nothing
             End Select
@@ -1522,6 +1534,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Return DirectCast(node, EventBlockSyntax).WithEventStatement(DirectCast(node, EventBlockSyntax).EventStatement.WithAttributeLists(arg))
                 Case SyntaxKind.EventStatement
                     Return DirectCast(node, EventStatementSyntax).WithAttributeLists(arg)
+                Case SyntaxKind.GetAccessorBlock,
+                    SyntaxKind.SetAccessorBlock,
+                    SyntaxKind.AddHandlerAccessorBlock,
+                    SyntaxKind.RemoveHandlerAccessorBlock,
+                    SyntaxKind.RaiseEventAccessorBlock
+                    Return DirectCast(node, AccessorBlockSyntax).WithAccessorStatement(DirectCast(node, AccessorBlockSyntax).AccessorStatement.WithAttributeLists(arg))
+                Case SyntaxKind.GetAccessorStatement,
+                    SyntaxKind.SetAccessorStatement,
+                    SyntaxKind.AddHandlerAccessorStatement,
+                    SyntaxKind.RemoveHandlerAccessorStatement,
+                    SyntaxKind.RaiseEventAccessorStatement
+                    Return DirectCast(node, AccessorStatementSyntax).WithAttributeLists(arg)
                 Case Else
                     Return node
             End Select
@@ -3332,21 +3356,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             If declaration.IsKind(SyntaxKind.InterfaceBlock) Then
                 Dim inh = Me.GetInherits(declaration)
                 Dim last = inh.SelectMany(Function(s) s.Types).LastOrDefault()
-                If last IsNot Nothing Then
-                    Return InsertNodesAfter(declaration, last, {interfaceType})
+                If inh.Count = 1 AndAlso last IsNot Nothing Then
+                    Dim inh0 = inh(0)
+                    Dim newInh0 = PreserveTrivia(inh0.TrackNodes(last), Function(_inh0) InsertNodesAfter(_inh0, _inh0.GetCurrentNode(last), {interfaceType}))
+                    Return ReplaceNode(declaration, inh0, newInh0)
                 Else
                     Return Me.WithInherits(declaration, inh.Add(SyntaxFactory.InheritsStatement(DirectCast(interfaceType, TypeSyntax))))
                 End If
             Else
                 Dim imp = Me.GetImplements(declaration)
                 Dim last = imp.SelectMany(Function(s) s.Types).LastOrDefault()
-                If last IsNot Nothing Then
-                    Return InsertNodesAfter(declaration, last, {interfaceType})
+                If imp.Count = 1 AndAlso last IsNot Nothing Then
+                    Dim imp0 = imp(0)
+                    Dim newImp0 = PreserveTrivia(imp0.TrackNodes(last), Function(_imp0) InsertNodesAfter(_imp0, _imp0.GetCurrentNode(last), {interfaceType}))
+                    Return ReplaceNode(declaration, imp0, newImp0)
                 Else
                     Return Me.WithImplements(declaration, imp.Add(SyntaxFactory.ImplementsStatement(DirectCast(interfaceType, TypeSyntax))))
                 End If
             End If
-            Throw New NotImplementedException()
         End Function
 
         Private Function GetInherits(declaration As SyntaxNode) As SyntaxList(Of InheritsStatementSyntax)
