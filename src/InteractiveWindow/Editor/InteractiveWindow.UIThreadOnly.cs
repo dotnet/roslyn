@@ -826,7 +826,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                         // For reset command typed at prompt -> the state should be WaitingForInput. 
                         // For all other submissions on the prompt -> it should be Executing input.
-                        // If reset button is clicked during a long running submission -> it could be Resetting becasue 
+                        // If reset button is clicked during a long running submission -> it could be Resetting because 
                         // oldService is disposed first as part of resetting, which leads to await call above returning, and new service is 
                         // created after that as part of completing the resetting process. 
                         Debug.Assert(State == State.ExecutingInput || 
