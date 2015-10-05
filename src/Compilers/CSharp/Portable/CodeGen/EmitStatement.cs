@@ -328,7 +328,42 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         // generate a jump to dest if (condition == sense) is true
         private void EmitCondBranch(BoundExpression condition, ref object dest, bool sense)
         {
-        oneMoreTime:
+            _recursionDepth++;
+
+            if (_recursionDepth > 1)
+            {
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+
+                EmitCondBranchCore(condition, ref dest, sense);
+            }
+            else
+            {
+                EmitCondBranchCoreWithStackGuard(condition, ref dest, sense);
+            }
+
+            _recursionDepth--;
+        }
+
+        private void EmitCondBranchCoreWithStackGuard(BoundExpression condition, ref object dest, bool sense)
+        {
+            Debug.Assert(_recursionDepth == 1);
+
+            try
+            {
+                EmitCondBranchCore(condition, ref dest, sense);
+                Debug.Assert(_recursionDepth == 1);
+            }
+            catch (Exception ex) when (StackGuard.IsInsufficientExecutionStackException(ex))
+            {
+                _diagnostics.Add(ErrorCode.ERR_InsufficientStack,
+                                 BoundTreeVisitor.CancelledByStackGuardException.GetTooLongOrComplexExpressionErrorLocation(condition));
+                throw new EmitCancelledException();
+            }
+        }
+
+        private void EmitCondBranchCore(BoundExpression condition, ref object dest, bool sense)
+        {
+oneMoreTime:
 
             ILOpCode ilcode;
 
@@ -1504,7 +1539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// This allows creating an emittable clone of finally.
         /// It is safe to do because no branches can go in or out of the finally handler.
         /// </summary>
-        private class FinallyCloner : BoundTreeRewriter
+        private class FinallyCloner : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
         {
             private Dictionary<LabelSymbol, GeneratedLabelSymbol> _labelClones;
 

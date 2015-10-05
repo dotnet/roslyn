@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -257,9 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             return new RuntimeMetadataReferenceResolver(
                 new RelativePathResolver(searchPaths, baseDirectory),
                 string.IsNullOrEmpty(packagesDirectory) ? null : new NuGetPackageResolverImpl(packagesDirectory),
-                new GacFileResolver(
-                    architectures: GacFileResolver.Default.Architectures,  // TODO (tomat)
-                    preferredCulture: System.Globalization.CultureInfo.CurrentCulture), // TODO (tomat)
+                GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
                 (path, properties) => metadataService.GetReference(path, properties));
         }
 

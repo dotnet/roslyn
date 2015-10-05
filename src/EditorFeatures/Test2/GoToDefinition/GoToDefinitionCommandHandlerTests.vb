@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.Navigation
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Navigation
@@ -58,7 +59,7 @@ class C
 
             Using workspace = TestWorkspaceFactory.CreateWorkspace(
                     definition,
-                    exportProvider:=MinimalTestExportProvider.CreateExportProvider(GoToDefinitionTests.Catalog.WithPart(GetType(CSharpGoToDefinitionService))))
+                    exportProvider:=MinimalTestExportProvider.CreateExportProvider(GoToTestHelpers.Catalog.WithPart(GetType(CSharpGoToDefinitionService))))
 
                 Dim baseDocument = workspace.Documents.First(Function(d) Not d.IsLinkFile)
                 Dim linkDocument = workspace.Documents.First(Function(d) d.IsLinkFile)
@@ -90,7 +91,7 @@ class C
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(definition, exportProvider:=GoToDefinitionTests.ExportProvider)
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(definition, exportProvider:=GoToTestHelpers.ExportProvider)
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
 

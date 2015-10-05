@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' This is used in the lambda rewriter, the iterator rewriter, and the async rewriter.
     ''' </summary>    
     Partial Friend MustInherit Class MethodToClassRewriter(Of TProxy)
-        Inherits BoundTreeRewriter
+        Inherits BoundTreeRewriterWithStackGuard
 
         ''' <summary>
         ''' For each captured variable, the corresponding field of its frame

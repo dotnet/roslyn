@@ -1,7 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 Imports Roslyn.Test.Utilities
@@ -229,6 +228,27 @@ End Namespace
         End Sub
 
 #End Region
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestDotNetNameFromLanguageSpecific()
+            Dim code =
+<code>
+Imports N.M
+
+Namespace N
+    Namespace M
+        Class Generic(Of T)
+        End Class
+    End Namespace
+End Namespace
+</code>
+
+            TestRootCodeModelWithCodeFile(code,
+                Sub(rootCodeModel)
+                    Dim dotNetName = rootCodeModel.DotNetNameFromLanguageSpecific("N.M.Generic(Of String)")
+                    Assert.Equal("N.M.Generic`1[System.String]", dotNetName)
+                End Sub)
+        End Sub
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get

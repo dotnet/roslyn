@@ -2888,7 +2888,7 @@ void f() { if () const int i = 0; }
     }
 
 
-    internal sealed class BoundTreeSequencer : BoundTreeWalker
+    internal sealed class BoundTreeSequencer : BoundTreeWalkerWithStackGuard
     {
         public static IEnumerable<BoundNode> GetNodes(BoundNode root)
         {
@@ -2912,6 +2912,11 @@ void f() { if () const int i = 0; }
                 _list.Add(node);
             }
             return base.Visit(node);
+        }
+
+        protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
+        {
+            return false;
         }
     }
 }

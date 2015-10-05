@@ -425,6 +425,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 return;
             }
 
+            try
+            {
             var declaredLocals = PooledHashSet<LocalSymbol>.GetInstance();
             try
             {
@@ -603,6 +605,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             body = block.Update(localBuilder.ToImmutableAndFree(), block.LocalFunctions, block.Statements);
             TypeParameterChecker.Check(body, _allTypeParameters);
             compilationState.AddSynthesizedMethod(this, body);
+        }
+            catch (BoundTreeVisitor.CancelledByStackGuardException ex)
+            {
+                ex.AddAnError(diagnostics);
+            }
         }
 
         private static TypeSymbol CalculateReturnType(CSharpCompilation compilation, BoundStatement bodyOpt)

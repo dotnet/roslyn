@@ -14,8 +14,8 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Friend Class DiagnosticsPass
-        Inherits BoundTreeWalker
+    Partial Friend NotInheritable Class DiagnosticsPass
+        Inherits BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
 
         Private ReadOnly _diagnostics As DiagnosticBag
         Private ReadOnly _compilation As VisualBasicCompilation
@@ -29,8 +29,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(node IsNot Nothing)
             Debug.Assert(containingSymbol IsNot Nothing)
 
-            Dim diagnosticPass As New DiagnosticsPass(containingSymbol.DeclaringCompilation, diagnostics, containingSymbol)
-            diagnosticPass.Visit(node)
+            Try
+                Dim diagnosticPass As New DiagnosticsPass(containingSymbol.DeclaringCompilation, diagnostics, containingSymbol)
+                diagnosticPass.Visit(node)
+            Catch ex As CancelledByStackGuardException
+                ex.AddAnError(diagnostics)
+            End Try
         End Sub
 
         Private Sub New(compilation As VisualBasicCompilation, diagnostics As DiagnosticBag, containingSymbol As MethodSymbol)
@@ -46,26 +50,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me._inExpressionLambda
             End Get
         End Property
-
-        Public Overrides Function VisitBinaryOperator(node As BoundBinaryOperator) As BoundNode
-            Dim rightOperands = ArrayBuilder(Of BoundExpression).GetInstance()
-
-            Dim current As BoundExpression = node
-            While current.Kind = BoundKind.BinaryOperator
-                Dim binary = DirectCast(current, BoundBinaryOperator)
-                rightOperands.Push(binary.Right)
-                current = binary.Left
-            End While
-
-            Me.Visit(current)
-
-            While rightOperands.Count > 0
-                Me.Visit(rightOperands.Pop())
-            End While
-
-            rightOperands.Free()
-            Return Nothing
-        End Function
 
         Public Overrides Function VisitQueryLambda(node As BoundQueryLambda) As BoundNode
             Dim save_containingSymbol = Me._containingSymbol
@@ -151,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Debug.Assert(_containingSymbol.IsLambdaMethod) ' What else can it be?
 
                         Dim containingType = withBlockBinder.ContainingType
-                        If containingType IsNot Nothing AndAlso containingType.IsValueType AndAlso withBlockBinder.Info.ExpressionHasByRefMeReference Then
+                        If containingType IsNot Nothing AndAlso containingType.IsValueType AndAlso withBlockBinder.Info.ExpressionHasByRefMeReference(RecursionDepth) Then
                             Dim errorId As ERRID = GetMeAccessError()
                             If errorId <> ERRID.ERR_None Then
                                 ' The placeholder node will actually use syntax from With statement and it might have some wrappers and conversions on top of it with the same syntax.

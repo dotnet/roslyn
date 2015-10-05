@@ -33,6 +33,24 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_Class_AutoGenerateXmlDocCommentsOff()
+        {
+            var code =
+@"//$$
+class C
+{
+}";
+
+            var expected =
+@"///$$
+class C
+{
+}";
+
+            VerifyTypingCharacter(code, expected, autoGenerateXmlDocComments: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TypingCharacter_Method()
         {
             var code =
@@ -483,6 +501,26 @@ class C
 }";
 
             VerifyPressingEnter(code, expected);
+        }
+
+        [WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void PressingEnter_InsertComment_Class1_AutoGenerateXmlDocCommentsOff()
+        {
+            var code =
+@"///$$
+class C
+{
+}";
+
+            var expected =
+@"///
+$$
+class C
+{
+}";
+
+            VerifyPressingEnter(code, expected, autoGenerateXmlDocComments: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
@@ -1022,6 +1060,29 @@ class C
             VerifyPressingEnter(code, expected);
         }
 
+        [WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void PressingEnter_InsertSlashes12_AutoGenerateXmlDocCommentsOff()
+        {
+            var code =
+@"///$$
+/// <summary></summary>
+class C
+{
+}";
+
+            var expected =
+@"///
+/// $$
+/// <summary></summary>
+class C
+{
+}";
+
+            VerifyPressingEnter(code, expected, autoGenerateXmlDocComments: false);
+        }
+
+
         [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_DontInsertSlashes1()
         {
@@ -1264,6 +1325,52 @@ static void Main(string[] args)
             VerifyPressingEnter(code, expected, useTabs: true);
         }
 
+        [WorkItem(5486, "https://github.com/dotnet/roslyn/issues/5486")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void PressingEnter_Selection1()
+        {
+            var code =
+@"/// <summary>
+/// Hello [|World|]$$!
+/// </summary>
+class C
+{
+}";
+            var expected =
+@"/// <summary>
+/// Hello 
+/// $$!
+/// </summary>
+class C
+{
+}";
+
+            VerifyPressingEnter(code, expected);
+        }
+
+        [WorkItem(5486, "https://github.com/dotnet/roslyn/issues/5486")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void PressingEnter_Selection2()
+        {
+            var code =
+@"/// <summary>
+/// Hello $$[|World|]!
+/// </summary>
+class C
+{
+}";
+            var expected =
+@"/// <summary>
+/// Hello 
+/// $$!
+/// </summary>
+class C
+{
+}";
+
+            VerifyPressingEnter(code, expected);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void Command_Class()
         {
@@ -1281,6 +1388,26 @@ class C
 }";
 
             VerifyInsertCommentCommand(code, expected);
+        }
+
+        [WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")]
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void Command_Class_AutoGenerateXmlDocCommentsOff()
+        {
+            var code =
+@"class C
+{$$
+}";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+class C
+{
+}";
+
+            VerifyInsertCommentCommand(code, expected, autoGenerateXmlDocComments: false);
         }
 
         [WorkItem(538714)]

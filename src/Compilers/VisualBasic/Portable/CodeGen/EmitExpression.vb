@@ -12,6 +12,12 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
     Friend Partial Class CodeGenerator
+        Private _recursionDepth As Integer
+
+        Private Class EmitCancelledException
+            Inherits Exception
+        End Class
+
         Private Sub EmitExpression(expression As BoundExpression, used As Boolean)
             If expression Is Nothing Then
                 Return
@@ -31,6 +37,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Return
                 End If
             End If
+
+            _recursionDepth += 1
+
+            If _recursionDepth > 1 Then
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth)
+
+                EmitExpressionCore(expression, used)
+            Else
+                EmitExpressionCoreWithStackGuard(expression, used)
+            End If
+
+            _recursionDepth -= 1
+        End Sub
+
+        Private Sub EmitExpressionCoreWithStackGuard(expression As BoundExpression, used As Boolean)
+            Debug.Assert(_recursionDepth = 1)
+
+            Try
+                EmitExpressionCore(expression, used)
+                Debug.Assert(_recursionDepth = 1)
+
+            Catch ex As Exception When StackGuard.IsInsufficientExecutionStackException(ex)
+                _diagnostics.Add(ERRID.ERR_TooLongOrComplexExpression,
+                                 BoundTreeVisitor.CancelledByStackGuardException.GetTooLongOrComplexExpressionErrorLocation(expression))
+                Throw New EmitCancelledException()
+            End Try
+        End Sub
+
+        Private Sub EmitExpressionCore(expression As BoundExpression, used As Boolean)
 
             Select Case expression.Kind
                 Case BoundKind.AssignmentOperator
@@ -1022,7 +1057,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             EmitSymbolToken(method, [call].Syntax)
             If Not method.IsSub Then
                 EmitPopIfUnused(used)
-            ElseIf _optimizations = OptimizationLevel.Debug Then
+            ElseIf _ilEmitStyle = ILEmitStyle.Debug Then
                 Debug.Assert(Not used, "Using the return value of a void method.")
                 Debug.Assert(_method.GenerateDebugInfo, "Implied by emitSequencePoints")
 

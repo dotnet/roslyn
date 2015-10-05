@@ -12,11 +12,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' before being assigned anywhere within a method.
     ''' </summary>
     ''' <remarks></remarks>
-    Friend Class UnassignedVariablesWalker
+    Friend NotInheritable Class UnassignedVariablesWalker
         Inherits DataFlowPass
 
         ' TODO: normalize the result by removing variables that are unassigned in an unmodified flow analysis.
-        Public Sub New(info As FlowAnalysisInfo)
+        Private Sub New(info As FlowAnalysisInfo)
             MyBase.New(info, suppressConstExpressionsSupport:=False, trackStructsWithIntrinsicTypedFields:=True)
         End Sub
 

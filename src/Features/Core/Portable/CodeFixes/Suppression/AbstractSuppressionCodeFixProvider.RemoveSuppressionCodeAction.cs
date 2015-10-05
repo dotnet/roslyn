@@ -12,37 +12,39 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         /// </summary>
         internal abstract partial class RemoveSuppressionCodeAction : AbstractSuppressionCodeAction
         {
-            private readonly Document _document;
             private readonly Diagnostic _diagnostic;
             private readonly bool _forFixMultipleContext;
 
             public static async Task<RemoveSuppressionCodeAction> CreateAsync(                
                 SuppressionTargetInfo suppressionTargetInfo,
-                Document document,
+                Document documentOpt,
+                Project project,
                 Diagnostic diagnostic,
                 AbstractSuppressionCodeFixProvider fixer,
                 CancellationToken cancellationToken)
             {
-                var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var attribute = diagnostic.GetSuppressionInfo(compilation).Attribute;
                 if (attribute != null)
                 {
-                    return AttributeRemoveAction.Create(attribute, document, diagnostic, fixer);
+                    return AttributeRemoveAction.Create(attribute, project, diagnostic, fixer);
+                }
+                else if (documentOpt != null)
+                {
+                    return PragmaRemoveAction.Create(suppressionTargetInfo, documentOpt, diagnostic, fixer);
                 }
                 else
                 {
-                    return PragmaRemoveAction.Create(suppressionTargetInfo, document, diagnostic, fixer);
+                    return null;
                 }
             }
 
             protected RemoveSuppressionCodeAction(
-                Document document,
                 Diagnostic diagnostic,
                 AbstractSuppressionCodeFixProvider fixer,
                 bool forFixMultipleContext = false)
                 : base (fixer, title: string.Format(FeaturesResources.RemoveSuppressionForId, diagnostic.Id))
             {
-                _document = document;
                 _diagnostic = diagnostic;
                 _forFixMultipleContext = forFixMultipleContext;
             }

@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
 
             attributeStatement = attributeStatement.WithAdditionalAnnotations(Formatter.Annotation)
 
-            Dim leadingTrivia = If(isFirst,
+            Dim leadingTrivia = If(isFirst AndAlso Not compilationRoot.HasLeadingTrivia,
                 SyntaxFactory.TriviaList(SyntaxFactory.CommentTrivia(GlobalSuppressionsFileHeaderComment)),
                 Nothing)
             leadingTrivia = leadingTrivia.AddRange(compilationRoot.GetLeadingTrivia())

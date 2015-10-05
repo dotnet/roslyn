@@ -569,9 +569,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             {
                 var notificationService = workspace.Services.GetService<INotificationService>();
                 notificationService.SendNotification(
-                    string.Join(Environment.NewLine, failedReferenceAdditions),
-                    string.Format(ServicesVSResources.ReferencesNotFound, Environment.NewLine),
-                    NotificationSeverity.Warning);
+                    string.Format(ServicesVSResources.ReferencesNotFound, Environment.NewLine)
+                    + Environment.NewLine + Environment.NewLine
+                    + string.Join(Environment.NewLine, failedReferenceAdditions),
+                    severity: NotificationSeverity.Warning);
             }
         }
 

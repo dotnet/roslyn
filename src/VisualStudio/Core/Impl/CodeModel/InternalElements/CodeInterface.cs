@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
 {
     [ComVisible(true)]
-    [ComDefaultInterface(typeof(EnvDTE.CodeInterface))]
+    [ComDefaultInterface(typeof(EnvDTE80.CodeInterface2))]
     public sealed class CodeInterface : AbstractCodeType, EnvDTE.CodeInterface, EnvDTE80.CodeInterface2
     {
         internal static EnvDTE.CodeInterface Create(

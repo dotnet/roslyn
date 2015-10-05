@@ -24,7 +24,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).AddDocument("TestDocument", string.Empty);
 
                 var source = new TestDiagnosticUpdateSource(false, null);
-                var diagnosticService = new DiagnosticService(SpecializedCollections.SingletonCollection(source), AggregateAsynchronousOperationListener.EmptyListeners);
+                var diagnosticService = new DiagnosticService(AggregateAsynchronousOperationListener.EmptyListeners);
+                diagnosticService.Register(source);
+
                 diagnosticService.DiagnosticsUpdated += (s, o) => { set.Set(); };
 
                 var id = Tuple.Create(workspace, document);
@@ -54,7 +56,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var document2 = document.Project.AddDocument("TestDocument2", string.Empty);
 
                 var source = new TestDiagnosticUpdateSource(false, null);
-                var diagnosticService = new DiagnosticService(SpecializedCollections.SingletonCollection(source), AggregateAsynchronousOperationListener.EmptyListeners);
+                var diagnosticService = new DiagnosticService(AggregateAsynchronousOperationListener.EmptyListeners);
+                diagnosticService.Register(source);
+
                 diagnosticService.DiagnosticsUpdated += (s, o) => { set.Set(); };
 
                 var id = Tuple.Create(workspace, document);

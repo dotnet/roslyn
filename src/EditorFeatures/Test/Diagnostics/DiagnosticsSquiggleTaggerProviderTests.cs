@@ -25,22 +25,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
     internal class DiagnosticTaggerWrapper : IDisposable
     {
-        public readonly DiagnosticsSquiggleTaggerProvider TaggerProvider;
-
         private readonly TestWorkspace workspace;
         private readonly DiagnosticAnalyzerService analyzerService;
         private readonly ISolutionCrawlerRegistrationService registrationService;
         private readonly ImmutableArray<IIncrementalAnalyzer> incrementalAnalyzers;
         private readonly SolutionCrawlerRegistrationService solutionCrawlerService;
         private readonly AsynchronousOperationListener asyncListener;
+        private readonly DiagnosticService diagnosticService;
+        private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> listeners;
 
-        public DiagnosticTaggerWrapper(TestWorkspace workspace, Dictionary<string, DiagnosticAnalyzer[]> analyzerMap = null)
-            : this(workspace, CreateDiagnosticAnalyzerService(analyzerMap), updateSource: null)
+        private DiagnosticsSquiggleTaggerProvider _taggerProvider;
+
+        public DiagnosticTaggerWrapper(
+            TestWorkspace workspace,
+            Dictionary<string, DiagnosticAnalyzer[]> analyzerMap = null,
+            bool createTaggerProvider = true) 
+            : this(workspace, CreateDiagnosticAnalyzerService(analyzerMap), updateSource: null, createTaggerProvider: createTaggerProvider)
         {
         }
 
-        public DiagnosticTaggerWrapper(TestWorkspace workspace, IDiagnosticUpdateSource updateSource)
-            : this(workspace, null, updateSource)
+        public DiagnosticTaggerWrapper(
+            TestWorkspace workspace,
+            IDiagnosticUpdateSource updateSource,
+            bool createTaggerProvider = true)
+            : this(workspace, null, updateSource, createTaggerProvider)
         {
         }
 
@@ -51,7 +59,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 : new TestDiagnosticAnalyzerService(analyzerMap.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutableArray()));
         }
 
-        private DiagnosticTaggerWrapper(TestWorkspace workspace, DiagnosticAnalyzerService analyzerService, IDiagnosticUpdateSource updateSource)
+        private DiagnosticTaggerWrapper(
+            TestWorkspace workspace,
+            DiagnosticAnalyzerService analyzerService,
+            IDiagnosticUpdateSource updateSource,
+            bool createTaggerProvider)
         {
             if (updateSource == null)
             {
@@ -64,16 +76,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             registrationService.Register(workspace);
 
             this.asyncListener = new AsynchronousOperationListener();
-            var listeners = AsynchronousOperationListener.CreateListeners(
+            this.listeners = AsynchronousOperationListener.CreateListeners(
                 ValueTuple.Create(FeatureAttribute.DiagnosticService, asyncListener),
                 ValueTuple.Create(FeatureAttribute.ErrorSquiggles, asyncListener));
 
             this.analyzerService = analyzerService;
-            var diagnosticService = new DiagnosticService(SpecializedCollections.SingletonEnumerable(updateSource), listeners);
+            this.diagnosticService = new DiagnosticService(listeners);
+            diagnosticService.Register(updateSource);
 
-            this.TaggerProvider = new DiagnosticsSquiggleTaggerProvider(
-                workspace.Services.GetService<IOptionService>(), diagnosticService,
-                workspace.GetService<IForegroundNotificationService>(), listeners);
+            if (createTaggerProvider)
+            {
+                var taggerProvider = this.TaggerProvider;
+            }
 
             if (analyzerService != null)
             {
@@ -81,6 +95,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 this.solutionCrawlerService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
             }
         }
+
+        public DiagnosticsSquiggleTaggerProvider TaggerProvider
+        {
+            get
+            {
+                if (_taggerProvider == null)
+                {
+                    _taggerProvider = new DiagnosticsSquiggleTaggerProvider(
+                        workspace.Services.GetService<IOptionService>(), diagnosticService,
+                        workspace.GetService<IForegroundNotificationService>(), listeners);
+                }
+
+                return _taggerProvider;
+            }
+        }
+
+
 
         public void Dispose()
         {
@@ -157,6 +188,32 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                     var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
                     var spans = tagger2.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
+                    Assert.False(spans.IsEmpty());
+                }
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void TaggerProviderCreatedAfterInitialDiagnosticsReported()
+        {
+            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFiles(new string[] { "class C {" }, CSharpParseOptions.Default))
+            using (var wrapper = new DiagnosticTaggerWrapper(workspace, analyzerMap: null, createTaggerProvider: false))
+            {
+                // First, make sure all diagnostics have been reported.
+                wrapper.WaitForTags();
+
+                // Now make the tagger.
+                var taggerProvider = wrapper.TaggerProvider;
+
+                // Make a taggers.
+                var tagger1 = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
+                using (var disposable = tagger1 as IDisposable)
+                {
+                    wrapper.WaitForTags();
+
+                    // We should have tags at this point.
+                    var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+                    var spans = tagger1.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
                     Assert.False(spans.IsEmpty());
                 }
             }

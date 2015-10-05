@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _assignedInside As HashSet(Of Symbol) = New HashSet(Of Symbol)()
 #End If
 
-        Public Sub New(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo,
+        Private Sub New(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo,
                 unassignedVariables As HashSet(Of Symbol), originalUnassigned As HashSet(Of Symbol), dataFlowsIn As ImmutableArray(Of ISymbol))
 
             MyBase.New(info, region, unassignedVariables, trackUnassignments:=True, trackStructsWithIntrinsicTypedFields:=True)

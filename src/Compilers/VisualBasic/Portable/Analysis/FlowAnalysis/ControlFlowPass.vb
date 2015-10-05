@@ -13,6 +13,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class ControlFlowPass
         Inherits AbstractFlowPass(Of LocalState)
 
+        Protected _convertInsufficientExecutionStackExceptionToCancelledByStackGuardException As Boolean = False ' By default, just let the original exception to bubble up.
+
         Friend Sub New(info As FlowAnalysisInfo, suppressConstExpressionsSupport As Boolean)
             MyBase.New(info, suppressConstExpressionsSupport)
         End Sub
@@ -29,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New LocalState(False, Me.State.Reported)
         End Function
 
-        Protected Overrides Sub Visit(node As BoundNode, Optional dontLeaveRegion As Boolean = False)
+        Protected Overrides Sub Visit(node As BoundNode, dontLeaveRegion As Boolean)
             ' Expressions must be visited if regions can be on expression boundaries. 
             If Not (TypeOf node Is BoundExpression) Then
                 MyBase.Visit(node, dontLeaveRegion)
@@ -44,15 +46,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns></returns>
         Public Overloads Shared Function Analyze(info As FlowAnalysisInfo, diagnostics As DiagnosticBag, suppressConstantExpressionsSupport As Boolean) As Boolean
             Dim walker = New ControlFlowPass(info, suppressConstantExpressionsSupport)
+
+            If diagnostics IsNot Nothing Then
+                walker._convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = True
+            End If
+
             Try
                 walker.Analyze()
                 If diagnostics IsNot Nothing Then
                     diagnostics.AddRange(walker.diagnostics)
                 End If
                 Return walker.State.Alive
+            Catch ex As CancelledByStackGuardException When diagnostics IsNot Nothing
+                ex.AddAnError(diagnostics)
+                Return True
             Finally
                 walker.Free()
             End Try
+        End Function
+
+        Protected Overrides Function ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException() As Boolean
+            Return _convertInsufficientExecutionStackExceptionToCancelledByStackGuardException
         End Function
 
         Protected Overrides Sub VisitStatement(statement As BoundStatement)
