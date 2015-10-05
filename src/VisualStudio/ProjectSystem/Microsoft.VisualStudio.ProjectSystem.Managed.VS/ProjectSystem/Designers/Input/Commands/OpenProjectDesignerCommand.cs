@@ -13,8 +13,8 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
     internal class OpenProjectDesignerCommand : OpenProjectDesignerCommandBase
     {
         [ImportingConstructor]
-        public OpenProjectDesignerCommand(IUnconfiguredProjectVsServices projectServices)
-            : base(projectServices)
+        public OpenProjectDesignerCommand(IUnconfiguredProjectVsServices projectVsServices)
+            : base(projectVsServices)
         {
         }
     }

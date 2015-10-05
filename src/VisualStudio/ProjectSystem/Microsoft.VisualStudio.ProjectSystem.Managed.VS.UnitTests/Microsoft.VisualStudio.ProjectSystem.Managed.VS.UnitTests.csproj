@@ -171,6 +171,7 @@
   <ItemGroup>
     <Compile Include="Mocks\IUnconfiguredProjectVsServicesFactory.cs" />
     <Compile Include="Mocks\IVsHierarchyFactory.cs" />
+    <Compile Include="ProjectSystem\Designers\Input\Commands\OpenProjectDesignerCommandTests.cs" />
     <Compile Include="ProjectSystem\Designers\ProjectDesignerPageMetadataTests.cs" />
     <Compile Include="ProjectSystem\UnconfiguredProjectVsServicesTests.cs" />
     <Compile Include="ProjectSystem\VsProjectFeaturesTests.cs" />
