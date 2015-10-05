@@ -4,6 +4,7 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
@@ -147,7 +148,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateConstructor
 
         Private Shared ReadOnly s_annotation As SyntaxAnnotation = New SyntaxAnnotation
 
-        Friend Overrides Function GetDelegatingConstructor(state As State, document As SemanticDocument, argumentCount As Integer, namedType As INamedTypeSymbol, candidates As ISet(Of IMethodSymbol), cancellationToken As CancellationToken) As IMethodSymbol
+        Friend Overrides Function GetDelegatingConstructor(state As State,
+                                                           document As SemanticDocument,
+                                                           argumentCount As Integer,
+                                                           namedType As INamedTypeSymbol,
+                                                           candidates As ISet(Of IMethodSymbol),
+                                                           cancellationToken As CancellationToken) As IMethodSymbol
             Dim oldToken = state.Token
             Dim tokenKind = oldToken.Kind()
             Dim simpleName = DirectCast(oldToken.Parent, SimpleNameSyntax)
@@ -178,7 +184,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateConstructor
                 Dim speculativeModel As SemanticModel = Nothing
                 If document.SemanticModel.TryGetSpeculativeSemanticModel(invocationStatement.SpanStart, newInvocationStatement, speculativeModel) Then
                     Dim symbolInfo = speculativeModel.GetSymbolInfo(newInvocation, cancellationToken)
-                    Return GenerateConstructorHelpers.GetDelegatingConstructor(symbolInfo, candidates, namedType)
+                    Return GenerateConstructorHelpers.GetDelegatingConstructor(
+                        document, symbolInfo, candidates, namedType, state.ParameterTypes)
                 End If
             Else
                 Dim oldNode = oldToken.Parent _
@@ -218,7 +225,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateConstructor
                 Dim speculativeModel = SpeculationAnalyzer.CreateSpeculativeSemanticModelForNode(oldNode, newNode, document.SemanticModel)
                 If speculativeModel IsNot Nothing Then
                     Dim symbolInfo = speculativeModel.GetSymbolInfo(newTypeName.Parent, cancellationToken)
-                    Return GenerateConstructorHelpers.GetDelegatingConstructor(symbolInfo, candidates, namedType)
+                    Return GenerateConstructorHelpers.GetDelegatingConstructor(
+                        document, symbolInfo, candidates, namedType, state.ParameterTypes)
                 End If
             End If
 

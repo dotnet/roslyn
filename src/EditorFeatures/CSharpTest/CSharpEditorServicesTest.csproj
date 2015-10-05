@@ -28,6 +28,10 @@
       <Project>{4371944A-D3BA-4B5B-8285-82E5FFC6D1F9}</Project>
       <Name>CSharpCompilerTestUtilities</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj">
+      <Project>{fe2cbea6-d121-4faa-aa8b-fc9900bf8c83}</Project>
+      <Name>CSharpInteractiveEditorFeatures</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
       <Name>TestUtilities.Desktop</Name>

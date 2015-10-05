@@ -5,7 +5,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     /// <summary>
     /// The result of loading an assembly reference to the interactive session.
     /// </summary>
-    public struct AssemblyLoadResult
+    internal struct AssemblyLoadResult
     {
         /// <summary>
         /// True if the assembly was loaded by the assembly loader, false if has been loaded before.

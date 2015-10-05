@@ -44,25 +44,6 @@
           "lib/net45/_._": {}
         }
       },
-      "Microsoft.VisualBasic/10.0.0": {
-        "frameworkAssemblies": [
-          "Microsoft.VisualBasic"
-        ],
-        "compile": {
-          "ref/net45/_._": {}
-        },
-        "runtime": {
-          "lib/net45/_._": {}
-        }
-      },
-      "Newtonsoft.Json/6.0.4": {
-        "compile": {
-          "lib/net45/Newtonsoft.Json.dll": {}
-        },
-        "runtime": {
-          "lib/net45/Newtonsoft.Json.dll": {}
-        }
-      },
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Runtime": "[4.0.0, )"
@@ -443,62 +424,6 @@
         "runtimes/aot/lib/netcore50/System.Xml.dll",
         "runtimes/aot/lib/netcore50/System.Xml.Linq.dll",
         "runtimes/aot/lib/netcore50/System.Xml.Serialization.dll"
-      ]
-    },
-    "Microsoft.VisualBasic/10.0.0": {
-      "sha512": "5BEm2/HAVd97whRlCChU7rmSh/9cwGlZ/NTNe3Jl07zuPWfKQq5TUvVNUmdvmEe8QRecJLZ4/e7WF1i1O8V42g==",
-      "type": "Package",
-      "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
-        "lib/dotnet/Microsoft.VisualBasic.dll",
-        "lib/net45/_._",
-        "lib/netcore50/Microsoft.VisualBasic.dll",
-        "lib/win8/_._",
-        "lib/wpa81/_._",
-        "Microsoft.VisualBasic.nuspec",
-        "package/services/metadata/core-properties/5dbd3a7042354092a8b352b655cf4376.psmdcp",
-        "ref/dotnet/de/Microsoft.VisualBasic.xml",
-        "ref/dotnet/es/Microsoft.VisualBasic.xml",
-        "ref/dotnet/fr/Microsoft.VisualBasic.xml",
-        "ref/dotnet/it/Microsoft.VisualBasic.xml",
-        "ref/dotnet/ja/Microsoft.VisualBasic.xml",
-        "ref/dotnet/ko/Microsoft.VisualBasic.xml",
-        "ref/dotnet/Microsoft.VisualBasic.dll",
-        "ref/dotnet/Microsoft.VisualBasic.xml",
-        "ref/dotnet/ru/Microsoft.VisualBasic.xml",
-        "ref/dotnet/zh-hans/Microsoft.VisualBasic.xml",
-        "ref/dotnet/zh-hant/Microsoft.VisualBasic.xml",
-        "ref/net45/_._",
-        "ref/netcore50/Microsoft.VisualBasic.dll",
-        "ref/netcore50/Microsoft.VisualBasic.xml",
-        "ref/win8/_._",
-        "ref/wpa81/_._"
-      ]
-    },
-    "Newtonsoft.Json/6.0.4": {
-      "sha512": "FyQLmEpjsCrEP+znauLDGAi+h6i9YnaMkITlfIoiM4RYyX3nki306bTHsr/0okiIvIc7BJhQTbOAIZVocccFUw==",
-      "type": "Package",
-      "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
-        "lib/net20/Newtonsoft.Json.dll",
-        "lib/net20/Newtonsoft.Json.xml",
-        "lib/net35/Newtonsoft.Json.dll",
-        "lib/net35/Newtonsoft.Json.xml",
-        "lib/net40/Newtonsoft.Json.dll",
-        "lib/net40/Newtonsoft.Json.xml",
-        "lib/net45/Newtonsoft.Json.dll",
-        "lib/net45/Newtonsoft.Json.xml",
-        "lib/netcore45/Newtonsoft.Json.dll",
-        "lib/netcore45/Newtonsoft.Json.xml",
-        "lib/portable-net40+sl5+wp80+win8+wpa81/Newtonsoft.Json.dll",
-        "lib/portable-net40+sl5+wp80+win8+wpa81/Newtonsoft.Json.xml",
-        "lib/portable-net45+wp80+win8+wpa81/Newtonsoft.Json.dll",
-        "lib/portable-net45+wp80+win8+wpa81/Newtonsoft.Json.xml",
-        "Newtonsoft.Json.nuspec",
-        "package/services/metadata/core-properties/87a0a4e28d50417ea282e20f81bc6477.psmdcp",
-        "tools/install.ps1"
       ]
     },
     "System.AppContext/4.0.0": {

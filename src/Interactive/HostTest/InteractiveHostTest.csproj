@@ -104,7 +104,6 @@
   <ItemGroup>
     <Compile Include="AbstractInteractiveHostTests.cs" />
     <Compile Include="InteractiveHostTests.cs" />
-    <Compile Include="NuGetPackageResolverTests.cs" />
     <Compile Include="StressTests.cs" />
     <Compile Include="SynchronizedTextWriter.cs" />
   </ItemGroup>

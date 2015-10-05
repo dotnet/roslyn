@@ -89,8 +89,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             EventHandler closeEventDelegate = null;
             closeEventDelegate = (sender, e) =>
             {
-                vsWindow.InteractiveWindow.TextView.Closed -= closeEventDelegate;                                                 
-                LogCloseSession();
+                vsWindow.InteractiveWindow.TextView.Closed -= closeEventDelegate;
+                InteractiveWindow.InteractiveWindow intWindow = vsWindow.InteractiveWindow as InteractiveWindow.InteractiveWindow;
+                LogCloseSession(intWindow.LanguageBufferCounter);
 
                 evaluator.Dispose();
             };
@@ -130,14 +131,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                     core::Microsoft.CodeAnalysis.Internal.Log.KeyValueLogMessage.Create(m => m.Add(key, value)));
         }
 
-        private void LogCloseSession()
-        {
-            InteractiveWindow.InteractiveWindow intWindow = _vsInteractiveWindow.InteractiveWindow as InteractiveWindow.InteractiveWindow;
+        private void LogCloseSession(int languageBufferCount)
+        {                                                                                                                                 
             core::Microsoft.CodeAnalysis.Internal.Log.Logger.Log(InteractiveWindowFunctionId,
                        core::Microsoft.CodeAnalysis.Internal.Log.KeyValueLogMessage.Create(m =>
                        {
                            m.Add(LogMessage.Window, LogMessage.Close);
-                           m.Add(LogMessage.LanguageBufferCount, intWindow.LanguageBufferCounter);
+                           m.Add(LogMessage.LanguageBufferCount, languageBufferCount);
                        }));
         }
 

@@ -519,6 +519,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     Debug.Assert(!info.IsByRef);
                     Debug.Assert(!info.IsPinned);
                     var type = info.Type;
+                    if (type.IsErrorType())
+                    {
+                        continue;
+                    }
 
                     var constantValue = PdbHelpers.GetConstantValue(type.EnumUnderlyingType(), rawValue);
 

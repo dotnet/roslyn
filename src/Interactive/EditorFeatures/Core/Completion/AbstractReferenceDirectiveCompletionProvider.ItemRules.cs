@@ -4,9 +4,9 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.FileSystem;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
+namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
 {
-    internal partial class ReferenceDirectiveCompletionProvider
+    internal partial class AbstractReferenceDirectiveCompletionProvider
     {
         private class ItemRules : CompletionItemRules
         {

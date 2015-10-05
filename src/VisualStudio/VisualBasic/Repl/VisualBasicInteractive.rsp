@@ -1,4 +1,7 @@
-﻿/R:System
+﻿# This file contains command-line options that the VB REPL
+# will process as part of every compilation, unless 
+# "/noconfig" option is specified in the reset command.
+/R:System
 /R:System.Core
 /R:System.Data
 /R:System.Data.DataSetExtensions

@@ -1,15 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Debugger.Clr;
+using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
@@ -3009,11 +3010,80 @@ class C
             testData.GetMethodData("<>x.<>m0").VerifyIL(tIL);
         }
 
+        [WorkItem(955, "https://github.com/aspnet/Home/issues/955")]
+        [Fact]
+        public void ConstantWithErrorType()
+        { 
+            const string source = @"
+class Program
+{
+    static void Main()
+    {
+        const int a = 1;
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var runtime = CreateRuntimeInstance(comp);
+            var badConst = new MockSymUnmanagedConstant(
+                "a",
+                1,
+                (int bufferLength, out int count, byte[] name) =>
+                {
+                    count = 0;
+                    return DiaSymReader.SymUnmanagedReaderExtensions.E_NOTIMPL;
+                });
+            var debugInfo = new MethodDebugInfoBytes.Builder(constants: new[] {badConst}).Build();
+            var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+
+            GetLocals(runtime, "Program.Main", debugInfo, locals, count: 0);
+
+            locals.Free();
+        }
+
         private static void GetLocals(RuntimeInstance runtime, string methodName, bool argumentsOnly, ArrayBuilder<LocalAndMethod> locals, int count, out string typeName, out CompilationTestData testData)
         {
             var context = CreateMethodContext(runtime, methodName);
             testData = new CompilationTestData();
             var assembly = context.CompileGetLocals(locals, argumentsOnly, out typeName, testData);
+            Assert.NotNull(assembly);
+            if (count == 0)
+            {
+                Assert.Equal(0, assembly.Count);
+            }
+            else
+            {
+                Assert.InRange(assembly.Count, 0, int.MaxValue);
+            }
+            Assert.Equal(count, locals.Count);
+        }
+
+        private static void GetLocals(RuntimeInstance runtime, string methodName, MethodDebugInfoBytes debugInfo, ArrayBuilder<LocalAndMethod> locals, int count)
+        {
+            ImmutableArray<MetadataBlock> blocks;
+            Guid moduleVersionId;
+            ISymUnmanagedReader unused;
+            int methodToken;
+            int localSignatureToken;
+            GetContextState(runtime, methodName, out blocks, out moduleVersionId, out unused, out methodToken, out localSignatureToken);
+
+            var symReader = new MockSymUnmanagedReader(
+                new Dictionary<int, MethodDebugInfoBytes>()
+                {
+                    {methodToken, debugInfo}
+                }.ToImmutableDictionary());
+            var context = EvaluationContext.CreateMethodContext(
+                default(CSharpMetadataContext),
+                blocks,
+                symReader,
+                moduleVersionId,
+                methodToken,
+                methodVersion: 1,
+                ilOffset: 0,
+                localSignatureToken: localSignatureToken);
+
+            string typeName;
+            var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: null);
+
             Assert.NotNull(assembly);
             if (count == 0)
             {

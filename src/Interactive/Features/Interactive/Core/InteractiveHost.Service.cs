@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-extern alias WORKSPACES;
+extern alias Scripting;
 
 using System;
 using System.Collections.Generic;
@@ -24,11 +23,10 @@ using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Utilities;
 
-using RuntimeMetadataReferenceResolver = WORKSPACES::Microsoft.CodeAnalysis.Scripting.Hosting.RuntimeMetadataReferenceResolver;
-using GacFileResolver = WORKSPACES::Microsoft.CodeAnalysis.Scripting.Hosting.GacFileResolver;
-
 namespace Microsoft.CodeAnalysis.Interactive
 {
+    using RelativePathResolver = Scripting::Microsoft.CodeAnalysis.RelativePathResolver;
+
     internal partial class InteractiveHost
     {
         /// <summary>
@@ -172,14 +170,9 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             private MetadataReferenceResolver CreateMetadataReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)
             {
-                var userProfilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                var packagesDirectory = string.IsNullOrEmpty(userProfilePath) ?
-                    null :
-                    Path.Combine(userProfilePath, Path.Combine(".nuget", "packages"));
-
                 return new RuntimeMetadataReferenceResolver(
                     new RelativePathResolver(searchPaths, baseDirectory),
-                    string.IsNullOrEmpty(packagesDirectory) ? null : new NuGetPackageResolverImpl(packagesDirectory),
+                    null,
                     GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
                     (path, properties) => new ShadowCopyReference(_metadataFileProvider, path, properties));
             }
