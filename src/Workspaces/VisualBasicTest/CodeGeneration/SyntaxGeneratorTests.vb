@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
         Private Sub VerifySyntax(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)
             Assert.IsAssignableFrom(GetType(TSyntax), type)
             Dim normalized = type.NormalizeWhitespace().ToFullString()
-            Dim fixedExpectations = expectedText.Replace(vbLf, vbCrLf)
+            Dim fixedExpectations = expectedText.Replace(vbCrLf, vbLf).Replace(vbLf, vbCrLf)
             Assert.Equal(fixedExpectations, normalized)
         End Sub
 
@@ -1858,6 +1858,46 @@ End Namespace
 <x>&lt;a&gt;
 Delegate Sub d()</x>.Value)
 
+        End Sub
+
+        <Fact>
+        <WorkItem(5066, "https://github.com/dotnet/roslyn/issues/5066")>
+        Public Sub TestAddAttributesOnAccessors()
+            Dim prop = _g.PropertyDeclaration("P", _g.IdentifierName("T"))
+
+            Dim evnt = DirectCast(SyntaxFactory.ParseCompilationUnit("
+Class C
+  Custom Event MyEvent As MyDelegate
+      AddHandler(ByVal value As MyDelegate)
+      End AddHandler
+ 
+      RemoveHandler(ByVal value As MyDelegate)
+      End RemoveHandler
+ 
+      RaiseEvent(ByVal message As String)
+      End RaiseEvent
+  End Event
+End Class
+").Members(0), ClassBlockSyntax).Members(0)
+
+            CheckAddRemoveAttribute(_g.GetAccessor(prop, DeclarationKind.GetAccessor))
+            CheckAddRemoveAttribute(_g.GetAccessor(prop, DeclarationKind.SetAccessor))
+            CheckAddRemoveAttribute(_g.GetAccessor(evnt, DeclarationKind.AddAccessor))
+            CheckAddRemoveAttribute(_g.GetAccessor(evnt, DeclarationKind.RemoveAccessor))
+            CheckAddRemoveAttribute(_g.GetAccessor(evnt, DeclarationKind.RaiseAccessor))
+        End Sub
+
+        Private Sub CheckAddRemoveAttribute(declaration As SyntaxNode)
+            Dim initialAttributes = _g.GetAttributes(declaration)
+            Assert.Equal(0, initialAttributes.Count)
+
+            Dim withAttribute = _g.AddAttributes(declaration, _g.Attribute("a"))
+            Dim attrsAdded = _g.GetAttributes(withAttribute)
+            Assert.Equal(1, attrsAdded.Count)
+
+            Dim withoutAttribute = _g.RemoveNode(withAttribute, attrsAdded(0))
+            Dim attrsRemoved = _g.GetAttributes(withoutAttribute)
+            Assert.Equal(0, attrsRemoved.Count)
         End Sub
 
         <Fact>
