@@ -7232,6 +7232,28 @@ End Class
         End Sub
 
         <Fact>
+        <WorkItem(4589, "https://github.com/dotnet/roslyn/issues/4589")>
+        Public Sub AnalyzerReportsMisformattedDiagnostic()
+            Dim source As String = Temp.CreateFile().WriteAllText(<text>
+Class C
+End Class
+</text>.Value).Path
+
+            Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/t:library", source},
+                                                  analyzer:=New AnalyzerReportingMisformattedDiagnostic)
+            Dim outWriter = New StringWriter()
+            Dim exitCode = vbc.Run(outWriter, Nothing)
+            Assert.Equal(0, exitCode)
+            Dim output = outWriter.ToString()
+
+            ' Verify that the diagnostic reported by AnalyzerReportingMisformattedDiagnostic is reported with the message format string, instead of the formatted message.
+            Assert.Contains(AnalyzerThatThrowsInGetMessage.Rule.Id, output, StringComparison.Ordinal)
+            Assert.Contains(AnalyzerThatThrowsInGetMessage.Rule.MessageFormat.ToString(CultureInfo.InvariantCulture), output, StringComparison.Ordinal)
+
+            CleanupAllGeneratedFiles(source)
+        End Sub
+
+        <Fact>
         Public Sub AdditionalFileDiagnostics()
             Dim dir = Temp.CreateDirectory()
             Dim source = dir.CreateFile("a.vb").WriteAllText(<text>

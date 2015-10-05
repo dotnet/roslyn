@@ -359,6 +359,28 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class AnalyzerReportingMisformattedDiagnostic : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+                "ID1",
+                "Title1",
+                "Symbol Name: {0}, Extra argument: {1}",
+                "Category1",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(symbolContext =>
+                {
+                    // Report diagnostic with incorrect number of message format arguments.
+                    symbolContext.ReportDiagnostic(Diagnostic.Create(Rule, symbolContext.Symbol.Locations[0], symbolContext.Symbol.Name));
+                }, SymbolKind.NamedType);
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public class HiddenDiagnosticsCompilationAnalyzer : DiagnosticAnalyzer
         {
             public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
