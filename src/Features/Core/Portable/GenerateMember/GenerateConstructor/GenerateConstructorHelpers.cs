@@ -68,11 +68,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             for (var i = 0; i < parameterTypes.Count; i++)
             {
                 var type1 = parameterTypes[i];
-                var type2 = method.Parameters[i].Type;
-
-                if (!semanticFactsService.IsAssignableTo(type1, type2, compilation))
+                if (type1 != null)
                 {
-                    return false;
+                    var type2 = method.Parameters[i].Type;
+
+                    if (!semanticFactsService.IsAssignableTo(type1, type2, compilation))
+                    {
+                        return false;
+                    }
                 }
             }
 

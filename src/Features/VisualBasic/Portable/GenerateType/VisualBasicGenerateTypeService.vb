@@ -720,7 +720,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                                                            objectCreation As ObjectCreationExpressionSyntax,
                                                            namedType As INamedTypeSymbol,
                                                            candidates As ISet(Of IMethodSymbol),
-                                                           parameterTypes As IList(Of ITypeSymbol),
                                                            cancellationToken As CancellationToken) As IMethodSymbol
             Dim model = document.SemanticModel
             Dim oldNode = objectCreation _
@@ -737,11 +736,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             If speculativeModel IsNot Nothing Then
                 newObjectCreation = DirectCast(newNode.GetAnnotatedNodes(s_annotation).Single(), ObjectCreationExpressionSyntax)
                 Dim symbolInfo = speculativeModel.GetSymbolInfo(newObjectCreation, cancellationToken)
+                Dim parameterTypes As IList(Of ITypeSymbol) = GetSpeculativeArgumentTypes(speculativeModel, newObjectCreation)
                 Return GenerateConstructorHelpers.GetDelegatingConstructor(
                     document, symbolInfo, candidates, namedType, parameterTypes)
             End If
 
             Return Nothing
+        End Function
+
+        Private Shared Function GetSpeculativeArgumentTypes(model As SemanticModel, newObjectCreation As ObjectCreationExpressionSyntax) As IList(Of ITypeSymbol)
+            Return If(newObjectCreation.ArgumentList Is Nothing,
+                      SpecializedCollections.EmptyList(Of ITypeSymbol),
+                      newObjectCreation.ArgumentList.Arguments.Select(
+                          Function(a)
+                              Return If(a.GetExpression() Is Nothing, Nothing, model.GetTypeInfo(a.GetExpression()).ConvertedType)
+                          End Function).ToList())
         End Function
     End Class
 End Namespace

@@ -922,7 +922,6 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             ObjectCreationExpressionSyntax objectCreation,
             INamedTypeSymbol namedType,
             ISet<IMethodSymbol> candidates,
-            IList<ITypeSymbol> parameterTypes,
             CancellationToken cancellationToken)
         {
             var model = document.SemanticModel;
@@ -942,6 +941,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             {
                 newObjectCreation = (ObjectCreationExpressionSyntax)newNode.GetAnnotatedNodes(s_annotation).Single();
                 var symbolInfo = speculativeModel.GetSymbolInfo(newObjectCreation, cancellationToken);
+                var parameterTypes = newObjectCreation.ArgumentList.Arguments.Select(
+                    a => speculativeModel.GetTypeInfo(a.Expression, cancellationToken).ConvertedType).ToList();
+
                 return GenerateConstructorHelpers.GetDelegatingConstructor(
                     document, symbolInfo, candidates, namedType, parameterTypes);
             }

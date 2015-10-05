@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
             TObjectCreationExpressionSyntax objectCreation,
             INamedTypeSymbol namedType,
             ISet<IMethodSymbol> candidates, 
-            IList<ITypeSymbol> parameterTypes,
             CancellationToken cancellationToken);
 
         private partial class Editor
@@ -156,7 +155,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
                             _state.ObjectCreationExpressionOpt,
                             _state.BaseTypeOrInterfaceOpt,
                             accessibleInstanceConstructors,
-                            parameterTypes,
                             _cancellationToken);
                         if (delegatedConstructor != null)
                         {
