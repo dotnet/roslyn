@@ -1,5 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+extern alias core;
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -57,9 +59,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
         protected abstract Guid LanguageServiceGuid { get; }
         protected abstract Guid Id { get; }
-        protected abstract string Title { get; }
-        protected abstract void LogSession(string key, string value);
-        protected abstract void LogCloseSession(int languageBufferCount);
+        protected abstract string Title { get; }    
+        protected abstract core::Microsoft.CodeAnalysis.Internal.Log.FunctionId InteractiveWindowFunctionId { get; }
 
         protected IInteractiveWindowCommandsFactory CommandsFactory
         {
@@ -88,10 +89,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             EventHandler closeEventDelegate = null;
             closeEventDelegate = (sender, e) =>
             {
-                vsWindow.InteractiveWindow.TextView.Closed -= closeEventDelegate;
-
-                InteractiveWindow.InteractiveWindow intWindow = vsWindow.InteractiveWindow as InteractiveWindow.InteractiveWindow;
-                LogCloseSession(intWindow.LanguageBufferCounter);
+                vsWindow.InteractiveWindow.TextView.Closed -= closeEventDelegate;                                                 
+                LogCloseSession();
 
                 evaluator.Dispose();
             };
@@ -123,6 +122,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             _vsInteractiveWindow.Show(focus);
 
             return _vsInteractiveWindow;
+        }
+
+        protected void LogSession(string key, string value)
+        {
+            core::Microsoft.CodeAnalysis.Internal.Log.Logger.Log(InteractiveWindowFunctionId,
+                    core::Microsoft.CodeAnalysis.Internal.Log.KeyValueLogMessage.Create(m => m.Add(key, value)));
+        }
+
+        private void LogCloseSession()
+        {
+            InteractiveWindow.InteractiveWindow intWindow = _vsInteractiveWindow.InteractiveWindow as InteractiveWindow.InteractiveWindow;
+            core::Microsoft.CodeAnalysis.Internal.Log.Logger.Log(InteractiveWindowFunctionId,
+                       core::Microsoft.CodeAnalysis.Internal.Log.KeyValueLogMessage.Create(m =>
+                       {
+                           m.Add(LogMessage.Window, LogMessage.Close);
+                           m.Add(LogMessage.LanguageBufferCount, intWindow.LanguageBufferCounter);
+                       }));
         }
 
         private static ImmutableArray<IInteractiveWindowCommand> GetApplicableCommands(IInteractiveWindowCommand[] commands, string coreContentType, string specializedContentType)

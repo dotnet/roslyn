@@ -65,17 +65,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
                 CommonVsUtils.GetWorkingDirectory())
         End Function
 
-        Protected Overrides Sub LogSession(key As String, value As String)
-            Logger.Log(FunctionId.VisualBasic_Interactive_Window, KeyValueLogMessage.Create(Sub(m) m.Add(key, value)))
-        End Sub
-
-        Protected Overrides Sub LogCloseSession(languageBufferCount As Integer)
-            Logger.Log(FunctionId.VisualBasic_Interactive_Window,
-                       KeyValueLogMessage.Create(Sub(m)
-                                                     m.Add(LanguageServices.Interactive.LogMessage.Window, LanguageServices.Interactive.LogMessage.Close)
-                                                     m.Add(LanguageServices.Interactive.LogMessage.LanguageBufferCount, languageBufferCount)
-                                                 End Sub))
-        End Sub
+        Protected Overrides ReadOnly Property InteractiveWindowFunctionId As FunctionId
+            Get
+                Return FunctionId.VisualBasic_Interactive_Window
+            End Get
+        End Property
     End Class
 End Namespace
 

@@ -1,9 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.Diagnostics;
+using System;                      
+using System.ComponentModel.Composition;    
 using System.IO;
 using Microsoft.CodeAnalysis.Editor.CSharp.Interactive;
 using Microsoft.CodeAnalysis.Editor.Interactive;
@@ -66,19 +64,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
                 CommonVsUtils.GetWorkingDirectory());
         }
 
-        protected override void LogSession(string key, string value)
+        protected override FunctionId InteractiveWindowFunctionId
         {
-            Logger.Log(FunctionId.CSharp_Interactive_Window, KeyValueLogMessage.Create(m => m.Add(key, value)));
-        }
-
-        protected override void LogCloseSession(int languageBufferCount)
-        {
-            Logger.Log(FunctionId.CSharp_Interactive_Window, 
-                       KeyValueLogMessage.Create(m =>
-                            {
-                                m.Add(LanguageServices.Interactive.LogMessage.Window, LanguageServices.Interactive.LogMessage.Close);
-                                m.Add(LanguageServices.Interactive.LogMessage.LanguageBufferCount, languageBufferCount);
-                            }));
+            get
+            {
+                return FunctionId.CSharp_Interactive_Window;
+            }
         }
     }
 }
