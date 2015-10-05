@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Class Collector
-            Inherits BoundTreeWalker
+            Inherits BoundTreeWalkerWithStackGuard
 
             Private nodes As List(Of BoundNode)
 

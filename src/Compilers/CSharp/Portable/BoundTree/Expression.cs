@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return list;
         }
 
-        private class Collector : BoundTreeWalker
+        private class Collector : BoundTreeWalkerWithStackGuard
         {
             private readonly List<IOperation> nodes;
 
