@@ -29,6 +29,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Proj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.ProjectSystem.VisualBasic.VS.UnitTests", "src\VisualStudio\ProjectSystem\Microsoft.VisualStudio.ProjectSystem.VisualBasic.VS.UnitTests\Microsoft.VisualStudio.ProjectSystem.VisualBasic.VS.UnitTests.csproj", "{2F58FC7F-85D9-427A-84F0-A6AA741E5BBA}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EDAD3643-1D1F-4554-B1AD-FB6630F78829}"
+	ProjectSection(SolutionItems) = preProject
+		src\VisualStudio\ProjectSystem\ProjectSystem.runsettings = src\VisualStudio\ProjectSystem\ProjectSystem.runsettings
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
