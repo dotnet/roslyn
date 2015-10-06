@@ -20,7 +20,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             var needMoreTime = false;
 
-            _codeElementTable.Cleanup(out needMoreTime);
+            _codeElementTable.CleanUpDeadObjects();
+            needMoreTime = _codeElementTable.NeedsCleanUp;
 
             if (this.IsZombied)
             {

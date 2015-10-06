@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private readonly ITextManagerAdapter _textManagerAdapter;
 
-        private readonly CodeElementTable _codeElementTable;
+        private readonly CleanableWeakComHandleTable<SyntaxNodeKey, EnvDTE.CodeElement> _codeElementTable;
 
         // These are used during batching.
         private bool _batchMode;
@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _documentId = documentId;
             _textManagerAdapter = textManagerAdapter;
 
-            _codeElementTable = new CodeElementTable();
+            _codeElementTable = new CleanableWeakComHandleTable<SyntaxNodeKey, EnvDTE.CodeElement>();
 
             _batchMode = false;
             _batchDocument = null;
@@ -187,8 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal void UpdateCodeElementNodeKey(AbstractKeyedCodeElement keyedElement, SyntaxNodeKey oldNodeKey, SyntaxNodeKey newNodeKey)
         {
-            EnvDTE.CodeElement codeElement;
-            _codeElementTable.Remove(oldNodeKey, out codeElement);
+            var codeElement = _codeElementTable.Remove(oldNodeKey);
 
             var managedElement = ComAggregate.GetManagedObject<AbstractKeyedCodeElement>(codeElement);
             if (!object.Equals(managedElement, keyedElement))
@@ -218,19 +217,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 }
 
                 // See if the element exists.
-                var previousElement = _codeElementTable.TryGetValue(nodeKey);
-
                 // Here's our element... possibly.  It must be valid -- if it isn't,
                 // we need to remove it.
-                if (previousElement != null)
+
+                EnvDTE.CodeElement element;
+                if (_codeElementTable.TryGetValue(nodeKey, out element))
                 {
-                    var previousElementImpl = ComAggregate.TryGetManagedObject<AbstractCodeElement>(previousElement);
+                    var previousElementImpl = ComAggregate.TryGetManagedObject<AbstractCodeElement>(element);
 
                     if (previousElementImpl.IsValidNode())
                     {
-                        if (previousElement is T)
+                        if (element is T)
                         {
-                            return (T)previousElement;
+                            return (T)element;
                         }
                         else
                         {
@@ -529,6 +528,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var column = point.LineCharOffset - 1;
             var line = GetDocument().GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).Lines[lineNumber];
             var position = line.Start + column;
+
             return position;
         }
 
@@ -608,10 +608,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public EnvDTE.CodeElements CodeElements
         {
-            get
-            {
-                return NamespaceCollection.Create(this.State, this, this, SyntaxNodeKey.Empty);
-            }
+            get { return NamespaceCollection.Create(this.State, this, this, SyntaxNodeKey.Empty); }
         }
 
         public EnvDTE.ProjectItem Parent
@@ -694,8 +691,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                         foreach (var elementAndPath in elementAndPaths)
                         {
                             // make sure the element is there.
-                            var existingElement = _codeElementTable.TryGetValue(elementAndPath.Item1.NodeKey);
-                            if (existingElement != null)
+                            EnvDTE.CodeElement existingElement;
+                            if (_codeElementTable.TryGetValue(elementAndPath.Item1.NodeKey, out existingElement))
                             {
                                 elementAndPath.Item1.ReacquireNodeKey(elementAndPath.Item2, CancellationToken.None);
                             }
@@ -772,10 +769,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             var currentNodeKeys = new List<GlobalNodeKey>();
 
-            foreach (var element in _codeElementTable)
+            foreach (var element in _codeElementTable.Values)
             {
                 var keyedElement = ComAggregate.TryGetManagedObject<AbstractKeyedCodeElement>(element);
-
                 if (keyedElement == null)
                 {
                     continue;
@@ -785,7 +781,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 if (keyedElement.TryLookupNode(out node))
                 {
                     var nodeKey = keyedElement.NodeKey;
-                    currentNodeKeys.Add(new GlobalNodeKey(nodeKey, new Roslyn.Utilities.SyntaxPath(node)));
+                    currentNodeKeys.Add(new GlobalNodeKey(nodeKey, new SyntaxPath(node)));
                 }
             }
 
@@ -802,13 +798,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private void ResetElementKey(GlobalNodeKey globalNodeKey)
         {
-            var element = _codeElementTable.TryGetValue(globalNodeKey.NodeKey);
-
             // Failure to find the element is not an error -- it just means the code
             // element didn't exist...
-            if (element != null)
+
+            EnvDTE.CodeElement element;
+            if (_codeElementTable.TryGetValue(globalNodeKey.NodeKey, out element))
             {
-                ComAggregate.GetManagedObject<AbstractKeyedCodeElement>(element).ReacquireNodeKey(globalNodeKey.Path, default(CancellationToken));
+                var keyedElement = ComAggregate.GetManagedObject<AbstractKeyedCodeElement>(element);
+                if (keyedElement != null)
+                {
+                    keyedElement.ReacquireNodeKey(globalNodeKey.Path, default(CancellationToken));
+                }
             }
         }
     }
