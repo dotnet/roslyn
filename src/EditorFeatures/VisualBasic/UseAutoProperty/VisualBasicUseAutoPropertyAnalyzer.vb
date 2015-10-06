@@ -29,19 +29,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
             Return declarator?.Initializer?.Value
         End Function
 
-        Private Function CheckExpressionSyntactically(expression As ExpressionSyntax) As Boolean
+        Private Function GetFieldName(expression As ExpressionSyntax) As String
             If expression?.Kind() = SyntaxKind.SimpleMemberAccessExpression Then
                 Dim memberAccessExpression = DirectCast(expression, MemberAccessExpressionSyntax)
-                Return memberAccessExpression.Expression.Kind() = SyntaxKind.MeExpression AndAlso
-                    memberAccessExpression.Name.Kind() = SyntaxKind.IdentifierName
+                If memberAccessExpression.Expression.Kind() = SyntaxKind.MeExpression AndAlso
+                   memberAccessExpression.Name.Kind() = SyntaxKind.IdentifierName Then
+                    Return DirectCast(memberAccessExpression.Name, IdentifierNameSyntax).Identifier.ValueText
+                End If
             ElseIf expression.Kind() = SyntaxKind.IdentifierName
-                Return True
+                Return DirectCast(expression, IdentifierNameSyntax).Identifier.ValueText
             End If
 
-            Return False
+            Return Nothing
         End Function
 
-        Protected Overrides Function GetGetterExpression(getMethod As IMethodSymbol, cancellationToken As CancellationToken) As ExpressionSyntax
+        Protected Overrides Function GetGetterFieldName(getMethod As IMethodSymbol, cancellationToken As CancellationToken) As String
             ' Getter has to be of the form:
             '
             '     Get
@@ -57,21 +59,29 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
                 Dim statement = statements.Value(0)
                 If statement.Kind() = SyntaxKind.ReturnStatement Then
                     Dim expr = DirectCast(statement, ReturnStatementSyntax).Expression
-                    Return If(CheckExpressionSyntactically(expr), expr, Nothing)
+                    Return GetFieldName(expr)
                 End If
             End If
 
             Return Nothing
         End Function
 
-        Protected Overrides Function GetSetterExpression(setMethod As IMethodSymbol, semanticModel As SemanticModel, cancellationToken As CancellationToken) As ExpressionSyntax
+        Protected Overrides Function GetSetterFieldName(setMethod As IMethodSymbol, cancellationToken As CancellationToken) As String
             ' Setter has to be of the form:
             '
-            '     Set(value)
+            '     Set(p)
+            '         field = p
+            '     End Set
+            ' or
+            '     Set(p)
+            '         Me.field = p
+            '     End Set
+            ' or
+            '     Set
             '         field = value
             '     End Set
             ' or
-            '     Set(value)
+            '     Set
             '         Me.field = value
             '     End Set
             Dim setAccessor = TryCast(TryCast(setMethod.DeclaringSyntaxReferences(0).GetSyntax(cancellationToken), AccessorStatementSyntax)?.Parent, AccessorBlockSyntax)
@@ -81,11 +91,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
                 If statement?.Kind() = SyntaxKind.SimpleAssignmentStatement Then
                     Dim assignmentStatement = DirectCast(statement, AssignmentStatementSyntax)
                     If assignmentStatement.Right.Kind() = SyntaxKind.IdentifierName Then
-                        Dim identifier = DirectCast(assignmentStatement.Right, IdentifierNameSyntax)
-                        Dim symbol = semanticModel.GetSymbolInfo(identifier).Symbol
-                        If setMethod.Parameters.Contains(TryCast(symbol, IParameterSymbol)) Then
-                            Return If(CheckExpressionSyntactically(assignmentStatement.Left), assignmentStatement.Left, Nothing)
+                        ' Needs to be a something that could be a field of this type on the left.
+                        Dim fieldName = GetFieldName(assignmentStatement.Left)
+                        If fieldName Is Nothing Then
+                            Return Nothing
                         End If
+
+                        ' The right side has to refer to the setter parameter (or 'value' if tehre are no parameters).
+                        Dim rightName = DirectCast(assignmentStatement.Right, IdentifierNameSyntax).Identifier.ValueText
+                        Dim setParameterList = setAccessor.GetParameterList()
+                        If setParameterList IsNot Nothing AndAlso setParameterList.Parameters.Count > 0 Then
+                            Return If(CaseInsensitiveComparison.Equals(setParameterList.Parameters(0).Identifier.Identifier.ValueText, rightName), fieldName, Nothing)
+                        End If
+
+                        Return If(CaseInsensitiveComparison.Equals(rightName, "value"), fieldName, Nothing)
                     End If
                 End If
             End If

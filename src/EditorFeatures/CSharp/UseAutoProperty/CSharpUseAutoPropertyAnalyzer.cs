@@ -32,23 +32,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             return variable.Initializer?.Value;
         }
 
-        private bool CheckExpressionSyntactically(ExpressionSyntax expression)
+        private string GetFieldName(ExpressionSyntax expression)
         {
             if (expression?.Kind() == SyntaxKind.SimpleMemberAccessExpression)
             {
                 var memberAccessExpression = (MemberAccessExpressionSyntax)expression;
-                return memberAccessExpression.Expression.Kind() == SyntaxKind.ThisExpression &&
-                    memberAccessExpression.Name.Kind() == SyntaxKind.IdentifierName;
+                if (memberAccessExpression.Expression.Kind() == SyntaxKind.ThisExpression && 
+                    memberAccessExpression.Name.Kind() == SyntaxKind.IdentifierName)
+                {
+                    return ((IdentifierNameSyntax)memberAccessExpression.Name).Identifier.ValueText;
+                }
             }
             else if (expression.Kind() == SyntaxKind.IdentifierName)
             {
-                return true;
+                return ((IdentifierNameSyntax)expression).Identifier.ValueText;
             }
 
-            return false;
+            return null;
         }
 
-        protected override ExpressionSyntax GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken)
+        protected override string GetGetterFieldName(IMethodSymbol getMethod, CancellationToken cancellationToken)
         {
             // Getter has to be of the form:
             //
@@ -62,14 +65,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
                 if (statement.Kind() == SyntaxKind.ReturnStatement)
                 {
                     var expr = ((ReturnStatementSyntax)statement).Expression;
-                    return CheckExpressionSyntactically(expr) ? expr : null;
+                    return GetFieldName(expr);
                 }
             }
 
             return null;
         }
 
-        protected override ExpressionSyntax GetSetterExpression(IMethodSymbol setMethod, SemanticModel semanticModel, CancellationToken cancellationToken)
+        protected override string GetSetterFieldName(IMethodSymbol setMethod, CancellationToken cancellationToken)
         {
             // Setter has to be of the form:
             //
@@ -89,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
                         if (assignmentExpression.Right.Kind() == SyntaxKind.IdentifierName &&
                             ((IdentifierNameSyntax)assignmentExpression.Right).Identifier.ValueText == "value")
                         {
-                            return CheckExpressionSyntactically(assignmentExpression.Left) ? assignmentExpression.Left : null;
+                            return GetFieldName(assignmentExpression.Left);
                         }
                     }
                 }

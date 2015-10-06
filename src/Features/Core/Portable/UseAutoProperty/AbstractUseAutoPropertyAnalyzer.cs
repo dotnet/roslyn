@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         protected abstract bool SupportsReadOnlyProperties(Compilation compilation);
         protected abstract bool SupportsPropertyInitializer(Compilation compilation);
         protected abstract TExpression GetFieldInitializer(TVariableDeclarator variable, CancellationToken cancellationToken);
-        protected abstract TExpression GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken);
-        protected abstract TExpression GetSetterExpression(IMethodSymbol setMethod, SemanticModel semanticModel, CancellationToken cancellationToken);
+        protected abstract string GetGetterFieldName(IMethodSymbol getMethod, CancellationToken cancellationToken);
+        protected abstract string GetSetterFieldName(IMethodSymbol setMethod, CancellationToken cancellationToken);
         protected abstract SyntaxNode GetNodeToFade(TFieldDeclaration fieldDeclaration, TVariableDeclarator variableDeclarator);
 
         public sealed override void Initialize(AnalysisContext context)
@@ -90,8 +90,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return;
             }
 
-            var semanticModel = symbolContext.Compilation.GetSemanticModel(propertyDeclaration.SyntaxTree);
-            var getterField = GetGetterField(semanticModel, property.GetMethod, cancellationToken);
+            var getterField = GetGetterField(containingType, property.GetMethod, cancellationToken);
             if (getterField == null)
             {
                 return;
@@ -137,7 +136,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var setMethod = property.SetMethod;
             if (setMethod != null)
             {
-                var setterField =  GetSetterField(semanticModel, containingType, setMethod, cancellationToken);
+                var setterField =  GetSetterField(containingType, setMethod, cancellationToken);
                 if (setterField != getterField)
                 {
                     // If there is a getter and a setter, they both need to agree on which field they are 
@@ -177,40 +176,44 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             ProcessResult(result, symbolContext);
         }
 
-        private IFieldSymbol GetSetterField(
-            SemanticModel semanticModel, ISymbol containingType, IMethodSymbol setMethod, CancellationToken cancellationToken)
+        private IFieldSymbol GetSetterField(INamedTypeSymbol containingType, IMethodSymbol setMethod, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return CheckFieldAccessExpression(semanticModel, GetSetterExpression(setMethod, semanticModel, cancellationToken), cancellationToken);
+            return CheckFieldAccessExpression(containingType, GetSetterFieldName(setMethod, cancellationToken), cancellationToken);
         }
 
-        private IFieldSymbol GetGetterField(SemanticModel semanticModel, IMethodSymbol getMethod, CancellationToken cancellationToken)
+        private IFieldSymbol GetGetterField(INamedTypeSymbol containingType, IMethodSymbol getMethod, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return CheckFieldAccessExpression(semanticModel, GetGetterExpression(getMethod, cancellationToken), cancellationToken);
+            return CheckFieldAccessExpression(containingType, GetGetterFieldName(getMethod, cancellationToken), cancellationToken);
         }
 
-        private IFieldSymbol CheckFieldAccessExpression(SemanticModel semanticModel, TExpression expression, CancellationToken cancellationToken)
+        private IFieldSymbol CheckFieldAccessExpression(INamedTypeSymbol containingType, string fieldName, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (expression == null)
+            if (string.IsNullOrWhiteSpace(fieldName))
             {
                 return null;
             }
 
-            var symbolInfo = semanticModel.GetSymbolInfo(expression);
-            if (symbolInfo.Symbol == null || symbolInfo.Symbol.Kind != SymbolKind.Field)
+            var symbols = containingType.GetMembers(fieldName);
+            if (symbols.Length != 1)
             {
                 return null;
             }
 
-            var field = (IFieldSymbol)symbolInfo.Symbol;
-            if (field.DeclaringSyntaxReferences.Length > 1)
+            var symbol = symbols[0];
+            if (symbol?.Kind != SymbolKind.Field)
             {
                 return null;
             }
 
-            return field;
+            if (symbol.DeclaringSyntaxReferences.Length > 1)
+            {
+                return null;
+            }
+
+            return (IFieldSymbol)symbol;
         }
 
         private void ProcessResult(AnalysisResult result, SymbolAnalysisContext compilationContext)
