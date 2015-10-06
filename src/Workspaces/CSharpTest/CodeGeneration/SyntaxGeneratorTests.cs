@@ -1336,6 +1336,32 @@ public interface IFace
         }
 
         [Fact]
+        [WorkItem(5066, "https://github.com/dotnet/roslyn/issues/5066")]
+        public void TestAddAttributesToAccessors()
+        {
+            var prop = _g.PropertyDeclaration("P", _g.IdentifierName("T"));
+            var evnt = _g.CustomEventDeclaration("E", _g.IdentifierName("T"));
+            CheckAddRemoveAttribute(_g.GetAccessor(prop, DeclarationKind.GetAccessor));
+            CheckAddRemoveAttribute(_g.GetAccessor(prop, DeclarationKind.SetAccessor));
+            CheckAddRemoveAttribute(_g.GetAccessor(evnt, DeclarationKind.AddAccessor));
+            CheckAddRemoveAttribute(_g.GetAccessor(evnt, DeclarationKind.RemoveAccessor));
+        }
+
+        private void CheckAddRemoveAttribute(SyntaxNode declaration)
+        {
+            var initialAttributes = _g.GetAttributes(declaration);
+            Assert.Equal(0, initialAttributes.Count);
+
+            var withAttribute = _g.AddAttributes(declaration, _g.Attribute("a"));
+            var attrsAdded = _g.GetAttributes(withAttribute);
+            Assert.Equal(1, attrsAdded.Count);
+
+            var withoutAttribute = _g.RemoveNode(withAttribute, attrsAdded[0]);
+            var attrsRemoved = _g.GetAttributes(withoutAttribute);
+            Assert.Equal(0, attrsRemoved.Count);
+        }
+
+        [Fact]
         public void TestAddRemoveAttributesPerservesTrivia()
         {
             var cls = SyntaxFactory.ParseCompilationUnit(@"// comment

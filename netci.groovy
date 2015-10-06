@@ -121,7 +121,7 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
         autoCloseFailedPullRequests(false)
         orgWhitelist('Microsoft')
         allowMembersOfWhitelistedOrgsAsAdmin(true)
-        permitAll(false)
+        permitAll(true)
         extensions {
           commitStatus {
             context(contextName.replace('_', '/').substring(7))

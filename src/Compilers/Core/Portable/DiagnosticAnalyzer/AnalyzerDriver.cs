@@ -1174,7 +1174,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var declaringReferenceSyntax = declaration.GetSyntax(cancellationToken);
             var topmostNodeForAnalysis = semanticModel.GetTopmostNodeForDiagnosticAnalysis(symbol, declaringReferenceSyntax);
-            ComputeDeclarationsInNode(semanticModel, declaringReferenceSyntax, topmostNodeForAnalysis, builder, cancellationToken);
+            ComputeDeclarationsInNode(semanticModel, symbol, declaringReferenceSyntax, topmostNodeForAnalysis, builder, cancellationToken);
             var isPartialDeclAnalysis = analysisScope.FilterSpanOpt.HasValue && !analysisScope.ContainsSpan(topmostNodeForAnalysis.FullSpan);
             var nodesToAnalyze = shouldExecuteSyntaxNodeActions ?
                     GetSyntaxNodesToAnalyze(topmostNodeForAnalysis, symbol, builder, analysisScope, isPartialDeclAnalysis, semanticModel, analyzerExecutor) :
@@ -1188,11 +1188,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return declarationAnalysisData;
         }
 
-        private static void ComputeDeclarationsInNode(SemanticModel semanticModel, SyntaxNode declaringReferenceSyntax, SyntaxNode topmostNodeForAnalysis, List<DeclarationInfo> builder, CancellationToken cancellationToken)
+        private static void ComputeDeclarationsInNode(SemanticModel semanticModel, ISymbol declaredSymbol, SyntaxNode declaringReferenceSyntax, SyntaxNode topmostNodeForAnalysis, List<DeclarationInfo> builder, CancellationToken cancellationToken)
         {
             // We only care about the top level symbol declaration and its immediate member declarations.
             int? levelsToCompute = 2;
-            var getSymbol = topmostNodeForAnalysis != declaringReferenceSyntax;
+            var getSymbol = topmostNodeForAnalysis != declaringReferenceSyntax || declaredSymbol.Kind == SymbolKind.Namespace;
             semanticModel.ComputeDeclarationsInNode(topmostNodeForAnalysis, getSymbol, builder, cancellationToken, levelsToCompute);
         }
 
