@@ -176,11 +176,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinSquareBrackets);
             }
+
             if (currentKind == SyntaxKind.CloseBracketToken && previousKind != SyntaxKind.OmittedArraySizeExpressionToken && HasFormattableBracketParent(currentToken))
             {
-                // int []: added spacing operation on [
-                // int[,]: added spacing operation on ,
-                // int[1]: need spacing operation
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinSquareBrackets);
             }
 
