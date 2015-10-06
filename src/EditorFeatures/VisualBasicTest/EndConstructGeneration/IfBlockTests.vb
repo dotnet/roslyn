@@ -388,5 +388,27 @@ End Module</code>.Value.Replace(vbLf, vbCrLf)},
                         "End Class"},
                 afterCaret:={3, 0})
         End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        Public Sub TestMissingThen()
+            VerifyStatementEndConstructApplied(
+                before:={"Class c1",
+                         "  Sub foo()",
+                         "    If True",
+                         "    ElseIf False ",
+                         "    End If",
+                         "  End Sub",
+                         "End Class"},
+                beforeCaret:={2, -1},
+                after:={"Class c1",
+                        "  Sub foo()",
+                         "    If True Then",
+                         "",
+                         "    ElseIf False Then",
+                         "    End If",
+                        "  End Sub",
+                        "End Class"},
+                afterCaret:={3, -1})
+        End Sub
+
     End Class
 End Namespace
