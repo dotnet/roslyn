@@ -148,18 +148,11 @@ namespace Microsoft.CodeAnalysis.Rename
                 // where the names might be different is explicit interface implementations in
                 // Visual Basic and VB's identifiers are case insensitive. 
                 // Do not cascade to symbols that are defined only in metadata.
-                if (referencedSymbol.Kind == SymbolKind.Method ||
-                    referencedSymbol.Kind == SymbolKind.Property ||
-                    referencedSymbol.Kind == SymbolKind.Event ||
-                    referencedSymbol.Kind == SymbolKind.TypeParameter ||
-                    referencedSymbol.Kind == SymbolKind.Field)
+                if (referencedSymbol.Kind == originalSymbol.Kind &&
+                    string.Compare(TrimNameToAfterLastDot(referencedSymbol.Name), TrimNameToAfterLastDot(originalSymbol.Name), StringComparison.OrdinalIgnoreCase) == 0 &&
+                    referencedSymbol.Locations.Any(loc => loc.IsInSource))
                 {
-                    if (referencedSymbol.Kind == originalSymbol.Kind &&
-                        string.Compare(TrimNameToAfterLastDot(referencedSymbol.Name), TrimNameToAfterLastDot(originalSymbol.Name), StringComparison.OrdinalIgnoreCase) == 0 &&
-                        referencedSymbol.Locations.Any(loc => loc.IsInSource))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
 
                 // If the original symbol is an alias, then the referenced symbol will be where we

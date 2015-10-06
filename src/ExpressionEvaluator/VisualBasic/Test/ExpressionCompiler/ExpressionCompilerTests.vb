@@ -1394,6 +1394,7 @@ End Class
             Const source =
 "Imports System
 Imports System.Diagnostics.Contracts
+Imports Microsoft.VisualBasic
 Class C
     Function F() As Object
         Return 1
@@ -1406,10 +1407,15 @@ Class C
     Shared Function H() As Object
         Return 3
     End Function
-    Shared Sub M(o As C, i As Integer, a As Action)
+    Default Public ReadOnly Property Item(ByVal str As String) As String
+        Get
+            Return Format(""No!"")
+        End Get
+    End Property
+    Shared Sub M(o As C, i As Integer, a As Action, obj As Object)
     End Sub
 End Class"
-            Dim compilation0 = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib45AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(compilation0)
             Dim context = CreateMethodContext(
                 runtime,
@@ -1425,6 +1431,8 @@ End Class"
             CheckResultProperties(context, "If(a, Sub() i -= 4)", DkmClrCompilationResultFlags.PotentialSideEffect Or DkmClrCompilationResultFlags.ReadOnlyResult)
             CheckResultProperties(context, "New C() With {.P = 1}", DkmClrCompilationResultFlags.ReadOnlyResult)
             CheckResultProperties(context, "New C() With {.P = H()}", DkmClrCompilationResultFlags.PotentialSideEffect Or DkmClrCompilationResultFlags.ReadOnlyResult)
+            CheckResultProperties(context, "obj(""Test"")", DkmClrCompilationResultFlags.PotentialSideEffect)
+            CheckResultProperties(context, "obj.Item(""Test"")", DkmClrCompilationResultFlags.PotentialSideEffect)
         End Sub
 
         <Fact>

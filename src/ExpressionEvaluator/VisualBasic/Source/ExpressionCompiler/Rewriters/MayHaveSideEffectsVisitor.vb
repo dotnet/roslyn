@@ -35,6 +35,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return SetMayHaveSideEffects()
         End Function
 
+        Public Overrides Function VisitLateInvocation(node As BoundLateInvocation) As BoundNode
+            Return SetMayHaveSideEffects()
+        End Function
+
         ' In Visual Basic, a parameterless method can be called without specifying an argument list,
         ' so we will treat every method group as a potential Call.  This is not strictly true (in the
         ' case where the parent is an AddressOf), but it doesn't seem worth any extra effort to handle
