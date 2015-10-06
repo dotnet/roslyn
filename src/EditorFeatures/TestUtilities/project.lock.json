@@ -11,14 +11,15 @@
           "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll": {}
         }
       },
-      "Microsoft.DiaSymReader/1.0.5": {
+      "Microsoft.DiaSymReader/1.0.5.1": {
         "compile": {
-          "lib/net45/Microsoft.DiaSymReader.dll": {}
+          "lib/net20/Microsoft.DiaSymReader.dll": {}
         },
         "runtime": {
-          "lib/net45/Microsoft.DiaSymReader.dll": {}
+          "lib/net20/Microsoft.DiaSymReader.dll": {}
         }
       },
+      "Microsoft.DiaSymReader.Native/1.1.0-alpha2": {},
       "System.Collections.Immutable/1.1.36": {
         "compile": {
           "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
@@ -40,8 +41,8 @@
       },
       "xunit/2.1.0-beta4-build3109": {
         "dependencies": {
-          "xunit.core": "[2.1.0-beta4-build3109, 2.1.0-beta4-build3109]",
-          "xunit.assert": "[2.1.0-beta4-build3109, 2.1.0-beta4-build3109]"
+          "xunit.assert": "[2.1.0-beta4-build3109, 2.1.0-beta4-build3109]",
+          "xunit.core": "[2.1.0-beta4-build3109, 2.1.0-beta4-build3109]"
         }
       },
       "xunit.abstractions/2.0.0": {
@@ -94,99 +95,111 @@
       "sha512": "mQa72JIzSdIC7wOcW8vl1izgZ+GSeTRrYYpbPKPvrX/PeygTd4SRxord7PL+fTb1q3YjlwMBSqgJsDXVa99fUA==",
       "type": "Package",
       "files": [
+        "[Content_Types].xml",
         "_rels/.rels",
-        "Microsoft.CodeAnalysis.Test.Resources.Proprietary.nuspec",
         "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll",
-        "package/services/metadata/core-properties/58b0e57bbbed434fb2c05b7ef3a926cc.psmdcp",
-        "[Content_Types].xml"
+        "Microsoft.CodeAnalysis.Test.Resources.Proprietary.nuspec",
+        "package/services/metadata/core-properties/58b0e57bbbed434fb2c05b7ef3a926cc.psmdcp"
       ]
     },
-    "Microsoft.DiaSymReader/1.0.5": {
-      "sha512": "0Ugv1+34GttdWLdhquMnRCgo4ktDNGQBDDtY+1Jdcuk1jOD0jeeqlR/AZDhxcrV25eOMC3Lwumj353nAYRylqQ==",
+    "Microsoft.DiaSymReader/1.0.5.1": {
+      "sha512": "s3ExUWlfkWt9cHcJQgrm4mS5Lfj91B6o2G9DD1zFA1/7aihXPL8W16Hyix+joyh8g3buxsxb0snwhPKQHb9ApA==",
       "type": "Package",
       "files": [
+        "[Content_Types].xml",
         "_rels/.rels",
-        "Microsoft.DiaSymReader.nuspec",
-        "lib/net45/Microsoft.DiaSymReader.dll",
-        "lib/net45/Microsoft.DiaSymReader.xml",
         "lib/net20/Microsoft.DiaSymReader.dll",
         "lib/net20/Microsoft.DiaSymReader.xml",
-        "package/services/metadata/core-properties/08003dc206aa4abfa0c6f00c3f91c002.psmdcp",
-        "[Content_Types].xml"
+        "lib/portable-net45+win8/Microsoft.DiaSymReader.dll",
+        "lib/portable-net45+win8/Microsoft.DiaSymReader.xml",
+        "Microsoft.DiaSymReader.nuspec",
+        "package/services/metadata/core-properties/4ff7fb1418cc465f82f38fc19097827f.psmdcp"
+      ]
+    },
+    "Microsoft.DiaSymReader.Native/1.1.0-alpha2": {
+      "sha512": "D9bGkcO1+s5c0jn4R/9BD3pw4gqyaFzC7XdlYBVDTqYMqVITMDpF8xxMXN0F3nZRl1dE54RGWp5k8GVAnMhpgQ==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "Microsoft.DiaSymReader.Native.nuspec",
+        "package/services/metadata/core-properties/e2e1c0f9faac4ddb951a90d33184740b.psmdcp",
+        "runtimes/win/native/Microsoft.DiaSymReader.Native.amd64.dll",
+        "runtimes/win/native/Microsoft.DiaSymReader.Native.x86.dll"
       ]
     },
     "System.Collections.Immutable/1.1.36": {
       "sha512": "MOlivTIeAIQPPMUPWIIoMCvZczjFRLYUWSYwqi1szu8QPyeIbsaPeI+hpXe1DzTxNwnRnmfYaoToi6kXIfSPNg==",
       "type": "Package",
       "files": [
+        "[Content_Types].xml",
         "_rels/.rels",
-        "System.Collections.Immutable.nuspec",
-        "License-Stable.rtf",
         "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll",
         "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.xml",
+        "License-Stable.rtf",
         "package/services/metadata/core-properties/c8b7b781850445db852bd2d848380ca6.psmdcp",
-        "[Content_Types].xml"
+        "System.Collections.Immutable.nuspec"
       ]
     },
     "System.Reflection.Metadata/1.1.0-alpha-00014": {
       "sha512": "rVeIWjVoLQS0aNrGdzndZReskyfxu4EfO9BKqT5GJt0YfGtlsHB1aDPnjl4jIBDTr+WJC9YsnZg8S5sKT1X42g==",
       "type": "Package",
       "files": [
+        "[Content_Types].xml",
         "_rels/.rels",
-        "System.Reflection.Metadata.nuspec",
         "lib/portable-net45+win8/System.Reflection.Metadata.dll",
         "lib/portable-net45+win8/System.Reflection.Metadata.pdb",
         "lib/portable-net45+win8/System.Reflection.Metadata.xml",
         "package/services/metadata/core-properties/a48ecf967b1540bba8edfe9af3a99ea5.psmdcp",
-        "[Content_Types].xml"
+        "System.Reflection.Metadata.nuspec"
       ]
     },
     "xunit/2.1.0-beta4-build3109": {
       "sha512": "mbZVcx4H/rDoiPOaiR9TRQgiBTXiStvjBRemGn96jTEePu7jUS3RDMU7EN0CkrVbw4GNXOqMdafblEOo6U4/NA==",
       "type": "Package",
       "files": [
+        "[Content_Types].xml",
         "_rels/.rels",
-        "xunit.nuspec",
         "package/services/metadata/core-properties/272e8825b1914d2d8e866cb165d3cad0.psmdcp",
-        "[Content_Types].xml"
+        "xunit.nuspec"
       ]
     },
     "xunit.abstractions/2.0.0": {
       "sha512": "NAdxKQRzuLnCZ0g++x6i87/8rMBpQoRiRlRNLAqfODm2zJPbteHRoSER3DXfxnqrHXyBJT8rFaZ8uveBeQyaMA==",
       "type": "Package",
       "files": [
+        "[Content_Types].xml",
         "_rels/.rels",
-        "xunit.abstractions.nuspec",
         "lib/net35/xunit.abstractions.dll",
         "lib/net35/xunit.abstractions.xml",
         "lib/portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS/xunit.abstractions.dll",
         "lib/portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS/xunit.abstractions.xml",
         "package/services/metadata/core-properties/24083640fee244bf9de77f4c35d40a72.psmdcp",
-        "[Content_Types].xml"
+        "xunit.abstractions.nuspec"
       ]
     },
     "xunit.assert/2.1.0-beta4-build3109": {
       "sha512": "P6cyWlPboKWil9u7DTrDgIJQcK9WFef4+o2D++sEpvBvKoD2BINDc9SBRtEPt9z8mcOKbs1LH1+TJHKd2nASnQ==",
       "type": "Package",
       "files": [
+        "[Content_Types].xml",
         "_rels/.rels",
-        "xunit.assert.nuspec",
-        "lib/portable-net45+netcore45+wp8+wpa81/xunit.assert.dll",
-        "lib/portable-net45+netcore45+wp8+wpa81/xunit.assert.pdb",
-        "lib/portable-net45+netcore45+wp8+wpa81/xunit.assert.xml",
         "lib/dotnet/xunit.assert.dll",
         "lib/dotnet/xunit.assert.pdb",
         "lib/dotnet/xunit.assert.xml",
+        "lib/portable-net45+netcore45+wp8+wpa81/xunit.assert.dll",
+        "lib/portable-net45+netcore45+wp8+wpa81/xunit.assert.pdb",
+        "lib/portable-net45+netcore45+wp8+wpa81/xunit.assert.xml",
         "package/services/metadata/core-properties/ba68c680aca7471ea9ac9cc557fee3dc.psmdcp",
-        "[Content_Types].xml"
+        "xunit.assert.nuspec"
       ]
     },
     "xunit.core/2.1.0-beta4-build3109": {
       "sha512": "Z/tl35u6DASv0X3yFxO0CyHQPE1QH84X9y8bcpEVBai0byC1DSAk3heayxGFHrvuNbnA3bVYxD5t+CnAxKUZuQ==",
       "type": "Package",
       "files": [
+        "[Content_Types].xml",
         "_rels/.rels",
-        "xunit.core.nuspec",
         "build/_Desktop/xunit.execution.desktop.dll",
         "build/monoandroid/xunit.core.props",
         "build/monoandroid/xunit.execution.MonoAndroid.dll",
@@ -203,43 +216,43 @@
         "build/xamarinios/xunit.core.props",
         "build/xamarinios/xunit.execution.iOS-Universal.dll",
         "package/services/metadata/core-properties/2a5b204e6182455c99ce548be2a3b755.psmdcp",
-        "[Content_Types].xml"
+        "xunit.core.nuspec"
       ]
     },
     "xunit.extensibility.core/2.1.0-beta4-build3109": {
       "sha512": "B7K5N6aVf2QV+dWEkGqtgbybkCL7YjAy/TiH8xBiL0Zorf3lUGVP5P/3Bo1OY9OLobRYkTriRTGmqbDdRXqOrA==",
       "type": "Package",
       "files": [
+        "[Content_Types].xml",
         "_rels/.rels",
-        "xunit.extensibility.core.nuspec",
-        "lib/portable-net45+netcore45+wp8+wpa81/xunit.core.dll",
-        "lib/portable-net45+netcore45+wp8+wpa81/xunit.core.dll.tdnet",
-        "lib/portable-net45+netcore45+wp8+wpa81/xunit.core.pdb",
-        "lib/portable-net45+netcore45+wp8+wpa81/xunit.core.xml",
-        "lib/portable-net45+netcore45+wp8+wpa81/xunit.runner.tdnet.dll",
-        "lib/portable-net45+netcore45+wp8+wpa81/xunit.runner.utility.desktop.dll",
         "lib/dotnet/xunit.core.dll",
         "lib/dotnet/xunit.core.dll.tdnet",
         "lib/dotnet/xunit.core.pdb",
         "lib/dotnet/xunit.core.xml",
         "lib/dotnet/xunit.runner.tdnet.dll",
         "lib/dotnet/xunit.runner.utility.desktop.dll",
+        "lib/portable-net45+netcore45+wp8+wpa81/xunit.core.dll",
+        "lib/portable-net45+netcore45+wp8+wpa81/xunit.core.dll.tdnet",
+        "lib/portable-net45+netcore45+wp8+wpa81/xunit.core.pdb",
+        "lib/portable-net45+netcore45+wp8+wpa81/xunit.core.xml",
+        "lib/portable-net45+netcore45+wp8+wpa81/xunit.runner.tdnet.dll",
+        "lib/portable-net45+netcore45+wp8+wpa81/xunit.runner.utility.desktop.dll",
         "package/services/metadata/core-properties/456bba8eee5d4253a271c9933a6aefdf.psmdcp",
-        "[Content_Types].xml"
+        "xunit.extensibility.core.nuspec"
       ]
     },
     "xunit.extensibility.execution/2.1.0-beta4-build3109": {
       "sha512": "tJ4iAL+roCr0DdQNIJ+L/pQ563tTuZuMP/1RzPzIcSNeqq0UwGGwFjZv7wQY3SJru+vODpYRYw6LRH8bV2nAVw==",
       "type": "Package",
       "files": [
+        "[Content_Types].xml",
         "_rels/.rels",
-        "xunit.extensibility.execution.nuspec",
-        "lib/dotnet/xunit.execution.DotNetCore.dll",
-        "lib/dotnet/xunit.execution.DotNetCore.pdb",
-        "lib/dotnet/xunit.execution.DotNetCore.xml",
         "lib/dnx451/xunit.execution.DotNetCore.dll",
         "lib/dnx451/xunit.execution.DotNetCore.pdb",
         "lib/dnx451/xunit.execution.DotNetCore.xml",
+        "lib/dotnet/xunit.execution.DotNetCore.dll",
+        "lib/dotnet/xunit.execution.DotNetCore.pdb",
+        "lib/dotnet/xunit.execution.DotNetCore.xml",
         "lib/monoandroid/xunit.execution.MonoAndroid.dll",
         "lib/monoandroid/xunit.execution.MonoAndroid.pdb",
         "lib/monoandroid/xunit.execution.MonoAndroid.xml",
@@ -251,8 +264,8 @@
         "lib/net45/xunit.execution.desktop.xml",
         "lib/portable-wpa81+win81/xunit.execution.universal.dll",
         "lib/portable-wpa81+win81/xunit.execution.universal.pdb",
-        "lib/portable-wpa81+win81/xunit.execution.universal.xml",
         "lib/portable-wpa81+win81/xunit.execution.universal.pri",
+        "lib/portable-wpa81+win81/xunit.execution.universal.xml",
         "lib/wp8/xunit.execution.wp8.dll",
         "lib/wp8/xunit.execution.wp8.pdb",
         "lib/wp8/xunit.execution.wp8.xml",
@@ -260,7 +273,7 @@
         "lib/xamarinios/xunit.execution.iOS-Universal.pdb",
         "lib/xamarinios/xunit.execution.iOS-Universal.xml",
         "package/services/metadata/core-properties/c26b7b1126ef4ad68cd2c9fa0c9bb62b.psmdcp",
-        "[Content_Types].xml"
+        "xunit.extensibility.execution.nuspec"
       ]
     }
   },
