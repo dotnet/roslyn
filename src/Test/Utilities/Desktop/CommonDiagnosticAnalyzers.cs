@@ -252,6 +252,45 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        public class CSharpCodeBlockObjectCreationAnalyzer : CodeBlockObjectCreationAnalyzer<SyntaxKind>
+        {
+            protected override SyntaxKind ObjectCreationExpressionKind => SyntaxKind.ObjectCreationExpression;
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
+        public class VisualBasicCodeBlockObjectCreationAnalyzer : CodeBlockObjectCreationAnalyzer<VisualBasic.SyntaxKind>
+        {
+            protected override VisualBasic.SyntaxKind ObjectCreationExpressionKind => VisualBasic.SyntaxKind.ObjectCreationExpression;
+        }
+
+        public abstract class CodeBlockObjectCreationAnalyzer<TLanguageKindEnum> : DiagnosticAnalyzer
+            where TLanguageKindEnum : struct
+        {
+            public static readonly DiagnosticDescriptor DiagnosticDescriptor = new DiagnosticDescriptor(
+                "Id",
+                "Title",
+                "Message",
+                "Category",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptor);
+            protected abstract TLanguageKindEnum ObjectCreationExpressionKind { get; }
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCodeBlockStartAction<TLanguageKindEnum>(codeBlockStartContext =>
+                {
+                    codeBlockStartContext.RegisterSyntaxNodeAction(syntaxNodeContext =>
+                    {
+                        syntaxNodeContext.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptor, syntaxNodeContext.Node.GetLocation()));
+                    },
+                    ObjectCreationExpressionKind);
+                });
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
         public class CSharpGenericNameAnalyzer : DiagnosticAnalyzer
         {
             public const string DiagnosticId = "DiagnosticId";
@@ -270,6 +309,46 @@ namespace Microsoft.CodeAnalysis
             public override void Initialize(AnalysisContext context)
             {
                 context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.GenericName);
+            }
+
+            private void AnalyzeNode(SyntaxNodeAnalysisContext context)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(Rule, context.Node.GetLocation()));
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        public class CSharpNamespaceDeclarationAnalyzer : AbstractNamespaceDeclarationAnalyzer<SyntaxKind>
+        {
+            protected override SyntaxKind NamespaceDeclarationSyntaxKind => SyntaxKind.NamespaceDeclaration;
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
+        public class VisualBasicNamespaceDeclarationAnalyzer : AbstractNamespaceDeclarationAnalyzer<VisualBasic.SyntaxKind>
+        {
+            protected override VisualBasic.SyntaxKind NamespaceDeclarationSyntaxKind => VisualBasic.SyntaxKind.NamespaceStatement;
+        }
+
+        public abstract class AbstractNamespaceDeclarationAnalyzer<TLanguageKindEnum> : DiagnosticAnalyzer
+            where TLanguageKindEnum : struct
+        {
+            public const string DiagnosticId = "DiagnosticId";
+            public const string Title = "Title";
+            public const string Message = "Message";
+            public const string Category = "Category";
+            public const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
+
+            internal static DiagnosticDescriptor Rule =
+                new DiagnosticDescriptor(DiagnosticId, Title, Message,
+                                         Category, Severity, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+                 ImmutableArray.Create(Rule);
+            protected abstract TLanguageKindEnum NamespaceDeclarationSyntaxKind { get; }
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(AnalyzeNode, NamespaceDeclarationSyntaxKind);
             }
 
             private void AnalyzeNode(SyntaxNodeAnalysisContext context)

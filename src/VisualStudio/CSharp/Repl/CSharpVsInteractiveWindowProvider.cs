@@ -1,17 +1,17 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.ComponentModel.Composition;
+using System;                      
+using System.ComponentModel.Composition;    
 using System.IO;
 using Microsoft.CodeAnalysis.Editor.CSharp.Interactive;
 using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.VisualStudio.InteractiveWindow.Commands;
+using Microsoft.VisualStudio.InteractiveWindow.Shell;
 using Microsoft.VisualStudio.LanguageServices.Interactive;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.VisualStudio.InteractiveWindow.Commands;
-using Microsoft.VisualStudio.InteractiveWindow.Shell;
 using LanguageServiceGuids = Microsoft.VisualStudio.LanguageServices.Guids;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
@@ -64,9 +64,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
                 CommonVsUtils.GetWorkingDirectory());
         }
 
-        protected override void LogSession(string key, string value)
+        protected override FunctionId InteractiveWindowFunctionId
         {
-            Logger.Log(FunctionId.CSharp_Interactive_Window, KeyValueLogMessage.Create(m => m.Add(key, value)));
+            get
+            {
+                return FunctionId.CSharp_Interactive_Window;
+            }
         }
     }
 }

@@ -2739,6 +2739,48 @@ namespace ConsoleApplication1
 string.Format(FeaturesResources.GenerateMethodIn, "M1", "C"));
         }
 
+        [WorkItem(5338, "https://github.com/dotnet/roslyn/issues/5338")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public void TestGenerateMethodLambdaOverload1()
+        {
+            Test(
+@"using System;
+using System.Collections.Concurrent;
+
+class JToken { }
+
+class Class1
+{
+    private static readonly ConcurrentDictionary<Type, Func<JToken, object>> _deserializeHelpers =
+        new ConcurrentDictionary<Type, Func<JToken, object>>();
+
+    private static object DeserializeObject(JToken token, Type type)
+    {
+        _deserializeHelpers.GetOrAdd(type, key => [|CreateDeserializeDelegate|](key));
+    }
+}",
+@"using System;
+using System.Collections.Concurrent;
+
+class JToken { }
+
+class Class1
+{
+    private static readonly ConcurrentDictionary<Type, Func<JToken, object>> _deserializeHelpers =
+        new ConcurrentDictionary<Type, Func<JToken, object>>();
+
+    private static object DeserializeObject(JToken token, Type type)
+    {
+        _deserializeHelpers.GetOrAdd(type, key => CreateDeserializeDelegate(key));
+    }
+
+    private static Func<JToken, object> CreateDeserializeDelegate(JToken key)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
         public class GenerateConversionTest : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
         {
             internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)

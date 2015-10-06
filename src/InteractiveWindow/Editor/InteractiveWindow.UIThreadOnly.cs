@@ -824,14 +824,19 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         var executionResult = await Evaluator.ExecuteCodeAsync(snapshotSpan.GetText()).ConfigureAwait(true);
                         Debug.Assert(_window.OnUIThread()); // ConfigureAwait should bring us back to the UI thread.
 
-                        // For reset command typed at prompt, the state should be WaitingForInput 
-                        // and for all other submissions it should be Executing input
-                        Debug.Assert(State == State.ExecutingInput || State == State.WaitingForInput, $"Unexpected state {State}");
+                        // For reset command typed at prompt -> the state should be WaitingForInput. 
+                        // For all other submissions on the prompt -> it should be Executing input.
+                        // If reset button is clicked during a long running submission -> it could be Resetting because 
+                        // oldService is disposed first as part of resetting, which leads to await call above returning, and new service is 
+                        // created after that as part of completing the resetting process. 
+                        Debug.Assert(State == State.ExecutingInput || 
+                            State == State.WaitingForInput || 
+                            State == State.Resetting, $"Unexpected state {State}");
 
                         if (State == State.ExecutingInput)
                         {
                             FinishExecute(executionResult.IsSuccessful);
-                        }
+                        }                              
                     }
                 }
                 catch (Exception e) when (_window.ReportAndPropagateException(e))
@@ -1380,6 +1385,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 {
                     bufferAdded(_window, new SubmissionBufferAddedEventArgs(buffer));
                 }
+
+                _window.LanguageBufferCounter++;
 
                 // add the whole buffer to the projection buffer and set it up to expand to the right as text is appended
                 var promptSpan = CreatePrimaryPrompt();

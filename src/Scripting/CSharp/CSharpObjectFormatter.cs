@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.Scripting.CSharp
 {
-    public sealed class CSharpObjectFormatter : ObjectFormatter
+    internal sealed class CSharpObjectFormatter : ObjectFormatter
     {
         public static readonly CSharpObjectFormatter Instance = new CSharpObjectFormatter();
 

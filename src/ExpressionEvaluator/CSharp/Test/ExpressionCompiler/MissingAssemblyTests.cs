@@ -694,6 +694,7 @@ class UseLinq
             var compileResult = ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
                 runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
                 "args.Where(a => a.Length > 0)",
+                ImmutableArray<Alias>.Empty,
                 (_1, _2) => context, // ignore new blocks and just keep using the same failed context...
                 (AssemblyIdentity assemblyIdentity, out uint uSize) =>
                 {
