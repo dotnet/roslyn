@@ -978,33 +978,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationReference(this, aliases, embedInteropTypes);
         }
 
-        // Get all modules in this compilation, including the source module, added modules, and all
-        // modules of referenced assemblies that do not come from an assembly with an extern alias.
-        // Metadata imported from aliased assemblies is not visible at the source level except through 
-        // the use of an extern alias directive. So exclude them from this list which is used to construct
-        // the global namespace.
-        private IEnumerable<ModuleSymbol> GetAllUnaliasedModules()
+        /// <summary>
+        /// Get all modules in this compilation, including the source module, added modules, and all
+        /// modules of referenced assemblies that do not come from an assembly with an extern alias.
+        /// Metadata imported from aliased assemblies is not visible at the source level except through 
+        /// the use of an extern alias directive. So exclude them from this list which is used to construct
+        /// the global namespace.
+        /// </summary>
+        private void GetAllUnaliasedModules(ArrayBuilder<ModuleSymbol> modules)
         {
-            // Get all assemblies in this compilation, including the source assembly and all referenced assemblies.
-            ArrayBuilder<ModuleSymbol> modules = new ArrayBuilder<ModuleSymbol>();
-
             // NOTE: This includes referenced modules - they count as modules of the compilation assembly.
-            modules.AddRange(this.Assembly.Modules);
+            modules.AddRange(Assembly.Modules);
 
-            foreach (var pair in GetBoundReferenceManager().ReferencedAssembliesMap)
+            var referenceManager = GetBoundReferenceManager();
+
+            for (int i = 0; i < referenceManager.ReferencedAssemblies.Length; i++)
             {
-                MetadataReference reference = pair.Key;
-                ReferenceManager.ReferencedAssembly referencedAssembly = pair.Value;
-                if (reference.Properties.Kind == MetadataImageKind.Assembly) // Already handled modules above.
+                if (referenceManager.DeclarationsAccessibleWithoutAlias(i))
                 {
-                    if (referencedAssembly.DeclarationsAccessibleWithoutAlias())
-                    {
-                        modules.AddRange(referencedAssembly.Symbol.Modules);
-                    }
+                    modules.AddRange(referenceManager.ReferencedAssemblies[i].Modules);
                 }
             }
+        }
 
-            return modules;
+        /// <summary>
+        /// Return a list of assembly symbols than can be accessed without using an alias.
+        /// For example:
+        ///   1) /r:A.dll /r:B.dll -> A, B
+        ///   2) /r:Foo=A.dll /r:B.dll -> B
+        ///   3) /r:Foo=A.dll /r:A.dll -> A
+        /// </summary>
+        internal void GetUnaliasedReferencedAssemblies(ArrayBuilder<AssemblySymbol> assemblies)
+        {
+            var referenceManager = GetBoundReferenceManager();
+
+            for (int i = 0; i < referenceManager.ReferencedAssemblies.Length; i++)
+            {
+                if (referenceManager.DeclarationsAccessibleWithoutAlias(i))
+                {
+                    assemblies.Add(referenceManager.ReferencedAssemblies[i]);
+                }
+            }
         }
 
         /// <summary>
@@ -1012,7 +1026,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public new MetadataReference GetMetadataReference(IAssemblySymbol assemblySymbol)
         {
-            return this.GetBoundReferenceManager().ReferencedAssembliesMap.Where(kvp => object.ReferenceEquals(kvp.Value.Symbol, assemblySymbol)).Select(kvp => kvp.Key).FirstOrDefault();
+            return base.GetMetadataReference(assemblySymbol);
         }
 
         #endregion
@@ -1066,15 +1080,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)_lazyGlobalNamespace == null)
                 {
                     // Get the root namespace from each module, and merge them all together
-                    HashSet<NamespaceSymbol> allGlobalNamespaces = new HashSet<NamespaceSymbol>();
-                    foreach (ModuleSymbol module in GetAllUnaliasedModules())
-                    {
-                        allGlobalNamespaces.Add(module.GlobalNamespace);
-                    }
+                    // Get all modules in this compilation, ones referenced directly by the compilation 
+                    // as well as those referenced by all referenced assemblies.
 
-                    var result = MergedNamespaceSymbol.Create(new NamespaceExtent(this),
+                    var modules = ArrayBuilder<ModuleSymbol>.GetInstance();
+                    GetAllUnaliasedModules(modules);
+
+                    var result = MergedNamespaceSymbol.Create(
+                        new NamespaceExtent(this),
                         null,
-                        allGlobalNamespaces.AsImmutable());
+                        modules.SelectDistinct(m => m.GlobalNamespace));
+
+                    modules.Free();
+
                     Interlocked.CompareExchange(ref _lazyGlobalNamespace, result, null);
                 }
 
@@ -1126,12 +1144,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ArrayBuilder<NamespaceSymbol> builder = null;
-            foreach (var referencedAssembly in GetBoundReferenceManager().ReferencedAssembliesMap.Values)
+            var referenceManager = GetBoundReferenceManager();
+            for (int i = 0; i < referenceManager.ReferencedAssemblies.Length; i++)
             {
-                if (referencedAssembly.Aliases.Contains(aliasName))
+                if (referenceManager.AliasesOfReferencedAssemblies[i].Contains(aliasName))
                 {
                     builder = builder ?? ArrayBuilder<NamespaceSymbol>.GetInstance();
-                    builder.Add(referencedAssembly.Symbol.GlobalNamespace);
+                    builder.Add(referenceManager.ReferencedAssemblies[i].GlobalNamespace);
                 }
             }
 
@@ -2791,19 +2810,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.ObjectType; }
         }
 
-        protected override MetadataReference CommonGetMetadataReference(IAssemblySymbol assemblySymbol)
-        {
-            var symbol = assemblySymbol as AssemblySymbol;
-            if ((object)symbol != null)
-            {
-                return this.GetMetadataReference(symbol);
-            }
-            else
-            {
-                return null;
-            }
-        }
-
         protected override IMethodSymbol CommonGetEntryPoint(CancellationToken cancellationToken)
         {
             return this.GetEntryPoint(cancellationToken);
@@ -2860,6 +2866,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         #endregion
+
+        /// <summary>
+        /// Returns if the compilation has all of the members necessary to emit metadata about 
+        /// dynamic types.
+        /// </summary>
+        /// <returns></returns>
+        internal bool HasDynamicEmitAttributes()
+        {
+            return
+                (object)GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctor) != null &&
+                (object)GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags) != null;
+        }
 
         internal override AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager)
         {

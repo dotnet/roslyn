@@ -56,8 +56,7 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.XML" />
     <Reference Include="WindowsBase" />
@@ -66,6 +65,7 @@
     <Content Include="Resources\ReplToolBarImages.bmp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BufferBlock.cs" />
     <Compile Include="Commands\CancelExecutionCommand.cs" />
     <Compile Include="Commands\ClearScreenCommand.cs" />
     <Compile Include="Commands\CommandClassifier.cs" />
@@ -90,7 +90,9 @@
     <Compile Include="Commands\InteractiveCommandsFactory.cs" />
     <Compile Include="IInteractiveWindowOperations.cs" />
     <Compile Include="IInteractiveWindowOperations2.cs" />
+    <Compile Include="InteractiveWindowClipboard.cs" />
     <Compile Include="InteractiveWindow.SpanRangeEdit.cs" />
+    <Compile Include="InteractiveWindow.SystemClipboard.cs" />
     <Compile Include="ProjectionBufferExtensions.cs" />
     <Compile Include="InteractiveWindow.PendingSubmission.cs" />
     <Compile Include="InteractiveWindow.ReplSpanKind.cs" />
@@ -140,6 +142,5 @@
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

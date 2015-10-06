@@ -367,6 +367,23 @@ delegate void D();
 
 #End Region
 
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TypeDescriptor_GetProperties()
+            Dim code =
+<Code>
+delegate void $$D();
+</Code>
+
+            Dim expectedPropertyNames =
+                {"DTE", "Collection", "Name", "FullName", "ProjectItem", "Kind",
+                 "IsCodeType", "InfoLocation", "Children", "Language", "StartPoint",
+                 "EndPoint", "ExtenderNames", "ExtenderCATID", "Parent", "Namespace",
+                 "Bases", "Members", "Access", "Attributes", "DocComment", "Comment",
+                 "DerivedTypes", "BaseClass", "Type", "Parameters", "IsGeneric"}
+
+            TestPropertyDescriptors(code, expectedPropertyNames)
+        End Sub
+
         Protected Overrides ReadOnly Property LanguageName As String
             Get
                 Return LanguageNames.CSharp

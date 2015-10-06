@@ -1,16 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
@@ -19,18 +12,29 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     {
         public static bool CanBeSuppressed(Diagnostic diagnostic)
         {
-            if (diagnostic.Location.Kind != LocationKind.SourceFile || diagnostic.IsSuppressed || IsNotConfigurableDiagnostic(diagnostic))
+            return CanBeSuppressedOrUnsuppressed(diagnostic, checkCanBeSuppressed: true);
+        }
+
+        public static bool CanBeUnsuppressed(Diagnostic diagnostic)
+        {
+            return CanBeSuppressedOrUnsuppressed(diagnostic, checkCanBeSuppressed: false);
+        }
+
+        private static bool CanBeSuppressedOrUnsuppressed(Diagnostic diagnostic, bool checkCanBeSuppressed)
+        {
+            if (diagnostic.IsSuppressed == checkCanBeSuppressed ||
+                IsNotConfigurableDiagnostic(diagnostic))
             {
                 // Don't offer suppression fixes for:
-                //   1. Diagnostics without a source location.
-                //   2. Diagnostics with a source suppression.
-                //   3. Non-configurable diagnostics (includes compiler errors).
+                //   1. Diagnostics with a source suppression.
+                //   2. Non-configurable diagnostics (includes compiler errors).
                 return false;
             }
 
             switch (diagnostic.Severity)
             {
                 case DiagnosticSeverity.Hidden:
+                    // Hidden diagnostics should never show up.
                     return false;
 
                 case DiagnosticSeverity.Error:

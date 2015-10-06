@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
 using System.IO;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
@@ -20,15 +19,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.CSharp
 
         internal override MetadataReferenceResolver GetCommandLineMetadataReferenceResolver(TouchedFileLogger loggerOpt)
         {
-            return new RuntimeMetadataReferenceResolver(
-                new RelativePathResolver(Arguments.ReferencePaths, Arguments.BaseDirectory),
-                null,
-                new GacFileResolver(GacFileResolver.Default.Architectures, CultureInfo.CurrentCulture),
-                (path, properties) =>
-                {
-                    loggerOpt?.AddRead(path);
-                    return MetadataReference.CreateFromFile(path);
-                });
+            return CommandLineRunner.GetMetadataReferenceResolver(Arguments, loggerOpt);
         }
 
         public override void PrintLogo(TextWriter consoleOutput)

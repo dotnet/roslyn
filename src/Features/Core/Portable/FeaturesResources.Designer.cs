@@ -692,6 +692,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Roslyn.HostError.
+        /// </summary>
+        internal static string ErrorCategory {
+            get {
+                return ResourceManager.GetString("ErrorCategory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The selection contains an error or unknown type..
         /// </summary>
         internal static string ErrorOrUnknownType {
@@ -1655,6 +1664,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove Suppression.
+        /// </summary>
+        internal static string RemoveSuppressionEquivalenceKeyPrefix {
+            get {
+                return ResourceManager.GetString("RemoveSuppressionEquivalenceKeyPrefix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove Suppression {0}.
+        /// </summary>
+        internal static string RemoveSuppressionForId {
+            get {
+                return ResourceManager.GetString("RemoveSuppressionForId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove Unnecessary Cast.
         /// </summary>
         internal static string RemoveUnnecessaryCast {
@@ -2239,6 +2266,33 @@ namespace Microsoft.CodeAnalysis {
         internal static string UseTheNavigationBarToSwitchContext {
             get {
                 return ResourceManager.GetString("UseTheNavigationBarToSwitchContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An instance of analyzer {0} cannot be created from {1}: {2}..
+        /// </summary>
+        internal static string WRN_AnalyzerCannotBeCreated {
+            get {
+                return ResourceManager.GetString("WRN_AnalyzerCannotBeCreated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The assembly {0} does not contain any analyzers..
+        /// </summary>
+        internal static string WRN_NoAnalyzerInAssembly {
+            get {
+                return ResourceManager.GetString("WRN_NoAnalyzerInAssembly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to load Analyzer assembly {0}: {1}.
+        /// </summary>
+        internal static string WRN_UnableToLoadAnalyzer {
+            get {
+                return ResourceManager.GetString("WRN_UnableToLoadAnalyzer", resourceCulture);
             }
         }
         

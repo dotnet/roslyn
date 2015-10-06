@@ -4,8 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis.Text;
+using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -19,15 +19,30 @@ namespace Microsoft.CodeAnalysis
         ///
         /// The first element (index==0) of the assemblies array represents the assembly being built.
         /// One can think about the rest of the items in assemblies array as assembly references given to the compiler to
-        /// 
         /// build executable for the assembly being built. 
-        /// 
         /// </summary>
         /// 
-        /// <param name="assemblies">
-        /// The set of AssemblyData objects describing assemblies, for which this method should
-        /// resolve references and find suitable AssemblySymbols. This array is not modified by the
-        /// method.
+        /// <param name="explicitAssemblies">
+        /// An array of <see cref="AssemblyData"/> objects describing assemblies, for which this method should
+        /// resolve references and find suitable AssemblySymbols. The first slot contains the assembly being built.
+        /// </param>
+        /// <param name="resolverOpt">
+        /// Reference resolver used to look up missing assemblies.
+        /// </param>
+        /// <param name="importOptions">
+        /// Import options applied to implicitly resolved references.
+        /// </param>
+        /// <param name="allAssemblies">
+        /// Updated array <paramref name="explicitAssemblies"/> with resolved implicitly referenced assemblies appended.
+        /// </param>
+        /// <param name="implicitlyResolvedReferences">
+        /// Implicitly resolved references.
+        /// </param>
+        /// <param name="implicitlyResolvedReferenceMap">
+        /// Maps indices of implicitly resolved references to the corresponding indices of resolved assemblies in <paramref name="allAssemblies"/> (explicit + implicit).
+        /// </param>
+        /// <param name="resolutionDiagnostics">
+        /// Any diagnostics reported while resolving missing assemblies.
         /// </param>
         /// <param name="hasCircularReference">
         /// True if the assembly being compiled is indirectly referenced through some of its own references.
@@ -35,73 +50,310 @@ namespace Microsoft.CodeAnalysis
         /// <param name="corLibraryIndex">
         /// The definition index of the COR library.
         /// </param>
-        /// <returns>
-        /// An array of Binding structures describing the result. It has the same amount of items as
-        /// the input assemblies array, Binding structure for each input AssemblyData object resides
+        /// <return>
+        /// An array of <see cref="BoundInputAssembly"/> structures describing the result. It has the same amount of items as
+        /// the input assemblies array, <see cref="BoundInputAssembly"/> for each input AssemblyData object resides
         /// at the same position.
         /// 
-        /// Each Binding structure contains the following data:
+        /// Each <see cref="BoundInputAssembly"/> contains the following data:
         /// 
         /// -    Suitable AssemblySymbol instance for the corresponding assembly, 
         ///     null reference if none is available/found. Always null for the first element, which corresponds to the assembly being built.
         ///
         /// -    Result of resolving assembly references of the corresponding assembly 
         ///     against provided set of assembly definitions. Essentially, this is an array returned by
-        ///     AssemblyData.BindAssemblyReferences method.
-        /// </returns>
-        internal BoundInputAssembly[] Bind(
-            ImmutableArray<AssemblyData> assemblies,
+        ///     <see cref="AssemblyData.BindAssemblyReferences(ImmutableArray{AssemblyData}, AssemblyIdentityComparer)"/> method.
+        /// </return>
+        protected BoundInputAssembly[] Bind(
+            ImmutableArray<AssemblyData> explicitAssemblies,
+            MetadataReferenceResolver resolverOpt,
+            MetadataImportOptions importOptions,
+            out ImmutableArray<AssemblyData> allAssemblies,
+            out ImmutableArray<MetadataReference> implicitlyResolvedReferences,
+            out ImmutableArray<ResolvedReference> implicitlyResolvedReferenceMap,
+            DiagnosticBag resolutionDiagnostics,
             out bool hasCircularReference,
             out int corLibraryIndex)
         {
-            Debug.Assert(!assemblies.IsDefault);
+            Debug.Assert(explicitAssemblies[0] is AssemblyDataForAssemblyBeingBuilt);
 
-            int totalAssemblies = assemblies.Length;
-
-            // This is the array where we store the result in.
-            BoundInputAssembly[] boundInputs = new BoundInputAssembly[totalAssemblies];
-
-            // Based on assembly identity, for each assembly, 
-            // bind its references against the other assemblies we have.
-            for (int i = 0; i < totalAssemblies; i++)
+            var referenceBindings = ArrayBuilder<AssemblyReferenceBinding[]>.GetInstance();
+            try
             {
-                boundInputs[i].ReferenceBinding = assemblies[i].BindAssemblyReferences(assemblies, this.IdentityComparer);
-            }
-
-            // All assembly symbols should be uninitialized at this point:
-            Debug.Assert(Array.TrueForAll(boundInputs, bi => bi.AssemblySymbol == null));
-
-            hasCircularReference = CheckCircularReference(boundInputs);
-
-            corLibraryIndex = IndexOfCorLibrary(assemblies);
-
-            // For each assembly, locate AssemblySymbol with similar reference resolution
-            // What does similar mean?
-            // Similar means: 
-            // 1) The same references are resolved against the assemblies that we are given.
-            // 2) The same assembly is used as the COR library.
-
-            TAssemblySymbol[] candidateInputAssemblySymbols = new TAssemblySymbol[totalAssemblies];
-
-            // If any assembly from assemblies array refers back to assemblyBeingBuilt,
-            // we know that we cannot reuse symbols for any assemblies containing NoPia
-            // local types. Because we cannot reuse symbols for assembly referring back
-            // to assemblyBeingBuilt.
-            if (!hasCircularReference)
-            {
-                // Deal with assemblies containing NoPia local types.
-                if (ReuseAssemblySymbolsWithNoPiaLocalTypes(boundInputs, candidateInputAssemblySymbols, assemblies, corLibraryIndex))
+                // Based on assembly identity, for each assembly, 
+                // bind its references against the other assemblies we have.
+                for (int i = 0; i < explicitAssemblies.Length; i++)
                 {
-                    return boundInputs;
+                    referenceBindings.Add(explicitAssemblies[i].BindAssemblyReferences(explicitAssemblies, IdentityComparer));
                 }
+
+                if (resolverOpt?.ResolveMissingAssemblies == true)
+                {
+                    ResolveAndBindMissingAssemblies(explicitAssemblies, resolverOpt, importOptions, referenceBindings, out allAssemblies, out implicitlyResolvedReferences, out implicitlyResolvedReferenceMap, resolutionDiagnostics);
+                }
+                else
+                {
+                    allAssemblies = explicitAssemblies;
+                    implicitlyResolvedReferences = ImmutableArray<MetadataReference>.Empty;
+                    implicitlyResolvedReferenceMap = ImmutableArray<ResolvedReference>.Empty;
+                }
+
+                // implicitly resolved missing assemblies were added to both referenceBindings and assemblies:
+                Debug.Assert(referenceBindings.Count == allAssemblies.Length);
+
+                hasCircularReference = CheckCircularReference(referenceBindings);
+                corLibraryIndex = IndexOfCorLibrary(allAssemblies);
+
+                // For each assembly, locate AssemblySymbol with similar reference resolution
+                // What does similar mean?
+                // Similar means: 
+                // 1) The same references are resolved against the assemblies that we are given 
+                //   (or were found duiring implicit assembly resolution).
+                // 2) The same assembly is used as the COR library.
+
+                var boundInputs = new BoundInputAssembly[referenceBindings.Count];
+                for (int i = 0; i < referenceBindings.Count; i++)
+                {
+                    boundInputs[i].ReferenceBinding = referenceBindings[i];
+                }
+
+                var candidateInputAssemblySymbols = new TAssemblySymbol[allAssemblies.Length];
+
+                // If any assembly from assemblies array refers back to assemblyBeingBuilt,
+                // we know that we cannot reuse symbols for any assemblies containing NoPia
+                // local types. Because we cannot reuse symbols for assembly referring back
+                // to assemblyBeingBuilt.
+                if (!hasCircularReference)
+                {
+                    // Deal with assemblies containing NoPia local types.
+                    if (ReuseAssemblySymbolsWithNoPiaLocalTypes(boundInputs, candidateInputAssemblySymbols, allAssemblies, corLibraryIndex))
+                    {
+                        return boundInputs;
+                    }
+                }
+
+                // NoPia shortcut either didn't apply or failed, go through general process 
+                // of matching candidates.
+
+                ReuseAssemblySymbols(boundInputs, candidateInputAssemblySymbols, allAssemblies, corLibraryIndex);
+
+                return boundInputs;
+            }
+            finally
+            {
+                referenceBindings.Free();
+            }
+        }
+
+        private void ResolveAndBindMissingAssemblies(
+            ImmutableArray<AssemblyData> explicitAssemblies,
+            MetadataReferenceResolver resolver,
+            MetadataImportOptions importOptions,
+            [In, Out] ArrayBuilder<AssemblyReferenceBinding[]> referenceBindings,
+            out ImmutableArray<AssemblyData> allAssemblies,
+            out ImmutableArray<MetadataReference> metadataReferences,
+            out ImmutableArray<ResolvedReference> resolvedReferences,
+            DiagnosticBag resolutionDiagnostics)
+        {
+            Debug.Assert(explicitAssemblies[0] is AssemblyDataForAssemblyBeingBuilt);
+
+            var implicitAssemblies = ArrayBuilder<AssemblyData>.GetInstance();
+
+            // tracks identities we already asked the resolver to resolve:
+            var requestedIdentities = PooledHashSet<AssemblyIdentity>.GetInstance();
+
+            // reference bindings of implicit assemblies, used to calculate a fixed point:
+            var referenceBindingsToProcess = ArrayBuilder<AssemblyReferenceBinding[]>.GetInstance();
+
+            var metadataReferencesBuilder = ArrayBuilder<MetadataReference>.GetInstance();
+
+            Dictionary<string, List<ReferencedAssemblyIdentity>> lazyResolvedReferencesBySimpleName = null;
+            Dictionary<MetadataReference, ArrayBuilder<string>> lazyAliasMap = null;
+
+            try
+            {
+                // collect all missing identities, resolve the assemblies and bind their references against explicit definitions:
+                referenceBindingsToProcess.AddRange(referenceBindings);
+
+                while (referenceBindingsToProcess.Count > 0)
+                {
+                    foreach (var binding in referenceBindingsToProcess.Pop())
+                    {
+                        // only attempt to resolve unbound references (regardless of version difference of the bound ones)
+                        if (binding.IsBound)
+                        {
+                            continue;
+                        }
+
+                        if (!requestedIdentities.Add(binding.ReferenceIdentity))
+                        {
+                            continue;
+                        }
+
+                        var peReference = resolver.ResolveMissingAssembly(binding.ReferenceIdentity);
+                        if (peReference == null)
+                        {
+                            continue;
+                        }
+
+                        var data = ResolveMissingAssembly(binding.ReferenceIdentity, peReference, importOptions, resolutionDiagnostics);
+                        if (data == null)
+                        {
+                            continue;
+                        }
+
+                        // The resolver may return different version than we asked for, so it may happen that 
+                        // it returns the same identity for two different input identities (e.g. if a higher version 
+                        // of an assembly is available than what the assemblies reference: "A, v1" -> "A, v3" and "A, v2" -> "A, v3").
+                        // If such case occurs merge the properties (aliases) of the resulting references in the same way we do
+                        // during initial explicit references resolution.
+
+                        var existingReference = TryAddAssembly(data.Identity, peReference, resolutionDiagnostics, Location.None, ref lazyResolvedReferencesBySimpleName);
+                        if (existingReference != null)
+                        {
+                            MergeReferenceProperties(existingReference, peReference, resolutionDiagnostics, ref lazyAliasMap);
+                            continue;
+                        }
+
+                        metadataReferencesBuilder.Add(peReference);
+                        implicitAssemblies.Add(data);
+
+                        var referenceBinding = data.BindAssemblyReferences(explicitAssemblies, IdentityComparer);
+                        referenceBindings.Add(referenceBinding);
+                        referenceBindingsToProcess.Push(referenceBinding);
+                    }
+                }
+
+                if (implicitAssemblies.Count == 0)
+                {
+                    Debug.Assert(lazyAliasMap == null);
+                    Debug.Assert(lazyResolvedReferencesBySimpleName == null);
+
+                    resolvedReferences = ImmutableArray<ResolvedReference>.Empty;
+                    metadataReferences = ImmutableArray<MetadataReference>.Empty;
+                    allAssemblies = explicitAssemblies;
+                    return;
+                }
+
+                // Rebind assembly references that were initially missing. All bindings established above
+                // are against explicitly specified references.
+
+                // NB: includes the assembly being built:
+                int explicitAssemblyCount = explicitAssemblies.Length;
+                allAssemblies = explicitAssemblies.AddRange(implicitAssemblies);
+                
+                for (int bindingsIndex = 0; bindingsIndex < referenceBindings.Count; bindingsIndex++)
+                {
+                    var referenceBinding = referenceBindings[bindingsIndex];
+
+                    for (int i = 0; i < referenceBinding.Length; i++)
+                    {
+                        var binding = referenceBinding[i];
+
+                        // We don't rebind references bound to a non-matching version of a reference that was explicitly
+                        // specified, even if we have a better version now.
+                        if (binding.IsBound)
+                        {
+                            continue;
+                        }
+
+                        // We only need to resolve against implicitly resolved assemblies,
+                        // since we already resolved against explicitly specified ones.
+                        referenceBinding[i] = ResolveReferencedAssembly(
+                            binding.ReferenceIdentity,
+                            allAssemblies,
+                            explicitAssemblyCount,
+                            IdentityComparer);
+                    }
+                }
+
+                UpdateBindingsOfAssemblyBeingBuilt(referenceBindings, explicitAssemblyCount, implicitAssemblies);
+
+                metadataReferences = metadataReferencesBuilder.ToImmutable();
+                resolvedReferences = ToResolvedAssemblyReferences(metadataReferences, lazyAliasMap, explicitAssemblyCount);
+            }
+            finally
+            {
+                implicitAssemblies.Free();
+                requestedIdentities.Free();
+                referenceBindingsToProcess.Free();
+                metadataReferencesBuilder.Free();
+            }
+        }
+
+        private static ImmutableArray<ResolvedReference> ToResolvedAssemblyReferences(
+            ImmutableArray<MetadataReference> references,           
+            Dictionary<MetadataReference, ArrayBuilder<string>> aliasMapOpt,
+            int explicitAssemblyCount)
+        {
+            var result = ArrayBuilder<ResolvedReference>.GetInstance(references.Length);
+            for (int i = 0; i < references.Length; i++)
+            {
+                // -1 for assembly being built
+                result.Add(new ResolvedReference(explicitAssemblyCount - 1 + i, MetadataImageKind.Assembly, GetAndFreeAliases(references[i], aliasMapOpt)));
             }
 
-            // NoPia shortcut either didn't apply or failed, go through general process 
-            // of matching candidates.
+            return result.ToImmutableAndFree();
+        }
 
-            ReuseAssemblySymbols(boundInputs, candidateInputAssemblySymbols, assemblies, corLibraryIndex);
+        private static void UpdateBindingsOfAssemblyBeingBuilt(ArrayBuilder<AssemblyReferenceBinding[]> referenceBindings, int explicitAssemblyCount, ArrayBuilder<AssemblyData> implicitAssemblies)
+        {
+            var referenceBindingsOfAssemblyBeingBuilt = referenceBindings[0];
 
-            return boundInputs;
+            // add implicitly resolved assemblies to the bindings of the assembly being built:
+            var bindingsOfAssemblyBeingBuilt = ArrayBuilder<AssemblyReferenceBinding>.GetInstance(referenceBindingsOfAssemblyBeingBuilt.Length + implicitAssemblies.Count);
+
+            // add bindings for explicitly specified assemblies (-1 for the assembly being built):
+            bindingsOfAssemblyBeingBuilt.AddRange(referenceBindingsOfAssemblyBeingBuilt, explicitAssemblyCount - 1);
+
+            // add bindings for implicitly resolved assemblies:
+            for (int i = 0; i < implicitAssemblies.Count; i++)
+            {
+                bindingsOfAssemblyBeingBuilt.Add(new AssemblyReferenceBinding(implicitAssemblies[i].Identity, explicitAssemblyCount + i));
+            }
+
+            // add bindings for assemblies referenced by modules added to the compilation:
+            bindingsOfAssemblyBeingBuilt.AddRange(referenceBindingsOfAssemblyBeingBuilt, explicitAssemblyCount - 1, referenceBindingsOfAssemblyBeingBuilt.Length - explicitAssemblyCount + 1);
+
+            referenceBindings[0] = bindingsOfAssemblyBeingBuilt.ToArrayAndFree();
+        }
+
+        internal AssemblyData ResolveMissingAssembly(
+            AssemblyIdentity referenceIdentity,
+            PortableExecutableReference peReference,
+            MetadataImportOptions importOptions,
+            DiagnosticBag diagnostics)
+        {
+            var metadata = GetMetadata(peReference, MessageProvider, Location.None, diagnostics);
+            Debug.Assert(metadata != null || diagnostics.HasAnyErrors());
+
+            if (metadata == null)
+            {
+                return null;
+            }
+
+            var assemblyMetadata = metadata as AssemblyMetadata;
+            if (assemblyMetadata?.IsValidAssembly() != true)
+            {
+                diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_MetadataFileNotAssembly, Location.None, peReference.Display));
+                return null;
+            }
+
+            var assembly = assemblyMetadata.GetAssembly();
+
+            // Allow reference and definition identities to differ in version, but not other properties:
+            if (IdentityComparer.Compare(referenceIdentity, assembly.Identity) == AssemblyIdentityComparer.ComparisonResult.NotEquivalent)
+            {
+                return null;
+            }
+
+            return CreateAssemblyDataForFile(
+                assembly,
+                assemblyMetadata.CachedSymbols, 
+                peReference.DocumentationProvider,
+                SimpleAssemblyName, 
+                importOptions,
+                peReference.Properties.EmbedInteropTypes);
         }
 
         private bool ReuseAssemblySymbolsWithNoPiaLocalTypes(BoundInputAssembly[] boundInputs, TAssemblySymbol[] candidateInputAssemblySymbols, ImmutableArray<AssemblyData> assemblies, int corLibraryIndex)
@@ -461,11 +713,11 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static bool CheckCircularReference(BoundInputAssembly[] boundInputs)
+        private static bool CheckCircularReference(IReadOnlyList<AssemblyReferenceBinding[]> referenceBindings)
         {
-            for (int i = 1; i < boundInputs.Length; i++)
+            for (int i = 1; i < referenceBindings.Count; i++)
             {
-                foreach (AssemblyReferenceBinding index in boundInputs[i].ReferenceBinding)
+                foreach (AssemblyReferenceBinding index in referenceBindings[i])
                 {
                     if (index.BoundToAssemblyBeingBuilt)
                     {

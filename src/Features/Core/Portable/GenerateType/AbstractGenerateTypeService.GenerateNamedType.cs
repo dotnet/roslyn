@@ -14,7 +14,12 @@ namespace Microsoft.CodeAnalysis.GenerateType
 {
     internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNameSyntax, TObjectCreationExpressionSyntax, TExpressionSyntax, TTypeDeclarationSyntax, TArgumentSyntax>
     {
-        internal abstract IMethodSymbol GetDelegatingConstructor(TObjectCreationExpressionSyntax objectCreation, INamedTypeSymbol namedType, SemanticModel model, ISet<IMethodSymbol> candidates, CancellationToken cancellationToken);
+        internal abstract IMethodSymbol GetDelegatingConstructor(
+            SemanticDocument document,
+            TObjectCreationExpressionSyntax objectCreation,
+            INamedTypeSymbol namedType,
+            ISet<IMethodSymbol> candidates, 
+            CancellationToken cancellationToken);
 
         private partial class Editor
         {
@@ -145,7 +150,12 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
                     if (accessibleInstanceConstructors.Any())
                     {
-                        var delegatedConstructor = _service.GetDelegatingConstructor(_state.ObjectCreationExpressionOpt, _state.BaseTypeOrInterfaceOpt, _document.SemanticModel, accessibleInstanceConstructors, _cancellationToken);
+                        var delegatedConstructor = _service.GetDelegatingConstructor( 
+                            _document,
+                            _state.ObjectCreationExpressionOpt,
+                            _state.BaseTypeOrInterfaceOpt,
+                            accessibleInstanceConstructors,
+                            _cancellationToken);
                         if (delegatedConstructor != null)
                         {
                             // There was a best match.  Call it directly.  

@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
     Friend NotInheritable Class PlaceholderLocalRewriter
-        Inherits BoundTreeRewriter
+        Inherits BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
 
         Friend Shared Function Rewrite(compilation As VisualBasicCompilation, container As EENamedTypeSymbol, node As BoundNode, diagnostics As DiagnosticBag) As BoundNode
             Dim rewriter As New PlaceholderLocalRewriter(compilation, container, diagnostics)

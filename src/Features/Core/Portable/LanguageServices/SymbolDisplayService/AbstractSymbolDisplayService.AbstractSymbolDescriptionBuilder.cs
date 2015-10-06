@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     ToMinimalDisplayParts(symbol, MinimallyQualifiedFormatWithConstants));
             }
 
-            private void AddDescriptionForProperty(IPropertySymbol symbol)
+            protected virtual void AddDescriptionForProperty(IPropertySymbol symbol)
             {
                 if (symbol.IsIndexer)
                 {

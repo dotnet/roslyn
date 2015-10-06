@@ -18,9 +18,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        internal static HashSet<Symbol> Analyze(CSharpCompilation compilation, Symbol member, BoundNode node)
+        internal static HashSet<Symbol> Analyze(CSharpCompilation compilation, Symbol member, BoundNode node,
+                                                bool convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = false)
         {
             var walker = new UnassignedVariablesWalker(compilation, member, node);
+
+            if (convertInsufficientExecutionStackExceptionToCancelledByStackGuardException)
+            {
+                walker._convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = true;
+            }
+
             try
             {
                 bool badRegion = false;

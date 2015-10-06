@@ -22,7 +22,7 @@ nuget.exe restore -verbosity quiet %RoslynRoot%build/Toolset.sln
 msbuild /nologo /v:m /m %RoslynRoot%build/Toolset.sln /p:Configuration=%BuildConfiguration%
 
 mkdir %RoslynRoot%Binaries\Bootstrap
-move Binaries\%BuildConfiguration%\* %RoslynRoot%Binaries\Bootstrap
+move Binaries\%BuildConfiguration%\core-clr\* %RoslynRoot%Binaries\Bootstrap
 msbuild /v:m /t:Clean build/Toolset.sln /p:Configuration=%BuildConfiguration%
 taskkill /F /IM vbcscompiler.exe
 
@@ -36,6 +36,15 @@ if ERRORLEVEL 1 (
 REM Kill any instances of VBCSCompiler.exe to release locked files;
 REM otherwise future CI runs may fail while trying to delete those files.
 taskkill /F /IM vbcscompiler.exe
+
+REM Verify that our project.lock.json files didn't change as a result of 
+REM restore.  If they do then the commit changed the dependencies without 
+REM updating the lock files.
+git diff --exit-code --quiet
+if ERRORLEVEL 1 (
+    echo Commit changed dependencies without updating project.lock.json
+    exit /b 1
+)
 
 REM It is okay and expected for taskkill to fail (it's a cleanup routine).  Ensure
 REM caller sees successful exit.

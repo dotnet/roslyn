@@ -13,6 +13,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    using static GlobalAssemblyCacheLocation;
+
     /// <summary>
     /// Provides APIs to enumerate and look up assemblies stored in the Global Assembly Cache.
     /// </summary>
@@ -64,59 +66,11 @@ namespace Microsoft.CodeAnalysis
             public uint cchBuf;
         }
 
-        private enum ASM_CACHE
-        {
-            ZAP = 0x1,
-            GAC = 0x2,                // C:\Windows\Assembly\GAC
-            DOWNLOAD = 0x4,
-            ROOT = 0x8,               // C:\Windows\Assembly
-            GAC_MSIL = 0x10,
-            GAC_32 = 0x20,            // C:\Windows\Assembly\GAC_32
-            GAC_64 = 0x40,            // C:\Windows\Assembly\GAC_64
-            ROOT_EX = 0x80,           // C:\Windows\Microsoft.NET\assembly
-        }
-
         [DllImport("clr", PreserveSig = true)]
         private static extern int CreateAssemblyEnum(out IAssemblyEnum ppEnum, FusionAssemblyIdentity.IApplicationContext pAppCtx, FusionAssemblyIdentity.IAssemblyName pName, ASM_CACHE dwFlags, IntPtr pvReserved);
 
-        [DllImport("clr", PreserveSig = true)]
-        private static unsafe extern int GetCachePath(ASM_CACHE id, byte* path, ref int length);
-
         [DllImport("clr", PreserveSig = false)]
         private static extern void CreateAssemblyCache(out IAssemblyCache ppAsmCache, uint dwReserved);
-
-        private const int ERROR_INSUFFICIENT_BUFFER = unchecked((int)0x8007007A);
-
-        public static readonly ImmutableArray<string> RootLocations;
-
-        static GlobalAssemblyCache()
-        {
-            RootLocations = ImmutableArray.Create<string>(
-                GetLocation(ASM_CACHE.ROOT),
-                GetLocation(ASM_CACHE.ROOT_EX));
-        }
-
-        private static unsafe string GetLocation(ASM_CACHE gacId)
-        {
-            int characterCount = 0;
-            int hr = GetCachePath(gacId, null, ref characterCount);
-            if (hr != ERROR_INSUFFICIENT_BUFFER)
-            {
-                throw Marshal.GetExceptionForHR(hr);
-            }
-
-            byte[] data = new byte[((int)characterCount + 1) * 2];
-            fixed (byte* p = data)
-            {
-                hr = GetCachePath(gacId, p, ref characterCount);
-                if (hr != 0)
-                {
-                    throw Marshal.GetExceptionForHR(hr);
-                }
-
-                return Marshal.PtrToStringUni((IntPtr)p);
-            }
-        }
 
         #endregion
 

@@ -440,6 +440,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; returned an uninitialized ImmutableArray.
+        /// </summary>
+        internal static string FixableDiagnosticIdsIncorrectlyInitialized {
+            get {
+                return ResourceManager.GetString("FixableDiagnosticIdsIncorrectlyInitialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Fix all &apos;{0}&apos;.
         /// </summary>
         internal static string FixAllOccurrencesOfDiagnostic {

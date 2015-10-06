@@ -88,7 +88,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim optimize As Boolean = False
             Dim checkOverflow As Boolean = True
             Dim concurrentBuild As Boolean = True
+            Dim deterministic As Boolean = False
             Dim emitPdb As Boolean
+            Dim debugInformationFormat As DebugInformationFormat = DebugInformationFormat.Pdb
             Dim noStdLib As Boolean = False
             Dim utf8output As Boolean = False
             Dim outputFileName As String = Nothing
@@ -154,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim name As String = Nothing
                     Dim value As String = Nothing
                     If TryParseOption(arg, name, value) AndAlso (name = "ruleset") Then
-                        Dim unquoted = RemoveAllQuotes(value)
+                        Dim unquoted = RemoveQuotesAndSlashes(value)
                         If String.IsNullOrEmpty(unquoted) Then
                             AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file>")
                             Continue For
@@ -214,6 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Continue For
 
                     Case "optionstrict"
+                        value = RemoveQuotesAndSlashes(value)
                         If value Is Nothing Then
                             optionStrict = VisualBasic.OptionStrict.On
                         ElseIf String.Equals(value, "custom", StringComparison.OrdinalIgnoreCase) Then
@@ -243,6 +246,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Continue For
 
                     Case "optioncompare"
+                        value = RemoveQuotesAndSlashes(value)
                         If value Is Nothing Then
                             AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "optioncompare", ":binary|text")
                         ElseIf String.Equals(value, "text", StringComparison.OrdinalIgnoreCase) Then
@@ -292,6 +296,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Continue For
 
                     Case "codepage"
+                        value = RemoveQuotesAndSlashes(value)
                         If String.IsNullOrEmpty(value) Then
                             AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "codepage", ":<number>")
                             Continue For
@@ -307,6 +312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Continue For
 
                     Case "checksumalgorithm"
+                        value = RemoveQuotesAndSlashes(value)
                         If String.IsNullOrEmpty(value) Then
                             AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "checksumalgorithm", ":<algorithm>")
                             Continue For
@@ -340,6 +346,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Continue For
 
                     Case "sqmsessionguid"
+                        value = RemoveQuotesAndSlashes(value)
                         If String.IsNullOrWhiteSpace(value) = True Then
                             AddDiagnostic(diagnostics, ERRID.ERR_MissingGuidForOption, value, name)
                         Else
@@ -350,6 +357,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Continue For
 
                     Case "preferreduilang"
+                        value = RemoveQuotesAndSlashes(value)
                         If (String.IsNullOrEmpty(value)) Then
                             AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<string>")
                             Continue For
@@ -401,11 +409,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Continue For
 
                         Case "t", "target"
+                            value = RemoveQuotesAndSlashes(value)
                             outputKind = ParseTarget(name, value, diagnostics)
                             Continue For
 
                         Case "moduleassemblyname"
-                            value = If(value IsNot Nothing, value.Unquote(), Nothing)
+                            value = RemoveQuotesAndSlashes(value)
                             Dim identity As AssemblyIdentity = Nothing
 
                             ' Note that native compiler also extracts public key, but Roslyn doesn't use it.
@@ -422,6 +431,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Continue For
 
                         Case "rootnamespace"
+                            value = RemoveQuotesAndSlashes(value)
                             If String.IsNullOrEmpty(value) Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "rootnamespace", ":<string>")
                                 Continue For
@@ -431,13 +441,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Continue For
 
                         Case "doc"
+                            value = RemoveQuotesAndSlashes(value)
                             parseDocumentationComments = True
                             If value Is Nothing Then
                                 ' Illegal in C#, but works in VB
                                 documentationPath = GenerateFileNameForDocComment
                                 Continue For
                             End If
-                            Dim unquoted = RemoveAllQuotes(value)
+                            Dim unquoted = RemoveQuotesAndSlashes(value)
                             If unquoted.Length = 0 Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "doc", ":<file>")
                             Else
@@ -471,7 +482,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Continue For
 
                         Case "errorlog"
-                            Dim unquoted = RemoveAllQuotes(value)
+                            Dim unquoted = RemoveQuotesAndSlashes(value)
                             If String.IsNullOrEmpty(unquoted) Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "errorlog", ":<file>")
                             Else
@@ -491,7 +502,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Continue For
                             End If
 
-                            libPaths.AddRange(ParseSeparatedPaths(RemoveAllQuotes(value)))
+                            libPaths.AddRange(ParseSeparatedPaths(value))
                             Continue For
 
                         Case "sdkpath"
@@ -501,10 +512,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
 
                             sdkPaths.Clear()
-                            sdkPaths.AddRange(ParseSeparatedPaths(RemoveAllQuotes(value)))
+                            sdkPaths.AddRange(ParseSeparatedPaths(value))
                             Continue For
 
                         Case "recurse"
+                            value = RemoveQuotesAndSlashes(value)
                             If String.IsNullOrEmpty(value) Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "recurse", ":<wildcard>")
                                 Continue For
@@ -536,15 +548,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Continue For
 
                         Case "win32resource"
-                            win32ResourceFile = GetWin32Setting(s_win32Res, value, diagnostics)
+                            win32ResourceFile = GetWin32Setting(s_win32Res, RemoveQuotesAndSlashes(value), diagnostics)
                             Continue For
 
                         Case "win32icon"
-                            win32IconFile = GetWin32Setting(s_win32Icon, value, diagnostics)
+                            win32IconFile = GetWin32Setting(s_win32Icon, RemoveQuotesAndSlashes(value), diagnostics)
                             Continue For
 
                         Case "win32manifest"
-                            win32ManifestFile = GetWin32Setting(s_win32Manifest, value, diagnostics)
+                            win32ManifestFile = GetWin32Setting(s_win32Manifest, RemoveQuotesAndSlashes(value), diagnostics)
                             Continue For
 
                         Case "nowin32manifest"
@@ -570,15 +582,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Continue For
 
                         Case "debug"
-
                             ' parse only for backwards compat
+                            value = RemoveQuotesAndSlashes(value)
                             If value IsNot Nothing Then
-                                If String.IsNullOrEmpty(value) Then
-                                    AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "debug", ":pdbonly|full")
-                                ElseIf Not String.Equals(value, "full", StringComparison.OrdinalIgnoreCase) AndAlso
-                                       Not String.Equals(value, "pdbonly", StringComparison.OrdinalIgnoreCase) Then
-                                    AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "debug", value)
-                                End If
+                                Select Case value.ToLower()
+                                    Case "full", "pdbonly"
+                                        debugInformationFormat = DebugInformationFormat.Pdb
+                                    Case "portable"
+                                        debugInformationFormat = DebugInformationFormat.PortablePdb
+                                    Case "embedded"
+                                        debugInformationFormat = DebugInformationFormat.Embedded
+                                    Case Else
+                                        AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "debug", value)
+                                End Select
                             End If
 
                             emitPdb = True
@@ -625,6 +641,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
 
                             concurrentBuild = True
+                            Continue For
+
+                        Case "deterministic+"
+                            If value IsNot Nothing Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, name)
+                                Continue For
+                            End If
+
+                            deterministic = True
+                            Continue For
+
+                        Case "deterministic-"
+                            If value IsNot Nothing Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, name)
+                                Continue For
+                            End If
+
+                            deterministic = False
                             Continue For
 
                         Case "parallel+", "p+"
@@ -702,6 +736,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Continue For
 
                         Case "langversion"
+                            value = RemoveQuotesAndSlashes(value)
                             If value Is Nothing Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "langversion", ":<number>")
                                 Continue For
@@ -757,6 +792,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' MSDN: signed with the information in the key file, and the key information is installed 
                             ' MSDN: in the key container (similar to sn -i) so that on the next compilation, 
                             ' MSDN: the key container will be valid.
+                            value = RemoveQuotesAndSlashes(value)
                             keyFileSetting = Nothing
                             If String.IsNullOrEmpty(value) Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "keycontainer", ":<string>")
@@ -776,11 +812,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' MSDN: signed with the information in the key file, and the key information is installed 
                             ' MSDN: in the key container (similar to sn -i) so that on the next compilation, 
                             ' MSDN: the key container will be valid.
+                            value = RemoveQuotesAndSlashes(value)
                             keyContainerSetting = Nothing
                             If String.IsNullOrWhiteSpace(value) Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "keyfile", ":<file>")
                             Else
-                                keyFileSetting = RemoveAllQuotes(value)
+                                keyFileSetting = RemoveQuotesAndSlashes(value)
                             End If
                             Continue For
 
@@ -901,7 +938,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' MSBuild can result in maintypename being passed in quoted when cyrillic namespace was being used resulting
                             ' in ERRID.ERR_StartupCodeNotFound1 diagnostic.   The additional quotes cause problems and quotes are not a 
                             ' valid character in typename.
-                            value = RemoveAllQuotes(value)
+                            value = RemoveQuotesAndSlashes(value)
                             If String.IsNullOrEmpty(value) Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<class>")
                                 Continue For
@@ -911,6 +948,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Continue For
 
                         Case "subsystemversion"
+                            value = RemoveQuotesAndSlashes(value)
                             If String.IsNullOrEmpty(value) Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<version>")
                                 Continue For
@@ -925,7 +963,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Continue For
 
                         Case "touchedfiles"
-                            Dim unquoted = RemoveAllQuotes(value)
+                            Dim unquoted = RemoveQuotesAndSlashes(value)
                             If (String.IsNullOrEmpty(unquoted)) Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<touchedfiles>")
                                 Continue For
@@ -956,7 +994,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
 
                             ' NOTE: that Dev11 does not report errors on empty or invalid file specified
-                            vbRuntimePath = RemoveAllQuotes(value)
+                            vbRuntimePath = RemoveQuotesAndSlashes(value)
                             includeVbRuntimeReference = True
                             embedVbCoreRuntime = False
                             Continue For
@@ -993,6 +1031,7 @@ lVbRuntimePlus:
                             Continue For
 
                         Case "platform"
+                            value = RemoveQuotesAndSlashes(value)
                             If value IsNot Nothing Then
                                 platform = ParsePlatform(name, value, diagnostics)
                             Else
@@ -1002,11 +1041,11 @@ lVbRuntimePlus:
                             Continue For
 
                         Case "filealign"
-                            fileAlignment = ParseFileAlignment(name, value, diagnostics)
+                            fileAlignment = ParseFileAlignment(name, RemoveQuotesAndSlashes(value), diagnostics)
                             Continue For
 
                         Case "baseaddress"
-                            baseAddress = ParseBaseAddress(name, value, diagnostics)
+                            baseAddress = ParseBaseAddress(name, RemoveQuotesAndSlashes(value), diagnostics)
                             Continue For
 
                         Case "ruleset"
@@ -1017,11 +1056,12 @@ lVbRuntimePlus:
                             If value Is Nothing Then
                                 features.Clear()
                             Else
-                                features.Add(value)
+                                features.Add(RemoveQuotesAndSlashes(value))
                             End If
                             Continue For
 
                         Case "additionalfile"
+                            value = RemoveQuotesAndSlashes(value)
                             If String.IsNullOrEmpty(value) Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file_list>")
                                 Continue For
@@ -1124,17 +1164,6 @@ lVbRuntimePlus:
 
             Dim parsedFeatures = CompilerOptionParseUtilities.ParseFeatures(features)
 
-            Dim debugInfoFormat = DebugInformationFormat.Pdb
-            Dim pdbFormatStr As String = Nothing
-            If emitPdb AndAlso parsedFeatures.TryGetValue("pdb", pdbFormatStr) Then
-                If StringComparer.Ordinal.Equals(pdbFormatStr, "portable") Then
-                    debugInfoFormat = DebugInformationFormat.PortablePdb
-                ElseIf StringComparer.Ordinal.Equals(pdbFormatStr, "embedded") Then
-                    debugInfoFormat = DebugInformationFormat.Embedded
-                    emitPdb = False
-                End If
-            End If
-
             Dim compilationName As String = Nothing
             GetCompilationAndModuleNames(diagnostics, outputKind, sourceFiles, moduleAssemblyName, outputFileName, moduleName, compilationName)
 
@@ -1174,6 +1203,7 @@ lVbRuntimePlus:
                 embedVbCoreRuntime:=embedVbCoreRuntime,
                 checkOverflow:=checkOverflow,
                 concurrentBuild:=concurrentBuild,
+                deterministic:=deterministic,
                 cryptoKeyContainer:=keyContainerSetting,
                 cryptoKeyFile:=keyFileSetting,
                 delaySign:=delaySignSetting,
@@ -1186,7 +1216,7 @@ lVbRuntimePlus:
 
             Dim emitOptions = New EmitOptions(
                 metadataOnly:=False,
-                debugInformationFormat:=debugInfoFormat,
+                debugInformationFormat:=debugInformationFormat,
                 pdbFilePath:=Nothing, ' to be determined later
                 outputNameOverride:=Nothing,  ' to be determined later
                 fileAlignment:=fileAlignment,
@@ -1305,7 +1335,7 @@ lVbRuntimePlus:
             If value Is Nothing Then
                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, arg, ":<file>")
             Else
-                Dim noQuotes As String = RemoveAllQuotes(value)
+                Dim noQuotes As String = RemoveQuotesAndSlashes(value)
                 If String.IsNullOrWhiteSpace(noQuotes) Then
                     AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, arg, ":<file>")
                 Else
@@ -1394,20 +1424,13 @@ lVbRuntimePlus:
             End Select
         End Function
 
-        Private Function ParseAssemblyReferences(name As String, value As String, diagnostics As IList(Of Diagnostic), embedInteropTypes As Boolean) As IEnumerable(Of CommandLineReference)
+        Friend Shared Function ParseAssemblyReferences(name As String, value As String, diagnostics As IList(Of Diagnostic), embedInteropTypes As Boolean) As IEnumerable(Of CommandLineReference)
             If String.IsNullOrEmpty(value) Then
                 ' TODO: localize <file_list>?
                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file_list>")
                 Return SpecializedCollections.EmptyEnumerable(Of CommandLineReference)()
             End If
 
-            ' TODO: how does VB handle quotes, separators, ...?
-
-            ' /r:"reference"
-            ' /r:reference;reference
-            ' /r:"path;containing;semicolons"
-            ' /r:"unterminated_quotes
-            ' /r:"quotes"in"the"middle
             Return ParseSeparatedPaths(value).
                    Select(Function(path) New CommandLineReference(path, New MetadataReferenceProperties(MetadataImageKind.Assembly, embedInteropTypes:=embedInteropTypes)))
         End Function
@@ -1493,7 +1516,7 @@ lVbRuntimePlus:
         End Sub
 
         Private Shared Sub ParseGlobalImports(value As String, globalImports As List(Of GlobalImport), errors As List(Of Diagnostic))
-            Dim importsArray As String() = value.Split({","c}, StringSplitOptions.RemoveEmptyEntries)
+            Dim importsArray = ParseSeparatedPaths(value)
 
             For Each importNamespace In importsArray
                 Dim importDiagnostics As ImmutableArray(Of Diagnostic) = Nothing
@@ -1944,7 +1967,7 @@ lVbRuntimePlus:
         ''' </summary>
         ''' <param name="value">The value for the option.</param>
         Private Shared Function ParseWarnings(value As String) As IEnumerable(Of String)
-            Dim values = value.Split(","c)
+            Dim values = ParseSeparatedPaths(value)
             Dim results = New List(Of String)()
 
             For Each id In values

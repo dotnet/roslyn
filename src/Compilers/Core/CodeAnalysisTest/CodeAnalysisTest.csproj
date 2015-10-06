@@ -24,6 +24,7 @@
     <Compile Include="AnalyzerFileReferenceTests.cs" />
     <Compile Include="AssemblyUtilitiesTests.cs" />
     <Compile Include="AsyncQueueTests.cs" />
+    <Compile Include="Collections\ArrayBuilderTests.cs" />
     <Compile Include="Collections\BoxesTest.cs" />
     <Compile Include="Collections\ByteSequenceComparerTests.cs" />
     <Compile Include="Diagnostics\DiagnosticLocalizationTests.cs" />
@@ -177,6 +178,5 @@
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

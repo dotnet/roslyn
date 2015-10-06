@@ -85,16 +85,6 @@
       <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
       <Name>BasicCodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\csi\csi.csproj">
-      <Project>{14118347-ED06-4608-9C45-18228273C712}</Project>
-      <Name>csi</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="..\vbi\vbi.vbproj">
-      <Project>{6E62A0FF-D0DC-4109-9131-AB8E60CDFF7B}</Project>
-      <Name>vbi</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
   </PropertyGroup>
@@ -114,7 +104,6 @@
   <ItemGroup>
     <Compile Include="AbstractInteractiveHostTests.cs" />
     <Compile Include="InteractiveHostTests.cs" />
-    <Compile Include="NuGetPackageResolverTests.cs" />
     <Compile Include="StressTests.cs" />
     <Compile Include="SynchronizedTextWriter.cs" />
   </ItemGroup>
@@ -127,6 +116,5 @@
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

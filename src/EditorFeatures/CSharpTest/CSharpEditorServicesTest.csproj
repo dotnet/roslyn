@@ -28,6 +28,10 @@
       <Project>{4371944A-D3BA-4B5B-8285-82E5FFC6D1F9}</Project>
       <Name>CSharpCompilerTestUtilities</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj">
+      <Project>{fe2cbea6-d121-4faa-aa8b-fc9900bf8c83}</Project>
+      <Name>CSharpInteractiveEditorFeatures</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
       <Name>TestUtilities.Desktop</Name>
@@ -182,6 +186,7 @@
     <Compile Include="CodeActions\Preview\PreviewExceptionTests.cs" />
     <Compile Include="CodeActions\Preview\PreviewTests.cs" />
     <Compile Include="CodeActions\ReplaceMethodWithProperty\ReplaceMethodWithPropertyTests.cs" />
+    <Compile Include="Diagnostics\Suppression\RemoveSuppressionTests.cs" />
     <Compile Include="Diagnostics\UseAutoProperty\UseAutoPropertyTests.cs" />
     <Compile Include="CommentSelection\CSharpCommentSelectionTests.cs" />
     <Compile Include="Completion\CompletionProviders\AbstractCSharpCompletionProviderTests.cs" />
@@ -221,6 +226,7 @@
     <Compile Include="Diagnostics\GenerateType\GenerateTypeTests.cs" />
     <Compile Include="Diagnostics\GenerateType\GenerateTypeTests_Dialog.cs" />
     <Compile Include="Diagnostics\GenerateVariable\GenerateVariableTests.cs" />
+    <Compile Include="Diagnostics\HideBase\HideBaseTests.cs" />
     <Compile Include="Diagnostics\ImplementAbstractClass\ImplementAbstractClassTests.cs" />
     <Compile Include="Diagnostics\ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceTests_FixAllTests.cs" />
@@ -272,6 +278,7 @@
     <Compile Include="Formatting\Indentation\FormatterTestsBase.cs" />
     <Compile Include="Formatting\Indentation\SmartIndenterEnterOnTokenTests.cs" />
     <Compile Include="Formatting\Indentation\SmartIndenterTests.cs" />
+    <Compile Include="Formatting\Indentation\SmartIndenterTests_Performance.cs" />
     <Compile Include="Formatting\Indentation\SmartTokenFormatterFormatRangeTests.cs" />
     <Compile Include="Formatting\Indentation\SmartTokenFormatterFormatTokenTests.cs" />
     <Compile Include="Interactive\BraceMatching\InteractiveBraceHighlightingTests.cs" />
@@ -649,6 +656,5 @@
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

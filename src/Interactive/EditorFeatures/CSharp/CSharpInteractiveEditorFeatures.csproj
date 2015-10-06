@@ -87,6 +87,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Completion\CompletionProviders\ReplCommandCompletionProvider.cs" />
+    <Compile Include="Completion\FileSystem\LoadDirectiveCompletionProvider.cs" />
+    <Compile Include="Completion\FileSystem\LoadDirectiveCompletionProvider.ItemRules.cs" />
+    <Compile Include="Completion\FileSystem\ReferenceDirectiveCompletionProvider.cs" />
     <Compile Include="CSharpInteractiveEditorResources.Designer.cs">
       <DependentUpon>CSharpInteractiveEditorResources.resx</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -136,6 +139,5 @@
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

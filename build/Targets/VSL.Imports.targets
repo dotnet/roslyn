@@ -69,8 +69,8 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == 'DNXCore'">
-      <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win</BaseNuGetRuntimeIdentifier>
-      <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Unix'">linux</BaseNuGetRuntimeIdentifier>
+      <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
+      <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Unix'">ubuntu.14.04</BaseNuGetRuntimeIdentifier>
   </PropertyGroup>
 
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.VisualBasic.targets"

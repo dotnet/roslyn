@@ -3605,5 +3605,48 @@ F(out var);";
                 PPKeyword("load"),
                 String("\"file.csx\""));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public void IncompleteAwaitInNonAsyncContext()
+        {
+            var code = @"
+void M()
+{
+    var x = await
+}";
+            TestInClass(code,
+                Keyword("void"),
+                Identifier("M"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("var"),
+                Identifier("x"),
+                Operators.Equals,
+                Keyword("await"),
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public void CompleteAwaitInNonAsyncContext()
+        {
+            var code = @"
+void M()
+{
+    var x = await;
+}";
+            TestInClass(code,
+                Keyword("void"),
+                Identifier("M"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("var"),
+                Identifier("x"),
+                Operators.Equals,
+                Identifier("await"),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly);
+        }
     }
 }

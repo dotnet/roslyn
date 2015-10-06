@@ -9,10 +9,16 @@ using Xunit;
 
 #pragma warning disable RS0003 // Do not directly await a Task
 
-namespace Microsoft.CodeAnalysis.Scripting.CSharp.Test
+namespace Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests
 {
     public class ScriptTests : TestBase
     {
+        public class Globals
+        {
+            public int X;
+            public int Y;
+        }
+
         [Fact]
         public void TestCreateScript()
         {
@@ -128,12 +134,6 @@ d.Do()"
 , ScriptOptions.Default.WithReferences(MscorlibRef, SystemRef, SystemCoreRef, CSharpRef));
         }
 
-        public class Globals
-        {
-            public int X;
-            public int Y;
-        }
-
         [Fact]
         public async Task TestRunScriptWithGlobals()
         {
@@ -234,14 +234,68 @@ d.Do()"
 #endif
 
         [Fact]
-        public async Task TestGetScriptVariableAfterRunningScript()
+        public async Task ScriptVariables_Chain()
         {
-            var state = await CSharpScript.RunAsync("int x = 100;");
-            var globals = state.Variables.Names.ToList();
-            Assert.Equal(1, globals.Count);
-            Assert.Equal(true, globals.Contains("x"));
-            Assert.Equal(true, state.Variables.ContainsVariable("x"));
-            Assert.Equal(100, (int)state.Variables["x"].Value);
+            var globals = new Globals { X = 10, Y = 20 };
+
+            var script = 
+                CSharpScript.Create(
+                    "var a = '1';",
+                    options: ScriptOptions.Default.WithReferences(InteractiveSessionTests.SystemRuntimeAssembly),
+                    globalsType: globals.GetType()).
+                ContinueWith("var b = 2u;").
+                ContinueWith("var a = 3m;").
+                ContinueWith("var x = a + b;").
+                ContinueWith("var X = Y;");
+
+            var state = await script.RunAsync(globals);
+
+            AssertEx.Equal(new[] { "a", "b", "a", "x", "X" }, state.Variables.Select(v => v.Name));
+            AssertEx.Equal(new object[] { '1', 2u, 3m, 5m, 20 }, state.Variables.Select(v => v.Value));
+            AssertEx.Equal(new Type[] { typeof(char), typeof(uint), typeof(decimal), typeof(decimal), typeof(int) }, state.Variables.Select(v => v.Type));
+
+            Assert.Equal(3m, state.GetVariable("a").Value);
+            Assert.Equal(2u, state.GetVariable("b").Value);
+            Assert.Equal(5m, state.GetVariable("x").Value);
+            Assert.Equal(20, state.GetVariable("X").Value);
+
+            Assert.Equal(null, state.GetVariable("A"));
+            Assert.Same(state.GetVariable("X"), state.GetVariable("X"));
+        }
+
+        [Fact]
+        public async Task ScriptVariable_SetValue()
+        {
+            var script = CSharpScript.Create("var x = 1;");
+
+            var s1 = await script.RunAsync();
+            s1.GetVariable("x").Value = 2;
+            Assert.Equal(2, s1.GetVariable("x").Value);
+
+            // rerunning the script from the beginning rebuilds the state:
+            var s2 = await s1.Script.RunAsync();
+            Assert.Equal(1, s2.GetVariable("x").Value);
+
+            // continuing preserves the state:
+            var s3 = await s1.ContinueWithAsync("x");
+            Assert.Equal(2, s3.GetVariable("x").Value);
+            Assert.Equal(2, s3.ReturnValue);
+        }
+
+        [Fact]
+        public async Task ScriptVariable_SetValue_Errors()
+        {
+            var state = await CSharpScript.RunAsync(@"
+var x = 1;
+readonly var y = 2;
+const int z = 3;
+");
+
+            Assert.Throws<ArgumentException>(() => state.GetVariable("x").Value = "str");
+            Assert.Throws<InvalidOperationException>(() => state.GetVariable("y").Value = "str");
+            Assert.Throws<InvalidOperationException>(() => state.GetVariable("z").Value = "str");
+            Assert.Throws<InvalidOperationException>(() => state.GetVariable("y").Value = 0);
+            Assert.Throws<InvalidOperationException>(() => state.GetVariable("z").Value = 0);
         }
 
         [Fact]

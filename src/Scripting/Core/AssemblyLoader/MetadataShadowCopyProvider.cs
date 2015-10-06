@@ -16,40 +16,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     /// </summary>
     public sealed class MetadataShadowCopyProvider : IDisposable
     {
-        /// <summary>
-        /// Specialize <see cref="PortableExecutableReference"/> with path being the original path of the copy.
-        /// Logically this reference represents that file, the fact that we load the image from a copy is an implementation detail.
-        /// </summary>
-        private sealed class ShadowCopyReference : PortableExecutableReference
-        {
-            private readonly MetadataShadowCopyProvider _provider;
-
-            public ShadowCopyReference(MetadataShadowCopyProvider provider, string originalPath, MetadataReferenceProperties properties)
-                : base(properties, originalPath)
-            {
-                Debug.Assert(originalPath != null);
-                Debug.Assert(provider != null);
-
-                _provider = provider;
-            }
-
-            protected override DocumentationProvider CreateDocumentationProvider()
-            {
-                // TODO (tomat): use file next to the dll (or shadow copy)
-                return DocumentationProvider.Default;
-            }
-
-            protected override Metadata GetMetadataImpl()
-            {
-                return _provider.GetMetadata(FilePath, Properties.Kind);
-            }
-
-            protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
-            {
-                return new ShadowCopyReference(_provider, this.FilePath, properties);
-            }
-        }
-
+        private readonly CultureInfo _documentationCommentsCulture;
+        
         // normalized absolute path
         private readonly string _baseDirectory;
 
@@ -93,9 +61,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// </summary>
         /// <param name="directory">The directory to use to store file copies.</param>
         /// <param name="noShadowCopyDirectories">Directories to exclude from shadow-copying.</param>
+        /// <param name="documentationCommentsCulture">Culture of documentation comments to copy. If not specified no doc comment files are going to be copied.</param>
         /// <exception cref="ArgumentNullException"><paramref name="directory"/> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="directory"/> is not an absolute path.</exception>
-        public MetadataShadowCopyProvider(string directory = null, IEnumerable<string> noShadowCopyDirectories = null)
+        public MetadataShadowCopyProvider(string directory = null, IEnumerable<string> noShadowCopyDirectories = null, CultureInfo documentationCommentsCulture = null)
         {
             if (directory != null)
             {
@@ -129,6 +98,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             {
                 _noShadowCopyDirectories = ImmutableArray<string>.Empty;
             }
+
+            _documentationCommentsCulture = documentationCommentsCulture;
         }
 
         private static void RequireAbsolutePath(string path, string argumentName)
@@ -376,14 +347,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             return _shadowCopies.TryGetValue(key, out existing);
         }
 
-        /// <exception cref="ArgumentNullException"><paramref name="fullPath"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="fullPath"/> is not an absolute path.</exception>
-        public PortableExecutableReference GetReference(string fullPath, MetadataReferenceProperties properties = default(MetadataReferenceProperties))
-        {
-            RequireAbsolutePath(fullPath, nameof(fullPath));
-            return new ShadowCopyReference(this, fullPath, properties);
-        }
-
         /// <summary>
         /// Suppresses shadow-copying of specified path.
         /// </summary>
@@ -445,21 +408,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     // Create directory for the assembly.
                     // If the assembly has any modules they have to be copied to the same directory 
                     // and have the same names as specified in metadata.
-                    string assemblyDir = CreateUniqueDirectory(ShadowCopyDirectory);
-                    string shadowCopyPath = Path.Combine(assemblyDir, Path.GetFileName(originalPath));
+                    string assemblyCopyDir = CreateUniqueDirectory(ShadowCopyDirectory);
+                    string shadowCopyPath = Path.Combine(assemblyCopyDir, Path.GetFileName(originalPath));
 
-                    ShadowCopy documentationFileCopy = null;
-                    string xmlOriginalPath;
-                    if (ReferencePathUtilities.TryFindXmlDocumentationFile(originalPath, out xmlOriginalPath))
-                    {
-                        // TODO (tomat): how do doc comments work for multi-module assembly?
-                        var xmlCopyPath = Path.ChangeExtension(shadowCopyPath, ".xml");
-                        var xmlStream = CopyFile(xmlOriginalPath, xmlCopyPath, fileMayNotExist: true);
-                        if (xmlStream != null)
-                        {
-                            documentationFileCopy = new ShadowCopy(xmlStream, xmlOriginalPath, xmlCopyPath);
-                        }
-                    }
+                    ShadowCopy documentationFileCopy = TryCopyDocumentationFile(originalPath, assemblyCopyDir, _documentationCommentsCulture);
 
                     var manifestModuleCopyStream = CopyFile(originalPath, shadowCopyPath);
                     var manifestModuleCopy = new ShadowCopy(manifestModuleCopyStream, originalPath, shadowCopyPath);
@@ -591,7 +543,78 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
         }
 
-        private FileStream CopyFile(string originalPath, string shadowCopyPath, bool fileMayNotExist = false)
+        private static ShadowCopy TryCopyDocumentationFile(string originalAssemblyPath, string assemblyCopyDirectory, CultureInfo docCultureOpt)
+        {
+            // Note: Doc comments are not supported for netmodules.
+
+            string assemblyDirectory = Path.GetDirectoryName(originalAssemblyPath);
+            string assemblyFileName = Path.GetFileName(originalAssemblyPath);
+
+            string xmlSubdirectory;
+            string xmlFileName;
+            if (docCultureOpt == null ||
+                !TryFindCollocatedDocumentationFile(assemblyDirectory, assemblyFileName, docCultureOpt, out xmlSubdirectory, out xmlFileName))
+            {
+                return null;
+            }
+
+            if (!xmlSubdirectory.IsEmpty())
+            {
+                try
+                {
+                    Directory.CreateDirectory(Path.Combine(assemblyCopyDirectory, xmlSubdirectory));
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+
+            string xmlCopyPath = Path.Combine(assemblyCopyDirectory, xmlSubdirectory, xmlFileName);
+            string xmlOriginalPath = Path.Combine(assemblyDirectory, xmlSubdirectory, xmlFileName);
+
+            var xmlStream = CopyFile(xmlOriginalPath, xmlCopyPath, fileMayNotExist: true);
+
+            return (xmlStream != null) ? new ShadowCopy(xmlStream, xmlOriginalPath, xmlCopyPath) : null;
+        }
+
+        private static bool TryFindCollocatedDocumentationFile(
+            string assemblyDirectory,
+            string assemblyFileName,
+            CultureInfo culture,
+            out string docSubdirectory,
+            out string docFileName)
+        {
+            Debug.Assert(assemblyDirectory != null);
+            Debug.Assert(assemblyFileName != null);
+            Debug.Assert(culture != null);
+
+            // 1. Look in subdirectories based on the current culture
+            docFileName = Path.ChangeExtension(assemblyFileName, ".xml");
+
+            while (culture != CultureInfo.InvariantCulture)
+            {
+                docSubdirectory = culture.Name;
+                if (File.Exists(Path.Combine(assemblyDirectory, docSubdirectory, docFileName)))
+                {
+                    return true;
+                }
+
+                culture = culture.Parent;
+            }
+
+            // 2. Look in the same directory as the assembly itself
+            docSubdirectory = string.Empty;
+            if (File.Exists(Path.Combine(assemblyDirectory, docFileName)))
+            {
+                return true;
+            }
+
+            docFileName = null;
+            return false;
+        }
+
+        private static FileStream CopyFile(string originalPath, string shadowCopyPath, bool fileMayNotExist = false)
         {
             try
             {
@@ -599,15 +622,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 StripReadOnlyAttributeFromFile(new FileInfo(shadowCopyPath));
                 return new FileStream(shadowCopyPath, FileMode.Open, FileAccess.Read, FileShare.Read);
             }
-            catch (FileNotFoundException)
+            catch (Exception e) when (fileMayNotExist && (e is FileNotFoundException || e is DirectoryNotFoundException))
             {
-                if (!fileMayNotExist)
-                {
-                    throw;
-                }
+                return null;
             }
-
-            return null;
         }
 
         #region Test hooks

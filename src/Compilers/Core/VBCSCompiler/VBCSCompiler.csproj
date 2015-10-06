@@ -51,6 +51,9 @@
     <Compile Include="..\..\Helpers\AbstractAnalyzerAssemblyLoader.cs">
       <Link>AbstractAnalyzerAssemblyLoader.cs</Link>
     </Compile>
+    <Compile Include="..\..\Helpers\AnalyzerAssemblyLoadUtils.cs">
+      <Link>AnalyzerAssemblyLoadUtils.cs</Link>
+    </Compile>
     <Compile Include="..\..\Helpers\ShadowCopyAnalyzerAssemblyLoader.cs">
       <Link>ShadowCopyAnalyzerAssemblyLoader.cs</Link>
     </Compile>
@@ -82,6 +85,5 @@
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

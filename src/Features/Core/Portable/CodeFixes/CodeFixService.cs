@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var diagnostics = await DiagnosticData.ToDiagnosticsAsync(document.Project, diagnosticDataCollection, cancellationToken).ConfigureAwait(false);
 
-            Func<Diagnostic, bool> hasFix = (d) => lazySuppressionProvider.Value.CanBeSuppressed(d);
+            Func<Diagnostic, bool> hasFix = (d) => lazySuppressionProvider.Value.CanBeSuppressedOrUnsuppressed(d);
             Func<ImmutableArray<Diagnostic>, Task<IEnumerable<CodeFix>>> getFixes = (dxs) => lazySuppressionProvider.Value.GetSuppressionsAsync(document, span, dxs, cancellationToken);
             await AppendFixesOrSuppressionsAsync(document, span, diagnostics, result, lazySuppressionProvider.Value, hasFix, getFixes, cancellationToken).ConfigureAwait(false);
             return result;
@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var dx = await diagnostic.ToDiagnosticAsync(document.Project, cancellationToken).ConfigureAwait(false);
 
-            if (hasSuppressionFixer && lazySuppressionProvider.Value.CanBeSuppressed(dx))
+            if (hasSuppressionFixer && lazySuppressionProvider.Value.CanBeSuppressedOrUnsuppressed(dx))
             {
                 return true;
             }
@@ -421,13 +421,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 return extensionManager.PerformFunction(
                     fixer,
-                    () => ImmutableInterlocked.GetOrAdd(ref _fixerToFixableIdsMap, fixer, f => f.FixableDiagnosticIds),
+                    () => ImmutableInterlocked.GetOrAdd(ref _fixerToFixableIdsMap, fixer, f => GetAndTestFixableDiagnosticIds(f)),
                     defaultValue: ImmutableArray<DiagnosticId>.Empty);
             }
 
             try
             {
-                return ImmutableInterlocked.GetOrAdd(ref _fixerToFixableIdsMap, fixer, f => f.FixableDiagnosticIds);
+                return ImmutableInterlocked.GetOrAdd(ref _fixerToFixableIdsMap, fixer, f => GetAndTestFixableDiagnosticIds(f));
             }
             catch (OperationCanceledException)
             {
@@ -441,6 +441,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 }
                 return ImmutableArray<DiagnosticId>.Empty;
             }
+        }
+
+        private static ImmutableArray<string> GetAndTestFixableDiagnosticIds(CodeFixProvider codeFixProvider)
+        {
+            var ids = codeFixProvider.FixableDiagnosticIds;
+            if (ids.IsDefault)
+            {
+                throw new InvalidOperationException(
+                    string.Format(
+                        WorkspacesResources.FixableDiagnosticIdsIncorrectlyInitialized, 
+                        codeFixProvider.GetType().Name+ "."+ nameof(CodeFixProvider.FixableDiagnosticIds)));
+            }
+
+            return ids;
         }
 
         private ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>> GetFixerPerLanguageMap(

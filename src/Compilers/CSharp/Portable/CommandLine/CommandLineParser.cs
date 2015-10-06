@@ -12,6 +12,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -56,7 +57,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool checkOverflow = false;
             bool allowUnsafe = false;
             bool concurrentBuild = true;
+            bool deterministic = false; // TODO(5431): Enable deterministic mode by default
             bool emitPdb = false;
+            DebugInformationFormat debugInformationFormat = DebugInformationFormat.Pdb;
+            bool debugPlus = false;
             string pdbPath = null;
             bool noStdLib = false;
             string outputDirectory = baseDirectory;
@@ -118,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     string name, value;
                     if (TryParseOption(arg, out name, out value) && (name == "ruleset"))
                     {
-                        var unquoted = RemoveAllQuotes(value);
+                        var unquoted = RemoveQuotesAndSlashes(value);
 
                         if (string.IsNullOrEmpty(unquoted))
                         {
@@ -173,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         IEnumerable<Diagnostic> defineDiagnostics;
-                        defines.AddRange(ParseConditionalCompilationSymbols(value, out defineDiagnostics));
+                        defines.AddRange(ParseConditionalCompilationSymbols(RemoveQuotesAndSlashes(value), out defineDiagnostics));
                         diagnostics.AddRange(defineDiagnostics);
                         continue;
 
@@ -258,6 +262,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
 
                     case "preferreduilang":
+                        value = RemoveQuotesAndSlashes(value);
+
                         if (string.IsNullOrEmpty(value))
                         {
                             AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", arg);
@@ -362,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "modulename":
-                            var unquotedModuleName = RemoveAllQuotes(value);
+                            var unquotedModuleName = RemoveQuotesAndSlashes(value);
                             if (string.IsNullOrEmpty(unquotedModuleName))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), "modulename");
@@ -387,6 +393,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "recurse":
+                            value = RemoveQuotesAndSlashes(value);
+
                             if (value == null)
                             {
                                 break; // force 'unrecognized option'
@@ -413,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), arg);
                                 continue;
                             }
-                            string unquoted = RemoveAllQuotes(value);
+                            string unquoted = RemoveQuotesAndSlashes(value);
                             if (string.IsNullOrEmpty(unquoted))
                             {
                                 // CONSIDER: This diagnostic exactly matches dev11, but it would be simpler (and more consistent with /out)
@@ -509,11 +517,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (value.IsEmpty())
                                 {
                                     AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), name);
+                                    continue;
                                 }
-                                else if (!string.Equals(value, "full", StringComparison.OrdinalIgnoreCase) &&
-                                         !string.Equals(value, "pdbonly", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    AddDiagnostic(diagnostics, ErrorCode.ERR_BadDebugType, value);
+                                switch (value.ToLower()) {
+                                    case "full":
+                                    case "pdbonly":
+                                        debugInformationFormat = DebugInformationFormat.Pdb;
+                                        break;
+                                    case "portable":
+                                        debugInformationFormat = DebugInformationFormat.PortablePdb;
+                                        break;
+                                    case "embedded":
+                                        debugInformationFormat = DebugInformationFormat.Embedded;
+                                        break;
+                                    default:
+                                        AddDiagnostic(diagnostics, ErrorCode.ERR_BadDebugType, value);
+                                        break;
                                 }
                             }
                             continue;
@@ -524,6 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
 
                             emitPdb = true;
+                            debugPlus = true;
                             continue;
 
                         case "debug-":
@@ -531,6 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
 
                             emitPdb = false;
+                            debugPlus = false;
                             continue;
 
                         case "o":
@@ -549,6 +570,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
 
                             optimize = false;
+                            continue;
+
+                        case "deterministic+":
+                            if (value != null)
+                                break;
+
+                            deterministic = true;
+                            continue;
+
+                        case "deterministic-":
+                            if (value != null)
+                                break;
+                            deterministic = false;
                             continue;
 
                         case "p":
@@ -724,7 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                keyFileSetting = RemoveAllQuotes(value);
+                                keyFileSetting = RemoveQuotesAndSlashes(value);
                             }
                             // NOTE: Dev11/VB also clears "keycontainer", see also:
                             //
@@ -777,6 +811,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "baseaddress":
+                            value = RemoveQuotesAndSlashes(value);
+
                             ulong newBaseAddress;
                             if (string.IsNullOrEmpty(value) || !TryParseUInt64(value, out newBaseAddress))
                             {
@@ -817,7 +853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "touchedfiles":
-                            unquoted = RemoveAllQuotes(value);
+                            unquoted = RemoveQuotesAndSlashes(value);
                             if (string.IsNullOrEmpty(unquoted))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), "touchedfiles");
@@ -845,7 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case "main":
                             // Remove any quotes for consistent behavior as MSBuild can return quoted or 
                             // unquoted main.    
-                            unquoted = RemoveAllQuotes(value);
+                            unquoted = RemoveQuotesAndSlashes(value);
                             if (string.IsNullOrEmpty(unquoted))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
@@ -863,6 +899,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "filealign":
+                            value = RemoveQuotesAndSlashes(value);
+
                             ushort newAlignment;
                             if (string.IsNullOrEmpty(value))
                             {
@@ -924,10 +962,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "errorlog":
-                            unquoted = RemoveAllQuotes(value);
+                            unquoted = RemoveQuotesAndSlashes(value);
                             if (string.IsNullOrEmpty(unquoted))
                             {
-                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, ":<file>", RemoveAllQuotes(arg));
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, ":<file>", RemoveQuotesAndSlashes(arg));
                             }
                             else
                             {
@@ -936,10 +974,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "appconfig":
-                            unquoted = RemoveAllQuotes(value);
+                            unquoted = RemoveQuotesAndSlashes(value);
                             if (string.IsNullOrEmpty(unquoted))
                             {
-                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, ":<text>", RemoveAllQuotes(arg));
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, ":<text>", RemoveQuotesAndSlashes(arg));
                             }
                             else
                             {
@@ -948,7 +986,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "runtimemetadataversion":
-                            unquoted = RemoveAllQuotes(value);
+                            unquoted = RemoveQuotesAndSlashes(value);
                             if (string.IsNullOrEmpty(unquoted))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
@@ -1027,21 +1065,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var parsedFeatures = CompilerOptionParseUtilities.ParseFeatures(features);
 
-            var debugInfoFormat = DebugInformationFormat.Pdb;
-            string pdbFormatStr;
-            if (emitPdb && parsedFeatures.TryGetValue("pdb", out pdbFormatStr))
-            {
-                if (pdbFormatStr == "portable")
-                {
-                    debugInfoFormat = DebugInformationFormat.PortablePdb;
-                }
-                else if (pdbFormatStr == "embedded")
-                {
-                    debugInfoFormat = DebugInformationFormat.Embedded;
-                    emitPdb = false;
-                }
-            }
-
             string compilationName;
             GetCompilationAndModuleNames(diagnostics, outputKind, sourceFiles, sourceFilesSpecified, moduleAssemblyName, ref outputFileName, ref moduleName, out compilationName);
 
@@ -1070,6 +1093,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 optimizationLevel: optimize ? OptimizationLevel.Release : OptimizationLevel.Debug,
                 checkOverflow: checkOverflow,
                 allowUnsafe: allowUnsafe,
+                deterministic: deterministic,
                 concurrentBuild: concurrentBuild,
                 cryptoKeyContainer: keyContainerSetting,
                 cryptoKeyFile: keyFileSetting,
@@ -1081,10 +1105,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 reportSuppressedDiagnostics: reportSuppressedDiagnostics
             );
 
+            if (debugPlus)
+            {
+                options = options.WithDebugPlusMode(debugPlus);
+            }
+
             var emitOptions = new EmitOptions
             (
                 metadataOnly: false,
-                debugInformationFormat: debugInfoFormat,
+                debugInformationFormat: debugInformationFormat,
                 pdbFilePath: null, // to be determined later
                 outputNameOverride: null, // to be determined later
                 baseAddress: baseAddress,
@@ -1174,7 +1203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                string noQuotes = RemoveAllQuotes(value);
+                string noQuotes = RemoveQuotesAndSlashes(value);
                 if (string.IsNullOrWhiteSpace(noQuotes))
                 {
                     AddDiagnostic(diagnostics, ErrorCode.ERR_NoFileSpec, arg);

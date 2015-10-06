@@ -107,6 +107,13 @@
     <Compile Include="CodeFixes\FixAllOccurrences\IFixAllGetFixesService.cs" />
     <Compile Include="CodeFixes\Iterator\AbstractIteratorCodeFixProvider.cs" />
     <Compile Include="CodeFixes\PredefinedCodeFixProviderNames.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.IPragmaBasedCodeAction.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.PragmaBatchFixHelpers.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.PragmaHelpers.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.RemoveSuppressionCodeAction.BatchFixer.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.RemoveSuppressionCodeAction_Attribute.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.RemoveSuppressionCodeAction_Pragma.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.RemoveSuppressionCodeAction.cs" />
     <Compile Include="CodeFixes\Suppression\SuppressionHelpers.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.AbstractSuppressionCodeAction.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.FixAllProvider.cs" />
@@ -162,8 +169,11 @@
     <Compile Include="Diagnostics\AnalyzerHelper.cs" />
     <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
     <Compile Include="Diagnostics\AnalyzerUpdateArgsId.cs" />
+    <Compile Include="Diagnostics\DiagnosticService_UpdateSourceRegistrationService.cs" />
+    <Compile Include="Common\UpdatedEventArgs.cs" />
     <Compile Include="Diagnostics\Extensions.cs" />
     <Compile Include="Diagnostics\HostDiagnosticAnalyzerPackage.cs" />
+    <Compile Include="Diagnostics\IDiagnosticUpdateSourceRegistrationService.cs" />
     <Compile Include="Diagnostics\InternalDiagnosticsOptionsProvider.cs" />
     <Compile Include="Diagnostics\PredefinedBuildTools.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerService_BuildSynchronization.cs" />
@@ -547,6 +557,5 @@
   <Import Project="..\..\..\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>
