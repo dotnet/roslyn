@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis
 
             private string GetDebuggerDisplay()
             {
-                return IsSkipped ? "<skipped>" : (_kind == MetadataImageKind.Assembly ? "A[" : "M[") + Index + "]: aliases=" + _aliases.ToString();
+                return IsSkipped ? "<skipped>" : $"{(_kind == MetadataImageKind.Assembly ? "A" : "M")}[{Index}]: aliases='{string.Join("','", _aliases)}'";
             }
         }
 
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis
                         : ((object)modulesBuilder == null ? 0 : modulesBuilder.Count);
 
                     int reversedIndex = count - 1 - referenceMap[i].Index;
-                    referenceMap[i] = new ResolvedReference(reversedIndex, referenceMap[i].Kind, GetAliases(references[i], aliasMap));
+                    referenceMap[i] = new ResolvedReference(reversedIndex, referenceMap[i].Kind, GetAndFreeAliases(references[i], aliasMap));
                 }
             }
 
@@ -371,10 +371,10 @@ namespace Microsoft.CodeAnalysis
             return ImmutableArray.CreateRange(referenceMap);
         }
 
-        private static ImmutableArray<string> GetAliases(MetadataReference reference, Dictionary<MetadataReference, ArrayBuilder<string>> aliasMap)
+        private static ImmutableArray<string> GetAndFreeAliases(MetadataReference reference, Dictionary<MetadataReference, ArrayBuilder<string>> aliasMapOpt)
         {
             ArrayBuilder<string> aliases;
-            if (aliasMap != null && aliasMap.TryGetValue(reference, out aliases))
+            if (aliasMapOpt != null && aliasMapOpt.TryGetValue(reference, out aliases))
             {
                 return aliases.ToImmutableAndFree();
             }
@@ -573,10 +573,17 @@ namespace Microsoft.CodeAnalysis
             modules.Add(module);
         }
 
-        // Returns null if an assembly of an equivalent identity has not been added previously, otherwise returns the reference that added it.
-        // - Both assembly names are strong (have keys) and are either equal or FX unified 
-        // - Both assembly names are weak (no keys) and have the same simple name.
-        private MetadataReference TryAddAssembly(AssemblyIdentity identity, MetadataReference boundReference, DiagnosticBag diagnostics, Location location,
+        /// <summary>
+        /// Returns null if an assembly of an equivalent identity has not been added previously, otherwise returns the reference that added it.
+        /// Two identities are considered equivalent if
+        /// - both assembly names are strong (have keys) and are either equal or FX unified 
+        /// - both assembly names are weak (no keys) and have the same simple name.
+        /// </summary>
+        private MetadataReference TryAddAssembly(
+            AssemblyIdentity identity,
+            MetadataReference boundReference,
+            DiagnosticBag diagnostics, 
+            Location location,
             ref Dictionary<string, List<ReferencedAssemblyIdentity>> referencesBySimpleName)
         {
             if (referencesBySimpleName == null)
@@ -767,13 +774,13 @@ namespace Microsoft.CodeAnalysis
         internal static AssemblyReferenceBinding[] ResolveReferencedAssemblies(
             ImmutableArray<AssemblyIdentity> references,
             ImmutableArray<AssemblyData> definitions,
-            AssemblyIdentityComparer assemblyIdentityComparer,
-            bool okToResolveAgainstCompilationBeingCreated)
+            int definitionStartIndex,
+            AssemblyIdentityComparer assemblyIdentityComparer)
         {
             var boundReferences = new AssemblyReferenceBinding[references.Length];
             for (int j = 0; j < references.Length; j++)
             {
-                boundReferences[j] = ResolveReferencedAssembly(references[j], definitions, assemblyIdentityComparer, okToResolveAgainstCompilationBeingCreated);
+                boundReferences[j] = ResolveReferencedAssembly(references[j], definitions, definitionStartIndex, assemblyIdentityComparer);
             }
 
             return boundReferences;
@@ -783,17 +790,17 @@ namespace Microsoft.CodeAnalysis
         /// Used to match AssemblyRef with AssemblyDef.
         /// </summary>
         /// <param name="definitions">Array of definition identities to match against.</param>
+        /// <param name="definitionStartIndex">An index of the first definition to consider, <paramref name="definitions"/> preceding this index are ignored.</param>
         /// <param name="reference">Reference identity to resolve.</param>
         /// <param name="assemblyIdentityComparer">Assembly identity comparer.</param>
-        /// <param name="okToResolveAgainstCompilationBeingCreated"> Is it Ok to resolve reference against the compilation we are creating?</param>
         /// <returns>
         /// Returns an index the reference is bound.
         /// </returns>
         internal static AssemblyReferenceBinding ResolveReferencedAssembly(
             AssemblyIdentity reference,
             ImmutableArray<AssemblyData> definitions,
-            AssemblyIdentityComparer assemblyIdentityComparer,
-            bool okToResolveAgainstCompilationBeingCreated)
+            int definitionStartIndex,
+            AssemblyIdentityComparer assemblyIdentityComparer)
         {
             // Dev11 C# compiler allows the versions to not match exactly, assuming that a newer library may be used instead of an older version.
             // For a given reference it finds a definition with the lowest version that is higher then or equal to the reference version.
@@ -803,9 +810,11 @@ namespace Microsoft.CodeAnalysis
             int minHigherVersionDefinition = -1;
             int maxLowerVersionDefinition = -1;
 
-            // NB: Start at 1, since we checked 0 above.
-            const int definitionOffset = 1;
-            for (int i = definitionOffset; i < definitions.Length; i++)
+            // Skip assembly being built for now; it will be considered at the very end:
+            bool resolveAgainstAssemblyBeingBuilt = definitionStartIndex == 0;
+            definitionStartIndex = Math.Max(definitionStartIndex, 1);
+
+            for (int i = definitionStartIndex; i < definitions.Length; i++)
             {
                 AssemblyIdentity definition = definitions[i].Identity;
 
@@ -838,6 +847,9 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         continue;
+
+                    default:
+                        throw ExceptionUtilities.Unreachable;
                 }
             }
 
@@ -860,7 +872,7 @@ namespace Microsoft.CodeAnalysis
             // substitute for a collection of Windows.*.winmd compile-time references.
             if (reference.IsWindowsComponent())
             {
-                for (int i = definitionOffset; i < definitions.Length; i++)
+                for (int i = definitionStartIndex; i < definitions.Length; i++)
                 {
                     if (definitions[i].Identity.IsWindowsRuntime())
                     {
@@ -878,7 +890,7 @@ namespace Microsoft.CodeAnalysis
             // allow the compilation to match the reference.
             if (reference.ContentType == AssemblyContentType.WindowsRuntime)
             {
-                for (int i = definitionOffset; i < definitions.Length; i++)
+                for (int i = definitionStartIndex; i < definitions.Length; i++)
                 {
                     var definition = definitions[i].Identity;
                     var sourceCompilation = definitions[i].SourceCompilation;
@@ -898,7 +910,7 @@ namespace Microsoft.CodeAnalysis
             // As in the native compiler (see IMPORTER::MapAssemblyRefToAid), we compare against the
             // compilation (i.e. source) assembly as a last resort.  We follow the native approach of
             // skipping the public key comparison since we have yet to compute it.
-            if (okToResolveAgainstCompilationBeingCreated &&
+            if (resolveAgainstAssemblyBeingBuilt &&
                 AssemblyIdentityComparer.SimpleNameComparer.Equals(reference.Name, definitions[0].Identity.Name))
             {
                 Debug.Assert(definitions[0].Identity.PublicKeyToken.IsEmpty);
