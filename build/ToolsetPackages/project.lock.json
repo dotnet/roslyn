@@ -42,8 +42,8 @@
       },
       "xunit/2.1.0-beta4-build3109": {
         "dependencies": {
-          "xunit.core": "[2.1.0-beta4-build3109, 2.1.0-beta4-build3109]",
-          "xunit.assert": "[2.1.0-beta4-build3109, 2.1.0-beta4-build3109]"
+          "xunit.assert": "[2.1.0-beta4-build3109, 2.1.0-beta4-build3109]",
+          "xunit.core": "[2.1.0-beta4-build3109, 2.1.0-beta4-build3109]"
         }
       },
       "xunit.abstractions/2.0.0": {
@@ -125,8 +125,8 @@
       },
       "xunit/2.1.0-beta4-build3109": {
         "dependencies": {
-          "xunit.core": "[2.1.0-beta4-build3109, 2.1.0-beta4-build3109]",
-          "xunit.assert": "[2.1.0-beta4-build3109, 2.1.0-beta4-build3109]"
+          "xunit.assert": "[2.1.0-beta4-build3109, 2.1.0-beta4-build3109]",
+          "xunit.core": "[2.1.0-beta4-build3109, 2.1.0-beta4-build3109]"
         }
       },
       "xunit.abstractions/2.0.0": {
@@ -1129,48 +1129,48 @@
       "type": "Package",
       "files": [
         "[Content_Types].xml",
+        "[Content_Types].xml",
         "_rels/.rels",
-        "xunit.nuspec",
         "package/services/metadata/core-properties/272e8825b1914d2d8e866cb165d3cad0.psmdcp",
-        "[Content_Types].xml"
+        "xunit.nuspec"
       ]
     },
     "xunit.abstractions/2.0.0": {
       "sha512": "NAdxKQRzuLnCZ0g++x6i87/8rMBpQoRiRlRNLAqfODm2zJPbteHRoSER3DXfxnqrHXyBJT8rFaZ8uveBeQyaMA==",
       "type": "Package",
       "files": [
+        "[Content_Types].xml",
         "_rels/.rels",
-        "xunit.abstractions.nuspec",
         "lib/net35/xunit.abstractions.dll",
         "lib/net35/xunit.abstractions.xml",
         "lib/portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS/xunit.abstractions.dll",
         "lib/portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS/xunit.abstractions.xml",
         "package/services/metadata/core-properties/24083640fee244bf9de77f4c35d40a72.psmdcp",
-        "[Content_Types].xml"
+        "xunit.abstractions.nuspec"
       ]
     },
     "xunit.assert/2.1.0-beta4-build3109": {
       "sha512": "P6cyWlPboKWil9u7DTrDgIJQcK9WFef4+o2D++sEpvBvKoD2BINDc9SBRtEPt9z8mcOKbs1LH1+TJHKd2nASnQ==",
       "type": "Package",
       "files": [
+        "[Content_Types].xml",
         "_rels/.rels",
-        "xunit.assert.nuspec",
-        "lib/portable-net45+netcore45+wp8+wpa81/xunit.assert.dll",
-        "lib/portable-net45+netcore45+wp8+wpa81/xunit.assert.pdb",
-        "lib/portable-net45+netcore45+wp8+wpa81/xunit.assert.xml",
         "lib/dotnet/xunit.assert.dll",
         "lib/dotnet/xunit.assert.pdb",
         "lib/dotnet/xunit.assert.xml",
+        "lib/portable-net45+netcore45+wp8+wpa81/xunit.assert.dll",
+        "lib/portable-net45+netcore45+wp8+wpa81/xunit.assert.pdb",
+        "lib/portable-net45+netcore45+wp8+wpa81/xunit.assert.xml",
         "package/services/metadata/core-properties/ba68c680aca7471ea9ac9cc557fee3dc.psmdcp",
-        "[Content_Types].xml"
+        "xunit.assert.nuspec"
       ]
     },
     "xunit.core/2.1.0-beta4-build3109": {
       "sha512": "Z/tl35u6DASv0X3yFxO0CyHQPE1QH84X9y8bcpEVBai0byC1DSAk3heayxGFHrvuNbnA3bVYxD5t+CnAxKUZuQ==",
       "type": "Package",
       "files": [
+        "[Content_Types].xml",
         "_rels/.rels",
-        "xunit.core.nuspec",
         "build/_Desktop/xunit.execution.desktop.dll",
         "build/monoandroid/xunit.core.props",
         "build/monoandroid/xunit.execution.MonoAndroid.dll",
@@ -1187,29 +1187,29 @@
         "build/xamarinios/xunit.core.props",
         "build/xamarinios/xunit.execution.iOS-Universal.dll",
         "package/services/metadata/core-properties/2a5b204e6182455c99ce548be2a3b755.psmdcp",
-        "[Content_Types].xml"
+        "xunit.core.nuspec"
       ]
     },
     "xunit.extensibility.core/2.1.0-beta4-build3109": {
       "sha512": "B7K5N6aVf2QV+dWEkGqtgbybkCL7YjAy/TiH8xBiL0Zorf3lUGVP5P/3Bo1OY9OLobRYkTriRTGmqbDdRXqOrA==",
       "type": "Package",
       "files": [
+        "[Content_Types].xml",
         "_rels/.rels",
-        "xunit.extensibility.core.nuspec",
-        "lib/portable-net45+netcore45+wp8+wpa81/xunit.core.dll",
-        "lib/portable-net45+netcore45+wp8+wpa81/xunit.core.dll.tdnet",
-        "lib/portable-net45+netcore45+wp8+wpa81/xunit.core.pdb",
-        "lib/portable-net45+netcore45+wp8+wpa81/xunit.core.xml",
-        "lib/portable-net45+netcore45+wp8+wpa81/xunit.runner.tdnet.dll",
-        "lib/portable-net45+netcore45+wp8+wpa81/xunit.runner.utility.desktop.dll",
         "lib/dotnet/xunit.core.dll",
         "lib/dotnet/xunit.core.dll.tdnet",
         "lib/dotnet/xunit.core.pdb",
         "lib/dotnet/xunit.core.xml",
         "lib/dotnet/xunit.runner.tdnet.dll",
         "lib/dotnet/xunit.runner.utility.desktop.dll",
+        "lib/portable-net45+netcore45+wp8+wpa81/xunit.core.dll",
+        "lib/portable-net45+netcore45+wp8+wpa81/xunit.core.dll.tdnet",
+        "lib/portable-net45+netcore45+wp8+wpa81/xunit.core.pdb",
+        "lib/portable-net45+netcore45+wp8+wpa81/xunit.core.xml",
+        "lib/portable-net45+netcore45+wp8+wpa81/xunit.runner.tdnet.dll",
+        "lib/portable-net45+netcore45+wp8+wpa81/xunit.runner.utility.desktop.dll",
         "package/services/metadata/core-properties/456bba8eee5d4253a271c9933a6aefdf.psmdcp",
-        "[Content_Types].xml"
+        "xunit.extensibility.core.nuspec"
       ]
     },
     "xunit.runner.console/2.1.0-beta4-build3109": {
@@ -1240,8 +1240,7 @@
       "Microsoft.CodeAnalysis.Test.Resources.Proprietary >= 1.1.0-beta1-20150817-01",
       "Microsoft.DiaSymReader.Native >= 1.1.0-alpha2",
       "Microsoft.Net.Compilers >= 1.1.0-beta1-20150727-01",
-      "Microsoft.Net.RoslynDiagnostics >= 1.1.1-beta1-20150814-01",
-      "FakeSign >= 0.9.2",
+      "Microsoft.Net.RoslynDiagnostics >= 1.1.1-beta1-20150818-01",
       "xunit >= 2.1.0-beta4-build3109",
       "xunit.runner.console >= 2.1.0-beta4-build3109"
     ],
