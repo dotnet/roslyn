@@ -274,7 +274,7 @@ End Enum");
         }
 
         [WorkItem(546195), WorkItem(546269)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestEnumFromField()
         {
             var metadataSource = "public enum E { A, B, C }";

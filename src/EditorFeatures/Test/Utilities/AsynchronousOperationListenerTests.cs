@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                                 done = true;
                             });
                         queuedTask.CompletesAsyncOperation(asyncToken2);
-                        queuedTask.Start();
+                        queuedTask.Start(TaskScheduler.Default);
                     });
 
                 task.CompletesAsyncOperation(asyncToken1);
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                                 continued = true;
                             });
                         asyncToken2.Dispose();
-                        queuedTask.Start();
+                        queuedTask.Start(TaskScheduler.Default);
                         done = true;
                     });
                 task.CompletesAsyncOperation(asyncToken1);
@@ -230,11 +230,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                                         secondQueuedDone = true;
                                     });
                                 secondQueueTask.CompletesAsyncOperation(asyncToken3);
-                                secondQueueTask.Start();
+                                secondQueueTask.Start(TaskScheduler.Default);
                                 firstQueuedDone = true;
                             });
                         firstQueueTask.CompletesAsyncOperation(asyncToken2);
-                        firstQueueTask.Start();
+                        firstQueueTask.Start(TaskScheduler.Default);
                         outerDone = true;
                     });
                 task.CompletesAsyncOperation(asyncToken1);
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                         });
 
                         signal.Set();
-                        cancelledTask.Start();
+                        cancelledTask.Start(TaskScheduler.Default);
                     }
 
                     sleepHelper.Sleep(TimeSpan.FromMilliseconds(500));
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                             queuedFinished = true;
                         });
                     queuedTask.CompletesAsyncOperation(asyncToken2);
-                    queuedTask.Start();
+                    queuedTask.Start(TaskScheduler.Default);
                     done = true;
                 });
                 task.CompletesAsyncOperation(asyncToken1);

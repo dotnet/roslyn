@@ -503,9 +503,8 @@ class C
             VerifyPressingEnter(code, expected);
         }
 
-<<<<<<< HEAD
         [WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InsertComment_Class1_AutoGenerateXmlDocCommentsOff()
         {
             var code =
@@ -524,10 +523,7 @@ class C
             VerifyPressingEnter(code, expected, autoGenerateXmlDocComments: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-=======
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
->>>>>>> This updates tests that require an STA Thread and/or WPF Synchronization Context.
         public void PressingEnter_InsertComment_Class2()
         {
             var code =
@@ -1064,9 +1060,8 @@ class C
             VerifyPressingEnter(code, expected);
         }
 
-<<<<<<< HEAD
         [WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InsertSlashes12_AutoGenerateXmlDocCommentsOff()
         {
             var code =
@@ -1088,10 +1083,7 @@ class C
         }
 
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-=======
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
->>>>>>> This updates tests that require an STA Thread and/or WPF Synchronization Context.
         public void PressingEnter_DontInsertSlashes1()
         {
             var code =
@@ -1333,9 +1325,8 @@ static void Main(string[] args)
             VerifyPressingEnter(code, expected, useTabs: true);
         }
 
-<<<<<<< HEAD
         [WorkItem(5486, "https://github.com/dotnet/roslyn/issues/5486")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_Selection1()
         {
             var code =
@@ -1358,7 +1349,7 @@ class C
         }
 
         [WorkItem(5486, "https://github.com/dotnet/roslyn/issues/5486")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_Selection2()
         {
             var code =
@@ -1380,10 +1371,7 @@ class C
             VerifyPressingEnter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-=======
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
->>>>>>> This updates tests that require an STA Thread and/or WPF Synchronization Context.
         public void Command_Class()
         {
             var code =
