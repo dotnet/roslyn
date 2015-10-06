@@ -380,8 +380,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         Private Shared Function CastRemovalChangesDefaultValue(castType As ITypeSymbol, outerType As ITypeSymbol) As Boolean
-            If castType.IsNumericType Then
-                Return Not outerType.IsNumericType
+            If castType.IsNumericType() Then
+                Return Not outerType.IsNumericType()
+            ElseIf castType.SpecialType = SpecialType.System_DateTime
+                Return Not outerType.SpecialType = SpecialType.System_DateTime
+            ElseIf castType.SpecialType = SpecialType.System_Boolean
+                Return Not (outerType.IsNumericType OrElse outerType.SpecialType = SpecialType.System_Boolean)
             End If
 
             If castType.OriginalDefinition?.SpecialType = SpecialType.System_Nullable_T Then
@@ -403,14 +407,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return True
             End If
 
-            Select Case castType.SpecialType
-                Case SpecialType.System_DateTime
-                    Return Not outerType.SpecialType = SpecialType.System_DateTime
-                Case SpecialType.System_Boolean
-                    Return Not (outerType.IsNumericType OrElse outerType.SpecialType = SpecialType.System_Boolean)
-                Case Else
-                    Return False
-            End Select
+            Return False
         End Function
 
         Public Shared Function IsUnnecessary(
