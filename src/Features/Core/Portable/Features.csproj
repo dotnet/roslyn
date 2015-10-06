@@ -535,6 +535,7 @@
     <Compile Include="SpellCheck\AbstractSpellCheckCodeFixProvider.cs" />
     <Compile Include="UseAutoProperty\AbstractUseAutoPropertyCodeFixProvider.cs" />
     <Compile Include="UseAutoProperty\AbstractUseAutoPropertyAnalyzer.cs" />
+    <Compile Include="UseAutoProperty\IUseAutoPropertyService.cs" />
     <Compile Include="Workspace\BackgroundCompiler.cs" />
     <Compile Include="Workspace\BackgroundParser.cs" />
   </ItemGroup>
