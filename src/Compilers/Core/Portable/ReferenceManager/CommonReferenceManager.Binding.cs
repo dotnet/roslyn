@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
         /// Implicitly resolved references.
         /// </param>
         /// <param name="implicitlyResolvedReferenceMap">
-        /// Maps index to all references (explicit + implicit) to an index of a resolved assembly in all assemblies (explicit + implicit).
+        /// Maps indices of implicitly resolved references to the corresponding indices of resolved assemblies in <paramref name="allAssemblies"/> (explicit + implicit).
         /// </param>
         /// <param name="resolutionDiagnostics">
         /// Any diagnostics reported while resolving missing assemblies.
@@ -202,10 +202,11 @@ namespace Microsoft.CodeAnalysis
                             continue;
                         }
 
-                        // The resolver may return different version than we asked for, so it may also happen that 
+                        // The resolver may return different version than we asked for, so it may happen that 
                         // it returns the same identity for two different input identities (e.g. if a higher version 
                         // of an assembly is available than what the assemblies reference: "A, v1" -> "A, v3" and "A, v2" -> "A, v3").
                         // If such case occurs merge the properties (aliases) of the resulting references in the same way we do
+                        // during initial explicit references resolution.
 
                         var existingReference = TryAddAssembly(data.Identity, peReference, resolutionDiagnostics, Location.None, ref lazyResolvedReferencesBySimpleName);
                         if (existingReference != null)

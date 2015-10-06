@@ -573,10 +573,17 @@ namespace Microsoft.CodeAnalysis
             modules.Add(module);
         }
 
-        // Returns null if an assembly of an equivalent identity has not been added previously, otherwise returns the reference that added it.
-        // - Both assembly names are strong (have keys) and are either equal or FX unified 
-        // - Both assembly names are weak (no keys) and have the same simple name.
-        private MetadataReference TryAddAssembly(AssemblyIdentity identity, MetadataReference boundReference, DiagnosticBag diagnosticsOpt, Location location,
+        /// <summary>
+        /// Returns null if an assembly of an equivalent identity has not been added previously, otherwise returns the reference that added it.
+        /// Two identities are considered equivalent if
+        /// - both assembly names are strong (have keys) and are either equal or FX unified 
+        /// - both assembly names are weak (no keys) and have the same simple name.
+        /// </summary>
+        private MetadataReference TryAddAssembly(
+            AssemblyIdentity identity,
+            MetadataReference boundReference,
+            DiagnosticBag diagnostics, 
+            Location location,
             ref Dictionary<string, List<ReferencedAssemblyIdentity>> referencesBySimpleName)
         {
             if (referencesBySimpleName == null)
@@ -643,7 +650,7 @@ namespace Microsoft.CodeAnalysis
                     // BREAKING CHANGE in VB: we report an error for both languages
 
                     // Multiple assemblies with equivalent identity have been imported: '{0}' and '{1}'. Remove one of the duplicate references.
-                    MessageProvider.ReportDuplicateMetadataReferenceStrong(diagnosticsOpt, location, boundReference, identity, equivalent.MetadataReference, equivalent.Identity);
+                    MessageProvider.ReportDuplicateMetadataReferenceStrong(diagnostics, location, boundReference, identity, equivalent.MetadataReference, equivalent.Identity);
                 }
                 // If the versions match exactly we ignore duplicates w/o reporting errors while 
                 // Dev12 C# reports:
@@ -664,7 +671,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (identity != equivalent.Identity)
                 {
-                    MessageProvider.ReportDuplicateMetadataReferenceWeak(diagnosticsOpt, location, boundReference, identity, equivalent.MetadataReference, equivalent.Identity);
+                    MessageProvider.ReportDuplicateMetadataReferenceWeak(diagnostics, location, boundReference, identity, equivalent.MetadataReference, equivalent.Identity);
                 }
             }
 
