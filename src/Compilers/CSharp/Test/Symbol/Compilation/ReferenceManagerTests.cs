@@ -2175,31 +2175,6 @@ public class Source
             Assert.Equal("System.Numerics.Vectors, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((IAssemblySymbol)a1).Identity.GetDisplayName());
         }
 
-        private class TestMissingMetadataReferenceResolver : MetadataReferenceResolver
-        {
-            private readonly Dictionary<string, MetadataReference> _map;
-            public readonly List<AssemblyIdentity> ResolutionAttempts = new List<AssemblyIdentity>();
-
-            public TestMissingMetadataReferenceResolver(Dictionary<string, MetadataReference> map)
-            {
-                _map = map;
-            }
-
-            public override PortableExecutableReference ResolveMissingAssembly(AssemblyIdentity identity)
-            {
-                ResolutionAttempts.Add(identity);
-
-                MetadataReference reference;
-                string nameAndVersion = identity.Name + (identity.Version != AssemblyIdentity.NullVersion ? $", {identity.Version}" : "");
-                return _map.TryGetValue(nameAndVersion, out reference) ? (PortableExecutableReference)reference : null;
-            }
-
-            public override bool ResolveMissingAssemblies => true;
-            public override bool Equals(object other) => true;
-            public override int GetHashCode() => 1;
-            public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties) => default(ImmutableArray<PortableExecutableReference>);
-        }
-
         [Fact]
         public void MissingAssemblyResolution1()
         {

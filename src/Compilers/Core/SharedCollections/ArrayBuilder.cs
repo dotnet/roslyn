@@ -385,9 +385,9 @@ namespace Microsoft.CodeAnalysis
 
         public void AddRange(T[] items, int start, int length)
         {
-            for (int i = 0; i < length; i++)
+            for (int i = start, end = start + length; i < end; i++)
             {
-                Add(items[start + i]);
+                Add(items[i]);
             }
         }
 

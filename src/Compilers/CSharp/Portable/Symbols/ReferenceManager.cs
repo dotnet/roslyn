@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if ((object)bindingResult[i].AssemblySymbol == null)
                         {
-                            // symbols hasn't been found in the cache, create a new one
+                            // symbol hasn't been found in the cache, create a new one
                             var compilationData = (AssemblyDataForMetadataOrCompilation)allAssemblyData[i];
                             bindingResult[i].AssemblySymbol = compilationData.CreateAssemblySymbol();
                             newSymbols.Add(i);
