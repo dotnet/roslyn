@@ -249,7 +249,7 @@
     <Compile Include="CodeModel\ExternalElements\ExternalCodeVariable.cs" />
     <Compile Include="CodeModel\FileCodeModel.CleanableWeakComHandleTable.cs" />
     <Compile Include="CodeModel\FileCodeModel.cs" />
-    <Compile Include="CodeModel\FileCodeModel.ElementTable.cs" />
+    <Compile Include="CodeModel\FileCodeModel.CodeElementTable.cs" />
     <Compile Include="CodeModel\FileCodeModel_CodeGen.cs" />
     <Compile Include="CodeModel\FileCodeModel_Events.cs" />
     <Compile Include="CodeModel\FileCodeModel_Refactoring.cs" />

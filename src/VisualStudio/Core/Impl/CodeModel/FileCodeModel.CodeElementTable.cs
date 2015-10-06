@@ -3,15 +3,15 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
-using CodeElementWeakComAggregateHandle =
-    Microsoft.VisualStudio.LanguageServices.Implementation.Interop.WeakComHandle<EnvDTE.CodeElement, EnvDTE.CodeElement>;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
+    using CodeElementWeakComAggregateHandle = WeakComHandle<EnvDTE.CodeElement, EnvDTE.CodeElement>;
+
     public sealed partial class FileCodeModel
     {
-        private class ElementTable : IEnumerable<EnvDTE.CodeElement>
+        private class CodeElementTable : IEnumerable<EnvDTE.CodeElement>
         {
             // Since CodeElements have a strong ref on the FileCodeModel, we should use
             // weak references on the CodeElements to prevent a cycle. This class should
@@ -32,52 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             public void Add(SyntaxNodeKey key, EnvDTE.CodeElement element)
             {
-                // This code deals with a weird case of interaction with WinForms: The same
-                // element can be added multiple times. What we have to do is bump
-                // the conflicting element to a free [KeyName, Ordinal] slot
-                // by incrementing [Ordinal]
-                // Elements with the same node path can also be added multiple times in 
-                // normal editing scenarios, e.g. when a code element is changing preserving its name
-                // (e.g. a class becomes an interface) or user just removes a block of code and 
-                // then readds it back before code elements for removed code were garbage collected.
-                CodeElementWeakComAggregateHandle existingElementHandle;
-                if (_elementWeakComHandles.TryGetValue(key, out existingElementHandle))
-                {
-                    int newOrdinal = key.Ordinal;
-                    while (true)
-                    {
-                        newOrdinal++;
-                        var currentKey = new SyntaxNodeKey(key.Name, newOrdinal);
-                        if (!_elementWeakComHandles.ContainsKey(currentKey))
-                        {
-                            // We found a free "slot": use it and release the previous one
-                            AbstractKeyedCodeElement existingElement = null;
-                            EnvDTE.CodeElement existingElementManagedObject;
-                            if (existingElementHandle.TryGetManagedObjectWithoutCaringWhetherNativeObjectIsAlive(out existingElementManagedObject))
-                            {
-                                existingElement = existingElementManagedObject as AbstractKeyedCodeElement;
-                            }
-
-                            _elementWeakComHandles.Remove(key);
-
-                            if (existingElementHandle.ComAggregateObject == null)
-                            {
-                                // The native object has already been released.
-                                // There's no need to re-add this handle.
-                                break;
-                            }
-
-                            Debug.Assert(existingElement != null, "The ComAggregate is alive. Why isn't the actual managed object?");
-
-                            _elementWeakComHandles.Add(currentKey, existingElementHandle);
-                            existingElement.NodeKey = currentKey;
-                            break;
-                        }
-                    }
-                }
-
-                Debug.Assert(!_elementWeakComHandles.ContainsKey(key),
-                             "All right, we got it wrong. We should have a free entry in the table!");
+                Debug.Assert(!_elementWeakComHandles.ContainsKey(key), "All right, we got it wrong. We should have a free entry in the table!");
 
                 _elementWeakComHandles.Add(key, new CodeElementWeakComAggregateHandle(element));
             }

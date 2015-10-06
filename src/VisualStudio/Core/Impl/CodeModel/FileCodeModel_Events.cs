@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             var needMoreTime = false;
 
-            _elementTable.Cleanup(out needMoreTime);
+            _codeElementTable.Cleanup(out needMoreTime);
 
             if (this.IsZombied)
             {
@@ -165,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 }
                 else
                 {
-                    element = this.CreateCodeElement<EnvDTE.CodeElement>(codeModelEvent.Node);
+                    element = this.GetOrCreateCodeElement<EnvDTE.CodeElement>(codeModelEvent.Node);
                 }
             }
 
@@ -184,14 +184,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             {
                 if (codeModelEvent.ParentNode != null)
                 {
-                    return this.CreateCodeElement<EnvDTE.CodeElement>(codeModelEvent.ParentNode);
+                    return this.GetOrCreateCodeElement<EnvDTE.CodeElement>(codeModelEvent.ParentNode);
                 }
             }
             else if (this.CodeModelService.IsAttributeNode(codeModelEvent.Node))
             {
                 if (codeModelEvent.ParentNode != null)
                 {
-                    return this.CreateCodeElement<EnvDTE.CodeElement>(codeModelEvent.ParentNode);
+                    return this.GetOrCreateCodeElement<EnvDTE.CodeElement>(codeModelEvent.ParentNode);
                 }
                 else
                 {
@@ -203,7 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 if (codeModelEvent.ParentNode != null &&
                     codeModelEvent.ParentNode.Parent != null)
                 {
-                    return this.CreateCodeElement<EnvDTE.CodeElement>(codeModelEvent.ParentNode);
+                    return this.GetOrCreateCodeElement<EnvDTE.CodeElement>(codeModelEvent.ParentNode);
                 }
                 else
                 {

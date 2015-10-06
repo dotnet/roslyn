@@ -4,12 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using CodeElementWeakComAggregateHandle =
-    Microsoft.VisualStudio.LanguageServices.Implementation.Interop.WeakComHandle<EnvDTE.CodeElement, EnvDTE.CodeElement>;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
+    using CodeElementWeakComAggregateHandle = WeakComHandle<EnvDTE.CodeElement, EnvDTE.CodeElement>;
+
     public sealed partial class FileCodeModel
     {
         /// <summary>
