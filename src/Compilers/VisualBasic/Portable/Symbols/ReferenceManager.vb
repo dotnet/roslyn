@@ -317,8 +317,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     For i As Integer = 1 To bindingResult.Length - 1 Step 1
                         If bindingResult(i).AssemblySymbol Is Nothing Then
                             ' symbol hasn't been found in the cache, create a new one
-                            Dim compilationData = DirectCast(allAssemblyData(i), AssemblyDataForMetadataOrCompilation)
-                            bindingResult(i).AssemblySymbol = compilationData.CreateAssemblySymbol()
+                            bindingResult(i).AssemblySymbol = DirectCast(allAssemblyData(i), AssemblyDataForMetadataOrCompilation).CreateAssemblySymbol()
                             newSymbols.Add(i)
                         End If
 
