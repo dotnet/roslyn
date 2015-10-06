@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         /// Test round tripping for some specific floating-point values constructed to test the edge cases of conversion implementations.
         /// </summary>
         [Fact]
-        static void TestSpecificDoubles()
+        public static void TestSpecificDoubles()
         {
             CheckOneDouble("0.0", 0x0000000000000000ul);
 
@@ -157,12 +157,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             for (ulong i = 0x7fefffffffffff00ul; i != 0x7ff0000000000000ul; ++i)
             {
                 TestRoundTripDouble(i);
-            }
-
-            // Verify all representable powers of two and nearby values:
-            for (int exp = -1023; exp < 1024; exp++)
-            {
-                ulong shiftedExponent = ((ulong)(exp + 1023)) << 52;
             }
 
             // Verify all representable powers of two and nearby values:
@@ -378,6 +372,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         static void TestRoundTripDouble(ulong bits)
         {
             double d = BitConverter.Int64BitsToDouble((long)bits);
+            if (double.IsInfinity(d) || double.IsNaN(d)) return;
             string s = $"{d:G17}";
             CheckOneDouble(s, bits);
         }
@@ -399,14 +394,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             if (!RealParser.TryParseDouble(s, out actual)) actual = 1.0 / 0.0;
             if (!actual.Equals(expected))
             {
-                Console.WriteLine($"Error for double input \"{s}\"");
-                Console.WriteLine($"   expected {expected:G17}");
-                Console.WriteLine($"   actual {actual:G17}");
+                throw new AssertFailureException($@"
+Error for double input ""{s}""
+   expected {expected:G17}
+   actual {actual:G17}");
             }
         }
 
         // ============ test some floats ============
 
+        [Fact]
         public static void TestSpecificFloats()
         {
             CheckOneFloat(" 0.0", 0x00000000);
@@ -430,9 +427,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
 
             // Verify all representable powers of two and nearby values:
-            for (int i = -1024; i != 1024; ++i)
+            for (int i = -1022; i != 1023; ++i)
             {
-                float f = (float)Math.Pow(2.0, i);
+                float f;
+                try
+                {
+                    f = (float)Math.Pow(2.0, i);
+                }
+                catch (OverflowException)
+                {
+                    continue;
+                }
+                if (f == 0) continue;
                 uint bits = FloatToInt32Bits(f);
                 TestRoundTripFloat(bits - 1);
                 TestRoundTripFloat(bits);
@@ -442,7 +448,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // Verify all representable powers of ten and nearby values:
             for (int i = -50; i <= 40; ++i)
             {
-                float f = (float)Math.Pow(10.0, i);
+                float f;
+                try
+                {
+                    f = (float)Math.Pow(10.0, i);
+                }
+                catch (OverflowException)
+                {
+                    continue;
+                }
+                if (f == 0) continue;
                 uint bits = FloatToInt32Bits(f);
                 TestRoundTripFloat(bits - 1);
                 TestRoundTripFloat(bits);
@@ -532,8 +547,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         static void TestRoundTripFloat(uint bits)
         {
             float d = Int32BitsToFloat(bits);
+            if (float.IsInfinity(d) || float.IsNaN(d)) return;
             string s = $"{d:G17}";
-            if (s != "NaN" && s != "Infinity") CheckOneFloat(s, bits);
+            CheckOneFloat(s, bits);
         }
 
         static void TestRoundTripFloat(float d)
@@ -553,9 +569,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             if (!RealParser.TryParseFloat(s, out actual)) actual = 1.0f / 0.0f;
             if (!actual.Equals(expected))
             {
-                Console.WriteLine($"Error for float input \"{s}\"");
-                Console.WriteLine($"   expected {expected:G17}");
-                Console.WriteLine($"   actual {actual:G17}");
+                throw new AssertFailureException($@"Error for float input ""{s}""
+   expected {expected:G17}
+   actual {actual:G17}");
             }
         }
 
