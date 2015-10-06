@@ -23,7 +23,7 @@
         }
       }
     },
-    ".NETFramework,Version=v4.5.2/win-anycpu": {
+    ".NETFramework,Version=v4.5.2/win7-anycpu": {
       "System.Collections.Immutable/1.1.36": {
         "compile": {
           "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
