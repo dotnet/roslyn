@@ -6,16 +6,21 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProjectGuid>{14118347-ED06-4608-9C45-18228273C712}</ProjectGuid>
+    <ProjectGuid>{1EEFB4B6-A6CC-4869-AF05-A43C8B82A8FD}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>CSharpInteractive</RootNamespace>
-    <AssemblyName>csi</AssemblyName>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <StartupObject>Sub Main</StartupObject>
+    <RootNamespace>
+    </RootNamespace>
+    <AssemblyName>vbi</AssemblyName>
+    <PlatformTarget>x64</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
+    <OutDir>$(OutDir)core-clr\</OutDir>
     <RestorePackages>true</RestorePackages>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
+    <TargetFrameworkIdentifier>DNXCore</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <NoStdLib>true</NoStdLib>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>
@@ -26,29 +31,27 @@
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
-      <Name>CSharpCodeAnalysis</Name>
+    <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
+      <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
+      <Name>BasicCodeAnalysis</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Scripting\Core\Scripting.csproj">
       <Project>{12A68549-4E8C-42D6-8703-A09335F97997}</Project>
       <Name>Scripting</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\CSharp\CSharpScripting.csproj">
-      <Project>{066f0dbd-c46c-4c20-afec-99829a172625}</Project>
-      <Name>CSharpScripting</Name>
+    <ProjectReference Include="..\..\Scripting\VisualBasic\BasicScripting.vbproj">
+      <Project>{3e7dea65-317b-4f43-a25d-62f18d96cfd7}</Project>
+      <Name>BasicScripting</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="csi.rsp">
+    <None Include="vbi.rsp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\CsiCore\Csi.cs">
-      <Link>Csi.cs</Link>
-    </Compile>
+    <Compile Include="Vbi.vb" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
