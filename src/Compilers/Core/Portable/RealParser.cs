@@ -11,7 +11,8 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A set of utilities for converting from a decimal floating-point literal string to its IEEE float
     /// or double representation, which coniders all digits signficant and correctly rounds according to
-    /// the IEEE round-to-nearest-ties-to-even mode.
+    /// the IEEE round-to-nearest-ties-to-even mode. This code does not support a leading sign character,
+    /// as that is not part of the C# or VB floating-point literal lexical syntax.
     /// 
     /// If you change this code, please run the set of long-running random tests in the solution
     /// RandomRealParserTests.sln. That solution is not included in Roslyn.sln as it is Windows-specific.
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis
             ulong result;
             var status = RealParser.ConvertDecimalToFloatingPointBits(str, dbl, out result);
             d = BitConverter.Int64BitsToDouble((long)result);
-            return status != SLD_STATUS.SLD_OVERFLOW;
+            return status != Status.Overflow;
         }
 
         /// <summary>
@@ -51,13 +52,13 @@ namespace Microsoft.CodeAnalysis
             ulong result;
             var status = RealParser.ConvertDecimalToFloatingPointBits(str, dbl, out result);
             f = Int32BitsToFloat((uint)result);
-            return status != SLD_STATUS.SLD_OVERFLOW;
+            return status != Status.Overflow;
         }
 
-        private static BigInteger BigZero = BigInteger.Zero;
-        private static BigInteger BigOne = new BigInteger(1);
-        private static BigInteger BigTwo = new BigInteger(2);
-        private static BigInteger BigTen = new BigInteger(10);
+        private readonly static BigInteger BigZero = BigInteger.Zero;
+        private readonly static BigInteger BigOne = BigInteger.One;
+        private readonly static BigInteger BigTwo = new BigInteger(2);
+        private readonly static BigInteger BigTen = new BigInteger(10);
 
         /// <summary>
         /// Properties of an IEEE floating-point representation.
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis
             /// <param name="hasZeroTail">Whether there are any nonzero bits past the supplied mantissa</param>
             /// <param name="result">Where the bits of the floating-point number are stored</param>
             /// <returns>A status indicating whether the conversion succeeded and why</returns>
-            public SLD_STATUS AssembleFloatingPointValue(
+            public Status AssembleFloatingPointValue(
                 ulong initialMantissa,
                 int initialExponent,
                 bool hasZeroTail,
@@ -121,7 +122,7 @@ namespace Microsoft.CodeAnalysis
                     // The exponent is too large to be represented by the floating point  
                     // type; report the overflow condition:
                     result = this.Infinity;
-                    return SLD_STATUS.SLD_OVERFLOW;
+                    return Status.Overflow;
                 }
                 else if (normalExponent < this.MinBinaryExponent)
                 {
@@ -152,7 +153,7 @@ namespace Microsoft.CodeAnalysis
                         if (mantissa == 0)
                         {
                             result = this.Zero;
-                            return SLD_STATUS.SLD_UNDERFLOW;
+                            return Status.Undeflow;
                         }
 
                         // When we round the mantissa, the result may be so large that the  
@@ -209,7 +210,7 @@ namespace Microsoft.CodeAnalysis
                             if (exponent > this.MaxBinaryExponent)
                             {
                                 result = this.Infinity;
-                                return SLD_STATUS.SLD_OVERFLOW;
+                                return Status.Overflow;
                             }
                         }
                     }
@@ -229,14 +230,14 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert((mantissa & ~DenormalMantissaMask) == 0);
                 Debug.Assert((shiftedExponent & ~(((1UL << this.ExponentBits) - 1) << DenormalMantissaBits)) == 0); // exponent fits in its place
                 result = shiftedExponent | mantissa;
-                return SLD_STATUS.SLD_OK;
+                return Status.OK;
             }
         }
 
         /// <summary>
         /// Properties of a C# float.
         /// </summary>
-        private class FloatFloatingPointType : FloatingPointType
+        private sealed class FloatFloatingPointType : FloatingPointType
         {
             public static FloatFloatingPointType Instance = new FloatFloatingPointType();
             private FloatFloatingPointType() { }
@@ -245,13 +246,13 @@ namespace Microsoft.CodeAnalysis
             public override int MaxBinaryExponent => 127;
             public override int ExponentBias => 127;
             public override ulong Zero => FloatToInt32Bits(0.0f);
-            public override ulong Infinity => FloatToInt32Bits(1.0f / 0.0f);
+            public override ulong Infinity => FloatToInt32Bits(float.PositiveInfinity);
         }
 
         /// <summary>
         /// Properties of a C# double.
         /// </summary>
-        private class DoubleFloatingPointType : FloatingPointType
+        private sealed class DoubleFloatingPointType : FloatingPointType
         {
             public static DoubleFloatingPointType Instance = new DoubleFloatingPointType();
             private DoubleFloatingPointType() { }
@@ -260,7 +261,7 @@ namespace Microsoft.CodeAnalysis
             public override int MaxBinaryExponent => 1023;
             public override int ExponentBias => 1023;
             public override ulong Zero => (ulong)BitConverter.DoubleToInt64Bits(0.0d);
-            public override ulong Infinity => (ulong)BitConverter.DoubleToInt64Bits(1.0d / 0.0d);
+            public override ulong Infinity => (ulong)BitConverter.DoubleToInt64Bits(double.PositiveInfinity);
         }
 
         /// <summary>
@@ -272,6 +273,8 @@ namespace Microsoft.CodeAnalysis
         /// The Mantissa buffer stores the mantissa digits as characters in a string.  
         /// The MantissaCount gives the number of digits present in the Mantissa buffer.
         /// There shall be neither leading nor trailing zero digits in the Mantissa.
+        /// Note that this represents only nonnegative floating-point literals; the
+        /// negative sign in C# and VB is actually a separate unary negation operator.
         /// </summary>
         [DebuggerDisplay("0.{Mantissa}e{Exponent}")]
         private struct DecimalFloatingPointString
@@ -353,23 +356,23 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private enum SLD_STATUS
+        private enum Status
         {
-            SLD_OK,
-            SLD_NODIGITS,
-            SLD_UNDERFLOW,
-            SLD_OVERFLOW
+            OK,
+            NoDigits,
+            Undeflow,
+            Overflow
         }
 
         /// <summary>
         /// Convert a DecimalFloatingPointString to the bits of the given floating-point type.
         /// </summary>
-        private static SLD_STATUS ConvertDecimalToFloatingPointBits(DecimalFloatingPointString data, FloatingPointType type, out ulong result)
+        private static Status ConvertDecimalToFloatingPointBits(DecimalFloatingPointString data, FloatingPointType type, out ulong result)
         {
             if (data.Mantissa.Length == 0)
             {
                 result = type.Zero;
-                return SLD_STATUS.SLD_NODIGITS;
+                return Status.NoDigits;
             }
 
             // To generate an N bit mantissa we require N + 1 bits of precision.  The  
@@ -403,7 +406,7 @@ namespace Microsoft.CodeAnalysis
                 if (integerDigitsMissing > type.OverflowDecimalExponent)
                 {
                     result = type.Infinity;
-                    return SLD_STATUS.SLD_OVERFLOW;
+                    return Status.Overflow;
                 }
 
                 MultiplyByPowerOfTen(ref integerValue, integerDigitsMissing);
@@ -443,7 +446,7 @@ namespace Microsoft.CodeAnalysis
                 // underflow (because the exponent cannot possibly be small enough),  
                 // so if we underflow here it is a true underflow and we return zero.  
                 result = type.Zero;
-                return SLD_STATUS.SLD_UNDERFLOW;
+                return Status.Undeflow;
             }
 
             BigInteger fractionalNumerator = AccumulateDecimalDigitsIntoBigInteger(data, fractionalFirstIndex, fractionalLastIndex);
@@ -566,7 +569,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="type">the kind of real number to build</param>
         /// <param name="result">the result</param>
         /// <returns>An indicator of the kind of result</returns>
-        private static SLD_STATUS ConvertBigIntegerToFloatingPointBits(byte[] integerValueAsBytes, uint integerBitsOfPrecision, bool hasNonzeroFractionalPart, FloatingPointType type, out ulong result)
+        private static Status ConvertBigIntegerToFloatingPointBits(byte[] integerValueAsBytes, uint integerBitsOfPrecision, bool hasNonzeroFractionalPart, FloatingPointType type, out ulong result)
         {
             int baseExponent = type.DenormalMantissaBits;
             int exponent;

@@ -2,7 +2,6 @@
 
 using System;
 using System.Text;
-using static System.Console;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.CodeAnalysis;
@@ -14,8 +13,6 @@ public class RandomRealParserTests
     public void TestRandomDoubleStrings()
     {
         var start = DateTime.UtcNow;
-        var nextReport = start + TimeSpan.FromSeconds(10.0);
-        var elapsed = (DateTime.Now - start);
         // compare our atod on random strings against C's strtod
         Parallel.For(0, 150, part =>
         {
@@ -48,8 +45,6 @@ public class RandomRealParserTests
     public void TestRandomFloatStrings()
     {
         var start = DateTime.UtcNow;
-        var nextReport = start + TimeSpan.FromSeconds(10.0);
-        var elapsed = (DateTime.Now - start);
         // compare our atof on random strings against C's strtof
         Parallel.For(0, 150, part =>
         {
