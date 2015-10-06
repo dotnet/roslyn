@@ -836,7 +836,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         if (State == State.ExecutingInput)
                         {
                             FinishExecute(executionResult.IsSuccessful);
-                        }
+                        }                              
                     }
                 }
                 catch (Exception e) when (_window.ReportAndPropagateException(e))
@@ -1385,6 +1385,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 {
                     bufferAdded(_window, new SubmissionBufferAddedEventArgs(buffer));
                 }
+
+                _window.LanguageBufferCounter++;
 
                 // add the whole buffer to the projection buffer and set it up to expand to the right as text is appended
                 var promptSpan = CreatePrimaryPrompt();
