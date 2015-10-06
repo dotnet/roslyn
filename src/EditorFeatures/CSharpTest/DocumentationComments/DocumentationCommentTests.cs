@@ -504,7 +504,7 @@ class C
         }
 
         [WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InsertComment_Class1_AutoGenerateXmlDocCommentsOff()
         {
             var code =
@@ -1061,7 +1061,7 @@ class C
         }
 
         [WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InsertSlashes12_AutoGenerateXmlDocCommentsOff()
         {
             var code =
@@ -1325,7 +1325,7 @@ static void Main(string[] args)
         }
 
         [WorkItem(5486, "https://github.com/dotnet/roslyn/issues/5486")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_Selection1()
         {
             var code =
@@ -1348,7 +1348,7 @@ class C
         }
 
         [WorkItem(5486, "https://github.com/dotnet/roslyn/issues/5486")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_Selection2()
         {
             var code =
@@ -1370,7 +1370,7 @@ class C
             VerifyPressingEnter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void Command_Class()
         {
             var code =
