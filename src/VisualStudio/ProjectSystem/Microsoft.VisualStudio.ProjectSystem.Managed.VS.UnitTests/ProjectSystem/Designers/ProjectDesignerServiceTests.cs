@@ -5,17 +5,17 @@ using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell.Interop;
 using Xunit;
 
-namespace Microsoft.VisualStudio.ProjectSystem
+namespace Microsoft.VisualStudio.ProjectSystem.Designers
 {
     [UnitTestTrait]
-    public class VsProjectFeaturesTests
+    public class ProjectDesignerServiceTests
     {
         [Fact]
         public void Constructor_NullAsProjectVsServices_ThrowsArgumentNull()
         {
             Assert.Throws<ArgumentNullException>("projectVsServices", () => {
 
-                new VsProjectFeatures((IUnconfiguredProjectVsServices)null);
+                new ProjectDesignerService((IUnconfiguredProjectVsServices)null);
             });
         }
 
@@ -25,11 +25,11 @@ namespace Microsoft.VisualStudio.ProjectSystem
             var hierarchy = IVsHierarchyFactory.ImplementGetProperty(hr: VSConstants.E_FAIL);
             var projectVsServices = IUnconfiguredProjectVsServicesFactory.ImplementHierarchy(() => hierarchy);
 
-            var features = CreateInstance(projectVsServices);
+            var designerService = CreateInstance(projectVsServices);
 
             Assert.Throws<COMException>(() => {
 
-                var result = features.SupportsProjectDesigner;
+                var result = designerService.SupportsProjectDesigner;
             });
         }
 
@@ -39,9 +39,9 @@ namespace Microsoft.VisualStudio.ProjectSystem
             var hierarchy = IVsHierarchyFactory.ImplementGetProperty(hr: VSConstants.DISP_E_MEMBERNOTFOUND);
             var projectVsServices = IUnconfiguredProjectVsServicesFactory.ImplementHierarchy(() => hierarchy);
 
-            var features = CreateInstance(projectVsServices);
+            var designerService = CreateInstance(projectVsServices);
 
-            var result = features.SupportsProjectDesigner;
+            var result = designerService.SupportsProjectDesigner;
 
             Assert.False(result);
         }
@@ -54,17 +54,17 @@ namespace Microsoft.VisualStudio.ProjectSystem
                 var hierarchy = IVsHierarchyFactory.ImplementGetProperty(result: value);
                 var projectVsServices = IUnconfiguredProjectVsServicesFactory.ImplementHierarchy(() => hierarchy);
 
-                var features = CreateInstance(projectVsServices);
+                var designerService = CreateInstance(projectVsServices);
 
-                var result = features.SupportsProjectDesigner;
+                var result = designerService.SupportsProjectDesigner;
 
                 Assert.Equal(value, result);
             }
         }
 
-        private static VsProjectFeatures CreateInstance(IUnconfiguredProjectVsServices projectVsServices)
+        private static ProjectDesignerService CreateInstance(IUnconfiguredProjectVsServices projectVsServices)
         {
-            return new VsProjectFeatures(projectVsServices);
+            return new ProjectDesignerService(projectVsServices);
         }
     }
 }

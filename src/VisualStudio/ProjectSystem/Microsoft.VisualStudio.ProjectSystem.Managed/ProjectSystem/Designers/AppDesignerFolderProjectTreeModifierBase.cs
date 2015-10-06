@@ -20,18 +20,21 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
                                                              .Add(ProjectTreeCapabilities.BubbleUp);
 
         private readonly IUnconfiguredProjectCommonServices _projectServices;
+        private readonly IProjectDesignerService _designerService;
 
-        protected AppDesignerFolderProjectTreeModifierBase(IProjectImageProvider imageProvider, IUnconfiguredProjectCommonServices projectServices)
+        protected AppDesignerFolderProjectTreeModifierBase(IProjectImageProvider imageProvider, IUnconfiguredProjectCommonServices projectServices, IProjectDesignerService designerService)
             : base(imageProvider)
         {
             Requires.NotNull(projectServices, nameof(projectServices));
+            Requires.NotNull(designerService, nameof(designerService));
 
             _projectServices = projectServices;
+            _designerService = designerService;
         }
 
         public override bool IsSupported
         {
-            get { return _projectServices.Features.SupportsProjectDesigner; }
+            get { return _designerService.SupportsProjectDesigner; }
         }
 
         public override ImmutableHashSet<string> DefaultCapabilities

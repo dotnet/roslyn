@@ -14,10 +14,11 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
         public void Constructor_NullAsImageProvider_ThrowsArgumentNull()
         {
             var projectServices = IUnconfiguredProjectCommonServicesFactory.Create();
+            var designerService = IProjectDesignerServiceFactory.Create();
 
             Assert.Throws<ArgumentNullException>("imageProvider", () => {
 
-                new MyProjectFolderProjectTreeModifier((IProjectImageProvider)null, projectServices);
+                new MyProjectFolderProjectTreeModifier((IProjectImageProvider)null, projectServices, designerService);
             });
         }
 
@@ -25,10 +26,24 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
         public void Constructor_NullAsProjectServices_ThrowsArgumentNull()
         {
             var imageProvider = IProjectImageProviderFactory.Create();
+            var designerService = IProjectDesignerServiceFactory.Create();
 
             Assert.Throws<ArgumentNullException>("projectServices", () => {
 
-                new MyProjectFolderProjectTreeModifier(imageProvider, (IUnconfiguredProjectCommonServices)null);
+                new MyProjectFolderProjectTreeModifier(imageProvider, (IUnconfiguredProjectCommonServices)null, designerService);
+            });
+        }
+
+
+        [Fact]
+        public void Constructor_NullAsDesignerService_ThrowsArgumentNull()
+        {
+            var projectServices = IUnconfiguredProjectCommonServicesFactory.Create();
+            var imageProvider = IProjectImageProviderFactory.Create();
+
+            Assert.Throws<ArgumentNullException>("designerService", () => {
+
+                new MyProjectFolderProjectTreeModifier(imageProvider, projectServices, (IProjectDesignerService)null);
             });
         }
 
@@ -83,9 +98,9 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
         [Fact]
         public void ApplyModifications_TreeWithMyProjectCandidateButSupportsProjectDesignerFalse_ReturnsUnmodifiedTree()
         {
-            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => false);   // Don't support AppDesigner
+            var designerService = IProjectDesignerServiceFactory.ImplementSupportsProjectDesigner(() => false);   // Don't support AppDesigner
             var projectTreeProvider = IProjectTreeProviderFactory.Create();
-            var modifier = CreateInstance(features);
+            var modifier = CreateInstance(designerService);
 
             var tree = ProjectTreeParser.Parse(@"
 Root (capabilities: {ProjectRoot})
@@ -104,9 +119,9 @@ Root (capabilities: {ProjectRoot})
 ")]
         public void ApplyModifications_TreeWithPropertiesFolder_ReturnsUnmodifiedTree(string input)
         {
-            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
+            var designerService = IProjectDesignerServiceFactory.ImplementSupportsProjectDesigner(() => true);
             var projectTreeProvider = IProjectTreeProviderFactory.Create();
-            var modifier = CreateInstance(features);
+            var modifier = CreateInstance(designerService);
 
             var tree = ProjectTreeParser.Parse(input);
 
@@ -136,9 +151,9 @@ Root (capabilities: {ProjectRoot})
 ")]
         public void ApplyModifications_TreeWithoutMyProjectCandidate_ReturnsUnmodifiedTree(string input)
         {
-            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => false);
+            var designerService = IProjectDesignerServiceFactory.ImplementSupportsProjectDesigner(() => false);
             var projectTreeProvider = IProjectTreeProviderFactory.Create();
-            var modifier = CreateInstance(features);
+            var modifier = CreateInstance(designerService);
 
             var tree = ProjectTreeParser.Parse(input);
 
@@ -162,9 +177,9 @@ Root (capabilities: {ProjectRoot})
 ")]
         public void ApplyModifications_TreeWithFileCalledMyProject_ReturnsUnmodifiedTree(string input)
         {
-            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
+            var designerService = IProjectDesignerServiceFactory.ImplementSupportsProjectDesigner(() => true);
             var projectTreeProvider = IProjectTreeProviderFactory.Create();
-            var modifier = CreateInstance(features);
+            var modifier = CreateInstance(designerService);
 
             var tree = ProjectTreeParser.Parse(input);
 
@@ -188,9 +203,9 @@ Root (capabilities: {ProjectRoot})
 ")]        
         public void ApplyModifications_TreeWithExcludedMyProjectFolder_ReturnsUnmodifiedTree(string input)
         {
-            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
+            var designerService = IProjectDesignerServiceFactory.ImplementSupportsProjectDesigner(() => true);
             var projectTreeProvider = IProjectTreeProviderFactory.Create();
-            var modifier = CreateInstance(features);
+            var modifier = CreateInstance(designerService);
 
             var tree = ProjectTreeParser.Parse(input);
 
@@ -219,9 +234,9 @@ Root (capabilities: {ProjectRoot})
 ")]        
         public void ApplyModifications_TreeWithNestedMyProjectFolder_ReturnsUnmodifiedTree(string input)
         {
-            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
+            var designerService = IProjectDesignerServiceFactory.ImplementSupportsProjectDesigner(() => true);
             var projectTreeProvider = IProjectTreeProviderFactory.Create();
-            var modifier = CreateInstance(features);
+            var modifier = CreateInstance(designerService);
 
             var tree = ProjectTreeParser.Parse(input);
 
@@ -245,9 +260,9 @@ Root(capabilities: {ProjectRoot})
 ")]
         public void ApplyModifications_TreeWithMyProjectCandidateAlreadyMarkedAsAppDesigner_ReturnsUnmodifiedTree(string input)
         {
-            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
+            var designerService = IProjectDesignerServiceFactory.ImplementSupportsProjectDesigner(() => true);
             var projectTreeProvider = IProjectTreeProviderFactory.Create();
-            var modifier = CreateInstance(features);
+            var modifier = CreateInstance(designerService);
 
             var tree = ProjectTreeParser.Parse(input);
             var result = modifier.ApplyModifications(tree, projectTreeProvider);
@@ -342,9 +357,9 @@ Root (capabilities: {ProjectRoot})
 ")]
         public void ApplyModifications_TreeWithMyProjectCandidate_ReturnsCandidateMarkedWithAppDesignerFolderAndBubbleUp(string input, string expected)
         {
-            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
+            var designerService = IProjectDesignerServiceFactory.ImplementSupportsProjectDesigner(() => true);
             var projectTreeProvider = IProjectTreeProviderFactory.Create();
-            var modifier = CreateInstance(features);
+            var modifier = CreateInstance(designerService);
 
             var inputTree = ProjectTreeParser.Parse(input);
             var expectedTree = ProjectTreeParser.Parse(expected);
@@ -357,9 +372,9 @@ Root (capabilities: {ProjectRoot})
         [Fact]
         public void ApplyModifications_ProjectWithNullMyProjectFolder_DefaultsToMyProject()
         {
-            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
+            var designerService = IProjectDesignerServiceFactory.ImplementSupportsProjectDesigner(() => true);
             var projectTreeProvider = IProjectTreeProviderFactory.Create();
-            var modifier = CreateInstance(features, appDesignerFolder: null);
+            var modifier = CreateInstance(designerService, appDesignerFolder: null);
 
             var inputTree = ProjectTreeParser.Parse(@"
 Root (capabilities: {ProjectRoot})
@@ -378,9 +393,9 @@ Root (capabilities: {ProjectRoot})
         [Fact]
         public void ApplyModifications_ProjectWithEmptyMyProjectFolder_DefaultsToMyProject()
         {
-            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
+            var designerService = IProjectDesignerServiceFactory.ImplementSupportsProjectDesigner(() => true);
             var projectTreeProvider = IProjectTreeProviderFactory.Create();
-            var modifier = CreateInstance(features, appDesignerFolder: "");
+            var modifier = CreateInstance(designerService, appDesignerFolder: "");
 
             var inputTree = ProjectTreeParser.Parse(@"
 Root (capabilities: {ProjectRoot})
@@ -399,9 +414,9 @@ Root (capabilities: {ProjectRoot})
         [Fact]
         public void ApplyModifications_ProjectWithNonDefaultMyProjectFolder_ReturnsCandidateMarkedWithAppDesignerFolderAndBubbleUp()
         {
-            var features = IProjectFeaturesFactory.ImplementSupportsProjectDesigner(() => true);
+            var designerService = IProjectDesignerServiceFactory.ImplementSupportsProjectDesigner(() => true);
             var projectTreeProvider = IProjectTreeProviderFactory.Create();
-            var modifier = CreateInstance(features, appDesignerFolder: "FooBar");
+            var modifier = CreateInstance(designerService, appDesignerFolder: "FooBar");
 
             var inputTree = ProjectTreeParser.Parse(@"
 Root (capabilities: {ProjectRoot})
@@ -427,29 +442,29 @@ Root (capabilities: {ProjectRoot})
 
         private MyProjectFolderProjectTreeModifier CreateInstance()
         {
-            return CreateInstance((IProjectImageProvider)null, (IProjectFeatures)null);
+            return CreateInstance((IProjectImageProvider)null, (IProjectDesignerService)null);
         }
 
-        private MyProjectFolderProjectTreeModifier CreateInstance(IProjectFeatures features, string appDesignerFolder = "My Project")
+        private MyProjectFolderProjectTreeModifier CreateInstance(IProjectDesignerService designerService, string appDesignerFolder = "My Project")
         {
-            return CreateInstance((IProjectImageProvider)null, features, appDesignerFolder);
+            return CreateInstance((IProjectImageProvider)null, designerService, appDesignerFolder);
         }
 
-        private MyProjectFolderProjectTreeModifier CreateInstance(IProjectImageProvider imageProvider, IProjectFeatures features, string appDesignerFolder = "My Project")
+        private MyProjectFolderProjectTreeModifier CreateInstance(IProjectImageProvider imageProvider, IProjectDesignerService designerService, string appDesignerFolder = "My Project")
         {
+            designerService = designerService ?? IProjectDesignerServiceFactory.Create();
             var threadingPolicy = IThreadHandlingFactory.Create();
             var unconfiguredProject = IUnconfiguredProjectFactory.Create();
             var projectProperties = ProjectPropertiesFactory.Create(unconfiguredProject, 
-                new PropertyData() {
+                new PropertyPageData() {
                     Category = nameof(ConfigurationGeneral),
                     PropertyName = nameof(ConfigurationGeneral.AppDesignerFolder),
                     Value = appDesignerFolder
                 });
 
-            var services = IUnconfiguredProjectCommonServicesFactory.Create(features, threadingPolicy, projectProperties.ConfiguredProject, projectProperties);
+            var projectServices = IUnconfiguredProjectCommonServicesFactory.Create(threadingPolicy, projectProperties.ConfiguredProject, projectProperties);
 
-            
-            return new MyProjectFolderProjectTreeModifier(imageProvider ?? IProjectImageProviderFactory.Create(), services);
+            return new MyProjectFolderProjectTreeModifier(imageProvider ?? IProjectImageProviderFactory.Create(), projectServices, designerService);
         }
     }
 }

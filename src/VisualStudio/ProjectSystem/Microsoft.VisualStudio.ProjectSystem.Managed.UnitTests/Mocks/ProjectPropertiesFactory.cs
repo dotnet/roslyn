@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.ProjectSystem
 {
     internal static class ProjectPropertiesFactory
     {
-        public static ProjectProperties Create(UnconfiguredProject unconfiguredProject, params PropertyData[] data)
+        public static ProjectProperties Create(UnconfiguredProject unconfiguredProject, params PropertyPageData[] data)
         {
             IPropertyPagesCatalogProvider propertyPagesCatalogProvider = CreateCatalogProvider(
                     new Dictionary<string, IPropertyPagesCatalog>
@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.ProjectSystem
             return new ProjectProperties(configuredProject);
         }
 
-        private static Dictionary<string, IRule> CreateCatalogLookup(PropertyData[] data)
+        private static Dictionary<string, IRule> CreateCatalogLookup(PropertyPageData[] data)
         {
             Dictionary<string, IRule> catalog = new Dictionary<string, IRule>();
 

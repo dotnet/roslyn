@@ -7,27 +7,27 @@ using Xunit;
 namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
 {
     [UnitTestTrait]
-    public class OpenProjectDesignerCommandTests : OpenProjectDesignerCommandBaseTests
+    public class OpenProjectDesignerOnDefaultActionCommandTests : OpenProjectDesignerCommandBaseTests
     {
         [Fact]
         public void Constructor_NullAsDesignerService_ThrowsArgumentNull()
         {
             Assert.Throws<ArgumentNullException>("designerService", () => {
 
-                new OpenProjectDesignerCommand((IProjectDesignerService)null);
+                new OpenProjectDesignerOnDefaultActionCommand((IProjectDesignerService)null);
             });
         }
 
         internal override long GetCommandId()
         {
-            return VisualStudioStandard97CommandId.Open;
+            return UIHierarchyWindowCommandId.DoubleClick;
         }
 
         internal override OpenProjectDesignerCommandBase CreateInstance(IProjectDesignerService designerService = null)
         {
             designerService = designerService ?? IProjectDesignerServiceFactory.Create();
 
-            return new OpenProjectDesignerCommand(designerService);
+            return new OpenProjectDesignerOnDefaultActionCommand(designerService);
         }
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Microsoft.VisualStudio.ProjectSystem
 {
-    internal class PropertyData
+    internal class PropertyPageData
     {
         public string Category
         {

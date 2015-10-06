@@ -8,6 +8,11 @@ namespace Microsoft.VisualStudio.ProjectSystem
 {
     internal static class IUnconfiguredProjectVsServicesFactory
     {
+        public static IUnconfiguredProjectVsServices Create()
+        {
+            return Mock.Of<IUnconfiguredProjectVsServices>();
+        }
+
         public static IUnconfiguredProjectVsServices ImplementHierarchy(Func<IVsHierarchy> action)
         {
             var mock = new Mock<IUnconfiguredProjectVsServices>();

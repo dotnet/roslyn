@@ -11,13 +11,13 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
 {
     internal abstract class OpenProjectDesignerCommandBase : SingleNodeProjectCommandBase
     {
-        private readonly IUnconfiguredProjectVsServices _projectVsServices;
+        private readonly IProjectDesignerService _designerService;
 
-        protected OpenProjectDesignerCommandBase(IUnconfiguredProjectVsServices projectVsServices)
+        protected OpenProjectDesignerCommandBase(IProjectDesignerService designerService)
         {
-            Requires.NotNull(projectVsServices, nameof(projectVsServices));
+            Requires.NotNull(designerService, nameof(designerService));
 
-            _projectVsServices = projectVsServices;
+            _designerService = designerService;
         }
 
         protected override Task<CommandStatusResult> GetCommandStatusAsync(IProjectTree node, bool focused, string commandText, CommandStatus progressiveStatus)
@@ -35,23 +35,8 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
         {
             if (node.Capabilities.Contains(ProjectTreeCapabilities.AppDesignerFolder))
             {
-                Guid projectDesignerGuid = _projectVsServices.Hierarchy.GetGuidProperty(VsHierarchyPropID.ProjectDesignerEditor);
-
-                IVsWindowFrame windowFrame;
-                HResult hr = _projectVsServices.Project.OpenItemWithSpecific(VSConstants.VSITEMID_ROOT, 0, ref projectDesignerGuid, "", VSConstants.LOGVIEWID_Primary, (IntPtr)(-1), out windowFrame);
-                if (hr.Failed)
-                    throw hr.Exception;
-
-                if (windowFrame != null)
-                {   // VS editor
-
-                    await _projectVsServices.ThreadingPolicy.SwitchToUIThread();
-
-                    hr = windowFrame.Show();
-                    if (hr.Failed)
-                        throw hr.Exception;
-                }
-
+                await _designerService.ShowProjectDesignerAsync()
+                                      .ConfigureAwait(false);
                 return true;
             }
 

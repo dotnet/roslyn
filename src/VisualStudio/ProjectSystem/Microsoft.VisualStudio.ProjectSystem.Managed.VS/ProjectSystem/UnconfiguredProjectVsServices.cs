@@ -36,11 +36,6 @@ namespace Microsoft.VisualStudio.ProjectSystem
             get { return (IVsProject4)_unconfiguredProject.Services.HostObject; }
         }
 
-        public IProjectFeatures Features
-        {
-            get { return _commonServices.Features; }
-        }
-
         public IThreadHandling ThreadingPolicy
         {
             get { return _commonServices.ThreadingPolicy; }

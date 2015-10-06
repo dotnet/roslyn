@@ -13,13 +13,9 @@ namespace Microsoft.VisualStudio.ProjectSystem
             return mock.Object;
         }
 
-        public static IUnconfiguredProjectCommonServices Create(IProjectFeatures features = null, IThreadHandling threadingPolicy = null, ConfiguredProject configuredProject = null, ProjectProperties projectProperties = null)
+        public static IUnconfiguredProjectCommonServices Create(IThreadHandling threadingPolicy = null, ConfiguredProject configuredProject = null, ProjectProperties projectProperties = null)
         {
             var mock = new Mock<IUnconfiguredProjectCommonServices>();
-
-            if (features != null)
-                mock.Setup(s => s.Features)
-                    .Returns(features);
 
             if (threadingPolicy != null)
                 mock.Setup(s => s.ThreadingPolicy)

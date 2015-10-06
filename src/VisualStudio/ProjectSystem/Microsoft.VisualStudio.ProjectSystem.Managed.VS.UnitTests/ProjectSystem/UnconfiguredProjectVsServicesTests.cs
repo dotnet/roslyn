@@ -54,18 +54,6 @@ namespace Microsoft.VisualStudio.ProjectSystem
         }
 
         [Fact]
-        public void Constructor_ValueAsCommonServices_SetsFeaturesToCommonServicesFeatures()
-        {
-            var features = IProjectFeaturesFactory.Create();
-            var unconfiguredProject = IUnconfiguredProjectFactory.Create();
-            var commonServices = IUnconfiguredProjectCommonServicesFactory.Create(features: features);
-
-            var vsServices = CreateInstance(unconfiguredProject, commonServices);
-
-            Assert.Same(features, vsServices.Features);
-        }
-
-        [Fact]
         public void Constructor_ValueAsCommonServices_SetsThreadingPolicyToCommonServicesThreadingPolicy()
         {
             var threadingPolicy = IThreadHandlingFactory.Create();
