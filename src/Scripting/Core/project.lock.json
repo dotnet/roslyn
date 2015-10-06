@@ -4,7 +4,7 @@
   "targets": {
     ".NETPlatform,Version=v5.0": {
       "Microsoft.DiaSymReader.Native/1.1.0-alpha2": {},
-      "Microsoft.NETCore.Portable.Compatibility/1.0.0": {
+      "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23401": {
         "compile": {
           "ref/dotnet/mscorlib.dll": {},
           "ref/dotnet/System.ComponentModel.DataAnnotations.dll": {},
@@ -265,8 +265,8 @@
         "runtimes/win/native/Microsoft.DiaSymReader.Native.x86.dll"
       ]
     },
-    "Microsoft.NETCore.Portable.Compatibility/1.0.0": {
-      "sha512": "5/IFqf2zN1jzktRJitxO+5kQ+0AilcIbPvSojSJwDG3cGNSMZg44LXLB5E9RkSETE0Wh4QoALdNh1koKoF7/mA==",
+    "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23401": {
+      "sha512": "q5wj+WWjvZ/GhT+Q42aub5rIcw45pEE/TvIfFBEgvxK2MTODxsDIKKSBHEdfJablXhfRZfY79YBdTbcfUzZqlA==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -300,7 +300,7 @@
         "lib/wp80/_._",
         "lib/wpa81/_._",
         "Microsoft.NETCore.Portable.Compatibility.nuspec",
-        "package/services/metadata/core-properties/8131b8ae030a45e7986737a0c1d04ef5.psmdcp",
+        "package/services/metadata/core-properties/850feb86a46b458c8a8875eb3bbc1591.psmdcp",
         "ref/dotnet/mscorlib.dll",
         "ref/dotnet/System.ComponentModel.DataAnnotations.dll",
         "ref/dotnet/System.Core.dll",
@@ -1166,7 +1166,7 @@
   },
   "projectFileDependencyGroups": {
     "": [
-      "Microsoft.NETCore.Portable.Compatibility >= 1.0.0",
+      "Microsoft.NETCore.Portable.Compatibility >= 1.0.1-beta-23401",
       "System.AppContext >= 4.0.0",
       "System.Collections >= 4.0.10",
       "System.Collections.Immutable >= 1.1.36",
