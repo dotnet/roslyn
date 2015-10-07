@@ -1,32 +1,25 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.FileSystem;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
+namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
 {
-    // TODO(cyrusn): Use a predefined name here.
-    [ExportCompletionProvider("ReferenceDirectiveCompletionProvider", LanguageNames.CSharp)]
-    internal partial class ReferenceDirectiveCompletionProvider : CompletionListProvider
+    internal abstract partial class AbstractReferenceDirectiveCompletionProvider : CompletionListProvider
     {
+        protected abstract bool TryGetStringLiteralToken(SyntaxTree tree, int position, out SyntaxToken stringLiteral, CancellationToken cancellationToken);
+
         public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
         {
             return PathCompletionUtilities.IsTriggerCharacter(text, characterPosition);
-        }
-
-        private ICurrentWorkingDirectoryDiscoveryService GetFileSystemDiscoveryService(ITextSnapshot textSnapshot)
-        {
-            return CurrentWorkingDirectoryDiscoveryService.GetService(textSnapshot);
         }
 
         private TextSpan GetTextChangeSpan(SyntaxToken stringLiteral, int position)
@@ -37,12 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
                 position: position);
         }
 
-        private string GetPathThroughLastSlash(SyntaxToken stringLiteral, int position)
+        private static ICurrentWorkingDirectoryDiscoveryService GetFileSystemDiscoveryService(ITextSnapshot textSnapshot)
         {
-            return PathCompletionUtilities.GetPathThroughLastSlash(
-                quotedPath: stringLiteral.ToString(),
-                quotedPathStart: stringLiteral.SpanStart,
-                position: position);
+            return CurrentWorkingDirectoryDiscoveryService.GetService(textSnapshot);
         }
 
         public override async Task ProduceCompletionListAsync(CompletionListContext context)
@@ -61,11 +51,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
                 return;
             }
 
-            var documentPath = document.Project.IsSubmission ? null : document.FilePath;
             var textChangeSpan = this.GetTextChangeSpan(stringLiteral, position);
 
-            var gacHelper = new GlobalAssemblyCacheCompletionHelper(this, textChangeSpan, itemRules: ItemRules.Instance);
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var gacHelper = new GlobalAssemblyCacheCompletionHelper(this, textChangeSpan, ItemRules.Instance);
+            var text = await document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
             var snapshot = text.FindCorrespondingEditorTextSnapshot();
             if (snapshot == null)
             {
@@ -81,11 +70,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
             // The search paths should be provided by specialized workspaces:
             // - InteractiveWorkspace for interactive window 
             // - ScriptWorkspace for loose .csx files (we don't have such workspace today)
-            var pathResolver =
-                (referenceResolver as RuntimeMetadataReferenceResolver)?.PathResolver ??
-                (referenceResolver as WorkspaceMetadataFileReferenceResolver)?.PathResolver;
+            ImmutableArray<string> searchPaths;
 
-            if (pathResolver == null)
+            RuntimeMetadataReferenceResolver rtResolver;
+            WorkspaceMetadataFileReferenceResolver workspaceResolver;
+
+            if ((rtResolver = referenceResolver as RuntimeMetadataReferenceResolver) != null)
+            {
+                searchPaths = rtResolver.PathResolver.SearchPaths;
+            }
+            else if ((workspaceResolver = referenceResolver as WorkspaceMetadataFileReferenceResolver) != null)
+            {
+                searchPaths = workspaceResolver.PathResolver.SearchPaths;
+            }
+            else
             {
                 return;
             }
@@ -95,37 +93,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
                 GetFileSystemDiscoveryService(snapshot),
                 Glyph.OpenFolder,
                 Glyph.Assembly,
-                searchPaths: pathResolver.SearchPaths,
+                searchPaths: searchPaths,
                 allowableExtensions: new[] { ".dll", ".exe" },
                 exclude: path => path.Contains(","),
                 itemRules: ItemRules.Instance);
 
-            var pathThroughLastSlash = this.GetPathThroughLastSlash(stringLiteral, position);
+            var pathThroughLastSlash = GetPathThroughLastSlash(stringLiteral, position);
 
+            var documentPath = document.Project.IsSubmission ? null : document.FilePath;
             context.AddItems(gacHelper.GetItems(pathThroughLastSlash, documentPath));
             context.AddItems(fileSystemHelper.GetItems(pathThroughLastSlash, documentPath));
         }
 
-        private bool TryGetStringLiteralToken(SyntaxTree tree, int position, out SyntaxToken stringLiteral, CancellationToken cancellationToken)
+        private static string GetPathThroughLastSlash(SyntaxToken stringLiteral, int position)
         {
-            if (tree.IsEntirelyWithinStringLiteral(position, cancellationToken))
-            {
-                var token = tree.GetRoot(cancellationToken).FindToken(position, findInsideTrivia: true);
-                if (token.Kind() == SyntaxKind.EndOfDirectiveToken || token.Kind() == SyntaxKind.EndOfFileToken)
-                {
-                    token = token.GetPreviousToken(includeSkipped: true, includeDirectives: true);
-                }
-
-                if (token.Kind() == SyntaxKind.StringLiteralToken &&
-                    token.Parent.Kind() == SyntaxKind.ReferenceDirectiveTrivia)
-                {
-                    stringLiteral = token;
-                    return true;
-                }
-            }
-
-            stringLiteral = default(SyntaxToken);
-            return false;
+            return PathCompletionUtilities.GetPathThroughLastSlash(
+                quotedPath: stringLiteral.ToString(),
+                quotedPathStart: stringLiteral.SpanStart,
+                position: position);
         }
     }
 }

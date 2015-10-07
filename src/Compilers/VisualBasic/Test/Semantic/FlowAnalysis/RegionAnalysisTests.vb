@@ -662,7 +662,7 @@ End Class
         Public Sub TestDataFlowForValueTypes()
 
             ' WARNING: test matches the same test in C# (TestDataFlowForValueTypes)
-            '          Keep the two tests in synch!
+            '          Keep the two tests in sync!
 
             Dim analysis = CompileAndAnalyzeDataFlow(
       <compilation name="TestDataFlowForValueTypes">

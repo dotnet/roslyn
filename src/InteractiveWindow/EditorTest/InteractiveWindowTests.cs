@@ -20,11 +20,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
         private InteractiveWindowTestHost _testHost;
         private List<InteractiveWindow.State> _states;
+        private readonly TestClipboard _testClipboard; 
 
         public InteractiveWindowTests()
         {
             _states = new List<InteractiveWindow.State>();
             _testHost = new InteractiveWindowTestHost(_states.Add);
+            _testClipboard = new TestClipboard();
+            ((InteractiveWindow)Window).InteractiveWindowClipboard = _testClipboard;            
         }
 
         void IDisposable.Dispose()
@@ -32,7 +35,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _testHost.Dispose();
         }
 
-        private IInteractiveWindow Window => _testHost.Window;
+        private IInteractiveWindow Window => _testHost.Window;                                                                                                                                       
 
         private static IEnumerable<IInteractiveWindowCommand> MockCommands(params string[] commandNames)
         {
@@ -579,10 +582,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
                 new Span(23, 2));
         }
 
-        [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
+        [Fact]
         public void CopyWithinInput()
         {
-            Clipboard.Clear();
+            _testClipboard.Clear();
 
             Window.InsertCode("1 + 2");
             Window.Operations.SelectAll();
@@ -598,10 +601,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             VerifyClipboardData(" + ", " + ", @"[{""content"":"" + "",""kind"":2}]");
         }
 
-        [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
+        [Fact]
         public void CopyInputAndOutput()
         {
-            Clipboard.Clear();
+            _testClipboard.Clear();
 
             Submit(
 @"foreach (var o in new[] { 1, 2, 3 })
@@ -624,7 +627,7 @@ System.Console.WriteLine();",
 3
 > ",
 @"> foreach (var o in new[] \{ 1, 2, 3 \})\par > System.Console.WriteLine();\par 1\par 2\par 3\par > ",
-@"[{""content"":""> "",""kind"":2},{""content"":""foreach (var o in new[] { 1, 2, 3 })\u000d\u000a"",""kind"":2},{""content"":""> "",""kind"":2},{""content"":""System.Console.WriteLine();\u000d\u000a"",""kind"":2},{""content"":""1\u000d\u000a2\u000d\u000a3\u000d\u000a"",""kind"":2},{""content"":""> "",""kind"":2}]");
+@"[{""content"":""> "",""kind"":0},{""content"":""foreach (var o in new[] { 1, 2, 3 })\u000d\u000a"",""kind"":2},{""content"":""> "",""kind"":0},{""content"":""System.Console.WriteLine();\u000d\u000a"",""kind"":2},{""content"":""1\u000d\u000a2\u000d\u000a3\u000d\u000a"",""kind"":1},{""content"":""> "",""kind"":0}]");
 
             // Shrink the selection.
             var selection = Window.TextView.Selection;
@@ -638,13 +641,13 @@ System.Console.WriteLine();",
 2
 3",
 @"oreach (var o in new[] \{ 1, 2, 3 \})\par > System.Console.WriteLine();\par 1\par 2\par 3",
-@"[{""content"":""oreach (var o in new[] { 1, 2, 3 })\u000d\u000a"",""kind"":2},{""content"":""> "",""kind"":2},{""content"":""System.Console.WriteLine();\u000d\u000a"",""kind"":2},{""content"":""1\u000d\u000a2\u000d\u000a3"",""kind"":2}]");
+@"[{""content"":""oreach (var o in new[] { 1, 2, 3 })\u000d\u000a"",""kind"":2},{""content"":""> "",""kind"":0},{""content"":""System.Console.WriteLine();\u000d\u000a"",""kind"":2},{""content"":""1\u000d\u000a2\u000d\u000a3"",""kind"":1}]");
         }
 
-        [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
+        [Fact]
         public void CutWithinInput()
         {
-            Clipboard.Clear();
+            _testClipboard.Clear();
 
             Window.InsertCode("foreach (var o in new[] { 1, 2, 3 })");
             Window.Operations.BreakLine();
@@ -669,10 +672,10 @@ System.Console.WriteLine()",
                 expectedRepl: null);
         }
 
-        [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
+        [Fact]
         public void CutInputAndOutput()
         {
-            Clipboard.Clear();
+            _testClipboard.Clear();
 
             Submit(
 @"foreach (var o in new[] { 1, 2, 3 })
@@ -695,7 +698,7 @@ System.Console.WriteLine();",
         /// When there is no selection, copy
         /// should copy the current line.
         /// </summary>
-        [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
+        [Fact]
         public void CopyNoSelection()
         {
             Submit(
@@ -705,12 +708,12 @@ System.Console.WriteLine();",
 @" 1
 
 2 ");
-            CopyNoSelectionAndVerify(0, 7, "> s +\r\n", @"> s +\par ", @"[{""content"":""> "",""kind"":2},{""content"":""s +\u000d\u000a"",""kind"":2}]");
-            CopyNoSelectionAndVerify(7, 11, "> \r\n", @"> \par ", @"[{""content"":""> "",""kind"":2},{""content"":""\u000d\u000a"",""kind"":2}]");
-            CopyNoSelectionAndVerify(11, 17, ">  t\r\n", @">  t\par ", @"[{""content"":""> "",""kind"":2},{""content"":"" t\u000d\u000a"",""kind"":2}]");
-            CopyNoSelectionAndVerify(17, 21, " 1\r\n", @" 1\par ", @"[{""content"":"" 1\u000d\u000a"",""kind"":2}]");
-            CopyNoSelectionAndVerify(21, 23, "\r\n", @"\par ", @"[{""content"":""\u000d\u000a"",""kind"":2}]");
-            CopyNoSelectionAndVerify(23, 28, "2 > ", "2 > ", @"[{""content"":""2 "",""kind"":2},{""content"":""> "",""kind"":2}]");
+            CopyNoSelectionAndVerify(0, 7, "> s +\r\n", @"> s +\par ", @"[{""content"":""> "",""kind"":0},{""content"":""s +\u000d\u000a"",""kind"":2}]");
+            CopyNoSelectionAndVerify(7, 11, "> \r\n", @"> \par ", @"[{""content"":""> "",""kind"":0},{""content"":""\u000d\u000a"",""kind"":2}]");
+            CopyNoSelectionAndVerify(11, 17, ">  t\r\n", @">  t\par ", @"[{""content"":""> "",""kind"":0},{""content"":"" t\u000d\u000a"",""kind"":2}]");
+            CopyNoSelectionAndVerify(17, 21, " 1\r\n", @" 1\par ", @"[{""content"":"" 1\u000d\u000a"",""kind"":1}]");
+            CopyNoSelectionAndVerify(21, 23, "\r\n", @"\par ", @"[{""content"":""\u000d\u000a"",""kind"":1}]");
+            CopyNoSelectionAndVerify(23, 28, "2 > ", "2 > ", @"[{""content"":""2 "",""kind"":1},{""content"":""> "",""kind"":0}]");
         }
 
         private void CopyNoSelectionAndVerify(int start, int end, string expectedText, string expectedRtf, string expectedRepl)
@@ -719,14 +722,14 @@ System.Console.WriteLine();",
             var snapshot = Window.TextView.TextBuffer.CurrentSnapshot;
             for (int i = start; i < end; i++)
             {
-                Clipboard.Clear();
+                _testClipboard.Clear();
                 caret.MoveTo(new SnapshotPoint(snapshot, i));
                 Window.Operations.Copy();
                 VerifyClipboardData(expectedText, expectedRtf, expectedRepl);
             }
         }
 
-        [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
+        [Fact]
         public void Paste()
         {
             var blocks = new[]
@@ -741,24 +744,21 @@ System.Console.WriteLine();",
 
             // Paste from text clipboard format.
             CopyToClipboard(blocks, includeRepl: false);
-            Window.Operations.Paste();
-            var text = Window.TextView.TextBuffer.CurrentSnapshot.GetText();
-            Assert.Equal("> a\r\n> bc> < 123xyz", text);
+            Window.Operations.Paste();               
+            Assert.Equal("> a\r\n> bc> < 123xyz", GetTextFromCurrentSnapshot());
 
-            Window.Operations.ClearView();
-            text = Window.TextView.TextBuffer.CurrentSnapshot.GetText();
-            Assert.Equal("> ", text);
+            Window.Operations.ClearView();         
+            Assert.Equal("> ", GetTextFromCurrentSnapshot());
 
             // Paste from custom clipboard format.
             CopyToClipboard(blocks, includeRepl: true);
-            Window.Operations.Paste();
-            text = Window.TextView.TextBuffer.CurrentSnapshot.GetText();
-            Assert.Equal("> a\r\n> bc123", text);
+            Window.Operations.Paste();           
+            Assert.Equal("> a\r\n> bc123", GetTextFromCurrentSnapshot());
         }
 
-        private static void CopyToClipboard(BufferBlock[] blocks, bool includeRepl)
+        private void CopyToClipboard(BufferBlock[] blocks, bool includeRepl)
         {
-            Clipboard.Clear();
+            _testClipboard.Clear();
             var data = new DataObject();
             var builder = new StringBuilder();
             foreach (var block in blocks)
@@ -772,7 +772,7 @@ System.Console.WriteLine();",
             {
                 data.SetData(InteractiveWindow.ClipboardFormat, BufferBlock.Serialize(blocks));
             }
-            Clipboard.SetDataObject(data, false);
+            _testClipboard.SetDataObject(data, false);
         }
 
         [Fact]
@@ -824,7 +824,7 @@ System.Console.WriteLine();",
         {
             Window.WriteLine("Header");
             Window.FlushOutput();
-            var fullText = Window.TextView.TextBuffer.CurrentSnapshot.GetText();
+            var fullText = GetTextFromCurrentSnapshot();
             Assert.Equal("Header\r\n> ", fullText);
 
             Window.TextView.Caret.MoveTo(new SnapshotPoint(Window.TextView.TextBuffer.CurrentSnapshot, 1));
@@ -855,14 +855,14 @@ System.Console.WriteLine();",
             caret.MoveToPreviousCaretPosition();
             AssertCaretVirtualPosition(1, 1);
 
-            Task.Run(() => Window.Operations.Delete()).PumpingWait();
+            Window.Operations.Delete();
             AssertCaretVirtualPosition(1, 1);
 
             // Delete() with caret in active prompt, move caret to 
             // closest editable buffer
             caret.MoveToNextCaretPosition();
             AssertCaretVirtualPosition(2, 0);
-            Task.Run(() => Window.Operations.Delete()).PumpingWait();
+            Window.Operations.Delete();
             AssertCaretVirtualPosition(2, 2);
         }
         
@@ -876,8 +876,7 @@ System.Console.WriteLine();",
             Window.InsertCode("23");
 
             var caret = Window.TextView.Caret;                                   
-            var selection = Window.TextView.Selection;
-
+            var selection = Window.TextView.Selection; 
 
             // Delete() with selection in readonly area, no-op       
             caret.MoveToPreviousCaretPosition();
@@ -889,8 +888,8 @@ System.Console.WriteLine();",
 
             Window.Operations.SelectAll();
 
-            Task.Run(() => Window.Operations.Delete()).PumpingWait();
-            Assert.Equal("> 1\r\n1\r\n> 23", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            Window.Operations.Delete();
+            Assert.Equal("> 1\r\n1\r\n> 23", GetTextFromCurrentSnapshot());
 
             // Delete() with selection in active prompt, no-op
             selection.Clear(); 
@@ -901,8 +900,8 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Task.Run(() => Window.Operations.Delete()).PumpingWait();
-            Assert.Equal("> 1\r\n1\r\n> 23", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            Window.Operations.Delete();
+            Assert.Equal("> 1\r\n1\r\n> 23", GetTextFromCurrentSnapshot());
 
             // Delete() with selection overlaps with editable buffer, 
             // delete editable content and move caret to closest editable location 
@@ -916,8 +915,8 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Task.Run(() => Window.Operations.Delete()).PumpingWait();
-            Assert.Equal("> 1\r\n1\r\n> 3", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            Window.Operations.Delete();
+            Assert.Equal("> 1\r\n1\r\n> 3", GetTextFromCurrentSnapshot());
             AssertCaretVirtualPosition(2, 2);
         }
 
@@ -946,9 +945,9 @@ System.Console.WriteLine();",
             caret.MoveToPreviousCaretPosition();  
             AssertCaretVirtualPosition(1, 1);
 
-            Task.Run(() => Window.Operations.Backspace()).PumpingWait();
+            Window.Operations.Backspace();
             AssertCaretVirtualPosition(1, 1);
-            Assert.Equal("> 1\r\n1\r\n> int x\r\n> ;", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal("> 1\r\n1\r\n> int x\r\n> ;", GetTextFromCurrentSnapshot());
 
             // Backspace() with caret in 2nd active prompt, move caret to 
             // closest editable buffer then delete prvious characer (breakline)        
@@ -958,9 +957,9 @@ System.Console.WriteLine();",
             caret.MoveToNextCaretPosition();
             AssertCaretVirtualPosition(3, 1);
 
-            Task.Run(() => Window.Operations.Backspace()).PumpingWait();
+            Window.Operations.Backspace();
             AssertCaretVirtualPosition(2, 7);
-            Assert.Equal("> 1\r\n1\r\n> int x;", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal("> 1\r\n1\r\n> int x;", GetTextFromCurrentSnapshot());
         }
 
         [Fact]
@@ -977,7 +976,6 @@ System.Console.WriteLine();",
             var caret = Window.TextView.Caret;
             var selection = Window.TextView.Selection;
 
-
             // Backspace() with selection in readonly area, no-op      
             Window.Operations.Home(false);
             Window.Operations.Home(false);
@@ -992,8 +990,8 @@ System.Console.WriteLine();",
 
             Window.Operations.SelectAll();
 
-            Task.Run(() => Window.Operations.Backspace()).PumpingWait();
-            Assert.Equal("> 1\r\n1\r\n> int x\r\n> ;", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            Window.Operations.Backspace();
+            Assert.Equal("> 1\r\n1\r\n> int x\r\n> ;", GetTextFromCurrentSnapshot());
 
             // Backspace() with selection in active prompt, no-op
             selection.Clear();
@@ -1004,8 +1002,8 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Task.Run(() => Window.Operations.Backspace()).PumpingWait();
-            Assert.Equal("> 1\r\n1\r\n> int x\r\n> ;", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            Window.Operations.Backspace();
+            Assert.Equal("> 1\r\n1\r\n> int x\r\n> ;", GetTextFromCurrentSnapshot());
 
             // Backspace() with selection overlaps with editable buffer
             selection.Clear();
@@ -1018,8 +1016,8 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Task.Run(() => Window.Operations.Backspace()).PumpingWait();
-            Assert.Equal("> 1\r\n1\r\n> int x;", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            Window.Operations.Backspace();
+            Assert.Equal("> 1\r\n1\r\n> int x;", GetTextFromCurrentSnapshot());
             AssertCaretVirtualPosition(2, 7);
         }
 
@@ -1030,7 +1028,6 @@ System.Console.WriteLine();",
 @"1",
 @"1
 ");
-
             var caret = Window.TextView.Caret;      
 
             // Return() with caret in readonly area, no-op       
@@ -1039,7 +1036,7 @@ System.Console.WriteLine();",
             caret.MoveToPreviousCaretPosition();   
             AssertCaretVirtualPosition(1, 1);
 
-            Task.Run(() => Window.Operations.Return()).PumpingWait();
+            Window.Operations.Return();
             AssertCaretVirtualPosition(1, 1);
 
             // Return() with caret in active prompt, move caret to 
@@ -1047,7 +1044,7 @@ System.Console.WriteLine();",
             caret.MoveToNextCaretPosition();
             AssertCaretVirtualPosition(2, 0);
 
-            Task.Run(() => Window.Operations.Return()).PumpingWait();
+            Window.Operations.Return();
             AssertCaretVirtualPosition(3, 2);
         }
 
@@ -1063,7 +1060,6 @@ System.Console.WriteLine();",
             var caret = Window.TextView.Caret;
             var selection = Window.TextView.Selection;
 
-
             // Return() with selection in readonly area, no-op       
             caret.MoveToPreviousCaretPosition();
             caret.MoveToPreviousCaretPosition();
@@ -1074,8 +1070,8 @@ System.Console.WriteLine();",
 
             Window.Operations.SelectAll();
 
-            Task.Run(() => Window.Operations.Return()).PumpingWait();
-            Assert.Equal("> 1\r\n1\r\n> 23", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            Window.Operations.Return();
+            Assert.Equal("> 1\r\n1\r\n> 23", GetTextFromCurrentSnapshot());
 
             // Return() with selection in active prompt, no-op
             selection.Clear();
@@ -1086,8 +1082,8 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Task.Run(() => Window.Operations.Return()).PumpingWait();
-            Assert.Equal("> 1\r\n1\r\n> 23", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            Window.Operations.Return();
+            Assert.Equal("> 1\r\n1\r\n> 23", GetTextFromCurrentSnapshot());
 
             // Delete() with selection overlaps with editable buffer, 
             // delete editable content and move caret to closest editable location and insert a return
@@ -1101,12 +1097,12 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Task.Run(() => Window.Operations.Return()).PumpingWait();
-            Assert.Equal("> 1\r\n1\r\n> \r\n> 3", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            Window.Operations.Return();
+            Assert.Equal("> 1\r\n1\r\n> \r\n> 3", GetTextFromCurrentSnapshot());
             AssertCaretVirtualPosition(3, 2);
         }
 
-        [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
+        [Fact]
         public void CutWithOutSelectionInReadOnlyArea()
         {
             Submit(
@@ -1115,8 +1111,8 @@ System.Console.WriteLine();",
 ");
             Window.InsertCode("2");
 
-            var caret = Window.TextView.Caret; 
-            Clipboard.Clear();
+            var caret = Window.TextView.Caret;
+            _testClipboard.Clear();
 
             // Cut() with caret in readonly area, no-op       
             caret.MoveToPreviousCaretPosition();
@@ -1125,8 +1121,8 @@ System.Console.WriteLine();",
             caret.MoveToPreviousCaretPosition();
             AssertCaretVirtualPosition(1, 1);
 
-            Task.Run(() => Window.Operations.Cut()).PumpingWait();
-            Assert.Equal("> 1\r\n1\r\n> 2", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            Window.Operations.Cut();
+            Assert.Equal("> 1\r\n1\r\n> 2", GetTextFromCurrentSnapshot());
             AssertCaretVirtualPosition(1, 1);
 
             VerifyClipboardData(null, null, null);
@@ -1134,14 +1130,14 @@ System.Console.WriteLine();",
             // Cut() with caret in active prompt
             caret.MoveToNextCaretPosition();
             AssertCaretVirtualPosition(2, 0);
-            Task.Run(() => Window.Operations.Cut()).PumpingWait();
+            Window.Operations.Cut();
 
-            Assert.Equal("> 1\r\n1\r\n> ", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal("> 1\r\n1\r\n> ", GetTextFromCurrentSnapshot());
             AssertCaretVirtualPosition(2, 2);
             VerifyClipboardData("2", expectedRtf: null, expectedRepl: null);
         }
 
-        [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
+        [Fact]
         public void CutWithSelectionInReadonlyArea()
         {
             Submit(
@@ -1152,8 +1148,7 @@ System.Console.WriteLine();",
 
             var caret = Window.TextView.Caret;
             var selection = Window.TextView.Selection;
-            Clipboard.Clear();
-
+            _testClipboard.Clear();
 
             // Cut() with selection in readonly area, no-op       
             caret.MoveToPreviousCaretPosition();
@@ -1165,8 +1160,8 @@ System.Console.WriteLine();",
 
             Window.Operations.SelectAll();
 
-            Task.Run(() => Window.Operations.Cut()).PumpingWait();
-            Assert.Equal("> 1\r\n1\r\n> 23", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            Window.Operations.Cut();
+            Assert.Equal("> 1\r\n1\r\n> 23", GetTextFromCurrentSnapshot());
             VerifyClipboardData(null, null, null);
 
             // Cut() with selection in active prompt, no-op
@@ -1178,8 +1173,8 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Task.Run(() => Window.Operations.Cut()).PumpingWait();
-            Assert.Equal("> 1\r\n1\r\n> 23", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            Window.Operations.Cut();
+            Assert.Equal("> 1\r\n1\r\n> 23", GetTextFromCurrentSnapshot());
             VerifyClipboardData(null, null, null);
 
             // Cut() with selection overlaps with editable buffer, 
@@ -1194,13 +1189,13 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Task.Run(() => Window.Operations.Cut()).PumpingWait();
-            Assert.Equal("> 1\r\n1\r\n> 3", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            Window.Operations.Cut();
+            Assert.Equal("> 1\r\n1\r\n> 3", GetTextFromCurrentSnapshot());
             AssertCaretVirtualPosition(2, 2);
             VerifyClipboardData("2", expectedRtf: null, expectedRepl: null);
         }
 
-        [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
+        [Fact]
         public void PasteWithOutSelectionInReadOnlyArea()
         {
             Submit(
@@ -1211,7 +1206,7 @@ System.Console.WriteLine();",
 
             var caret = Window.TextView.Caret;
 
-            Clipboard.Clear();
+            _testClipboard.Clear();
             Window.Operations.Home(true);
             Window.Operations.Copy();
             VerifyClipboardData("2", @"\ansi{\fonttbl{\f0 Consolas;}}{\colortbl;\red0\green0\blue0;\red255\green255\blue255;}\f0 \fs24 \cf1 \cb2 \highlight2 2", @"[{""content"":""2"",""kind"":2}]");
@@ -1223,20 +1218,20 @@ System.Console.WriteLine();",
             caret.MoveToPreviousCaretPosition();  
             AssertCaretVirtualPosition(1, 1);
 
-            Task.Run(() => Window.Operations.Paste()).PumpingWait();
-            Assert.Equal("> 1\r\n1\r\n> 2", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            Window.Operations.Paste();
+            Assert.Equal("> 1\r\n1\r\n> 2", GetTextFromCurrentSnapshot());
             AssertCaretVirtualPosition(1, 1);
 
             // Paste() with caret in active prompt
             caret.MoveToNextCaretPosition();
             AssertCaretVirtualPosition(2, 0);                                                                                                                     
-            Task.Run(() => Window.Operations.Paste()).PumpingWait();
+            Window.Operations.Paste();
 
-            Assert.Equal("> 1\r\n1\r\n> 22", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal("> 1\r\n1\r\n> 22", GetTextFromCurrentSnapshot());
             AssertCaretVirtualPosition(2, 3);            
         }
 
-        [Fact(Skip = "5544"), WorkItem(5544, "https://github.com/dotnet/roslyn/issues/5544")]
+        [Fact]    
         public void PasteWithSelectionInReadonlyArea()
         {
             Submit(
@@ -1248,12 +1243,11 @@ System.Console.WriteLine();",
             var caret = Window.TextView.Caret;
             var selection = Window.TextView.Selection;
 
-            Clipboard.Clear();
+            _testClipboard.Clear();
             Window.Operations.Home(true);
             Window.Operations.Copy();
             VerifyClipboardData("23", @"\ansi{\fonttbl{\f0 Consolas;}}{\colortbl;\red0\green0\blue0;\red255\green255\blue255;}\f0 \fs24 \cf1 \cb2 \highlight2 23", @"[{""content"":""23"",""kind"":2}]");
-
-
+           
             // Paste() with selection in readonly area, no-op  
             selection.Clear();
             caret.MoveToPreviousCaretPosition();
@@ -1263,8 +1257,8 @@ System.Console.WriteLine();",
 
             Window.Operations.SelectAll();
 
-            Task.Run(() => Window.Operations.Paste()).PumpingWait();
-            Assert.Equal("> 1\r\n1\r\n> 23", Window.TextView.TextBuffer.CurrentSnapshot.GetText());  
+            Window.Operations.Paste();
+            Assert.Equal("> 1\r\n1\r\n> 23", GetTextFromCurrentSnapshot());  
 
             // Paste() with selection in active prompt, no-op
             selection.Clear();
@@ -1275,8 +1269,8 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Task.Run(() => Window.Operations.Paste()).PumpingWait();
-            Assert.Equal("> 1\r\n1\r\n> 23", Window.TextView.TextBuffer.CurrentSnapshot.GetText()); 
+            Window.Operations.Paste();
+            Assert.Equal("> 1\r\n1\r\n> 23", GetTextFromCurrentSnapshot()); 
 
             // Paste() with selection overlaps with editable buffer, 
             // Cut editable content, move caret to closest editable location and insert text
@@ -1290,10 +1284,226 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Task.Run(() => Window.Operations.Paste()).PumpingWait();
-            Assert.Equal("> 1\r\n1\r\n> 233", Window.TextView.TextBuffer.CurrentSnapshot.GetText());
-            AssertCaretVirtualPosition(2, 4);             
+            Window.Operations.Paste();
+            Assert.Equal("> 1\r\n1\r\n> 233", GetTextFromCurrentSnapshot());
+            AssertCaretVirtualPosition(2, 4);
         }
+
+        [Fact]
+        public void DeleteLineWithOutSelection()
+        {
+            Submit(
+@"1",
+@"1
+");                                                                                                                        
+            var caret = Window.TextView.Caret;                               
+
+            // DeleteLine with caret in readonly area
+            caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+
+            AssertCaretVirtualPosition(1, 1);
+            Window.Operations.DeleteLine();
+            Assert.Equal("> 1\r\n1\r\n> ", GetTextFromCurrentSnapshot());
+            AssertCaretVirtualPosition(1, 1);
+
+            // DeleteLine with caret in active prompt
+            caret.MoveToNextCaretPosition();
+            caret.MoveToNextCaretPosition();
+            caret.MoveToNextCaretPosition();
+            Window.InsertCode("int x");
+            Window.Operations.BreakLine();
+            Window.InsertCode(";");
+            for (int i = 0; i < 11; ++i)
+            {
+                caret.MoveToPreviousCaretPosition();
+            }                                          
+
+            AssertCaretVirtualPosition(2, 0);
+            Window.Operations.DeleteLine();
+            Assert.Equal("> 1\r\n1\r\n> ;", GetTextFromCurrentSnapshot());
+            AssertCaretVirtualPosition(2, 2);
+
+            // DeleteLine with caret in editable area   
+            caret.MoveToNextCaretPosition();
+
+            Window.Operations.DeleteLine();
+            Assert.Equal("> 1\r\n1\r\n> ", GetTextFromCurrentSnapshot());
+            AssertCaretVirtualPosition(2, 2);
+        }
+
+        [Fact]
+        public void DeleteLineWithSelection()
+        {
+            Submit(
+@"1",
+@"1
+");
+            var caret = Window.TextView.Caret;
+            var selection = Window.TextView.Selection;
+
+            // DeleteLine with selection in readonly area  
+            caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+            Window.Operations.SelectAll();
+            Window.Operations.DeleteLine();
+            Assert.Equal("> 1\r\n1\r\n> ", GetTextFromCurrentSnapshot());
+
+            // DeleteLine with selection in active prompt
+            selection.Clear();
+            caret.MoveToNextCaretPosition();
+            caret.MoveToNextCaretPosition();
+            caret.MoveToNextCaretPosition();
+            Window.InsertCode("int x");
+            Window.Operations.BreakLine();
+            Window.InsertCode(";");
+            for (int i = 0; i < 11; ++i)
+            {
+                caret.MoveToPreviousCaretPosition();
+            }
+
+            selection.Select(caret.MoveToNextCaretPosition().VirtualBufferPosition, caret.MoveToNextCaretPosition().VirtualBufferPosition);
+            Window.Operations.DeleteLine();
+            Assert.Equal("> 1\r\n1\r\n> ;", GetTextFromCurrentSnapshot());
+            AssertCaretVirtualPosition(2, 2);
+            Assert.True(selection.IsEmpty);
+
+            // DeleteLine with selection in editable area   
+            Window.InsertCode("int x");
+            selection.Select(caret.MoveToPreviousCaretPosition().VirtualBufferPosition, caret.MoveToPreviousCaretPosition().VirtualBufferPosition);
+            Window.Operations.DeleteLine();
+            Assert.Equal("> 1\r\n1\r\n> ", GetTextFromCurrentSnapshot());
+            AssertCaretVirtualPosition(2, 2);
+            Assert.True(selection.IsEmpty);
+
+            // DeleteLine with selection spans all areas     
+            Window.InsertCode("int x");
+            Window.Operations.BreakLine();
+            Window.InsertCode(";");
+            Window.Operations.SelectAll();
+            Window.Operations.SelectAll();
+            Window.Operations.DeleteLine();
+            Assert.Equal("> 1\r\n1\r\n> ", GetTextFromCurrentSnapshot());
+            AssertCaretVirtualPosition(2, 2);
+            Assert.True(selection.IsEmpty);
+        }
+
+        [Fact]
+        public void CutLineWithOutSelection()
+        {
+            Submit(
+@"1",
+@"1
+");
+            var caret = Window.TextView.Caret;
+            _testClipboard.Clear();
+
+            // CutLine with caret in readonly area
+            caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+
+            AssertCaretVirtualPosition(1, 1);
+            Window.Operations.CutLine();
+            Assert.Equal("> 1\r\n1\r\n> ", GetTextFromCurrentSnapshot());
+            AssertCaretVirtualPosition(1, 1);
+            VerifyClipboardData(null, null, null);
+
+            // CutLine with caret in active prompt
+            caret.MoveToNextCaretPosition();
+            caret.MoveToNextCaretPosition();
+            caret.MoveToNextCaretPosition();
+            Window.InsertCode("int x");
+            Window.Operations.BreakLine();
+            Window.InsertCode(";");
+            for (int i = 0; i < 11; ++i)
+            {
+                caret.MoveToPreviousCaretPosition();
+            }
+
+            AssertCaretVirtualPosition(2, 0);
+            Window.Operations.CutLine();
+            Assert.Equal("> 1\r\n1\r\n> ;", GetTextFromCurrentSnapshot());
+            AssertCaretVirtualPosition(2, 2);
+            VerifyClipboardData("int x\r\n", null, null);
+
+            // CutLine with caret in editable area   
+            caret.MoveToNextCaretPosition();
+
+            Window.Operations.CutLine();
+            Assert.Equal("> 1\r\n1\r\n> ", GetTextFromCurrentSnapshot());
+            AssertCaretVirtualPosition(2, 2);
+            VerifyClipboardData(";", null, null);
+        }
+
+        [Fact]
+        public void CutLineWithSelection()
+        {
+            Submit(
+@"1",
+@"1
+");
+            var caret = Window.TextView.Caret;
+            var selection = Window.TextView.Selection;
+            _testClipboard.Clear();
+
+            // CutLine with selection in readonly area  
+            caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+            caret.MoveToPreviousCaretPosition();
+            Window.Operations.SelectAll();
+            Window.Operations.CutLine();
+            Assert.Equal("> 1\r\n1\r\n> ", GetTextFromCurrentSnapshot());
+            VerifyClipboardData(null, null, null);
+
+            // CutLine with selection in active prompt
+            selection.Clear();
+            caret.MoveToNextCaretPosition();
+            caret.MoveToNextCaretPosition();
+            caret.MoveToNextCaretPosition();
+            Window.InsertCode("int x");
+            Window.Operations.BreakLine();
+            Window.InsertCode(";");
+            for (int i = 0; i < 11; ++i)
+            {
+                caret.MoveToPreviousCaretPosition();
+            }
+
+            selection.Select(caret.MoveToNextCaretPosition().VirtualBufferPosition, caret.MoveToNextCaretPosition().VirtualBufferPosition);
+            Window.Operations.CutLine();
+            Assert.Equal("> 1\r\n1\r\n> ;", GetTextFromCurrentSnapshot());
+            AssertCaretVirtualPosition(2, 2);
+            Assert.True(selection.IsEmpty);
+            VerifyClipboardData("int x\r\n", null, null);
+
+            // CutLine with selection in editable area   
+            Window.InsertCode("int x");
+            selection.Select(caret.MoveToPreviousCaretPosition().VirtualBufferPosition, caret.MoveToPreviousCaretPosition().VirtualBufferPosition);
+            Window.Operations.CutLine();
+            Assert.Equal("> 1\r\n1\r\n> ", GetTextFromCurrentSnapshot());
+            AssertCaretVirtualPosition(2, 2);
+            Assert.True(selection.IsEmpty);
+            VerifyClipboardData("int x;", null, null);
+
+            // CutLine with selection spans all areas     
+            Window.InsertCode("int x");
+            Window.Operations.BreakLine();
+            Window.InsertCode(";");
+            Window.Operations.SelectAll();
+            Window.Operations.SelectAll();
+            Window.Operations.CutLine();
+            Assert.Equal("> 1\r\n1\r\n> ", GetTextFromCurrentSnapshot());
+            AssertCaretVirtualPosition(2, 2);
+            Assert.True(selection.IsEmpty);
+            VerifyClipboardData("int x\r\n;", null, null);
+        }
+
+        private string GetTextFromCurrentSnapshot()
+        {
+            return Window.TextView.TextBuffer.CurrentSnapshot.GetText();
+        }    
 
         private void Submit(string submission, string output)
         {
@@ -1309,14 +1519,14 @@ System.Console.WriteLine();",
             }
         }
 
-        private static void VerifyClipboardData(string expectedText, string expectedRtf, string expectedRepl)
+        private void VerifyClipboardData(string expectedText, string expectedRtf, string expectedRepl)
         {
-            var data = Clipboard.GetDataObject();
-            Assert.Equal(expectedText, data.GetData(DataFormats.StringFormat));
-            Assert.Equal(expectedText, data.GetData(DataFormats.Text));
-            Assert.Equal(expectedText, data.GetData(DataFormats.UnicodeText));
-            Assert.Equal(expectedRepl, (string)data.GetData(InteractiveWindow.ClipboardFormat));
-            var actualRtf = (string)data.GetData(DataFormats.Rtf);
+            var data = _testClipboard.GetDataObject();
+            Assert.Equal(expectedText, data?.GetData(DataFormats.StringFormat));
+            Assert.Equal(expectedText, data?.GetData(DataFormats.Text));
+            Assert.Equal(expectedText, data?.GetData(DataFormats.UnicodeText));
+            Assert.Equal(expectedRepl, (string)data?.GetData(InteractiveWindow.ClipboardFormat));
+            var actualRtf = (string)data?.GetData(DataFormats.Rtf);
             if (expectedRtf == null)
             {
                 Assert.Null(actualRtf);
@@ -1360,6 +1570,16 @@ System.Console.WriteLine();",
         internal static void Copy(this IInteractiveWindowOperations operations)
         {
             ((IInteractiveWindowOperations2)operations).Copy();
+        }
+
+        internal static void DeleteLine(this IInteractiveWindowOperations operations)
+        {
+            ((IInteractiveWindowOperations2)operations).DeleteLine();
+        }
+
+        internal static void CutLine(this IInteractiveWindowOperations operations)
+        {
+            ((IInteractiveWindowOperations2)operations).CutLine();
         }
     }
 }

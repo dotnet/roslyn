@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         ''' <summary>
-        ''' Synthesizes attribtue data for given constructor symbol.
+        ''' Synthesizes attribute data for given constructor symbol.
         ''' If the constructor has UseSiteErrors and the attribute is optional returns Nothing.
         ''' </summary>
         Friend Shared Function Create(

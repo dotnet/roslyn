@@ -116,17 +116,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             var textBuffer = GetTextBuffer(_workspace, documentId);
             if (textBuffer != null)
             {
-                SetReadOnlyFlag(textBuffer, value);
+                var vsBuffer = _adapters.GetBufferAdapter(textBuffer);
+                if (vsBuffer != null)
+                {
+                    SetReadOnlyFlag(vsBuffer, value);
+                }
             }
         }
 
-        private void SetReadOnlyFlag(ITextBuffer buffer, bool value)
+        private void SetReadOnlyFlag(IVsTextBuffer buffer, bool value)
         {
-            var vsBuffer = _adapters.GetBufferAdapter(buffer);
-
             uint oldFlags;
             uint newFlags;
-            vsBuffer.GetStateFlags(out oldFlags);
+            buffer.GetStateFlags(out oldFlags);
             if (value)
             {
                 newFlags = oldFlags | (uint)BUFFERSTATEFLAGS.BSF_USER_READONLY;
@@ -138,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             if (oldFlags != newFlags)
             {
-                vsBuffer.SetStateFlags(newFlags);
+                buffer.SetStateFlags(newFlags);
             }
         }
 

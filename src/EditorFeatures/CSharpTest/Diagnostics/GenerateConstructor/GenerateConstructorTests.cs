@@ -636,5 +636,62 @@ class Program
     @"using System . Threading . Tasks ; class C { private int v ; public C ( int v ) { this . v = v ; } C ( ) { Task . Run ( ( ) => { new C ( 0 ) } ) ; } } ");
             }
         }
+
+        [WorkItem(5274, "https://github.com/dotnet/roslyn/issues/5274")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public void TestGenerateIntoDerivedClassWithAbstractBase()
+        {
+            Test(
+@"
+class Class1
+{
+    private void Foo(string value)
+    {
+        var rewriter = new [|Derived|](value);
+    }
+
+    private class Derived : Base
+    {
+    }
+
+    public abstract partial class Base
+    {
+        private readonly bool _val;
+
+        public Base(bool val = false)
+        {
+            _val = val;
+        }
+    }
+}",
+@"
+class Class1
+{
+    private void Foo(string value)
+    {
+        var rewriter = new Derived(value);
+    }
+
+    private class Derived : Base
+    {
+        private string value;
+
+        public Derived(string value)
+        {
+            this.value = value;
+        }
+    }
+
+    public abstract partial class Base
+    {
+        private readonly bool _val;
+
+        public Base(bool val = false)
+        {
+            _val = val;
+        }
+    }
+}");
+        }
     }
 }

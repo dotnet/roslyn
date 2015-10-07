@@ -20,9 +20,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             IfPrecededByLineBreak
         End Enum
 
-        ' Keep this value in sync with C# LanguageParser
-        Friend Const MaxUncheckedRecursionDepth As Integer = 20
-
         Private _allowLeadingMultilineTrivia As Boolean = True
         Private _hadImplicitLineContinuation As Boolean = False
         Private _hadLineContinuationComment As Boolean = False
@@ -298,7 +295,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' NOTE: all tokens after this one do not have any content
             Dim lastNonZeroWidthToken = GetLastNZWToken(redNode)
 
-            ' get the absolutely last token. It must be zerowidth or we would not get here
+            ' get the absolutely last token. It must be zero-width or we would not get here
             Dim lastZeroWidthToken = GetLastToken(redNode)
             Debug.Assert(lastZeroWidthToken.FullWidth = 0)
 
@@ -319,7 +316,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return node
             End If
 
-            ' leave whitespace trivia on NZW token up until a nonwhitespace trivia is found (that and the rest we move)
+            ' leave whitespace trivia on NZW token up until a non-whitespace trivia is found (that and the rest we move)
             Dim newNonZeroWidthTokenTrivia(triviaToMove.Count - triviaToMoveCnt - 1) As Microsoft.CodeAnalysis.SyntaxTrivia
             triviaToMove.CopyTo(0, newNonZeroWidthTokenTrivia, 0, newNonZeroWidthTokenTrivia.Length)
 
@@ -513,9 +510,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim restorePoint = _scanner.CreateRestorePoint()
             Try
                 Return parseFunc()
-                ' TODO (DevDiv workitem 966425): Replace exception name test with a type test once the type 
-                ' Is available in the PCL
-            Catch ex As Exception When ex.GetType().Name = "InsufficientExecutionStackException"
+
+            Catch ex As Exception When StackGuard.IsInsufficientExecutionStackException(ex)
                 Return CreateForInsufficientStack(restorePoint, defaultFunc())
             End Try
         End Function
@@ -915,9 +911,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Try
                 _recursionDepth += 1
-                If _recursionDepth >= MaxUncheckedRecursionDepth Then
-                    PortableShim.RuntimeHelpers.EnsureSufficientExecutionStack()
-                End If
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth)
 
                 Return ParseStatementInMethodBodyCore()
             Finally
@@ -2006,7 +2000,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                          SyntaxKind.OverridableKeyword,
                          SyntaxKind.MustOverrideKeyword
 
-                        ' Writeability category
+                        ' Writability category
                     Case SyntaxKind.ReadOnlyKeyword,
                          SyntaxKind.WriteOnlyKeyword
 
@@ -2170,7 +2164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     If declarator.ContainsDiagnostics Then
                         ' Resync so we don't get more errors later.
-                        ' davidsch - removed synching on tkRem because that is now trivia
+                        ' davidsch - removed syncing on tkRem because that is now trivia
                         declarator = ResyncAt(declarator, SyntaxKind.AsKeyword, SyntaxKind.CommaToken, SyntaxKind.NewKeyword, SyntaxKind.EqualsToken)
                     End If
 
@@ -2692,7 +2686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return SyntaxFactory.NamedFieldInitializer(optionalKey, dot, SyntaxFactory.IdentifierName(id), equals, expression)
         End Function
 
-        ' See Parser::ParseInitializerList and how it it used by the Parser::ParseNewExpression
+        ' See Parser::ParseInitializerList and how it is used by the Parser::ParseNewExpression
 
         ' /*********************************************************************
         ' *
@@ -4443,7 +4437,7 @@ checkNullable:
                     Dim modifiers = ParseParameterSpecifiers(paramSpecifiers)
                     Dim param = ParseParameter(attributes, modifiers)
 
-                    ' TODO - Bug 889301 - Dev10 does a resynch here when there is an error.  That prevents ERRID_InvalidParameterSyntax below from
+                    ' TODO - Bug 889301 - Dev10 does a resync here when there is an error.  That prevents ERRID_InvalidParameterSyntax below from
                     ' being reported. For now keep backwards compatibility.
                     If param.ContainsDiagnostics Then
                         param = param.AddTrailingSyntax(ResyncAt({SyntaxKind.CommaToken, SyntaxKind.CloseParenToken}))

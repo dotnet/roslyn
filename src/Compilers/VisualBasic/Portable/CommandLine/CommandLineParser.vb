@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Creates a new command line parser.
         ''' </summary>
-        ''' <param name="isInteractive">An optional parameter indicating indicating whether to create a interactive command line parser.</param>
+        ''' <param name="isInteractive">An optional parameter indicating whether to create a interactive command line parser.</param>
         Friend Sub New(Optional isInteractive As Boolean = False)
             MyBase.New(VisualBasic.MessageProvider.Instance, isInteractive)
         End Sub
@@ -90,6 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim concurrentBuild As Boolean = True
             Dim deterministic As Boolean = False
             Dim emitPdb As Boolean
+            Dim debugInformationFormat As DebugInformationFormat = DebugInformationFormat.Pdb
             Dim noStdLib As Boolean = False
             Dim utf8output As Boolean = False
             Dim outputFileName As String = Nothing
@@ -581,16 +582,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Continue For
 
                         Case "debug"
-
                             ' parse only for backwards compat
                             value = RemoveQuotesAndSlashes(value)
                             If value IsNot Nothing Then
-                                If String.IsNullOrEmpty(value) Then
-                                    AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "debug", ":pdbonly|full")
-                                ElseIf Not String.Equals(value, "full", StringComparison.OrdinalIgnoreCase) AndAlso
-                                       Not String.Equals(value, "pdbonly", StringComparison.OrdinalIgnoreCase) Then
-                                    AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "debug", value)
-                                End If
+                                Select Case value.ToLower()
+                                    Case "full", "pdbonly"
+                                        debugInformationFormat = DebugInformationFormat.Pdb
+                                    Case "portable"
+                                        debugInformationFormat = DebugInformationFormat.PortablePdb
+                                    Case "embedded"
+                                        debugInformationFormat = DebugInformationFormat.Embedded
+                                    Case Else
+                                        AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "debug", value)
+                                End Select
                             End If
 
                             emitPdb = True
@@ -931,7 +935,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Continue For
 
                         Case "m", "main"
-                            ' MSBuild can result in maintypename being passed in quoted when cyrillic namespace was being used resulting
+                            ' MSBuild can result in maintypename being passed in quoted when Cyrillic namespace was being used resulting
                             ' in ERRID.ERR_StartupCodeNotFound1 diagnostic.   The additional quotes cause problems and quotes are not a 
                             ' valid character in typename.
                             value = RemoveQuotesAndSlashes(value)
@@ -1160,17 +1164,6 @@ lVbRuntimePlus:
 
             Dim parsedFeatures = CompilerOptionParseUtilities.ParseFeatures(features)
 
-            Dim debugInfoFormat = DebugInformationFormat.Pdb
-            Dim pdbFormatStr As String = Nothing
-            If emitPdb AndAlso parsedFeatures.TryGetValue("pdb", pdbFormatStr) Then
-                If StringComparer.Ordinal.Equals(pdbFormatStr, "portable") Then
-                    debugInfoFormat = DebugInformationFormat.PortablePdb
-                ElseIf StringComparer.Ordinal.Equals(pdbFormatStr, "embedded") Then
-                    debugInfoFormat = DebugInformationFormat.Embedded
-                    emitPdb = False
-                End If
-            End If
-
             Dim compilationName As String = Nothing
             GetCompilationAndModuleNames(diagnostics, outputKind, sourceFiles, moduleAssemblyName, outputFileName, moduleName, compilationName)
 
@@ -1223,7 +1216,7 @@ lVbRuntimePlus:
 
             Dim emitOptions = New EmitOptions(
                 metadataOnly:=False,
-                debugInformationFormat:=debugInfoFormat,
+                debugInformationFormat:=debugInformationFormat,
                 pdbFilePath:=Nothing, ' to be determined later
                 outputNameOverride:=Nothing,  ' to be determined later
                 fileAlignment:=fileAlignment,
@@ -1559,7 +1552,7 @@ lVbRuntimePlus:
         End Function
 
         ''' <summary>
-        ''' Converts ImmutableDictionary of definitions used internallyinto IReadOnlyDictionary of definitions 
+        ''' Converts ImmutableDictionary of definitions used internally into IReadOnlyDictionary of definitions 
         ''' returned to a caller (of public API)
         ''' </summary>
         Private Shared Function InternalDefinesToPublicSymbols(defines As ImmutableDictionary(Of String, InternalSyntax.CConst)) As IReadOnlyDictionary(Of String, Object)

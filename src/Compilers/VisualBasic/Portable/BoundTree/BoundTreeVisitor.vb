@@ -132,5 +132,73 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overridable Function DefaultVisit(node As BoundNode) As BoundNode
             Return Nothing
         End Function
+
+        Public Class CancelledByStackGuardException
+            Inherits Exception
+
+            Public ReadOnly Node As BoundNode
+
+            Public Sub New(inner As Exception, node As BoundNode)
+                MyBase.New(inner.Message, inner)
+
+                Me.Node = node
+            End Sub
+
+            Public Sub AddAnError(diagnostics As DiagnosticBag)
+                diagnostics.Add(ERRID.ERR_TooLongOrComplexExpression, GetTooLongOrComplexExpressionErrorLocation(Node))
+            End Sub
+
+            Public Shared Function GetTooLongOrComplexExpressionErrorLocation(node As BoundNode) As Location
+                Dim syntax As SyntaxNode = node.Syntax
+
+                If TypeOf syntax IsNot ExpressionSyntax Then
+                    syntax = If(syntax.DescendantNodes(Function(n) TypeOf n IsNot ExpressionSyntax).OfType(Of ExpressionSyntax)().FirstOrDefault(), syntax)
+                End If
+
+                Return syntax.GetFirstToken().GetLocation()
+            End Function
+        End Class
+
+        ''' <summary>
+        ''' Consumers must provide implementation for <see cref="VisitExpressionWithoutStackGuard"/>.
+        ''' </summary>
+        Protected Function VisitExpressionWithStackGuard(ByRef recursionDepth As Integer, node As BoundExpression) As BoundExpression
+            Dim result As BoundExpression
+            recursionDepth += 1
+
+#If DEBUG Then
+            Dim saveRecursionDepth = recursionDepth
+#End If
+
+            If recursionDepth > 1 OrElse Not ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException() Then
+                StackGuard.EnsureSufficientExecutionStack(recursionDepth)
+                result = VisitExpressionWithoutStackGuard(node)
+            Else
+                result = VisitExpressionWithStackGuard(node)
+            End If
+
+#If DEBUG Then
+            Debug.Assert(saveRecursionDepth = recursionDepth)
+#End If
+            recursionDepth -= 1
+            Return result
+        End Function
+
+        Protected Overridable Function ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException() As Boolean
+            Return True
+        End Function
+
+        Private Function VisitExpressionWithStackGuard(node As BoundExpression) As BoundExpression
+            Try
+                Return VisitExpressionWithoutStackGuard(node)
+            Catch ex As Exception When StackGuard.IsInsufficientExecutionStackException(ex)
+                Throw New CancelledByStackGuardException(ex, node)
+            End Try
+        End Function
+
+        ''' <summary>
+        ''' We should be intentional about behavior of derived classes regarding guarding against stack overflow. 
+        ''' </summary>
+        Protected MustOverride Function VisitExpressionWithoutStackGuard(node As BoundExpression) As BoundExpression
     End Class
 End Namespace

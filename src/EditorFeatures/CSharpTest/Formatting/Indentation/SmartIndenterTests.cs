@@ -1,12 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -2529,6 +2526,48 @@ namespace ConsoleApplication1
                 code,
                 indentationLine: 13,
                 expectedIndentation: 25);
+        }
+
+        [WorkItem(5495, "https://github.com/dotnet/roslyn/issues/5495")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void AfterPartialFromClause()
+        {
+            var code = @"
+using System.Linq;
+
+class C
+{
+    void M()
+    {
+        var q = from x
+
+    }
+}
+";
+
+            AssertSmartIndent(
+                code,
+                indentationLine: 8,
+                expectedIndentation: 16);
+        }
+
+        [WorkItem(5635, "https://github.com/dotnet/roslyn/issues/5635")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void ConstructorInitializerMissingBaseOrThisKeyword()
+        {
+            var code = @"
+class C
+{
+     C(string s)
+         :
+
+}
+";
+
+            AssertSmartIndent(
+                code,
+                indentationLine: 5,
+                expectedIndentation: 8);
         }
 
         private static void AssertSmartIndentInProjection(string markup, int expectedIndentation, CSharpParseOptions options = null)

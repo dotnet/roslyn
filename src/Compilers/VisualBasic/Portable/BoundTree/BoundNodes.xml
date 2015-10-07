@@ -153,7 +153,7 @@
     </Node>
 
     <!--
-    Represens an operation that is special in both IL and Expression trees -
+    Represents an operation that is special in both IL and Expression trees -
     getting length of a one-dimensional 0-based array (vector)
   
     This node should not be produced in initial binding since it is not a part of 
@@ -842,7 +842,7 @@
 
         <Field Name="AccessKind" Type="PropertyAccessKind"/>           
       
-        <!-- autoproperty could be writeable even when having no setter 
+        <!-- autoproperty could be writable even when having no setter 
              when in a corresponding constructor or initializer -->
         <Field Name="IsWriteable" Type="Boolean"/>
       
@@ -1127,7 +1127,7 @@
       <Field Name="TryBlock" Type="BoundBlock"/>
       <Field Name="CatchBlocks" Type="ImmutableArray(Of BoundCatchBlock)"/>
       <Field Name="FinallyBlockOpt" Type="BoundBlock" Null="allow"/>
-      <!-- Exit label is optional because synthetic trys (foreach and using) do not need it. -->
+      <!-- Exit label is optional because synthetic try's (foreach and using) do not need it. -->
       <Field Name="ExitLabelOpt" Type="LabelSymbol" Null="allow"/>
     </Node>
 
@@ -1144,7 +1144,7 @@
       <!-- 
       Refers to the location where the exception object is stored. Usually that's a bound local.
       But it might also be a BoundSequence, whose last expression refers to the location
-      and the sideeffects initialize the storage (e.g. if the catch identitifer is lifted 
+      and the sideeffects initialize the storage (e.g. if the catch identifier is lifted 
       into a closure the sideeffects initialize the closure).
       
       The type of this expression is the type that we are catching.
@@ -1651,7 +1651,7 @@
   </Node>
 
   <!-- A special synthetic node created in LocalRewriter and used as a filter expression 
-       for an "On Error" catch block. CodeGen hadles this node specially.
+       for an "On Error" catch block. CodeGen handles this node specially.
   -->
   <Node Name="BoundUnstructuredExceptionHandlingCatchFilter" Base="BoundExpression" HasValidate="true">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
@@ -1660,7 +1660,7 @@
   </Node>
 
   <!-- A special synthetic node created in LocalRewriter to represent "On Error" switch, 
-       CodeGen hadles this node specially. 
+       CodeGen handles this node specially. 
   -->
   <Node Name="BoundUnstructuredExceptionOnErrorSwitch" Base="BoundStatement" HasValidate="true">
     <Field Name="Value" Type="BoundExpression" Null="disallow"/>
@@ -1668,7 +1668,7 @@
   </Node>
 
   <!-- A special synthetic node created in LocalRewriter to represent "Resume" switch, 
-       CodeGen hadles this node specially. 
+       CodeGen handles this node specially. 
   -->
   <Node Name="BoundUnstructuredExceptionResumeSwitch" Base="BoundStatement" HasValidate="true">
     <Field Name="ResumeTargetTemporary" Type="BoundLocal" Null="disallow"/>
@@ -1694,7 +1694,7 @@
   <!-- Normal sequence nodes can't be used for await expressions, because await
        expression side-effects include control flow.
        
-       These nodes are only temporarily created in asynch rewriting pass and never leave it. 
+       These nodes are only temporarily created in async rewriting pass and never leave it. 
        They should never be used by or visible to anything other than the async rewriter.
   -->
   <Node Name="BoundSpillSequence" Base="BoundExpression" HasValidate="true">

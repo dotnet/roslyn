@@ -2148,7 +2148,7 @@ public class Methods
 
             var peStream = CreateCompilationWithMscorlib(
                 syntax,
-                options: TestOptions.ReleaseDll.WithDeterminism(true),
+                options: TestOptions.ReleaseDll.WithDeterministic(true),
                 assemblyName: "46B9C2B2-B7A0-45C5-9EF9-28DDF739FD9E").EmitToStream(options);
 
             peStream.Position = 0;
@@ -2337,7 +2337,7 @@ public class Methods
 
             var peStream = CreateCompilationWithMscorlib(
                 syntax,
-                options: TestOptions.DebugExe.WithPlatform(Platform.X64).WithDeterminism(true),
+                options: TestOptions.DebugExe.WithPlatform(Platform.X64).WithDeterministic(true),
                 assemblyName: "B37A4FCD-ED76-4924-A2AD-298836056E00").EmitToStream(options);
 
             peStream.Position = 0;

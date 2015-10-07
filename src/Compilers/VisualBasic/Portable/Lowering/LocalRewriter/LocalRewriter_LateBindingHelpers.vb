@@ -641,7 +641,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert((assignmentArguments.IsDefaultOrEmpty AndAlso argExpressions.IsDefaultOrEmpty) OrElse
               (assignmentArguments.Length = argExpressions.Length),
-              "number of readable and writeable arguments must match")
+              "number of readable and writable arguments must match")
 
             Debug.Assert(argNames.IsDefaultOrEmpty OrElse argNames.Length = argExpressions.Length,
                          "should not have argument names or should have name for every argument")
@@ -818,8 +818,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' same as LateCaptureReceiverAndArgsComplex, but without a receiver
         ' and does not produce reReadable arguments - just 
-        ' argument (that includes initialization of captures if needed) and a no-side-effect writeable.
-        ' NOTE: writeables are not rewritten. They will be rewritten when they are combined with values into assignments.
+        ' argument (that includes initialization of captures if needed) and a no-side-effect writable.
+        ' NOTE: writables are not rewritten. They will be rewritten when they are combined with values into assignments.
         Private Sub LateCaptureArgsComplex(ByRef temps As ArrayBuilder(Of SynthesizedLocal),
                            ByRef arguments As ImmutableArray(Of BoundExpression),
                            <Out> ByRef writeTargets As ImmutableArray(Of BoundExpression))

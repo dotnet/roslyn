@@ -2280,7 +2280,7 @@ Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
             builder.Free();
         }
 
-        private class NonMoveableVariableVisitor : BoundTreeWalker
+        private class NonMoveableVariableVisitor : BoundTreeWalkerWithStackGuard
         {
             private readonly Binder _binder;
             private readonly ArrayBuilder<string> _builder;
@@ -2324,6 +2324,11 @@ Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
                 }
 
                 return base.Visit(node);
+            }
+
+            protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
+            {
+                return false;
             }
         }
 
@@ -8452,7 +8457,7 @@ namespace ConsoleApplication30
 }";
 
             // Only compile this as its intentionally writing outside of fixed buffer boundaries and 
-            // this doesnt warn but causes flakiness when executed.
+            // this doesn't warn but causes flakiness when executed.
             var comp3 = CompileAndVerify(s3,
                 options: TestOptions.UnsafeReleaseDll,
                 additionalRefs: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) }).Compilation;

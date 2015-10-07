@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#pragma warning disable 436 // The type 'RelativePathResolver' comflicts with imported type
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -126,6 +128,19 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             return ScriptOptions.Default.
                 AddReferences("System", "System.Core", "System.Runtime", "System.IO.FileSystem", "System.IO.FileSystem.Primitives").
                 AddNamespaces("System", "System.IO", "System.Threading.Tasks", "System.Linq");
+        }
+
+        internal static MetadataReferenceResolver GetMetadataReferenceResolver(CommandLineArguments arguments, TouchedFileLogger loggerOpt)
+        {
+            return new RuntimeMetadataReferenceResolver(
+                new RelativePathResolver(arguments.ReferencePaths, arguments.BaseDirectory),
+                null,
+                GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
+                (path, properties) =>
+                {
+                    loggerOpt?.AddRead(path);
+                    return MetadataReference.CreateFromFile(path);
+                });
         }
 
         private void RunScript(ScriptOptions options, string code, string scriptPath, CommandLineHostObject globals, ErrorLogger errorLogger)

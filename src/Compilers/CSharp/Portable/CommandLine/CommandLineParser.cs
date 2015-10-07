@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool concurrentBuild = true;
             bool deterministic = false; // TODO(5431): Enable deterministic mode by default
             bool emitPdb = false;
+            DebugInformationFormat debugInformationFormat = DebugInformationFormat.Pdb;
             bool debugPlus = false;
             string pdbPath = null;
             bool noStdLib = false;
@@ -516,11 +517,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (value.IsEmpty())
                                 {
                                     AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), name);
+                                    continue;
                                 }
-                                else if (!string.Equals(value, "full", StringComparison.OrdinalIgnoreCase) &&
-                                         !string.Equals(value, "pdbonly", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    AddDiagnostic(diagnostics, ErrorCode.ERR_BadDebugType, value);
+                                switch (value.ToLower()) {
+                                    case "full":
+                                    case "pdbonly":
+                                        debugInformationFormat = DebugInformationFormat.Pdb;
+                                        break;
+                                    case "portable":
+                                        debugInformationFormat = DebugInformationFormat.PortablePdb;
+                                        break;
+                                    case "embedded":
+                                        debugInformationFormat = DebugInformationFormat.Embedded;
+                                        break;
+                                    default:
+                                        AddDiagnostic(diagnostics, ErrorCode.ERR_BadDebugType, value);
+                                        break;
                                 }
                             }
                             continue;
@@ -1053,21 +1065,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var parsedFeatures = CompilerOptionParseUtilities.ParseFeatures(features);
 
-            var debugInfoFormat = DebugInformationFormat.Pdb;
-            string pdbFormatStr;
-            if (emitPdb && parsedFeatures.TryGetValue("pdb", out pdbFormatStr))
-            {
-                if (pdbFormatStr == "portable")
-                {
-                    debugInfoFormat = DebugInformationFormat.PortablePdb;
-                }
-                else if (pdbFormatStr == "embedded")
-                {
-                    debugInfoFormat = DebugInformationFormat.Embedded;
-                    emitPdb = false;
-                }
-            }
-
             string compilationName;
             GetCompilationAndModuleNames(diagnostics, outputKind, sourceFiles, sourceFilesSpecified, moduleAssemblyName, ref outputFileName, ref moduleName, out compilationName);
 
@@ -1116,7 +1113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var emitOptions = new EmitOptions
             (
                 metadataOnly: false,
-                debugInformationFormat: debugInfoFormat,
+                debugInformationFormat: debugInformationFormat,
                 pdbFilePath: null, // to be determined later
                 outputNameOverride: null, // to be determined later
                 baseAddress: baseAddress,

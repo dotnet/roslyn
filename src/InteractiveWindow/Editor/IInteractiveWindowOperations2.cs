@@ -8,5 +8,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// Copies the current selection to the clipboard.
         /// </summary>
         void Copy();
+
+        /// <summary>
+        /// Delete Line; Delete all selected lines, or the current line if no selection.  
+        /// </summary>
+        void DeleteLine();
+
+        /// <summary>
+        /// Line Cut; Cut all selected lines, or the current line if no selection, to the clipboard.   
+        /// </summary>           
+        void CutLine();
     }
 }

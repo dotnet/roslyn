@@ -6,6 +6,6 @@
     "net452": {}
   },
   "runtimes": {
-    "win-anycpu": { }
+    "win7-anycpu": { }
   }
 }

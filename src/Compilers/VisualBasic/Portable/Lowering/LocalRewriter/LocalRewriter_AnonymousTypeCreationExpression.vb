@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim newArguments(fieldsCount - 1) As BoundExpression
 
-            ' Those are lazily created created for each field using a local
+            ' Those are lazily created for each field using a local
             Dim locals As ArrayBuilder(Of LocalSymbol) = Nothing
 
             For index = 0 To fieldsCount - 1

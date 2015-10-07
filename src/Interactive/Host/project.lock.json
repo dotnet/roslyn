@@ -20,20 +20,12 @@
         }
       },
       "Microsoft.DiaSymReader.Native/1.1.0-alpha2": {},
-      "Microsoft.NETCore.Portable.Compatibility/1.0.0": {
+      "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23401": {
         "compile": {
           "ref/net45/_._": {}
         },
         "runtime": {
           "lib/net45/_._": {}
-        }
-      },
-      "Newtonsoft.Json/6.0.4": {
-        "compile": {
-          "lib/net45/Newtonsoft.Json.dll": {}
-        },
-        "runtime": {
-          "lib/net45/Newtonsoft.Json.dll": {}
         }
       },
       "System.AppContext/4.0.0": {
@@ -269,7 +261,7 @@
         }
       }
     },
-    ".NETFramework,Version=v4.6/win-anycpu": {
+    ".NETFramework,Version=v4.6/win7-anycpu": {
       "Microsoft.Composition/1.0.27": {
         "compile": {
           "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll": {},
@@ -287,20 +279,12 @@
         }
       },
       "Microsoft.DiaSymReader.Native/1.1.0-alpha2": {},
-      "Microsoft.NETCore.Portable.Compatibility/1.0.0": {
+      "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23401": {
         "compile": {
           "ref/net45/_._": {}
         },
         "runtime": {
           "lib/net45/_._": {}
-        }
-      },
-      "Newtonsoft.Json/6.0.4": {
-        "compile": {
-          "lib/net45/Newtonsoft.Json.dll": {}
-        },
-        "runtime": {
-          "lib/net45/Newtonsoft.Json.dll": {}
         }
       },
       "System.AppContext/4.0.0": {
@@ -571,8 +555,8 @@
         "runtimes/win/native/Microsoft.DiaSymReader.Native.x86.dll"
       ]
     },
-    "Microsoft.NETCore.Portable.Compatibility/1.0.0": {
-      "sha512": "5/IFqf2zN1jzktRJitxO+5kQ+0AilcIbPvSojSJwDG3cGNSMZg44LXLB5E9RkSETE0Wh4QoALdNh1koKoF7/mA==",
+    "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23401": {
+      "sha512": "q5wj+WWjvZ/GhT+Q42aub5rIcw45pEE/TvIfFBEgvxK2MTODxsDIKKSBHEdfJablXhfRZfY79YBdTbcfUzZqlA==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -606,7 +590,7 @@
         "lib/wp80/_._",
         "lib/wpa81/_._",
         "Microsoft.NETCore.Portable.Compatibility.nuspec",
-        "package/services/metadata/core-properties/8131b8ae030a45e7986737a0c1d04ef5.psmdcp",
+        "package/services/metadata/core-properties/850feb86a46b458c8a8875eb3bbc1591.psmdcp",
         "ref/dotnet/mscorlib.dll",
         "ref/dotnet/System.ComponentModel.DataAnnotations.dll",
         "ref/dotnet/System.Core.dll",
@@ -650,31 +634,6 @@
         "runtimes/aot/lib/netcore50/System.Xml.dll",
         "runtimes/aot/lib/netcore50/System.Xml.Linq.dll",
         "runtimes/aot/lib/netcore50/System.Xml.Serialization.dll"
-      ]
-    },
-    "Newtonsoft.Json/6.0.4": {
-      "sha512": "FyQLmEpjsCrEP+znauLDGAi+h6i9YnaMkITlfIoiM4RYyX3nki306bTHsr/0okiIvIc7BJhQTbOAIZVocccFUw==",
-      "type": "Package",
-      "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
-        "lib/net20/Newtonsoft.Json.dll",
-        "lib/net20/Newtonsoft.Json.xml",
-        "lib/net35/Newtonsoft.Json.dll",
-        "lib/net35/Newtonsoft.Json.xml",
-        "lib/net40/Newtonsoft.Json.dll",
-        "lib/net40/Newtonsoft.Json.xml",
-        "lib/net45/Newtonsoft.Json.dll",
-        "lib/net45/Newtonsoft.Json.xml",
-        "lib/netcore45/Newtonsoft.Json.dll",
-        "lib/netcore45/Newtonsoft.Json.xml",
-        "lib/portable-net40+sl5+wp80+win8+wpa81/Newtonsoft.Json.dll",
-        "lib/portable-net40+sl5+wp80+win8+wpa81/Newtonsoft.Json.xml",
-        "lib/portable-net45+wp80+win8+wpa81/Newtonsoft.Json.dll",
-        "lib/portable-net45+wp80+win8+wpa81/Newtonsoft.Json.xml",
-        "Newtonsoft.Json.nuspec",
-        "package/services/metadata/core-properties/87a0a4e28d50417ea282e20f81bc6477.psmdcp",
-        "tools/install.ps1"
       ]
     },
     "System.AppContext/4.0.0": {

@@ -99,6 +99,10 @@ namespace Roslyn.Utilities
                 internal static readonly MethodInfo add_AssemblyResolve = Type
                     .GetTypeInfo()
                     .GetDeclaredMethod("add_AssemblyResolve", ResolveEventHandlerType);
+
+                internal static readonly MethodInfo remove_AssemblyResolve = Type
+                    .GetTypeInfo()
+                    .GetDeclaredMethod("remove_AssemblyResolve", ResolveEventHandlerType);
             }
 
             internal static Assembly LoadAssembly(byte[] peImage)
@@ -165,7 +169,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            internal static void AddAssemblyResolveHandler(Func<string, Assembly, Assembly> handler)
+            internal static object GetCurrentAppDomain()
             {
                 if (_AppDomain.get_CurrentDomain == null ||
                     _AppDomain.add_AssemblyResolve == null ||
@@ -175,10 +179,30 @@ namespace Roslyn.Utilities
                     throw new PlatformNotSupportedException();
                 }
 
-                object currentAppDomain = _AppDomain.get_CurrentDomain.Invoke(null, SpecializedCollections.EmptyArray<object>());
+                return _AppDomain.get_CurrentDomain.Invoke(null, SpecializedCollections.EmptyArray<object>());
+            }
+
+            internal static void GetOrRemoveAssemblyResolveHandler(Func<string, Assembly, Assembly> handler, MethodInfo handlerOperation)
+            {
+                if (_AppDomain.add_AssemblyResolve == null)
+                {
+                    throw new PlatformNotSupportedException();
+                }
+
+                object currentAppDomain = GetCurrentAppDomain();
                 object resolveEventHandler = new AssemblyResolveWrapper(handler).GetHandler();
 
-                _AppDomain.add_AssemblyResolve.Invoke(currentAppDomain, new[] { resolveEventHandler });
+                handlerOperation.Invoke(currentAppDomain, new[] { resolveEventHandler });
+            }
+
+            internal static void AddAssemblyResolveHandler(Func<string, Assembly, Assembly> handler)
+            {
+                GetOrRemoveAssemblyResolveHandler(handler, _AppDomain.add_AssemblyResolve);
+            }
+
+            internal static void RemoveAssemblyResolveHandler(Func<string, Assembly, Assembly> handler)
+            {
+                GetOrRemoveAssemblyResolveHandler(handler, _AppDomain.remove_AssemblyResolve);
             }
         }
     }

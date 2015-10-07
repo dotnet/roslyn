@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     if (diagnostic.Location.IsInSource && documentOpt != null)
                     {
                         // pragma warning disable.
-                        nestedActions.Add(new PragmaWarningCodeAction(suppressionTargetInfo, documentOpt, diagnostic, this));
+                        nestedActions.Add(PragmaWarningCodeAction.Create(suppressionTargetInfo, documentOpt, diagnostic, this));
                     }
 
                     // SuppressMessageAttribute suppression is not supported for compiler diagnostics.
@@ -176,25 +176,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
             // Find the start token to attach leading pragma disable warning directive.
             var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            SyntaxTrivia containingTrivia = root.FindTrivia(span.Start);
             var lines = syntaxTree.GetText(cancellationToken).Lines;
-            int indexOfLine;
-            if (containingTrivia == default(SyntaxTrivia))
-            {
-                indexOfLine = lines.IndexOf(span.Start);
-            }
-            else
-            {
-                indexOfLine = lines.IndexOf(containingTrivia.Token.SpanStart);
-            }
-
+            var indexOfLine = lines.IndexOf(span.Start);
             var lineAtPos = lines[indexOfLine];
             var startToken = root.FindToken(lineAtPos.Start);
             startToken = GetAdjustedTokenForPragmaDisable(startToken, root, lines, indexOfLine);
 
             // Find the end token to attach pragma restore warning directive.
-            // This should be the last token on the line that contains the start token.
-            indexOfLine = lines.IndexOf(startToken.Span.End);
+            var spanEnd = Math.Max(startToken.Span.End, span.End);
+            indexOfLine = lines.IndexOf(spanEnd);
             lineAtPos = lines[indexOfLine];
             var endToken = root.FindToken(lineAtPos.End);
             endToken = GetAdjustedTokenForPragmaRestore(endToken, root, lines, indexOfLine);
