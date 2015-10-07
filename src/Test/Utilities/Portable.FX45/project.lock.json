@@ -115,12 +115,42 @@
           "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
         }
       },
-      "xunit/1.9.2": {
+      "xunit/2.1.0-beta4-build3109": {
+        "dependencies": {
+          "xunit.assert": "[2.1.0-beta4-build3109, 2.1.0-beta4-build3109]",
+          "xunit.core": "[2.1.0-beta4-build3109, 2.1.0-beta4-build3109]"
+        }
+      },
+      "xunit.abstractions/2.0.0": {
         "compile": {
-          "lib/net20/xunit.dll": {}
+          "lib/net35/xunit.abstractions.dll": {}
         },
         "runtime": {
-          "lib/net20/xunit.dll": {}
+          "lib/net35/xunit.abstractions.dll": {}
+        }
+      },
+      "xunit.assert/2.1.0-beta4-build3109": {
+        "compile": {
+          "lib/dotnet/xunit.assert.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/xunit.assert.dll": {}
+        }
+      },
+      "xunit.core/2.1.0-beta4-build3109": {
+        "dependencies": {
+          "xunit.extensibility.core": "[2.1.0-beta4-build3109, 2.1.0-beta4-build3109]"
+        }
+      },
+      "xunit.extensibility.core/2.1.0-beta4-build3109": {
+        "dependencies": {
+          "xunit.abstractions": "[2.0.0, )"
+        },
+        "compile": {
+          "lib/dotnet/xunit.core.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/xunit.core.dll": {}
         }
       }
     },

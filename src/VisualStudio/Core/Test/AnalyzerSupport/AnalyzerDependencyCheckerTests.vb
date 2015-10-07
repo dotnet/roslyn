@@ -833,7 +833,7 @@ public class A
             Assert.False(ignorableAssemblyList.Includes(alpha))
         End Sub
 
-        <Fact, WorkItem(3020, "https://github.com/dotnet/roslyn/issues/3020")>
+        <WpfFact, WorkItem(3020, "https://github.com/dotnet/roslyn/issues/3020")>
         Public Sub IgnorableAssemblyNameList_IncludesItem_Prefix()
             Dim ignorableAssemblyList = New IgnorableAssemblyNameList(ImmutableHashSet.Create("Alpha"))
 
@@ -843,7 +843,7 @@ public class A
             Assert.False(ignorableAssemblyList.Includes(alphaBeta))
         End Sub
 
-        <Fact, WorkItem(3020, "https://github.com/dotnet/roslyn/issues/3020")>
+        <WpfFact, WorkItem(3020, "https://github.com/dotnet/roslyn/issues/3020")>
         Public Sub IgnorableAssemblyNameList_IncludesItem_WholeName()
             Dim ignorableAssemblyList = New IgnorableAssemblyNameList(ImmutableHashSet.Create("Alpha"))
 
@@ -866,7 +866,7 @@ public class A
             Assert.True(ignorableAssemblyList.Includes(alpha))
         End Sub
 
-        <Fact, WorkItem(3020, "https://github.com/dotnet/roslyn/issues/3020")>
+        <WpfFact, WorkItem(3020, "https://github.com/dotnet/roslyn/issues/3020")>
         Public Sub IgnorableAssemblyNameList_DoesNotIncludeItem()
             Dim ignorableAssemblyList = New IgnorableAssemblyNameList(ImmutableHashSet.Create("Beta"))
 
