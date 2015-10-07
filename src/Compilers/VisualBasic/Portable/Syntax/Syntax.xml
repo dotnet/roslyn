@@ -3157,7 +3157,7 @@ Unify Enum declarations with other block type declarations.
       </child>
 
       <child name="ElseClause" optional="true" kind="SingleLineElseClause">
-        <description>An "Else" clause to be executed if the condition expression evalues as false.</description>
+        <description>An "Else" clause to be executed if the condition expression evaluates as false.</description>
       </child>
 
     </node-structure>

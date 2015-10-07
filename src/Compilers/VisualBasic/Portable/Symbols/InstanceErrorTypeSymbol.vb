@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
     ''' <summary>
-    ''' The base class for potentially constructable (i.e. with known arity) error type symbols
+    ''' The base class for potentially constructible (i.e. with known arity) error type symbols
     ''' </summary>
     Friend MustInherit Class InstanceErrorTypeSymbol
         Inherits ErrorTypeSymbol
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        ' Instance types are always constructable if they have arity >= 1
+        ' Instance types are always constructible if they have arity >= 1
         Friend Overrides ReadOnly Property CanConstruct As Boolean
             Get
                 Return _arity > 0

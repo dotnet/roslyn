@@ -590,7 +590,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private Shared Sub GetConstants(
             builder As ArrayBuilder(Of LocalSymbol),
             method As MethodSymbol,
-            scopes As IEnumerable(Of ISymUnmanagedScope),
+            scopes As ArrayBuilder(Of ISymUnmanagedScope),
             metadataDecoder As MetadataDecoder)
 
             For Each scope In scopes

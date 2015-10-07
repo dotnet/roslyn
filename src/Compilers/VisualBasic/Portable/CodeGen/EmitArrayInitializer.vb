@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             ' Mixed case where there are some initializers that are constants and
             ' there is enough of them so that it makes sense to use block initialization
-            ' followed by individual initialization of nonconstant elements
+            ' followed by individual initialization of non-constant elements
             Mixed
         End Enum
 
@@ -258,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
         ''' <summary>
         ''' Produces a serialized blob of all constant initializers.
-        ''' Nonconstant initializers are matched with a zero of corresponding size.
+        ''' Non-constant initializers are matched with a zero of corresponding size.
         ''' </summary>
         Private Function GetRawData(initializers As ImmutableArray(Of BoundExpression)) As ImmutableArray(Of Byte)
             ' the initial size is a guess.

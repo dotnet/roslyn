@@ -196,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     '''    a non-accessible result - this kind of result means that search continues into further scopes of lower priority for
     '''                      a viable result. An error is attached with the inaccessibility errors. Non-accessible results take priority over
     '''                      non-viable results.
-    '''    a non-viable result - a result that that means that the search continues into further scopes of lower priority for
+    '''    a non-viable result - a result that means that the search continues into further scopes of lower priority for
     '''                          a viable or non-accessible result. An error is attached with the error that indicates
     '''                          why the result is non-viable.
     '''    a bad symbol that stops further lookup -  this kind of result prevents lookup into further scopes of lower priority.

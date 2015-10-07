@@ -245,7 +245,7 @@
         }
       }
     },
-    ".NETFramework,Version=v4.6/win-anycpu": {
+    ".NETFramework,Version=v4.6/win7-anycpu": {
       "Microsoft.DiaSymReader.Native/1.1.0-alpha2": {},
       "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23401": {
         "compile": {

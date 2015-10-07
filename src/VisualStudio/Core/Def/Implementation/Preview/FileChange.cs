@@ -243,23 +243,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             var oldString = oldText.ToString();
             var newString = newText.ToString();
 
-            // first try, cheapest way.
-            var diffResult = diffService.DiffStrings(oldString, newString, new StringDifferenceOptions()
-            {
-                DifferenceType = StringDifferenceTypes.Line | StringDifferenceTypes.Word,
-                WordSplitBehavior = WordSplitBehavior.WhiteSpaceAndPunctuation
-            });
-
-            if (!ContainsBetterDiff(left, right, diffResult, cancellationToken))
-            {
-                return diffResult;
-            }
-
-            // second, try a bit more expansive way
             return diffService.DiffStrings(oldString, newString, new StringDifferenceOptions()
             {
-                DifferenceType = StringDifferenceTypes.Word,
-                WordSplitBehavior = WordSplitBehavior.WhiteSpaceAndPunctuation
+                DifferenceType = StringDifferenceTypes.Line,
             });
         }
 

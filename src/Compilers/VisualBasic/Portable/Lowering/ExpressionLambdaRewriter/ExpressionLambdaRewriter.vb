@@ -607,7 +607,7 @@ lSelect:
                 ' Note, for extension methods we are dropping the "Me" parameter to remove
                 ' BoundCollectionInitializerExpression.PlaceholderOpt references from the tree.
                 ' Otherwise, IL generation fails because it doesn't know what to do with it.
-                ' At run-time, this code is going to throw because ElementInit API doesnt accept
+                ' At run-time, this code is going to throw because ElementInit API doesn't accept
                 ' shared methods. We don't fail compilation in this scenario due to backward
                 ' compatibility reasons.
                 newInitializers(i) = _factory.Convert(
