@@ -63,17 +63,6 @@
           "lib/net45/_._": {}
         }
       },
-      "Microsoft.VisualBasic/10.0.0": {
-        "frameworkAssemblies": [
-          "Microsoft.VisualBasic"
-        ],
-        "compile": {
-          "ref/net45/_._": {}
-        },
-        "runtime": {
-          "lib/net45/_._": {}
-        }
-      },
       "Moq/4.2.1402.2112": {
         "compile": {
           "lib/net40/Moq.dll": {}

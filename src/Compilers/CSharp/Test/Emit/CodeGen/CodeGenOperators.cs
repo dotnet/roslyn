@@ -4698,7 +4698,7 @@ class Test
             var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "11461640193");
         }
         
-        [Fact(Skip = "Flaky Test"), WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_03()
         {
             var source =
@@ -4728,7 +4728,7 @@ class Test
         {
             var builder = new System.Text.StringBuilder();
             int i;
-            for (i = 0; i < 4096; i++)
+            for (i = 0; i < 8192; i++)
             {
                 builder.Append("a[");
                 builder.Append(i);

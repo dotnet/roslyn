@@ -8086,6 +8086,126 @@ End Class
             Test(input, expected)
         End Sub
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(5685, "https://github.com/dotnet/roslyn/issues/5685")>
+        Public Sub VisualBasic_DontRemove_NecessaryCastToNullable1()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Class C
+    Sub M()
+        Dim d As Date? = If(True, {|Simplify:DirectCast(Nothing, Date?)|}, CDate(""))
+    End Sub
+End Class
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Class C
+    Sub M()
+        Dim d As Date? = If(True, DirectCast(Nothing, Date?), CDate(""))
+    End Sub
+End Class
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(5685, "https://github.com/dotnet/roslyn/issues/5685")>
+        Public Sub VisualBasic_Remove_UnnecessaryCastToNullable1()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Class C
+    Sub M()
+        Dim d As Date? = If(True, {|Simplify:DirectCast(Nothing, Date?)|}, CType(#10/6/2015#, Date?))
+    End Sub
+End Class
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Class C
+    Sub M()
+        Dim d As Date? = If(True, Nothing, CType(#10/6/2015#, Date?))
+    End Sub
+End Class
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(5685, "https://github.com/dotnet/roslyn/issues/5685")>
+        Public Sub VisualBasic_Remove_UnnecessaryCastToNullable2()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Class C
+    Sub M()
+        Dim d As Date? = If(True, DirectCast(Nothing, Date?), {|Simplify:CType(#10/6/2015#, Date?)|})
+    End Sub
+End Class
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Class C
+    Sub M()
+        Dim d As Date? = If(True, DirectCast(Nothing, Date?), #10/6/2015#)
+    End Sub
+End Class
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(5685, "https://github.com/dotnet/roslyn/issues/5685")>
+        Public Sub VisualBasic_Remove_UnnecessaryCastToNullable3()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Class C
+    Sub M()
+        Dim d As Date? = {|Simplify:DirectCast(Nothing, Date?)|}
+    End Sub
+End Class
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Class C
+    Sub M()
+        Dim d As Date? = Nothing
+    End Sub
+End Class
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
 #End Region
 
     End Class

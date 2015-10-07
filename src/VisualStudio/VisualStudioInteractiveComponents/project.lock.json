@@ -288,7 +288,7 @@
         }
       }
     },
-    ".NETFramework,Version=v4.6/win-anycpu": {
+    ".NETFramework,Version=v4.6/win7-anycpu": {
       "ManagedEsent/1.9.2": {
         "compile": {
           "lib/net40/Esent.Interop.dll": {}

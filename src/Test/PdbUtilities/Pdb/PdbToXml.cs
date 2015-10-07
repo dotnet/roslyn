@@ -283,7 +283,7 @@ namespace Roslyn.Test.PdbUtilities
                             WriteForwardToModuleCustomDebugInfo(record);
                             break;
                         case CustomDebugInfoKind.StateMachineHoistedLocalScopes:
-                            WriteStatemachineHoistedLocalScopesCustomDebugInfo(record);
+                            WriteStateMachineHoistedLocalScopesCustomDebugInfo(record);
                             break;
                         case CustomDebugInfoKind.ForwardIterator:
                             WriteForwardIteratorCustomDebugInfo(record);
@@ -402,7 +402,7 @@ namespace Roslyn.Test.PdbUtilities
         /// <remarks>
         /// Appears when there are locals in iterator methods.
         /// </remarks>
-        private void WriteStatemachineHoistedLocalScopesCustomDebugInfo(CustomDebugInfoRecord record)
+        private void WriteStateMachineHoistedLocalScopesCustomDebugInfo(CustomDebugInfoRecord record)
         {
             Debug.Assert(record.Kind == CustomDebugInfoKind.StateMachineHoistedLocalScopes);
 
@@ -415,7 +415,7 @@ namespace Roslyn.Test.PdbUtilities
                 _writer.WriteStartElement("slot");
                 _writer.WriteAttributeString("startOffset", AsILOffset(scope.StartOffset));
                 _writer.WriteAttributeString("endOffset", AsILOffset(scope.EndOffset));
-                _writer.WriteEndElement(); //bucket
+                _writer.WriteEndElement(); //slot
             }
 
             _writer.WriteEndElement();
