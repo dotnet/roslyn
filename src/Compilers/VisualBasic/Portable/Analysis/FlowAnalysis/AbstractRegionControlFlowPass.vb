@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(info, region, False)
         End Sub
 
-        Protected Overrides Sub Visit(node As BoundNode, Optional dontLeaveRegion As Boolean = False)
+        Protected Overrides Sub Visit(node As BoundNode, dontLeaveRegion As Boolean)
             ' Step into expressions as they may contain lambdas
             VisitAlways(node, dontLeaveRegion:=dontLeaveRegion)
         End Sub

@@ -6,7 +6,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
     {
         public const string Window = "InteractiveWindow";
         public const string Create = "Create";
-        public const string Open = "Open";
         public const string Close = "Close";
+        public const string LanguageBufferCount = "LanguageBufferCount";
     }
 }

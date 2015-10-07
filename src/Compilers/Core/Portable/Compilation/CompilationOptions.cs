@@ -134,6 +134,11 @@ namespace Microsoft.CodeAnalysis
         public bool ConcurrentBuild { get; protected set; }
 
         /// <summary>
+        /// Specifies whether the compilation should be deterministic.
+        /// </summary>
+        public bool Deterministic { get; protected set; }
+
+        /// <summary>
         /// Emit extended custom debug information to the PDB file.
         /// </summary>
         internal bool ExtendedCustomDebugInformation { get; private set; }
@@ -240,6 +245,7 @@ namespace Microsoft.CodeAnalysis
             int warningLevel,
             ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions,
             bool concurrentBuild,
+            bool deterministic,
             bool extendedCustomDebugInformation,
             bool debugPlusMode,
             XmlReferenceResolver xmlReferenceResolver,
@@ -265,6 +271,7 @@ namespace Microsoft.CodeAnalysis
             this.ReportSuppressedDiagnostics = reportSuppressedDiagnostics;
             this.OptimizationLevel = optimizationLevel;
             this.ConcurrentBuild = concurrentBuild;
+            this.Deterministic = deterministic;
             this.ExtendedCustomDebugInformation = extendedCustomDebugInformation;
             this.DebugPlusMode = debugPlusMode;
             this.XmlReferenceResolver = xmlReferenceResolver;
@@ -442,6 +449,7 @@ namespace Microsoft.CodeAnalysis
             bool equal =
                    this.CheckOverflow == other.CheckOverflow &&
                    this.ConcurrentBuild == other.ConcurrentBuild &&
+                   this.Deterministic == other.Deterministic &&
                    this.ExtendedCustomDebugInformation == other.ExtendedCustomDebugInformation &&
                    this.DebugPlusMode == other.DebugPlusMode &&
                    string.Equals(this.CryptoKeyContainer, other.CryptoKeyContainer, StringComparison.Ordinal) &&
@@ -474,6 +482,7 @@ namespace Microsoft.CodeAnalysis
         {
             return Hash.Combine(this.CheckOverflow,
                    Hash.Combine(this.ConcurrentBuild,
+                   Hash.Combine(this.Deterministic,
                    Hash.Combine(this.ExtendedCustomDebugInformation,
                    Hash.Combine(this.DebugPlusMode,
                    Hash.Combine(this.CryptoKeyContainer != null ? StringComparer.Ordinal.GetHashCode(this.CryptoKeyContainer) : 0,
@@ -494,7 +503,7 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(this.XmlReferenceResolver,
                    Hash.Combine(this.SourceReferenceResolver,
                    Hash.Combine(this.StrongNameProvider,
-                   Hash.Combine(this.AssemblyIdentityComparer, 0)))))))))))))))))))))));
+                   Hash.Combine(this.AssemblyIdentityComparer, 0))))))))))))))))))))))));
         }
 
         public static bool operator ==(CompilationOptions left, CompilationOptions right)

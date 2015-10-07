@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -220,14 +219,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             ITextView textView,
             CancellationToken cancellationToken)
         {
-            if (!subjectBuffer.GetOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration))
-            {
-                return false;
-            }
+            // Don't attempt to generate a new XML doc comment on ENTER if the option to auto-generate
+            // them isn't set. Regardless of the option, we should generate exterior trivia (i.e. /// or ''')
+            // on ENTER inside an existing XML doc comment.
 
-            if (TryGenerateDocumentationCommentAfterEnter(syntaxTree, text, position, originalPosition, subjectBuffer, textView, cancellationToken))
+            if (subjectBuffer.GetOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration))
             {
-                return true;
+                if (TryGenerateDocumentationCommentAfterEnter(syntaxTree, text, position, originalPosition, subjectBuffer, textView, cancellationToken))
+                {
+                    return true;
+                }
             }
 
             if (TryGenerateExteriorTriviaAfterEnter(syntaxTree, text, position, originalPosition, subjectBuffer, textView, cancellationToken))
@@ -481,7 +482,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             // Check to see if the current line starts with exterior trivia. If so, we'll take over.
             // If not, let the nextHandler run.
 
-            int originalPosition;
+            int originalPosition = -1;
 
             // The original position should be a position that is consistent with the syntax tree, even
             // after Enter is pressed. Thus, we use the start of the first selection if there is one.
@@ -494,12 +495,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                     .FirstOrNullable();
 
                 originalPosition = selectedSpan != null
-                    ? args.TextView.BufferGraph.MapUpOrDownToBuffer(selectedSpan.Value.Start, args.SubjectBuffer) ?? -1
-                    : (args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1);
-            }
-            else
-            {
-                originalPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
+                    ? selectedSpan.Value.Start
+                    : args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
             }
 
             if (originalPosition < 0)

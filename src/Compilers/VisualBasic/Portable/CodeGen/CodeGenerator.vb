@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private ReadOnly _synthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser = New SynthesizedLocalOrdinalsDispenser()
         Private _uniqueNameId As Integer
 
-        ' label used when when return is emitted in a form of store/goto
+        ' label used when return is emitted in a form of store/goto
         Private Shared ReadOnly s_returnLabel As New Object
 
         Private _unhandledReturn As Boolean
@@ -83,7 +83,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             ' This setting only affects generating PDB sequence points, it shall Not affect generated IL in any way.
             _emitPdbSequencePoints = emittingPdb AndAlso method.GenerateDebugInfo
 
-            _block = Optimizer.Optimize(method, boundBody, debugFriendly:=_ilEmitStyle <> ILEmitStyle.Release, stackLocals:=_stackLocals)
+            Try
+                _block = Optimizer.Optimize(method, boundBody, debugFriendly:=_ilEmitStyle <> ILEmitStyle.Release, stackLocals:=_stackLocals)
+            Catch ex As BoundTreeVisitor.CancelledByStackGuardException
+                ex.AddAnError(diagnostics)
+                _block = boundBody
+            End Try
 
             _checkCallsForUnsafeJITOptimization = (_method.ImplementationAttributes And MethodSymbol.DisableJITOptimizationFlags) <> MethodSymbol.DisableJITOptimizationFlags
             Debug.Assert(Not _module.JITOptimizationIsDisabled(_method))
@@ -154,15 +159,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 _builder.DefineInitialHiddenSequencePoint()
             End If
 
-            EmitStatement(_block)
+            Try
+                EmitStatement(_block)
 
-            If _unhandledReturn Then
-                HandleReturn()
-            End If
+                If _unhandledReturn Then
+                    HandleReturn()
+                End If
 
-            If Not _diagnostics.HasAnyErrors Then
-                _builder.Realize()
-            End If
+                If Not _diagnostics.HasAnyErrors Then
+                    _builder.Realize()
+                End If
+
+            Catch e As EmitCancelledException
+                Debug.Assert(_diagnostics.HasAnyErrors())
+            End Try
 
             _synthesizedLocalOrdinals.Free()
         End Sub

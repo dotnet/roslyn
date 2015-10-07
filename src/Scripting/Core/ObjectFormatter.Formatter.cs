@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 {
     using TypeInfo = System.Reflection.TypeInfo;
 
-    public abstract partial class ObjectFormatter
+    internal abstract partial class ObjectFormatter
     {
         // internal for testing
         internal sealed class Formatter

@@ -291,8 +291,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
-                Dim subscription = sinkAndSubscription.Value
-
                 Dim snapshot = sink.Entries.First().GetCurrentSnapshot()
 
                 Assert.Equal(1, snapshot.Count)
@@ -301,6 +299,56 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Assert.False(snapshot.TryGetValue(-1, StandardTableKeyNames.DocumentName, temp))
                 Assert.False(snapshot.TryGetValue(1, StandardTableKeyNames.DocumentName, temp))
                 Assert.False(snapshot.TryGetValue(0, "Test", temp))
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub TestAggregatedEntries()
+            Dim markup = <Workspace>
+                             <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
+                                 <Document FilePath="test1"><![CDATA[// TODO hello]]></Document>
+                             </Project>
+                             <Project Language="C#" CommonReferences="true" AssemblyName="Proj2">
+                                 <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="test1"/>
+                             </Project>
+                         </Workspace>
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(markup)
+                Dim projects = workspace.CurrentSolution.Projects.ToArray()
+
+                Dim item1 = CreateItem(workspace, projects(0).DocumentIds.First())
+                Dim item2 = CreateItem(workspace, projects(1).DocumentIds.First())
+
+                Dim provider = New TestTodoListProvider()
+                Dim tableManagerProvider = New TestTableManagerProvider()
+
+                Dim table = New VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
+
+                provider.Items = New TodoItem() {item1, item2}
+                provider.RaiseTodoListUpdated(workspace)
+
+                Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of TodoItem))
+                Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
+
+                Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
+                Dim snapshot = sink.Entries.First().GetCurrentSnapshot()
+                Assert.Equal(1, snapshot.Count)
+
+                Dim filename As Object = Nothing
+                Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
+                Assert.Equal("test1", filename)
+
+                Dim projectname As Object = Nothing
+                Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.ProjectName, projectname))
+                Assert.Equal("Proj1, Proj2", projectname)
+
+                Dim projectnames As Object = Nothing
+                Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.ProjectName + "s", projectnames))
+                Assert.Equal(2, DirectCast(projectnames, String()).Length)
+
+                Dim projectguid As Object = Nothing
+                Assert.False(snapshot.TryGetValue(0, StandardTableKeyNames.ProjectGuid, projectguid))
             End Using
         End Sub
 

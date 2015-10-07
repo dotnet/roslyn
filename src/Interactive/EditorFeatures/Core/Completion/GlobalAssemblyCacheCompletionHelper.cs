@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
+namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
 {
     internal sealed class GlobalAssemblyCacheCompletionHelper
     {

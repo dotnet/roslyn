@@ -363,9 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Lookup declaration for predefined CorLib type in this Assembly.
         /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        /// <remarks></remarks>
+        /// <returns>The symbol for the pre-defined type or an error type if the type is not defined in the core library.</returns>
         internal abstract NamedTypeSymbol GetDeclaredSpecialType(SpecialType type);
 
         /// <summary>
@@ -455,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Gets the symbol for the pre-defined type from core library associated with this assembly.
         /// </summary>
-        /// <returns>The symbol for the pre-defined type or null if the type is not defined in the core library.</returns>
+        /// <returns>The symbol for the pre-defined type or an error type if the type is not defined in the core library.</returns>
         internal NamedTypeSymbol GetSpecialType(SpecialType type)
         {
             return CorLibrary.GetDeclaredSpecialType(type);
@@ -537,22 +535,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool useCLSCompliantNameArityEncoding = false,
             DiagnosticBag warnings = null)
         {
-            NamedTypeSymbol type = null;
+            NamedTypeSymbol type;
             MetadataTypeName mdName;
 
             if (metadataName.IndexOf('+') >= 0)
             {
                 var parts = metadataName.Split(s_nestedTypeNameSeparators);
-                if (parts.Length > 0)
+                Debug.Assert(parts.Length > 0);
+                mdName = MetadataTypeName.FromFullName(parts[0], useCLSCompliantNameArityEncoding);
+                type = GetTopLevelTypeByMetadataName(ref mdName, assemblyOpt: null, includeReferences: includeReferences, isWellKnownType: isWellKnownType, warnings: warnings);
+                for (int i = 1; (object)type != null && !type.IsErrorType() && i < parts.Length; i++)
                 {
-                    mdName = MetadataTypeName.FromFullName(parts[0], useCLSCompliantNameArityEncoding);
-                    type = GetTopLevelTypeByMetadataName(ref mdName, assemblyOpt: null, includeReferences: includeReferences, isWellKnownType: isWellKnownType, warnings: warnings);
-                    for (int i = 1; (object)type != null && !type.IsErrorType() && i < parts.Length; i++)
-                    {
-                        mdName = MetadataTypeName.FromTypeName(parts[i]);
-                        NamedTypeSymbol temp = type.LookupMetadataType(ref mdName);
-                        type = (!isWellKnownType || IsValidWellKnownType(temp)) ? temp : null;
-                    }
+                    mdName = MetadataTypeName.FromTypeName(parts[i]);
+                    NamedTypeSymbol temp = type.LookupMetadataType(ref mdName);
+                    type = (!isWellKnownType || IsValidWellKnownType(temp)) ? temp : null;
                 }
             }
             else

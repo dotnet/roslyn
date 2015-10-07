@@ -99,7 +99,16 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var localizedMessageFormat = _descriptor.MessageFormat.ToString(formatProvider);
-                return string.Format(formatProvider, localizedMessageFormat, _messageArgs);
+
+                try
+                {
+                    return string.Format(formatProvider, localizedMessageFormat, _messageArgs);
+                }
+                catch (Exception)
+                {
+                    // Analyzer reported diagnostic with invalid format arguments, so just return the unformatted message.
+                    return localizedMessageFormat;
+                }
             }
 
             internal override IReadOnlyList<object> Arguments

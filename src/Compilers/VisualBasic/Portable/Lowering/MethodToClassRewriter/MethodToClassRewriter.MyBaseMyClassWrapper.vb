@@ -16,7 +16,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend MustInherit Class MethodToClassRewriter(Of TProxy)
-        Inherits BoundTreeRewriter
 
         Private Function SubstituteMethodForMyBaseOrMyClassCall(receiverOpt As BoundExpression, originalMethodBeingCalled As MethodSymbol) As MethodSymbol
             If (originalMethodBeingCalled.IsMetadataVirtual OrElse Me.IsInExpressionLambda) AndAlso

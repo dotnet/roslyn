@@ -510,6 +510,20 @@ namespace Microsoft.CodeAnalysis
                 isRetargetable: (name.Flags & AssemblyNameFlags.Retargetable) != 0,
                 contentType: name.ContentType);
         }
+
+        internal static AssemblyIdentity FromAssemblyReference(AssemblyName name)
+        {
+            // AssemblyRef either has PKT or no key:
+            return new AssemblyIdentity(
+                name.Name,
+                name.Version,
+                name.CultureName,
+                ImmutableArray.Create(name.GetPublicKeyToken()),
+                hasPublicKey: false,
+                isRetargetable: (name.Flags & AssemblyNameFlags.Retargetable) != 0,
+                contentType: name.ContentType);
+        }
+
         #endregion
     }
 }

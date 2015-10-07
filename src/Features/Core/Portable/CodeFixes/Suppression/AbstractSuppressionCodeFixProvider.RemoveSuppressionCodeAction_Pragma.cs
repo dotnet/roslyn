@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             /// </summary>
             private class PragmaRemoveAction : RemoveSuppressionCodeAction, IPragmaBasedCodeAction
             {
+                private readonly Document _document;
                 private readonly SuppressionTargetInfo _suppressionTargetInfo;
 
                 public static PragmaRemoveAction Create(
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 {
                     // We need to normalize the leading trivia on start token to account for
                     // the trailing trivia on its previous token (and similarly normalize trailing trivia for end token).
-                    NormalizeTriviaOnTokens(fixer, ref document, ref suppressionTargetInfo);
+                    PragmaHelpers.NormalizeTriviaOnTokens(fixer, ref document, ref suppressionTargetInfo);
 
                     return new PragmaRemoveAction(suppressionTargetInfo, document, diagnostic, fixer);
                 }
@@ -42,8 +43,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     Diagnostic diagnostic,
                     AbstractSuppressionCodeFixProvider fixer,
                     bool forFixMultipleContext = false)
-                    : base(document, diagnostic, fixer, forFixMultipleContext)
+                    : base(diagnostic, fixer, forFixMultipleContext)
                 {
+                    _document = document;
                     _suppressionTargetInfo = suppressionTargetInfo;
                 }
 
@@ -225,70 +227,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 private SyntaxNode FormatNode(SyntaxNode node)
                 {
                     return Formatter.Format(node, _document.Project.Solution.Workspace);
-                }
-
-                private static void NormalizeTriviaOnTokens(AbstractSuppressionCodeFixProvider fixer, ref Document document, ref SuppressionTargetInfo suppressionTargetInfo)
-                {
-                    var startToken = suppressionTargetInfo.StartToken;
-                    var endToken = suppressionTargetInfo.EndToken;
-                    var nodeWithTokens = suppressionTargetInfo.NodeWithTokens;
-                    var startAndEndTokensAreSame = startToken == endToken;
-
-                    var previousOfStart = startToken.GetPreviousToken();
-                    var nextOfEnd = endToken.GetNextToken();
-                    if (!previousOfStart.HasTrailingTrivia && !nextOfEnd.HasLeadingTrivia)
-                    {
-                        return;
-                    }
-
-                    var root = nodeWithTokens.SyntaxTree.GetRoot();
-                    var subtreeRoot = root.FindNode(new TextSpan(previousOfStart.FullSpan.Start, nextOfEnd.FullSpan.End - previousOfStart.FullSpan.Start));
-
-                    var currentStartToken = startToken;
-                    var currentEndToken = endToken;
-                    var newStartToken = startToken.WithLeadingTrivia(previousOfStart.TrailingTrivia.Concat(startToken.LeadingTrivia));
-
-                    SyntaxToken newEndToken = currentEndToken;
-                    if (startAndEndTokensAreSame)
-                    {
-                        newEndToken = newStartToken;
-                    }
-
-                    newEndToken = newEndToken.WithTrailingTrivia(endToken.TrailingTrivia.Concat(nextOfEnd.LeadingTrivia));
-
-                    var newPreviousOfStart = previousOfStart.WithTrailingTrivia();
-                    var newNextOfEnd = nextOfEnd.WithLeadingTrivia();
-
-                    var newSubtreeRoot = subtreeRoot.ReplaceTokens(new[] { startToken, previousOfStart, endToken, nextOfEnd },
-                        (o, n) =>
-                        {
-                            if (o == currentStartToken)
-                            {
-                                return newStartToken;
-                            }
-                            else if (o == previousOfStart)
-                            {
-                                return newPreviousOfStart;
-                            }
-                            else if (o == currentEndToken)
-                            {
-                                return newEndToken;
-                            }
-                            else if (o == nextOfEnd)
-                            {
-                                return newNextOfEnd;
-                            }
-                            else
-                            {
-                                return n;
-                            }
-                        });
-
-                    root = root.ReplaceNode(subtreeRoot, newSubtreeRoot);
-                    document = document.WithSyntaxRoot(root);
-                    suppressionTargetInfo.StartToken = root.FindToken(startToken.SpanStart);
-                    suppressionTargetInfo.EndToken = root.FindToken(endToken.SpanStart);
-                    suppressionTargetInfo.NodeWithTokens = fixer.GetNodeWithTokens(suppressionTargetInfo.StartToken, suppressionTargetInfo.EndToken, root);
                 }
             }
         }

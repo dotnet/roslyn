@@ -7,17 +7,17 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
-    using Collections;
     using TypeInfo = System.Reflection.TypeInfo;
 
     /// <summary>
     /// Object pretty printer.
     /// </summary>
-    public abstract partial class ObjectFormatter
+    internal abstract partial class ObjectFormatter
     {
         protected ObjectFormatter()
         {

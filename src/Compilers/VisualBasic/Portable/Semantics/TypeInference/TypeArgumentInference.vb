@@ -303,7 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             firstInferredType = currentTypeInfo.ResultType
 
                         ElseIf Not firstInferredType.IsSameTypeIgnoringCustomModifiers(currentTypeInfo.ResultType) Then
-                            ' Whidbey failed hard here, in orca's we added dominant type information.
+                            ' Whidbey failed hard here, in Orcas we added dominant type information.
                             Graph.MarkInferenceLevel(InferenceLevel.Orcas)
                         End If
                     Next
@@ -820,7 +820,7 @@ HandleAsAGeneralExpression:
 
                             If Not madeInferenceProgress Then
                                 ' Did not make progress trying to force incoming edges for nodes with TypesHints, just inferring all now,
-                                ' will infer object if no typehints.
+                                ' will infer object if no type hints.
                                 For Each child As InferenceNode In childNodes
                                     If child.NodeType = InferenceNodeType.TypeParameterNode AndAlso
                                        child.InferTypeAndPropagateHints() Then

@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
 {
     [ComVisible(true)]
-    [ComDefaultInterface(typeof(EnvDTE.CodeVariable))]
+    [ComDefaultInterface(typeof(EnvDTE80.CodeVariable2))]
     public sealed class CodeVariable : AbstractCodeMember, EnvDTE.CodeVariable, EnvDTE80.CodeVariable2
     {
         internal static EnvDTE.CodeVariable Create(

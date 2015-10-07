@@ -34,10 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node != null)
             {
                 _recursionDepth++;
-                if (_recursionDepth > Syntax.InternalSyntax.LanguageParser.MaxUncheckedRecursionDepth)
-                {
-                    PortableShim.RuntimeHelpers.EnsureSufficientExecutionStack();
-                }
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
 
                 var result = ((CSharpSyntaxNode)node).Accept(this);
 

@@ -6,6 +6,7 @@ Microsoft.CodeAnalysis.Compilation.PreviousSubmission.get -> Microsoft.CodeAnaly
 Microsoft.CodeAnalysis.Compilation.ScriptClass.get -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.Compilation.WithPreviousSubmission(Microsoft.CodeAnalysis.Compilation newPreviousSubmission) -> Microsoft.CodeAnalysis.Compilation
 Microsoft.CodeAnalysis.CompilationOptions.ReportSuppressedDiagnostics.get -> bool
+Microsoft.CodeAnalysis.CompilationOptions.Deterministic.get -> bool
 Microsoft.CodeAnalysis.CompilationOptions.WithReportSuppressedDiagnostics(bool value) -> Microsoft.CodeAnalysis.CompilationOptions
 Microsoft.CodeAnalysis.Diagnostic.GetSuppressionInfo(Microsoft.CodeAnalysis.Compilation compilation) -> Microsoft.CodeAnalysis.Diagnostics.SuppressionInfo
 Microsoft.CodeAnalysis.DiagnosticDescriptor.GetEffectiveSeverity(Microsoft.CodeAnalysis.CompilationOptions compilationOptions) -> Microsoft.CodeAnalysis.ReportDiagnostic
@@ -59,4 +60,6 @@ static Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetry.GetAnalyze
 static Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetry.GetAnalyzerExecutionTime(this Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers compilationWithAnalyzers, Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer analyzer) -> System.TimeSpan
 static Microsoft.CodeAnalysis.SyntaxNodeExtensions.NormalizeWhitespace<TNode>(this TNode node, string indentation = "    ", string eol = "\r\n", bool elasticTrivia = false) -> TNode
 static Microsoft.CodeAnalysis.SyntaxNodeExtensions.NormalizeWhitespace<TNode>(this TNode node, string indentation, bool elasticTrivia) -> TNode
+virtual Microsoft.CodeAnalysis.MetadataReferenceResolver.ResolveMissingAssemblies.get -> bool
+virtual Microsoft.CodeAnalysis.MetadataReferenceResolver.ResolveMissingAssembly(Microsoft.CodeAnalysis.AssemblyIdentity identity) -> Microsoft.CodeAnalysis.PortableExecutableReference
 virtual Microsoft.CodeAnalysis.SourceReferenceResolver.ReadText(string resolvedPath) -> Microsoft.CodeAnalysis.Text.SourceText

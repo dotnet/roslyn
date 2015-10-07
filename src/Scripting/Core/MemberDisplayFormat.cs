@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
-    public enum MemberDisplayFormat
+    internal enum MemberDisplayFormat
     {
         /// <summary>
         /// Display just a simple description of the object, like type name or ToString(). Don't

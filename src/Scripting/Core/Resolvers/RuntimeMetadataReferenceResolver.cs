@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#pragma warning disable 436 // The type 'RelativePathResolver' comflicts with imported type
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         internal RuntimeMetadataReferenceResolver(
             ImmutableArray<string> searchPaths,
             string baseDirectory)
-            : this(new RelativePathResolver(searchPaths, baseDirectory), null, GacFileResolver.Default)
+            : this(new RelativePathResolver(searchPaths, baseDirectory), null, GacFileResolver.IsAvailable ? new GacFileResolver() : null)
         {
         }
 

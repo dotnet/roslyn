@@ -687,6 +687,14 @@ End Class]]>
 
             Public Class DiagnosticWithBadIdSuppressionTests
                 Inherits VisualBasicPragmaWarningDisableSuppressionTests
+
+                Protected Overrides ReadOnly Property IncludeNoLocationDiagnostics As Boolean
+                    Get
+                        ' Analyzer driver generates a no-location analyzer exception diagnostic, which we don't intend to test here.
+                        Return False
+                    End Get
+                End Property
+
                 Private Class UserDiagnosticAnalyzer
                     Inherits DiagnosticAnalyzer
 

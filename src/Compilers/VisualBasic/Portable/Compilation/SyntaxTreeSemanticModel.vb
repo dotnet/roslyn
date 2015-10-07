@@ -1377,7 +1377,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim vbdestination = destination.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(destination))
 
             ' TODO(cyrusn): Check arguments.  This is a public entrypoint, so we must do appropriate
-            ' checks here.  However, no other methods in this type do any checking currently.  SO i'm
+            ' checks here.  However, no other methods in this type do any checking currently.  So I'm
             ' going to hold off on this until we do a full sweep of the API.
             Dim binding = Me.GetMemberSemanticModel(expression)
             If binding Is Nothing Then

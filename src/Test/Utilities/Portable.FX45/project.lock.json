@@ -48,7 +48,53 @@
         }
       }
     },
-    ".NETFramework,Version=v4.5/win-anycpu": {
+    ".NETFramework,Version=v4.5/ubuntu.14.04-anycpu": {
+      "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.1.0-beta1-20150824-02": {
+        "compile": {
+          "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll": {}
+        }
+      },
+      "Microsoft.DiaSymReader/1.0.5.1": {
+        "compile": {
+          "lib/net20/Microsoft.DiaSymReader.dll": {}
+        },
+        "runtime": {
+          "lib/net20/Microsoft.DiaSymReader.dll": {}
+        }
+      },
+      "Microsoft.DiaSymReader.Native/1.1.0-alpha2": {},
+      "System.Collections.Immutable/1.1.36": {
+        "compile": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
+        },
+        "runtime": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
+        }
+      },
+      "System.Reflection.Metadata/1.1.0-alpha-00014": {
+        "dependencies": {
+          "System.Collections.Immutable": "[1.1.36, )"
+        },
+        "compile": {
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
+        },
+        "runtime": {
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
+        }
+      },
+      "xunit/1.9.2": {
+        "compile": {
+          "lib/net20/xunit.dll": {}
+        },
+        "runtime": {
+          "lib/net20/xunit.dll": {}
+        }
+      }
+    },
+    ".NETFramework,Version=v4.5/win7-anycpu": {
       "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.1.0-beta1-20150824-02": {
         "compile": {
           "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll": {}

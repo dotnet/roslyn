@@ -475,7 +475,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
     <value>MissingAnalyzerReference</value>
   </data>
   <data name="WRN_MissingAnalyzerReferenceMessage" xml:space="preserve">
-    <value>Analyzer assembly '{0}' depends on '{1}' but it was not found. Analyzers may not run correctly.</value>
+    <value>Analyzer assembly '{0}' depends on '{1}' but it was not found. Analyzers may not run correctly unless the missing assembly is added as an analyzer reference as well.</value>
   </data>
   <data name="SuppressionStateColumnHeader" xml:space="preserve">
     <value>Suppression State</value>
@@ -489,25 +489,22 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="SuppressMultipleOccurrences" xml:space="preserve">
     <value>Suppress diagnostics</value>
   </data>
-  <data name="SuppressMultipleOccurrencesForLanguage" xml:space="preserve">
-    <value>Suppress diagnostics ('{0}')</value>
-  </data>
   <data name="ComputingSuppressionFix" xml:space="preserve">
     <value>Computing suppressions fix...</value>
   </data>
-  <data name="ComputingSuppressionFixForLanguage" xml:space="preserve">
-    <value>Computing suppressions fix ('{0}')...</value>
+  <data name="ApplyingSuppressionFix" xml:space="preserve">
+    <value>Applying suppressions fix...</value>
   </data>
   <data name="RemoveSuppressMultipleOccurrences" xml:space="preserve">
     <value>Remove suppressions</value>
   </data>
-  <data name="RemoveSuppressMultipleOccurrencesForLanguage" xml:space="preserve">
-    <value>Remove suppressions ('{0}')</value>
-  </data>
   <data name="ComputingRemoveSuppressionFix" xml:space="preserve">
     <value>Computing remove suppressions fix...</value>
   </data>
-  <data name="ComputingRemoveSuppressionFixForLanguage" xml:space="preserve">
-    <value>Computing remove suppressions fix ('{0}')...</value>
+  <data name="ApplyingRemoveSuppressionFix" xml:space="preserve">
+    <value>Applying remove suppressions fix...</value>
+  </data>
+  <data name="ThisWorkspaceOnlySupportsOpeningDocumentsOnTheUIThread" xml:space="preserve">
+    <value>This workspace only supports opening documents on the UI thread.</value>
   </data>
 </root>

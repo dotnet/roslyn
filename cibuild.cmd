@@ -29,8 +29,8 @@ if defined Perf (
 call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd.bat"
 
 REM Build the compiler so we can self host it for the full build
-nuget.exe restore -verbosity quiet %RoslynRoot%build/ToolsetPackages/project.json
-nuget.exe restore -verbosity quiet %RoslynRoot%build/Toolset.sln
+nuget.exe restore -nocache -verbosity quiet %RoslynRoot%build/ToolsetPackages/project.json
+nuget.exe restore -nocache -verbosity quiet %RoslynRoot%build/Toolset.sln
 msbuild /nologo /v:m /m %RoslynRoot%build/Toolset.sln /p:Configuration=%BuildConfiguration%
 
 mkdir %RoslynRoot%Binaries\Bootstrap
@@ -56,14 +56,22 @@ REM Kill any instances of VBCSCompiler.exe to release locked files;
 REM otherwise future CI runs may fail while trying to delete those files.
 taskkill /F /IM vbcscompiler.exe
 
-if defined Perf (
+REM Verify that our project.lock.json files didn't change as a result of 
+REM restore.  If they do then the commit changed the dependencies without 
+REM updating the lock files.
+git diff --exit-code --quiet
+if ERRORLEVEL 1 (
+    echo Commit changed dependencies without updating project.lock.json
+    git diff --exit-code
+    exit /b 1
+)
 
+if defined Perf (
   if DEFINED JenkinsCIPerfCredentials (
     powershell .\ciperf.ps1 -BinariesDirectory %RoslynRoot%Binaries\%BuildConfiguration% %JenkinsCIPerfCredentials%
-    ) else (
+  ) else (
     powershell .\ciperf.ps1 -BinariesDirectory %RoslynRoot%Binaries\%BuildConfiguration% -StorageAccountName roslynscratch -StorageContainer drops -SCRAMScope 'Roslyn\Azure'
-    )
-
+  )
 )
 
 REM It is okay and expected for taskkill to fail (it's a cleanup routine).  Ensure

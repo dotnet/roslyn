@@ -12,6 +12,12 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
     Friend Partial Class CodeGenerator
+        Private _recursionDepth As Integer
+
+        Private Class EmitCancelledException
+            Inherits Exception
+        End Class
+
         Private Sub EmitExpression(expression As BoundExpression, used As Boolean)
             If expression Is Nothing Then
                 Return
@@ -31,6 +37,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Return
                 End If
             End If
+
+            _recursionDepth += 1
+
+            If _recursionDepth > 1 Then
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth)
+
+                EmitExpressionCore(expression, used)
+            Else
+                EmitExpressionCoreWithStackGuard(expression, used)
+            End If
+
+            _recursionDepth -= 1
+        End Sub
+
+        Private Sub EmitExpressionCoreWithStackGuard(expression As BoundExpression, used As Boolean)
+            Debug.Assert(_recursionDepth = 1)
+
+            Try
+                EmitExpressionCore(expression, used)
+                Debug.Assert(_recursionDepth = 1)
+
+            Catch ex As Exception When StackGuard.IsInsufficientExecutionStackException(ex)
+                _diagnostics.Add(ERRID.ERR_TooLongOrComplexExpression,
+                                 BoundTreeVisitor.CancelledByStackGuardException.GetTooLongOrComplexExpressionErrorLocation(expression))
+                Throw New EmitCancelledException()
+            End Try
+        End Sub
+
+        Private Sub EmitExpressionCore(expression As BoundExpression, used As Boolean)
 
             Select Case expression.Kind
                 Case BoundKind.AssignmentOperator
@@ -347,7 +382,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
         Private Sub EmitLocalLoad(local As BoundLocal, used As Boolean)
             If IsStackLocal(local.LocalSymbol) Then
-                ' local should be alsready on the stack
+                ' local should be already on the stack
                 EmitPopIfUnused(used)
             Else
                 If used Then ' unused local has no side-effects
@@ -1503,7 +1538,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             '
             ' We are creating a fully modifiable reference to a struct in order to initialize it.
             ' In fact we are going to pass the reference as a byref arg to a constructor 
-            ' (which can do whatever it wants with it - pass it byref tosomebody else, etc...)
+            ' (which can do whatever it wants with it - pass it byref to somebody else, etc...)
             '
             ' We are still going to say the reference is immutable. Since we are initializing, there is nothing to mutate.
             '

@@ -27,8 +27,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 
         public override string Description
         {
-            // TODO: Needs localization...
-            get { return "Reset the execution environment to the initial state, keep history."; }
+            get { return InteractiveWindowResources.ResetCommandDescription; }
         }
 
         public override IEnumerable<string> Names
@@ -45,8 +44,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
         {
             get
             {
-                // TODO: Needs localization...
-                yield return new KeyValuePair<string, string>(NoConfigParameterName, "Reset to a clean environment (only mscorlib referenced), do not run initialization script.");
+                yield return new KeyValuePair<string, string>(NoConfigParameterName, InteractiveWindowResources.ResetCommandParametersDescription);
             }
         }
 

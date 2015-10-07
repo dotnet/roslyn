@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Scan()
         End Function
 
-        Friend Sub New(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo)
+        Private Sub New(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo)
             MyBase.New(info, region)
         End Sub
 

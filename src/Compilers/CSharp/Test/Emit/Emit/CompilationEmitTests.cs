@@ -79,7 +79,7 @@ public class X
 
 
 
-            // Verify use of cyrillic namespace results in same behavior
+            // Verify use of Cyrillic namespace results in same behavior
             source = @"
 namespace решения
 {
