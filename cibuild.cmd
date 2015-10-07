@@ -26,6 +26,9 @@ move Binaries\%BuildConfiguration%\core-clr\* %RoslynRoot%Binaries\Bootstrap
 msbuild /v:m /t:Clean build/Toolset.sln /p:Configuration=%BuildConfiguration%
 taskkill /F /IM vbcscompiler.exe
 
+nuget.exe restore -nocache %RoslynRoot%build\ToolsetPackages\project.json
+nuget.exe restore -nocache %RoslynRoot%Roslyn.sln
+nuget.exe restore -nocache %RoslynRoot%src\Samples\Samples.sln
 msbuild /v:m /m /p:BootstrapBuildPath=%RoslynRoot%Binaries\Bootstrap BuildAndTest.proj /p:Configuration=%BuildConfiguration% /p:Test64=%Test64%
 if ERRORLEVEL 1 (
     taskkill /F /IM vbcscompiler.exe
@@ -40,12 +43,12 @@ taskkill /F /IM vbcscompiler.exe
 REM Verify that our project.lock.json files didn't change as a result of 
 REM restore.  If they do then the commit changed the dependencies without 
 REM updating the lock files.
-git diff --exit-code --quiet
-if ERRORLEVEL 1 (
-    echo Commit changed dependencies without updating project.lock.json
-    git diff --exit-code
-    exit /b 1
-)
+REM git diff --exit-code --quiet
+REM if ERRORLEVEL 1 (
+REM    echo Commit changed dependencies without updating project.lock.json
+REM    git diff --exit-code
+REM    exit /b 1
+REM)
 
 REM It is okay and expected for taskkill to fail (it's a cleanup routine).  Ensure
 REM caller sees successful exit.
