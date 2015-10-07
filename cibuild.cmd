@@ -17,8 +17,8 @@ call :Usage && exit /b 1
 call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd.bat"
 
 REM Build the compiler so we can self host it for the full build
-nuget.exe restore -verbosity quiet %RoslynRoot%build/ToolsetPackages/project.json
-nuget.exe restore -verbosity quiet %RoslynRoot%build/Toolset.sln
+nuget.exe restore -nocache -verbosity quiet %RoslynRoot%build/ToolsetPackages/project.json
+nuget.exe restore -nocache -verbosity quiet %RoslynRoot%build/Toolset.sln
 msbuild /nologo /v:m /m %RoslynRoot%build/Toolset.sln /p:Configuration=%BuildConfiguration%
 
 mkdir %RoslynRoot%Binaries\Bootstrap
@@ -43,6 +43,7 @@ REM updating the lock files.
 git diff --exit-code --quiet
 if ERRORLEVEL 1 (
     echo Commit changed dependencies without updating project.lock.json
+    git diff --exit-code
     exit /b 1
 )
 

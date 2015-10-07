@@ -1669,7 +1669,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '
             '  2) Range variables declared in the [Into] clause must not shadow outer's range variables simply 
             '     because they are merged into the same Anonymous Type by the [Into] selector. They also must
-            '     not shadow outer's outer range variables (possibly throughout the whole whole hierarchy),
+            '     not shadow outer's outer range variables (possibly throughout the whole hierarchy),
             '     with which they will later get into the same scope within an [On] clause. Note, that declaredNames
             '     parameter, when passed, includes the names of all such range variables and this function will add
             '     to this set.
@@ -2387,7 +2387,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim boolSymbol As NamedTypeSymbol = GetSpecialType(SpecialType.System_Boolean, condition, diagnostics)
 
-            ' If pedicate has type Object we will keep result of conversion, otherwise we drop it.
+            ' If predicate has type Object we will keep result of conversion, otherwise we drop it.
             Dim predicateType As TypeSymbol = predicate.Type
             Dim keepConvertedPredicate As Boolean = False
 

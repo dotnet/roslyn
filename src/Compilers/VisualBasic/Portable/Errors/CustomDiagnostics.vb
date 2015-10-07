@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ' it should implement this interface and return the symbols associated with the DiagnosticInfo
     ' via GetAssociatedSymbols
     Friend Interface IDiagnosticInfoWithSymbols
-        ' Add the associated symbold to the given array builder.
+        ' Add the associated symbols to the given array builder.
         Sub GetAssociatedSymbols(builder As ArrayBuilder(Of Symbol))
     End Interface
 

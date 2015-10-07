@@ -356,7 +356,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If newSymbols.Count > 0 Then
                         ' Only if we detected that a referenced assembly refers to the assembly being built
-                        ' we allow the references to get ahold of the assembly being built.
+                        ' we allow the references to get a hold of the assembly being built.
                         If hasCircularReference Then
                             bindingResult(0).AssemblySymbol = assemblySymbol
                         End If

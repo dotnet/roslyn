@@ -1805,7 +1805,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 optionalExpression = ParseExpressionCore()
             End If
 
-            'TODO - not resynching here may cause errors to differ from Dev10.
+            'TODO - not resyncing here may cause errors to differ from Dev10.
 
             'No need to resync on error.  This will be handled by GetStatementTerminator
 
