@@ -1153,5 +1153,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Next
         End Sub
+
+        Public Function GetInactiveRegionSpanAroundPosition(tree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As TextSpan Implements ISyntaxFactsService.GetInactiveRegionSpanAroundPosition
+            Dim trivia = tree.FindTriviaToLeft(position, cancellationToken)
+            If trivia.Kind = SyntaxKind.DisabledTextTrivia Then
+                Return trivia.FullSpan
+            End If
+
+            Return Nothing
+        End Function
     End Class
 End Namespace

@@ -58,12 +58,6 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DogfoodDebug|AnyCPU'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DogfoodRelease|AnyCPU'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.CSharp.Repl" />
@@ -98,11 +92,6 @@
     <Compile Include="Completion\CompletionProviders\PartialCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\XmlDocCommentCompletion\XmlDocCommentCompletionItemRules.cs" />
     <Compile Include="Completion\CompletionProviders\XmlDocCommentCompletion\XmlDocCommentCompletionProvider.cs" />
-    <Compile Include="Completion\FileSystem\GlobalAssemblyCacheCompletionHelper.cs" />
-    <Compile Include="Completion\FileSystem\LoadDirectiveCompletionProvider.cs" />
-    <Compile Include="Completion\FileSystem\LoadDirectiveCompletionProvider.ItemRules.cs" />
-    <Compile Include="Completion\FileSystem\ReferenceDirectiveCompletionProvider.cs" />
-    <Compile Include="Completion\FileSystem\ReferenceDirectiveCompletionProvider.ItemRules.cs" />
     <Compile Include="ContentType\ContentTypeDefinitions.cs" />
     <Compile Include="CSharpEditorResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -134,6 +123,7 @@
     <Compile Include="Formatting\Indentation\WhitespaceExtensions.cs" />
     <Compile Include="Formatting\CSharpEditorFormattingService.PasteFormattingRule.cs" />
     <Compile Include="GoToDefinition\CSharpGoToDefinitionService.cs" />
+    <Compile Include="GoToImplementation\CSharpGoToImplementationService.cs" />
     <Compile Include="Highlighting\KeywordHighlighters\AbstractAsyncHighlighter.cs" />
     <Compile Include="Highlighting\KeywordHighlighters\AsyncAnonymousMethodHighlighter.cs" />
     <Compile Include="Highlighting\KeywordHighlighters\AsyncMethodHighlighter.cs" />

@@ -21,12 +21,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' 2. BC30070: Next control variable does not match For loop control variable '{0}'.
         ''' </summary>
         Public Shared Sub VerifyForLoops(block As BoundBlock, diagnostics As DiagnosticBag)
-            Dim verifier As New ForLoopVerificationWalker(diagnostics)
-            verifier.Visit(block)
+            Try
+                Dim verifier As New ForLoopVerificationWalker(diagnostics)
+                verifier.Visit(block)
+            Catch ex As BoundTreeVisitor.CancelledByStackGuardException
+                ex.AddAnError(diagnostics)
+            End Try
         End Sub
 
-        Private Class ForLoopVerificationWalker
-            Inherits BoundTreeWalker
+        Private NotInheritable Class ForLoopVerificationWalker
+            Inherits BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
 
             Private ReadOnly _diagnostics As DiagnosticBag
             Private ReadOnly _controlVariables As Stack(Of BoundExpression)
@@ -81,26 +85,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 _controlVariables.Push(controlVariable)
             End Sub
-
-            Public Overrides Function VisitBinaryOperator(node As BoundBinaryOperator) As BoundNode
-                Dim rightOperands = ArrayBuilder(Of BoundExpression).GetInstance()
-
-                Dim current As BoundExpression = node
-                While current.Kind = BoundKind.BinaryOperator
-                    Dim binary = DirectCast(current, BoundBinaryOperator)
-                    rightOperands.Push(binary.Right)
-                    current = binary.Left
-                End While
-
-                Me.Visit(current)
-
-                While rightOperands.Count > 0
-                    Me.Visit(rightOperands.Pop())
-                End While
-
-                rightOperands.Free()
-                Return Nothing
-            End Function
 
             ''' <summary>
             ''' Checks if the control variables from the next statement match the control variable of the enclosing 

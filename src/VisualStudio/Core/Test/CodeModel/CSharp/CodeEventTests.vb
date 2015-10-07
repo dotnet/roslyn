@@ -887,6 +887,25 @@ class C
 
 #End Region
 
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TypeDescriptor_GetProperties()
+            Dim code =
+<Code>
+class C
+{
+    event System.EventHandler $$E;
+}
+</Code>
+
+            Dim expectedPropertyNames =
+                {"DTE", "Collection", "Name", "FullName", "ProjectItem", "Kind", "IsCodeType",
+                 "InfoLocation", "Children", "Language", "StartPoint", "EndPoint", "ExtenderNames",
+                 "ExtenderCATID", "Parent", "Access", "Attributes", "DocComment", "Comment", "Adder",
+                 "Remover", "Thrower", "IsPropertyStyleEvent", "Type", "OverrideKind", "IsShared"}
+
+            TestPropertyDescriptors(code, expectedPropertyNames)
+        End Sub
+
         Protected Overrides ReadOnly Property LanguageName As String
             Get
                 Return LanguageNames.CSharp

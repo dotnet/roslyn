@@ -40,6 +40,7 @@ using System;
 class Class2
 {
 }
+class Class3 { }
         </Document>
         <Document>
 class Class3
@@ -85,6 +86,9 @@ class Class2
 #pragma warning restore InfoDiagnostic // InfoDiagnostic Title
 {
 }
+#pragma warning disable InfoDiagnostic // InfoDiagnostic Title
+class Class3 { }
+#pragma warning restore InfoDiagnostic // InfoDiagnostic Title
         </Document>
         <Document>
 class Class3
@@ -647,6 +651,113 @@ class Class2
 
                     Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
                 }
+            }
+        }
+
+        public partial class CSharpDiagnosticWithoutLocationSuppressionTests : CSharpSuppressionTests
+        {
+            private string FixAllActionEquivalenceKey => FeaturesResources.SuppressWithGlobalSuppressMessage + UserDiagnosticAnalyzer.Descriptor.Id;
+
+            [Fact]
+            [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+            [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+            public void TestFixAllInProject()
+            {
+                var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>{|FixAllInProject:|}
+using System;
+
+class Class1
+{
+    int Method()
+    {
+        int x = 0;
+    }
+}
+
+class Class2
+{
+}
+        </Document>
+        <Document>
+class Class3
+{
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+class Class1
+{
+    int Method()
+    {
+        int x = 0;
+    }
+}
+
+class Class2
+{
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+                var addedGlobalSuppressions = $@"
+// This file is used by Code Analysis to maintain SuppressMessage 
+// attributes that are applied to this project.
+// Project-level suppressions either have no target or are given 
+// a specific target and scoped to a namespace, type, member, etc.
+
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""NoLocationDiagnostic"", ""NoLocationDiagnostic:NoLocationDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"")]
+
+".Replace("<", "&lt;").Replace(">", "&gt;");
+
+                var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+
+class Class1
+{
+    int Method()
+    {
+        int x = 0;
+    }
+}
+
+class Class2
+{
+}
+        </Document>
+        <Document>
+class Class3
+{
+}
+        </Document>
+        <Document FilePath=""GlobalSuppressions.cs"">" + addedGlobalSuppressions +
+    @"</Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+class Class1
+{
+    int Method()
+    {
+        int x = 0;
+    }
+}
+
+class Class2
+{
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+                Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
             }
         }
 

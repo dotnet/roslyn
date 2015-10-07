@@ -2,7 +2,6 @@
 
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
@@ -73,6 +72,21 @@ namespace Bar
         End Sub
 
 #End Region
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TypeDescriptor_GetProperties()
+            Dim code =
+<Code>
+using $$System;
+</Code>
+
+            Dim expectedPropertyNames =
+                {"DTE", "Collection", "Name", "FullName", "ProjectItem", "Kind", "IsCodeType",
+                 "InfoLocation", "Children", "Language", "StartPoint", "EndPoint", "ExtenderNames",
+                 "ExtenderCATID", "Namespace", "Alias", "Parent"}
+
+            TestPropertyDescriptors(code, expectedPropertyNames)
+        End Sub
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get

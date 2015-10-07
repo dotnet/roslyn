@@ -692,6 +692,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Roslyn.HostError.
+        /// </summary>
+        internal static string ErrorCategory {
+            get {
+                return ResourceManager.GetString("ErrorCategory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The selection contains an error or unknown type..
         /// </summary>
         internal static string ErrorOrUnknownType {
@@ -1520,6 +1529,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Non-invoked method cannot be replaced with property..
+        /// </summary>
+        internal static string NonInvokedMethodCannotBeReplacedWithProperty {
+            get {
+                return ResourceManager.GetString("NonInvokedMethodCannotBeReplacedWithProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Ceasing to access captured variable &apos;{0}&apos; in {1} will prevent the debug session from continuing..
         /// </summary>
         internal static string NotAccessingCapturedVariableInLambda {
@@ -1552,6 +1570,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string NoteTabTwiceToInsertTheSnippet {
             get {
                 return ResourceManager.GetString("NoteTabTwiceToInsertTheSnippet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only methods with a single argument can be replaced with a property..
+        /// </summary>
+        internal static string OnlyMethodsWithASingleArgumentCanBeReplacedWithAProperty {
+            get {
+                return ResourceManager.GetString("OnlyMethodsWithASingleArgumentCanBeReplacedWithAProperty", resourceCulture);
             }
         }
         
@@ -1651,6 +1678,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Remarks {
             get {
                 return ResourceManager.GetString("Remarks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove Suppression.
+        /// </summary>
+        internal static string RemoveSuppressionEquivalenceKeyPrefix {
+            get {
+                return ResourceManager.GetString("RemoveSuppressionEquivalenceKeyPrefix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove Suppression {0}.
+        /// </summary>
+        internal static string RemoveSuppressionForId {
+            get {
+                return ResourceManager.GetString("RemoveSuppressionForId", resourceCulture);
             }
         }
         
@@ -2239,6 +2284,33 @@ namespace Microsoft.CodeAnalysis {
         internal static string UseTheNavigationBarToSwitchContext {
             get {
                 return ResourceManager.GetString("UseTheNavigationBarToSwitchContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An instance of analyzer {0} cannot be created from {1}: {2}..
+        /// </summary>
+        internal static string WRN_AnalyzerCannotBeCreated {
+            get {
+                return ResourceManager.GetString("WRN_AnalyzerCannotBeCreated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The assembly {0} does not contain any analyzers..
+        /// </summary>
+        internal static string WRN_NoAnalyzerInAssembly {
+            get {
+                return ResourceManager.GetString("WRN_NoAnalyzerInAssembly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to load Analyzer assembly {0}: {1}.
+        /// </summary>
+        internal static string WRN_UnableToLoadAnalyzer {
+            get {
+                return ResourceManager.GetString("WRN_UnableToLoadAnalyzer", resourceCulture);
             }
         }
         

@@ -60,12 +60,6 @@
     <DebugType>pdbonly</DebugType>
     <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.xml</DocumentationFile>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DogfoodDebug|AnyCPU'">
-    <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.xml</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DogfoodRelease|AnyCPU'">
-    <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.xml</DocumentationFile>
-  </PropertyGroup>
   <ItemGroup>
     <Compile Include="AutomaticCompletion\AutomaticLineEnderCommandHandler.vb" />
     <Compile Include="AutomaticCompletion\Sessions\CurlyBraceCompletionSession.vb" />
@@ -119,6 +113,7 @@
     <Compile Include="Formatting\Indentation\SpecialFormattingOperation.vb" />
     <Compile Include="Formatting\Indentation\VisualBasicIndentationService.Indenter.vb" />
     <Compile Include="Formatting\Indentation\VisualBasicIndentationService.vb" />
+    <Compile Include="GoToImplementation\VisualBasicGoToImplementationService.vb" />
     <Compile Include="GoToDefinition\VisualBasicGoToDefinitionService.vb" />
     <Compile Include="Highlighting\KeywordHighlighters\AccessorDeclarationHighlighter.vb" />
     <Compile Include="Highlighting\KeywordHighlighters\ConditionalPreprocessorHighlighter.vb" />

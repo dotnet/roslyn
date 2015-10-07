@@ -607,11 +607,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static bool CanSupportCollectionInitializer(this ITypeSymbol typeSymbol)
+        public static bool CanSupportCollectionInitializer(this ITypeSymbol typeSymbol, ISymbol within)
         {
             return
                 typeSymbol.AllInterfaces.Any(i => i.SpecialType == SpecialType.System_Collections_IEnumerable) &&
-                typeSymbol.GetMembers(WellKnownMemberNames.CollectionInitializerAddMethodName)
+                typeSymbol.GetAccessibleMembersInThisAndBaseTypes<IMethodSymbol>(within ?? typeSymbol).Where(s => s.Name == WellKnownMemberNames.CollectionInitializerAddMethodName)
                     .OfType<IMethodSymbol>()
                     .Any(m => m.Parameters.Any());
         }

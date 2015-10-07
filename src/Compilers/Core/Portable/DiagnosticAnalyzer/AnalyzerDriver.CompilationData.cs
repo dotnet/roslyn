@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal abstract partial class AnalyzerDriver : IDisposable
     {
-        protected static readonly ConditionalWeakTable<Compilation, CompilationData> s_compilationDataCache = new ConditionalWeakTable<Compilation, CompilationData>();
+        private static readonly WeakReference<CompilationData> s_cachedCompilationData = new WeakReference<CompilationData>(null);
 
         internal class CompilationData
         {
@@ -28,11 +28,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public CompilationData(Compilation comp)
             {
+                this.Compilation = comp;
                 _semanticModelsMap = new Dictionary<SyntaxTree, SemanticModel>();
                 _symbolDeclarationsMap = new Dictionary<ISymbol, ImmutableArray<SyntaxReference>>();
                 this.SuppressMessageAttributeState = new SuppressMessageAttributeState(comp);
                 this.DeclarationAnalysisDataMap = new Dictionary<SyntaxReference, DeclarationAnalysisData>();
             }
+
+            /// <summary>
+            /// Compilation whose data is cached.
+            /// </summary>
+            public readonly Compilation Compilation;
 
             public SuppressMessageAttributeState SuppressMessageAttributeState { get; }
             public Dictionary<SyntaxReference, DeclarationAnalysisData> DeclarationAnalysisDataMap { get; }
@@ -146,12 +152,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal static CompilationData GetOrCreateCachedCompilationData(Compilation compilation)
         {
-            return s_compilationDataCache.GetValue(compilation, c => new CompilationData(c));
+            CompilationData data;
+            if (!s_cachedCompilationData.TryGetTarget(out data) || data == null || data.Compilation != compilation)
+            {
+                data = new CompilationData(compilation);
+                s_cachedCompilationData.SetTarget(data);
+            }
+
+            return data;
         }
 
-        internal static bool RemoveCachedCompilationData(Compilation compilation)
+        internal static bool TryGetCachedCompilationData(Compilation compilation, out CompilationData compilationData)
         {
-            return s_compilationDataCache.Remove(compilation);
+            return s_cachedCompilationData.TryGetTarget(out compilationData) &&
+                compilationData?.Compilation == compilation;
+        }
+
+        internal static void RemoveCachedCompilationData(Compilation compilation)
+        {
+            CompilationData compilationData;
+            if (TryGetCachedCompilationData(compilation, out compilationData))
+            {
+                s_cachedCompilationData.SetTarget(null);
+            }
         }
 
         public static SemanticModel GetOrCreateCachedSemanticModel(SyntaxTree tree, Compilation compilation, CancellationToken cancellationToken)
@@ -160,11 +183,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return compilationData.GetOrCreateCachedSemanticModel(tree, compilation, cancellationToken);
         }
 
-        public static bool RemoveCachedSemanticModel(SyntaxTree tree, Compilation compilation)
+        public static void RemoveCachedSemanticModel(SyntaxTree tree, Compilation compilation)
         {
             CompilationData compilationData;
-            return s_compilationDataCache.TryGetValue(compilation, out compilationData) &&
+            if (TryGetCachedCompilationData(compilation, out compilationData))
+            {
                 compilationData.RemoveCachedSemanticModel(tree);
+            }
         }
 
         public static bool TryGetCachedDeclaringReferences(ISymbol symbol, Compilation compilation, out ImmutableArray<SyntaxReference> declaringReferences)
@@ -179,11 +204,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             compilationData.CacheDeclaringReferences(symbol, declaringReferences);
         }
 
-        public static bool RemoveCachedDeclaringReferences(ISymbol symbol, Compilation compilation)
+        public static void RemoveCachedDeclaringReferences(ISymbol symbol, Compilation compilation)
         {
             CompilationData compilationData;
-            return s_compilationDataCache.TryGetValue(compilation, out compilationData) &&
+            if (TryGetCachedCompilationData(compilation, out compilationData))
+            {
                 compilationData.RemoveCachedDeclaringReferences(symbol);
+            }
         }
     }
 }

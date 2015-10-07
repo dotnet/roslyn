@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class MemberSemanticModel
     {
-        protected sealed class NodeMapBuilder : BoundTreeWalker
+        protected sealed class NodeMapBuilder : BoundTreeWalkerWithStackGuard
         {
             private NodeMapBuilder(OrderPreservingMultiDictionary<CSharpSyntaxNode, BoundNode> map, CSharpSyntaxNode thisSyntaxNodeOnly)
             {
@@ -248,6 +248,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
             {
                 throw ExceptionUtilities.Unreachable;
+            }
+
+            protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
+            {
+                return false;
             }
         }
     }

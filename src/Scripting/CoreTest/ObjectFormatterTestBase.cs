@@ -1,15 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Text.RegularExpressions;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Scripting.UnitTests
 {
     public abstract class ObjectFormatterTestBase
     {
-        protected static readonly ObjectFormattingOptions s_hexa = new ObjectFormattingOptions(useHexadecimalNumbers: true);
-        protected static readonly ObjectFormattingOptions s_memberList = new ObjectFormattingOptions(memberFormat: MemberDisplayFormat.List);
-        protected static readonly ObjectFormattingOptions s_inline = new ObjectFormattingOptions(memberFormat: MemberDisplayFormat.Inline);
+        internal static readonly ObjectFormattingOptions s_hexa = new ObjectFormattingOptions(useHexadecimalNumbers: true);
+        internal static readonly ObjectFormattingOptions s_memberList = new ObjectFormattingOptions(memberFormat: MemberDisplayFormat.List);
+        internal static readonly ObjectFormattingOptions s_inline = new ObjectFormattingOptions(memberFormat: MemberDisplayFormat.Inline);
 
         public void AssertMembers(string str, params string[] expected)
         {
@@ -37,9 +38,9 @@ namespace Microsoft.CodeAnalysis.Scripting.UnitTests
 
         public string FilterDisplayString(string str)
         {
-            str = System.Text.RegularExpressions.Regex.Replace(str, @"Id = \d+", "Id = *");
-            str = System.Text.RegularExpressions.Regex.Replace(str, @"Id=\d+", "Id=*");
-            str = System.Text.RegularExpressions.Regex.Replace(str, @"Id: \d+", "Id: *");
+            str = Regex.Replace(str, @"Id = \d+", "Id = *");
+            str = Regex.Replace(str, @"Id=\d+", "Id=*");
+            str = Regex.Replace(str, @"Id: \d+", "Id: *");
 
             return str;
         }

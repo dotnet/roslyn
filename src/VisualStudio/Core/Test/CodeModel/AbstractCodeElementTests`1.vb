@@ -363,6 +363,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Throw New NotSupportedException
         End Sub
 
+        Protected Sub TestPropertyDescriptors(code As XElement, ParamArray expectedPropertyNames As String())
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
+                Dim codeElement = state.GetCodeElementAtCursor(Of TCodeElement)()
+                Assert.NotNull(codeElement)
+
+                Dim propertyDescriptors = ComponentModel.TypeDescriptor.GetProperties(codeElement)
+                Dim propertyNames = propertyDescriptors _
+                    .OfType(Of ComponentModel.PropertyDescriptor) _
+                    .Select(Function(pd) pd.Name) _
+                    .ToArray()
+
+                Assert.Equal(expectedPropertyNames, propertyNames)
+            End Using
+        End Sub
+
         Protected Sub TestElement(code As XElement, expected As Action(Of TCodeElement))
             Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
                 Dim codeElement = state.GetCodeElementAtCursor(Of TCodeElement)()

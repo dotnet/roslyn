@@ -20,6 +20,9 @@
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
     <TargetFrameworkIdentifier>DNXCore</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <!-- Misspelling, bug in NuGet targets -->
+    <RuntimeIndentifier>x64</RuntimeIndentifier>
+    <NuGetRuntimeIdentifier>$(BaseNuGetRuntimeIdentifier)-$(RuntimeIndentifier)</NuGetRuntimeIdentifier>
     <NoStdLib>true</NoStdLib>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -67,8 +70,11 @@
     <Compile Include="..\..\Helpers\ConsoleUtil.cs">
       <Link>ConsoleUtil.cs</Link>
     </Compile>
-    <Compile Include="..\..\Helpers\NoOpAnalyzerAssemblyLoader.cs">
-      <Link>ConsoleUtil.cs</Link>
+    <Compile Include="..\..\Helpers\CoreClrAnalyzerAssemblyLoader.cs">
+      <Link>CoreClrAnalyzerAssemblyLoader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Helpers\AnalyzerAssemblyLoadUtils.cs">
+      <Link>AnalyzerAssemblyLoadUtils.cs</Link>
     </Compile>
     <Compile Include="Csc.cs" />
     <Compile Include="Program.cs" />
@@ -77,10 +83,16 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="csc.cmd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="csc.exe.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="csc.rsp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="csc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="project.json" />

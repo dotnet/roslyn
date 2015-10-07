@@ -501,17 +501,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             Type type;
             if (value is System.Reflection.Pointer)
             {
-                unsafe
-                {
-                    if (Environment.Is64BitProcess)
-                    {
-                        value = (long)System.Reflection.Pointer.Unbox(value);
-                    }
-                    else
-                    {
-                        value = (int)System.Reflection.Pointer.Unbox(value);
-                    }
-                }
+                value = UnboxPointer(value);
                 type = declaredType;
             }
             else if (value == null || declaredType.IsNullable())
@@ -533,6 +523,21 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 valueFlags: DkmClrValueFlags.None,
                 category: category,
                 access: access);
+        }
+
+        internal static unsafe object UnboxPointer(object value)
+        {
+            unsafe
+            {
+                if (Environment.Is64BitProcess)
+                {
+                    return (long)System.Reflection.Pointer.Unbox(value);
+                }
+                else
+                {
+                    return (int)System.Reflection.Pointer.Unbox(value);
+                }
+            }
         }
 
         public DkmClrValue GetArrayElement(int[] indices, DkmInspectionContext inspectionContext)

@@ -577,16 +577,34 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// </summary>
             public bool Paste()
             {
-                MoveCaretToClosestEditableBuffer();
+                if (!TextView.Selection.IsEmpty)
+                {
+                    if (CutOrDeleteSelection(isCut: false))
+                    {
+                        MoveCaretToClosestEditableBuffer();
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else if (IsInActivePrompt(TextView.Caret.Position.BufferPosition))
+                {
+                    MoveCaretToClosestEditableBuffer();
+                }
+                else if (MapToEditableBuffer(TextView.Caret.Position.BufferPosition) == null)
+                {
+                    return false;
+                } 
 
                 string format = Evaluator.FormatClipboard();
                 if (format != null)
                 {
                     InsertCode(format);
                 }
-                else if (Clipboard.ContainsData(ClipboardFormat))
+                else if (_window.InteractiveWindowClipboard.ContainsData(ClipboardFormat))
                 {
-                    var blocks = BufferBlock.Deserialize((string)Clipboard.GetData(ClipboardFormat));
+                    var blocks = BufferBlock.Deserialize((string)_window.InteractiveWindowClipboard.GetData(ClipboardFormat));
                     // Paste each block separately.
                     foreach (var block in blocks)
                     {
@@ -600,9 +618,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         }
                     }
                 }
-                else if (Clipboard.ContainsText())
+                else if (_window.InteractiveWindowClipboard.ContainsText())
                 {
-                    InsertCode(Clipboard.GetText());
+                    InsertCode(_window.InteractiveWindowClipboard.GetText());
                 }
                 else
                 {
@@ -806,14 +824,19 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         var executionResult = await Evaluator.ExecuteCodeAsync(snapshotSpan.GetText()).ConfigureAwait(true);
                         Debug.Assert(_window.OnUIThread()); // ConfigureAwait should bring us back to the UI thread.
 
-                        // For reset command typed at prompt, the state should be WaitingForInput 
-                        // and for all other submissions it should be Executing input
-                        Debug.Assert(State == State.ExecutingInput || State == State.WaitingForInput, $"Unexpected state {State}");
+                        // For reset command typed at prompt -> the state should be WaitingForInput. 
+                        // For all other submissions on the prompt -> it should be Executing input.
+                        // If reset button is clicked during a long running submission -> it could be Resetting because 
+                        // oldService is disposed first as part of resetting, which leads to await call above returning, and new service is 
+                        // created after that as part of completing the resetting process. 
+                        Debug.Assert(State == State.ExecutingInput || 
+                            State == State.WaitingForInput || 
+                            State == State.Resetting, $"Unexpected state {State}");
 
                         if (State == State.ExecutingInput)
                         {
                             FinishExecute(executionResult.IsSuccessful);
-                        }
+                        }                              
                     }
                 }
                 catch (Exception e) when (_window.ReportAndPropagateException(e))
@@ -1164,6 +1187,32 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
                 return index;
             }
+            
+            private bool IsInActivePrompt(SnapshotPoint point)
+            {
+                var editableBuffer = ReadingStandardInput ? StandardInputBuffer : CurrentLanguageBuffer;
+                if (editableBuffer == null)
+                {
+                    return false;
+                }
+                                                                           
+                var sourceSpans = GetSourceSpans(point.Snapshot);
+                var index = GetSourceSpanIndex(sourceSpans, point);
+                if (index == sourceSpans.Count)
+                {
+                    index--;
+                }
+
+                if (!IsPrompt(sourceSpans[index]))
+                {
+                    return false;   
+                }
+
+                Debug.Assert(index + 1 < sourceSpans.Count);
+                var followingSpan = sourceSpans[index + 1];
+                // if the following span is editable, then the prompt is active.
+                return GetPositionInBuffer(followingSpan.Start, editableBuffer) != null;
+            }
 
             /// <summary>
             /// Return the index of the span containing the point. Returns the
@@ -1336,6 +1385,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 {
                     bufferAdded(_window, new SubmissionBufferAddedEventArgs(buffer));
                 }
+
+                _window.LanguageBufferCounter++;
 
                 // add the whole buffer to the projection buffer and set it up to expand to the right as text is appended
                 var promptSpan = CreatePrimaryPrompt();
@@ -2119,15 +2170,35 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 bool handled = false;
                 if (!TextView.Selection.IsEmpty)
                 {
-                    if (TextView.Selection.Mode == TextSelectionMode.Stream || ReduceBoxSelectionToEditableBox())
+                    if (CutOrDeleteSelection(isCut: false))
                     {
-                        CutOrDeleteSelection(isCut: false);
                         MoveCaretToClosestEditableBuffer();
                         handled = true;
                     }
                 }
-
+                else if (IsInActivePrompt(TextView.Caret.Position.BufferPosition))
+                {
+                    MoveCaretToClosestEditableBuffer();
+                }
                 return handled;
+            }
+
+            private bool IsStreamSelectionInEditableBuffer(ITextSelection selection)
+            {
+                Debug.Assert(selection.Mode == TextSelectionMode.Stream);
+
+                var editableBuffer = (ReadingStandardInput) ? StandardInputBuffer : CurrentLanguageBuffer;
+                var selectedSpans = selection.SelectedSpans;
+
+                foreach (var selectedSpan in selectedSpans)
+                {
+                    var spans = TextView.BufferGraph.MapDownToBuffer(selectedSpan, SpanTrackingMode.EdgeInclusive, editableBuffer);
+                    if (spans.Count > 0)
+                    {
+                        return true;
+                    }
+                }
+                return false;
             }
 
             private bool ReduceBoxSelectionToEditableBox(bool isDelete = true)
@@ -2202,8 +2273,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     if (selectionLeftColumn > maxPromptLength || maxPromptLength == minPromptLength)
                     {
                         selectionTopLine = editableLine;
-                        selectionLeftColumn = Math.Max(selectionLeftColumn, maxPromptLength);
-                        result = false;
+                        selectionLeftColumn = Math.Max(selectionLeftColumn, maxPromptLength); 
                     }
                 }
                 else
@@ -2261,16 +2331,24 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// <summary>Implements <see cref="IInteractiveWindowOperations.Cut"/>.</summary>
             public void Cut()
             {
-                if (TextView.Selection.IsEmpty)
+                if (!TextView.Selection.IsEmpty)
                 {
-                    CutOrDeleteCurrentLine(isCut: true);
-                }
-                else
-                {
-                    CutOrDeleteSelection(isCut: true);
+                    if (CutOrDeleteSelection(isCut: true))
+                    {
+                        MoveCaretToClosestEditableBuffer();
+                    }
+                    return;
                 }
 
-                MoveCaretToClosestEditableBuffer();
+                var caretPosition = TextView.Caret.Position.BufferPosition;
+
+                // don't cut and move caret if it's in readonly buffer (except in active prompt)
+                if (MapToEditableBuffer(caretPosition) != null ||
+                    IsInActivePrompt(caretPosition))
+                {
+                    CutOrDeleteCurrentLine(isCut: true);
+                    MoveCaretToClosestEditableBuffer();
+                }
             }
 
             private void CutOrDeleteCurrentLine(bool isCut)
@@ -2285,15 +2363,26 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             /// <summary>
-            /// Deletes currently selected text from the language buffer and optionally saves it to the clipboard.
-            /// </summary>
-            private void CutOrDeleteSelection(bool isCut)
+            /// If any of currently selected text is editable, then deletes editable selection, optionally saves it 
+            /// to the clipboard. Otherwise do nothing (and preserve selection).
+            /// </summary>                 
+            private bool CutOrDeleteSelection(bool isCut)
             {
-                CutOrDelete(TextView.Selection.SelectedSpans, isCut);
-
-                // if the selection spans over prompts the prompts remain selected, so clear manually:
-                TextView.Selection.Clear();
-            }
+                if (!TextView.Selection.IsEmpty)
+                {
+                    bool isEditable = TextView.Selection.Mode == TextSelectionMode.Stream ?
+                                        IsStreamSelectionInEditableBuffer(TextView.Selection) :
+                                        ReduceBoxSelectionToEditableBox();
+                    if (isEditable)
+                    {                               
+                        CutOrDelete(TextView.Selection.SelectedSpans, isCut);
+                        // if the selection spans over prompts the prompts remain selected, so clear manually:
+                        TextView.Selection.Clear();
+                        return true;
+                    }
+                }
+                return false;
+            } 
 
             private void CutOrDelete(IEnumerable<SnapshotSpan> projectionSpans, bool isCut)
             {
@@ -2337,7 +2426,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     }
 
                     data.SetText(deletedText.ToString());
-                    Clipboard.SetDataObject(data, true);
+                    _window.InteractiveWindowClipboard.SetDataObject(data, true);
                 }
             }
 
@@ -2357,7 +2446,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 var spans = GetSelectionSpans(TextView);
                 var data = Copy(spans);
-                Clipboard.SetDataObject(data, true);
+                _window.InteractiveWindowClipboard.SetDataObject(data, true);
             }
 
             private static NormalizedSnapshotSpanCollection GetSelectionSpans(ITextView textView)
@@ -2439,7 +2528,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         var intersection = sourceSpan.Span.Intersection(mappedSpan);
                         if (intersection.HasValue && !intersection.Value.IsEmpty)
                         {
-                            var kind = GetSpanKind(span);
+                            var kind = GetSpanKind(sourceSpan);
                             if (kind == ReplSpanKind.LineBreak)
                             {
                                 kind = ReplSpanKind.Output;
@@ -2464,15 +2553,23 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 {
                     if (TextView.Selection.Mode == TextSelectionMode.Stream || ReduceBoxSelectionToEditableBox())
                     {
-                        CutOrDeleteSelection(isCut: false);
-                        MoveCaretToClosestEditableBuffer();
-                        handled = true;
+                        if (CutOrDeleteSelection(isCut: false))
+                        {
+                            MoveCaretToClosestEditableBuffer();
+                            handled = true;
+                        }
                     }
                 }
                 else if (TextView.Caret.Position.VirtualSpaces == 0)
                 {
-                    DeletePreviousCharacter();
-                    handled = true;
+                    if (IsInActivePrompt(TextView.Caret.Position.BufferPosition))
+                    {
+                        MoveCaretToClosestEditableBuffer();
+                    }
+                    if (DeletePreviousCharacter())
+                    {
+                        handled = true;
+                    }
                 }
 
                 return handled;
@@ -2480,15 +2577,17 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             /// <summary>
             /// Deletes characters preceding the current caret position in the current language buffer.
+            /// 
+            /// Returns true if the previous character was deleted
             /// </summary>
-            private void DeletePreviousCharacter()
+            private bool DeletePreviousCharacter()
             {
                 SnapshotPoint? point = MapToEditableBuffer(TextView.Caret.Position.BufferPosition);
 
                 // We are not in an editable buffer, or we are at the start of the buffer, nothing to delete.
                 if (point == null || point.Value == 0)
                 {
-                    return;
+                    return false;
                 }
 
                 var line = point.Value.GetContainingLine();
@@ -2506,6 +2605,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 point.Value.Snapshot.TextBuffer.Delete(new Span(point.Value.Position - characterSize, characterSize));
 
                 ScrollToCaret();
+                return true;
             }
 
             /// <summary>
@@ -2624,8 +2724,25 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     return false;
                 }
 
+                if (!TextView.Selection.IsEmpty)
+                {
+                    if (CutOrDeleteSelection(isCut: false))
+                    {
+                        MoveCaretToClosestEditableBuffer();
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else if (IsInActivePrompt(TextView.Caret.Position.BufferPosition))
+                {
+                    MoveCaretToClosestEditableBuffer();
+                }
+
                 // handle "RETURN" command that is not handled by either editor or service
                 var langCaret = GetPositionInLanguageBuffer(TextView.Caret.Position.BufferPosition);
+
                 if (langCaret != null)
                 {
                     int caretPosition = langCaret.Value.Position;
@@ -2634,19 +2751,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     if (trySubmit && caretPosition >= CurrentLanguageBuffer.CurrentSnapshot.Length && CanExecuteActiveCode())
                     {
                         var dummy = SubmitAsync();
-                        return true;
                     }
-
-                    // insert new line (triggers secondary prompt injection in buffer changed event):
-                    CurrentLanguageBuffer.Insert(caretPosition, _lineBreakString);
-                    IndentCurrentLine(TextView.Caret.Position.BufferPosition);
-                    ScrollToCaret();
-
+                    else
+                    {
+                        // insert new line (triggers secondary prompt injection in buffer changed event):
+                        CurrentLanguageBuffer.Insert(caretPosition, _lineBreakString);
+                        IndentCurrentLine(TextView.Caret.Position.BufferPosition);
+                        ScrollToCaret();
+                    }
                     return true;
-                }
-                else
-                {
-                    MoveCaretToClosestEditableBuffer();
                 }
 
                 return false;

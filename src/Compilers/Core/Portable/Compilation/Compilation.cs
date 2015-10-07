@@ -737,10 +737,8 @@ namespace Microsoft.CodeAnalysis
         /// <param name="assemblySymbol">The target symbol.</param>
         public MetadataReference GetMetadataReference(IAssemblySymbol assemblySymbol)
         {
-            return CommonGetMetadataReference(assemblySymbol);
+            return GetBoundReferenceManager().GetMetadataReference(assemblySymbol);
         }
-
-        protected abstract MetadataReference CommonGetMetadataReference(IAssemblySymbol assemblySymbol);
 
         /// <summary>
         /// Assembly identities of all assemblies directly referenced by this compilation.
@@ -1802,7 +1800,7 @@ namespace Microsoft.CodeAnalysis
             return new EmitResult(success, diagnostics.ToReadOnlyAndFree());
         }
 
-        internal bool IsEmitDeterministic => this.Feature("deterministic")?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false;
+        internal bool IsEmitDeterministic => this.Options.Deterministic;
 
         internal bool SerializeToPeStream(
             CommonPEModuleBuilder moduleBeingBuilt,

@@ -34,6 +34,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     internal partial class InteractiveWindow : IInteractiveWindow, IInteractiveWindowOperations2
     {
         internal const string ClipboardFormat = "89344A36-9821-495A-8255-99A63969F87D";
+        internal int LanguageBufferCounter = 0;
 
         public event EventHandler<SubmissionBufferAddedEventArgs> SubmissionBufferAdded;
 
@@ -45,6 +46,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// WARNING: Members of this object should only be accessed from the UI thread.
         /// </remarks>
         private readonly UIThreadOnly _uiOnly;
+
+        internal InteractiveWindowClipboard InteractiveWindowClipboard { get; set; } = new SystemClipboard();
 
         #region Initialization
 

@@ -58,20 +58,14 @@
     <Compile Include="..\..\..\Compilers\Helpers\AbstractAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\AbstractAnalyzerAssemblyLoader.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
-      <Link>InternalUtilities\FusionAssemblyIdentity.cs</Link>
+    <Compile Include="..\..\..\Compilers\Helpers\AnalyzerAssemblyLoadUtils.cs">
+      <Link>AnalyzerAssemblyLoadUtils.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GlobalAssemblyCache.cs">
+    <Compile Include="..\..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
       <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GacFileResolver.cs">
-      <Link>InternalUtilities\GacFileResolver.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Helpers\SimpleAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\SimpleAnalyzerAssemblyLoader.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Scripting\Core\Resolvers\RuntimeMetadataReferenceResolver.cs">
-      <Link>InternalUtilities\ScriptMetadataReferenceResolver.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Scripting\Core\Resolvers\NuGetPackageResolver.cs">
       <Link>InternalUtilities\NuGetPackageResolver.cs</Link>

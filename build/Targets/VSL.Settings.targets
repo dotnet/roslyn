@@ -9,13 +9,15 @@
                                  '$(OS)' == 'Windows_NT'">$(UserProfile)\.nuget\packages</NuGetPackageRoot>
     <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' and
                                  '$(OS)' != 'Windows_NT'">$([System.Environment]::GetFolderPath(SpecialFolder.Personal))\.nuget\packages</NuGetPackageRoot>
+    <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
+    <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Unix'">ubuntu.14.04</BaseNuGetRuntimeIdentifier>
   </PropertyGroup>
 
   <!-- Import the global NuGet packages -->
   <PropertyGroup>
     <ToolsetCompilerPackageName>Microsoft.Net.Compilers</ToolsetCompilerPackageName>
     <ToolsetCompilerPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.Compilers\1.1.0-beta1-20150727-01\build\Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
-    <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.RoslynDiagnostics\1.1.1-beta1-20150814-01\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
+    <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.RoslynDiagnostics\1.1.1-beta1-20150818-01\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
     <AdditionalFileItemNames>$(AdditionalFileItemNames);PublicAPI</AdditionalFileItemNames>
   </PropertyGroup>
 
@@ -143,17 +145,18 @@
   <ImportGroup Label="GlobalNuGets" Condition="'$(BootstrapBuildPath)' == ''">
     <Import Project="$(ToolsetCompilerPropsFilePath)"
             Condition="Exists('$(ToolsetCompilerPropsFilePath)')" />
+  </ImportGroup>
+
+  <ImportGroup>
     <Import Project="$(RoslynDiagnosticsPropsFilePath)"
             Condition="Exists('$(RoslynDiagnosticsPropsFilePath)') And ('$(UseRoslynAnalyzers)' == 'true')" />
   </ImportGroup>
 
   <PropertyGroup Condition="'$(BootstrapBuildPath)' != ''">
     <CscToolPath>$(BootstrapBuildPath)</CscToolPath>
-    <CscToolExe>csc.exe</CscToolExe>
-    <CscToolExe Condition="Exists('$(BootstrapBuildPath)\csc2.exe')">csc2.exe</CscToolExe>
+    <CscToolExe>csc.cmd</CscToolExe>
     <VbcToolPath>$(BootstrapBuildPath)</VbcToolPath>
-    <VbcToolExe>vbc.exe</VbcToolExe>
-    <VbcToolExe Condition="Exists('$(BootstrapBuildPath)\vbc2.exe')">vbc2.exe</VbcToolExe>
+    <VbcToolExe>vbc.cmd</VbcToolExe>
   </PropertyGroup>
 
   <!-- Common project settings -->
