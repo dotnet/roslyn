@@ -62,7 +62,7 @@
   <Target Name="Test">
     <ItemGroup>
       <AssembliesToCopyLocal Include="$(NuGetPackageRoot)\xunit\$(XunitVersion)\*.dll
-        ;$(NuGetPackageRoot)\xunit.assert\2.1.0-beta4-build3109\lib\portable-net45+netcore45+wp8+wpa81\*.dll" />
+        ;$(NuGetPackageRoot)\xunit.assert\$(XunitVersion)\lib\portable-net45+netcore45+wp8+wpa81\*.dll" />
     </ItemGroup>
     <!-- Copy xunit stuff to output directory -->
     <Copy SourceFiles="@(AssembliesToCopyLocal)"
@@ -74,7 +74,7 @@
       <TestAssemblies Include="$(OutputDirectory)\**\$(IncludePattern)" />
     </ItemGroup>
 
-    <Exec Command="Binaries\$(Configuration)\RunTests.exe packages\xunit.runner.console.2.1.0-beta4-build3109\tools $(RunTestArgs) @(TestAssemblies, ' ')" />
+    <Exec Command="Binaries\$(Configuration)\RunTests.exe $(NuGetPackageRoot)\xunit.runner.console\$(XunitVersion)\tools $(RunTestArgs) @(TestAssemblies, ' ')" />
 
   </Target>
 
