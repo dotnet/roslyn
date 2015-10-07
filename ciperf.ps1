@@ -123,11 +123,11 @@ function BuildUri(
     [String] $SASToken
 ) {
     $ub = New-Object System.UriBuilder -ArgumentList $Context.BlobEndPoint
-    
+
     if (-not $ub.Path.EndsWith('/')) {
        $ub.Path += "/"
     }
-    
+
     $ub.Path += $Container
 
     if (-not [String]::IsNullOrEmpty($BlobName)) {
@@ -135,7 +135,7 @@ function BuildUri(
     }
 
     $ub.Query = $SASToken
-    
+
     # Using OriginalString because that preserves escaping in the query string
     return $ub.Uri.OriginalString
 }
@@ -162,7 +162,7 @@ function CreateXUnitFixture(
     [Parameter(Mandatory = $false)]
     [String] $UnzippedBaseDirectory
     ) {
-    
+
     $PackagesPath = Join-Path -Path $StagingPath -ChildPath Packages
     & $NuGetExe install -OutputDirectory $PackagesPath -NonInteractive -ExcludeVersion xunit.runner.console -Version 2.1.0-beta4-build3109 -Source https://www.nuget.org/api/v2/
     & $NuGetExe install -OutputDirectory $PackagesPath -NonInteractive -ExcludeVersion Microsoft.DotNet.xunit.performance.runner.Windows -Version 1.0.0-alpha-build0013 -Source https://www.myget.org/F/dotnet-buildtools/
@@ -385,7 +385,7 @@ try {
         $WorkItemId = $BlobRootName + "/" + $TestAssembly.BaseName
         Write-Host "  " $WorkItemId
         if ($sb.Length -gt 3) { $sb.AppendLine(",") }
-        
+
         [void] $sb.AppendLine("  {")
         [void] $sb.AppendLine("    ""Command"": ""$WorkItemCommand $TestAssembly"",")
         [void] $sb.AppendLine("    ""CorrelationPayloadUris"": [")
@@ -410,7 +410,7 @@ try {
     }
 
     $ListUri = BuildUri -Context $StorageContext -Container $StorageContainer -BlobName $BlobName -SASToken $StorageContainerRSAS
-    
+
     # Using the same storage account and container for results as for the payload
     # In the future, we may want to put results elsewhere
     $ResultsUri = BuildUri -Context $StorageContext -Container $StorageContainer
