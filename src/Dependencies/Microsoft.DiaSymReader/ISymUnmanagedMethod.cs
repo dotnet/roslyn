@@ -71,7 +71,7 @@ namespace Microsoft.DiaSymReader
             ISymUnmanagedDocument[] documents,
             [In, Out, MarshalAs(UnmanagedType.LPArray)] int[] lines,
             [In, Out, MarshalAs(UnmanagedType.LPArray)] int[] columns,
-            out bool defined);
+            [MarshalAs(UnmanagedType.Bool)]out bool defined);
 
         [PreserveSig]
         int GetSequencePoints(
