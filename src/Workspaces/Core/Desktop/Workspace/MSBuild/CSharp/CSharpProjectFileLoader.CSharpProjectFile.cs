@@ -301,7 +301,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public bool SetApplicationConfiguration(string applicationConfiguration)
                 {
-                    this.CommandLineArgs.Add("/appconfig:" + applicationConfiguration);
+                    if (!string.IsNullOrWhiteSpace(applicationConfiguration))
+                    {
+                        this.CommandLineArgs.Add("/appconfig:" + applicationConfiguration);
+                    }
+
                     return true;
                 }
 
