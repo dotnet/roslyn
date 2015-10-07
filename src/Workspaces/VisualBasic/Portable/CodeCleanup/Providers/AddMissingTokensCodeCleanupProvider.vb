@@ -406,6 +406,10 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return AddMissingOrOmittedTokenTransform(node, MyBase.VisitIfDirectiveTrivia(node), Function(n) n.ThenKeyword, SyntaxKind.ThenKeyword)
             End Function
 
+            Public Overrides Function VisitElseIfStatement(node As ElseIfStatementSyntax) As SyntaxNode
+                Return AddMissingOrOmittedTokenTransform(node, MyBase.VisitElseIfStatement(node), Function(n) n.ThenKeyword, SyntaxKind.ThenKeyword)
+            End Function
+
             Public Overrides Function VisitTypeArgumentList(node As TypeArgumentListSyntax) As SyntaxNode
                 Return AddMissingOrOmittedTokenTransform(node, MyBase.VisitTypeArgumentList(node), Function(n) n.OfKeyword, SyntaxKind.OfKeyword)
             End Function
@@ -496,8 +500,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             Private Function SetOmittedToken(originalParent As SyntaxNode, newToken As SyntaxToken) As SyntaxNode
                 Select Case newToken.Kind
                     Case SyntaxKind.ThenKeyword
-
-                        ' this can be regular If or an If directive
+                        ' this can be regular If, an If directive, or an ElseIf
                         Dim regularIf = TryCast(originalParent, IfStatementSyntax)
                         If regularIf IsNot Nothing Then
                             Dim previousToken = regularIf.Condition.GetLastToken(includeZeroWidth:=True)
@@ -508,16 +511,26 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                             End If
 
                         Else
-                            Dim ifDirective = TryCast(originalParent, IfDirectiveTriviaSyntax)
-                            If ifDirective IsNot Nothing Then
-                                Dim previousToken = ifDirective.Condition.GetLastToken(includeZeroWidth:=True)
-                                Dim nextToken = ifDirective.GetLastToken.GetNextToken
+                            Dim regularElseIf = TryCast(originalParent, ElseIfStatementSyntax)
+                            If regularElseIf IsNot Nothing Then
+                                Dim previousToken = regularElseIf.Condition.GetLastToken(includeZeroWidth:=True)
+                                Dim nextToken = regularElseIf.GetLastToken.GetNextToken
 
                                 If Not InvalidOmittedToken(previousToken, nextToken) Then
-                                    Return ifDirective.WithThenKeyword(newToken)
+                                    Return regularElseIf.WithThenKeyword(newToken)
+                                End If
+
+                            Else
+                                Dim ifDirective = TryCast(originalParent, IfDirectiveTriviaSyntax)
+                                If ifDirective IsNot Nothing Then
+                                    Dim previousToken = ifDirective.Condition.GetLastToken(includeZeroWidth:=True)
+                                    Dim nextToken = ifDirective.GetLastToken.GetNextToken
+
+                                    If Not InvalidOmittedToken(previousToken, nextToken) Then
+                                        Return ifDirective.WithThenKeyword(newToken)
+                                    End If
                                 End If
                             End If
-
                         End If
 
                     Case SyntaxKind.OnKeyword
@@ -541,6 +554,8 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                     Return If(parent.GetAncestor(Of MultiLineIfBlockSyntax)() IsNot Nothing, CreateOmittedToken(token, SyntaxKind.ThenKeyword), token)
                 ElseIf parent.TypeSwitch(Function(p As IfDirectiveTriviaSyntax) p.ThenKeyword = originalToken) Then
                     Return CreateOmittedToken(token, SyntaxKind.ThenKeyword)
+                ElseIf parent.TypeSwitch(Function(p As ElseIfStatementSyntax) p.ThenKeyword = originalToken) Then
+                    Return If(parent.GetAncestor(Of ElseIfBlockSyntax)() IsNot Nothing, CreateOmittedToken(token, SyntaxKind.ThenKeyword), token)
                 ElseIf parent.TypeSwitch(Function(p As OptionStatementSyntax) p.ValueKeyword = originalToken) Then
                     Return CreateOmittedToken(token, SyntaxKind.OnKeyword)
                 End If

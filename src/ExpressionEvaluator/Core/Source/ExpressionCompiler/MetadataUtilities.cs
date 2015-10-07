@@ -87,6 +87,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var referencesBuilder = ArrayBuilder<MetadataReference>.GetInstance();
             var identitiesBuilder = (identityComparer == null) ? null : ArrayBuilder<AssemblyIdentity>.GetInstance();
             AssemblyIdentity corLibrary = null;
+            AssemblyIdentity intrinsicsAssembly = null;
 
             foreach (var metadata in metadataBuilder)
             {
@@ -106,6 +107,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         reader.DeclaresTheObjectClass())
                     {
                         corLibrary = identity;
+                    }
+                    else if ((intrinsicsAssembly == null) &&
+                        reader.DeclaresType((r, t) => r.IsPublicNonInterfaceType(t, ExpressionCompilerConstants.IntrinsicAssemblyNamespace, ExpressionCompilerConstants.IntrinsicAssemblyTypeName)))
+                    {
+                        intrinsicsAssembly = identity;
                     }
                 }
                 var reference = MakeAssemblyMetadata(metadata, modulesByName);
@@ -130,6 +136,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     if (corLibrary != null)
                     {
                         referencedModules.Add(corLibrary);
+                    }
+                    // Ensure Debugger intrinsic methods assembly is included.
+                    if (intrinsicsAssembly != null)
+                    {
+                        referencedModules.Add(intrinsicsAssembly);
                     }
                     RemoveUnreferencedModules(referencesBuilder, identitiesBuilder, identityComparer, referencedModules);
                     referencedModules.Free();

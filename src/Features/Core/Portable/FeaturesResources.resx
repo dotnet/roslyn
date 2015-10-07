@@ -864,6 +864,12 @@ Do you want to continue?</value>
   <data name="ChangeTo" xml:space="preserve">
     <value>Change '{0}' to '{1}'.</value>
   </data>
+  <data name="NonInvokedMethodCannotBeReplacedWithProperty" xml:space="preserve">
+    <value>Non-invoked method cannot be replaced with property.</value>
+  </data>
+  <data name="OnlyMethodsWithASingleArgumentCanBeReplacedWithAProperty" xml:space="preserve">
+    <value>Only methods with a single argument can be replaced with a property.</value>
+  </data>
   <data name="ErrorCategory" xml:space="preserve">
     <value>Roslyn.HostError</value>
   </data>

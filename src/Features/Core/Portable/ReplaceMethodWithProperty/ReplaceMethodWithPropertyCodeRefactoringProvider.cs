@@ -321,16 +321,13 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             var root = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var editor = new SyntaxEditor(root, updatedSolution.Workspace);
-            var generator = SyntaxGenerator.GetGenerator(updatedDocument);
 
             // First replace all the get methods with properties.
             foreach (var getSetPair in getSetPairs)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var getMethod = getSetPair.GetMethodDeclaration;
-                editor.ReplaceNode(getMethod, service.ConvertMethodsToProperty(
-                    semanticModel, generator, getSetPair, propertyName, nameChanged));
+                service.ReplaceGetMethodWithProperty(editor, semanticModel, getSetPair, propertyName, nameChanged);
             }
 
             // Then remove all the set methods.
@@ -344,7 +341,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                 var setMethodDocument = updatedSolution.GetDocument(setMethodDeclaration?.SyntaxTree);
                 if (setMethodDocument?.Id == documentId)
                 {
-                    editor.RemoveNode(setMethodDeclaration);
+                    service.RemoveSetMethod(editor, setMethodDeclaration);
                 }
             }
 

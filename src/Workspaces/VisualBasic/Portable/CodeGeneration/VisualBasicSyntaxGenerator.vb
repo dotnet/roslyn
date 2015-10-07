@@ -224,6 +224,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.UnaryMinusExpression(Parenthesize(expression))
         End Function
 
+        Private Function AsExpressionList(expressions As IEnumerable(Of SyntaxNode)) As SeparatedSyntaxList(Of ExpressionSyntax)
+            Return SyntaxFactory.SeparatedList(Of ExpressionSyntax)(expressions.OfType(Of ExpressionSyntax)())
+        End Function
+
+        Public Overrides Function ArrayCreationExpression(elementType As SyntaxNode, size As SyntaxNode) As SyntaxNode
+            Dim sizes = SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(AsArgument(size)))
+            Dim initializer = SyntaxFactory.CollectionInitializer()
+            Return SyntaxFactory.ArrayCreationExpression(Nothing, DirectCast(elementType, TypeSyntax), sizes, initializer)
+        End Function
+
+        Public Overrides Function ArrayCreationExpression(elementType As SyntaxNode, elements As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Dim sizes = SyntaxFactory.ArgumentList()
+            Dim initializer = SyntaxFactory.CollectionInitializer(AsExpressionList(elements))
+            Return SyntaxFactory.ArrayCreationExpression(Nothing, DirectCast(elementType, TypeSyntax), sizes, initializer)
+        End Function
+
         Public Overloads Overrides Function ObjectCreationExpression(typeName As SyntaxNode, arguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Return SyntaxFactory.ObjectCreationExpression(
                 Nothing,
@@ -1461,6 +1477,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Return DirectCast(node, EventBlockSyntax).EventStatement.AttributeLists
                 Case SyntaxKind.EventStatement
                     Return DirectCast(node, EventStatementSyntax).AttributeLists
+                Case SyntaxKind.GetAccessorBlock,
+                    SyntaxKind.SetAccessorBlock,
+                    SyntaxKind.AddHandlerAccessorBlock,
+                    SyntaxKind.RemoveHandlerAccessorBlock,
+                    SyntaxKind.RaiseEventAccessorBlock
+                    Return DirectCast(node, AccessorBlockSyntax).AccessorStatement.AttributeLists
+                Case SyntaxKind.GetAccessorStatement,
+                    SyntaxKind.SetAccessorStatement,
+                    SyntaxKind.AddHandlerAccessorStatement,
+                    SyntaxKind.RemoveHandlerAccessorStatement,
+                    SyntaxKind.RaiseEventAccessorStatement
+                    Return DirectCast(node, AccessorStatementSyntax).AttributeLists
                 Case Else
                     Return Nothing
             End Select
@@ -1522,6 +1550,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Return DirectCast(node, EventBlockSyntax).WithEventStatement(DirectCast(node, EventBlockSyntax).EventStatement.WithAttributeLists(arg))
                 Case SyntaxKind.EventStatement
                     Return DirectCast(node, EventStatementSyntax).WithAttributeLists(arg)
+                Case SyntaxKind.GetAccessorBlock,
+                    SyntaxKind.SetAccessorBlock,
+                    SyntaxKind.AddHandlerAccessorBlock,
+                    SyntaxKind.RemoveHandlerAccessorBlock,
+                    SyntaxKind.RaiseEventAccessorBlock
+                    Return DirectCast(node, AccessorBlockSyntax).WithAccessorStatement(DirectCast(node, AccessorBlockSyntax).AccessorStatement.WithAttributeLists(arg))
+                Case SyntaxKind.GetAccessorStatement,
+                    SyntaxKind.SetAccessorStatement,
+                    SyntaxKind.AddHandlerAccessorStatement,
+                    SyntaxKind.RemoveHandlerAccessorStatement,
+                    SyntaxKind.RaiseEventAccessorStatement
+                    Return DirectCast(node, AccessorStatementSyntax).WithAttributeLists(arg)
                 Case Else
                     Return node
             End Select

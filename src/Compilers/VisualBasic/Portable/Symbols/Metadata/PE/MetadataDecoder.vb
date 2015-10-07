@@ -436,7 +436,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Return Nothing
             End If
 
-            ' We're going to use a special decoder that can generate useable symbols for type parameters without full context.
+            ' We're going to use a special decoder that can generate usable symbols for type parameters without full context.
             ' (We're not just using a different type - we're also changing the type context.)
             Dim memberRefDecoder = New MemberRefMetadataDecoder(moduleSymbol, targetTypeSymbol)
             Return memberRefDecoder.FindMember(targetTypeSymbol, memberRef, methodsOnly)

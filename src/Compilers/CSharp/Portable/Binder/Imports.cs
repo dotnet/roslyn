@@ -160,7 +160,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
                         }
 
-                        var imported = usingsBinder.BindNamespaceOrTypeSymbol(usingDirective.Name, diagnostics, basesBeingResolved);
+                        var declarationBinder = usingsBinder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks);
+                        var imported = declarationBinder.BindNamespaceOrTypeSymbol(usingDirective.Name, diagnostics, basesBeingResolved);
                         if (imported.Kind == SymbolKind.Namespace)
                         {
                             if (usingDirective.StaticKeyword != default(SyntaxToken))

@@ -40,7 +40,7 @@ namespace Microsoft.DiaSymReader
         int FindClosestLine(int line, out int closestLine);
 
         [PreserveSig]
-        int HasEmbeddedSource(out bool value);
+        int HasEmbeddedSource([MarshalAs(UnmanagedType.Bool)]out bool value);
 
         [PreserveSig]
         int GetSourceLength(out int length);

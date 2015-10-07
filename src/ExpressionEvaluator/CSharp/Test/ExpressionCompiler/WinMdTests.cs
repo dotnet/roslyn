@@ -347,6 +347,7 @@ class C
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
                 runtime.Modules.SelectAsArray(m => m.MetadataBlock),
                 "c.Dispatcher",
+                ImmutableArray<Alias>.Empty,
                 (metadataBlocks, _) =>
                 {
                     return CreateMethodContext(runtime, "C.M");

@@ -121,7 +121,7 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
         autoCloseFailedPullRequests(false)
         orgWhitelist('Microsoft')
         allowMembersOfWhitelistedOrgsAsAdmin(true)
-        permitAll(false)
+        permitAll(true)
         extensions {
           commitStatus {
             context(contextName.replace('_', '/').substring(7))
@@ -154,6 +154,7 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
                     batchFile(".\\cibuild.cmd ${(configuration == 'dbg') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'}")
                   }
                 }
+                addConcurrentBuild(myJob, 'roslyn/win/unit')
                 break;
               case 'linux':
                 myJob.with {
@@ -162,6 +163,7 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
                     shell("./cibuild.sh")
                   }
                 }
+                // addConcurrentBuild(myJob, 'roslyn/lin/unit')
                 break;
               case 'mac':
                 myJob.with {
@@ -170,6 +172,7 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
                     shell("./cibuild.sh")
                   }
                 }
+                // addConcurrentBuild(myJob, 'roslyn/mac/unit')
                 break;
             }
 
@@ -177,7 +180,6 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
             addWrappers(myJob)
 
             addUnitPublisher(myJob)
-            addConcurrentBuild(myJob, 'roslyn-internal_unit')
 
             if (branchName == 'prtest') {
               switch (buildTarget) {
