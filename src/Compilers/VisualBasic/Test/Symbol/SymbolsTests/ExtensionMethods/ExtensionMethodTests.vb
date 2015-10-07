@@ -2463,6 +2463,7 @@ End Function
 Dim o As New Object()
 ? o.F()]]>
             Dim source1 = <![CDATA[
+Imports System.Runtime.CompilerServices
 <Extension>
 Shared Function G(o As Object) As Object
     Return 1
@@ -2477,7 +2478,7 @@ Dim o As New Object()
             Assert.True(s0.SourceAssembly.MightContainExtensionMethods)
             Dim s1 = VisualBasicCompilation.CreateSubmission(
                 "s1.dll",
-                syntaxTree:=Parse(source0.Value, parseOptions),
+                syntaxTree:=Parse(source1.Value, parseOptions),
                 previousSubmission:=s0,
                 references:=references)
             s1.VerifyDiagnostics()

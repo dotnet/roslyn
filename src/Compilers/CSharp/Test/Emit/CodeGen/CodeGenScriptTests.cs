@@ -487,5 +487,136 @@ public abstract class C
             s0.VerifyEmitDiagnostics();
             s1.VerifyEmitDiagnostics();
         }
+
+        /// <summary>
+        /// The script entry point should complete synchronously.
+        /// </summary>
+        [WorkItem(4495)]
+        [Fact]
+        public void ScriptEntryPoint()
+        {
+            var source =
+@"{
+    await System.Threading.Tasks.Task.Delay(100);
+    System.Console.Write(""complete"");
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: @"complete");
+            var methodData = verifier.TestData.GetMethodData("<Initialize>");
+            Assert.Equal("System.Threading.Tasks.Task<object>", methodData.Method.ReturnType.ToDisplayString());
+            methodData.VerifyIL(
+@"{
+  // Code size       60 (0x3c)
+  .maxstack  2
+  .locals init (<<Initialize>>d__0 V_0,
+                System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> V_1)
+  IL_0000:  newobj     ""<<Initialize>>d__0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldarg.0
+  IL_0008:  stfld      ""Script <<Initialize>>d__0.<>4__this""
+  IL_000d:  ldloc.0
+  IL_000e:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Create()""
+  IL_0013:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0018:  ldloc.0
+  IL_0019:  ldc.i4.m1
+  IL_001a:  stfld      ""int <<Initialize>>d__0.<>1__state""
+  IL_001f:  ldloc.0
+  IL_0020:  ldfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0025:  stloc.1
+  IL_0026:  ldloca.s   V_1
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Start<<<Initialize>>d__0>(ref <<Initialize>>d__0)""
+  IL_002f:  nop
+  IL_0030:  ldloc.0
+  IL_0031:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0036:  call       ""System.Threading.Tasks.Task<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Task.get""
+  IL_003b:  ret
+}");
+            methodData = verifier.TestData.GetMethodData("<Main>");
+            Assert.True(methodData.Method.ReturnsVoid);
+            methodData.VerifyIL(
+@"{
+  // Code size       24 (0x18)
+  .maxstack  1
+  .locals init (System.Runtime.CompilerServices.TaskAwaiter V_0)
+  IL_0000:  newobj     "".ctor()""
+  IL_0005:  callvirt   ""System.Threading.Tasks.Task<object> <Initialize>()""
+  IL_000a:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
+  IL_000f:  stloc.0
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
+  IL_0017:  ret
+}");
+        }
+
+        [Fact]
+        public void InteractiveEntryPoint()
+        {
+            var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
+            var source0 =
+@"{
+    await System.Threading.Tasks.Task.Delay(100);
+    System.Console.Write(""complete"");
+}";
+            var s0 = CSharpCompilation.CreateSubmission(
+                "s0.dll",
+                SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Interactive),
+                references);
+            var verifier = CompileAndVerify(s0, verify: false);
+            var methodData = verifier.TestData.GetMethodData("<Initialize>");
+            Assert.Equal("System.Threading.Tasks.Task<object>", methodData.Method.ReturnType.ToDisplayString());
+            methodData.VerifyIL(
+@"{
+  // Code size       60 (0x3c)
+  .maxstack  2
+  .locals init (<<Initialize>>d__0 V_0,
+                System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> V_1)
+  IL_0000:  newobj     ""<<Initialize>>d__0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldarg.0
+  IL_0008:  stfld      ""Script <<Initialize>>d__0.<>4__this""
+  IL_000d:  ldloc.0
+  IL_000e:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Create()""
+  IL_0013:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0018:  ldloc.0
+  IL_0019:  ldc.i4.m1
+  IL_001a:  stfld      ""int <<Initialize>>d__0.<>1__state""
+  IL_001f:  ldloc.0
+  IL_0020:  ldfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0025:  stloc.1
+  IL_0026:  ldloca.s   V_1
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Start<<<Initialize>>d__0>(ref <<Initialize>>d__0)""
+  IL_002f:  nop
+  IL_0030:  ldloc.0
+  IL_0031:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0036:  call       ""System.Threading.Tasks.Task<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Task.get""
+  IL_003b:  ret
+}");
+            methodData = verifier.TestData.GetMethodData("<Factory>");
+            Assert.Equal("System.Threading.Tasks.Task<object>", methodData.Method.ReturnType.ToDisplayString());
+            methodData.VerifyIL(
+@"{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     "".ctor(object[])""
+  IL_0006:  callvirt   ""System.Threading.Tasks.Task<object> <Initialize>()""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        public void ScriptEntryPoint_MissingMethods()
+        {
+            var source =
+@"System.Console.WriteLine(1);";
+            var compilation = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // error CS0656: Missing compiler required member 'Task.GetAwaiter'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Threading.Tasks.Task", "GetAwaiter").WithLocation(1, 1));
+        }
     }
 }
