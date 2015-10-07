@@ -2094,7 +2094,7 @@ End Class]]></a>.Value, "System.Object.GetType")
         End Sub
 
         <WorkItem(4150, "https://github.com/dotnet/roslyn/issues/4150")>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestPropertyFromMemberAccess()
             Test(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -2107,7 +2107,7 @@ Module Program
 End Module]]></a>.Value, "System.Array.Length")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestParameterFromReference()
             Test(<a><![CDATA[Module Program
     Sub Main(args As String())
@@ -2116,7 +2116,7 @@ End Module]]></a>.Value, "System.Array.Length")
 End Module]]></a>.Value, "System.String()")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestLocalFromReference()
             Test(<a><![CDATA[Module Program
     Sub Main(args As String())
@@ -2126,7 +2126,7 @@ End Module]]></a>.Value, "System.String()")
 End Module]]></a>.Value, "System.Int32")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestAliasFromReference()
             Test(<a><![CDATA[Imports s = System.Linq.Enumerable
 
@@ -2137,7 +2137,7 @@ Module Program
 End Module]]></a>.Value, "System.Linq.Enumerable")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestRangeVariable()
             Test(<a><![CDATA[Module Program
     Sub Main(args As String())

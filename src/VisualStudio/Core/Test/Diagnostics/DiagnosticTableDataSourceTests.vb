@@ -463,7 +463,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestBingHelpLink_NoCustomType()
             Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines("class A { int 111a; }")
                 Dim diagnostic = workspace.CurrentSolution.Projects.First().GetCompilationAsync().Result.GetDiagnostics().First(Function(d) d.Id = "CS1519")
@@ -509,7 +509,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestWorkspaceDiagnostic()
             Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -539,7 +539,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestProjectDiagnostic()
             Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -571,7 +571,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestAggregatedDiagnostic()
             Dim markup = <Workspace>
                              <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">

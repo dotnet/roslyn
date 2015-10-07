@@ -302,7 +302,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestAggregatedEntries()
             Dim markup = <Workspace>
                              <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
