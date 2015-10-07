@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Rename
         internal readonly Document Document;
         internal readonly SemanticModel SemanticModel;
         internal readonly AnnotationTable<RenameAnnotation> RenameAnnotations;
+        internal readonly RenameCallbacks Callbacks;
 
         public RenameRewriterParameters(
             RenameAnnotation renamedSymbolDeclarationAnnotation,
@@ -48,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Rename
             RenamedSpansTracker renameSpansTracker,
             OptionSet optionSet,
             AnnotationTable<RenameAnnotation> renameAnnotations,
+            RenameCallbacks callbacks,
             CancellationToken cancellationToken)
         {
             this.RenamedSymbolDeclarationAnnotation = renamedSymbolDeclarationAnnotation;
@@ -68,6 +70,7 @@ namespace Microsoft.CodeAnalysis.Rename
             this.RenameSpansTracker = renameSpansTracker;
             this.OptionSet = optionSet;
             this.RenameAnnotations = renameAnnotations;
+            this.Callbacks = callbacks;
         }
     }
 }

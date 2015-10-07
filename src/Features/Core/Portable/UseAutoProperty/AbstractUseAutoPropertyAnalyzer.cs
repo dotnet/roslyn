@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor, FadedTokenDescriptor);
 
-        protected abstract void RegisterIneligibleFieldsAction(CompilationStartAnalysisContext context, ConcurrentBag<IFieldSymbol> ineligibleFields);
         protected abstract bool SupportsReadOnlyProperties(Compilation compilation);
         protected abstract bool SupportsPropertyInitializer(Compilation compilation);
         protected abstract TExpression GetFieldInitializer(TVariableDeclarator variable, CancellationToken cancellationToken);
@@ -38,19 +37,10 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
         public sealed override void Initialize(AnalysisContext context)
         {
-            context.RegisterCompilationStartAction(csac =>
-            {
-                var analysisResults = new ConcurrentBag<AnalysisResult>();
-                var ineligibleFields = new ConcurrentBag<IFieldSymbol>();
-
-                csac.RegisterSymbolAction(sac => AnalyzeProperty(analysisResults, sac), SymbolKind.Property);
-                RegisterIneligibleFieldsAction(csac, ineligibleFields);
-
-                csac.RegisterCompilationEndAction(cac => Process(analysisResults, ineligibleFields, cac));
-            });
+            context.RegisterSymbolAction(AnalyzeProperty, SymbolKind.Property);
         }
 
-        private void AnalyzeProperty(ConcurrentBag<AnalysisResult> analysisResults, SymbolAnalysisContext symbolContext)
+        private void AnalyzeProperty(SymbolAnalysisContext symbolContext)
         {
             var property = (IPropertySymbol)symbolContext.Symbol;
             if (property.IsIndexer)
@@ -114,6 +104,18 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return;
             }
 
+            // Don't want to remove constants.
+            if (getterField.IsConst)
+            {
+                return;
+            }
+
+            // Field and property should match in static-ness
+            if (getterField.IsStatic != property.IsStatic)
+            {
+                return;
+            }
+
             if (!containingType.Equals(getterField.ContainingType))
             {
                 // Field and property have to be in the same type.
@@ -126,19 +128,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return;
             }
 
-            // Don't want to remove constants.
-            if (getterField.IsConst)
-            {
-                return;
-            }
-
             if (getterField.DeclaringSyntaxReferences.Length != 1)
-            {
-                return;
-            }
-
-            // Field and property should match in static-ness
-            if (getterField.IsStatic != property.IsStatic)
             {
                 return;
             }
@@ -182,23 +172,27 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             }
 
             // Looks like a viable property/field to convert into an auto property.
-            analysisResults.Add(new AnalysisResult(property, getterField, propertyDeclaration, fieldDeclaration, variableDeclarator,
-                property.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
+            var result = new AnalysisResult(property, getterField, propertyDeclaration, fieldDeclaration, variableDeclarator,
+                property.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+            ProcessResult(result, symbolContext);
         }
 
         private IFieldSymbol GetSetterField(
             SemanticModel semanticModel, ISymbol containingType, IMethodSymbol setMethod, CancellationToken cancellationToken)
         {
-            return CheckFieldAccessExpression(semanticModel, GetSetterExpression(setMethod, semanticModel, cancellationToken));
+            cancellationToken.ThrowIfCancellationRequested();
+            return CheckFieldAccessExpression(semanticModel, GetSetterExpression(setMethod, semanticModel, cancellationToken), cancellationToken);
         }
 
         private IFieldSymbol GetGetterField(SemanticModel semanticModel, IMethodSymbol getMethod, CancellationToken cancellationToken)
         {
-            return CheckFieldAccessExpression(semanticModel, GetGetterExpression(getMethod, cancellationToken));
+            cancellationToken.ThrowIfCancellationRequested();
+            return CheckFieldAccessExpression(semanticModel, GetGetterExpression(getMethod, cancellationToken), cancellationToken);
         }
 
-        private IFieldSymbol CheckFieldAccessExpression(SemanticModel semanticModel, TExpression expression)
+        private IFieldSymbol CheckFieldAccessExpression(SemanticModel semanticModel, TExpression expression, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (expression == null)
             {
                 return null;
@@ -219,25 +213,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             return field;
         }
 
-        private void Process(
-            ConcurrentBag<AnalysisResult> analysisResults,
-            ConcurrentBag<IFieldSymbol> ineligibleFields,
-            CompilationAnalysisContext compilationContext)
-        {
-            var ineligibleFieldsSet = new HashSet<IFieldSymbol>(ineligibleFields);
-            foreach (var result in analysisResults)
-            {
-                var field = result.Field;
-                if (ineligibleFieldsSet.Contains(field))
-                {
-                    continue;
-                }
-
-                Process(result, compilationContext);
-            }
-        }
-
-        private void Process(AnalysisResult result, CompilationAnalysisContext compilationContext)
+        private void ProcessResult(AnalysisResult result, SymbolAnalysisContext compilationContext)
         {
             // Check if there are additional reasons we think this field might be ineligible for 
             // replacing with an auto prop.

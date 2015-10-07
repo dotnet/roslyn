@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
         private class RenameRewriter : CSharpSyntaxRewriter
         {
-            private readonly DocumentId _documentId;
+            private readonly Document _document;
             private readonly RenameAnnotation _renameRenamableSymbolDeclaration;
             private readonly Solution _solution;
             private readonly string _replacementText;
@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             private readonly ISemanticFactsService _semanticFactsService;
             private readonly HashSet<SyntaxToken> _annotatedIdentifierTokens = new HashSet<SyntaxToken>();
             private readonly HashSet<InvocationExpressionSyntax> _invocationExpressionsNeedingConflictChecks = new HashSet<InvocationExpressionSyntax>();
+            private readonly Func<Document, SyntaxToken, SyntaxToken, SyntaxToken> _onTokenRenamed;
 
             private readonly AnnotationTable<RenameAnnotation> _renameAnnotations;
 
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
                 if (!_isProcessingComplexifiedSpans)
                 {
-                    _renameSpansTracker.AddModifiedSpan(_documentId, oldSpan, newSpan);
+                    _renameSpansTracker.AddModifiedSpan(_document.Id, oldSpan, newSpan);
                 }
                 else
                 {
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             public RenameRewriter(RenameRewriterParameters parameters)
                 : base(visitIntoStructuredTrivia: true)
             {
-                _documentId = parameters.Document.Id;
+                _document = parameters.Document;
                 _renameRenamableSymbolDeclaration = parameters.RenamedSymbolDeclarationAnnotation;
                 _solution = parameters.OriginalSolution;
                 _replacementText = parameters.ReplacementText;
@@ -117,6 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 _isRenamingInComments = parameters.OptionSet.GetOption(RenameOptions.RenameInComments);
                 _stringAndCommentTextSpans = parameters.StringAndCommentTextSpans;
                 _renameAnnotations = parameters.RenameAnnotations;
+                _onTokenRenamed = parameters.Callbacks?.OnTokenRenamed;
 
                 _aliasSymbol = _renamedSymbol as IAliasSymbol;
                 _renamableDeclarationLocation = _renamedSymbol.Locations.FirstOrDefault(loc => loc.IsInSource && loc.SourceTree == _semanticModel.SyntaxTree);
@@ -248,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 newNode = newNode.WithoutAnnotations(annotation);
                 newNode = _renameAnnotations.WithAdditionalAnnotations(newNode, new RenameNodeSimplificationAnnotation() { OriginalTextSpan = oldSpan });
 
-                _renameSpansTracker.AddComplexifiedSpan(_documentId, oldSpan, new TextSpan(oldSpan.Start, newSpan.Length), _modifiedSubSpans);
+                _renameSpansTracker.AddComplexifiedSpan(_document.Id, oldSpan, new TextSpan(oldSpan.Start, newSpan.Length), _modifiedSubSpans);
                 _modifiedSubSpans = null;
 
                 _isProcessingComplexifiedSpans = false;
@@ -297,7 +299,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 return true;
             }
 
-            private async Task<SyntaxToken> RenameAndAnnotateAsync(SyntaxToken token, SyntaxToken newToken, bool isRenameLocation, bool isOldText)
+            private async Task<SyntaxToken> RenameAndAnnotateAsync(
+                SyntaxToken token, SyntaxToken newToken, bool isRenameLocation, bool isOldText)
             {
                 try
                 {
@@ -608,6 +611,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     }
                 }
 
+                newToken = _onTokenRenamed?.Invoke(_document, oldToken, newToken) ?? newToken;
                 return newToken;
             }
 
