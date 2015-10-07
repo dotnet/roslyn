@@ -49,6 +49,7 @@ Included items must then not match any entries in the exclude list to remain inc
                 <ModulePath>.*TestAdapter.*</ModulePath>
                 <ModulePath>.*UnitTests.*</ModulePath>
                 <ModulePath>.*xunit.*</ModulePath>
+                <ModulePath>.*threading.*</ModulePath>  
               </Exclude>
             </ModulePaths>
 
