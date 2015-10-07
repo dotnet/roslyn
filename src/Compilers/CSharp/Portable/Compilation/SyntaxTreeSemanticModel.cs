@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -103,28 +104,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             VerifySpanForGetDiagnostics(span);
             return Compilation.GetDiagnosticsForSyntaxTree(
-                CompilationStage.Parse, this.SyntaxTree, span, includeEarlierStages: false, cancellationToken: cancellationToken);
+            CompilationStage.Parse, this.SyntaxTree, span, includeEarlierStages: false, cancellationToken: cancellationToken);
         }
 
         public override ImmutableArray<Diagnostic> GetDeclarationDiagnostics(TextSpan? span = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             VerifySpanForGetDiagnostics(span);
             return Compilation.GetDiagnosticsForSyntaxTree(
-                CompilationStage.Declare, this.SyntaxTree, span, includeEarlierStages: false, cancellationToken: cancellationToken);
+            CompilationStage.Declare, this.SyntaxTree, span, includeEarlierStages: false, cancellationToken: cancellationToken);
         }
 
         public override ImmutableArray<Diagnostic> GetMethodBodyDiagnostics(TextSpan? span = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             VerifySpanForGetDiagnostics(span);
             return Compilation.GetDiagnosticsForSyntaxTree(
-                CompilationStage.Compile, this.SyntaxTree, span, includeEarlierStages: false, cancellationToken: cancellationToken);
+            CompilationStage.Compile, this.SyntaxTree, span, includeEarlierStages: false, cancellationToken: cancellationToken);
         }
 
         public override ImmutableArray<Diagnostic> GetDiagnostics(TextSpan? span = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             VerifySpanForGetDiagnostics(span);
             return Compilation.GetDiagnosticsForSyntaxTree(
-                CompilationStage.Compile, this.SyntaxTree, span, includeEarlierStages: true, cancellationToken: cancellationToken);
+            CompilationStage.Compile, this.SyntaxTree, span, includeEarlierStages: true, cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -151,6 +152,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return _binderFactory.GetBinder((CSharpSyntaxNode)token.Parent, position).WithAdditionalFlags(GetSemanticModelBinderFlags());
+        }
+
+        internal override IOperation GetOperationWorker(CSharpSyntaxNode node, GetOperationOptions options, CancellationToken cancellationToken)
+        {
+            // in case this is right side of a qualified name or member access (or part of a cref)
+            node = SyntaxFactory.GetStandaloneNode(node);
+
+            var model = this.GetMemberModel(node);
+            if (model != null)
+            {
+                return model.GetOperationWorker(node, options, cancellationToken);
+            }
+            else
+            {
+                return null;
+            }
         }
 
         internal override SymbolInfo GetSymbolInfoWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken))
