@@ -14407,7 +14407,7 @@ class Program
         public void BadDefaultParameterValue()
         {
             // In this DLL there is an optional parameter which has a corrupted metadata value
-            // as the default argument.  This can happen in legitamite code when run through an
+            // as the default argument.  This can happen in legitimate code when run through an
             // obfuscator program.  For compatibility with the native compiler we need to treat
             // the value as default(T) 
             string source = @"

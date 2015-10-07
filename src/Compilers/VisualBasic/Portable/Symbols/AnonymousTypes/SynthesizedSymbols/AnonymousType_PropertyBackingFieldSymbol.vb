@@ -22,8 +22,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property MetadataName As String
                 Get
-                    ' To be sure that when we emitting the name it's 
-                    ' casing is in synch with that of the property
+                    ' To be sure that when we emitting the name, it's 
+                    ' casing is in sync with that of the property
                     Return "$" & Me._propertyOrEvent.Name
                 End Get
             End Property

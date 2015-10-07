@@ -1376,7 +1376,7 @@ namespace Microsoft.Cci
         }
 
         [Conditional("DEBUG")]
-        // Used to catch cases where file2definitions contain nonwriteable definitions early
+        // Used to catch cases where file2definitions contain nonwritable definitions early
         // If left unfixed, such scenarios will lead to crashes if happen in winmdobj projects
         public void AssertAllDefinitionsHaveTokens(MultiDictionary<DebugSourceDocument, DefinitionWithLocation> file2definitions)
         {

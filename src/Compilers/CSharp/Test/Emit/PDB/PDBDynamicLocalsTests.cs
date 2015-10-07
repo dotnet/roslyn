@@ -1784,7 +1784,7 @@ class F<T,V>
 
         [WorkItem(17390, "DevDiv_Projects/Roslyn")]
         [Fact]
-        public void EmitPDBForDynamicLocals_7()         //Cornercase dynamic locals with normal locals
+        public void EmitPDBForDynamicLocals_7()         //Corner case dynamic locals with normal locals
         {
             string source = @"
 using System;

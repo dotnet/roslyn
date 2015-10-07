@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // this should be relatively uncommon
                     // most symbols that may be contained in a type
                     // know their containing type and can override ContainingType
-                    // with a more precicse implementation
+                    // with a more precise implementation
                     return containerAsType;
                 }
 
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case MethodKind.ReducedExtension:
                                 break;
                             case MethodKind.Destructor:
-                                // You wouldn't think that destructors would be referencable by name, but
+                                // You wouldn't think that destructors would be referenceable by name, but
                                 // dev11 only prevents them from being invoked - they can still be assigned
                                 // to delegates.
                                 return true;
