@@ -1391,7 +1391,7 @@ class C
         }
 
         [WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void Command_Class_AutoGenerateXmlDocCommentsOff()
         {
             var code =
