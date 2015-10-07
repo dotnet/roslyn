@@ -26,6 +26,9 @@ move Binaries\%BuildConfiguration%\core-clr\* %RoslynRoot%Binaries\Bootstrap
 msbuild /v:m /t:Clean build/Toolset.sln /p:Configuration=%BuildConfiguration%
 taskkill /F /IM vbcscompiler.exe
 
+nuget.exe restore -nocache %RoslynRoot%build\ToolsetPackages\project.json
+nuget.exe restore -nocache %RoslynRoot%Roslyn.sln
+nuget.exe restore -nocache %RoslynRoot%src\Samples\Samples.sln
 msbuild /v:m /m /p:BootstrapBuildPath=%RoslynRoot%Binaries\Bootstrap BuildAndTest.proj /p:Configuration=%BuildConfiguration% /p:Test64=%Test64%
 if ERRORLEVEL 1 (
     taskkill /F /IM vbcscompiler.exe
