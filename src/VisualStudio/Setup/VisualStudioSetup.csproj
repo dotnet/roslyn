@@ -202,9 +202,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyRedirects.cs" Condition="('$(AssemblyVersion)' == '42.42.42.42') or ('$(OfficialBuild)' == 'true')" />
-    <Content Include="BindingPath.pkgdef">
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
     <Compile Include="ProvideRoslynBindingRedirection.cs" />
   </ItemGroup>
   <ImportGroup Label="Targets">
