@@ -314,6 +314,18 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
         }
 
         [Fact]
+        public void TestArrayCreationExpressions()
+        {
+            VerifySyntax<ArrayCreationExpressionSyntax>(
+                _g.ArrayCreationExpression(_g.IdentifierName("x"), _g.LiteralExpression(10)),
+                "new x[10]");
+
+            VerifySyntax<ArrayCreationExpressionSyntax>(
+                _g.ArrayCreationExpression(_g.IdentifierName("x"), new SyntaxNode[] { _g.IdentifierName("y"), _g.IdentifierName("z") }),
+                "new x[]{y, z}");
+        }
+
+        [Fact]
         public void TestObjectCreationExpressions()
         {
             VerifySyntax<ObjectCreationExpressionSyntax>(
@@ -1333,6 +1345,32 @@ public interface IFace
                     _g.CompilationUnit(_g.NamespaceDeclaration("n")),
                     _g.Attribute("a")),
                 "[assembly: a]\r\nnamespace n\r\n{\r\n}");
+        }
+
+        [Fact]
+        [WorkItem(5066, "https://github.com/dotnet/roslyn/issues/5066")]
+        public void TestAddAttributesToAccessors()
+        {
+            var prop = _g.PropertyDeclaration("P", _g.IdentifierName("T"));
+            var evnt = _g.CustomEventDeclaration("E", _g.IdentifierName("T"));
+            CheckAddRemoveAttribute(_g.GetAccessor(prop, DeclarationKind.GetAccessor));
+            CheckAddRemoveAttribute(_g.GetAccessor(prop, DeclarationKind.SetAccessor));
+            CheckAddRemoveAttribute(_g.GetAccessor(evnt, DeclarationKind.AddAccessor));
+            CheckAddRemoveAttribute(_g.GetAccessor(evnt, DeclarationKind.RemoveAccessor));
+        }
+
+        private void CheckAddRemoveAttribute(SyntaxNode declaration)
+        {
+            var initialAttributes = _g.GetAttributes(declaration);
+            Assert.Equal(0, initialAttributes.Count);
+
+            var withAttribute = _g.AddAttributes(declaration, _g.Attribute("a"));
+            var attrsAdded = _g.GetAttributes(withAttribute);
+            Assert.Equal(1, attrsAdded.Count);
+
+            var withoutAttribute = _g.RemoveNode(withAttribute, attrsAdded[0]);
+            var attrsRemoved = _g.GetAttributes(withoutAttribute);
+            Assert.Equal(0, attrsRemoved.Count);
         }
 
         [Fact]

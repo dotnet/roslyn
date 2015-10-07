@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Note, <see cref="Rank"/> eqality should be checked separately!!!
+        /// Note, <see cref="Rank"/> equality should be checked separately!!!
         /// </summary>
         internal bool HasSameSizesAndLowerBoundsAs(ArrayTypeSymbol other)
         {

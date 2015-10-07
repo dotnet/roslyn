@@ -2617,7 +2617,7 @@ End Module
             Assert.True(semanticInfo.ImplicitConversion.IsWidening AndAlso semanticInfo.ImplicitConversion.IsReference, "Expected WideningReference")
             Assert.Equal(semanticInfo.ImplicitConversion, conv)
 
-            ' Auto-impled
+            ' Auto-implemented
             argList = DirectCast(CompilationUtils.FindNodeFromText(tree, "(AP)"), ArgumentListSyntax)
             arg = DirectCast(argList.ChildNodes().First(), SimpleArgumentSyntax).Expression
 

@@ -160,14 +160,23 @@ namespace Microsoft.CodeAnalysis
 
         internal static bool DeclaresTheObjectClass(this MetadataReader reader)
         {
+            return reader.DeclaresType(IsTheObjectClass);
+        }
+
+        private static bool IsTheObjectClass(this MetadataReader reader, TypeDefinition typeDef)
+        {
+            return typeDef.BaseType.IsNil &&
+                reader.IsPublicNonInterfaceType(typeDef, "System", "Object");
+        }
+
+        internal static bool DeclaresType(this MetadataReader reader, Func<MetadataReader, TypeDefinition, bool> predicate)
+        {
             foreach (TypeDefinitionHandle handle in reader.TypeDefinitions)
             {
                 try
                 {
                     var typeDef = reader.GetTypeDefinition(handle);
-                    if (typeDef.BaseType.IsNil &&
-                        (typeDef.Attributes & (TypeAttributes.Public | TypeAttributes.Interface)) == TypeAttributes.Public &&
-                        reader.IsSystemObjectOrThrow(typeDef))
+                    if (predicate(reader, typeDef))
                     {
                         return true;
                     }
@@ -181,10 +190,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        private static bool IsSystemObjectOrThrow(this MetadataReader reader, TypeDefinition typeDef)
+        internal static bool IsPublicNonInterfaceType(this MetadataReader reader, TypeDefinition typeDef, string namespaceName, string typeName)
         {
-            return reader.StringComparer.Equals(typeDef.Name, "Object") &&
-                reader.StringComparer.Equals(typeDef.Namespace, "System");
+            return (typeDef.Attributes & (TypeAttributes.Public | TypeAttributes.Interface)) == TypeAttributes.Public &&
+                reader.StringComparer.Equals(typeDef.Name, typeName) &&
+                reader.StringComparer.Equals(typeDef.Namespace, namespaceName);
         }
     }
 }

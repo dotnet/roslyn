@@ -85,8 +85,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.FieldDeclaration
                     Dim t = CType(node, FieldDeclarationSyntax)
                     For Each decl In t.Declarators
+                        Dim initializer = GetInitializerNode(decl)
                         For Each identifier In decl.Names
-                            builder.Add(GetDeclarationInfo(model, identifier, getSymbol, decl.Initializer, cancellationToken))
+                            builder.Add(GetDeclarationInfo(model, identifier, getSymbol, initializer, cancellationToken))
                         Next
                     Next
                     Return
@@ -95,15 +96,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     For Each decl In t.Accessors
                         ComputeDeclarationsCore(model, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken)
                     Next
-                    Dim propertyInitializers = GetParameterInitializers(t.PropertyStatement.ParameterList)
-                    Dim codeBlocks = propertyInitializers.Concat(t.PropertyStatement.Initializer)
-                    builder.Add(GetDeclarationInfo(model, node, getSymbol, codeBlocks, cancellationToken))
+                    Dim propertyInitializers = GetInitializerNodes(t.PropertyStatement)
+                    builder.Add(GetDeclarationInfo(model, node, getSymbol, propertyInitializers, cancellationToken))
                     Return
                 Case SyntaxKind.PropertyStatement
                     Dim t = CType(node, PropertyStatementSyntax)
-                    Dim propertyInitializers = GetParameterInitializers(t.ParameterList)
-                    Dim codeBlocks = propertyInitializers.Concat(t.Initializer)
-                    builder.Add(GetDeclarationInfo(model, node, getSymbol, codeBlocks, cancellationToken))
+                    Dim propertyInitializers = GetInitializerNodes(t)
+                    builder.Add(GetDeclarationInfo(model, node, getSymbol, propertyInitializers, cancellationToken))
                     Return
                 Case SyntaxKind.CompilationUnit
                     Dim t = CType(node, CompilationUnitSyntax)
@@ -150,6 +149,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return If(parameterList IsNot Nothing,
                 parameterList.Parameters.Select(Function(p) p.Default),
                 SpecializedCollections.EmptyEnumerable(Of SyntaxNode))
+        End Function
+
+        Private Shared Function GetInitializerNodes(propertyStatement As PropertyStatementSyntax) As IEnumerable(Of SyntaxNode)
+            Dim parameterInitializers = GetParameterInitializers(propertyStatement.ParameterList)
+            Dim initializer As SyntaxNode = propertyStatement.Initializer
+            If initializer Is Nothing Then
+                initializer = GetAsNewClauseIntializer(propertyStatement.AsClause)
+            End If
+            Return parameterInitializers.Concat(initializer)
+        End Function
+
+        Private Shared Function GetInitializerNode(variableDeclarator As VariableDeclaratorSyntax) As SyntaxNode
+            Dim initializer As SyntaxNode = variableDeclarator.Initializer
+            If initializer Is Nothing Then
+                initializer = GetAsNewClauseIntializer(variableDeclarator.AsClause)
+            End If
+
+            Return initializer
+        End Function
+
+        Private Shared Function GetAsNewClauseIntializer(asClause As AsClauseSyntax) As ExpressionSyntax
+            Return If(asClause.IsKind(SyntaxKind.AsNewClause),
+                CType(asClause, AsNewClauseSyntax).NewExpression,
+                Nothing)
         End Function
     End Class
 End Namespace

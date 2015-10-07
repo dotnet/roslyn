@@ -61,6 +61,8 @@ static Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetry.GetAnalyze
 static Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetry.GetAnalyzerExecutionTime(this Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers compilationWithAnalyzers, Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer analyzer) -> System.TimeSpan
 static Microsoft.CodeAnalysis.SyntaxNodeExtensions.NormalizeWhitespace<TNode>(this TNode node, string indentation = "    ", string eol = "\r\n", bool elasticTrivia = false) -> TNode
 static Microsoft.CodeAnalysis.SyntaxNodeExtensions.NormalizeWhitespace<TNode>(this TNode node, string indentation, bool elasticTrivia) -> TNode
+virtual Microsoft.CodeAnalysis.MetadataReferenceResolver.ResolveMissingAssemblies.get -> bool
+virtual Microsoft.CodeAnalysis.MetadataReferenceResolver.ResolveMissingAssembly(Microsoft.CodeAnalysis.AssemblyIdentity identity) -> Microsoft.CodeAnalysis.PortableExecutableReference
 virtual Microsoft.CodeAnalysis.SourceReferenceResolver.ReadText(string resolvedPath) -> Microsoft.CodeAnalysis.Text.SourceText
 Microsoft.CodeAnalysis.SemanticModel.GetOperation(Microsoft.CodeAnalysis.SyntaxNode node, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Semantics.IOperation
 abstract Microsoft.CodeAnalysis.SemanticModel.GetOperationCore(Microsoft.CodeAnalysis.SyntaxNode node, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.Semantics.IOperation

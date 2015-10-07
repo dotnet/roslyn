@@ -141,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Return MyBase.VisitReferenceAssignment(node)
                 End If
 
-                ' we do not need to vist lhs, just update the counter to be in sync
+                ' we do not need to visit lhs, just update the counter to be in sync
                 Me._nodeCounter += 1
 
                 ' Visit the expression being assigned 
@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 '==  here we have a regular write to a stack local
                 '
-                ' we do not need to vist lhs, because we do not read the local,
+                ' we do not need to visit lhs, because we do not read the local,
                 ' just update the counter to be in sync.
                 ' 
                 ' if this is the last store, we just push the rhs

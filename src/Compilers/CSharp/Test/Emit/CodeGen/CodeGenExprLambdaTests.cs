@@ -3038,7 +3038,7 @@ public class A
 }";
             CreateCompilationWithMscorlibAndSystemCore(text)
                 .VerifyDiagnostics(
-                // (9,39): error CS1945: An expression tree may not contain an anonymous method expressio
+                // (9,39): error CS1945: An expression tree may not contain an anonymous method expression
                 //        Expression<Func<D>> f = () => delegate() { };
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAnonymousMethod, "delegate() { }")
                 );

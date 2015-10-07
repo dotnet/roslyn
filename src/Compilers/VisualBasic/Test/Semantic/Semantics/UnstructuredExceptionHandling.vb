@@ -18725,7 +18725,7 @@ Module Module1
             If x = ERROR_INVALID_WINDOW_HANDLE Then
                 Console.WriteLine(ERROR_INVALID_WINDOW_HANDLE_DESCR & "    Error!")
             Else
-                Console.WriteLine(ERROR_INVALID_WINDOW_HANDLE_DESCR & "    Incorrect Behaviour!")
+                Console.WriteLine(ERROR_INVALID_WINDOW_HANDLE_DESCR & "    Incorrect Behavior!")
             End If
             Console.WriteLine(Err.LastDllError)
         End If

@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' Then we make frame, or compiler-generated class, represented by an instance of
     ''' LambdaRewriter.Frame for each scope with captured variables.  The generated frames are kept
     ''' in LambdaRewriter.frames.  Each frame is given a single field for each captured
-    ''' variable in the corresponding scope.  These are are maintained in LambdaRewriter.proxies.
+    ''' variable in the corresponding scope.  These are maintained in LambdaRewriter.proxies.
     ''' 
     ''' Finally, we walk and rewrite the input bound tree, keeping track of the following:
     ''' (1) The current set of active frame pointers, in LambdaRewriter.framePointers
@@ -320,7 +320,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' add frame type
                     CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(_topLevelMethod.ContainingType, frame)
 
-                    ' associate the frame with the the first lambda that caused it to exist. 
+                    ' associate the frame with the first lambda that caused it to exist. 
                     ' we need to associate this with some syntax.
                     ' unfortunately either containing method or containing class could be synthetic
                     ' therefore could have no syntax.
@@ -779,7 +779,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '                        when Catch is entered.
             ' 3) Code (Filter and Body)
             '
-            ' It is important to note that all these 3 parts do not have any any dependencies on each other 
+            ' It is important to note that all these 3 parts do not have any dependencies on each other 
             ' except that assignment must happen before any other Catch code is executed.
             '
             ' When LocalOpt is present, ExceptionVariable typically holds a reference to it, but it is not a requirement.
@@ -820,7 +820,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' If exception variable got lifted, IntroduceFrame will give us frame init prologue.
             ' It needs to run before the exception variable is accessed.
-            ' To ensure that, we will make exception variable a sequence that performs prologue as its its sideeffects.
+            ' To ensure that, we will make exception variable a sequence that performs prologue as its sideeffects.
             If prologue.Count <> 0 Then
                 rewrittenExceptionSource = New BoundSequence(
                     rewrittenExceptionSource.Syntax,
@@ -1140,7 +1140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' static lambdas are emitted as instance methods on a singleton receiver
             ' delegates invoke dispatch is optimized for instance delegates so 
-            ' it is preferrable to emit lambdas as instance methods enven when lambdas 
+            ' it is preferable to emit lambdas as instance methods even when lambdas 
             ' do Not capture anything
             Dim result As BoundExpression = New BoundDelegateCreationExpression(
                          node.Syntax,

@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
-        ''' Note, <see cref="Rank"/> eqality should be checked separately!!!
+        ''' Note, <see cref="Rank"/> equality should be checked separately!!!
         ''' </summary>
         Friend Function HasSameSizesAndLowerBoundsAs(other As ArrayTypeSymbol) As Boolean
             If Me.Sizes.SequenceEqual(other.Sizes) Then

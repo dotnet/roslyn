@@ -8457,7 +8457,7 @@ namespace ConsoleApplication30
 }";
 
             // Only compile this as its intentionally writing outside of fixed buffer boundaries and 
-            // this doesnt warn but causes flakiness when executed.
+            // this doesn't warn but causes flakiness when executed.
             var comp3 = CompileAndVerify(s3,
                 options: TestOptions.UnsafeReleaseDll,
                 additionalRefs: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) }).Compilation;
