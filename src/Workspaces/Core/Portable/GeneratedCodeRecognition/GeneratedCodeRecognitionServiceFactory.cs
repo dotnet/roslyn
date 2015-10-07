@@ -37,12 +37,10 @@ namespace Microsoft.CodeAnalysis.GeneratedCodeRecognition
                 {
                     fileName = Path.GetFileNameWithoutExtension(fileName);
 
-                    if (fileName.EndsWith("AssemblyInfo", StringComparison.OrdinalIgnoreCase) ||
-                        fileName.EndsWith(".designer", StringComparison.OrdinalIgnoreCase) ||
+                    if (fileName.EndsWith(".designer", StringComparison.OrdinalIgnoreCase) ||
                         fileName.EndsWith(".generated", StringComparison.OrdinalIgnoreCase) ||
                         fileName.EndsWith(".g", StringComparison.OrdinalIgnoreCase) ||
-                        fileName.EndsWith(".g.i", StringComparison.OrdinalIgnoreCase) ||
-                        fileName.EndsWith(".AssemblyAttributes", StringComparison.OrdinalIgnoreCase))
+                        fileName.EndsWith(".g.i", StringComparison.OrdinalIgnoreCase))
                     {
                         return true;
                     }
