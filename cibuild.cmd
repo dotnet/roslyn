@@ -43,6 +43,7 @@ REM updating the lock files.
 git diff --exit-code --quiet
 if ERRORLEVEL 1 (
     echo Commit changed dependencies without updating project.lock.json
+    git diff --exit-code
     exit /b 1
 )
 
