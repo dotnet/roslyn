@@ -35,9 +35,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private int _selectedNoLocationDiagnosticItems;
         private int _selectedNonSuppressionStateItems;
 
-        private const string SynthesizedFxCopDiagnostic = "SynthesizedFxCopDiagnostic";
-        private readonly string[] SynthesizedFxCopDiagnosticCustomTags = new string[] { SynthesizedFxCopDiagnostic };
-
         [ImportingConstructor]
         public VisualStudioDiagnosticListSuppressionStateService(
             SVsServiceProvider serviceProvider,
@@ -210,12 +207,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return snapshot as AbstractTableEntriesSnapshot<DiagnosticData>;
         }
 
-        public bool IsSynthesizedNonRoslynDiagnostic(DiagnosticData diagnostic)
-        {
-            var tags = diagnostic.CustomTags;
-            return tags != null && tags.Contains(SynthesizedFxCopDiagnostic);
-        }
-
         /// <summary>
         /// Gets <see cref="DiagnosticData"/> objects for error list entries, filtered based on the given parameters.
         /// </summary>
@@ -322,7 +313,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             isSuppressed: isSuppressedEntry,
                             title: message,
                             location: location,
-                            customTags: SynthesizedFxCopDiagnosticCustomTags);
+                            customTags: SuppressionHelpers.SynthesizedExternalSourceDiagnosticCustomTags);
 
                         diagnosticData = document != null ?
                             DiagnosticData.Create(document, diagnostic) :
