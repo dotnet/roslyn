@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
     public class AutomaticLiteralCompletionTests : AbstractAutomaticBraceCompletionTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Creation()
         {
             using (var session = CreateSessionSingleQuote("$$"))
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void String_TopLevel()
         {
             using (var session = CreateSessionDoubleQuote("$$"))
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void VerbatimString_TopLevel()
         {
             using (var session = CreateSessionDoubleQuote("@$$"))
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Char_TopLevel()
         {
             using (var session = CreateSessionSingleQuote("$$"))
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void String_TopLevel2()
         {
             using (var session = CreateSessionDoubleQuote("using System;$$"))
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void VerbatimString_TopLevel2()
         {
             using (var session = CreateSessionDoubleQuote("using System;@$$"))
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void String_String()
         {
             var code = @"class C
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void String_VerbatimString()
         {
             var code = @"class C
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void String_Char()
         {
             var code = @"class C
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Method_String()
         {
             var code = @"class C
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Method_String_Delete()
         {
             var code = @"class C
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Method_String_Tab()
         {
             var code = @"class C
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Method_String_Quotation()
         {
             var code = @"class C
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void VerbatimMethod_String()
         {
             var code = @"class C
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void VerbatimMethod_String_Delete()
         {
             var code = @"class C
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void VerbatimMethod_String_Tab()
         {
             var code = @"class C
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void VerbatimMethod_String_Quotation()
         {
             var code = @"class C
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Method_InterpolatedString()
         {
             var code = @"class C
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Method_InterpolatedString_Delete()
         {
             var code = @"class C
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Method_InterpolatedString_Tab()
         {
             var code = @"class C
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Method_InterpolatedString_Quotation()
         {
             var code = @"class C
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void VerbatimMethod_InterpolatedString()
         {
             var code = @"class C
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void VerbatimMethod_InterpolatedString_Delete()
         {
             var code = @"class C
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void VerbatimMethod_InterpolatedString_Tab()
         {
             var code = @"class C
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void VerbatimMethod_InterpolatedString_Quotation()
         {
             var code = @"class C
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Preprocessor1()
         {
             var code = @"class C
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         }
 
         [WorkItem(546047)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void VerbatimStringDoubleQuote()
         {
             var code = @"class C

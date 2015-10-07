@@ -16,7 +16,7 @@ Class Foo
     $$
 End Class]]></document>
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SnippetExpansionNoteAddedToDescription_ExactMatch()
             Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "Interface")
                 state.SendTypeChars("Interfac")
@@ -27,7 +27,7 @@ End Class]]></document>
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SnippetExpansionNoteAddedToDescription_DifferentSnippetShortcutCasing()
             Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "intErfaCE")
                 state.SendTypeChars("Interfac")
@@ -38,7 +38,7 @@ End Class]]></document>
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SnippetExpansionNoteNotAddedToDescription_ShortcutIsProperSubstringOfInsertedText()
             Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "Interfac")
                 state.SendTypeChars("Interfac")
@@ -48,7 +48,7 @@ End Class]]></document>
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SnippetExpansionNoteNotAddedToDescription_ShortcutIsProperSuperstringOfInsertedText()
             Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "Interfaces")
                 state.SendTypeChars("Interfac")
@@ -58,7 +58,7 @@ End Class]]></document>
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SnippetExpansionNoteNotAddedToDescription_DisplayTextMatchesShortcutButInsertionTextDoesNot()
             Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "DisplayText")
 
@@ -68,7 +68,7 @@ End Class]]></document>
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SnippetExpansionNoteAddedToDescription_DisplayTextDoesNotMatchShortcutButInsertionTextDoes()
             Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "InsertionText")
 

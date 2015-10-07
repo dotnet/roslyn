@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
             return new TryStatementHighlighter();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample1_1()
         {
             Test(
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample1_2()
         {
             Test(
@@ -51,7 +51,7 @@ finally {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample1_3()
         {
             Test(
@@ -70,7 +70,7 @@ finally {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample1_4()
         {
             Test(
@@ -89,7 +89,7 @@ finally {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExceptionFilter1()
         {
             Test(
@@ -108,7 +108,7 @@ finally {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExceptionFilter2()
         {
             Test(
@@ -127,7 +127,7 @@ finally {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExceptionFilter3()
         {
             Test(

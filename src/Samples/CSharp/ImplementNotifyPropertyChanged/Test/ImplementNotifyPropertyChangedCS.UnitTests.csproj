@@ -17,6 +17,7 @@
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="File References">
+    <None Include="App.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup Label="Project References">
@@ -66,6 +67,5 @@
   <ItemGroup />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
   </ImportGroup>
 </Project>

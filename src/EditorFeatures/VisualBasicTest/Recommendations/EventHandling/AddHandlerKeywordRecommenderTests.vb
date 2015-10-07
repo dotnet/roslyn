@@ -2,7 +2,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.EventHandling
     Public Class AddHandlerKeywordRecommenderTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AddHandlerHelpText()
             VerifyRecommendationDescriptionTextIs(<MethodBody>|</MethodBody>, "AddHandler",
@@ -11,13 +11,13 @@ $"{VBFeaturesResources.AddhandlerStatement}
 AddHandler {Event1}, {Handler}")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AddHandlerInMethodBody()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "AddHandler")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AddHandlerAfterStatement()
             VerifyRecommendationsContain(<MethodBody>
@@ -25,25 +25,25 @@ Dim x
 |</MethodBody>, "AddHandler")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AddHandlerMissingInClassBlock()
             VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "AddHandler")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AddHandlerInSingleLineLambda()
             VerifyRecommendationsContain(<MethodBody>Dim x = Sub() |</MethodBody>, "AddHandler")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AddHandlerInSingleLineFunctionLambda()
             VerifyRecommendationsMissing(<MethodBody>Dim x = Function() |</MethodBody>, "AddHandler")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(808406)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AddHandlerInCustomEvent()
@@ -57,7 +57,7 @@ End Class</File>
             VerifyRecommendationsContain(code, "AddHandler")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(808406)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotAddHandlerInCustomEventWithAddHandler()

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
     public class AutomaticLessAndGreaterThanCompletionTests : AbstractAutomaticBraceCompletionTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Creation()
         {
             using (var session = CreateSession("$$"))
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void InvalidLocation_TopLevel()
         {
             using (var session = CreateSession("$$"))
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void InvalidLocation_TopLevel2()
         {
             using (var session = CreateSession("using System;$$"))
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Class_TypeParameter()
         {
             var code = @"class C$$";
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Method_TypeParameter()
         {
             var code = @"class C
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Class_TypeParameter_Delete()
         {
             var code = @"class C$$";
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Class_TypeParameter_Tab()
         {
             var code = @"class C$$";
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Class_TypeParameter_GreaterThan()
         {
             var code = @"class C$$";
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Multiple_Invalid()
         {
             var code = @"class C<$$>";
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Multiple_Nested()
         {
             var code = @"class C<T>
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void TypeArgument_Invalid()
         {
             var code = @"class C
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void TypeArgument1()
         {
             var code = @"class C
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void TypeArgument2()
         {
             var code = @"class C
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         }
 
         [WorkItem(531637)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void TypeParameterReturnType()
         {
             var code = @"class C
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         }
 
         [WorkItem(531637)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void TypeParameterInDecl()
         {
             var code = @"class C
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         }
 
         [WorkItem(531637)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void TypeParameterInDeclWithAsync()
         {
             var code = @"class C
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         }
 
         [WorkItem(530864)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void TypeArgumentWithUsing()
         {
             var code = @"using System.Collections.Generic;
@@ -260,7 +260,7 @@ class C
         }
 
         [WorkItem(530864)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void TypeArgumentNoUsing()
         {
             var code = @"class C
@@ -278,7 +278,7 @@ class C
         }
 
         [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void NotInLessThanComparisonOperation()
         {
             var code = @"using System.Linq;
@@ -297,7 +297,7 @@ class C
         }
 
         [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void NotInLessThanComparisonOperationAfterConditionalAccessExpression()
         {
             var code = @"using System.Linq;
@@ -316,7 +316,7 @@ class C
         }
 
         [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void TypeArgumentInConditionalAccessExpressionSimple()
         {
             var code = @"using System.Linq;
@@ -335,7 +335,7 @@ class C
         }
 
         [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void TypeArgumentInConditionalAccessExpressionNested()
         {
             var code = @"class C
@@ -367,7 +367,7 @@ class Inner<V>
         }
 
         [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void TypeArgumentInConditionalAccessExpressionDeeplyNested()
         {
             var code = @"class C
@@ -405,7 +405,7 @@ internal class Inner
         }
 
         [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void TypeArgumentInConditionalAccessExpressionWithLambdas()
         {
             var code = @"using System;

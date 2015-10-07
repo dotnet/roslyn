@@ -7,7 +7,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class SearchGraphQueryTests
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub SearchForType()
             Using testState = New ProgressionTestState(
                     <Workspace>
@@ -39,7 +39,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545474)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545474)>
         Public Sub SearchForNestedType()
             Using testState = New ProgressionTestState(
                     <Workspace>
@@ -73,7 +73,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub SearchForMember()
             Using testState = New ProgressionTestState(
                     <Workspace>
@@ -107,7 +107,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub SearchForPartialType()
             Using testState = New ProgressionTestState(
                     <Workspace>
@@ -155,7 +155,7 @@ End Namespace
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub SearchForMethodInPartialType()
             Using testState = New ProgressionTestState(
                     <Workspace>
@@ -202,7 +202,7 @@ End Namespace
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub SearchWithResultsAcrossMultipleTypeParts()
             Using testState = New ProgressionTestState(
                     <Workspace>
@@ -254,7 +254,7 @@ End Namespace
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub SearchForDottedName1()
             Using testState = New ProgressionTestState(
                     <Workspace>
@@ -288,7 +288,7 @@ End Namespace
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub SearchForDottedName2()
             Using testState = New ProgressionTestState(
                     <Workspace>
@@ -310,7 +310,7 @@ End Namespace
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub SearchForDottedName3()
             Using testState = New ProgressionTestState(
                     <Workspace>
@@ -344,7 +344,7 @@ End Namespace
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub SearchForDottedName4()
             Using testState = New ProgressionTestState(
                     <Workspace>
@@ -378,7 +378,7 @@ End Namespace
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub SearchWithNullFilePathsOnProject()
             Using testState = New ProgressionTestState(
                     <Workspace>

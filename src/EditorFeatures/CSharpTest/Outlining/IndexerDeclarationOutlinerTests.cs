@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
             return outliner.GetOutliningSpans(indexerDecl, CancellationToken.None);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestIndexer()
         {
             var tree = ParseLines("class C",
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestIndexerWithComments()
         {
             var tree = ParseLines("class C",
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
             AssertRegion(expectedRegion2, actualRegions[1]);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestIndexerWithWithExpressionBodyAndComments()
         {
             var tree = ParseLines("class C",

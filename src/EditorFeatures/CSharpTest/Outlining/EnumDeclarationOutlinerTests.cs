@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
             return outliner.GetOutliningSpans(enumDeclaration, CancellationToken.None);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestEnum()
         {
             var tree = ParseLines("enum E",
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestEnumWithLeadingComments()
         {
             var tree = ParseLines("// Foo",
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
             AssertRegion(expectedRegion2, actualRegions[1]);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestEnumWithNestedComments()
         {
             var tree = ParseLines("enum E",

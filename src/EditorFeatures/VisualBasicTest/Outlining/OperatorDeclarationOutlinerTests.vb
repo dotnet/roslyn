@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return outliner.GetOutliningSpans(operatorDeclaration, CancellationToken.None).WhereNotNull()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestOperatorDeclaration()
             Dim tree = ParseLines("Class Base",
                                   "    Public Shared Widening Operator CType(b As Base) As Integer",
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestOperatorWithComments()
             Dim tree = ParseLines("Class Base",
                                   "    'Hello",

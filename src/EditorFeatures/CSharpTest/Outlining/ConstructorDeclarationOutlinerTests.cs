@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
             return outliner.GetOutliningSpans(constructorDeclaration, CancellationToken.None).WhereNotNull();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestConstructor1()
         {
             var tree = ParseLines("class C",
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestConstructor2()
         {
             var tree = ParseLines("class C",
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestConstructor3()
         {
             var tree = ParseLines("class C",
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestConstructor4()
         {
             var tree = ParseLines("class C",
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestConstructor5()
         {
             var tree = ParseLines("class C",
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestConstructor6()
         {
             var tree = ParseLines("class C",
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestConstructor7()
         {
             var tree = ParseLines("class C",
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestConstructor8()
         {
             var tree = ParseLines("class C",
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestConstructorWithComments()
         {
             var tree = ParseLines("class C",
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
             AssertRegion(expectedRegion2, actualRegions[1]);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestConstructorMissingCloseParenAndBody()
         {
             // Expected behavior is that the class should be outlined, but the constructor should not.

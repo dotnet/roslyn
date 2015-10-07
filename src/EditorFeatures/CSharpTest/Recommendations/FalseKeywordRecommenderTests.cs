@@ -3,22 +3,20 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-using Roslyn.Test.Utilities.Parallel;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
-    [ParallelFixture]
     public class FalseKeywordRecommenderTests : KeywordRecommenderTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void AtRoot_Interactive()
         {
             VerifyKeyword(SourceCodeKind.Script,
 @"$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void AfterClass_Interactive()
         {
             VerifyKeyword(SourceCodeKind.Script,
@@ -26,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void AfterGlobalStatement_Interactive()
         {
             VerifyKeyword(SourceCodeKind.Script,
@@ -34,7 +32,7 @@ $$");
 $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void AfterGlobalVariableDeclaration_Interactive()
         {
             VerifyKeyword(SourceCodeKind.Script,
@@ -42,14 +40,14 @@ $$");
 $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInUsingAlias()
         {
             VerifyAbsence(
 @"using Foo = $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInPreprocessor1()
         {
             VerifyAbsence(
@@ -57,7 +55,7 @@ $$");
 #$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInPreprocessor2()
         {
             VerifyAbsence(
@@ -65,70 +63,70 @@ $$");
 #line $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void InEmptyStatement()
         {
             VerifyKeyword(AddInsideMethod(
 @"$$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void InExpression()
         {
             VerifyKeyword(AddInsideMethod(
 @"var q = $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void InPPIf()
         {
             VerifyKeyword(
 @"#if $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void InPPIf_Or()
         {
             VerifyKeyword(
 @"#if a || $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void InPPIf_And()
         {
             VerifyKeyword(
 @"#if a && $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void InPPIf_Not()
         {
             VerifyKeyword(
 @"#if ! $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void InPPIf_Paren()
         {
             VerifyKeyword(
 @"#if ( $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void InPPIf_Equals()
         {
             VerifyKeyword(
 @"#if a == $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void InPPIf_NotEquals()
         {
             VerifyKeyword(
 @"#if a != $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void InPPElIf()
         {
             VerifyKeyword(
@@ -136,7 +134,7 @@ $$");
 #elif $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void InPPelIf_Or()
         {
             VerifyKeyword(
@@ -144,7 +142,7 @@ $$");
 #elif a || $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void InPPElIf_And()
         {
             VerifyKeyword(
@@ -152,7 +150,7 @@ $$");
 #elif a && $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void InPPElIf_Not()
         {
             VerifyKeyword(
@@ -160,7 +158,7 @@ $$");
 #elif ! $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void InPPElIf_Paren()
         {
             VerifyKeyword(
@@ -168,7 +166,7 @@ $$");
 #elif ( $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void InPPElIf_Equals()
         {
             VerifyKeyword(
@@ -176,7 +174,7 @@ $$");
 #elif a == $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void InPPElIf_NotEquals()
         {
             VerifyKeyword(
@@ -184,7 +182,7 @@ $$");
 #elif a != $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void AfterUnaryOperator()
         {
             VerifyKeyword(
@@ -192,7 +190,7 @@ $$");
    public static bool operator $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotAfterImplicitOperator()
         {
             VerifyAbsence(
@@ -200,7 +198,7 @@ $$");
    public static implicit operator $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotAfterExplicitOperator()
         {
             VerifyAbsence(
@@ -208,7 +206,7 @@ $$");
    public static implicit operator $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void InNamedParameter()
         {
             VerifyKeyword(AddInsideMethod(
@@ -217,7 +215,7 @@ $$");
                 hasUsings: $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void InAttribute()
         {
             VerifyKeyword(
@@ -225,7 +223,7 @@ $$");
         }
 
         [WorkItem(538804)]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInTypeOf()
         {
             VerifyAbsence(AddInsideMethod(
@@ -233,7 +231,7 @@ $$");
         }
 
         [WorkItem(538804)]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInDefault()
         {
             VerifyAbsence(AddInsideMethod(
@@ -241,7 +239,7 @@ $$");
         }
 
         [WorkItem(538804)]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInSizeOf()
         {
             VerifyAbsence(AddInsideMethod(
@@ -249,7 +247,7 @@ $$");
         }
 
         [WorkItem(544219)]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInObjectInitializerMemberContext()
         {
             VerifyAbsence(@"

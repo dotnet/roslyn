@@ -3,6 +3,7 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Extensions
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Extensions
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void SimpleInactive()
         {
             var code = @"#if false
@@ -44,7 +45,7 @@ This is inactive
             VerifyWholeLineIsActive(tree, 4);
         }
 
-        [Fact]
+        [WpfFact]
         public void InactiveEof()
         {
             var code = @"#if false
@@ -55,7 +56,7 @@ This is inactive
             VerifyWholeLineIsInactive(tree, 1);
         }
 
-        [Fact]
+        [WpfFact]
         public void InactiveEof2()
         {
             var code = @"#if false

@@ -5,7 +5,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
     Partial Public Class MethodXMLTests
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub VBInitializeComponent1()
             Dim definition =
     <Workspace>
@@ -48,7 +48,7 @@ End Class</Document>
             Test(definition, s_initializeComponentXML1)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub VBInitializeComponent2()
             Dim definition =
     <Workspace>

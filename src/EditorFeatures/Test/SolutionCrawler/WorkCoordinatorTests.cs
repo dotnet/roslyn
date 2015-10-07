@@ -22,10 +22,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
     {
         private const string SolutionCrawler = "SolutionCrawler";
 
-        [Fact]
+        [WpfFact]
         public void RegisterService()
         {
-            using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
             {
                 var registrationService = new SolutionCrawlerRegistrationService(
                     SpecializedCollections.EmptyEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>>(),
@@ -37,10 +37,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
-        [Fact, WorkItem(747226)]
+        [WpfFact, WorkItem(747226)]
         public void SolutionAdded_Simple()
         {
-            using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
             {
                 var solutionId = SolutionId.CreateNewId();
                 var projectId = ProjectId.CreateNewId();
@@ -60,10 +60,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void SolutionAdded_Complex()
         {
-            using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
 
@@ -72,10 +72,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void Solution_Remove()
         {
-            using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -86,10 +86,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void Solution_Clear()
         {
-            using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -100,10 +100,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void Solution_Reload()
         {
-            using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -114,10 +114,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void Solution_Change()
         {
-            using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
             {
                 var solutionInfo = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solutionInfo);
@@ -134,10 +134,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void Project_Add()
         {
-            using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -157,10 +157,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void Project_Remove()
         {
-            using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -174,10 +174,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void Project_Change()
         {
-            using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
             {
                 var solutionInfo = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solutionInfo);
@@ -193,10 +193,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void Project_AssemblyName_Change()
         {
-            using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
             {
                 var solutionInfo = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solutionInfo);
@@ -210,10 +210,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void Project_AnalyzerOptions_Change()
         {
-            using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
             {
                 var solutionInfo = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solutionInfo);
@@ -227,10 +227,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void Project_Reload()
         {
-            using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -242,10 +242,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void Document_Add()
         {
-            using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -260,10 +260,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void Document_Remove()
         {
-            using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -279,10 +279,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void Document_Reload()
         {
-            using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -295,10 +295,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void Document_Reanalyze()
         {
-            using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [WorkItem(670335)]
         public void Document_Change()
         {
-            using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -345,10 +345,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void Document_AdditionalFileChange()
         {
-            using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [WorkItem(670335)]
         public void Document_Cancellation()
         {
-            using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [WorkItem(670335)]
         public void Document_Cancellation_MultipleTimes()
         {
-            using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [WorkItem(670335)]
         public void Document_InvocationReasons()
         {
-            using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void Document_TopLevelType_Whitespace()
         {
             var code = @"class C { $$ }";
@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             InsertText(code, textToInsert, expectDocumentAnalysis: true);
         }
 
-        [Fact]
+        [WpfFact]
         public void Document_TopLevelType_Character()
         {
             var code = @"class C { $$ }";
@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             InsertText(code, textToInsert, expectDocumentAnalysis: true);
         }
 
-        [Fact]
+        [WpfFact]
         public void Document_TopLevelType_NewLine()
         {
             var code = @"class C { $$ }";
@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             InsertText(code, textToInsert, expectDocumentAnalysis: true);
         }
 
-        [Fact]
+        [WpfFact]
         public void Document_TopLevelType_NewLine2()
         {
             var code = @"class C { $$";
@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             InsertText(code, textToInsert, expectDocumentAnalysis: true);
         }
 
-        [Fact]
+        [WpfFact]
         public void Document_EmptyFile()
         {
             var code = @"$$";
@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             InsertText(code, textToInsert, expectDocumentAnalysis: true);
         }
 
-        [Fact]
+        [WpfFact]
         public void Document_TopLevel1()
         {
             var code = @"class C
@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             InsertText(code, textToInsert, expectDocumentAnalysis: true);
         }
 
-        [Fact]
+        [WpfFact]
         public void Document_TopLevel2()
         {
             var code = @"class C
@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             InsertText(code, textToInsert, expectDocumentAnalysis: true);
         }
 
-        [Fact]
+        [WpfFact]
         public void Document_TopLevel3()
         {
             var code = @"class C
@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             InsertText(code, textToInsert, expectDocumentAnalysis: true);
         }
 
-        [Fact]
+        [WpfFact]
         public void Document_InteriorNode1()
         {
             var code = @"class C
@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             InsertText(code, textToInsert, expectDocumentAnalysis: false);
         }
 
-        [Fact]
+        [WpfFact]
         public void Document_InteriorNode2()
         {
             var code = @"class C
@@ -586,7 +586,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             InsertText(code, textToInsert, expectDocumentAnalysis: false);
         }
 
-        [Fact]
+        [WpfFact]
         public void Document_InteriorNode_Field()
         {
             var code = @"class C
@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             InsertText(code, textToInsert, expectDocumentAnalysis: false);
         }
 
-        [Fact]
+        [WpfFact]
         public void Document_InteriorNode_Field1()
         {
             var code = @"class C
@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             InsertText(code, textToInsert, expectDocumentAnalysis: false);
         }
 
-        [Fact]
+        [WpfFact]
         public void Document_InteriorNode_Accessor()
         {
             var code = @"class C
@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             InsertText(code, textToInsert, expectDocumentAnalysis: false);
         }
 
-        [Fact]
+        [WpfFact]
         public void Document_TopLevelWhitespace()
         {
             var code = @"class C
@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             InsertText(code, textToInsert, expectDocumentAnalysis: true);
         }
 
-        [Fact]
+        [WpfFact]
         public void Document_TopLevelWhitespace2()
         {
             var code = @"/// $$
@@ -658,7 +658,7 @@ class C
             InsertText(code, textToInsert, expectDocumentAnalysis: true);
         }
 
-        [Fact]
+        [WpfFact]
         public void Document_InteriorNode_Malformed()
         {
             var code = @"class C
@@ -671,7 +671,7 @@ class C
             InsertText(code, textToInsert, expectDocumentAnalysis: true);
         }
 
-        [Fact]
+        [WpfFact]
         public void VBPropertyTest()
         {
             var markup = @"Class C
@@ -695,12 +695,12 @@ End Class";
             Assert.Equal(0, memberId);
         }
 
-        [Fact, WorkItem(739943)]
+        [WpfFact, WorkItem(739943)]
         public void SemanticChange_Propagation()
         {
             var solution = GetInitialSolutionInfoWithP2P();
 
-            using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
             {
                 workspace.OnSolutionAdded(solution);
                 WaitWaiter(workspace.ExportProvider);
@@ -722,12 +722,12 @@ End Class";
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void ProgressReporterTest()
         {
             var solution = GetInitialSolutionInfoWithP2P();
 
-            using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
             {
                 WaitWaiter(workspace.ExportProvider);
 
@@ -907,7 +907,7 @@ End Class";
                         });
         }
 
-        private IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> GetListeners(ExportProvider provider)
+        private static IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> GetListeners(ExportProvider provider)
         {
             return provider.GetExports<IAsynchronousOperationListener, FeatureMetadata>();
         }
@@ -916,13 +916,48 @@ End Class";
         [Export(typeof(IAsynchronousOperationListener))]
         [Export(typeof(IAsynchronousOperationWaiter))]
         [Feature(FeatureAttribute.SolutionCrawler)]
-        private class SolutionCrawlerWaiter : AsynchronousOperationListener { }
+        private class SolutionCrawlerWaiter : AsynchronousOperationListener
+        {
+            internal SolutionCrawlerWaiter()
+            {
+
+            }
+        }
 
         [Shared]
         [Export(typeof(IAsynchronousOperationListener))]
         [Export(typeof(IAsynchronousOperationWaiter))]
         [Feature(FeatureAttribute.Workspace)]
-        private class WorkspaceWaiter : AsynchronousOperationListener { }
+        private class WorkspaceWaiter : AsynchronousOperationListener
+        {
+            internal WorkspaceWaiter()
+            {
+
+            }
+        }
+
+        private class WorkCoordinatorWorkspace : TestWorkspace
+        {
+            private readonly IAsynchronousOperationWaiter _workspaceWaiter;
+            private readonly IAsynchronousOperationWaiter _solutionCrawlerWaiter;
+
+            public WorkCoordinatorWorkspace(ExportProvider exportProvider, string workspaceKind = null, bool disablePartialSolutions = true)
+                : base(exportProvider, workspaceKind, disablePartialSolutions)
+            {
+                _workspaceWaiter = GetListeners(ExportProvider).First(l => l.Metadata.FeatureName == FeatureAttribute.Workspace).Value as IAsynchronousOperationWaiter;
+                _solutionCrawlerWaiter = GetListeners(ExportProvider).First(l => l.Metadata.FeatureName == FeatureAttribute.SolutionCrawler).Value as IAsynchronousOperationWaiter;
+
+                Assert.False(_workspaceWaiter.HasPendingWork);
+                Assert.False(_solutionCrawlerWaiter.HasPendingWork);
+            }
+
+            protected override void Dispose(bool finalize)
+            {
+                base.Dispose(finalize);
+                Assert.False(_workspaceWaiter.HasPendingWork);
+                Assert.False(_solutionCrawlerWaiter.HasPendingWork);
+            }
+        }
 
         private class AnalyzerProvider : IIncrementalAnalyzerProvider
         {

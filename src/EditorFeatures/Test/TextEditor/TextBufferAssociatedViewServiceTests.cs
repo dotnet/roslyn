@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
 {
     public class TextBufferAssociatedViewServiceTests
     {
-        [Fact]
+        [WpfFact]
         public void SanityCheck()
         {
             var viewMock = new Mock<IWpfTextView>();

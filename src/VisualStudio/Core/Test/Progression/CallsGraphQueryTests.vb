@@ -6,7 +6,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class CallsGraphQueryTests
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub CallsSimpleTests()
             Using testState = New ProgressionTestState(
                     <Workspace>
@@ -45,7 +45,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub CallsLambdaTests()
             Using testState = New ProgressionTestState(
                     <Workspace>
@@ -89,7 +89,7 @@ class A
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub CallsPropertiesTests()
             Using testState = New ProgressionTestState(
                     <Workspace>
@@ -124,7 +124,7 @@ class A
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub CallsDelegatesTests()
             Using testState = New ProgressionTestState(
                     <Workspace>
@@ -178,7 +178,7 @@ class C
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub CallsDelegateCreationExpressionTests()
             Using testState = New ProgressionTestState(
                     <Workspace>

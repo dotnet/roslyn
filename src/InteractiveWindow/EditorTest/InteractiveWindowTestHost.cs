@@ -27,8 +27,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
         internal InteractiveWindowTestHost(Action<InteractiveWindow.State> stateChangedHandler = null)
         {
-            SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
-
             _exportProvider = new CompositionContainer(
                 _lazyCatalog.Value,
                 CompositionOptions.DisableSilentRejection | CompositionOptions.IsThreadSafe);

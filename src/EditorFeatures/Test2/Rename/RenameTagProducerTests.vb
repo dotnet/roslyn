@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Next
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ValidTagsDuringSimpleRename()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(922197)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub UnresolvableConflictInModifiedDocument()
@@ -188,7 +188,7 @@ class Program
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VerifyLinkedFiles_InterleavedResolvedConflicts()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -298,7 +298,7 @@ public class Class1
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VerifyLinkedFiles_UnresolvableConflictComments()
             Dim originalDocument = "
@@ -372,7 +372,7 @@ public class Class1
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(922197)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub UnresolvableConflictInUnmodifiedDocument()
@@ -408,7 +408,7 @@ public class Class1
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(847467)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ValidStateWithEmptyReplacementTextAfterConflictResolution()
@@ -480,7 +480,7 @@ public class Class1
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(812789)>
         Public Sub RenamingEscapedIdentifiers()
@@ -537,7 +537,7 @@ class C
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(812795)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub BackspacingAfterConflictResolutionPreservesTrackingSpans()
@@ -620,7 +620,7 @@ class C
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharp_FixupSpanDuringResolvableConflict_NonReferenceConflict()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -697,7 +697,7 @@ class C
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VisualBasic_FixupSpanDuringResolvableConflict_NonReferenceConflict()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -768,7 +768,7 @@ class C
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharp_FixupSpanDuringResolvableConflict_ReferenceConflict()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -840,7 +840,7 @@ class Foo
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VisualBasic_FixupSpanDuringResolvableConflict_ReferenceConflict()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -907,7 +907,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharp_FixupSpanDuringResolvableConflict_NeedsEscaping()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -984,7 +984,7 @@ class Foo
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VisualBasic_FixupSpanDuringResolvableConflict_NeedsEscaping()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1055,7 +1055,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub FixupSpanDuringResolvableConflict_VerifyCaret()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1134,7 +1134,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(771743)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VerifyNoSelectionAfterCommit()
@@ -1180,7 +1180,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharp_FixupSpanDuringResolvableConflict_ComplexificationOutsideConflict()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1280,7 +1280,7 @@ class Program
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharp_FixupSpanDuringResolvableConflict_ContainedComplexifiedSpan()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1349,7 +1349,7 @@ namespace N
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharp_FixupSpanDuringResolvableConflict_ComplexificationReordersReferenceSpans()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1408,7 +1408,7 @@ class C
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharp_FixupSpanDuringResolvableConflict_WithinCrefs()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1495,7 +1495,7 @@ class C
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharp_FixupSpanDuringResolvableConflict_OverLoadResolutionChangesInEnclosingInvocations()
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1580,7 +1580,7 @@ static class E
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(530817)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharpShowDeclarationConflictsImmediately()
@@ -1616,7 +1616,7 @@ static class E
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(530817)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VBShowDeclarationConflictsImmediately()
@@ -1650,7 +1650,7 @@ static class E
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ActiveSpanInSecondaryView()
             Using workspace = CreateWorkspaceWithWaiter(

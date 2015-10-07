@@ -8,7 +8,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Public Class CSharpIntelliSenseCommandHandlerTests
-        <Fact>
+        <WpfFact>
         Public Sub TestOpenParenDismissesCompletionAndBringsUpSignatureHelp1()
             Using state = TestState.CreateCSharpTestState(
                               <Document>
@@ -33,7 +33,7 @@ class C
         End Sub
 
         <WorkItem(543913)>
-        <Fact>
+        <WpfFact>
         Public Sub TestEscapeDismissesCompletionFirst()
             Using state = TestState.CreateCSharpTestState(
                               <Document>
@@ -59,7 +59,7 @@ class C
         End Sub
 
         <WorkItem(531149)>
-        <Fact>
+        <WpfFact>
         Public Sub TestCutDismissesCompletion()
             Using state = TestState.CreateCSharpTestState(
                               <Document>
@@ -81,7 +81,7 @@ class C
         End Sub
 
         <WorkItem(531149)>
-        <Fact>
+        <WpfFact>
         Public Sub TestPasteDismissesCompletion()
             Using state = TestState.CreateCSharpTestState(
                               <Document>

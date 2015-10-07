@@ -5,7 +5,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class AwaitKeywordRecommenderTests
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub InSynchronousMethod()
             VerifyRecommendationsContain(<File>
 Class C
@@ -16,7 +16,7 @@ End Class
                                          </File>, "Await")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub InMethodStatement()
             VerifyRecommendationsContain(<File>
 Class C
@@ -27,7 +27,7 @@ End Class
                                          </File>, "Await")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub InMethodExpression()
             VerifyRecommendationsContain(<File>
 Class C
@@ -38,7 +38,7 @@ End Class
                                          </File>, "Await")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotInCatch()
             VerifyRecommendationsMissing(<File>
 Class C
@@ -53,7 +53,7 @@ End Class
                                          </File>, "Await")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotInCatchExceptionFilter()
             VerifyRecommendationsMissing(<File>
 Class C
@@ -67,7 +67,7 @@ End Class
                                          </File>, "Await")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub InCatchNestedDelegate()
             VerifyRecommendationsContain(<File>
 Class C
@@ -82,7 +82,7 @@ End Class
                                          </File>, "Await")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotInFinally()
             VerifyRecommendationsMissing(<File>
 Class C
@@ -97,7 +97,7 @@ End Class
                                          </File>, "Await")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotInSyncLock()
             VerifyRecommendationsMissing(<File>
 Class C

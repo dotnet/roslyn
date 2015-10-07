@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
             Return VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(definition, DirectCast(parseOptions, VisualBasicParseOptions), DirectCast(compilationOptions, VisualBasicCompilationOptions))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Delegates_ImplicitInvokeCalls()
             Dim markup = <Text><![CDATA[
 Delegate Sub $$MySub(x As Integer, y As String, z As Boolean)
@@ -47,7 +47,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Delegates_ExplicitInvokeCalls()
             Dim markup = <Text><![CDATA[
 Delegate Sub $$MySub(x As Integer, y As String, z As Boolean)
@@ -73,7 +73,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Delegates_BeginInvokeCalls()
             Dim markup = <Text><![CDATA[
 Delegate Sub $$MySub(x As Integer, y As String, z As Boolean)
@@ -99,7 +99,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Delegates_SubLambdas()
             Dim markup = <Text><![CDATA[
 Delegate Sub $$MySub(x As Integer, y As String, z As Boolean)
@@ -139,7 +139,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Delegates_FunctionLambdas()
             Dim markup = <Text><![CDATA[
 Delegate Function $$MyFunc(x As Integer, y As String, z As Boolean) As Integer
@@ -183,7 +183,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Delegates_ReferencingLambdas_MethodArgument()
             Dim markup = <Text><![CDATA[
 Delegate Function $$MyFunc(x As Integer, y As String, z As Boolean) As Integer
@@ -215,7 +215,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Delegates_ReferencingLambdas_ReturnValue()
             Dim markup = <Text><![CDATA[
 Delegate Sub $$MySub(x As Integer, y As String, z As Boolean)
@@ -249,7 +249,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Delegates_Recursive()
             Dim markup = <Text><![CDATA[
 Delegate Function $$MyFunc(x As Integer, y As String, z As Boolean) As MyFunc
@@ -275,7 +275,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Delegates_DocComments()
             Dim markup = <Text><![CDATA[
 ''' <summary>
@@ -331,7 +331,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Delegates_Relaxation_FunctionToSub()
             Dim markup = <Text><![CDATA[
 Delegate Sub $$MySub(x As Integer, y As String, z As Boolean)
@@ -363,7 +363,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Delegates_Relaxation_ParameterlessFunctionToFunction()
             Dim markup = <Text><![CDATA[
 Delegate Function $$MyFunc(x As Integer, y As String, z As Boolean) As Integer
@@ -395,7 +395,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Delegates_CascadeToEvents()
             Dim markup = <Text><![CDATA[
 Class C
@@ -441,7 +441,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Events_ReferencedBy_RaiseEvent()
             Dim markup = <Text><![CDATA[
 Class C
@@ -465,7 +465,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Events_ReferencedBy_AddHandler()
             Dim markup = <Text><![CDATA[
 Class C
@@ -495,7 +495,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Events_ReferencedBy_GeneratedDelegateTypeInvocations()
             Dim markup = <Text><![CDATA[
 Class C
@@ -525,7 +525,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Events_ReferencedBy_HandlesClause()
             Dim markup = <Text><![CDATA[
 Class C
@@ -547,7 +547,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_CustomEvents_ReferencedBy_RaiseEvent()
             Dim markup = <Text><![CDATA[
 Class C
@@ -587,7 +587,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_CustomEvents_ReferencedBy_AddHandler()
             Dim markup = <Text><![CDATA[
 Class C
@@ -633,7 +633,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_CustomEvents_ReferencedBy_Invocations()
             Dim markup = <Text><![CDATA[
 Class C
@@ -679,7 +679,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_CustomEvents_ReferencedBy_HandlesClause()
             Dim markup = <Text><![CDATA[
 Class C
@@ -717,7 +717,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Delegates_Generics()
             Dim markup = <Text><![CDATA[
 Delegate Sub $$MyDelegate(Of T)(t As T)

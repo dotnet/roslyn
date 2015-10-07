@@ -7,6 +7,7 @@ using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
@@ -21,10 +22,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
             _service = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue<IForegroundNotificationService>();
         }
 
-        [Fact]
+        [WpfFact]
         public void Test_Enqueue()
         {
-            var asyncToken = AggregateAsynchronousOperationListener.CreateEmptyListener().BeginAsyncOperation("EnqueueTest");
+            var asyncToken = EmptyAsyncToken.Instance;
             var done = false;
             var ran = false;
 
@@ -38,12 +39,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
             Assert.True(Empty(_service));
         }
 
-        [Fact]
+        [WpfFact]
         public void Test_Cancellation()
         {
             using (var waitEvent = new AutoResetEvent(initialState: false))
             {
-                var asyncToken = AggregateAsynchronousOperationListener.CreateEmptyListener().BeginAsyncOperation("EnqueueTest");
+                var asyncToken = EmptyAsyncToken.Instance;
                 var done = false;
                 var ran = false;
 
@@ -62,10 +63,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void Test_Delay()
         {
-            var asyncToken = AggregateAsynchronousOperationListener.CreateEmptyListener().BeginAsyncOperation("EnqueueTest");
+            var asyncToken = EmptyAsyncToken.Instance;
 
             bool done = false;
             DateTime now = DateTime.UtcNow;
@@ -83,10 +84,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
             Assert.True(Empty(_service));
         }
 
-        [Fact]
+        [WpfFact]
         public void Test_HeavyMultipleCall()
         {
-            var asyncToken = AggregateAsynchronousOperationListener.CreateEmptyListener().BeginAsyncOperation("EnqueueTest");
+            var asyncToken = EmptyAsyncToken.Instance;
             var count = 0;
 
             var loopCount = 100000;

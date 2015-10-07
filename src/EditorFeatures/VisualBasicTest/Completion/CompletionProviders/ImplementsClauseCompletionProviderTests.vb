@@ -8,11 +8,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
     Public Class ImplementsClauseCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
+        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
+            MyBase.New(workspaceFixture)
+        End Sub
+
         Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
             Return New ImplementsClauseCompletionProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SuggestInterfaces()
             Dim text = <text>Interface I
     Sub Foo()
@@ -32,7 +36,7 @@ End Class</text>.Value
         End Sub
 
         <WorkItem(995986)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SuggestAliasedInterfaces()
             Dim text = <text>Imports IAliasToI = I
 Imports IAliasToJ = J
@@ -56,7 +60,7 @@ End Class</text>.Value
         End Sub
 
         <WorkItem(995986)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SuggestAliasedNamespace()
             Dim text = <text>Imports AliasedNS = NS
 Namespace NS
@@ -80,7 +84,7 @@ End Namespace</text>.Value
             VerifyItemExists(text, "J")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SubSuggestSub()
             Dim text = <text>Interface I
     Sub Foo()
@@ -96,7 +100,7 @@ End Class</text>.Value
             VerifyItemIsAbsent(text, "Bar")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub FunctionSuggestFunction()
             Dim text = <text>Interface I
     Sub Foo()
@@ -112,7 +116,7 @@ End Class</text>.Value
             VerifyItemIsAbsent(text, "Foo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SuggestClassContainingInterface()
             Dim text = <text>Public Class B
     Public Interface I
@@ -129,7 +133,7 @@ End Class</text>.Value
             VerifyItemExists(text, "B")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub DoNotSuggestAlreadyImplementedMember()
             Dim text = <text>Interface I
     Sub Foo()
@@ -148,7 +152,7 @@ End Class</text>.Value
             VerifyNoItemsExist(text)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoInterfaceImplementations()
             Dim text = <text>Interface I
     Sub Foo()
@@ -163,7 +167,7 @@ End Class</text>.Value
             VerifyNoItemsExist(text)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub PropertyImplementation()
             Dim text = <text>Interface I
     Sub Foo()
@@ -180,7 +184,7 @@ End Class</text>.Value
             VerifyItemIsAbsent(text, "Foo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EventImplementation()
             Dim text = <text>Interface I
     Sub Foo()
@@ -197,7 +201,7 @@ End Class</text>.Value
             VerifyItemIsAbsent(text, "Foo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AfterGlobal()
             Dim text = <text>Interface I
     Sub Foo()
@@ -213,7 +217,7 @@ End Class</text>.Value
             VerifyItemExists(text, "I")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(546391)>
         Public Sub AfterProperty()
             Dim text = <text>Imports System
@@ -237,7 +241,7 @@ End Class
             VerifyItemExists(text, "Global")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(546410)>
         Public Sub SuggestionInImplementsList()
             Dim text = <text>Imports System
@@ -258,7 +262,7 @@ End Class
             VerifyItemIsAbsent(text, "I", Nothing, Nothing, True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(546413)>
         Public Sub NestedInterface()
             Dim text = <text>Namespace Outer
@@ -282,7 +286,7 @@ End Class</text>.Value
             VerifyItemIsAbsent(text, "J")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(546413)>
         Public Sub NoNestedInterface()
             Dim text = <text>Public Class B
@@ -301,7 +305,7 @@ End Class
             VerifyItemIsAbsent(text, "I")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(546405)>
         Public Sub DotIntoGlobal()
             Dim text = <text>Imports System
@@ -315,7 +319,7 @@ End Class
             VerifyItemIsAbsent(text, "I")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(546415)>
         Public Sub InheritedInterfaceMembers()
             Dim text = <text>Interface I1
@@ -336,7 +340,7 @@ End Class
             VerifyItemExists(text, "Global")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(546415)>
         <WorkItem(546488)>
         Public Sub InheritedInterfaceMembers2()
@@ -357,7 +361,7 @@ End Class
             VerifyItemIsAbsent(text, "Equals")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(546415)>
         Public Sub InheritedInterface()
             Dim text = <text>Interface I1
@@ -376,7 +380,7 @@ End Class</text>.Value
             VerifyItemExists(text, "I1")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(530353)>
         Public Sub NothingToImplement()
             Dim text = <text>Interface I
@@ -400,7 +404,7 @@ End Class</text>.Value
             VerifyItemExists(text, "Global")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(546431)>
         Public Sub NextToImplicitLineContinuation()
             Dim text = <text>Public Interface I2
@@ -416,7 +420,7 @@ End Class
             VerifyItemExists(text, "Goo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(546431)>
         Public Sub NextToImplicitLineContinuation2()
             Dim text = <text>Public Interface I2
@@ -433,7 +437,7 @@ End Class
             VerifyItemExists(text, "I2")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(546406)>
         Public Sub DisplayTypeArguments()
             Dim text = <text>Imports System
@@ -447,7 +451,7 @@ End Class
             VerifyItemExists(text, "IEquatable(Of Integer)")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(546406)>
         Public Sub CommitTypeArgumentsOnParen()
             Dim text = <text>Imports System
@@ -466,7 +470,7 @@ End Class</text>.Value
         End Sub
 
         <WorkItem(546802)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub KeywordIdentifierShowUnescaped()
             Dim text = <text>Interface [Interface]
     Sub Foo()
@@ -481,7 +485,7 @@ End Class</text>.Value
             VerifyItemExists(text, "Interface")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub KeywordIdentifierCommitEscaped()
             Dim text = <text>Interface [Interface]
     Sub Foo()
@@ -507,7 +511,7 @@ End Class</text>.Value
         End Sub
 
         <WorkItem(543812)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EventsAfterDotInImplementsClause()
             Dim markup = <Text>
 Interface i
@@ -524,7 +528,7 @@ Class C1(Of t)
             VerifyItemExists(markup, "myevent")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InterfaceImplementsSub()
             Dim test = <Text>
 Interface IFoo
@@ -543,7 +547,7 @@ End Class
             VerifyItemIsAbsent(test, "P1")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InterfaceImplementsFunction()
             Dim test = <Text>
 Interface IFoo
@@ -562,7 +566,7 @@ End Class
             VerifyItemIsAbsent(test, "P1")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InterfaceImplementsProperty()
             Dim test = <Text>
 Interface IFoo
@@ -581,7 +585,7 @@ End Class
             VerifyItemExists(test, "P1")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub VerifyDescription()
             Dim test = <Text><![CDATA[
 Interface IFoo
@@ -602,7 +606,7 @@ End Class
         End Sub
 
         <WorkItem(530507)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub RootNamespaceInDefaultListing()
 
             Dim workspace =
@@ -646,7 +650,7 @@ End Interface
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NotInTrivia()
             Dim text = <text>Interface I
     Sub Foo()
@@ -664,7 +668,7 @@ End Class</text>.Value
             VerifyNoItemsExist(text)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ReimplementInterfaceImplementedByBase()
             Dim text = <text>Interface I
     Sub Foo()
@@ -688,7 +692,7 @@ End Class</text>.Value
             VerifyItemExists(text, "I")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ReimplementInterfaceImplementedByBase2()
             Dim text = <text>Interface I
     Sub Foo()

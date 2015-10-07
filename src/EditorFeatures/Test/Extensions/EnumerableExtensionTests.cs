@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             return values;
         }
 
-        [Fact]
+        [WpfFact]
         public void TestDo()
         {
             var elements = Enumerable(1, 2, 3);
@@ -27,27 +28,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             Assert.True(elements.SequenceEqual(result));
         }
 
-        [Fact]
+        [WpfFact]
         public void TestConcat()
         {
             var elements = Enumerable(1, 2, 3);
             Assert.True(Enumerable(1, 2, 3, 4).SequenceEqual(elements.Concat(4)));
         }
 
-        [Fact]
+        [WpfFact]
         public void TestSetEquals()
         {
             Assert.True(Enumerable(1, 2, 3, 4).SetEquals(Enumerable(4, 2, 3, 1)));
         }
 
-        [Fact]
+        [WpfFact]
         public void TestIsEmpty()
         {
             Assert.True(Enumerable<int>().IsEmpty());
             Assert.False(Enumerable(0).IsEmpty());
         }
 
-        [Fact]
+        [WpfFact]
         public void TestAll()
         {
             Assert.True(Enumerable<bool>().All());
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             Assert.False(Enumerable(false, true).All());
         }
 
-        [Fact]
+        [WpfFact]
         public void TestJoin()
         {
             Assert.Equal(string.Empty, Enumerable<string>().Join(", "));
@@ -69,14 +70,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             Assert.Equal("a, b, c", Enumerable("a", "b", "c").Join(", "));
         }
 
-        [Fact]
+        [WpfFact]
         public void TestFlatten()
         {
             var sequence = Enumerable(Enumerable("a", "b"), Enumerable("c", "d"), Enumerable("e", "f"));
             Assert.True(sequence.Flatten().SequenceEqual(Enumerable("a", "b", "c", "d", "e", "f")));
         }
 
-        [Fact]
+        [WpfFact]
         public void TestSequenceEqualWithFunction()
         {
             Func<int, int, bool> equality = (a, b) => a == b;

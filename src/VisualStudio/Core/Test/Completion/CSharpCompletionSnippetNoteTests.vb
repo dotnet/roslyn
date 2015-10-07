@@ -20,7 +20,7 @@ class C
 }]]></document>
 
         <WorkItem(726497)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SnippetExpansionNoteAddedToDescription_ExactMatch()
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "interface")
                 state.SendTypeChars("interfac")
@@ -32,7 +32,7 @@ class C
         End Sub
 
         <WorkItem(726497)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SnippetExpansionNoteAddedToDescription_DifferentSnippetShortcutCasing()
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "intErfaCE")
                 state.SendTypeChars("interfac")
@@ -43,7 +43,7 @@ class C
         End Sub
 
         <WorkItem(726497)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SnippetExpansionNoteNotAddedToDescription_ShortcutIsProperSubstringOfInsertedText()
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "interfac")
                 state.SendTypeChars("interfac")
@@ -55,7 +55,7 @@ class C
         End Sub
 
         <WorkItem(726497)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SnippetExpansionNoteNotAddedToDescription_ShortcutIsProperSuperstringOfInsertedText()
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "interfaces")
                 state.SendTypeChars("interfac")
@@ -65,7 +65,7 @@ class C
         End Sub
 
         <WorkItem(726497)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SnippetExpansionNoteAddedToDescription_DisplayTextDoesNotMatchShortcutButInsertionTextDoes()
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "InsertionText")
 
@@ -75,7 +75,7 @@ class C
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.Interactive)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub SnippetExpansionNoteNotAddedToDescription_Interactive()
             Dim workspaceXml =
                 <Workspace>
