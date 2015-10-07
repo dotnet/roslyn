@@ -175,16 +175,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             throw Exceptions.ThrowEUnexpected();
         }
 
-        private void AddElement(SyntaxNodeKey nodeKey, EnvDTE.CodeElement element)
-        {
-            _codeElementTable.Add(nodeKey, element);
-        }
-
-        private void RemoveElement(SyntaxNodeKey nodeKey)
-        {
-            _codeElementTable.Remove(nodeKey);
-        }
-
         internal void UpdateCodeElementNodeKey(AbstractKeyedCodeElement keyedElement, SyntaxNodeKey oldNodeKey, SyntaxNodeKey newNodeKey)
         {
             var codeElement = _codeElementTable.Remove(oldNodeKey);
@@ -198,9 +188,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _codeElementTable.Add(newNodeKey, codeElement);
         }
 
-        internal void OnElementCreated(SyntaxNodeKey nodeKey, EnvDTE.CodeElement element)
+        internal void OnCodeElementCreated(SyntaxNodeKey nodeKey, EnvDTE.CodeElement element)
         {
-            AddElement(nodeKey, element);
+            _codeElementTable.Add(nodeKey, element);
         }
 
         internal T GetOrCreateCodeElement<T>(SyntaxNode node)
@@ -209,39 +199,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             if (!nodeKey.IsEmpty)
             {
-                // Check if the node exists in the parse tree.
-                // Note that in designer spew the nodes don't get created right away so we skip this check.
-                if (!IsBatchOpen && CodeModelService.LookupNode(nodeKey, GetSyntaxTree()) == null)
+                // Since the node already has a key, check to see if a code element already
+                // exists for it. If so, return that element it it's still valid; otherwise,
+                // remove it from the table.
+
+                EnvDTE.CodeElement codeElement;
+                if (_codeElementTable.TryGetValue(nodeKey, out codeElement))
                 {
-                    throw Exceptions.ThrowEFail();
-                }
-
-                // See if the element exists.
-                // Here's our element... possibly.  It must be valid -- if it isn't,
-                // we need to remove it.
-
-                EnvDTE.CodeElement element;
-                if (_codeElementTable.TryGetValue(nodeKey, out element))
-                {
-                    var previousElementImpl = ComAggregate.TryGetManagedObject<AbstractCodeElement>(element);
-
-                    if (previousElementImpl.IsValidNode())
+                    var element = ComAggregate.TryGetManagedObject<AbstractCodeElement>(codeElement);
+                    if (element.IsValidNode())
                     {
-                        if (element is T)
+                        if (codeElement is T)
                         {
-                            return (T)element;
+                            return (T)codeElement;
                         }
-                        else
-                        {
-                            Debug.Fail("Called asked for the wrong type!");
-                            throw new InvalidOperationException();
-                        }
+
+                        throw new InvalidOperationException($"Found a valid code element for {nodeKey}, but it is not of type, {typeof(T).ToString()}");
                     }
                     else
                     {
-                        // This guy is no longer valid, so yank it out.  No sense
-                        // continuing to look for a match, either.
-                        RemoveElement(nodeKey);
+                        _codeElementTable.Remove(nodeKey);
                     }
                 }
             }
