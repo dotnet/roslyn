@@ -123,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     (TLanguageService)this, v, commandHandlerFactory, optionsService, EditorAdaptersFactoryService).AttachToVsTextView());
 
             var openDocument = wpfTextView.TextBuffer.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
-            bool isOpenMetadataAsSource = openDocument != null && openDocument.Project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource;
+            var isOpenMetadataAsSource = openDocument != null && openDocument.Project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource;
 
             var outliningManagerService = this.Package.ComponentModel.GetService<IOutliningManagerService>();
             var outliningManager = outliningManagerService.GetOutliningManager(wpfTextView);
@@ -136,25 +136,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 var viewEx = textView as IVsTextViewEx;
                 if (viewEx != null)
                 {
-                    // We need to get our outlining tag source to notify it to start blocking
-                    var outliningTaggerProvider = this.Package.ComponentModel.GetService<OutliningTaggerProvider>();
-
-                    // If this file is a metadata-from-source file, we want to force-collapse
                     if (isOpenMetadataAsSource)
                     {
-                        var subjectBuffer = wpfTextView.TextBuffer;
-                        var snapshot = subjectBuffer.CurrentSnapshot;
-                        var fullSpan = snapshot.GetFullSpan();
-                        var tagger = outliningTaggerProvider.CreateTagger<IOutliningRegionTag>(subjectBuffer);
-                        using (var disposable = tagger as IDisposable)
-                        {
-                            tagger.GetAllTags(new NormalizedSnapshotSpanCollection(fullSpan), CancellationToken.None);
-
-                            outliningManager.CollapseAll(fullSpan, c => c.Tag.IsImplementation);
-                        }
+                        // If this file is a metadata-from-source file, we want to force-collapse any implementations.
+                        SynchronouslyComputeOutliningTags(wpfTextView, outliningManager, c => c.Tag.IsImplementation);
                     }
                     else
                     {
+                        if (ContainsRegionTag(wpfTextView.TextSnapshot))
+                        {
+                            // We also want to automatically collapse any region tags if the file contains them.
+                            SynchronouslyComputeOutliningTags(wpfTextView, outliningManager);
+                        }
+
                         // Set the initial outlining state by reading from the suo file, this operation requires
                         // us to synchronously compute the outlining region tags.
                         viewEx.PersistOutliningState();
@@ -175,6 +169,53 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 {
                     var cookie = runningDocumentTable4.GetDocumentCookie(openDocument.FilePath);
                     runningDocumentTable.ModifyDocumentFlags(cookie, (uint)_VSRDTFLAGS.RDT_DontAddToMRU | (uint)_VSRDTFLAGS.RDT_CantSave, fSet: 1);
+                }
+            }
+        }
+
+        private bool ContainsRegionTag(ITextSnapshot textSnapshot)
+        {
+            foreach (var line in textSnapshot.Lines)
+            {
+                if (StartsWithRegionTag(line))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool StartsWithRegionTag(ITextSnapshotLine line)
+        {
+            var snapshot = line.Snapshot;
+            var start = line.GetFirstNonWhitespacePosition();
+            if (start != null)
+            {
+                var index = start.Value;
+                return line.StartsWith(index, "#region", ignoreCase: true);
+            }
+
+            return false;
+        }
+
+        private void SynchronouslyComputeOutliningTags(
+            IWpfTextView wpfTextView, IOutliningManager outliningManager, Predicate<ICollapsible> collapse = null)
+        {
+            // We need to get our outlining tag source to notify it to start blocking
+            var outliningTaggerProvider = this.Package.ComponentModel.GetService<OutliningTaggerProvider>();
+
+            var subjectBuffer = wpfTextView.TextBuffer;
+            var snapshot = subjectBuffer.CurrentSnapshot;
+            var fullSpan = snapshot.GetFullSpan();
+            var tagger = outliningTaggerProvider.CreateTagger<IOutliningRegionTag>(subjectBuffer);
+            using (var disposable = tagger as IDisposable)
+            {
+                tagger.GetAllTags(new NormalizedSnapshotSpanCollection(fullSpan), CancellationToken.None);
+
+                if (collapse != null)
+                {
+                    outliningManager.CollapseAll(fullSpan, collapse);
                 }
             }
         }
