@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal abstract partial class AnalyzerDriver : IDisposable
     {
         protected static readonly ConditionalWeakTable<Compilation, CompilationData> s_compilationDataCache = new ConditionalWeakTable<Compilation, CompilationData>();
+        private static readonly ConditionalWeakTable<Compilation, CompilationData>.CreateValueCallback s_createValueCallback = c => new CompilationData(c);
 
         internal class CompilationData
         {
@@ -47,7 +48,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return model;
                     }
                 }
-
 
                 model = compilation.GetSemanticModel(tree);
 
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal static CompilationData GetOrCreateCachedCompilationData(Compilation compilation)
         {
-            return s_compilationDataCache.GetValue(compilation, c => new CompilationData(c));
+            return s_compilationDataCache.GetValue(compilation, s_createValueCallback);
         }
 
         internal static bool RemoveCachedCompilationData(Compilation compilation)
