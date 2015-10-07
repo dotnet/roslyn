@@ -351,4 +351,18 @@
     <NuGetPerBuildPreReleaseVersion Condition="'$(BuildNumberSuffix)' != ''">$(NuGetPreReleaseVersion)-$(BuildNumberPart1.Trim())-$(BuildNumberPart2.Trim())</NuGetPerBuildPreReleaseVersion>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <!-- By default we build CoreCLR for Windows on Windows and for Linux on Linux
+         For cross-compiling between Windows and Linux, you can set CoreClrTargetOS on the command-line
+         e.g. On a Windows machine, targeting Linux, set /p:CoreClrTargetOS=Linux -->
+
+    <_CoreClrTargetOS Condition="'$(CoreClrTargetOS)' != ''">$(CoreClrTargetOS)</_CoreClrTargetOS>
+
+    <_CoreClrTargetOS Condition="'$(CoreClrTargetOS)' == '' and '$(OS)' == 'Windows_NT'">Windows</_CoreClrTargetOS>
+    <!-- TODO: MacOS also identifies as Unix, so we will need a way to differentiate. -->
+    <_CoreClrTargetOS Condition="'$(CoreClrTargetOS)' == '' and '$(OS)' == 'Unix'">Linux</_CoreClrTargetOS>
+
+    <CoreClrTargetFolder Condition="'$(CoreClrTargetFolder)' == ''">core-clr\$(_CoreClrTargetOS)\</CoreClrTargetFolder>
+  </PropertyGroup>
+
  </Project>

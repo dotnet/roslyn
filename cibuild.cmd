@@ -22,7 +22,7 @@ nuget.exe restore -nocache -verbosity quiet %RoslynRoot%build/Toolset.sln
 msbuild /nologo /v:m /m %RoslynRoot%build/Toolset.sln /p:Configuration=%BuildConfiguration%
 
 mkdir %RoslynRoot%Binaries\Bootstrap
-move Binaries\%BuildConfiguration%\core-clr\* %RoslynRoot%Binaries\Bootstrap
+move Binaries\%BuildConfiguration%\core-clr\Windows\* %RoslynRoot%Binaries\Bootstrap
 msbuild /v:m /t:Clean build/Toolset.sln /p:Configuration=%BuildConfiguration%
 taskkill /F /IM vbcscompiler.exe
 

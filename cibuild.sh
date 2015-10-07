@@ -138,7 +138,7 @@ compile_toolset()
 save_toolset()
 {
     mkdir Binaries/Bootstrap
-    cp Binaries/$BUILD_CONFIGURATION/core-clr/* Binaries/Bootstrap
+    cp Binaries/$BUILD_CONFIGURATION/core-clr/Linux/* Binaries/Bootstrap
 }
 
 # Clean out all existing binaries.  This ensures the bootstrap phase forces

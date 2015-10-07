@@ -15,7 +15,7 @@
     <LargeAddressAware>true</LargeAddressAware>
     <StartupObject>Microsoft.CodeAnalysis.CSharp.CommandLine.Program</StartupObject>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
-    <OutDir>$(OutDir)core-clr\</OutDir>
+    <OutDir>$(OutDir)$(CoreClrTargetFolder)</OutDir>
     <RestorePackages>true</RestorePackages>
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
     <TargetFrameworkIdentifier>DNXCore</TargetFrameworkIdentifier>
