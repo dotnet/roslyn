@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
         [WpfFact]
         public void Test_Enqueue()
         {
-            var asyncToken = AggregateAsynchronousOperationListener.CreateEmptyListener().BeginAsyncOperation("EnqueueTest");
+            var asyncToken = EmptyAsyncToken.Instance;
             var done = false;
             var ran = false;
 
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
         {
             using (var waitEvent = new AutoResetEvent(initialState: false))
             {
-                var asyncToken = AggregateAsynchronousOperationListener.CreateEmptyListener().BeginAsyncOperation("EnqueueTest");
+                var asyncToken = EmptyAsyncToken.Instance;
                 var done = false;
                 var ran = false;
 
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
         [WpfFact]
         public void Test_Delay()
         {
-            var asyncToken = AggregateAsynchronousOperationListener.CreateEmptyListener().BeginAsyncOperation("EnqueueTest");
+            var asyncToken = EmptyAsyncToken.Instance;
 
             bool done = false;
             DateTime now = DateTime.UtcNow;
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
         [WpfFact]
         public void Test_HeavyMultipleCall()
         {
-            var asyncToken = AggregateAsynchronousOperationListener.CreateEmptyListener().BeginAsyncOperation("EnqueueTest");
+            var asyncToken = EmptyAsyncToken.Instance;
             var count = 0;
 
             var loopCount = 100000;

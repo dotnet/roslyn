@@ -73,15 +73,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
 
         private async Task ProcessAsync()
         {
-            AssertIsBackground();
-
-            while (true)
+            try
             {
-                // wait until it is time to run next item
-                await WaitForPendingWorkAsync().ConfigureAwait(continueOnCapturedContext: false);
+                AssertIsBackground();
 
-                // run them in UI thread
-                await InvokeBelowInputPriority(NotifyOnForeground).ConfigureAwait(continueOnCapturedContext: false);
+                while (true)
+                {
+                    // wait until it is time to run next item
+                    await WaitForPendingWorkAsync().ConfigureAwait(continueOnCapturedContext: false);
+
+                    // run them in UI thread
+                    await InvokeBelowInputPriority(NotifyOnForeground).ConfigureAwait(continueOnCapturedContext: false);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.Assert(false, ex.Message);
             }
         }
 
@@ -296,6 +303,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
                 }
 
                 _list.AddFirst(entry);
+                _hasItemsGate.Release();
                 return;
             }
 

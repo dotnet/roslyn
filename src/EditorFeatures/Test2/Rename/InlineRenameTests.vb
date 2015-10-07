@@ -330,7 +330,7 @@ public class [|$$C|] { }
             VerifyRenameOptionChangedSessionCommit(workspace, "C", "AB")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(700923), WorkItem(700925), WorkItem(1486, "https://github.com/dotnet/roslyn/issues/1486")>
         Public Sub RenameInCommentsAndStringsCSharp()

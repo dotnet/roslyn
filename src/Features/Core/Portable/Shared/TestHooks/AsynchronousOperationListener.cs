@@ -4,16 +4,31 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
     internal partial class AsynchronousOperationListener : IAsynchronousOperationListener, IAsynchronousOperationWaiter
     {
-        private readonly object _gate = new object();
+        /// <summary>
+        /// Stores the source information for an <see cref="IAsyncToken"/> value.  Helpful when 
+        /// tracking down tokens which aren't properly disposed.
+        /// </summary>
+        private struct TokenSourceInfo
+        {
+            internal IAsyncToken Token { get; set; }
+            internal string FilePath { get; set; }
+            internal int LineNumber { get; set; }
 
+            public override string ToString() => $"{Path.GetFileName(FilePath)} {LineNumber}";
+        }
+
+        private readonly object _gate = new object();
+        private readonly List<TokenSourceInfo> _tokenList = new List<TokenSourceInfo>();
         private readonly HashSet<TaskCompletionSource<bool>> _pendingTasks = new HashSet<TaskCompletionSource<bool>>();
 
         private int _counter;
@@ -25,20 +40,30 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             _trackActiveTokens = Debugger.IsAttached;
         }
 
-        public IAsyncToken BeginAsyncOperation(string name, object tag = null)
+        public IAsyncToken BeginAsyncOperation(string name, object tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
         {
             lock (_gate)
             {
+                IAsyncToken asyncToken;
                 if (_trackActiveTokens)
                 {
                     var token = new DiagnosticAsyncToken(this, name, tag);
                     _activeDiagnosticTokens.Add(token);
-                    return token;
+                    asyncToken = token;
                 }
                 else
                 {
-                    return new AsyncToken(this);
+                    asyncToken = new AsyncToken(this);
                 }
+
+                _tokenList.Add(new TokenSourceInfo()
+                {
+                    Token = asyncToken,
+                    FilePath = filePath,
+                    LineNumber = lineNumber
+                });
+
+                return asyncToken;
             }
         }
 
@@ -63,6 +88,26 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                     }
 
                     _pendingTasks.Clear();
+                }
+
+                int i = 0;
+                bool removed = false;
+                while (i < _tokenList.Count)
+                {
+                    if (_tokenList[i].Token == token)
+                    {
+                        _tokenList.RemoveAt(i);
+                        removed = true;
+                        break;
+                    }
+
+                    i++;
+                }
+
+                if (!removed)
+                {
+                    Debug.Assert(false, "Hit the error");
+                    throw new InvalidOperationException();
                 }
 
                 if (_trackActiveTokens)

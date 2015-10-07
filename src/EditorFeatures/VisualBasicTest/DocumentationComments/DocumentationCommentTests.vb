@@ -529,7 +529,7 @@ End Class
         End Sub
 
         <WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")>
-        <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub PressingEnter_InsertApostrophes9_AutoGenerateXmlDocCommentsOff()
             Const code = "
 ''' <summary></summary>$$
