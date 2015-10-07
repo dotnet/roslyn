@@ -414,15 +414,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 right = _bound.Default(left.Type);
             }
 
-            var loweredLeft = Visit(left);
-            var loweredRight = Visit(right);
 
             // Enums are handled as per their promoted underlying type
             switch (opKind.OperandTypes())
             {
-                case BinaryOperatorKind.Enum:
                 case BinaryOperatorKind.EnumAndUnderlying:
                 case BinaryOperatorKind.UnderlyingAndEnum:
+                case BinaryOperatorKind.Enum:
                     {
                         var enumOperand = (opKind.OperandTypes() == BinaryOperatorKind.UnderlyingAndEnum) ? right : left;
                         var promotedType = PromotedType(enumOperand.Type.StrippedType().GetEnumUnderlyingType());
@@ -431,18 +429,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                             promotedType = _nullableType.Construct(promotedType);
                         }
 
-                        loweredLeft = PromoteEnumOperand(left, loweredLeft, promotedType, isChecked);
-                        loweredRight = PromoteEnumOperand(right, loweredRight, promotedType, isChecked);
+                        var loweredLeft = VisitAndPromoteEnumOperand(left, promotedType, isChecked);
+                        var loweredRight = VisitAndPromoteEnumOperand(right, promotedType, isChecked);
 
                         var result = MakeBinary(methodOpt, type, isLifted, requiresLifted, opName, loweredLeft, loweredRight);
                         return Demote(result, type, isChecked);
                     }
                 default:
-                    return MakeBinary(methodOpt, type, isLifted, requiresLifted, opName, loweredLeft, loweredRight);
+                    {
+                        var loweredLeft = Visit(left);
+                        var loweredRight = Visit(right);
+                        return MakeBinary(methodOpt, type, isLifted, requiresLifted, opName, loweredLeft, loweredRight);
+                    }
             }
         }
 
-        private BoundExpression PromoteEnumOperand(BoundExpression operand, BoundExpression loweredOperand, TypeSymbol promotedType, bool isChecked)
+        private static BoundExpression DemoteEnumOperand(BoundExpression left)
+        {
+            if (left.Kind == BoundKind.Conversion)
+            {
+                var conversion = (BoundConversion)left;
+                if (!conversion.ConversionKind.IsUserDefinedConversion() &&
+                    conversion.ConversionKind.IsImplicitConversion() && 
+                    conversion.Type.StrippedType().IsEnumType())
+                {
+                    left = conversion.Operand;
+                }
+            }
+
+            return left;
+        }
+
+        private BoundExpression VisitAndPromoteEnumOperand(BoundExpression operand, TypeSymbol promotedType, bool isChecked)
         {
             var literal = operand as BoundLiteral;
             if (literal != null)
@@ -452,6 +470,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                // COMPAT: if we have an operand converted to enum, we should unconvert it first
+                //         Otherwise we will have an extra conversion in the tree: op -> enum -> underlying
+                //         where native compiler would just directly convert to underlying
+                var demotedOperand = DemoteEnumOperand(operand);
+                var loweredOperand = Visit(demotedOperand);
                 return Convert(loweredOperand, operand.Type, promotedType, isChecked, false);
             }
         }
