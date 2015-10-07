@@ -13,11 +13,20 @@ namespace Microsoft.VisualStudio.ProjectSystem
             return Mock.Of<IUnconfiguredProjectVsServices>();
         }
 
-        public static IUnconfiguredProjectVsServices ImplementHierarchy(Func<IVsHierarchy> action)
+        public static IUnconfiguredProjectVsServices Implement(Func<IVsHierarchy> hierarchyCreator, Func<IVsProject4> projectCreator = null)
         {
             var mock = new Mock<IUnconfiguredProjectVsServices>();
             mock.SetupGet(h => h.Hierarchy)
-                .Returns(action);
+                .Returns(hierarchyCreator);
+
+            mock.SetupGet(h => h.ThreadingPolicy)
+                .Returns(IThreadHandlingFactory.Create());
+
+            if (projectCreator != null)
+            {
+                mock.SetupGet(h => h.Project)
+                    .Returns(projectCreator());
+            }
 
             return mock.Object;
         }

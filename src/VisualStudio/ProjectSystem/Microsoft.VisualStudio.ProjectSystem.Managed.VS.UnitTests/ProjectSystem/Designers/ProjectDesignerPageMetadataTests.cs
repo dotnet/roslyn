@@ -26,26 +26,29 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
             Assert.Equal(guid, metadata.PageGuid);
         }
 
-        [Fact]
-        public void Constructor_ValueAsPageOrder_SetsPageOrderProperty()
+        [Theory]
+        [InlineData(Int32.MinValue)]
+        [InlineData(-10)]
+        [InlineData(-1)]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(10)]
+        [InlineData(Int32.MaxValue)]
+        public void Constructor_ValueAsPageOrder_SetsPageOrderProperty(int pageOrder)
         {
-            for (int i = -10; i < 10; i++)
-            {
-                var metadata = new ProjectDesignerPageMetadata(Guid.NewGuid(), i, hasConfigurationCondition: false);
+            var metadata = new ProjectDesignerPageMetadata(Guid.NewGuid(), pageOrder, hasConfigurationCondition: false);
 
-                Assert.Equal(i, metadata.PageOrder);
-            }
+            Assert.Equal(pageOrder, metadata.PageOrder);
         }
 
-        [Fact]
-        public void Constructor_ValueAsHasConfigurationCondition_SetsHasConfigurationConditionProperty()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void Constructor_ValueAsHasConfigurationCondition_SetsHasConfigurationConditionProperty(bool hasConfigurationCondition)
         {
-            foreach (var value in new[] { true, false })
-            {
-                var metadata = new ProjectDesignerPageMetadata(Guid.NewGuid(), 0, hasConfigurationCondition: value);
+            var metadata = new ProjectDesignerPageMetadata(Guid.NewGuid(), 0, hasConfigurationCondition: hasConfigurationCondition);
 
-                Assert.Equal(value, metadata.HasConfigurationCondition);
-            }
+            Assert.Equal(hasConfigurationCondition, metadata.HasConfigurationCondition);
         }
 
         [Fact]

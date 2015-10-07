@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace Microsoft.VisualStudio.ProjectSystem.Designers
 {
     /// <summary>
-    ///     Provides methods for retrieving information about the current project's features.
+    ///     Provides members for for opening the Project Designer and querying whether it is supported.
     /// </summary>
     internal interface IProjectDesignerService
     {

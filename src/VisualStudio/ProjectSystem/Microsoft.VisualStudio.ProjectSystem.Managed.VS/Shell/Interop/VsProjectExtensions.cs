@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.VisualStudio.ProjectSystem.Utilities;
 
 namespace Microsoft.VisualStudio.Shell.Interop
@@ -34,6 +35,26 @@ namespace Microsoft.VisualStudio.Shell.Interop
             Assumes.False(id.IsNilOrEmpty);
 
             return id;
+        }
+
+        /// <summary>
+        ///     Opens the specified item with the specified editor using the primary logical view.
+        /// </summary>
+        /// <returns>
+        ///     The <see cref="IVsWindowFrame"/> that contains the editor; otherwise, <see langword="null"/> if it was opened
+        ///     with an editor external of Visual Studio.
+        /// </returns>
+        public static IVsWindowFrame OpenItemWithSpecific(this IVsProject4 project, HierarchyId id, Guid editorType)
+        {
+            Requires.NotNull(project, nameof(project));
+
+            IVsWindowFrame frame;
+            HResult hr = project.OpenItemWithSpecific(id, 0, ref editorType, "", VSConstants.LOGVIEWID_Primary, (IntPtr)(-1), out frame);
+            if (hr.Failed)
+                throw hr.Exception;
+
+            // NOTE: frame is 'null' when opened in an external editor
+            return frame;
         }
     }
 }

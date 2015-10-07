@@ -32,27 +32,26 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
 
         public Task ShowProjectDesignerAsync()
         {
-            if (!SupportsProjectDesigner)
-                throw new InvalidOperationException();
+            if (SupportsProjectDesigner)
+            {
+                return OpenProjectDesignerAsyncCore();
+            }
 
-            return OpenProjectDesignerAsyncCore();
+            throw new InvalidOperationException("This project does not support the Project Designer (SupportsProjectDesigner is false).");
         }
 
         private async Task OpenProjectDesignerAsyncCore()
         {
             Guid projectDesignerGuid = _projectVsServices.Hierarchy.GetGuidProperty(VsHierarchyPropID.ProjectDesignerEditor);
 
-            IVsWindowFrame windowFrame;
-            HResult hr = _projectVsServices.Project.OpenItemWithSpecific(VSConstants.VSITEMID_ROOT, 0, ref projectDesignerGuid, "", VSConstants.LOGVIEWID_Primary, (IntPtr)(-1), out windowFrame);
-            if (hr.Failed)
-                throw hr.Exception;
+            IVsWindowFrame frame = _projectVsServices.Project.OpenItemWithSpecific(HierarchyId.Root, projectDesignerGuid);
+            if (frame != null)
+            {   // Opened within Visual Studio
 
-            if (windowFrame != null)
-            {   // VS editor
-
+                // Can only use Shell APIs on the UI thread
                 await _projectVsServices.ThreadingPolicy.SwitchToUIThread();
 
-                hr = windowFrame.Show();
+                HResult hr = frame.Show();
                 if (hr.Failed)
                     throw hr.Exception;
             }

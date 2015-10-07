@@ -140,6 +140,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Mocks\IActiveConfiguredProjectFactory.cs" />
+    <Compile Include="Mocks\IThreadHandlingFactory.cs" />
     <Compile Include="Mocks\PropertyPageData.cs" />
     <Compile Include="Mocks\IUnconfiguredProjectCommonServicesFactory.cs" />
     <Compile Include="Mocks\ProjectPropertiesFactory.cs" />
@@ -147,7 +148,6 @@
     <Compile Include="Mocks\IProjectTreeProviderFactory.cs" />
     <Compile Include="Mocks\IUnconfiguredProjectFactory.cs" />
     <Compile Include="Mocks\IProjectDesignerServiceFactory.cs" />
-    <Compile Include="Mocks\IThreadHandlingFactory.cs" />
     <Compile Include="Moq\ReturnsExtensions.cs" />
     <Compile Include="FuncWithOut.cs" />
     <Compile Include="ProjectSystem\Designers\ProjectRootImageProjectTreeModifierTests.cs" />

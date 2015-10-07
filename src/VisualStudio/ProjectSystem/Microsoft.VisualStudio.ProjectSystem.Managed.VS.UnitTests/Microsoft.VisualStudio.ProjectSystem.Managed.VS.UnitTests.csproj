@@ -170,7 +170,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Mocks\IUnconfiguredProjectVsServicesFactory.cs" />
+    <Compile Include="Mocks\IVsWindowFrameFactory.cs" />
     <Compile Include="Mocks\IVsHierarchyFactory.cs" />
+    <Compile Include="Mocks\IVsProjectFactory.cs" />
     <Compile Include="ProjectSystem\Designers\Input\Commands\OpenProjectDesignerCommandBaseTests.cs" />
     <Compile Include="ProjectSystem\Designers\Input\Commands\OpenProjectDesignerCommandTests.cs" />
     <Compile Include="ProjectSystem\Designers\Input\Commands\OpenProjectDesignerOnDefaultActionCommandTests.cs" />

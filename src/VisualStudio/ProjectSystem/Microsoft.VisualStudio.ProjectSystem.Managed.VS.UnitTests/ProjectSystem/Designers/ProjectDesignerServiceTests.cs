@@ -2,8 +2,12 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using Xunit;
+
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.ProjectSystem.Designers
 {
@@ -23,7 +27,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
         public void SupportsProjectDesigner_WhenHierarchyGetPropertyReturnsHResult_ThrowsCOMException()
         {
             var hierarchy = IVsHierarchyFactory.ImplementGetProperty(hr: VSConstants.E_FAIL);
-            var projectVsServices = IUnconfiguredProjectVsServicesFactory.ImplementHierarchy(() => hierarchy);
+            var projectVsServices = IUnconfiguredProjectVsServicesFactory.Implement(() => hierarchy);
 
             var designerService = CreateInstance(projectVsServices);
 
@@ -37,7 +41,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
         public void SupportsProjectDesigner_WhenHierarchyGetPropertyReturnsMemberNotFound_IsFalse()
         {
             var hierarchy = IVsHierarchyFactory.ImplementGetProperty(hr: VSConstants.DISP_E_MEMBERNOTFOUND);
-            var projectVsServices = IUnconfiguredProjectVsServicesFactory.ImplementHierarchy(() => hierarchy);
+            var projectVsServices = IUnconfiguredProjectVsServicesFactory.Implement(() => hierarchy);
 
             var designerService = CreateInstance(projectVsServices);
 
@@ -46,20 +50,155 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
             Assert.False(result);
         }
 
-        [Fact]
-        public void SupportsProjectDesigner_ReturnsResultOfHierarchyGetProperty()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void SupportsProjectDesigner_ReturnsResultOfHierarchyGetProperty(bool supportsProjectDesigner)
         {
-            foreach (var value in new[] { true, false })
-            {
-                var hierarchy = IVsHierarchyFactory.ImplementGetProperty(result: value);
-                var projectVsServices = IUnconfiguredProjectVsServicesFactory.ImplementHierarchy(() => hierarchy);
+            var hierarchy = IVsHierarchyFactory.ImplementGetProperty(result: supportsProjectDesigner);
+            var projectVsServices = IUnconfiguredProjectVsServicesFactory.Implement(() => hierarchy);
 
-                var designerService = CreateInstance(projectVsServices);
+            var designerService = CreateInstance(projectVsServices);
 
-                var result = designerService.SupportsProjectDesigner;
+            var result = designerService.SupportsProjectDesigner;
 
-                Assert.Equal(value, result);
-            }
+            Assert.Equal(supportsProjectDesigner, result);
+        }
+
+        [Fact]
+        public void ShowProjectDesignerAsync_WhenSupportsProjectDesignerFalse_ThrowsInvalidOperation()
+        {
+            var hierarchy = IVsHierarchyFactory.ImplementGetProperty(result: false);
+            var projectVsServices = IUnconfiguredProjectVsServicesFactory.Implement(() => hierarchy);
+
+            var designerService = CreateInstance(projectVsServices);
+
+            Assert.Throws<InvalidOperationException>(() => {
+
+                designerService.ShowProjectDesignerAsync();
+            });
+        }
+
+        [Fact]
+        public async Task ShowProjectDesignerAsync_WhenGetGuidPropertyForProjectDesignerEditorReturnsHResult_Throws()
+        {
+            var hierarchy = IVsHierarchyFactory.Create();
+            hierarchy.ImplementGetProperty(VsHierarchyPropID.SupportsProjectDesigner, result: true);
+            hierarchy.ImplementGetGuid(VsHierarchyPropID.ProjectDesignerEditor, VSConstants.E_FAIL);
+
+            var projectVsServices = IUnconfiguredProjectVsServicesFactory.Implement(() => hierarchy);
+
+            var designerService = CreateInstance(projectVsServices);
+
+            await Assert.ThrowsAsync<COMException>(() => {
+
+                return designerService.ShowProjectDesignerAsync();
+            });
+        }
+
+        [Fact]
+        public async Task ShowProjectDesignerAsync_WhenProjectDesignerEditorReturnsHResult_Throws()
+        {
+            var hierarchy = IVsHierarchyFactory.Create();
+            hierarchy.ImplementGetProperty(VsHierarchyPropID.SupportsProjectDesigner, result: true);
+            hierarchy.ImplementGetGuid(VsHierarchyPropID.ProjectDesignerEditor, VSConstants.E_FAIL);
+
+            var projectVsServices = IUnconfiguredProjectVsServicesFactory.Implement(() => hierarchy);
+
+            var designerService = CreateInstance(projectVsServices);
+
+            await Assert.ThrowsAsync<COMException>(() => {
+
+                return designerService.ShowProjectDesignerAsync();
+            });
+        }
+
+        [Fact]
+        public async Task ShowProjectDesignerAsync_WhenOpenItemWithSpecificEditorReturnsHResult_Throws()
+        {
+            Guid editorGuid = Guid.NewGuid();
+
+            var hierarchy = IVsHierarchyFactory.Create();
+            hierarchy.ImplementGetProperty(VsHierarchyPropID.SupportsProjectDesigner, result: true);
+            hierarchy.ImplementGetGuid(VsHierarchyPropID.ProjectDesignerEditor, result: editorGuid);
+
+            var project = (IVsProject4)hierarchy;
+            project.ImplementOpenItemWithSpecific(editorGuid, VSConstants.LOGVIEWID_Primary, VSConstants.E_FAIL);
+
+            var projectVsServices = IUnconfiguredProjectVsServicesFactory.Implement(() => hierarchy, ()=> project);
+
+            var designerService = CreateInstance(projectVsServices);
+
+            await Assert.ThrowsAsync<COMException>(() => {
+
+                return designerService.ShowProjectDesignerAsync();
+            });
+        }
+
+        [Fact]
+        public Task ShowProjectDesignerAsync_WhenOpenedInExternalEditor_DoesNotAttemptToShowWindow()
+        {   // OpenItemWithSpecific returns null frame when opened in external editor
+
+            Guid editorGuid = Guid.NewGuid();
+
+            var hierarchy = IVsHierarchyFactory.Create();
+            hierarchy.ImplementGetProperty(VsHierarchyPropID.SupportsProjectDesigner, result: true);
+            hierarchy.ImplementGetGuid(VsHierarchyPropID.ProjectDesignerEditor, result: editorGuid);
+
+            var project = (IVsProject4)hierarchy;
+            project.ImplementOpenItemWithSpecific(editorGuid, VSConstants.LOGVIEWID_Primary, (IVsWindowFrame)null);
+               
+            var projectVsServices = IUnconfiguredProjectVsServicesFactory.Implement(() => hierarchy, () => project);
+
+            var designerService = CreateInstance(projectVsServices);
+
+            return designerService.ShowProjectDesignerAsync();
+        }
+
+        [Fact]
+        public async Task ShowProjectDesignerAsync_WhenWindowShowReturnsHResult_Throws()
+        {
+            Guid editorGuid = Guid.NewGuid();
+
+            var hierarchy = IVsHierarchyFactory.Create();
+            hierarchy.ImplementGetProperty(VsHierarchyPropID.SupportsProjectDesigner, result: true);
+            hierarchy.ImplementGetGuid(VsHierarchyPropID.ProjectDesignerEditor, result: editorGuid);
+            var project = (IVsProject4)hierarchy;
+
+            var frame = IVsWindowFrameFactory.ImplementShow(() => VSConstants.E_FAIL);
+            project.ImplementOpenItemWithSpecific(editorGuid, VSConstants.LOGVIEWID_Primary, frame);
+
+            var projectVsServices = IUnconfiguredProjectVsServicesFactory.Implement(() => hierarchy, () => project);
+
+            var designerService = CreateInstance(projectVsServices);
+
+            await Assert.ThrowsAsync<COMException>(() => {
+
+                return designerService.ShowProjectDesignerAsync();
+            });
+        }
+
+        [Fact]
+        public async Task ShowProjectDesignerAsync_WhenOpenedInInternalEditor_ShowsWindow()
+        {   
+            Guid editorGuid = Guid.NewGuid();
+            
+            var hierarchy = IVsHierarchyFactory.Create();
+            hierarchy.ImplementGetProperty(VsHierarchyPropID.SupportsProjectDesigner, result: true);
+            hierarchy.ImplementGetGuid(VsHierarchyPropID.ProjectDesignerEditor, result: editorGuid);
+            var project = (IVsProject4)hierarchy;
+
+            int callCount = 0;
+            var frame = IVsWindowFrameFactory.ImplementShow(() => { callCount++; return 0; });
+            project.ImplementOpenItemWithSpecific(editorGuid, VSConstants.LOGVIEWID_Primary, frame);
+
+            var projectVsServices = IUnconfiguredProjectVsServicesFactory.Implement(() => hierarchy, () => project);
+
+            var designerService = CreateInstance(projectVsServices);
+
+            await designerService.ShowProjectDesignerAsync();
+
+            Assert.Equal(1, callCount);
         }
 
         private static ProjectDesignerService CreateInstance(IUnconfiguredProjectVsServices projectVsServices)
