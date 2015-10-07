@@ -30,14 +30,14 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int FindClosestLine(int line, out int closestLine)
         {
-            // Find a minimal sequence point start line in this docuemnt 
+            // Find a minimal sequence point start line in this document 
             // that is greater than or equal to the given line.
 
             int result = int.MaxValue;
             var map = SymReader.GetMethodMap();
             var mdReader = SymReader.MetadataReader;
 
-            // Note DiaSymReader searches accross all documents with the same file name in CDiaWrapper::FindClosestLineAcrossFileIDs. We don't.
+            // Note DiaSymReader searches across all documents with the same file name in CDiaWrapper::FindClosestLineAcrossFileIDs. We don't.
             foreach (var extent in map.EnumerateContainingOrClosestFollowingMethodExtents(Handle, line))
             {
                 Debug.Assert(extent.MaxLine >= line);

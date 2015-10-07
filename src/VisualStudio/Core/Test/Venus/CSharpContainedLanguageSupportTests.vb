@@ -501,7 +501,7 @@ public class _Default
 
 #Region "EnsureEventHandler"
 
-        ' To Do : log a bug, kevin doesnt use uint itemidInsertionPoint thats sent in.
+        ' TODO: log a bug, Kevin doesn't use uint itemidInsertionPoint thats sent in.
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub EnsureEventHandler_HandlerExists()
             Dim code As String = <text>
@@ -837,7 +837,7 @@ public partial class _Default
             End Using
         End Sub
 
-        ' To Do: Who tests the fully qualified names and their absence?
+        ' TODO: Who tests the fully qualified names and their absence?
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub TryRenameElement_UnresolvableMembers()
             Dim code As String = <text>

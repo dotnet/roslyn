@@ -889,7 +889,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     }
                 }
 
-                // if the renamed symbol is a type member, it's name should not coflict with a type parameter
+                // if the renamed symbol is a type member, it's name should not conflict with a type parameter
                 if (renamedSymbol.ContainingType != null && renamedSymbol.ContainingType.GetMembers(renamedSymbol.Name).Contains(renamedSymbol))
                 {
                     foreach (var typeParameter in renamedSymbol.ContainingType.TypeParameters)

@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             // When we do,  we diminish performance by choking the UI thread with lots of update
             // operations. To help alleviate that, we don't immediately report changes to the UI.  We
             // instead create a timer that will report the changes and we enqueue any pending updates to
-            // a list that will be updated all at once once the timer actually runs.
+            // a list that will be updated all at once the timer actually runs.
             private bool _notificationRequestEnqueued;
             private readonly SortedDictionary<int, NormalizedSnapshotSpanCollection> _snapshotVersionToSpansMap =
                 new SortedDictionary<int, NormalizedSnapshotSpanCollection>();

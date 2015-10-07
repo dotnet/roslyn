@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <exception cref="ArgumentException">The type of <paramref name="globals"/> doesn't match <see cref="Script.GlobalsType"/>.</exception>
         public new Task<ScriptState<T>> RunAsync(object globals = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            // The following validation and executor contruction may throw;
+            // The following validation and executor construction may throw;
             // do so synchronously so that the exception is not wrapped in the task.
 
             ValidateGlobals(globals, GlobalsType);
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <exception cref="ArgumentException"><paramref name="previousState"/> is not a previous execution state of this script.</exception>
         public new Task<ScriptState<T>> ContinueAsync(ScriptState previousState, CancellationToken cancellationToken = default(CancellationToken))
         {
-            // The following validation and executor contruction may throw;
+            // The following validation and executor construction may throw;
             // do so synchronously so that the exception is not wrapped in the task.
 
             if (previousState == null)

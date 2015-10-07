@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             if (!(originalSpans.Any() && changedSpans.Any()))
             {
                 // Both line spans must be non-empty. Otherwise, below projection buffer factory API call will throw.
-                // So if either is empty (signalling that there are no changes to preview in the document), then we bail out.
+                // So if either is empty (signaling that there are no changes to preview in the document), then we bail out.
                 // This can happen in cases where the user has already applied the fix and light bulb has already been dismissed,
                 // but platform hasn't cancelled the preview operation yet. Since the light bulb has already been dismissed at
                 // this point, the preview that we return will never be displayed to the user. So returning null here is harmless.

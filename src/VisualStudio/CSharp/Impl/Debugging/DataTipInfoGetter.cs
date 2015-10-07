@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
                 return new DebugDataTipInfo(TextSpan.FromBounds(curr.SpanStart, expression.Span.End), text: null);
             }
 
-            // NOTE(cyrusn): This behavior is to mimic what we did in Dev10, i'm not sure if it's
+            // NOTE(cyrusn): This behavior is to mimic what we did in Dev10, I'm not sure if it's
             // necessary or not.
             if (expression.IsKind(SyntaxKind.InvocationExpression))
             {

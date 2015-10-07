@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
         protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
-            // Note: we don't listen for OnTextChanged.  Text changes to this this buffer will get
+            // Note: we don't listen for OnTextChanged.  Text changes to this buffer will get
             // reported by OnSemanticChanged.
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnSemanticChanged(subjectBuffer, TaggerDelay.Short, _semanticChangeNotificationService),
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             var subTextSpan = service.GetMemberBodySpanForSpeculativeBinding(member);
             if (subTextSpan.IsEmpty)
             {
-                // Wasn't a member we could reclassify indepdently.
+                // Wasn't a member we could reclassify independently.
                 return false;
             }
 

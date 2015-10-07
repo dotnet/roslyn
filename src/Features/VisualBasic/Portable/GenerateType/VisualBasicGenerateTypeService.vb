@@ -569,7 +569,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
 
             Dim node As SyntaxNode = expression
             While node IsNot Nothing
-                ' Types in BaseList, Type Constraint or Member Types cannot be of restricter accessibility than the declaring type
+                ' Types in BaseList, Type Constraint or Member Types cannot be of more restricted accessibility than the declaring type
                 If TypeOf node Is InheritsOrImplementsStatementSyntax AndAlso
                     node.Parent IsNot Nothing AndAlso
                     TypeOf node.Parent Is TypeBlockSyntax Then

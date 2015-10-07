@@ -658,7 +658,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             if (ppIndex != -1)
             {
-                // We have a pp directive.  it (and all all previous trivia) must be stripped.
+                // We have a pp directive.  it (and all previous trivia) must be stripped.
                 leadingTriviaToStrip = new List<SyntaxTrivia>(leadingTrivia.Take(ppIndex + 1));
                 leadingTriviaToKeep = new List<SyntaxTrivia>(leadingTrivia.Skip(ppIndex + 1));
             }

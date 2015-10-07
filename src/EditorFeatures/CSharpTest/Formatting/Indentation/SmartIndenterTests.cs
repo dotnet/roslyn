@@ -2102,7 +2102,7 @@ $$
             }
         }";
 
-            // In this case we alsign with the "if", - the base indentation we pass in doesn't matter.
+            // In this case we align with the "if", - the base indentation we pass in doesn't matter.
             AssertSmartIndentInProjection(markup,
                 expectedIndentation: BaseIndentationOfNugget + 4);
         }

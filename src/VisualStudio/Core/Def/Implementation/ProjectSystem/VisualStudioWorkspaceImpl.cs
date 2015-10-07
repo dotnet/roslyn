@@ -705,7 +705,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var itemId = document.GetItemId();
             if (itemId == (uint)VSConstants.VSITEMID.Nil)
             {
-                // If the ItemId is Nil, then then IVsProject would not be able to open the 
+                // If the ItemId is Nil, then IVsProject would not be able to open the 
                 // document using its ItemId. Thus, we must use OpenDocumentViaProject, which only 
                 // depends on the file path.
 
