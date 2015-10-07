@@ -19,17 +19,19 @@ namespace Microsoft.CodeAnalysis.Formatting
         protected class Whitespace : TriviaData
         {
             private readonly bool _elastic;
+            private readonly bool _forceSecondTokenFirstOnLine;
 
-            public Whitespace(OptionSet optionSet, int space, bool elastic, string language) :
-                this(optionSet, lineBreaks: 0, indentation: space, elastic: elastic, language: language)
+            public Whitespace(OptionSet optionSet, int space, bool elastic, bool forceSecondTokenFirstOnLine, string language) :
+                this(optionSet, lineBreaks: 0, indentation: space, elastic: elastic, forceSecondTokenFirstOnLine: forceSecondTokenFirstOnLine, language: language)
             {
                 Contract.ThrowIfFalse(space >= 0);
             }
 
-            public Whitespace(OptionSet optionSet, int lineBreaks, int indentation, bool elastic, string language)
+            public Whitespace(OptionSet optionSet, int lineBreaks, int indentation, bool elastic, bool forceSecondTokenFirstOnLine, string language)
                 : base(optionSet, language)
             {
                 _elastic = elastic;
+                _forceSecondTokenFirstOnLine = forceSecondTokenFirstOnLine;
 
                 // space and line breaks can be negative during formatting. but at the end, should be normalized
                 // to >= 0
@@ -101,6 +103,16 @@ namespace Microsoft.CodeAnalysis.Formatting
             public override IEnumerable<TextChange> GetTextChanges(TextSpan span)
             {
                 throw new NotImplementedException();
+            }
+
+            public override bool SecondTokenIsFirstTokenOnLine
+            {
+                get
+                {
+                    return _forceSecondTokenFirstOnLine
+                        ? true
+                        : base.SecondTokenIsFirstTokenOnLine;
+                }
             }
         }
     }

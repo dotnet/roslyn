@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         public int LineBreaks { get; protected set; }
         public int Spaces { get; protected set; }
 
-        public bool SecondTokenIsFirstTokenOnLine { get { return this.LineBreaks > 0; } }
+        public virtual bool SecondTokenIsFirstTokenOnLine { get { return this.LineBreaks > 0; } }
 
         public abstract bool TreatAsElastic { get; }
         public abstract bool IsWhitespaceOnlyTrivia { get; }

@@ -161,11 +161,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Contract.ThrowIfFalse(space >= -1)
 
             If space >= 0 Then
-                Return GetSpaceTriviaData(space, result.TreatAsElastic)
+                Dim forceSecondTokenIsFirstOnLine =
+                    token1.IsKind(SyntaxKind.EmptyToken) AndAlso
+                    token1.Parent.IsKind(SyntaxKind.OmittedArgument) AndAlso
+                    token2.IsKind(SyntaxKind.CommaToken)
+
+                Return GetSpaceTriviaData(space, result.TreatAsElastic, forceSecondTokenIsFirstOnLine)
             End If
 
-            ' tab is used in a place where it is not an indentation
-            If result.LineBreaks = 0 AndAlso result.Tab > 0 Then
+                ' tab is used in a place where it is not an indentation
+                If result.LineBreaks = 0 AndAlso result.Tab > 0 Then
                 ' calculate actual space size from tab
                 Dim spaces = CalculateSpaces(token1, token2)
                 Return New ModifiedWhitespace(Me.OptionSet, result.LineBreaks, Indentation:=spaces, elastic:=result.TreatAsElastic, language:=LanguageNames.VisualBasic)
