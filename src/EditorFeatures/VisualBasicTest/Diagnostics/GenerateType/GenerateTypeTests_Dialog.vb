@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 #Region "Same Project"
 #Region "SameProject SameFile"
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeDefaultValues()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class Program
@@ -45,7 +45,7 @@ End Class
 isNewFile:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeInsideNamespace()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class Program
@@ -71,7 +71,7 @@ End Namespace</Text>.NormalizedValue,
 isNewFile:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeInsideQualifiedNamespace()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class Program
@@ -97,7 +97,7 @@ End Namespace</Text>.NormalizedValue,
 isNewFile:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeWithinQualifiedNestedNamespace()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class Program
@@ -127,7 +127,7 @@ End Namespace</Text>.NormalizedValue,
 isNewFile:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeWithinNestedQualifiedNamespace()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class Program
@@ -157,7 +157,7 @@ End Namespace</Text>.NormalizedValue,
 isNewFile:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeWithConstructorMembers()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class Program
@@ -186,7 +186,7 @@ End Class
 isNewFile:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeWithBaseTypes()
             TestWithMockedGenerateTypeDialog(
             initial:=<Text>Imports System.Collections.Generic
@@ -211,7 +211,7 @@ End Class
 isNewFile:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeWithPublicInterface()
             TestWithMockedGenerateTypeDialog(
             initial:=<Text>Class Program
@@ -241,7 +241,7 @@ typeKind:=TypeKind.Interface,
 isNewFile:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeWithInternalStruct()
             TestWithMockedGenerateTypeDialog(
             initial:=<Text>Class Program
@@ -271,7 +271,7 @@ typeKind:=TypeKind.Structure,
 isNewFile:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeWithDefaultEnum()
             TestWithMockedGenerateTypeDialog(
             initial:=<Text>Class Program
@@ -303,7 +303,7 @@ isNewFile:=False)
 #End Region
 
 #Region "SameProject ExistingFile"
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeInExistingEmptyFile()
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -338,7 +338,7 @@ existingFilename:="Test2.vb")
         End Sub
 
         <WorkItem(850101)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeInExistingEmptyFile_Usings_Folders()
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -379,7 +379,7 @@ existingFilename:="Test2.vb")
         End Sub
 
         <WorkItem(850101)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeInExistingEmptyFile_NoUsings_Folders_NotSimpleName()
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -416,7 +416,7 @@ existingFilename:="Test2.vb")
 #End Region
 
 #Region "SameProject NewFile"
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeInNewFile()
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -449,7 +449,7 @@ newFileName:="Test2.vb")
         End Sub
 
         <WorkItem(850101)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_UsingsNotNeeded_InNewFile_InFolder()
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -484,7 +484,7 @@ newFileName:="Test2.vb")
         End Sub
 
         <WorkItem(898452)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_InValidFolderNameNotMadeNamespace()
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -519,7 +519,7 @@ newFileName:="Test2.vb")
 
         <WorkItem(850101)>
         <WorkItem(907454)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_UsingsNeeded_InNewFile_InFolder()
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -559,7 +559,7 @@ newFileName:="Test2.vb")
         End Sub
 
         <WorkItem(907454)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_UsingsPresentAlready_InNewFile_InFolder()
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -601,7 +601,7 @@ newFileName:="Test2.vb")
         End Sub
 
         <WorkItem(850101)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_UsingsNotNeeded_InNewFile_InFolder_NotSimpleName()
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -637,7 +637,7 @@ newFileName:="Test2.vb")
 #Region "SameLanguage DifferentProject"
 #Region "SameLanguage DifferentProject ExistingFile"
         <WorkItem(850101)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeIntoSameLanguageDifferentProjectEmptyFile()
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -674,7 +674,7 @@ projectName:="Assembly2")
         End Sub
 
         <WorkItem(850101)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeIntoSameLanguageDifferentProjectExistingFile()
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -717,7 +717,7 @@ projectName:="Assembly2")
         End Sub
 
         <WorkItem(850101)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeIntoSameLanguageDifferentProjectExistingFile_Usings_Folders()
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -776,7 +776,7 @@ projectName:="Assembly2")
 #End Region
 #Region "SameLanguage DifferentProject NewFile"
         <WorkItem(850101)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeIntoSameLanguageDifferentProjectNewFile()
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -813,7 +813,7 @@ projectName:="Assembly2")
         End Sub
 
         <WorkItem(850101)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_Usings()
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -857,7 +857,7 @@ projectName:="Assembly2")
         End Sub
 
         <WorkItem(850101)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_NoUsings_NotSimpleName()
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -896,7 +896,7 @@ projectName:="Assembly2")
         End Sub
 
         <WorkItem(850101)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_NoUsings_NotSimpleName_ProjectReference()
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true">
@@ -941,7 +941,7 @@ projectName:="Assembly2")
 #End Region
 #End Region
 #Region "Different Language"
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeIntoDifferentLanguageNewFile()
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -978,7 +978,7 @@ projectName:="Assembly2")
         End Sub
 
         <WorkItem(850101)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeIntoDifferentLanguageNewFile_Folders_Imports()
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -1029,7 +1029,7 @@ projectName:="Assembly2")
         End Sub
 
         <WorkItem(850101)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeIntoDifferentLanguageNewFile_Folders_NoImports_NotSimpleName()
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -1067,7 +1067,7 @@ projectName:="Assembly2")
         End Sub
 
         <WorkItem(850101)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeIntoDifferentLanguageNewFile_Folders_Imports_DefaultNamespace()
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -1118,7 +1118,7 @@ projectName:="Assembly2")
         End Sub
 
         <WorkItem(850101)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeIntoDifferentLanguageNewFile_Folders_NoImports_NotSimpleName_DefaultNamespace()
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -1157,7 +1157,7 @@ newFileFolderContainers:=New String() {"outer", "inner"},
 projectName:="Assembly2")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeIntoDifferentLanguageExistingEmptyFile()
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -1196,7 +1196,7 @@ projectName:="Assembly2")
         End Sub
 
         <WorkItem(850101)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeIntoDifferentLanguageExistingEmptyFile_Imports_Folder()
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -1239,7 +1239,7 @@ existingFilename:="Test2.cs",
 projectName:="Assembly2")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeIntoDifferentLanguageExistingNonEmptyFile()
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -1283,7 +1283,7 @@ existingFilename:="Test2.cs",
 projectName:="Assembly2")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeIntoDifferentLanguageExistingTargetFile()
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -1328,7 +1328,7 @@ projectName:="Assembly2")
         End Sub
 
         <WorkItem(858826)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeIntoDifferentLanguageNewFileAdjustTheFileExtension()
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -1367,7 +1367,7 @@ projectName:="Assembly2")
 #Region "Bugfix"
         <WorkItem(861462)>
         <WorkItem(873066)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeWithProperAccessibilityAndTypeKind_1()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Public Class C
@@ -1389,7 +1389,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOpt
         End Sub
 
         <WorkItem(861462)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeWithProperAccessibilityAndTypeKind_2()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Public Class CC
@@ -1409,7 +1409,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOpt
         End Sub
 
         <WorkItem(861462)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeWithProperAccessibilityAndTypeKind_3()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Public Interface CCC
@@ -1430,7 +1430,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOpt
         End Sub
 
         <WorkItem(861462)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeWithProperAccessibilityAndTypeKind_4()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Public Structure CCC
@@ -1453,7 +1453,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOpt
 
         <WorkItem(861362)>
         <WorkItem(869593)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeWithModuleOption()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1482,7 +1482,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
         End Sub
 
         <WorkItem(861362)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeInMemberAccessExpression()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1508,7 +1508,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
         End Sub
 
         <WorkItem(861362)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeInMemberAccessExpressionWithNamespace()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Namespace A
@@ -1538,7 +1538,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
 
         <WorkItem(876202)>
         <WorkItem(883531)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_NoParameterLessConstructor()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1564,7 +1564,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
         End Sub
 
         <WorkItem(861600)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeWithoutEnumForGenericsInMemberAccessExpression()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1596,7 +1596,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
         End Sub
 
         <WorkItem(861600)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeWithoutEnumForGenericsInNameContext()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1628,7 +1628,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
         End Sub
 
         <WorkItem(861600)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeInMemberAccessWithNSForModule()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1658,7 +1658,7 @@ assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOp
         End Sub
 
         <WorkItem(861600)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeInMemberAccessWithGlobalNSForModule()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1683,7 +1683,7 @@ typeKind:=TypeKind.Class,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.MemberAccessWithNamespace))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeInMemberAccessWithoutNS()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1701,7 +1701,7 @@ isMissing:=True)
 
 #End Region
 #Region "Delegates"
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeDelegateFromObjectCreationExpression()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1731,7 +1731,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Delegate))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeDelegateFromObjectCreationExpressionIntoNamespace()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1761,7 +1761,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Delegate))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeDelegateFromObjectCreationExpression_1()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1787,7 +1787,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Delegate))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeDelegateFromObjectCreationExpression_2()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1811,7 +1811,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Delegate))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeDelegateFromObjectCreationExpression_3()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1839,7 +1839,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Delegate))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeDelegateAddressOfExpression()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1867,7 +1867,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Interface Or TypeKindOptions.Delegate))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeDelegateAddressOfExpressionWrongTypeArgument_1()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1895,7 +1895,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeDelegateAddressOfExpressionWrongTypeArgument_2()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1923,7 +1923,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeDelegateAddressOfExpressionWrongTypeArgument_3()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1951,7 +1951,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeDelegateWithNoInitializer()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -1975,7 +1975,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeDelegateWithLambda_MultiLineFunction()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -2003,7 +2003,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeDelegateWithLambda_SingleLineFunction()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -2027,7 +2027,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeDelegateWithLambda_MultiLineSub()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -2053,7 +2053,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeDelegateWithLambda_SingleLineSub()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -2077,7 +2077,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeDelegateWithCast()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -2105,7 +2105,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeDelegateWithCastAndError()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -2129,7 +2129,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateDelegateTypeIntoDifferentLanguageNewFile()
             Dim markupString = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -2159,7 +2159,7 @@ projectName:="Assembly2")
         End Sub
 
         <WorkItem(860210)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeDelegate_NoInfo()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -2183,7 +2183,7 @@ typeKind:=TypeKind.Delegate)
         End Sub
 #End Region
 #Region "Dev12Filtering"
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_Invocation_NoEnum_0()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -2212,7 +2212,7 @@ typeKind:=TypeKind.Class,
 assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_Invocation_NoEnum_1()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Module Program
@@ -2237,7 +2237,7 @@ typeKind:=TypeKind.Class,
 assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_Invocation_NoEnum_2()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class C
@@ -2272,7 +2272,7 @@ assertTypeKindPresent:=New TypeKindOptions() {TypeKindOptions.Delegate},
 assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_Invocation_NoEnum_3()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Class C
@@ -2307,7 +2307,7 @@ assertTypeKindPresent:=New TypeKindOptions() {TypeKindOptions.Delegate},
 assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_Invocation_NoEnum_4()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>Imports System
@@ -2338,7 +2338,7 @@ typeKind:=TypeKind.Class,
 assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_TypeConstraint_1()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2359,7 +2359,7 @@ typeKind:=TypeKind.Class,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.BaseList))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_TypeConstraint_2()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2384,7 +2384,7 @@ typeKind:=TypeKind.Class,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.BaseList))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_TypeConstraint_3()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2413,7 +2413,7 @@ typeKind:=TypeKind.Class,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.BaseList))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_Event_1()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2449,7 +2449,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Delegate))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_Event_2()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2487,7 +2487,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Delegate))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_Event_3()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2528,7 +2528,7 @@ typeKind:=TypeKind.Class,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Module))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_Event_4()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2550,7 +2550,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Delegate))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_Event_5()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2574,7 +2574,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Delegate))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_Event_6()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2601,7 +2601,7 @@ typeKind:=TypeKind.Class,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Module))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_Event_7()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2624,7 +2624,7 @@ typeKind:=TypeKind.Class,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.BaseList))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_Event_8()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2649,7 +2649,7 @@ typeKind:=TypeKind.Class,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.BaseList))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_Event_9()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2676,7 +2676,7 @@ typeKind:=TypeKind.Class,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.BaseList))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_Event_10()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2702,7 +2702,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Delegate))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_Event_11()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2728,7 +2728,7 @@ typeKind:=TypeKind.Delegate,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.Delegate))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_Event_12()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>
@@ -2755,7 +2755,7 @@ typeKind:=TypeKind.Class,
 assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.BaseList))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_Event_13()
             TestWithMockedGenerateTypeDialog(
 initial:=<Text>

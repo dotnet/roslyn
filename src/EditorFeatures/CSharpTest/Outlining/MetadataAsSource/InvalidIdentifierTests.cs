@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSou
         }
 
         [WorkItem(1174405)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void PrependedDollarSign()
         {
             var source = @"
@@ -42,7 +42,7 @@ class C
         }
 
         [WorkItem(1174405)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void SymbolsAndPunctuation()
         {
             var source = @"
@@ -54,7 +54,7 @@ class C
         }
 
         [WorkItem(1174405)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void IdentifierThatLooksLikeCode()
         {
             var source = @"

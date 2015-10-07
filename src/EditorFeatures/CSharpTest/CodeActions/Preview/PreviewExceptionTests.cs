@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
 {
     public partial class PreviewTests
     {
-        [Fact]
+        [WpfFact]
         public void TestExceptionInComputePreview()
         {
             using (var workspace = CreateWorkspaceFromFile("class D {}", null, null))
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestExceptionInDisplayText()
         {
             using (var workspace = CreateWorkspaceFromFile("class D {}", null, null))
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestExceptionInActionSets()
         {
             using (var workspace = CreateWorkspaceFromFile("class D {}", null, null))

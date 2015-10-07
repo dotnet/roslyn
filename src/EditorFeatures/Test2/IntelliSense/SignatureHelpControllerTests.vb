@@ -21,7 +21,12 @@ Imports Moq
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
     Public Class SignatureHelpControllerTests
-        <Fact>
+        Public Sub New()
+            ' The controller expects to be on a UI thread
+            TestWorkspace.ResetThreadAffinity()
+        End Sub
+
+        <WpfFact>
         Public Sub InvokeSignatureHelpWithoutDocumentShouldNotStartNewSession()
             Dim emptyProvider = New Mock(Of IDocumentProvider)
             emptyProvider.Setup(Function(p) p.GetDocumentAsync(It.IsAny(Of ITextSnapshot), It.IsAny(Of CancellationToken))).Returns(Task.FromResult(DirectCast(Nothing, Document)))
@@ -31,21 +36,21 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.Equal(0, GetMocks(controller).Provider.GetItemsCount)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub InvokeSignatureHelpWithDocumentShouldStartNewSession()
             Dim controller = CreateController()
 
             GetMocks(controller).Presenter.Verify(Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of ISignatureHelpSession)), Times.Once)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub EmptyModelShouldStopSession()
             Dim controller = CreateController(items:={}, waitForPresentation:=True)
 
             GetMocks(controller).PresenterSession.Verify(Sub(p) p.Dismiss(), Times.Once)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub UpKeyShouldDismissWhenThereIsOnlyOneItem()
             Dim controller = CreateController(items:=CreateItems(1), waitForPresentation:=True)
 
@@ -55,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             GetMocks(controller).PresenterSession.Verify(Sub(p) p.Dismiss(), Times.Once)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub UpKeyShouldNavigateWhenThereAreMultipleItems()
             Dim controller = CreateController(items:=CreateItems(2), waitForPresentation:=True)
 
@@ -65,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             GetMocks(controller).PresenterSession.Verify(Sub(p) p.SelectPreviousItem(), Times.Once)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(985007)>
         Public Sub UpKeyShouldNotCrashWhenSessionIsDismissed()
             ' Create a provider that will return an empty state when queried the second time
@@ -88,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             GetMocks(controller).PresenterSession.Verify(Sub(p) p.Dismiss(), Times.Once)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub DownKeyShouldNavigateWhenThereAreMultipleItems()
             Dim controller = CreateController(items:=CreateItems(2), waitForPresentation:=True)
 
@@ -99,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         <WorkItem(1181, "https://github.com/dotnet/roslyn/issues/1181")>
-        <Fact>
+        <WpfFact>
         Public Sub UpAndDownKeysShouldStillNavigateWhenDuplicateItemsAreFiltered()
             Dim item = CreateItems(1).Single()
             Dim controller = CreateController(items:={item, item}, waitForPresentation:=True)
@@ -110,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             GetMocks(controller).PresenterSession.Verify(Sub(p) p.Dismiss(), Times.Once)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub CaretMoveWithActiveSessionShouldRecomputeModel()
             Dim controller = CreateController(waitForPresentation:=True)
 
@@ -121,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.Equal(2, GetMocks(controller).Provider.GetItemsCount)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub RetriggerActiveSessionOnClosingBrace()
             Dim controller = CreateController(waitForPresentation:=True)
 
@@ -134,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.Equal(2, GetMocks(controller).Provider.GetItemsCount)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(959116)>
         Public Sub TypingNonTriggerCharacterShouldNotRequestDocument()
             Dim controller = CreateController(triggerSession:=False)

@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
     Public Class CommitOnMiscellaneousCommandsTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub CommitOnMultiLinePaste()
             Using testData = New CommitTestData(<Workspace>
@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(1944, "https://github.com/dotnet/roslyn/issues/1944")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub DontCommitOnMultiLinePasteWithPrettyListingOff()
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(545493)>
         Public Sub NoCommitOnSingleLinePaste()
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub CommitOnSave()
             Using testData = New CommitTestData(<Workspace>
@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
             End Using
         End Sub
 
-        <Fact, WorkItem(1944, "https://github.com/dotnet/roslyn/issues/1944")>
+        <WpfFact, WorkItem(1944, "https://github.com/dotnet/roslyn/issues/1944")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub DontCommitOnSavePrettyListingOff()
             Using testData = New CommitTestData(<Workspace>
@@ -91,7 +91,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         <WorkItem(545493)>
         Public Sub PerformAddMissingTokenOnFormatDocument()
@@ -114,7 +114,7 @@ End Module
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         <WorkItem(867153)>
         Public Sub FormatDocumentWithPrettyListingDisabled()

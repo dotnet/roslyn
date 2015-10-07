@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return New XmlCDataHighlighter()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestXmlLiteralSample6_1()
             Test(<Text><![CDATA[
 Class C
@@ -27,7 +27,7 @@ End Sub
 End Class]]></Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestXmlLiteralSample6_2()
             Test(<Text><![CDATA[
 Class C
@@ -44,7 +44,7 @@ End Sub
 End Class]]></Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestXmlLiteralSample6_3()
             Test(<Text><![CDATA[
 Class C

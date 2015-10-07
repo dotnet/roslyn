@@ -34,7 +34,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void RuleSet_GeneralOption()
         {
@@ -64,7 +64,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void RuleSet_ProjectSettingOverridesGeneralOption()
         {
@@ -97,7 +97,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void RuleSet_SpecificOptions()
         {
@@ -127,7 +127,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void RuleSet_ProjectSettingsOverrideSpecificOptions()
         {
@@ -158,7 +158,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             }
         }
 
-        [Fact, WorkItem(1087250)]
+        [WpfFact, WorkItem(1087250)]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void SetRuleSetFile_RemoveExtraBackslashes()
         {
@@ -176,7 +176,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         [WorkItem(1092636)]
         [WorkItem(1040247)]
@@ -220,7 +220,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
         public void RuleSet_ProjectNoWarnOverridesOtherSettings()

@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         Private Const s_originalFileAttributeName As String = "OriginalFile"
         Private Const s_mappedFileAttributeName As String = "MappedFile"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestNoErrors()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, Nothing)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestSingleDeclarationError()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestLineDirective()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestSingleBindingError()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestMultipleErrorsAndWarnings()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestBindingAndDeclarationErrors()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         End Sub
 
         ' Diagnostics are ordered by project-id
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDiagnosticsFromMultipleProjects()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -192,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics, ordered:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDiagnosticsFromTurnedOff()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -221,7 +221,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics, ordered:=False, enabled:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub WarningsAsErrors()
             Dim test =
                 <Workspace>
@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub DiagnosticsInNoCompilationProjects()
             Dim test =
                 <Workspace>

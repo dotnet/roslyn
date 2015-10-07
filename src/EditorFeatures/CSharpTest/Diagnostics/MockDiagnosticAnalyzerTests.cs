@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MockDiagnos
         }
 
         [WorkItem(906919)]
-        [Fact]
+        [WpfFact]
         public void Bug906919()
         {
             string source = "[|class C { }|]";

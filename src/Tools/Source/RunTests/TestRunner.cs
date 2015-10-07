@@ -57,13 +57,22 @@ namespace RunTests
                     var task = running[i];
                     if (task.IsCompleted)
                     {
-                        var testResult = await task.ConfigureAwait(false);
-                        if (!testResult.Succeeded)
+                        try
                         {
+                            var testResult = await task.ConfigureAwait(false);
+                            if (!testResult.Succeeded)
+                            {
+                                allPassed = false;
+                            }
+
+                            completed.Add(testResult);
+                        }
+                        catch (Exception ex) 
+                        {
+                            Console.WriteLine($"Error: {ex.Message}");
                             allPassed = false;
                         }
 
-                        completed.Add(testResult);
                         running.RemoveAt(i);
                     }
                     else

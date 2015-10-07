@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void VarAsUsingAliasForNamespace()
         {
             Test(@"using var = System;",
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification), WorkItem(547068)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification), WorkItem(547068)]
         public void Bug17819()
         {
             Test(@"_ _(){}
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void VarAsUsingAliasForClass()
         {
             Test(@"using var = System.Math;",
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void VarAsUsingAliasForDelegate()
         {
             Test(@"using var = System.Action;",
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void VarAsUsingAliasForStruct()
         {
             Test(@"using var = System.DateTime;",
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void VarAsUsingAliasForEnum()
         {
             Test(@"using var = System.DayOfWeek;",
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void VarAsUsingAliasForInterface()
         {
             Test(@"using var = System.IDisposable;",
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void VarAsConstructorName()
         {
             Test(@"class var { var() { } }",
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void UsingAliasGlobalNamespace()
         {
             Test(@"using IO = global::System.IO;",
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PartialDynamicWhere()
         {
             var code = @"partial class partial<where> where where : partial<where>
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         [WorkItem(543123)]
         public void VarInForeach()
         {
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void ValueInSetterAndAnonymousTypePropertyName()
         {
             Test(@"class C { int P { set { var t = new { value = value }; } } }",
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void TestValueInEvent()
         {
             TestInClass(
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void TestValueInProperty()
         {
             TestInClass(
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void ValueFieldInSetterAccessedThroughThis()
         {
             TestInClass(@"int P { set { this.value = value; } }",
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void NewOfInterface()
         {
             TestInMethod(@"object o = new System.IDisposable();",
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         }
 
         [WorkItem(545611)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void TestVarConstructor()
         {
             Test(@"class var
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         }
 
         [WorkItem(545609)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void TestVarTypeParameter()
         {
             Test(@"class X
@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         }
 
         [WorkItem(545610)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void TestVarAttribute1()
         {
             Test(@"using System;
@@ -469,7 +469,7 @@ class var : Attribute { }
         }
 
         [WorkItem(545610)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void TestVarAttribute2()
         {
             Test(@"using System;
@@ -492,7 +492,7 @@ class varAttribute : Attribute { }
         }
 
         [WorkItem(546170)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void TestStandaloneTypeName()
         {
             Test(@"using System;
@@ -524,7 +524,7 @@ class C
         }
 
         [WorkItem(546403)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void TestNamespaceClassAmbiguities()
         {
             Test(@"class C
@@ -545,7 +545,7 @@ namespace C
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void NameAttributeValue()
         {
             Test(@"
@@ -582,7 +582,7 @@ class Program<T>
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void Cref1()
         {
             Test(@"/// <see cref=""Program{T}""/>
@@ -619,7 +619,7 @@ class Program<T>
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void CrefNamespaceIsNotClass()
         {
             Test(@"///  <see cref=""N""/>
@@ -650,7 +650,7 @@ namespace N
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void InterfacePropertyWithSameNameShouldBePreferredToType()
         {
             Test(@"interface IFoo

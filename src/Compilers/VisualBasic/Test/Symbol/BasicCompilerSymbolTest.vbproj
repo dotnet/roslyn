@@ -173,6 +173,7 @@
     <Compile Include="SymbolsTests\XmlLiteralsTests_UseSiteErrors.vb" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="project.json" />
     <None Include="SymbolsTests\Metadata\MscorlibNamespacesAndTypes.bsl" />
   </ItemGroup>

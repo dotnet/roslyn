@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -9,12 +10,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class ExternAliasCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
+        public ExternAliasCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        {
+        }
+
         internal override CompletionListProvider CreateCompletionProvider()
         {
             return new ExternAliasCompletionProvider();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NoAliases()
         {
             VerifyNoItemsExist(@"
@@ -24,7 +29,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ExternAlias()
         {
             var markup = @"
@@ -32,7 +37,7 @@ extern alias $$ ";
             VerifyItemWithAliasedMetadataReferences(markup, "foo", "foo", 1, "C#", "C#", false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotAfterExternAlias()
         {
             var markup = @"
@@ -40,7 +45,7 @@ extern alias foo $$ ";
             VerifyItemWithAliasedMetadataReferences(markup, "foo", "foo", 0, "C#", "C#", false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotGlobal()
         {
             var markup = @"
@@ -48,7 +53,7 @@ extern alias $$ ";
             VerifyItemWithAliasedMetadataReferences(markup, "foo", "global", 0, "C#", "C#", false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotIfAlreadyUsed()
         {
             var markup = @"
@@ -58,7 +63,7 @@ extern alias $$";
         }
 
         [WorkItem(1075278)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotInComment()
         {
             var markup = @"

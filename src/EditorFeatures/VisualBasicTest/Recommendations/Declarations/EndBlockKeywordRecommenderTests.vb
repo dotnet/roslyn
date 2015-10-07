@@ -9,14 +9,14 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class EndBlockKeywordRecommenderTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndSubInBrokenMethodBody()
             VerifyRecommendationsContain(<ClassDeclaration>Sub Foo()
 |</ClassDeclaration>, "End Sub")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotAfterCompletedMethodBody()
             VerifyRecommendationsMissing(<ClassDeclaration>
@@ -25,7 +25,7 @@ End Sub
 |</ClassDeclaration>, "End")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotAfterMustOverrideMethodDeclaration1()
             VerifyRecommendationsMissing(<ClassDeclaration>
@@ -33,7 +33,7 @@ MustOverride Sub Foo()
 |</ClassDeclaration>, "End")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotAfterMustOverrideMethodDeclaration2()
             VerifyRecommendationsMissing(<ClassDeclaration>
@@ -41,7 +41,7 @@ MustOverride Sub Foo()
 |</ClassDeclaration>, "End Sub")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndPropertyAfterIncompleteProperty1()
             VerifyRecommendationsContain(<ClassDeclaration>Property foo As Integer
@@ -52,7 +52,7 @@ End Set
 |</ClassDeclaration>, "End Property")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndPropertyAfterIncompleteProperty2()
             VerifyRecommendationsContain(<ClassDeclaration>Property foo As Integer
@@ -63,49 +63,49 @@ End Set
 End |</ClassDeclaration>, "Property")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndSubInLambda()
             VerifyRecommendationsContain(<MethodBody>Dim foo = Sub()
 |</MethodBody>, "End Sub")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndIfInMethodBody1()
             VerifyRecommendationsContain(<MethodBody>If True Then
 |</MethodBody>, "End", "End If")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndIfInMethodBody2()
             VerifyRecommendationsContain(<MethodBody>If True Then
 End |</MethodBody>, "If")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndWithInMethodBody()
             VerifyRecommendationsContain(<MethodBody>With foo
 |</MethodBody>, "End With")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndWhileInMethodBody()
             VerifyRecommendationsContain(<MethodBody>While foo
 |</MethodBody>, "End While")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndSelectInMethodBody1()
             VerifyRecommendationsContain(<MethodBody>Select foo
 |</MethodBody>, "End Select")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndSelectInMethodBody2()
             VerifyRecommendationsContain(<MethodBody>Select foo
@@ -113,7 +113,7 @@ Case 1
 |</MethodBody>, "End Select")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndSelectInMethodBody3()
             VerifyRecommendationsContain(<MethodBody>Select foo
@@ -122,21 +122,21 @@ Case Else
 |</MethodBody>, "End Select")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndSyncLockInMethodBody()
             VerifyRecommendationsContain(<MethodBody>SyncLock foo
 |</MethodBody>, "End SyncLock")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndModuleInFile1()
             VerifyRecommendationsContain(<File>Module Foo
 |</File>, {"End Module"})
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndModuleInFile2()
             VerifyRecommendationsContain(<File>
@@ -144,14 +144,14 @@ Module Foo
 End |</File>, "Module")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndInterfaceInFile1()
             VerifyRecommendationsContain(<File>Interface IFoo
 |</File>, {"End Interface"})
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndInterfaceInFile2()
             VerifyRecommendationsContain(<File>
@@ -159,14 +159,14 @@ Interface IFoo
 End |</File>, "Interface")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndClassInFile1()
             VerifyRecommendationsContain(<File>Class Foo
 |</File>, {"End Class"})
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndClassInFile2()
             VerifyRecommendationsContain(<File>
@@ -174,14 +174,14 @@ Class Foo
 End |</File>, "Class")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndStructureInFile1()
             VerifyRecommendationsContain(<File>Structure Foo
 |</File>, {"End Structure"})
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndStructureInFile2()
             VerifyRecommendationsContain(<File>
@@ -189,14 +189,14 @@ Structure Foo
 End |</File>, "Structure")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndEnumInFile1()
             VerifyRecommendationsContain(<File>Enum Foo
 |</File>, {"End Enum"})
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndEnumInFile2()
             VerifyRecommendationsContain(<File>
@@ -205,7 +205,7 @@ End |</File>, "Enum")
         End Sub
 
         <WorkItem(539311)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndBlockMissingInPreprocessor()
             VerifyRecommendationsMissing(
@@ -219,7 +219,7 @@ End Module
         End Sub
 
         <WorkItem(540069)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndSubSuggestFunction()
             VerifyRecommendationsContain(<ClassDeclaration>Sub Foo()
@@ -235,7 +235,7 @@ End |</ClassDeclaration>, "Function", "Sub")
         End Sub
 
         <WorkItem(540069)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndFunctionSuggestSub()
             VerifyRecommendationsContain(<ClassDeclaration>Function Foo()
@@ -243,7 +243,7 @@ End |</ClassDeclaration>, "Function", "Sub")
         End Sub
 
         <WorkItem(540069)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndSubNotClassSuggested()
             VerifyRecommendationsMissing(<ClassDeclaration>Sub Foo()
@@ -251,7 +251,7 @@ End |</ClassDeclaration>, "Function", "Sub")
         End Sub
 
         <WorkItem(969097)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndClassPairings()
             VerifyRecommendationsMissing(<File>Class Foo()
@@ -259,7 +259,7 @@ End |</File>, "Module", "Interface", "Structure")
         End Sub
 
         <WorkItem(969097)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndModulePairings()
             VerifyRecommendationsMissing(<File>Module Foo()
@@ -267,7 +267,7 @@ End |</File>, "Class", "Interface", "Structure")
         End Sub
 
         <WorkItem(540069)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EndModuleNotSubSuggested()
             VerifyRecommendationsMissing(<File>Module Foo()

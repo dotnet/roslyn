@@ -9,32 +9,32 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class EachKeywordRecommenderTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EachNotInMethodBody()
             VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Each")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EachAfterForKeyword()
             VerifyRecommendationsContain(<MethodBody>For |</MethodBody>, "Each")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EachNotAfterTouchingFor()
             VerifyRecommendationsMissing(<MethodBody>For|</MethodBody>, "Each")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EachTouchingLoopIdentifier()
             VerifyRecommendationsContain(<MethodBody>For i|</MethodBody>, "Each")
         End Sub
 
         <WorkItem(530953)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotAfterEol()
             VerifyRecommendationsMissing(
 <MethodBody>For 
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
         End Sub
 
         <WorkItem(530953)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AfterExplicitLineContinuation()
             VerifyRecommendationsContain(
 <MethodBody>For _

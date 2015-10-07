@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
     {
         private TestWorkspace CreateWorkspace(bool disablePartialSolutions = true)
         {
-            SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
             return new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, disablePartialSolutions: disablePartialSolutions);
         }
 
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             workspaceWaiter.CreateWaitTask().PumpingWait();
         }
 
-        [Fact]
+        [WpfFact]
         public void TestEmptySolutionUpdateDoesNotFireEvents()
         {
             using (var workspace = CreateWorkspace())
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestAddProject()
         {
             using (var workspace = CreateWorkspace())
@@ -81,7 +80,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestRemoveExistingProject1()
         {
             using (var workspace = CreateWorkspace())
@@ -98,7 +97,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestRemoveExistingProject2()
         {
             using (var workspace = CreateWorkspace())
@@ -116,7 +115,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestRemoveNonAddedProject1()
         {
             using (var workspace = CreateWorkspace())
@@ -129,7 +128,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestRemoveNonAddedProject2()
         {
             using (var workspace = CreateWorkspace())
@@ -145,7 +144,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestChangeOptions1()
         {
             using (var workspace = CreateWorkspace())
@@ -172,7 +171,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestChangeOptions2()
         {
             using (var workspace = CreateWorkspace())
@@ -218,7 +217,7 @@ class D { }
             return type;
         }
 
-        [Fact]
+        [WpfFact]
         public void TestAddP2PReferenceFails()
         {
             using (var workspace = CreateWorkspace())
@@ -234,7 +233,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestAddP2PReference1()
         {
             using (var workspace = CreateWorkspace())
@@ -258,7 +257,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestAddP2PReferenceTwice()
         {
             using (var workspace = CreateWorkspace())
@@ -277,7 +276,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestRemoveP2PReference1()
         {
             using (var workspace = CreateWorkspace())
@@ -301,7 +300,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestAddP2PReferenceCircularity()
         {
             using (var workspace = CreateWorkspace())
@@ -320,7 +319,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestRemoveProjectWithOpenedDocuments()
         {
             using (var workspace = CreateWorkspace())
@@ -340,7 +339,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestRemoveProjectWithClosedDocuments()
         {
             using (var workspace = CreateWorkspace())
@@ -357,7 +356,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestRemoveOpenedDocument()
         {
             using (var workspace = CreateWorkspace())
@@ -377,7 +376,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestGetCompilation()
         {
             using (var workspace = CreateWorkspace())
@@ -398,7 +397,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestGetCompilationOnDependentProject()
         {
             using (var workspace = CreateWorkspace())
@@ -424,7 +423,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestGetCompilationOnCrossLanguageDependentProject()
         {
             using (var workspace = CreateWorkspace())
@@ -450,7 +449,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestGetCompilationOnCrossLanguageDependentProjectChanged()
         {
             using (var workspace = CreateWorkspace())
@@ -496,7 +495,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestDependentSemanticVersionChangesWhenNotOriginallyAccessed()
         {
             using (var workspace = CreateWorkspace(disablePartialSolutions: false))
@@ -552,7 +551,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestGetCompilationOnCrossLanguageDependentProjectChangedInProgress()
         {
             using (var workspace = CreateWorkspace(disablePartialSolutions: false))
@@ -617,7 +616,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestOpenAndChangeDocument()
         {
             using (var workspace = CreateWorkspace())
@@ -644,7 +643,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestApplyChangesWithDocumentTextUpdated()
         {
             using (var workspace = CreateWorkspace())
@@ -679,7 +678,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestApplyChangesWithDocumentAdded()
         {
             using (var workspace = CreateWorkspace())
@@ -703,7 +702,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestApplyChangesWithDocumentRemoved()
         {
             using (var workspace = CreateWorkspace())
@@ -726,7 +725,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestDocumentEvents()
         {
             using (var workspace = CreateWorkspace())
@@ -792,7 +791,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestAdditionalFile_Properties()
         {
             using (var workspace = CreateWorkspace())
@@ -818,7 +817,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestAdditionalFile_DocumentChanged()
         {
             using (var workspace = CreateWorkspace())
@@ -852,7 +851,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestAdditionalFile_OpenClose()
         {
             using (var workspace = CreateWorkspace())
@@ -883,7 +882,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestAdditionalFile_AddRemove()
         {
             using (var workspace = CreateWorkspace())
@@ -921,7 +920,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestAdditionalFile_AddRemove_FromProject()
         {
             using (var workspace = CreateWorkspace())

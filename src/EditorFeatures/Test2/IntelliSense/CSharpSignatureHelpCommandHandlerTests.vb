@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.Editor.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Public Class CSharpSignatureHelpCommandHandlerTests
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestCreateAndDismiss()
             Using state = TestState.CreateCSharpTestState(
                               <Document>
@@ -25,7 +25,7 @@ class C
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TypingUpdatesParameters()
             Using state = TestState.CreateCSharpTestState(
                               <Document>
@@ -45,7 +45,7 @@ class C
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TypingChangeParameterByNavigating()
             Using state = TestState.CreateCSharpTestState(
                               <Document>
@@ -67,7 +67,7 @@ class C
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub NavigatingOutOfSpanDismissesSignatureHelp()
             Using state = TestState.CreateCSharpTestState(
                               <Document>
@@ -87,7 +87,7 @@ class C
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestNestedCalls()
             Using state = TestState.CreateCSharpTestState(
                               <Document>
@@ -111,7 +111,7 @@ class C
         End Sub
 
         <WorkItem(544547)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestNoSigHelpOnGenericNamespace()
             Using state = TestState.CreateCSharpTestState(
                               <Document>
@@ -124,7 +124,7 @@ namespace global::F$$
         End Sub
 
         <WorkItem(544547)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestSigHelpOnExtraSpace()
             Using state = TestState.CreateCSharpTestState(
                               <Document>
@@ -145,7 +145,7 @@ class C
         End Sub
 
         <WorkItem(544551)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestFilterOnNamedParameters1()
             Using state = TestState.CreateCSharpTestState(
                               <Document>
@@ -185,7 +185,7 @@ class Program
         End Sub
 
         <WorkItem(545488)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestKeepSelectedItemWhenNoneAreViable()
             Using state = TestState.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -213,7 +213,7 @@ class Program
         End Sub
 
         <WorkItem(691648)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestKeepSelectedItemAfterComma()
             Using state = TestState.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -246,7 +246,7 @@ class C
         <WorkItem(819063)>
         <WorkItem(843508)>
         <WorkItem(636117)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestSessionMaintainedDuringIndexerErrorToleranceTransition()
             Using state = TestState.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -270,7 +270,7 @@ class Program
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestSigHelpInLinkedFiles()
             Using state = TestState.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -310,7 +310,7 @@ class C
         End Sub
 
         <WorkItem(1060850)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestSigHelpNotDismissedAfterQuote()
             Using state = TestState.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -336,7 +336,7 @@ class C
         End Sub
 
         <WorkItem(1060850)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestSigHelpDismissedAfterComment()
             Using state = TestState.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -361,7 +361,7 @@ class C
         End Sub
 
         <WorkItem(1598, "https://github.com/dotnet/roslyn/issues/1598")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestGenericNameSigHelpInTypeParameterListAfterConditionalAccess()
             Using state = TestState.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -384,7 +384,7 @@ class C
         End Sub
 
         <WorkItem(1598, "https://github.com/dotnet/roslyn/issues/1598")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestGenericNameSigHelpInTypeParameterListAfterMultipleConditionalAccess()
             Using state = TestState.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -407,7 +407,7 @@ class C
         End Sub
 
         <WorkItem(1598, "https://github.com/dotnet/roslyn/issues/1598")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestGenericNameSigHelpInTypeParameterListMuchAfterConditionalAccess()
             Using state = TestState.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -430,7 +430,7 @@ class C
         End Sub
 
         <WorkItem(1598, "https://github.com/dotnet/roslyn/issues/1598")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestGenericNameSigHelpInTypeParameterListAfterConditionalAccessAndNullCoalesce()
             Using state = TestState.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -453,7 +453,7 @@ class C
         End Sub
 
         <WorkItem(5174, "https://github.com/dotnet/roslyn/issues/5174")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub DontShowSignatureHelpIfOptionIsTurnedOffUnlessExplicitlyInvoked()
             Using state = TestState.CreateCSharpTestState(
                               <Document>

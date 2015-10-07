@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
     public class SearchPathsTest
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.InteractiveHost)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.InteractiveHost)]
         public void ListOperations()
         {
             var sp = new SearchPaths();
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             Assert.Equal(7, sp.List.Version);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.InteractiveHost)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.InteractiveHost)]
         public void Exceptions()
         {
             var sp = new SearchPaths();

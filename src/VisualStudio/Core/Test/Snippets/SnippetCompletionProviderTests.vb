@@ -11,7 +11,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
     Public Class SnippetCompletionProviderTests
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetCompletion()
             Dim markup = "a?$$"
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, extraParts:={GetType(MockSnippetInfoService)})
@@ -30,7 +30,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub TracksChangeSpanCorrectly()
             Dim markup = "a?$$"
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, extraParts:={GetType(MockSnippetInfoService)})
@@ -50,7 +50,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetListOnlyIfTextBeforeQuestionMark()
             Dim markup = <File>
 Class C
