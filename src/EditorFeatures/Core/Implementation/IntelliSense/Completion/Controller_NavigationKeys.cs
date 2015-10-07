@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editor.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
@@ -62,10 +63,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // If we've finished computing the completions then use the navigation commands to
             // change the selected item.  Otherwise, the user was just typing and is now moving
             // through the file.  In this case stop everything we're doing.
-            var model = sessionOpt.Computation.InitialUnfilteredModel != null ? sessionOpt.Computation.WaitForController() : null;
+            var models = sessionOpt.Computation.InitialUnfilteredModels != default(ImmutableArray<Model>) ? sessionOpt.Computation.WaitForController() : default(ImmutableArray<Model>);
 
             // Check if completion is still active.  Then update the computation appropriately.
-            if (model != null)
+            if (models != default(ImmutableArray<Model>))
             {
                 computationAction();
                 return true;

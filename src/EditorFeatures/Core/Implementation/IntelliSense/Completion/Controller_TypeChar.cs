@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Commands;
@@ -318,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             AssertIsForeground();
 
             // TODO(cyrusn): Find a way to allow the user to cancel out of this.
-            var model = sessionOpt.WaitForModel();
+            var model = sessionOpt.GetSelectedModel();
             if (model == null || model.IsSoftSelection)
             {
                 return false;
@@ -340,21 +341,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             AssertIsForeground();
 
             // TODO(cyrusn): Find a way to allow the user to cancel out of this.
-            var model = sessionOpt.WaitForModel();
-            if (model == null)
+            var models = sessionOpt.WaitForModels();
+            if (models == default(ImmutableArray<Model>))
             {
                 return false;
             }
 
-            var selectedItem = Controller.GetExternallyUsableCompletionItem(model.SelectedItem);
-            if (selectedItem.IsBuilder)
+            foreach (var model in models)
             {
-                return char.IsLetterOrDigit(ch);
+                var selectedItem = Controller.GetExternallyUsableCompletionItem(model.SelectedItem);
+                if (selectedItem.IsBuilder)
+                {
+                    return char.IsLetterOrDigit(ch);
+                }
+
+                var filterText = GetCurrentFilterText(model, selectedItem);
+
+                if (GetCompletionRules().IsFilterCharacter(selectedItem, ch, filterText))
+                {
+                    return true;
+                }
             }
 
-            var filterText = GetCurrentFilterText(model, selectedItem);
-
-            return GetCompletionRules().IsFilterCharacter(selectedItem, ch, filterText);
+            return false;
         }
 
         private string GetCurrentFilterText(Model model, CompletionItem selectedItem)
@@ -373,7 +382,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // Note: this function is called after the character has already been inserted into the
             // buffer.
 
-            var model = sessionOpt.WaitForModel();
+            var model = sessionOpt.GetSelectedModel();
 
             // We only call CommitOnTypeChar if ch was a commit character.  And we only know if ch
             // was commit character if we had a selected item.

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -24,9 +25,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // has computed the results, then compare where the caret is with all the items.  If the
             // caret isn't within the bounds of the items, then we dismiss completion.
             var caretPoint = this.GetCaretPointInViewBuffer();
-            var model = sessionOpt.Computation.InitialUnfilteredModel;
-            if (model == null ||
-                this.IsCaretOutsideAllItemBounds(model, caretPoint))
+            var models = sessionOpt.Computation.InitialUnfilteredModels;
+            if (models == default(ImmutableArray<Model>) ||
+                this.IsCaretOutsideAllItemBounds(models, caretPoint))
             {
                 // Completions hadn't even been computed yet or the caret is out of bounds.  
                 // Just cancel everything we're doing.
@@ -34,18 +35,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
         }
 
-        internal bool IsCaretOutsideAllItemBounds(Model model, SnapshotPoint caretPoint)
+        internal bool IsCaretOutsideAllItemBounds(ImmutableArray<Model> models, SnapshotPoint caretPoint)
         {
             var textSpanToTextCache = new Dictionary<TextSpan, string>();
             var textSpanToViewSpanCache = new Dictionary<TextSpan, ViewTextSpan>();
 
-            foreach (var item in model.TotalItems)
+            // Even though models can have duplicate completion items, these caches
+            // alleviate the duplicate work we're now doing.
+            foreach (var model in models)
             {
-                if (!IsCaretOutsideItemBounds(model, caretPoint, item, textSpanToTextCache, textSpanToViewSpanCache))
+                foreach (var item in model.TotalItems)
                 {
-                    return false;
+                    if (!IsCaretOutsideItemBounds(model, caretPoint, item, textSpanToTextCache, textSpanToViewSpanCache))
+                    {
+                        return false;
+                    }
                 }
             }
+            
 
             return true;
         }

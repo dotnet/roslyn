@@ -3,6 +3,9 @@
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
+using System;
+using System.Linq;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
@@ -28,6 +31,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 this.PresenterSession.ItemCommitted += OnPresenterSessionItemCommitted;
                 this.PresenterSession.ItemSelected += OnPresenterSessionItemSelected;
+
+                // We need to track which (if any) of our completion sets is selected
+                this.PresenterSession.CompletionListSelected += OnPresenterCompletionListSelected;
+            }
+
+            private void OnPresenterCompletionListSelected(object sender, CompletionListSelectedEventArgs e)
+            {
+                AssertIsForeground();
+                Computation.ChainTaskAndNotifyControllerWhenFinished(models => UpdateModelSelectionStatus(models, e.newValue));
+            }
+
+            private ImmutableArray<Model> UpdateModelSelectionStatus(ImmutableArray<Model> models, int? selectedModel)
+            {
+                var updatedModels = ImmutableArray.CreateBuilder<Model>(models.Length);
+                for (int i = 0; i < models.Length; i++)
+                {
+                    updatedModels.Add(models[i].WithIsSelected(i == selectedModel));
+                }
+
+                return updatedModels.ToImmutable();
             }
 
             private ITextBuffer SubjectBuffer
@@ -45,23 +68,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var currentPosition = Controller.GetCaretPointInViewBuffer();
 
                 Computation.ChainTaskAndNotifyControllerWhenFinished(
-                    model =>
+                    models =>
                 {
-                    if (model == null)
+                    if (models == null)
                     {
-                        return model;
+                        return models;
                     }
 
                     // If our tracking point maps to the caret before the edit, it should also map to the 
                     // caret after the edit.  This is for the automatic brace completion scenario where
                     // we don't want the completion commit span to include the auto-inserted ')'
-                    if (model.CommitTrackingSpanEndPoint.GetPosition(initialPosition.Snapshot) == initialPosition.Position)
-                    {
-                        return model.WithTrackingSpanEnd(currentPosition.Snapshot.Version.CreateTrackingPoint(currentPosition.Position, PointTrackingMode.Positive));
-                    }
-
-                    return model;
+                    return models.Select(m => UpdateTrackingSpanEndIfApplicable(m, initialPosition, currentPosition)).ToImmutableArray();
                 });
+            }
+
+            private Model UpdateTrackingSpanEndIfApplicable(Model model, SnapshotPoint initialPosition, SnapshotPoint currentPosition)
+            {
+                if (model.CommitTrackingSpanEndPoint.GetPosition(initialPosition.Snapshot) == initialPosition.Position)
+                {
+                    return model.WithTrackingSpanEnd(currentPosition.Snapshot.Version.CreateTrackingPoint(currentPosition.Position, PointTrackingMode.Positive));
+                }
+
+                return model;
             }
 
             public override void Stop()

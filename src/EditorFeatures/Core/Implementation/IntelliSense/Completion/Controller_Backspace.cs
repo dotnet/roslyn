@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Commands;
@@ -88,17 +90,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     this.TextView.Caret.PositionChanged += OnCaretPositionChanged;
                 }
 
-                var model = sessionOpt.Computation.InitialUnfilteredModel;
+                var models = sessionOpt.Computation.InitialUnfilteredModels;
 
-                if ((model == null && CaretHasLeftDefaultTrackingSpan(subjectBufferCaretPoint, documentBeforeDeletion)) ||
-                    (model != null && this.IsCaretOutsideAllItemBounds(model, this.GetCaretPointInViewBuffer())) ||
-                    (model != null && GetCompletionService().DismissIfLastFilterCharacterDeleted && AllFilterTextsEmpty(model, GetCaretPointInViewBuffer())))
+                // TODO: This uses our first model to determine span applicability.
+                // Is it a scenario (from an API perpective) to actually have
+                // different applicability spans per model?
+                if ((models == default(ImmutableArray<Model>) && CaretHasLeftDefaultTrackingSpan(subjectBufferCaretPoint, documentBeforeDeletion)) ||
+                    (models != default(ImmutableArray<Model>) && this.IsCaretOutsideAllItemBounds(models, this.GetCaretPointInViewBuffer())) ||
+                    (models != default(ImmutableArray<Model>) && GetCompletionService().DismissIfLastFilterCharacterDeleted && AllFilterTextsEmpty(models, GetCaretPointInViewBuffer())))
                 {
                     // If the caret moved out of bounds of our items, then we want to dismiss the list. 
                     this.StopModelComputation();
                     return;
                 }
-                else if (model != null && model.TriggerInfo.TriggerReason != CompletionTriggerReason.BackspaceOrDeleteCommand)
+                else if (models != default(ImmutableArray<Model>) && models[0].TriggerInfo.TriggerReason != CompletionTriggerReason.BackspaceOrDeleteCommand)
                 {
                     // Filter the model if it wasn't invoked on backspace.
                     sessionOpt.FilterModel(CompletionFilterReason.BackspaceOrDelete);
@@ -115,16 +120,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return !defaultTrackingSpan.IntersectsWith(new TextSpan(newCaretPoint, 0));
         }
 
-        internal bool AllFilterTextsEmpty(Model model, SnapshotPoint caretPoint)
+        internal bool AllFilterTextsEmpty(ImmutableArray<Model> models, SnapshotPoint caretPoint)
         {
             var textSpanToTextCache = new Dictionary<TextSpan, string>();
             var textSpanToViewSpanCache = new Dictionary<TextSpan, ViewTextSpan>();
 
-            foreach (var item in model.TotalItems)
+            foreach (var model in models)
             {
-                if (!IsFilterTextEmpty(model, caretPoint, item, textSpanToTextCache, textSpanToViewSpanCache))
+                foreach (var item in model.TotalItems)
                 {
-                    return false;
+                    if (!IsFilterTextEmpty(model, caretPoint, item, textSpanToTextCache, textSpanToViewSpanCache))
+                    {
+                        return false;
+                    }
                 }
             }
 
