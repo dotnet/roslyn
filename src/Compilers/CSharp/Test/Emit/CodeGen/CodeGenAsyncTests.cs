@@ -3605,12 +3605,20 @@ namespace CompilerCrashRepro2
             CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe), expectedOutput: "0");
         }
 
-
         [Fact]
         public void AwaitInScriptExpression()
         {
             var source =
 @"System.Console.WriteLine(await System.Threading.Tasks.Task.FromResult(1));";
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AwaitInScriptGlobalStatement()
+        {
+            var source =
+@"await System.Threading.Tasks.Task.FromResult(4);";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
@@ -3639,6 +3647,16 @@ System.Console.WriteLine(x);";
             var s0 = CSharpCompilation.CreateSubmission("s0.dll", SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Interactive), references);
             var s1 = CSharpCompilation.CreateSubmission("s1.dll", SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.Interactive), references, previousSubmission: s0);
             s1.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AwaitInInteractiveGlobalStatement()
+        {
+            var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
+            var source0 =
+@"await System.Threading.Tasks.Task.FromResult(5);";
+            var s0 = CSharpCompilation.CreateSubmission("s0.dll", SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Interactive), references);
+            s0.VerifyDiagnostics();
         }
 
         [Fact]
@@ -3731,7 +3749,6 @@ class Program
         }
         catch (Exception)
         {
-
         }
     }
 }
@@ -3775,24 +3792,24 @@ using System.Threading.Tasks;
 using System;
 
 class Program
+{
+    static void Main()
     {
-        static void Main()
-        {
-            M(0).Wait();
-        }
+        M(0).Wait();
+    }
 
-        static async Task M(int input)
+    static async Task M(int input)
+    {
+        var value = ""q""; 
+        switch (value)
         {
-            var value = ""q""; 
-            switch (value)
-            {
-                case ""a"":
-                    return;
-                case ""b"":
-                    return;
-            }
+            case ""a"":
+                return;
+            case ""b"":
+                return;
         }
     }
+}
 ";
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(comp);
