@@ -19,7 +19,10 @@ call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd
 REM Build the compiler so we can self host it for the full build
 nuget.exe restore -nocache -verbosity quiet %RoslynRoot%build/ToolsetPackages/project.json
 nuget.exe restore -nocache -verbosity quiet %RoslynRoot%build/Toolset.sln
-msbuild /nologo /v:m /m %RoslynRoot%build/Toolset.sln /p:Configuration=%BuildConfiguration%
+REM Set the build version only so the assembly version is set to the semantic version,
+REM which allows analyzers to laod because the compiler has binding redirects to the
+REM semantic version
+msbuild /nologo /v:m /m /p:BuildVersion=0.0.0.0 %RoslynRoot%build/Toolset.sln /p:Configuration=%BuildConfiguration%
 
 mkdir %RoslynRoot%Binaries\Bootstrap
 move Binaries\%BuildConfiguration%\* %RoslynRoot%Binaries\Bootstrap
