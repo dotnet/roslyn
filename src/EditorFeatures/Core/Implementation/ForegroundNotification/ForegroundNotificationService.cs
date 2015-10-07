@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
 {
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
                     await InvokeBelowInputPriority(NotifyOnForeground).ConfigureAwait(continueOnCapturedContext: false);
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
             {
                 System.Diagnostics.Debug.Assert(false, ex.Message);
             }
