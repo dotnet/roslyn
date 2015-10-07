@@ -146,8 +146,7 @@
     <Compile Include="ProjectSystem\LanguageServices\VisualBasicCodeDomProvider.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="ProjectSystem\Templating\VisualBasicItemTemplatesGuidProvider.cs" />
-    <Compile Include="ProjectSystem\Templating\VisualBasicItemTypeGuidProvider.cs" />
+    <Compile Include="ProjectSystem\VisualBasicProjectGuidProvider.cs" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
   <Import Project="..\..\..\..\packages\Microsoft.VisualStudio.ProjectSystem.SDK.Tools.14.0.50729-pre\build\Microsoft.VisualStudio.ProjectSystem.Sdk.Tools.targets" Condition="Exists('..\..\..\..\packages\Microsoft.VisualStudio.ProjectSystem.SDK.Tools.14.0.50729-pre\build\Microsoft.VisualStudio.ProjectSystem.Sdk.Tools.targets')" />
