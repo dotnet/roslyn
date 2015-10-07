@@ -103,6 +103,9 @@
     <DefineConstants>$(DefineConstants);OFFICIAL_BUILD</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\..\VisualStudio\Setup\ProvideRoslynBindingRedirection.cs">
+      <Link>ProvideRoslynBindingRedirection.cs</Link>
+    </Compile>
     <Compile Include="AssemblyRedirects.cs" Condition="('$(AssemblyVersion)' == '42.42.42.42') or ('$(OfficialBuild)' == 'true')" />
   </ItemGroup>
   <ImportGroup Label="Targets">

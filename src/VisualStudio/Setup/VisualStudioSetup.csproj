@@ -189,6 +189,7 @@
     <Content Include="BindingPath.pkgdef">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Compile Include="ProvideRoslynBindingRedirection.cs" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
