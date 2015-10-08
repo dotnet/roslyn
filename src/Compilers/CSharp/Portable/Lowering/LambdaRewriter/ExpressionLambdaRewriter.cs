@@ -444,20 +444,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static BoundExpression DemoteEnumOperand(BoundExpression left)
+        private static BoundExpression DemoteEnumOperand(BoundExpression operand)
         {
-            if (left.Kind == BoundKind.Conversion)
+            if (operand.Kind == BoundKind.Conversion)
             {
-                var conversion = (BoundConversion)left;
+                var conversion = (BoundConversion)operand;
                 if (!conversion.ConversionKind.IsUserDefinedConversion() &&
                     conversion.ConversionKind.IsImplicitConversion() && 
                     conversion.Type.StrippedType().IsEnumType())
                 {
-                    left = conversion.Operand;
+                    operand = conversion.Operand;
                 }
             }
 
-            return left;
+            return operand;
         }
 
         private BoundExpression VisitAndPromoteEnumOperand(BoundExpression operand, TypeSymbol promotedType, bool isChecked)
