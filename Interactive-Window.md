@@ -1,4 +1,3 @@
-# Interactive Window
 The C# Interactive Window provides a fast and iterative way to learn APIs, experiment with code snippets, and test methods by giving immediate feedback on what an expression will return or what an API call does. 
 
 The C# Interactive Window is a [read-eval-print-loop (REPL)](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) with advanced editor support. It supports features like IntelliSense as well as the ability to redefine functions & classes. After entering a code snippet--which can contain class and function definitions at top-level along with statements--the code executes directly. This means you no longer need to open a project, define a namespace, define a ```Main``` method, add a ```Console.WriteLine()``` call to output your result, and add a ```Console.ReadLine()``` call in order to play with code. In other words, say goodbye to ConsoleApp137 or whatever ridiculously high number your Console Apps default to today!
