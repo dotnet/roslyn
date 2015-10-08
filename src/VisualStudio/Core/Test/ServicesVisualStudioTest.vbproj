@@ -317,6 +317,7 @@
     <Compile Include="CodeModel\VisualBasic\CodeStructTests.vb" />
     <Compile Include="CodeModel\VisualBasic\CodeVariableTests.vb" />
     <Compile Include="CodeModel\VisualBasic\EventCollectorTests.vb" />
+    <Compile Include="CodeModel\VisualBasic\ExternalCodeClassTests.vb" />
     <Compile Include="CodeModel\VisualBasic\FileCodeModelTests.vb" />
     <Compile Include="CodeModel\VisualBasic\ImplementsStatementTests.vb" />
     <Compile Include="CodeModel\VisualBasic\InheritsStatementTests.vb" />
