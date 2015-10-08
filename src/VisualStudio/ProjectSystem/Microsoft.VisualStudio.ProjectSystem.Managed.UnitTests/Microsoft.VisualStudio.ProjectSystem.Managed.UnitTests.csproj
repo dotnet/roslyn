@@ -140,6 +140,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Mocks\IActiveConfiguredProjectFactory.cs" />
+    <Compile Include="Mocks\IOrderPrecedenceMetadataViewFactory.cs" />
     <Compile Include="Mocks\IThreadHandlingFactory.cs" />
     <Compile Include="Mocks\PropertyPageData.cs" />
     <Compile Include="Mocks\IUnconfiguredProjectCommonServicesFactory.cs" />
@@ -150,6 +151,8 @@
     <Compile Include="Mocks\IProjectDesignerServiceFactory.cs" />
     <Compile Include="Moq\ReturnsExtensions.cs" />
     <Compile Include="FuncWithOut.cs" />
+    <Compile Include="OrderPrecedenceImportCollectionExtensions.cs" />
+    <Compile Include="ProjectSystem\Designers\Imaging\ProjectImageProviderAggregatorTests.cs" />
     <Compile Include="ProjectSystem\Designers\ProjectRootImageProjectTreeModifierTests.cs" />
     <Compile Include="ProjectSystem\UnconfiguredProjectCommonServicesTests.cs" />
     <Compile Include="Testing\ProjectSystemTraitDiscover.cs" />
