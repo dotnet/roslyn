@@ -35,6 +35,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public void MethodDeclarationInGlobalStatement1()
+        {
+            const string text = @"$$";
+            VerifyKeyword(SourceCodeKind.Interactive, text);
+            VerifyKeyword(SourceCodeKind.Script, text);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public void MethodDeclarationInGlobalStatement2()
+        {
+            const string text = @"public $$";
+            VerifyKeyword(SourceCodeKind.Interactive, text);
+            VerifyKeyword(SourceCodeKind.Script, text);
+        }  
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void ExpressionContext()
         {
             VerifyKeyword(@"class C

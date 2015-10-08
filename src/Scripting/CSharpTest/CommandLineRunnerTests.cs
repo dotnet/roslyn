@@ -109,17 +109,6 @@ Copyright (C) Microsoft Corporation. All rights reserved.
         }
 
         [Fact]
-        public void Script_ExitCode()
-        {
-            var script = Temp.CreateFile(extension: ".csx").WriteAllText("ExitCode = 42;");
-
-            var runner = CreateRunner(new[] { script.Path });
-
-            Assert.Equal(42, runner.RunInteractive());
-            Assert.Equal("", runner.Console.Out.ToString());
-        }
-
-        [Fact]
         public void Script_NonExistingFile()
         {
             var runner = CreateRunner(new[] { "a + b" });

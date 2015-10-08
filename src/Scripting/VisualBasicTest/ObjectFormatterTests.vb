@@ -1,10 +1,10 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Scripting.UnitTests
+Imports Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
 Imports ObjectFormatterFixtures
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests
+Namespace Microsoft.CodeAnalysis.Scripting.Hosting.VisualBasic.UnitTests
 
     Public Class ObjectFormatterTests
         Inherits ObjectFormatterTestBase

@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                     .Where(r => !(r is UnresolvedMetadataReference));
 
                 var interactiveHelpersRef = metadataService.GetReference(typeof(Script).Assembly.Location, MetadataReferenceProperties.Assembly);
-                var interactiveHostObjectRef = metadataService.GetReference(typeof(InteractiveHostObject).Assembly.Location, MetadataReferenceProperties.Assembly);
+                var interactiveHostObjectRef = metadataService.GetReference(typeof(InteractiveScriptGlobals).Assembly.Location, MetadataReferenceProperties.Assembly);
 
                 _references = ImmutableHashSet.Create<MetadataReference>(
                     interactiveHelpersRef,
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                     documents: null,
                     projectReferences: null,
                     metadataReferences: localReferences,
-                    hostObjectType: typeof(InteractiveHostObject),
+                    hostObjectType: typeof(InteractiveScriptGlobals),
                     isSubmission: true));
 
             if (_previousSubmissionProjectId != null)
