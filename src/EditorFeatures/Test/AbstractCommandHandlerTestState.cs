@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
@@ -251,6 +252,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public CaretPosition GetCaretPoint()
         {
             return TextView.Caret.Position;
+        }
+
+        public async Task WaitForAsynchronousOperationsAsync()
+        {
+            var waiters = Workspace.ExportProvider.GetExportedValues<IAsynchronousOperationWaiter>();
+            var tasks = waiters.Select(w => w.CreateWaitTask()).ToList();
+            await tasks.PumpingWaitAllAsync().ConfigureAwait(continueOnCapturedContext: true);
         }
 
         public void WaitForAsynchronousOperations()

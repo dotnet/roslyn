@@ -7,6 +7,7 @@ using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Xunit.Abstractions;
 using Xunit.Sdk;
+using System;
 
 namespace Roslyn.Test.Utilities
 {
@@ -16,15 +17,12 @@ namespace Roslyn.Test.Utilities
             : base(diagnosticMessageSink, defaultMethodDisplay, testMethod, testMethodArguments) { }
 
         public override Task<RunSummary> RunAsync(IMessageSink diagnosticMessageSink, IMessageBus messageBus, object[] constructorArguments, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
-            => Task.Factory.StartNew(() =>
+        {
+            var sta = StaTaskScheduler.DefaultSta;
+            var task = Task.Factory.StartNew(async () =>
             {
-                // All of the tests which use StaTestCase require an STA thread, so assert that we are 
-                // actually running from an STA Thread (which should be from the StaTaskScheduler pool).
-                Debug.Assert(Thread.CurrentThread.GetApartmentState() == ApartmentState.STA);
-
-                // xUnit will set and clean up its own context, so assert that none is currently
-                // set. If our assert fails, then something wasn't cleaned up properly...
-                Debug.Assert(SynchronizationContext.Current == null);
+                Debug.Assert(sta.Threads.Length == 1);
+                Debug.Assert(sta.Threads[0] == Thread.CurrentThread);
 
                 try
                 {
@@ -44,12 +42,27 @@ namespace Roslyn.Test.Utilities
 
                     // Just call back into the normal xUnit dispatch process now that we are on an STA Thread with no synchronization context.
                     var baseTask = base.RunAsync(diagnosticMessageSink, messageBus, constructorArguments, aggregator, cancellationTokenSource);
-                    while (!baseTask.IsCompleted)
+                    do
                     {
-                        new FrameworkElement().Dispatcher.DoEvents();
-                    }
+                        var delay = Task.Delay(TimeSpan.FromMilliseconds(10), cancellationTokenSource.Token);
+                        var completed = await Task.WhenAny(baseTask, delay).ConfigureAwait(false);
+                        if (completed == baseTask)
+                        {
+                            return await baseTask.ConfigureAwait(false);
+                        }
 
-                    return baseTask.Result;
+                        // Schedule a task to pump messages on the UI thread.  
+                        await Task.Factory.StartNew(
+                            () => WaitHelper.WaitForDispatchedOperationsToComplete(DispatcherPriority.ApplicationIdle),
+                            cancellationTokenSource.Token,
+                            TaskCreationOptions.None,
+                            sta).ConfigureAwait(false);
+                    } while (true);
+                }
+                catch (Exception ex)
+                {
+                    Debug.Assert(false, ex.Message);
+                    throw;
                 }
                 finally
                 {
@@ -59,6 +72,9 @@ namespace Roslyn.Test.Utilities
                     SynchronizationContext.SetSynchronizationContext(null);
                 }
 
-            }, CancellationToken.None, TaskCreationOptions.None, StaTaskScheduler.DefaultSta);
+            }, cancellationTokenSource.Token, TaskCreationOptions.None, sta);
+
+            return task.Unwrap();
+        }
     }
 }

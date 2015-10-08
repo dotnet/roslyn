@@ -200,7 +200,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
-        Public Sub Locals3()
+        Public Async Sub Locals3()
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document>$$</Document>
@@ -220,6 +220,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
             Using state = TestState.CreateCSharpTestState(text, False)
                 state.SendTypeChars("variable")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertCompletionItemsContainNone("variable1")
                 state.AssertCompletionItemsContainAll("variable2")
             End Using

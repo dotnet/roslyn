@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +22,9 @@ namespace Roslyn.Test.Utilities
         private BlockingCollection<Task> _tasks;
 
         /// <summary>The STA threads used by the scheduler.</summary>
-        private readonly List<Thread> _threads;
+        private readonly ImmutableArray<Thread> _threads;
+
+        public ImmutableArray<Thread> Threads => _threads;
 
         /// <summary>Initializes a new instance of the StaTaskScheduler class with the specified concurrency level.</summary>
         /// <param name="numberOfThreads">The number of threads that should be created and used by this scheduler.</param>
@@ -49,10 +52,13 @@ namespace Roslyn.Test.Utilities
                 thread.IsBackground = true;
                 thread.SetApartmentState(ApartmentState.STA);
                 return thread;
-            }).ToList();
+            }).ToImmutableArray();
 
             // Start all of the threads
-            _threads.ForEach(t => t.Start());
+            foreach (var thread in _threads)
+            {
+                thread.Start();
+            }
         }
 
         /// <summary>Queues a Task to be executed by this scheduler.</summary>
@@ -88,7 +94,7 @@ namespace Roslyn.Test.Utilities
         {
             get
             {
-                return _threads.Count;
+                return _threads.Length;
             }
         }
 
@@ -111,6 +117,16 @@ namespace Roslyn.Test.Utilities
                 _tasks.Dispose();
                 _tasks = null;
             }
+        }
+
+        public bool IsAnyQueued()
+        {
+            if (_threads.Length != 1 || _threads[0] != Thread.CurrentThread)
+            {
+                throw new InvalidOperationException("Operation invalid in this context");
+            }
+
+            return _tasks.Count > 0;
         }
     }
 }
