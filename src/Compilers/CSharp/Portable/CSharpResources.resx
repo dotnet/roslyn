@@ -3537,7 +3537,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>Cannot await in an unsafe context</value>
   </data>
   <data name="ERR_BadAsyncLacksBody" xml:space="preserve">
-    <value>The 'async' modifier can only be used in methods that have a statement body.</value>
+    <value>The 'async' modifier can only be used in methods that have a body.</value>
   </data>
   <data name="ERR_BadSpecialByRefLocal" xml:space="preserve">
     <value>Parameters or locals of type '{0}' cannot be declared in async methods or lambda expressions.</value>
