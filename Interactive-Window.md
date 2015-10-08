@@ -17,6 +17,8 @@ You must have [Visual Studio 2015 Update 1 CTP](http://go.microsoft.com/fwlink/?
 
 Type any valid C# expression or statement and press ```Enter``` to evaluate. To learn more about what you can do in the Interactive Window, check out the [Basic Features](#basic) or [Code Samples](#samples).
 
+You can also play with C# in the [command-line REPL](#repl).
+
 <hr/>
 
 ## <a name="basic"></a>Basic Features
