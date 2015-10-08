@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -77,11 +78,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             this.OnModelUpdated(result);
         }
 
-        IAsyncToken IController<TModel>.BeginAsyncOperation()
+        IAsyncToken IController<TModel>.BeginAsyncOperation(string filePath, int lineNumber)
         {
             AssertIsForeground();
             VerifySessionIsActive();
-            return _asyncListener.BeginAsyncOperation(_asyncOperationId);
+            return _asyncListener.BeginAsyncOperation(_asyncOperationId, filePath: filePath, lineNumber: lineNumber);
         }
 
         protected void VerifySessionIsActive()

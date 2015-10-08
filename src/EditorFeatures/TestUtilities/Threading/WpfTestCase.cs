@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
@@ -27,6 +28,12 @@ namespace Roslyn.Test.Utilities
 
                 try
                 {
+                    // Sync up FTAO to the context that we are creating here. 
+                    ForegroundThreadAffinitizedObject.DefaultForegroundThreadData = new ForegroundThreadData(
+                        Thread.CurrentThread,
+                        StaTaskScheduler.DefaultSta,
+                        ForegroundThreadDataKind.StaUnitTest);
+
                     // All WPF Tests need a DispatcherSynchronizationContext and we dont want to block pending keyboard
                     // or mouse input from the user. So use background priority which is a single level below user input.
                     var dispatcherSynchronizationContext = new DispatcherSynchronizationContext();
@@ -46,6 +53,8 @@ namespace Roslyn.Test.Utilities
                 }
                 finally
                 {
+                    ForegroundThreadAffinitizedObject.DefaultForegroundThreadData = null;
+
                     // Cleanup the synchronization context even if the test is failing exceptionally
                     SynchronizationContext.SetSynchronizationContext(null);
                 }

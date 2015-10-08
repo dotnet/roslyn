@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -33,6 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             _workQueue = new PriorityQueue();
             _lastProcessedTimeInMS = Environment.TickCount;
 
+            Debug.Assert(IsValid());
+            Debug.Assert(IsForeground());
             Task.Factory.SafeStartNewFromAsync(ProcessAsync, CancellationToken.None, TaskScheduler.Default);
         }
 

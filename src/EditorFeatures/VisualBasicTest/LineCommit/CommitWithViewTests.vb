@@ -1,5 +1,3 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Commands
@@ -1058,7 +1056,7 @@ End Module
         End Sub
 
         <WorkItem(3119, "https://github.com/dotnet/roslyn/issues/3119")>
-        <Fact, Trait(Traits.Feature, Traits.Features.LineCommit)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub MissingThenInIf()
             Using testData = New CommitTestData(
                 <Workspace>
@@ -1093,7 +1091,7 @@ End Class
         End Sub
 
         <WorkItem(3119, "https://github.com/dotnet/roslyn/issues/3119")>
-        <Fact, Trait(Traits.Feature, Traits.Features.LineCommit)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub MissingThenInElseIf()
             Using testData = New CommitTestData(
                 <Workspace>

@@ -66,9 +66,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         /// Reset the thread affinity, in particular the designated foreground thread, to the active 
         /// thread.  
         /// </summary>
-        public static void ResetThreadAffinity()
+        internal static void ResetThreadAffinity(ForegroundThreadData foregroundThreadData = null)
         {
-            ForegroundThreadAffinitizedObject.Initialize(force: true);
+            foregroundThreadData = foregroundThreadData ?? ForegroundThreadAffinitizedObject.DefaultForegroundThreadData;
 
             // HACK: When the platform team took over several of our components they created a copy
             // of ForegroundThreadAffinitizedObject.  This needs to be reset in the same way as our copy
@@ -78,8 +78,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 var type = assembly.GetType("Microsoft.VisualStudio.Language.Intellisense.Implementation.ForegroundThreadAffinitizedObject", throwOnError: false);
                 if (type != null)
                 {
-                    type.GetField("foregroundThread", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, ForegroundThreadAffinitizedObject.ForegroundThread);
-                    type.GetField("ForegroundTaskScheduler", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, ForegroundThreadAffinitizedObject.ForegroundTaskScheduler);
+                    type.GetField("foregroundThread", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, foregroundThreadData.Thread);
+                    type.GetField("ForegroundTaskScheduler", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, foregroundThreadData.TaskScheduler);
 
                     break;
                 }
