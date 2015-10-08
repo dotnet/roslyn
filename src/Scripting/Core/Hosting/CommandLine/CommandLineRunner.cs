@@ -150,7 +150,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             try
             {
                 script.RunAsync(globals, cancellationToken).Wait();
-                return globals.ExitCode;
+
+                // TODO: use the return value of the script https://github.com/dotnet/roslyn/issues/5773
+                return CommonCompiler.Succeeded;
             }
             catch (CompilationErrorException e)
             {

@@ -3,8 +3,6 @@ Microsoft.CodeAnalysis.Scripting.CompilationErrorException.Diagnostics.get -> Sy
 Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals
 Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.Args.get -> System.Collections.Generic.IList<string>
 Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.CommandLineScriptGlobals(System.IO.TextWriter outputWriter, Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter objectFormatter) -> void
-Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.ExitCode.get -> int
-Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.ExitCode.set -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.Print(object value) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader.Dispose() -> void

@@ -33,11 +33,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             _outputWriter.WriteLine(_objectFormatter.FormatObject(value, PrintOptions));
         }
 
-        /// <summary>
-        /// Script exit code. Use a non-zero number to indicate an error.
-        /// </summary>
-        public int ExitCode { get; set; }
-
         internal ObjectFormattingOptions PrintOptions { get; }
 
         public CommandLineScriptGlobals(TextWriter outputWriter, ObjectFormatter objectFormatter)
