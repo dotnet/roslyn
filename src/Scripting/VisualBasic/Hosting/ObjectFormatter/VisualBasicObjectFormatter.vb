@@ -4,9 +4,9 @@ Imports System.Reflection
 Imports System.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 
-Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
+Namespace Microsoft.CodeAnalysis.Scripting.Hosting.VisualBasic
 
-    Friend NotInheritable Class VisualBasicObjectFormatter
+    Public NotInheritable Class VisualBasicObjectFormatter
         Inherits ObjectFormatter
 
         Public Shared ReadOnly Instance As VisualBasicObjectFormatter = New VisualBasicObjectFormatter()
@@ -14,28 +14,28 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
         Private Sub New()
         End Sub
 
-        Public Overrides ReadOnly Property VoidDisplayString As Object
+        Friend Overrides ReadOnly Property VoidDisplayString As Object
             Get
                 ' TODO
                 Return ""
             End Get
         End Property
 
-        Public Overrides ReadOnly Property NullLiteral As String
+        Friend Overrides ReadOnly Property NullLiteral As String
             Get
                 Return "Nothing"
             End Get
         End Property
 
-        Public Overrides Function FormatLiteral(value As Boolean) As String
+        Friend Overrides Function FormatLiteral(value As Boolean) As String
             Return ObjectDisplay.FormatLiteral(value)
         End Function
 
-        Public Overrides Function FormatLiteral(value As Date) As String
+        Friend Overrides Function FormatLiteral(value As Date) As String
             Return ObjectDisplay.FormatLiteral(value)
         End Function
 
-        Public Overrides Function FormatLiteral(value As String, quote As Boolean, Optional useHexadecimalNumbers As Boolean = False) As String
+        Friend Overrides Function FormatLiteral(value As String, quote As Boolean, Optional useHexadecimalNumbers As Boolean = False) As String
             Dim options = ObjectDisplayOptions.None
             If quote Then
                 options = options Or ObjectDisplayOptions.UseQuotes
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
             Return ObjectDisplay.FormatLiteral(value, options)
         End Function
 
-        Public Overrides Function FormatLiteral(c As Char, quote As Boolean, Optional includeCodePoints As Boolean = False, Optional useHexadecimalNumbers As Boolean = False) As String
+        Friend Overrides Function FormatLiteral(c As Char, quote As Boolean, Optional includeCodePoints As Boolean = False, Optional useHexadecimalNumbers As Boolean = False) As String
             Dim options = ObjectDisplayOptions.None
             If quote Then
                 options = options Or ObjectDisplayOptions.UseQuotes
@@ -60,51 +60,51 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
             Return ObjectDisplay.FormatLiteral(c, options)
         End Function
 
-        Public Overrides Function FormatLiteral(value As SByte, Optional useHexadecimalNumbers As Boolean = False) As String
+        Friend Overrides Function FormatLiteral(value As SByte, Optional useHexadecimalNumbers As Boolean = False) As String
             Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers))
         End Function
 
-        Public Overrides Function FormatLiteral(value As Byte, Optional useHexadecimalNumbers As Boolean = False) As String
+        Friend Overrides Function FormatLiteral(value As Byte, Optional useHexadecimalNumbers As Boolean = False) As String
             Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers))
         End Function
 
-        Public Overrides Function FormatLiteral(value As Short, Optional useHexadecimalNumbers As Boolean = False) As String
+        Friend Overrides Function FormatLiteral(value As Short, Optional useHexadecimalNumbers As Boolean = False) As String
             Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers))
         End Function
 
-        Public Overrides Function FormatLiteral(value As UShort, Optional useHexadecimalNumbers As Boolean = False) As String
+        Friend Overrides Function FormatLiteral(value As UShort, Optional useHexadecimalNumbers As Boolean = False) As String
             Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers))
         End Function
 
-        Public Overrides Function FormatLiteral(value As Integer, Optional useHexadecimalNumbers As Boolean = False) As String
+        Friend Overrides Function FormatLiteral(value As Integer, Optional useHexadecimalNumbers As Boolean = False) As String
             Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers))
         End Function
 
-        Public Overrides Function FormatLiteral(value As UInteger, Optional useHexadecimalNumbers As Boolean = False) As String
+        Friend Overrides Function FormatLiteral(value As UInteger, Optional useHexadecimalNumbers As Boolean = False) As String
             Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers))
         End Function
 
-        Public Overrides Function FormatLiteral(value As Long, Optional useHexadecimalNumbers As Boolean = False) As String
+        Friend Overrides Function FormatLiteral(value As Long, Optional useHexadecimalNumbers As Boolean = False) As String
             Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers))
         End Function
 
-        Public Overrides Function FormatLiteral(value As ULong, Optional useHexadecimalNumbers As Boolean = False) As String
+        Friend Overrides Function FormatLiteral(value As ULong, Optional useHexadecimalNumbers As Boolean = False) As String
             Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers))
         End Function
 
-        Public Overrides Function FormatLiteral(value As Double) As String
+        Friend Overrides Function FormatLiteral(value As Double) As String
             Return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None)
         End Function
 
-        Public Overrides Function FormatLiteral(value As Single) As String
+        Friend Overrides Function FormatLiteral(value As Single) As String
             Return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None)
         End Function
 
-        Public Overrides Function FormatLiteral(value As Decimal) As String
+        Friend Overrides Function FormatLiteral(value As Decimal) As String
             Return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None)
         End Function
 
-        Public Overrides Function GetPrimitiveTypeName(type As SpecialType) As String
+        Friend Overrides Function GetPrimitiveTypeName(type As SpecialType) As String
             Select Case type
                 Case SpecialType.System_Boolean
                     Return "Boolean"
@@ -143,24 +143,24 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
             End Select
         End Function
 
-        Public Overrides ReadOnly Property GenericParameterOpening As String
+        Friend Overrides ReadOnly Property GenericParameterOpening As String
             Get
                 Return "(Of "
             End Get
         End Property
 
-        Public Overrides ReadOnly Property GenericParameterClosing As String
+        Friend Overrides ReadOnly Property GenericParameterClosing As String
             Get
                 Return ")"
             End Get
         End Property
 
-        Public Overrides Function FormatGeneratedTypeName(type As Type) As String
+        Friend Overrides Function FormatGeneratedTypeName(type As Type) As String
             ' TODO:  https://github.com/dotnet/roslyn/issues/3739
             Return Nothing
         End Function
 
-        Public Overrides Function FormatArrayTypeName(arrayType As Type, arrayOpt As Array, options As ObjectFormattingOptions) As String
+        Friend Overrides Function FormatArrayTypeName(arrayType As Type, arrayOpt As Array, options As ObjectFormattingOptions) As String
             Dim sb As StringBuilder = New StringBuilder()
             ' print the inner-most element type first:
             Dim elementType As Type = arrayType.GetElementType()
@@ -235,11 +235,11 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
             sb.Append("]"c)
         End Sub
 
-        Public Overrides Function FormatMemberName(member As MemberInfo) As String
+        Friend Overrides Function FormatMemberName(member As MemberInfo) As String
             Return member.Name
         End Function
 
-        Public Overrides Function IsHiddenMember(member As MemberInfo) As Boolean
+        Friend Overrides Function IsHiddenMember(member As MemberInfo) As Boolean
             ' TODO (tomat)
             Return False
         End Function

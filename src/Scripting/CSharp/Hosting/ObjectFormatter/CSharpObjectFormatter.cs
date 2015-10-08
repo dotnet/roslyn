@@ -5,9 +5,9 @@ using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
-namespace Microsoft.CodeAnalysis.Scripting.CSharp
+namespace Microsoft.CodeAnalysis.Scripting.Hosting.CSharp
 {
-    internal sealed class CSharpObjectFormatter : ObjectFormatter
+    public sealed class CSharpObjectFormatter : ObjectFormatter
     {
         public static readonly CSharpObjectFormatter Instance = new CSharpObjectFormatter();
 
@@ -15,17 +15,17 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
         {
         }
 
-        public override object VoidDisplayString => "<void>";
-        public override string NullLiteral => ObjectDisplay.NullLiteral;
-        public override string GenericParameterOpening => "<";
-        public override string GenericParameterClosing => ">";
+        internal override object VoidDisplayString => "<void>";
+        internal override string NullLiteral => ObjectDisplay.NullLiteral;
+        internal override string GenericParameterOpening => "<";
+        internal override string GenericParameterClosing => ">";
 
-        public override string FormatLiteral(bool value)
+        internal override string FormatLiteral(bool value)
         {
             return ObjectDisplay.FormatLiteral(value);
         }
 
-        public override string FormatLiteral(string value, bool quote, bool useHexadecimalNumbers = false)
+        internal override string FormatLiteral(string value, bool quote, bool useHexadecimalNumbers = false)
         {
             var options = ObjectDisplayOptions.None;
             if (quote)
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
             return ObjectDisplay.FormatLiteral(value, options);
         }
 
-        public override string FormatLiteral(char c, bool quote, bool includeCodePoints = false, bool useHexadecimalNumbers = false)
+        internal override string FormatLiteral(char c, bool quote, bool includeCodePoints = false, bool useHexadecimalNumbers = false)
         {
             var options = ObjectDisplayOptions.None;
             if (quote)
@@ -62,68 +62,68 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
             return ObjectDisplay.FormatLiteral(c, options);
         }
 
-        public override string FormatLiteral(sbyte value, bool useHexadecimalNumbers = false)
+        internal override string FormatLiteral(sbyte value, bool useHexadecimalNumbers = false)
         {
             return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers));
         }
 
-        public override string FormatLiteral(byte value, bool useHexadecimalNumbers = false)
+        internal override string FormatLiteral(byte value, bool useHexadecimalNumbers = false)
         {
             return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers));
         }
 
-        public override string FormatLiteral(short value, bool useHexadecimalNumbers = false)
+        internal override string FormatLiteral(short value, bool useHexadecimalNumbers = false)
         {
             return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers));
         }
 
-        public override string FormatLiteral(ushort value, bool useHexadecimalNumbers = false)
+        internal override string FormatLiteral(ushort value, bool useHexadecimalNumbers = false)
         {
             return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers));
         }
 
-        public override string FormatLiteral(int value, bool useHexadecimalNumbers = false)
+        internal override string FormatLiteral(int value, bool useHexadecimalNumbers = false)
         {
             return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers));
         }
 
-        public override string FormatLiteral(uint value, bool useHexadecimalNumbers = false)
+        internal override string FormatLiteral(uint value, bool useHexadecimalNumbers = false)
         {
             return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers));
         }
 
-        public override string FormatLiteral(long value, bool useHexadecimalNumbers = false)
+        internal override string FormatLiteral(long value, bool useHexadecimalNumbers = false)
         {
             return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers));
         }
 
-        public override string FormatLiteral(ulong value, bool useHexadecimalNumbers = false)
+        internal override string FormatLiteral(ulong value, bool useHexadecimalNumbers = false)
         {
             return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers));
         }
 
-        public override string FormatLiteral(double value)
+        internal override string FormatLiteral(double value)
         {
             return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None);
         }
 
-        public override string FormatLiteral(float value)
+        internal override string FormatLiteral(float value)
         {
             return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None);
         }
 
-        public override string FormatLiteral(decimal value)
+        internal override string FormatLiteral(decimal value)
         {
             return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None);
         }
 
-        public override string FormatLiteral(DateTime value)
+        internal override string FormatLiteral(DateTime value)
         {
             // DateTime is not primitive in C#
             return null;
         }
 
-        public override string GetPrimitiveTypeName(SpecialType type)
+        internal override string GetPrimitiveTypeName(SpecialType type)
         {
             switch (type)
             {
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
             }
         }
 
-        public override string FormatGeneratedTypeName(Type type)
+        internal override string FormatGeneratedTypeName(Type type)
         {
             string stateMachineName;
             if (GeneratedNames.TryParseSourceMethodNameFromGeneratedName(type.Name, GeneratedNameKind.StateMachineType, out stateMachineName))
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
             return null;
         }
 
-        public override string FormatArrayTypeName(Type arrayType, Array arrayOpt, ObjectFormattingOptions options)
+        internal override string FormatArrayTypeName(Type arrayType, Array arrayOpt, ObjectFormattingOptions options)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -252,12 +252,12 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
             sb.Append(']');
         }
 
-        public override string FormatMemberName(System.Reflection.MemberInfo member)
+        internal override string FormatMemberName(System.Reflection.MemberInfo member)
         {
             return member.Name;
         }
 
-        public override bool IsHiddenMember(System.Reflection.MemberInfo member)
+        internal override bool IsHiddenMember(System.Reflection.MemberInfo member)
         {
             // Generated fields, e.g. "<property_name>k__BackingField"
             return GeneratedNames.IsGeneratedMemberName(member.Name);
