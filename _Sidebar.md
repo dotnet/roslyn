@@ -25,3 +25,4 @@
 [Language feature status](https://github.com/dotnet/roslyn/wiki/Languages-features-in-C%23-6-and-VB-14)
 
 [Edit-and-Continue Supported Edits](https://github.com/dotnet/roslyn/wiki/EnC-Supported-Edits)
+[Interactive Window Documentation](https://github.com/dotnet/roslyn/wiki/Interactive-Window)
