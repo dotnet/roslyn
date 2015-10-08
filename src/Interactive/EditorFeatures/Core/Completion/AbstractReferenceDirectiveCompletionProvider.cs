@@ -88,8 +88,10 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
             }
             else if (document.SourceCodeKind == SourceCodeKind.Script)
             {
+                // TODO: https://github.com/dotnet/roslyn/issues/5325
+                // Support editing/building/debugging .csx/.vbx files in VS as part of a miscellaneous files Workspace
                 // Right now MetadataReferenceResolver is null for script (since it is associated with MiscellaneousFilesWorkspace),
-                // so explicitly set search path to runtime directory and script directory 
+                // so explicitly set search path to runtime directory and script directory just to provide #r completion for script editing
                 Debug.Assert(referenceResolver == null);
                 searchPaths = ImmutableArray.Create(FileUtilities.NormalizeDirectoryPath(RuntimeEnvironment.GetRuntimeDirectory()),
                                                     FileUtilities.NormalizeDirectoryPath(PathUtilities.GetDirectoryName(document.FilePath)));
