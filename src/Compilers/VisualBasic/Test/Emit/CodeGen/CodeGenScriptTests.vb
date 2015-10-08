@@ -59,19 +59,16 @@ System.Console.WriteLine(1+1)
                 Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "System.Console.WriteLine(1+1)"))
         End Sub
 
-
         <Fact>
         Public Sub ReturnStatement()
             Dim source = <text>
-Return Foo
+Return 1
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
-            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestVbReferences)
+            Dim c = CreateCompilationWithMscorlib45({tree})
 
-            c.VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_ReturnFromNonFunction, "Return Foo").WithLocation(2, 1),
-                Diagnostic(ERRID.ERR_NameNotDeclared1, "Foo").WithArguments("Foo").WithLocation(2, 8))
+            c.VerifyDiagnostics()
         End Sub
 
         <Fact>

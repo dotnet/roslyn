@@ -2126,7 +2126,7 @@ switch (1)
     case 2:
         Console.WriteLine(2);
 }";
-            var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script);
             compilation.VerifyDiagnostics(
                 // (4,5): error CS0163: Control cannot fall through from one case label ('default:') to another
                 //     default:

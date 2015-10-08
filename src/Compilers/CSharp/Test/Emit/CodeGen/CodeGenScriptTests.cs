@@ -20,11 +20,10 @@ Console.WriteLine(o.ToString());
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
             CompileAndVerify(
-                CSharpCompilation.Create(
-                    assemblyName: "Test",
+                CreateCompilationWithMscorlib45(
+                    new[] { tree },
                     options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                    references: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef },
-                    syntaxTrees: new[] { tree }),
+                    references: new[] { SystemCoreRef }),
                 expectedOutput: "{ a = 1 }"
             );
         }
@@ -40,11 +39,10 @@ Console.WriteLine(o.ToString());
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
             CompileAndVerify(
-                CSharpCompilation.Create(
-                    assemblyName: "Test",
+                CreateCompilationWithMscorlib45(
+                    new[] { tree },
                     options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                    references: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef },
-                    syntaxTrees: new[] { tree }),
+                    references: new[] { SystemCoreRef }),
                 expectedOutput: "{ a = 1 }"
             );
         }
@@ -59,11 +57,10 @@ Console.WriteLine(new { a = 1 }.ToString());
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
             CompileAndVerify(
-                CSharpCompilation.Create(
-                    assemblyName: "Test",
+                CreateCompilationWithMscorlib45(
+                    new[] { tree },
                     options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                    references: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef },
-                    syntaxTrees: new[] { tree }),
+                    references: new[] { SystemCoreRef }),
                 expectedOutput: "{ a = 1 }"
             );
         }
@@ -86,11 +83,10 @@ new CLS().M();
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
             CompileAndVerify(
-                CSharpCompilation.Create(
-                    assemblyName: "Test",
+                CreateCompilationWithMscorlib45(
+                    new[] { tree },
                     options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                    references: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef },
-                    syntaxTrees: new[] { tree }),
+                    references: new[] { SystemCoreRef }),
                 expectedOutput: "{ a = 1 }"
             );
         }
@@ -111,11 +107,9 @@ new CLS().M();
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
-            var compilation = CSharpCompilation.Create(
-                                assemblyName: "Test",
-                                options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                                references: new[] { MscorlibRef },
-                                syntaxTrees: new[] { tree });
+            var compilation = CreateCompilationWithMscorlib45(
+                new[] { tree },
+                options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
             compilation.VerifyDiagnostics(
                 // (5,30): error CS1736: Default parameter value for 'p' must be a compile-time constant
@@ -138,11 +132,9 @@ M();
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
-            var compilation = CSharpCompilation.Create(
-                                assemblyName: "Test",
-                                options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                                references: new[] { MscorlibRef },
-                                syntaxTrees: new[] { tree });
+            var compilation = CreateCompilationWithMscorlib45(
+                new[] { tree },
+                options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
             compilation.VerifyDiagnostics(
                 // (4,26): error CS1736: Default parameter value for 'p' must be a compile-time constant
@@ -171,11 +163,9 @@ M();
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
-            var compilation = CSharpCompilation.Create(
-                                assemblyName: "Test",
-                                options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                                references: new[] { MscorlibRef },
-                                syntaxTrees: new[] { tree });
+            var compilation = CreateCompilationWithMscorlib45(
+                new[] { tree },
+                options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
             compilation.VerifyDiagnostics(
                 // (9,8): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
@@ -201,11 +191,9 @@ class CLS
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
-            var compilation = CSharpCompilation.Create(
-                                assemblyName: "Test",
-                                options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                                references: new[] { MscorlibRef },
-                                syntaxTrees: new[] { tree });
+            var compilation = CreateCompilationWithMscorlib45(
+                new[] { tree },
+                options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
             compilation.VerifyDiagnostics(
                 // (9,8): error CS0836: Cannot use anonymous type in a constant expression

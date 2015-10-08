@@ -7198,9 +7198,10 @@ dynamic x = Color.F((dynamic)1);
             var verifier = CompileAndVerify(script);
             verifier.VerifyIL("<<Initialize>>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
 @"{
-  // Code size      158 (0x9e)
+  // Code size      161 (0xa1)
   .maxstack  10
-  .locals init (System.Exception V_0)
+  .locals init (object V_0,
+                System.Exception V_1)
   .try
   {
     IL_0000:  ldarg.0
@@ -7239,27 +7240,30 @@ dynamic x = Color.F((dynamic)1);
     IL_0062:  box        ""int""
     IL_0067:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, Color, object)""
     IL_006c:  stfld      ""dynamic Script.x""
-    IL_0071:  leave.s    IL_008a
+    IL_0071:  ldnull
+    IL_0072:  stloc.0
+    IL_0073:  leave.s    IL_008c
   }
   catch System.Exception
   {
-    IL_0073:  stloc.0
-    IL_0074:  ldarg.0
-    IL_0075:  ldc.i4.s   -2
-    IL_0077:  stfld      ""int Script.<<Initialize>>d__0.<>1__state""
-    IL_007c:  ldarg.0
-    IL_007d:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Script.<<Initialize>>d__0.<>t__builder""
-    IL_0082:  ldloc.0
-    IL_0083:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException(System.Exception)""
-    IL_0088:  leave.s    IL_009d
+    IL_0075:  stloc.1
+    IL_0076:  ldarg.0
+    IL_0077:  ldc.i4.s   -2
+    IL_0079:  stfld      ""int Script.<<Initialize>>d__0.<>1__state""
+    IL_007e:  ldarg.0
+    IL_007f:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> Script.<<Initialize>>d__0.<>t__builder""
+    IL_0084:  ldloc.1
+    IL_0085:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetException(System.Exception)""
+    IL_008a:  leave.s    IL_00a0
   }
-  IL_008a:  ldarg.0
-  IL_008b:  ldc.i4.s   -2
-  IL_008d:  stfld      ""int Script.<<Initialize>>d__0.<>1__state""
-  IL_0092:  ldarg.0
-  IL_0093:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Script.<<Initialize>>d__0.<>t__builder""
-  IL_0098:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetResult()""
-  IL_009d:  ret
+  IL_008c:  ldarg.0
+  IL_008d:  ldc.i4.s   -2
+  IL_008f:  stfld      ""int Script.<<Initialize>>d__0.<>1__state""
+  IL_0094:  ldarg.0
+  IL_0095:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> Script.<<Initialize>>d__0.<>t__builder""
+  IL_009a:  ldloc.0
+  IL_009b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetResult(object)""
+  IL_00a0:  ret
 }", realIL: true);
         }
 
