@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -10,6 +12,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
 {
@@ -82,6 +85,14 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
             else if ((workspaceResolver = referenceResolver as WorkspaceMetadataFileReferenceResolver) != null)
             {
                 searchPaths = workspaceResolver.PathResolver.SearchPaths;
+            }
+            else if (document.SourceCodeKind == SourceCodeKind.Script)
+            {
+                // Right now MetadataReferenceResolver is null for script (since it is associated with MiscellaneousFilesWorkspace),
+                // so explicitly set search path to runtime directory and script directory 
+                Debug.Assert(referenceResolver == null);
+                searchPaths = ImmutableArray.Create(FileUtilities.NormalizeDirectoryPath(RuntimeEnvironment.GetRuntimeDirectory()),
+                                                    FileUtilities.NormalizeDirectoryPath(PathUtilities.GetDirectoryName(document.FilePath)));
             }
             else
             {
