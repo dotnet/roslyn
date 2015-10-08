@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 return false;
             }
 
+            var tokenToLeft = root.FindTokenOnLeftOfPosition(position);
             var startToken = endToken.GetPreviousToken();
 
             // case 1:
@@ -67,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             //      To support this, we treat `shift + enter` like `enter` here.
             var afterOpenBrace = startToken.Kind() == SyntaxKind.OpenBraceToken
                               && endToken.Kind() == SyntaxKind.CloseBraceToken
+                              && tokenToLeft == startToken
                               && endToken.Parent.IsKind(SyntaxKind.Block)
                               && FormattingRangeHelper.AreTwoTokensOnSameLine(startToken, endToken);
 
