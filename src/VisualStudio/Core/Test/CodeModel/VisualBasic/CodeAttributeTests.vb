@@ -798,7 +798,7 @@ End Class
 
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalFact(GetType(x86), Skip:="https://github.com/dotnet/roslyn/issues/5800"), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttributeArgument2()
             Dim code =
 <Code>
@@ -822,7 +822,7 @@ End Class
 
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalFact(GetType(x86), Skip:="https://github.com/dotnet/roslyn/issues/5800"), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAddArgument3()
             Dim code =
 <Code>
