@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
@@ -160,6 +161,30 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             End If
 
             Return CType(result, T)
+        End Function
+
+        ''' <summary>
+        ''' Creates an "external" version of the given code element.
+        ''' </summary>
+        <Extension()>
+        Public Function AsExternal(Of T As Class)(element As T) As T
+            Dim codeElement = TryCast(element, EnvDTE.CodeElement)
+
+            Assert.True(codeElement IsNot Nothing, "Expected code element")
+            Assert.True(codeElement.InfoLocation = EnvDTE.vsCMInfoLocation.vsCMInfoLocationProject, "Expected internal code element")
+
+            Dim codeElementImpl = ComAggregate.GetManagedObject(Of AbstractCodeElement)(codeElement)
+            Dim state = codeElementImpl.State
+            Dim projectId = codeElementImpl.FileCodeModel.GetProjectId()
+            Dim symbol = codeElementImpl.LookupSymbol()
+
+            Dim externalCodeElement = codeElementImpl.CodeModelService.CreateExternalCodeElement(state, projectId, symbol)
+            Assert.True(externalCodeElement IsNot Nothing, "Could not create external code element")
+
+            Dim result = TryCast(externalCodeElement, T)
+            Assert.True(result IsNot Nothing, $"Created external code element was not of type, {GetType(T).FullName}")
+
+            Return result
         End Function
 
         <Extension()>
