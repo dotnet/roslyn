@@ -7,6 +7,7 @@ The C# Interactive Window is a [read-eval-print-loop (REPL)](https://en.wikipedi
 
 - [Getting Started](#start)
 - [Basic Features](#basic)
+- [Command-line REPL](#repl)
 - [Code Samples](#samples)
 
 <hr/>
@@ -175,6 +176,11 @@ Use ```Ctrl+F``` / ```Ctrl+H``` to Find/Replace inside the Interactive Window.
 
 #### <a name="reset"></a>#reset
 ```#reset``` will reset the execution environment to the initial state--history will remain intact. Use ```#reset noconfig``` to skip the initial configuration script (which we mostly use for default usings).
+
+<hr/>
+
+### <a name="repl"></a>Command-line REPL
+To play with the C# REPL outside of Visual Studio, open the **Developer Command Prompt for VS2015** and type the command ```csi``` to begin your interactive session.
 
 <hr/>
 
