@@ -163,7 +163,7 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
                     shell("./cibuild.sh")
                   }
                 }
-                // addConcurrentBuild(myJob, 'roslyn/lin/unit')
+                addConcurrentBuild(myJob, 'roslyn/lin/unit')
                 break;
               case 'mac':
                 myJob.with {
@@ -172,7 +172,7 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
                     shell("./cibuild.sh")
                   }
                 }
-                // addConcurrentBuild(myJob, 'roslyn/mac/unit')
+                addConcurrentBuild(myJob, 'roslyn/mac/unit')
                 break;
             }
 

@@ -17,13 +17,7 @@
     <XunitVersion>1.9.2</XunitVersion>
   </PropertyGroup>
 
-  <Target Name="RestorePackages" Condition="'$(ManualTest)' == ''">
-    <Exec Command="nuget.exe restore -nocache &quot;$(MSBuildThisFileDirectory)build\ToolsetPackages\project.json&quot; "/>
-    <Exec Command="nuget.exe restore -nocache &quot;$(RoslynSolution)&quot; "/>
-    <Exec Command="nuget.exe restore -nocache &quot;$(SamplesSolution)&quot; "/>
-  </Target>
-
-  <Target Name="Build" DependsOnTargets="RestorePackages">
+  <Target Name="Build">
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
              Properties="RestorePackages=false;TreatWarningsAsErrors=true"

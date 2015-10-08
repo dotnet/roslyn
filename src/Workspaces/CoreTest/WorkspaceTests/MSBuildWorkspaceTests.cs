@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -2914,6 +2915,32 @@ class C { }";
             var proj = ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj")).Result;
             var docs = proj.Documents.ToList();
             Assert.Equal(3, docs.Count);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestOpenProject_CommandLineArgsHaveNoErrors()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles());
+
+            var ws = MSBuildWorkspace.Create();
+            var loader = ws.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<IProjectFileLoader>();
+
+            var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+
+            var properties = ImmutableDictionary<string, string>.Empty;
+            var projectFile = loader.LoadProjectFileAsync(projectFilePath, properties, CancellationToken.None).Result;
+            var projectFileInfo = projectFile.GetProjectFileInfoAsync(CancellationToken.None).Result;
+
+            var commandLineParser = ws.Services.GetLanguageServices(loader.Language).GetRequiredService<ICommandLineParserService>();
+
+            var projectDirectory = Path.GetDirectoryName(projectFilePath);
+            var commandLineArgs = commandLineParser.Parse(
+                arguments: projectFileInfo.CommandLineArgs,
+                baseDirectory: projectDirectory,
+                isInteractive: false,
+                sdkDirectory: System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory());
+
+            Assert.Equal(0, commandLineArgs.Errors.Length);
         }
 
         private class InMemoryAssemblyLoader : IAnalyzerAssemblyLoader

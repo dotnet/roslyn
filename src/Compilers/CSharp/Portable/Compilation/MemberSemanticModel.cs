@@ -154,8 +154,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (var current = node; binder == null; current = current.ParentOrStructuredTriviaParent)
             {
                 Debug.Assert(current != null); // Why were we asked for an enclosing binder for a node outside our root?
-
                 StatementSyntax stmt = current as StatementSyntax;
+                TypeOfExpressionSyntax typeOfExpression;
                 if (stmt != null)
                 {
                     if (LookupPosition.IsInStatementScope(position, stmt))
@@ -198,9 +198,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
-                else if (current.Kind() == SyntaxKind.TypeOfExpression && typeOfArgument == null)
+                else if (current.Kind() == SyntaxKind.TypeOfExpression &&
+                    typeOfArgument == null &&
+                    LookupPosition.IsBetweenTokens(
+                        position,
+                        (typeOfExpression = (TypeOfExpressionSyntax)current).OpenParenToken,
+                        typeOfExpression.CloseParenToken))
                 {
-                    typeOfArgument = ((TypeOfExpressionSyntax)current).Type;
+                    typeOfArgument = typeOfExpression.Type;
                     typeOfEncounteredBeforeUnexpectedAnonymousFunction = unexpectedAnonymousFunction == null;
                 }
                 else

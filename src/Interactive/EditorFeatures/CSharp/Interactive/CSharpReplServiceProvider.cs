@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.CSharp;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
+using Microsoft.CodeAnalysis.Scripting.Hosting.CSharp;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
 {
