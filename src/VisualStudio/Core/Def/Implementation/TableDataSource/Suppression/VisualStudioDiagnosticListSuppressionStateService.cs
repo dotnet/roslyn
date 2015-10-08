@@ -208,16 +208,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         /// <summary>
-        /// Gets <see cref="DiagnosticData"/> objects for error list entries, filtered based on the given parameters.
+        /// Gets <see cref="DiagnosticData"/> objects for selected error list entries.
+        /// For remove suppression, the method also returns selected external source diagnostics.
         /// </summary>
-        public async Task<ImmutableArray<DiagnosticData>> GetItemsAsync(bool selectedEntriesOnly, bool isAddSuppression, bool isSuppressionInSource, bool onlyCompilerDiagnostics, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<DiagnosticData>> GetSelectedItemsAsync(bool isAddSuppression, CancellationToken cancellationToken)
         {
             var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
             Dictionary<string, Project> projectNameToProjectMapOpt = null;
             Dictionary<Project, ImmutableDictionary<string, Document>> filePathToDocumentMapOpt = null;
 
-            var entries = selectedEntriesOnly ? _tableControl.SelectedEntries : _tableControl.Entries;
-            foreach (var entryHandle in entries)
+            foreach (var entryHandle in _tableControl.SelectedEntries)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -240,7 +240,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                     string errorCode = null, category = null, message = null, filePath = null, projectName = null;
                     int line = -1; // FxCop only supports line, not column.
-                    var location = Location.None;
+                    DiagnosticDataLocation location = null;
 
                     if (entryHandle.TryGetValue(StandardTableColumnDefinitions.ErrorCode, out errorCode) && !string.IsNullOrEmpty(errorCode) &&
                         entryHandle.TryGetValue(StandardTableColumnDefinitions.ErrorCategory, out category) && !string.IsNullOrEmpty(category) &&
@@ -294,18 +294,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             var linePosition = new LinePosition(line, 0);
                             var linePositionSpan = new LinePositionSpan(start: linePosition, end: linePosition);
                             var textSpan = (await tree.GetTextAsync(cancellationToken).ConfigureAwait(false)).Lines.GetTextSpan(linePositionSpan);
-                            location = tree.GetLocation(textSpan);
+                            location = new DiagnosticDataLocation(document.Id, textSpan, filePath,
+                                originalStartLine: linePosition.Line, originalStartColumn: linePosition.Character,
+                                originalEndLine: linePosition.Line, originalEndColumn: linePosition.Character);
                         }
 
                         Contract.ThrowIfNull(project);
-                        Contract.ThrowIfFalse((document != null) == location.IsInSource);
+                        Contract.ThrowIfFalse((document != null) == (location != null));
 
                         // Create a diagnostic with correct values for fields we care about: id, category, message, isSuppressed, location
                         // and default values for the rest of the fields (not used by suppression fixer).
-                        var diagnostic = Diagnostic.Create(
+                        diagnosticData = new DiagnosticData(
                             id: errorCode,
                             category: category,
                             message: message,
+                            enuMessageForBingSearch: message,
                             severity: DiagnosticSeverity.Warning,
                             defaultSeverity: DiagnosticSeverity.Warning,
                             isEnabledByDefault: true,
@@ -313,35 +316,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             isSuppressed: isSuppressedEntry,
                             title: message,
                             location: location,
-                            customTags: SuppressionHelpers.SynthesizedExternalSourceDiagnosticCustomTags);
-
-                        diagnosticData = document != null ?
-                            DiagnosticData.Create(document, diagnostic) :
-                            DiagnosticData.Create(project, diagnostic);
+                            customTags: SuppressionHelpers.SynthesizedExternalSourceDiagnosticCustomTags,
+                            properties: ImmutableDictionary<string, string>.Empty,
+                            workspace: _workspace,
+                            projectId: project.Id);
                     }
                 }
 
                 if (IsEntryWithConfigurableSuppressionState(diagnosticData))
                 {
-                    var isCompilerDiagnostic = SuppressionHelpers.IsCompilerDiagnostic(diagnosticData);
-                    if (onlyCompilerDiagnostics && !isCompilerDiagnostic)
-                    {
-                        continue;
-                    }
-
-                    if (isAddSuppression)
-                    {
-                        // Compiler diagnostics can only be suppressed in source.
-                        if (!diagnosticData.IsSuppressed &&
-                            (isSuppressionInSource || !isCompilerDiagnostic))
-                        {
-                            builder.Add(diagnosticData);
-                        }
-                    }
-                    else if (diagnosticData.IsSuppressed)
-                    {
-                        builder.Add(diagnosticData);
-                    }
+                    builder.Add(diagnosticData);
                 }
             }
 
