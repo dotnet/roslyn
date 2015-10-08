@@ -106,7 +106,7 @@ using F = System.IO;
 
             var tree = comp.SyntaxTrees.Single();
             var binder = comp.GetBinderFactory(tree).GetImportsBinder((CSharpSyntaxNode)tree.GetRoot(), inUsing: false);
-            var scratchImports = binder.GetImports();
+            var scratchImports = binder.GetImports(basesBeingResolved: null);
             var scratchExternAliases = scratchImports.ExternAliases;
             Assert.Equal(2, scratchExternAliases.Length);
 
@@ -145,7 +145,7 @@ using F = System.IO;
 
             var factories = trees.Select(tree => comp.GetBinderFactory(tree));
             var binders = factories.Select(factory => factory.GetImportsBinder((CSharpSyntaxNode)factory.SyntaxTree.GetRoot(), inUsing: false));
-            var imports = binders.Select(binder => binder.GetImports());
+            var imports = binders.Select(binder => binder.GetImports(basesBeingResolved: null));
             Assert.DoesNotContain(Imports.Empty, imports);
             return imports.ToArray();
         }
