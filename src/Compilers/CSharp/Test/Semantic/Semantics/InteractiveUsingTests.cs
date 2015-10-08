@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Using()
         {
-            var sub = CreateSubmission("using System;typeof(String)");
+            var sub = CreateSubmission("using System; typeof(String)");
             sub.VerifyDiagnostics();
 
             Assert.Equal(SpecialType.System_String, GetSpeculativeType(sub, "String").SpecialType);
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Alias()
         {
-            var sub = CreateSubmission("using I = System.Int32;");
+            var sub = CreateSubmission("using I = System.Int32; typeof(I)");
             sub.VerifyDiagnostics();
 
             Assert.Equal(SpecialType.System_Int32, GetSpeculativeType(sub, "I").SpecialType);
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void UsingStatic()
         {
-            var sub = CreateSubmission("using static System.Environment;");
+            var sub = CreateSubmission("using static System.Environment; NewLine");
             sub.VerifyDiagnostics();
 
             Assert.Equal(SymbolKind.Property, GetSpeculativeSymbol(sub, "NewLine").Kind);
@@ -89,6 +89,7 @@ class Type { }
             Assert.Equal(typeSymbol, model.GetSymbolInfo(syntax.Name).Symbol);
 
             Assert.Equal(typeSymbol, GetSpeculativeType(sub, "Type"));
+            Assert.Equal(typeSymbol, GetSpeculativeType(sub, "T"));
         }
 
         [WorkItem(4811, "https://github.com/dotnet/roslyn/issues/4811")]
@@ -102,7 +103,7 @@ class Type { }
             CreateSubmission("using A1 = A;", previous: sub3).VerifyDiagnostics();
             CreateSubmission("using B1 = B;", previous: sub3).VerifyDiagnostics();
 
-            var sub4 = CreateSubmission("using C1 = C;", previous: sub3);
+            var sub4 = CreateSubmission("using C1 = C; typeof(C1)", previous: sub3);
             sub4.VerifyDiagnostics();
 
             var typeSymbol = sub3.ScriptClass.GetMember("C");
@@ -178,16 +179,16 @@ using J = I;
         [Fact]
         public void AliasHiding()
         {
-            var sub1 = CreateSubmission("using A = System.Int32;");
+            var sub1 = CreateSubmission("using A = System.Int32; typeof(A)");
             Assert.Equal(SpecialType.System_Int32, GetSpeculativeType(sub1, "A").SpecialType);
 
-            var sub2 = CreateSubmission("using A = System.Int16;", previous: sub1);
+            var sub2 = CreateSubmission("using A = System.Int16; typeof(A)", previous: sub1);
             Assert.Equal(SpecialType.System_Int16, GetSpeculativeType(sub2, "A").SpecialType);
 
             var sub3 = CreateSubmission("class A { }", previous: sub2);
             Assert.Equal(sub3.ScriptClass, GetSpeculativeType(sub3, "A").ContainingType);
 
-            var sub4 = CreateSubmission("using A = System.Int64;", previous: sub3);
+            var sub4 = CreateSubmission("using A = System.Int64; typeof(A)", previous: sub3);
             Assert.Equal(SpecialType.System_Int64, GetSpeculativeType(sub4, "A").SpecialType);
         }
 
