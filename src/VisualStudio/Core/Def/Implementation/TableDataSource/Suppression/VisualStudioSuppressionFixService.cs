@@ -8,18 +8,19 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
-using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.CodeActions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 {
@@ -397,7 +398,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     }
 
                     // Filter out stale diagnostics in error list.
-                    var documentDiagnosticsToFix = documentDiagnostics.Value.Where(d => latestDocumentDiagnostics.Contains(d) || _suppressionStateService.IsSynthesizedNonRoslynDiagnostic(d));
+                    var documentDiagnosticsToFix = documentDiagnostics.Value.Where(d => latestDocumentDiagnostics.Contains(d) || SuppressionHelpers.IsSynthesizedExternalSourceDiagnostic(d));
 
                     if (documentDiagnosticsToFix.IsEmpty())
                     {
@@ -453,7 +454,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 latestDiagnosticsToFix.AddRange(latestDiagnosticsFromDiagnosticService.Where(isProjectDiagnostic));
 
                 // Filter out stale diagnostics in error list.
-                var projectDiagnosticsToFix = diagnostics.Where(d => latestDiagnosticsFromDiagnosticService.Contains(d) || _suppressionStateService.IsSynthesizedNonRoslynDiagnostic(d));
+                var projectDiagnosticsToFix = diagnostics.Where(d => latestDiagnosticsFromDiagnosticService.Contains(d) || SuppressionHelpers.IsSynthesizedExternalSourceDiagnostic(d));
                 if (projectDiagnosticsToFix.IsEmpty())
                 {
                     continue;

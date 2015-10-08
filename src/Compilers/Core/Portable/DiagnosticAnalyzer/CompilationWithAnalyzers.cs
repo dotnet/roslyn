@@ -633,7 +633,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         driver.Initialize(_compilation, _analysisOptions, categorizeDiagnostics: true, cancellationToken: cancellationToken);
                     }
 
-                    // Wait for driver initilization to complete: this executes the Initialize and CompilationStartActions to compute all registered actions per-analyzer.
+                    // Wait for driver initialization to complete: this executes the Initialize and CompilationStartActions to compute all registered actions per-analyzer.
                     await driver.WhenInitializedTask.ConfigureAwait(false);
                 }
                 finally

@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             // Check to see if the current line starts with exterior trivia. If so, we'll take over.
             // If not, let the nextHandler run.
 
-            int originalPosition;
+            int originalPosition = -1;
 
             // The original position should be a position that is consistent with the syntax tree, even
             // after Enter is pressed. Thus, we use the start of the first selection if there is one.
@@ -495,12 +495,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                     .FirstOrNullable();
 
                 originalPosition = selectedSpan != null
-                    ? args.TextView.BufferGraph.MapUpOrDownToBuffer(selectedSpan.Value.Start, args.SubjectBuffer) ?? -1
-                    : (args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1);
-            }
-            else
-            {
-                originalPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
+                    ? selectedSpan.Value.Start
+                    : args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
             }
 
             if (originalPosition < 0)
