@@ -3132,7 +3132,85 @@ Lambda:
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
+        [WorkItem(4593, "https://github.com/dotnet/roslyn/issues/4593")]
+        [Fact]
+        public void ExprTreeConvertedNullOnLHS()
+        {
+            var text =
+@"using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    Expression<Func<object>> testExpr = () => null ?? ""hello"";
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+                // (6,47): error CS0845: An expression tree lambda may not contain a coalescing operator with a null literal left-hand side
+                //     Expression<Func<object>> testExpr = () => null ?? new object();
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, "null").WithLocation(6, 47) );
+        }
+
+        [WorkItem(4593, "https://github.com/dotnet/roslyn/issues/4593")]
+        [Fact]
+        public void ExprTreeNullableInt()
+        {
+            var text =
+@"using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    static void Main()
+    {
+        Expression<Func<int?>> testExpr = () => (int?)null ?? (int?)5;
+        ExpressionVisitor ev = new ExpressionVisitor();
+        ev.Visit(testExpr);
+        Console.Write(ev.toStr);
+    }
+}";
+            var expectedOutput = @"
+Lambda:
+    Type->System.Func`1[System.Nullable`1[System.Int32]]
+    Parameters->
+    Body->
+    Coalesce:
+        Type->System.Nullable`1[System.Int32]
+        Method->
+        IsLifted->False
+        IsLiftedToNull->False
+        Left->
+            Convert:
+                Type->System.Nullable`1[System.Int32]
+                Method->
+                IsLifted->True
+                IsLiftedToNull->True
+                Operand->
+                    Constant:
+                        Type->System.Object
+                        Value->
+        Right->
+            Convert:
+                Type->System.Nullable`1[System.Int32]
+                Method->
+                IsLifted->True
+                IsLiftedToNull->True
+                Operand->
+                    Constant:
+                        Type->System.Int32
+                        Value->5
+                        Conversion->
+";
+
+            //CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics();
+            CompileAndVerify(
+                new[] { text, TreeWalkerLib },
+                new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
+        }
+
+
         [WorkItem(544442, "DevDiv")]
+        [WorkItem(4593, "https://github.com/dotnet/roslyn/issues/4593")]
         [Fact]
         public void ExprTreeFieldInitCoalesceWithNullOnLHS()
         {
