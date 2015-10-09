@@ -144,14 +144,6 @@ End Interface</text>
 
             Dim expectedText = <text>   
     Public Property TestProperty As String Implements IFoo.TestProperty
-        Get
-            Throw New NotImplementedException()
-        End Get
-
-        Set(value As String)
-            Throw New NotImplementedException()
-        End Set
-    End Property
 
     Public Sub TestSub() Implements IFoo.TestSub
         Throw New NotImplementedException()

@@ -192,7 +192,7 @@ index: 1);
         {
             Test(
 @"class Test : [|I1|] { int Prop { get ; set ; } } interface I1 { int Prop { get ; set ; } } ",
-@"using System ; class Test : I1 { int I1 . Prop { get { throw new NotImplementedException ( ) ; } set { throw new NotImplementedException ( ) ; } } int Prop { get ; set ; } } interface I1 { int Prop { get ; set ; } } ");
+@"class Test : I1 { int I1 . Prop { get ; set ; } int Prop { get ; set ; } } interface I1 { int Prop { get ; set ; } } ");
         }
 
         [WorkItem(539043)]
@@ -269,26 +269,13 @@ index: 1);
 public class A : [|DD|]
 {
 }",
-@"using System;
-
-public interface DD
+@"public interface DD
 {
     int Prop { get; set; }
 }
 public class A : DD
 {
-    public int Prop
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-
-        set
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public int Prop { get; set; }
 }",
 compareTokens: false);
         }
@@ -355,7 +342,7 @@ compareTokens: false);
         {
             Test(
 @"interface i1 { int p { get ; set ; } } class c1 : [|i1|] { } ",
-@"using System ; interface i1 { int p { get ; set ; } } class c1 : i1 { int i1 . p { get { throw new NotImplementedException ( ) ; } set { throw new NotImplementedException ( ) ; } } } ",
+@"interface i1 { int p { get ; set ; } } class c1 : i1 { int i1 . p { get; set ; } } ",
 index: 1);
         }
 
@@ -527,7 +514,7 @@ index: 2);
         {
             Test(
 @"interface IFoo { static string Name { set ; get ; } static int Foo ( string s ) ; } class Program : [|IFoo|] { } ",
-@"using System ; interface IFoo { static string Name { set ; get ; } static int Foo ( string s ) ; } class Program : IFoo { public string Name { get { throw new NotImplementedException ( ) ; } set { throw new NotImplementedException ( ) ; } } public int Foo ( string s ) { throw new NotImplementedException ( ) ; } } ");
+@"using System ; interface IFoo { static string Name { set ; get ; } static int Foo ( string s ) ; } class Program : IFoo { public string Name { get; set; } public int Foo ( string s ) { throw new NotImplementedException ( ) ; } } ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]

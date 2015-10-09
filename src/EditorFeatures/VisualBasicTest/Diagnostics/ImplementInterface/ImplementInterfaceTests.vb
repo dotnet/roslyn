@@ -48,7 +48,7 @@ NewLines("Imports System \n Interface I \n Sub M() \n End Interface \n Class C \
         Public Sub TestAutoPropertyConflict()
             Test(
 NewLines("Interface I \n Property M As Integer \n End Interface \n Class C \n Implements [|I|] \n Public Property M As Integer \n End Class"),
-NewLines("Imports System \n Interface I \n Property M As Integer \n End Interface \n Class C \n Implements I \n Public Property M As Integer \n Private Property I_M As Integer Implements I.M \n Get \n Throw New NotImplementedException() \n End Get \n Set(value As Integer) \n Throw New NotImplementedException() \n End Set \n End Property \n End Class"))
+NewLines("Interface I \n Property M As Integer \n End Interface \n Class C \n Implements I \n Public Property M As Integer \n Private Property I_M As Integer Implements I.M \n End Class"))
         End Sub
 
         <WorkItem(542015)>
@@ -56,7 +56,7 @@ NewLines("Imports System \n Interface I \n Property M As Integer \n End Interfac
         Public Sub TestFullPropertyConflict()
             Test(
 NewLines("Interface I \n Property M As Integer \n End Interface \n Class C \n Implements [|I|] \n Private Property M As Integer \n Get \n Return 5 \n End Get \n Set(value As Integer) \n End Set \n End Property \n End Class"),
-NewLines("Imports System \n Interface I \n Property M As Integer \n End Interface \n Class C \n Implements I \n Private Property I_M As Integer Implements I.M \n Get \n Throw New NotImplementedException() \n End Get \n Set(value As Integer) \n Throw New NotImplementedException() \n End Set \n End Property \n Private Property M As Integer \n Get \n Return 5 \n End Get \n Set(value As Integer) \n End Set \n End Property \n End Class"))
+NewLines("Interface I \n Property M As Integer \n End Interface \n Class C \n Implements I \n Private Property I_M As Integer Implements I.M \n Private Property M As Integer \n Get \n Return 5 \n End Get \n Set(value As Integer) \n End Set \n End Property \n End Class"))
         End Sub
 
         <WorkItem(542019)>
@@ -245,7 +245,7 @@ NewLines("Imports System \n Class M \n Implements IServiceProvider \n Public Fun
         Public Sub TestSimpleProperty()
             Test(
 NewLines("Interface I1 \n Property Foo() As Integer \n End Interface \n Class M \n Implements [|I1|] \n End Class"),
-NewLines("Imports System \n Interface I1 \n Property Foo() As Integer \n End Interface \n Class M \n Implements I1 \n Public Property Foo As Integer Implements I1.Foo \n Get \n Throw New NotImplementedException() \n End Get \n Set(value As Integer) \n Throw New NotImplementedException() \n End Set \n End Property \n End Class"))
+NewLines("Interface I1 \n Property Foo() As Integer \n End Interface \n Class M \n Implements I1 \n Public Property Foo As Integer Implements I1.Foo \n End Class"))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
@@ -586,7 +586,7 @@ NewLines("Imports System \n Interface I(Of In T, Out R) \n Sub Foo() \n End Inte
         Public Sub TestInterfacePropertyRedefinition()
             Test(
 NewLines("Interface I1 \n Property Bar As Integer \n End Interface \n Interface I2 \n Inherits I1 \n Property Bar As Integer \n End Interface \n Class C \n Implements [|I2|] \n End Class"),
-NewLines("Imports System \n Interface I1 \n Property Bar As Integer \n End Interface \n Interface I2 \n Inherits I1 \n Property Bar As Integer \n End Interface \n Class C \n Implements I2 \n Public Property Bar As Integer Implements I2.Bar \n Get \n Throw New NotImplementedException() \n End Get \n Set(value As Integer) \n Throw New NotImplementedException() \n End Set \n End Property \n Private Property I1_Bar As Integer Implements I1.Bar \n Get \n Throw New NotImplementedException() \n End Get \n Set(value As Integer) \n Throw New NotImplementedException() \n End Set \n End Property \n End Class"))
+NewLines("Interface I1 \n Property Bar As Integer \n End Interface \n Interface I2 \n Inherits I1 \n Property Bar As Integer \n End Interface \n Class C \n Implements I2 \n Public Property Bar As Integer Implements I2.Bar \n Private Property I1_Bar As Integer Implements I1.Bar \n End Class"))
         End Sub
 
         <WorkItem(544208)>
@@ -601,7 +601,7 @@ NewLines("Interface I1(Of T) \n  ReadOnly Property Bar As Integer \n End Interfa
         Public Sub TestPropertyShadowing()
             Test(
 NewLines("Interface I1 \n Property Bar As Integer \n Sub Foo() \n End Interface \n Class B \n Public Property Bar As Integer \n End Class \n Class C \n Inherits B \n Implements [|I1|] \n End Class"),
-NewLines("Imports System \n Interface I1 \n Property Bar As Integer \n Sub Foo() \n End Interface \n Class B \n Public Property Bar As Integer \n End Class \n Class C \n Inherits B \n Implements I1 \n Private Property I1_Bar As Integer Implements I1.Bar \n Get \n Throw New NotImplementedException() \n End Get \n Set(value As Integer) \n Throw New NotImplementedException() \n End Set \n End Property \n Public Sub Foo() Implements I1.Foo \n Throw New NotImplementedException() \n End Sub \n End Class"))
+NewLines("Imports System \n Interface I1 \n Property Bar As Integer \n Sub Foo() \n End Interface \n Class B \n Public Property Bar As Integer \n End Class \n Class C \n Inherits B \n Implements I1 \n Private Property I1_Bar As Integer Implements I1.Bar \n Public Sub Foo() Implements I1.Foo \n Throw New NotImplementedException() \n End Sub \n End Class"))
         End Sub
 
         <WorkItem(544206)>
@@ -1514,7 +1514,7 @@ NewLines("Option Strict On \n Imports System \n Interface I \n Sub Foo(Optional 
         Public Sub TestImplementAbstractly2()
             Test(
 NewLines("Interface I \n Property Foo() As Integer \n End Interface \n  \n MustInherit Class C \n Implements [|I|] ' Implement interface abstractly \n End Class"),
-NewLines("Imports System \n Interface I \n Property Foo() As Integer \n End Interface \n  \n MustInherit Class C \n Implements I ' Implement interface abstractly \n Public Property Foo As Integer Implements I.Foo \n Get \n Throw New NotImplementedException() \n End Get \n Set(value As Integer) \n Throw New NotImplementedException() \n End Set \n End Property \n End Class"))
+NewLines("Interface I \n Property Foo() As Integer \n End Interface \n  \n MustInherit Class C \n Implements I ' Implement interface abstractly \n Public Property Foo As Integer Implements I.Foo \n End Class"))
         End Sub
 
         <WorkItem(916114)>

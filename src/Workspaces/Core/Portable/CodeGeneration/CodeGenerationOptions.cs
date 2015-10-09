@@ -180,5 +180,25 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                         : this.ContextLocation;
             }
         }
+
+        public CodeGenerationOptions WithGenerateMethodBodies(bool generateMethodBodies)
+        {
+            return new CodeGenerationOptions(
+                this.ContextLocation,
+                this.AfterThisLocation,
+                this.BeforeThisLocation,
+                this.AddImports,
+                this.PlaceSystemNamespaceFirst,
+                this.AdditionalImports,
+                this.GenerateMembers,
+                this.MergeNestedNamespaces,
+                this.MergeAttributes,
+                this.GenerateDefaultAccessibility,
+                generateMethodBodies,
+                this.GenerateDocumentationComments,
+                this.AutoInsertionLocation,
+                this.ReuseSyntax
+            );
+        }
     }
 }
