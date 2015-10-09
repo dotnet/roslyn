@@ -302,6 +302,7 @@ System.Collections.IEnumerable w = new Window();
             {
                 typeof(object).GetTypeInfo().Assembly.Location,
                 typeof(C).Assembly.Location,
+                Assembly.Load(new AssemblyName("System.Runtime, Version=4.0.20.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")).Location, // TODO: remove
                 typeof(C).Assembly.Location,
                 typeof(C).Assembly.Location,
             }, s0.Script.GetCompilation().ExternalReferences.SelectAsArray(m => m.Display));

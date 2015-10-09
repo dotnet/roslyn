@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-extern alias WORKSPACES;
+extern alias Scripting;
 
 using System;
 using System.Collections.Generic;
@@ -27,11 +26,12 @@ using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Roslyn.Utilities;
-using RuntimeMetadataReferenceResolver = WORKSPACES::Microsoft.CodeAnalysis.Scripting.Hosting.RuntimeMetadataReferenceResolver;
-using GacFileResolver = WORKSPACES::Microsoft.CodeAnalysis.Scripting.Hosting.GacFileResolver;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 
 namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
+    using RelativePathResolver = Scripting::Microsoft.CodeAnalysis.RelativePathResolver;
+
     public abstract class InteractiveEvaluator : IInteractiveEvaluator, ICurrentWorkingDirectoryDiscoveryService
     {
         // full path or null
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                     .Where(r => !(r is UnresolvedMetadataReference));
 
                 var interactiveHelpersRef = metadataService.GetReference(typeof(Script).Assembly.Location, MetadataReferenceProperties.Assembly);
-                var interactiveHostObjectRef = metadataService.GetReference(typeof(InteractiveHostObject).Assembly.Location, MetadataReferenceProperties.Assembly);
+                var interactiveHostObjectRef = metadataService.GetReference(typeof(InteractiveScriptGlobals).Assembly.Location, MetadataReferenceProperties.Assembly);
 
                 _references = ImmutableHashSet.Create<MetadataReference>(
                     interactiveHelpersRef,
@@ -250,14 +250,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         private static MetadataReferenceResolver CreateMetadataReferenceResolver(IMetadataService metadataService, ImmutableArray<string> searchPaths, string baseDirectory)
         {
-            var userProfilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            var packagesDirectory = (userProfilePath == null) ?
-                null :
-                PathUtilities.CombineAbsoluteAndRelativePaths(userProfilePath, PathUtilities.CombinePossiblyRelativeAndRelativePaths(".nuget", "packages"));
-
             return new RuntimeMetadataReferenceResolver(
                 new RelativePathResolver(searchPaths, baseDirectory),
-                string.IsNullOrEmpty(packagesDirectory) ? null : new NuGetPackageResolverImpl(packagesDirectory),
+                null,
                 GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
                 (path, properties) => metadataService.GetReference(path, properties));
         }
@@ -398,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                     documents: null,
                     projectReferences: null,
                     metadataReferences: localReferences,
-                    hostObjectType: typeof(InteractiveHostObject),
+                    hostObjectType: typeof(InteractiveScriptGlobals),
                     isSubmission: true));
 
             if (_previousSubmissionProjectId != null)

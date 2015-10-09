@@ -986,7 +986,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (GetImplementsLocation(interface1).SourceSpan.Start > GetImplementsLocation(interface2).SourceSpan.Start)
                         {
-                            // Mention interfaces in order of their appearence in the base list, for consistency.
+                            // Mention interfaces in order of their appearance in the base list, for consistency.
                             var temp = interface1;
                             interface1 = interface2;
                             interface2 = temp;

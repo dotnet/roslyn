@@ -615,6 +615,7 @@
     <None Include="PerfTests\BasicPerfLightBulb.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <Compile Include="CodeActions\ReplaceMethodWithProperty\ReplaceMethodWithPropertyTests.vb" />
     <Content Include="PerfTests\Sources\BasicPgoTypingInput.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

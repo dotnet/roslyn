@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
+            if (context.IsGlobalStatementContext)
+            {
+                return true;
+            }
+
             if (context.IsAnyExpressionContext || context.IsStatementContext)
             {
                 foreach (var node in context.LeftToken.GetAncestors<SyntaxNode>())

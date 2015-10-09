@@ -4,14 +4,6 @@
   "targets": {
     ".NETFramework,Version=v4.6": {
       "Microsoft.NETCore.Platforms/1.0.0": {},
-      "Newtonsoft.Json/6.0.4": {
-        "compile": {
-          "lib/net45/Newtonsoft.Json.dll": {}
-        },
-        "runtime": {
-          "lib/net45/Newtonsoft.Json.dll": {}
-        }
-      },
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Runtime": "[4.0.0, )"
@@ -122,15 +114,44 @@
           "lib/net46/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.1.0-alpha-00014": {
-        "dependencies": {
-          "System.Collections.Immutable": "[1.1.36, )"
-        },
+      "System.Reflection.Extensions/4.0.0": {
         "compile": {
-          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
+          "ref/net45/_._": {}
         },
         "runtime": {
-          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Reflection.Metadata/1.1.0-alpha-00014": {
+        "dependencies": {
+          "System.Collections": "[4.0.0, )",
+          "System.Collections.Immutable": "[1.1.36, )",
+          "System.Diagnostics.Debug": "[4.0.0, )",
+          "System.IO": "[4.0.0, )",
+          "System.Reflection": "[4.0.0, )",
+          "System.Reflection.Extensions": "[4.0.0, )",
+          "System.Reflection.Primitives": "[4.0.0, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )",
+          "System.Runtime.Extensions": "[4.0.0, )",
+          "System.Runtime.InteropServices": "[4.0.0, )",
+          "System.Text.Encoding": "[4.0.0, )",
+          "System.Text.Encoding.Extensions": "[4.0.0, )",
+          "System.Threading": "[4.0.0, )"
+        },
+        "compile": {
+          "lib/dotnet/System.Reflection.Metadata.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.Reflection.Metadata.dll": {}
+        }
+      },
+      "System.Reflection.Primitives/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
         }
       },
       "System.Resources.ResourceManager/4.0.0": {
@@ -179,6 +200,14 @@
         },
         "runtime": {
           "lib/net46/_._": {}
+        }
+      },
+      "System.Text.Encoding.Extensions/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
         }
       },
       "System.Threading/4.0.10": {
@@ -301,16 +330,8 @@
         }
       }
     },
-    ".NETFramework,Version=v4.6/win-": {
+    ".NETFramework,Version=v4.6/win7-anycpu": {
       "Microsoft.NETCore.Platforms/1.0.0": {},
-      "Newtonsoft.Json/6.0.4": {
-        "compile": {
-          "lib/net45/Newtonsoft.Json.dll": {}
-        },
-        "runtime": {
-          "lib/net45/Newtonsoft.Json.dll": {}
-        }
-      },
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Runtime": "[4.0.0, )"
@@ -421,15 +442,44 @@
           "lib/net46/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.1.0-alpha-00014": {
-        "dependencies": {
-          "System.Collections.Immutable": "[1.1.36, )"
-        },
+      "System.Reflection.Extensions/4.0.0": {
         "compile": {
-          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
+          "ref/net45/_._": {}
         },
         "runtime": {
-          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Reflection.Metadata/1.1.0-alpha-00014": {
+        "dependencies": {
+          "System.Collections": "[4.0.0, )",
+          "System.Collections.Immutable": "[1.1.36, )",
+          "System.Diagnostics.Debug": "[4.0.0, )",
+          "System.IO": "[4.0.0, )",
+          "System.Reflection": "[4.0.0, )",
+          "System.Reflection.Extensions": "[4.0.0, )",
+          "System.Reflection.Primitives": "[4.0.0, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )",
+          "System.Runtime.Extensions": "[4.0.0, )",
+          "System.Runtime.InteropServices": "[4.0.0, )",
+          "System.Text.Encoding": "[4.0.0, )",
+          "System.Text.Encoding.Extensions": "[4.0.0, )",
+          "System.Threading": "[4.0.0, )"
+        },
+        "compile": {
+          "lib/dotnet/System.Reflection.Metadata.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.Reflection.Metadata.dll": {}
+        }
+      },
+      "System.Reflection.Primitives/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
         }
       },
       "System.Resources.ResourceManager/4.0.0": {
@@ -478,6 +528,14 @@
         },
         "runtime": {
           "lib/net46/_._": {}
+        }
+      },
+      "System.Text.Encoding.Extensions/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
         }
       },
       "System.Threading/4.0.10": {
@@ -611,31 +669,6 @@
         "Microsoft.NETCore.Platforms.nuspec",
         "package/services/metadata/core-properties/36b51d4c6b524527902ff1a182a64e42.psmdcp",
         "runtime.json"
-      ]
-    },
-    "Newtonsoft.Json/6.0.4": {
-      "sha512": "FyQLmEpjsCrEP+znauLDGAi+h6i9YnaMkITlfIoiM4RYyX3nki306bTHsr/0okiIvIc7BJhQTbOAIZVocccFUw==",
-      "type": "Package",
-      "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
-        "lib/net20/Newtonsoft.Json.dll",
-        "lib/net20/Newtonsoft.Json.xml",
-        "lib/net35/Newtonsoft.Json.dll",
-        "lib/net35/Newtonsoft.Json.xml",
-        "lib/net40/Newtonsoft.Json.dll",
-        "lib/net40/Newtonsoft.Json.xml",
-        "lib/net45/Newtonsoft.Json.dll",
-        "lib/net45/Newtonsoft.Json.xml",
-        "lib/netcore45/Newtonsoft.Json.dll",
-        "lib/netcore45/Newtonsoft.Json.xml",
-        "lib/portable-net40+sl5+wp80+win8+wpa81/Newtonsoft.Json.dll",
-        "lib/portable-net40+sl5+wp80+win8+wpa81/Newtonsoft.Json.xml",
-        "lib/portable-net45+wp80+win8+wpa81/Newtonsoft.Json.dll",
-        "lib/portable-net45+wp80+win8+wpa81/Newtonsoft.Json.xml",
-        "Newtonsoft.Json.nuspec",
-        "package/services/metadata/core-properties/87a0a4e28d50417ea282e20f81bc6477.psmdcp",
-        "tools/install.ps1"
       ]
     },
     "System.AppContext/4.0.0": {
@@ -951,17 +984,86 @@
         "System.Reflection.nuspec"
       ]
     },
-    "System.Reflection.Metadata/1.1.0-alpha-00014": {
-      "sha512": "rVeIWjVoLQS0aNrGdzndZReskyfxu4EfO9BKqT5GJt0YfGtlsHB1aDPnjl4jIBDTr+WJC9YsnZg8S5sKT1X42g==",
+    "System.Reflection.Extensions/4.0.0": {
+      "sha512": "dbYaZWCyFAu1TGYUqR2n+Q+1casSHPR2vVW0WVNkXpZbrd2BXcZ7cpvpu9C98CTHtNmyfMWCLpCclDqly23t6A==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
+        "lib/DNXCore50/System.Reflection.Extensions.dll",
+        "lib/net45/_._",
+        "lib/netcore50/System.Reflection.Extensions.dll",
+        "lib/win8/_._",
+        "lib/wp80/_._",
+        "lib/wpa81/_._",
+        "package/services/metadata/core-properties/0bcc335e1ef540948aef9032aca08bb2.psmdcp",
+        "ref/dotnet/de/System.Reflection.Extensions.xml",
+        "ref/dotnet/es/System.Reflection.Extensions.xml",
+        "ref/dotnet/fr/System.Reflection.Extensions.xml",
+        "ref/dotnet/it/System.Reflection.Extensions.xml",
+        "ref/dotnet/ja/System.Reflection.Extensions.xml",
+        "ref/dotnet/ko/System.Reflection.Extensions.xml",
+        "ref/dotnet/ru/System.Reflection.Extensions.xml",
+        "ref/dotnet/System.Reflection.Extensions.dll",
+        "ref/dotnet/System.Reflection.Extensions.xml",
+        "ref/dotnet/zh-hans/System.Reflection.Extensions.xml",
+        "ref/dotnet/zh-hant/System.Reflection.Extensions.xml",
+        "ref/net45/_._",
+        "ref/netcore50/System.Reflection.Extensions.dll",
+        "ref/netcore50/System.Reflection.Extensions.xml",
+        "ref/win8/_._",
+        "ref/wp80/_._",
+        "ref/wpa81/_._",
+        "runtimes/win8-aot/lib/netcore50/System.Reflection.Extensions.dll",
+        "System.Reflection.Extensions.nuspec"
+      ]
+    },
+    "System.Reflection.Metadata/1.1.0-alpha-00014": {
+      "sha512": "EK6OG++qcGz4VabG4hwCgZ0KdzQAwI3LsH8O0xONsct2wWxpFwjZ+tENecYs2kEKXt/ECLYLjn/3rcvxxmarDA==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/dotnet/System.Reflection.Metadata.dll",
+        "lib/dotnet/System.Reflection.Metadata.xml",
         "lib/portable-net45+win8/System.Reflection.Metadata.dll",
-        "lib/portable-net45+win8/System.Reflection.Metadata.pdb",
         "lib/portable-net45+win8/System.Reflection.Metadata.xml",
-        "package/services/metadata/core-properties/a48ecf967b1540bba8edfe9af3a99ea5.psmdcp",
+        "package/services/metadata/core-properties/87e66725b41e4febb421e633df3a89b2.psmdcp",
         "System.Reflection.Metadata.nuspec"
+      ]
+    },
+    "System.Reflection.Primitives/4.0.0": {
+      "sha512": "n9S0XpKv2ruc17FSnaiX6nV47VfHTZ1wLjKZlAirUZCvDQCH71mVp+Ohabn0xXLh5pK2PKp45HCxkqu5Fxn/lA==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/DNXCore50/System.Reflection.Primitives.dll",
+        "lib/net45/_._",
+        "lib/netcore50/System.Reflection.Primitives.dll",
+        "lib/win8/_._",
+        "lib/wp80/_._",
+        "lib/wpa81/_._",
+        "package/services/metadata/core-properties/7070509f3bfd418d859635361251dab0.psmdcp",
+        "ref/dotnet/de/System.Reflection.Primitives.xml",
+        "ref/dotnet/es/System.Reflection.Primitives.xml",
+        "ref/dotnet/fr/System.Reflection.Primitives.xml",
+        "ref/dotnet/it/System.Reflection.Primitives.xml",
+        "ref/dotnet/ja/System.Reflection.Primitives.xml",
+        "ref/dotnet/ko/System.Reflection.Primitives.xml",
+        "ref/dotnet/ru/System.Reflection.Primitives.xml",
+        "ref/dotnet/System.Reflection.Primitives.dll",
+        "ref/dotnet/System.Reflection.Primitives.xml",
+        "ref/dotnet/zh-hans/System.Reflection.Primitives.xml",
+        "ref/dotnet/zh-hant/System.Reflection.Primitives.xml",
+        "ref/net45/_._",
+        "ref/netcore50/System.Reflection.Primitives.dll",
+        "ref/netcore50/System.Reflection.Primitives.xml",
+        "ref/win8/_._",
+        "ref/wp80/_._",
+        "ref/wpa81/_._",
+        "runtimes/win8-aot/lib/netcore50/System.Reflection.Primitives.dll",
+        "System.Reflection.Primitives.nuspec"
       ]
     },
     "System.Resources.ResourceManager/4.0.0": {
@@ -1166,6 +1268,55 @@
         "ref/xamarinmac20/_._",
         "runtimes/win8-aot/lib/netcore50/System.Text.Encoding.dll",
         "System.Text.Encoding.nuspec"
+      ]
+    },
+    "System.Text.Encoding.Extensions/4.0.0": {
+      "sha512": "FktA77+2DC0S5oRhgM569pbzFrcA45iQpYiI7+YKl68B6TfI2N5TQbXqSWlh2YXKoFXHi2RFwPMha2lxiFJZ6A==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net45/_._",
+        "lib/win8/_._",
+        "lib/wp80/_._",
+        "lib/wpa81/_._",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "License.rtf",
+        "package/services/metadata/core-properties/c37aa1347f574e6c8df522449486a4d2.psmdcp",
+        "ref/dotnet/de/System.Text.Encoding.Extensions.xml",
+        "ref/dotnet/es/System.Text.Encoding.Extensions.xml",
+        "ref/dotnet/fr/System.Text.Encoding.Extensions.xml",
+        "ref/dotnet/it/System.Text.Encoding.Extensions.xml",
+        "ref/dotnet/ja/System.Text.Encoding.Extensions.xml",
+        "ref/dotnet/ko/System.Text.Encoding.Extensions.xml",
+        "ref/dotnet/ru/System.Text.Encoding.Extensions.xml",
+        "ref/dotnet/System.Text.Encoding.Extensions.dll",
+        "ref/dotnet/System.Text.Encoding.Extensions.xml",
+        "ref/dotnet/zh-hans/System.Text.Encoding.Extensions.xml",
+        "ref/dotnet/zh-hant/System.Text.Encoding.Extensions.xml",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net45/_._",
+        "ref/netcore50/de/System.Text.Encoding.Extensions.xml",
+        "ref/netcore50/es/System.Text.Encoding.Extensions.xml",
+        "ref/netcore50/fr/System.Text.Encoding.Extensions.xml",
+        "ref/netcore50/it/System.Text.Encoding.Extensions.xml",
+        "ref/netcore50/ja/System.Text.Encoding.Extensions.xml",
+        "ref/netcore50/ko/System.Text.Encoding.Extensions.xml",
+        "ref/netcore50/ru/System.Text.Encoding.Extensions.xml",
+        "ref/netcore50/System.Text.Encoding.Extensions.dll",
+        "ref/netcore50/System.Text.Encoding.Extensions.xml",
+        "ref/netcore50/zh-hans/System.Text.Encoding.Extensions.xml",
+        "ref/netcore50/zh-hant/System.Text.Encoding.Extensions.xml",
+        "ref/win8/_._",
+        "ref/wp80/_._",
+        "ref/wpa81/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "System.Text.Encoding.Extensions.nuspec"
       ]
     },
     "System.Threading/4.0.10": {
@@ -1490,7 +1641,6 @@
   "projectFileDependencyGroups": {
     "": [
       "Microsoft.NETCore.Platforms >= 1.0.0",
-      "Newtonsoft.Json >= 6.0.4",
       "System.AppContext >= 4.0.0",
       "System.Collections >= 4.0.10",
       "System.Collections.Immutable >= 1.1.36",

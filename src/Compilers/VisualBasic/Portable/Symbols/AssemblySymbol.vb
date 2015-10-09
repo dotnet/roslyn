@@ -436,26 +436,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Throw New ArgumentNullException(NameOf(metadataName))
             End If
 
-            Dim type As NamedTypeSymbol = Nothing
+            Dim type As NamedTypeSymbol
             Dim mdName As MetadataTypeName
 
             If metadataName.Contains("+"c) Then
 
                 Dim parts() As String = metadataName.Split(s_nestedTypeNameSeparators)
+                Debug.Assert(parts.Length > 0)
+                mdName = MetadataTypeName.FromFullName(parts(0), useCLSCompliantNameArityEncoding)
+                type = GetTopLevelTypeByMetadataName(mdName, includeReferences, isWellKnownType)
 
-                If parts.Length > 0 Then
-                    mdName = MetadataTypeName.FromFullName(parts(0), useCLSCompliantNameArityEncoding)
-                    type = GetTopLevelTypeByMetadataName(mdName, includeReferences, isWellKnownType)
+                Dim i As Integer = 1
 
-                    Dim i As Integer = 1
-
-                    While type IsNot Nothing AndAlso Not type.IsErrorType() AndAlso i < parts.Length
-                        mdName = MetadataTypeName.FromTypeName(parts(i))
-                        Dim temp = type.LookupMetadataType(mdName)
-                        type = If(Not isWellKnownType OrElse IsValidWellKnownType(temp), temp, Nothing)
-                        i += 1
-                    End While
-                End If
+                While type IsNot Nothing AndAlso Not type.IsErrorType() AndAlso i < parts.Length
+                    mdName = MetadataTypeName.FromTypeName(parts(i))
+                    Dim temp = type.LookupMetadataType(mdName)
+                    type = If(Not isWellKnownType OrElse IsValidWellKnownType(temp), temp, Nothing)
+                    i += 1
+                End While
             Else
                 mdName = MetadataTypeName.FromFullName(metadataName, useCLSCompliantNameArityEncoding)
                 type = GetTopLevelTypeByMetadataName(mdName, includeReferences, isWellKnownType)

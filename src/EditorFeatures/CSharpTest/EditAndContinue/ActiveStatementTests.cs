@@ -5088,6 +5088,169 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
+        [Fact]
+        public void TryFinally_DeleteStatement_Inner()
+        {
+            string src1 = @"
+class C
+{
+    static void Main()
+    {
+        <AS:0>Console.WriteLine(0);</AS:0>
+
+        try
+        {
+            <AS:1>Console.WriteLine(1);</AS:1>
+        }
+        <ER:1.0>finally
+        {
+            Console.WriteLine(2);
+        }</ER:1.0>
+    }
+}";
+            string src2 = @"
+class C
+{
+    static void Main()
+    {
+        <AS:0>Console.WriteLine(0);</AS:0>
+     
+        try
+        {
+        <AS:1>}</AS:1>
+        finally
+        {
+            Console.WriteLine(2);
+        }
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "{"));
+        }
+
+        [Fact]
+        public void TryFinally_DeleteStatement_Leaf()
+        {
+            string src1 = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        <ER:0.0>try
+        {
+            Console.WriteLine(0);
+        }
+        finally
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }</ER:0.0>
+    }
+}";
+            string src2 = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        try
+        {
+            Console.WriteLine(0);
+        }
+        finally
+        {
+        <AS:0>}</AS:0>
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "finally", CSharpFeaturesResources.FinallyClause));
+        }
+
+        [Fact]
+        public void Try_DeleteStatement_Inner()
+        {
+            string src1 = @"
+class C
+{
+    static void Main()
+    {
+        <AS:0>Console.WriteLine(0);</AS:0>
+        
+        try
+        {
+            <AS:1>Console.WriteLine(1);</AS:1>
+        }
+        finally
+        {
+            Console.WriteLine(2);
+        }
+    }
+}";
+            string src2 = @"
+class C
+{
+    static void Main()
+    {
+        <AS:0>Console.WriteLine(0);</AS:0>
+        
+        try
+        {
+        <AS:1>}</AS:1>
+        finally
+        {
+            Console.WriteLine(2);
+        }
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "{"));
+        }
+
+        [Fact]
+        public void Try_DeleteStatement_Leaf()
+        {
+            string src1 = @"
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }
+        finally
+        {
+            Console.WriteLine(2);
+        }
+    }
+}";
+            string src2 = @"
+class C
+{
+    static void Main()
+    {
+        try
+        {
+        <AS:0>}</AS:0>
+        finally
+        {
+            Console.WriteLine(2);
+        }
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
         #endregion
 
         #region Catch

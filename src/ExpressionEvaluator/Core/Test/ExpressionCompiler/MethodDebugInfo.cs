@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             private ArrayBuilder<byte> _bytesBuilder;
             private int _recordCount;
 
-            public Builder(string[][] importStringGroups = null, bool suppressUsingInfo = false)
+            public Builder(string[][] importStringGroups = null, bool suppressUsingInfo = false, ISymUnmanagedConstant[] constants = null)
             {
                 _bytesBuilder = ArrayBuilder<byte>.GetInstance();
                 if (importStringGroups != null && !suppressUsingInfo)
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var namespaces = importStringGroups == null
                     ? default(ImmutableArray<ISymUnmanagedNamespace>)
                     : importStringGroups.SelectMany(names => names.Select(name => (ISymUnmanagedNamespace)new MockSymUnmanagedNamespace(name))).ToImmutableArray();
-                var childScope = new MockSymUnmanagedScope(default(ImmutableArray<ISymUnmanagedScope>), namespaces);
+                var childScope = new MockSymUnmanagedScope(default(ImmutableArray<ISymUnmanagedScope>), namespaces, constants);
                 var rootScope = new MockSymUnmanagedScope(ImmutableArray.Create<ISymUnmanagedScope>(childScope), default(ImmutableArray<ISymUnmanagedNamespace>));
                 _method = new MockSymUnmanagedMethod(rootScope);
             }

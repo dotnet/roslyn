@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim baseGet As BoundExpression = Nothing
 
             If isOverride Then
-                ' overriding property gets its value va a base call
+                ' overriding property gets its value via a base call
                 myBaseReference = New BoundMyBaseReference(syntax, meSymbol.Type)
                 Dim baseGetSym = propertySymbol.GetMethod.OverriddenMethod
 
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim handlerlocalAccesses As ArrayBuilder(Of BoundLocal) = Nothing
 
                 ' //process Handles that need to be hooked up in this method
-                ' //if there are events to hook up, the body will look ike this:
+                ' //if there are events to hook up, the body will look like this:
                 '
                 ' Dim tempHandlerLocal = AddressOf handlerMethod   ' addressOf is already bound and may contain conversion
                 ' . . .

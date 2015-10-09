@@ -501,8 +501,10 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="ComputingRemoveSuppressionFix" xml:space="preserve">
     <value>Computing remove suppressions fix...</value>
   </data>
-<data name="ApplyingRemoveSuppressionFix" xml:space="preserve">
+  <data name="ApplyingRemoveSuppressionFix" xml:space="preserve">
     <value>Applying remove suppressions fix...</value>
   </data>
-  
+  <data name="ThisWorkspaceOnlySupportsOpeningDocumentsOnTheUIThread" xml:space="preserve">
+    <value>This workspace only supports opening documents on the UI thread.</value>
+  </data>
 </root>

@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' this should be relatively uncommon
                     ' most symbols that may be contained in a type
                     ' know their containing type and can override ContainingType
-                    ' with a more precicse implementation
+                    ' with a more precise implementation
                     Return containerAsType
                 End If
 

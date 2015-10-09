@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
                 string replacementString,
                 SnapshotSpan hintSpan,
                 bool isImplementation,
+                bool isDefaultCollapsed,
                 ITextEditorFactoryService textEditorFactoryService,
                 IProjectionBufferFactoryService projectionBufferFactoryService,
                 IEditorOptionsFactoryService editorOptionsFactoryService)
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
                 this.CollapsedForm = replacementString;
                 _hintSpan = hintSpan.Snapshot.CreateTrackingSpan(hintSpan.Span, SpanTrackingMode.EdgeExclusive);
                 this.IsImplementation = isImplementation;
-                this.IsDefaultCollapsed = false;
+                this.IsDefaultCollapsed = isDefaultCollapsed;
                 _textEditorFactoryService = textEditorFactoryService;
                 _projectionBufferFactoryService = projectionBufferFactoryService;
                 _editorOptionsFactoryService = editorOptionsFactoryService;

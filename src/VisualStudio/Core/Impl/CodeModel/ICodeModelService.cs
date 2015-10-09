@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         string AssemblyAttributeString { get; }
 
         /// <summary>
-        /// Do not use this method directly! Instead, go through <see cref="FileCodeModel.CreateCodeElement{T}(SyntaxNode)"/>
+        /// Do not use this method directly! Instead, go through <see cref="FileCodeModel.GetOrCreateCodeElement{T}(SyntaxNode)"/>
         /// </summary>
         EnvDTE.CodeElement CreateInternalCodeElement(CodeModelState state, FileCodeModel fileCodeModel, SyntaxNode node);
         EnvDTE.CodeElement CreateExternalCodeElement(CodeModelState state, ProjectId projectId, ISymbol symbol);

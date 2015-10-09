@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return node.GetTrailingTrivia().Any(SyntaxKind.EndOfLineTrivia)
                 Case SyntaxKind.SingleLineIfStatement,
                      SyntaxKind.SingleLineElseClause
-                    ' Steer clear of single-line if's because they they have custom handling of statement 
+                    ' Steer clear of single-line if's because they have custom handling of statement 
                     ' terminators that may make it difficult to reuse sub-statements.
                     Return False
                 Case Else
@@ -538,7 +538,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             _lineBufferOffset = _lineBufferOffset + _curNodeLength
 
             ' this will just verify that we do not have any prefetched tokens, including current. 
-            ' otherwise advancing linebuffer offset could go out of sync with token stream.
+            ' otherwise advancing line buffer offset could go out of sync with token stream.
             MyBase.MoveToNextSyntaxNodeInTrivia()
 
             TryPopNode()

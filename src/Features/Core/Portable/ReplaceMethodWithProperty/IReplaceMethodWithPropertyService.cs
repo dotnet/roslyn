@@ -8,10 +8,12 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
     interface IReplaceMethodWithPropertyService : ILanguageService
     {
         SyntaxNode GetMethodDeclaration(SyntaxToken token);
-        SyntaxNode ConvertMethodsToProperty(SemanticModel semanticModel, SyntaxGenerator generator, GetAndSetMethods getAndSetMethods, string propertyName, bool nameChanged);
         string GetMethodName(SyntaxNode methodDeclaration);
         void ReplaceGetReference(SyntaxEditor editor, SyntaxToken nameToken, string propertyName, bool nameChanged);
         void ReplaceSetReference(SyntaxEditor editor, SyntaxToken nameToken, string propertyName, bool nameChanged);
+
+        void ReplaceGetMethodWithProperty(SyntaxEditor editor, SemanticModel semanticModel, GetAndSetMethods getAndSetMethods, string propertyName, bool nameChanged);
+        void RemoveSetMethod(SyntaxEditor editor, SyntaxNode setMethodDeclaration);
     }
 
     internal struct GetAndSetMethods

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     internal class Optimizer
     {
         /// <summary>
-        /// Perform IL specific optiomizations (mostly reduction of local slots)
+        /// Perform IL specific optimizations (mostly reduction of local slots)
         /// </summary>
         /// <param name="src">Method body to optimize</param>
         /// <param name="debugFriendly">

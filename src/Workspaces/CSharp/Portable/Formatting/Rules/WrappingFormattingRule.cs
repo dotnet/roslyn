@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -35,55 +36,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private void AddSpecificNodesSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        private ValueTuple<SyntaxToken, SyntaxToken> GetSpecificNodeSuppressionTokenRange(SyntaxNode node)
         {
-            var ifStatementNode = node as IfStatementSyntax;
-            if (ifStatementNode != null)
+            var embeddedStatement = node.GetEmbeddedStatement();
+            if (embeddedStatement != null)
             {
-                AddSuppressWrappingIfOnSingleLineOperation(list, ifStatementNode.IfKeyword, ifStatementNode.Statement.GetLastToken(includeZeroWidth: true));
-
-                if (ifStatementNode.Else != null)
+                var firstTokenOfEmbeddedStatement = embeddedStatement.GetFirstToken(includeZeroWidth: true);
+                if (embeddedStatement.IsKind(SyntaxKind.Block))
                 {
-                    AddSuppressWrappingIfOnSingleLineOperation(list, ifStatementNode.Else.ElseKeyword, ifStatementNode.Else.Statement.GetLastToken(includeZeroWidth: true));
+                    return ValueTuple.Create(
+                        firstTokenOfEmbeddedStatement.GetPreviousToken(includeZeroWidth: true),
+                        embeddedStatement.GetLastToken(includeZeroWidth: true));
                 }
-
-                return;
-            }
-
-            var whileStatementNode = node as DoStatementSyntax;
-            if (whileStatementNode != null)
-            {
-                AddSuppressWrappingIfOnSingleLineOperation(list, whileStatementNode.GetFirstToken(includeZeroWidth: true), whileStatementNode.Statement.GetLastToken(includeZeroWidth: true));
-                return;
-            }
-
-            var memberDeclNode = node as MemberDeclarationSyntax;
-            if (memberDeclNode != null)
-            {
-                var tokens = memberDeclNode.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
-                AddSuppressWrappingIfOnSingleLineOperation(list, tokens.Item1, tokens.Item2);
-                return;
-            }
-
-            var accessorDeclNode = node as AccessorDeclarationSyntax;
-            if (accessorDeclNode != null)
-            {
-                AddSuppressWrappingIfOnSingleLineOperation(list, accessorDeclNode.GetFirstToken(includeZeroWidth: true), accessorDeclNode.GetLastToken(includeZeroWidth: true));
-                return;
+                else
+                {
+                    return ValueTuple.Create(
+                        firstTokenOfEmbeddedStatement.GetPreviousToken(includeZeroWidth: true),
+                        firstTokenOfEmbeddedStatement);
+                }
             }
 
             var switchSection = node as SwitchSectionSyntax;
             if (switchSection != null)
             {
-                AddSuppressWrappingIfOnSingleLineOperation(list, switchSection.GetFirstToken(includeZeroWidth: true), switchSection.GetLastToken(includeZeroWidth: true));
-                return;
+                return ValueTuple.Create(switchSection.GetFirstToken(includeZeroWidth: true), switchSection.GetLastToken(includeZeroWidth: true));
             }
 
             var anonymousMethod = node as AnonymousMethodExpressionSyntax;
             if (anonymousMethod != null)
             {
-                AddSuppressWrappingIfOnSingleLineOperation(list, anonymousMethod.DelegateKeyword, anonymousMethod.GetLastToken(includeZeroWidth: true));
-                return;
+                return ValueTuple.Create(anonymousMethod.DelegateKeyword, anonymousMethod.GetLastToken(includeZeroWidth: true));
+            }
+
+            return default(ValueTuple<SyntaxToken, SyntaxToken>);
+        }
+
+        private void AddSpecificNodesSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        {
+            var tokens = GetSpecificNodeSuppressionTokenRange(node);
+            if (tokens != default(ValueTuple<SyntaxToken, SyntaxToken>))
+            {
+                AddSuppressWrappingIfOnSingleLineOperation(list, tokens.Item1, tokens.Item2);
+            }
+
+            var ifStatementNode = node as IfStatementSyntax;
+            if (ifStatementNode?.Else != null)
+            {
+                AddSuppressWrappingIfOnSingleLineOperation(list, ifStatementNode.Else.ElseKeyword, ifStatementNode.Else.Statement.GetFirstToken(includeZeroWidth: true));
             }
         }
 
@@ -112,46 +111,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 RemoveSuppressOperation(list, firstToken, lastToken);
             }
 
-            var ifStatementNode = node as IfStatementSyntax;
-            if (ifStatementNode != null)
+            var tokens = GetSpecificNodeSuppressionTokenRange(node);
+            if (tokens != default(ValueTuple<SyntaxToken, SyntaxToken>))
             {
-                RemoveSuppressOperation(list, ifStatementNode.IfKeyword, ifStatementNode.Statement.GetLastToken(includeZeroWidth: true));
-
-                if (ifStatementNode.Else != null)
-                {
-                    RemoveSuppressOperation(list, ifStatementNode.Else.ElseKeyword, ifStatementNode.Else.Statement.GetLastToken(includeZeroWidth: true));
-                }
-
-                return;
-            }
-
-            var whileStatementNode = node as DoStatementSyntax;
-            if (whileStatementNode != null)
-            {
-                RemoveSuppressOperation(list, whileStatementNode.GetFirstToken(includeZeroWidth: true), whileStatementNode.Statement.GetLastToken(includeZeroWidth: true));
-                return;
-            }
-
-            var memberDeclNode = node as MemberDeclarationSyntax;
-            if (memberDeclNode != null)
-            {
-                var tokens = memberDeclNode.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
                 RemoveSuppressOperation(list, tokens.Item1, tokens.Item2);
-                return;
             }
 
-            var switchSection = node as SwitchSectionSyntax;
-            if (switchSection != null)
+            var ifStatementNode = node as IfStatementSyntax;
+            if (ifStatementNode?.Else != null)
             {
-                RemoveSuppressOperation(list, switchSection.GetFirstToken(includeZeroWidth: true), switchSection.GetLastToken(includeZeroWidth: true));
-                return;
-            }
-
-            var anonymousMethod = node as AnonymousMethodExpressionSyntax;
-            if (anonymousMethod != null)
-            {
-                RemoveSuppressOperation(list, anonymousMethod.DelegateKeyword, anonymousMethod.GetLastToken(includeZeroWidth: true));
-                return;
+                RemoveSuppressOperation(list, ifStatementNode.Else.ElseKeyword, ifStatementNode.Else.Statement.GetFirstToken(includeZeroWidth: true));
             }
         }
 

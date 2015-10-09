@@ -1008,7 +1008,7 @@ End Module
 
         <Fact()>
         Public Sub Erl_Property_InvalidNumericLabel()
-            'More a test of Invalid Label but as the label is used for ERL I wanted to make sure that this didnt compile
+            'More a test of Invalid Label but as the label is used for ERL I wanted to make sure that this didn't compile
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -1081,7 +1081,7 @@ End Module]]>
 
         <Fact()>
         Public Sub Erl_Property_TypeCharsOnLabels()
-            'More a test of Invalid Label but as the label is used for ERL I wanted to make sure that this didnt compile
+            'More a test of Invalid Label but as the label is used for ERL I wanted to make sure that this didn't compile
             'Using type characters which would be valid for numerics
             Dim source =
     <compilation name="ErrorHandling">
