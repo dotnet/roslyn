@@ -75,21 +75,15 @@ namespace Roslyn.Test.Utilities
 
         public static void PumpingWaitAll(this IEnumerable<Task> tasks)
         {
-            var count = 0;
             var smallTimeout = TimeSpan.FromMilliseconds(10);
             var taskArray = tasks.ToArray();
             var done = false;
             while (!done)
             {
-                count++;
                 done = Task.WaitAll(taskArray, smallTimeout);
                 if (!done)
                 {
                     WaitForDispatchedOperationsToComplete(DispatcherPriority.ApplicationIdle);
-                }
-
-                if (count == 20)
-                {
                     CheckForStaDeadlockInPumpingWait(tasks);
                 }
             }

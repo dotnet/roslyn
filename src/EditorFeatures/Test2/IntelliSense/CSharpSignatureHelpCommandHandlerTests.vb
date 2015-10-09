@@ -1,12 +1,13 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Editor.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Public Class CSharpSignatureHelpCommandHandlerTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TestCreateAndDismiss()
+        Public Async Function TestCreateAndDismiss() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
 class C
@@ -19,14 +20,16 @@ class C
                               </Document>)
 
                 state.SendTypeChars("(")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo()")
                 state.SendTypeChars(")")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertNoSignatureHelpSession()
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TypingUpdatesParameters()
+        Public Async Function TypingUpdatesParameters() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
 class C
@@ -39,14 +42,16 @@ class C
                               </Document>)
 
                 state.SendTypeChars("(")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo(int i, string j)", selectedParameter:="int i")
                 state.SendTypeChars("1,")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo(int i, string j)", selectedParameter:="string j")
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TypingChangeParameterByNavigating()
+        Public Async Function TypingChangeParameterByNavigating() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
 class C
@@ -59,16 +64,19 @@ class C
                               </Document>)
 
                 state.SendTypeChars(",")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo(int i, string j)", selectedParameter:="string j")
                 state.SendLeftKey()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo(int i, string j)", selectedParameter:="int i")
                 state.SendRightKey()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo(int i, string j)", selectedParameter:="string j")
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub NavigatingOutOfSpanDismissesSignatureHelp()
+        Public Async Function NavigatingOutOfSpanDismissesSignatureHelp() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
 class C
@@ -81,14 +89,16 @@ class C
                               </Document>)
 
                 state.SendInvokeSignatureHelp()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo()")
                 state.SendRightKey()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertNoSignatureHelpSession()
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TestNestedCalls()
+        Public Async Function TestNestedCalls() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
 class C
@@ -102,30 +112,34 @@ class C
                               </Document>)
 
                 state.SendTypeChars("(")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo()")
                 state.SendTypeChars("Bar(")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedSignatureHelpItem(displayText:="void C.Bar()")
                 state.SendTypeChars(")")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo()")
             End Using
-        End Sub
+        End Function
 
         <WorkItem(544547)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TestNoSigHelpOnGenericNamespace()
+        Public Async Function TestNoSigHelpOnGenericNamespace() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
 namespace global::F$$
                               </Document>)
 
                 state.SendTypeChars("<")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertNoSignatureHelpSession()
             End Using
-        End Sub
+        End Function
 
         <WorkItem(544547)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TestSigHelpOnExtraSpace()
+        Public Async Function TestSigHelpOnExtraSpace() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
 class G&lt;S, T&gt; { };
@@ -140,13 +154,14 @@ class C
                               </Document>)
 
                 state.SendInvokeSignatureHelp()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSignatureHelpSession()
             End Using
-        End Sub
+        End Function
 
         <WorkItem(544551)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TestFilterOnNamedParameters1()
+        Public Async Function TestFilterOnNamedParameters1() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
 class C
@@ -166,11 +181,13 @@ class Program
                               </Document>)
 
                 state.SendInvokeSignatureHelp()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSignatureHelpSession()
                 state.AssertSelectedSignatureHelpItem("void C.M(int third)")
                 Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
 
                 state.SendTypeChars(":")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSignatureHelpSession()
                 state.AssertSelectedSignatureHelpItem("void C.M(int first, int second)")
                 Assert.Equal(1, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
@@ -178,15 +195,16 @@ class Program
                 ' Keep the same item selected when the colon is deleted, but now both items are
                 ' available again.
                 state.SendBackspace()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSignatureHelpSession()
                 state.AssertSelectedSignatureHelpItem("void C.M(int first, int second)")
                 Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
             End Using
-        End Sub
+        End Function
 
         <WorkItem(545488)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TestKeepSelectedItemWhenNoneAreViable()
+        Public Async Function TestKeepSelectedItemWhenNoneAreViable() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document><![CDATA[
 class Program
@@ -201,20 +219,22 @@ class Program
 ]]></Document>)
 
                 state.SendTypeChars("(")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSignatureHelpSession()
                 state.AssertSelectedSignatureHelpItem("void Program.F(int i)")
                 Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
 
                 state.SendTypeChars(""""",")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSignatureHelpSession()
                 state.AssertSelectedSignatureHelpItem("void Program.F(int i)")
                 Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
             End Using
-        End Sub
+        End Function
 
         <WorkItem(691648)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TestKeepSelectedItemAfterComma()
+        Public Async Function TestKeepSelectedItemAfterComma() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document><![CDATA[
 class C
@@ -231,23 +251,26 @@ class C
 ]]></Document>)
 
                 state.SendTypeChars("(")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSignatureHelpSession()
                 state.AssertSelectedSignatureHelpItem("void C.M()")
                 Assert.Equal(4, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
 
                 state.SendUpKey()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedSignatureHelpItem("void C.M(int i, int j, int k)")
 
                 state.SendTypeChars("1, ")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedSignatureHelpItem("void C.M(int i, int j, int k)")
             End Using
-        End Sub
+        End Function
 
         <WorkItem(819063)>
         <WorkItem(843508)>
         <WorkItem(636117)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TestSessionMaintainedDuringIndexerErrorToleranceTransition()
+        Public Async Function TestSessionMaintainedDuringIndexerErrorToleranceTransition() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document><![CDATA[
 class Program
@@ -261,17 +284,19 @@ class Program
 ]]></Document>)
 
                 state.SendTypeChars("[")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSignatureHelpSession()
                 state.AssertSelectedSignatureHelpItem("char string[int index]")
 
                 state.SendTypeChars("x")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSignatureHelpSession()
                 state.AssertSelectedSignatureHelpItem("char string[int index]")
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TestSigHelpInLinkedFiles()
+        Public Async Function TestSigHelpInLinkedFiles() As Task
             Using state = TestState.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
@@ -301,17 +326,19 @@ class C
                 Dim linkDocument = documents.Single(Function(d) d.IsLinkFile)
 
                 state.SendInvokeSignatureHelp()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedSignatureHelpItem("void C.M2(int x)")
                 state.SendEscape()
                 state.Workspace.SetDocumentContext(linkDocument.Id)
                 state.SendInvokeSignatureHelp()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedSignatureHelpItem("void C.M2(string x)")
             End Using
-        End Sub
+        End Function
 
         <WorkItem(1060850)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TestSigHelpNotDismissedAfterQuote()
+        Public Async Function TestSigHelpNotDismissedAfterQuote() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document><![CDATA[
 class C
@@ -328,16 +355,18 @@ class C
 ]]></Document>)
 
                 state.SendInvokeSignatureHelp()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedSignatureHelpItem("void C.M()")
                 state.SendTypeChars("""")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSignatureHelpSession()
                 state.AssertSelectedSignatureHelpItem("void C.M(string s)")
             End Using
-        End Sub
+        End Function
 
         <WorkItem(1060850)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TestSigHelpDismissedAfterComment()
+        Public Async Function TestSigHelpDismissedAfterComment() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document><![CDATA[
 class C
@@ -354,15 +383,17 @@ class C
 ]]></Document>)
 
                 state.SendInvokeSignatureHelp()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedSignatureHelpItem("void C.M()")
                 state.SendTypeChars("//")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertNoSignatureHelpSession()
             End Using
-        End Sub
+        End Function
 
         <WorkItem(1598, "https://github.com/dotnet/roslyn/issues/1598")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TestGenericNameSigHelpInTypeParameterListAfterConditionalAccess()
+        Public Async Function TestGenericNameSigHelpInTypeParameterListAfterConditionalAccess() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document><![CDATA[
 using System.Collections;
@@ -379,13 +410,14 @@ class C
 ]]></Document>)
 
                 state.SendTypeChars("<")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedSignatureHelpItem($"({CSharpFeaturesResources.Extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()")
             End Using
-        End Sub
+        End Function
 
         <WorkItem(1598, "https://github.com/dotnet/roslyn/issues/1598")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TestGenericNameSigHelpInTypeParameterListAfterMultipleConditionalAccess()
+        Public Async Function TestGenericNameSigHelpInTypeParameterListAfterMultipleConditionalAccess() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document><![CDATA[
 using System.Collections;
@@ -402,13 +434,14 @@ class C
 ]]></Document>)
 
                 state.SendTypeChars("<")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedSignatureHelpItem($"({CSharpFeaturesResources.Extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()")
             End Using
-        End Sub
+        End Function
 
         <WorkItem(1598, "https://github.com/dotnet/roslyn/issues/1598")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TestGenericNameSigHelpInTypeParameterListMuchAfterConditionalAccess()
+        Public Async Function TestGenericNameSigHelpInTypeParameterListMuchAfterConditionalAccess() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document><![CDATA[
 using System.Collections;
@@ -425,13 +458,14 @@ class C
 ]]></Document>)
 
                 state.SendTypeChars("<")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedSignatureHelpItem($"({CSharpFeaturesResources.Extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()")
             End Using
-        End Sub
+        End Function
 
         <WorkItem(1598, "https://github.com/dotnet/roslyn/issues/1598")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TestGenericNameSigHelpInTypeParameterListAfterConditionalAccessAndNullCoalesce()
+        Public Async Function TestGenericNameSigHelpInTypeParameterListAfterConditionalAccessAndNullCoalesce() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document><![CDATA[
 using System.Collections;
@@ -448,13 +482,14 @@ class C
 ]]></Document>)
 
                 state.SendTypeChars("<")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedSignatureHelpItem($"({CSharpFeaturesResources.Extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()")
             End Using
-        End Sub
+        End Function
 
         <WorkItem(5174, "https://github.com/dotnet/roslyn/issues/5174")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub DontShowSignatureHelpIfOptionIsTurnedOffUnlessExplicitlyInvoked()
+        Public Async Function DontShowSignatureHelpIfOptionIsTurnedOffUnlessExplicitlyInvoked() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
 class C
@@ -469,12 +504,14 @@ class C
                 ' disable implicit sig help then type a trigger character -> no session should be available
                 state.Workspace.Options = state.Workspace.Options.WithChangedOption(SignatureHelpOptions.ShowSignatureHelp, "C#", False)
                 state.SendTypeChars("(")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertNoSignatureHelpSession()
 
                 ' force-invoke -> session should be available
                 state.SendInvokeSignatureHelp()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSignatureHelpSession()
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

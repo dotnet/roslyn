@@ -12,7 +12,7 @@ Imports Roslyn.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
     Public Class SnippetCompletionProviderTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub SnippetCompletion()
+        Public Async Function SnippetCompletion() As Task
             Dim markup = "a?$$"
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, extraParts:={GetType(MockSnippetInfoService)})
             Using testState
@@ -20,7 +20,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
                 Assert.Equal(testState.GetDocumentText(), "a")
 
-                testState.WaitForAsynchronousOperations()
+                Await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 Assert.Equal(testState.CurrentCompletionPresenterSession.SelectedItem.DisplayText, "Shortcut")
                 Assert.Equal(testState.CurrentCompletionPresenterSession.SelectedItem.GetDescriptionAsync().Result.ToDisplayString(), "Description")
 
@@ -28,27 +28,29 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
                 Assert.True(testState.SnippetExpansionClient.TryInsertExpansionCalled)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub TracksChangeSpanCorrectly()
+        Public Async Function TracksChangeSpanCorrectly() As Task
             Dim markup = "a?$$"
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, extraParts:={GetType(MockSnippetInfoService)})
             Using testState
                 testState.SendTabToCompletion()
-                testState.WaitForAsynchronousOperations()
+                Await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 Assert.Equal(testState.CurrentCompletionPresenterSession.SelectedItem.DisplayText, "Shortcut")
 
                 testState.SendBackspace()
+                Await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 testState.WaitForAsynchronousOperations()
                 Assert.Equal(testState.CurrentCompletionPresenterSession.SelectedItem.DisplayText, "Shortcut")
 
                 testState.SendTabToCompletion()
 
+                Await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 Assert.True(testState.SnippetExpansionClient.TryInsertExpansionCalled)
                 Assert.Equal(testState.GetDocumentText(), "Shortcut")
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetListOnlyIfTextBeforeQuestionMark()

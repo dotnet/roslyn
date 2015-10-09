@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     {
         [WorkItem(1032665)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void TestTagsChangedForEntireFile()
+        public async Task TestTagsChangedForEntireFile()
         {
             var code =
 @"class Program2
@@ -42,13 +42,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                     checkpoint.Release();
                 };
 
-                checkpoint.PumpingWait();
+                await checkpoint.Task.ConfigureAwait(true);
                 checkpoint = new Checkpoint();
 
                 // Now apply an edit that require us to reclassify more that just the current line
                 subjectBuffer.Insert(document.CursorPosition.Value, "\"");
 
-                checkpoint.PumpingWait();
+                await checkpoint.Task.ConfigureAwait(true);
                 Assert.Equal(subjectBuffer.CurrentSnapshot.Length, span.Length);
             }
         }

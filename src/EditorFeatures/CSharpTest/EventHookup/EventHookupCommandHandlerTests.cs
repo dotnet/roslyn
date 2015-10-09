@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
@@ -9,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
     public class EventHookupCommandHandlerTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public void HandlerName_EventInThisClass()
+        public async Task HandlerName_EventInThisClass()
         {
             var markup = @"
 class C
@@ -23,13 +24,13 @@ class C
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 testState.AssertShowing("C_MyEvent;");
             }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public void HandlerName_EventOnLocal()
+        public async Task HandlerName_EventOnLocal()
         {
             var markup = @"
 class C
@@ -49,13 +50,13 @@ class D
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 testState.AssertShowing("Local_MyEvent;");
             }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public void HandlerName_EventOnFieldOfObject()
+        public async Task HandlerName_EventOnFieldOfObject()
         {
             var markup = @"
 class C
@@ -80,13 +81,13 @@ class E
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 testState.AssertShowing("Cfield_MyEvent;");
             }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public void NoHookupOnIntegerPlusEquals()
+        public async Task NoHookupOnIntegerPlusEquals()
         {
             var markup = @"
 class C
@@ -100,12 +101,12 @@ class C
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 testState.AssertNotShowing();
 
                 // Make sure that sending the tab works correctly. Note the 4 spaces after the +=
                 testState.SendTab();
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 var expectedCode = @"
 class C
 {
@@ -121,7 +122,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public void HandlerName_DefaultHandlerNameAlreadyExistsWithSameNonStaticState()
+        public async Task HandlerName_DefaultHandlerNameAlreadyExistsWithSameNonStaticState()
         {
             var markup = @"
 class C
@@ -141,13 +142,13 @@ class C
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 testState.AssertShowing("C_MyEvent1;");
             }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public void HandlerName_DefaultHandlerNameAlreadyExistsWithDifferentStaticState()
+        public async Task HandlerName_DefaultHandlerNameAlreadyExistsWithDifferentStaticState()
         {
             var markup = @"
 class C
@@ -167,13 +168,13 @@ class C
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 testState.AssertShowing("C_MyEvent1;");
             }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public void HandlerName_DefaultHandlerNameAlreadyExistsAsField()
+        public async Task HandlerName_DefaultHandlerNameAlreadyExistsAsField()
         {
             var markup = @"
 class C
@@ -189,13 +190,13 @@ class C
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 testState.AssertShowing("C_MyEvent1;");
             }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public void HookupInLambdaInLocalDeclaration()
+        public async Task HookupInLambdaInLocalDeclaration()
         {
             var markup = @"
 class C
@@ -211,13 +212,13 @@ class C
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 testState.AssertShowing("C_MyEvent;");
             }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public void TypingSpacesDoesNotDismiss()
+        public async Task TypingSpacesDoesNotDismiss()
         {
             var markup = @"
 class C
@@ -231,17 +232,17 @@ class C
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 testState.AssertShowing("C_MyEvent;");
 
                 testState.SendTypeChar(' ');
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 testState.AssertShowing("C_MyEvent;");
             }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public void TypingLettersDismisses()
+        public async Task TypingLettersDismisses()
         {
             var markup = @"
 class C
@@ -255,17 +256,17 @@ class C
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 testState.AssertShowing("C_MyEvent;");
 
                 testState.SendTypeChar('d');
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 testState.AssertNotShowing();
             }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public void TypingEqualsInSessionDismisses()
+        public async Task TypingEqualsInSessionDismisses()
         {
             var markup = @"
 class C
@@ -279,17 +280,17 @@ class C
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 testState.AssertShowing("C_MyEvent;");
 
                 testState.SendTypeChar('=');
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 testState.AssertNotShowing();
             }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public void CancelViaLeftKey()
+        public async Task CancelViaLeftKey()
         {
             var markup = @"
 class C
@@ -303,25 +304,25 @@ class C
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 testState.AssertShowing("C_MyEvent;");
 
                 testState.SendTypeChar(' ');
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 testState.AssertShowing("C_MyEvent;");
 
                 testState.SendLeftKey();
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 testState.AssertShowing("C_MyEvent;");
 
                 testState.SendLeftKey();
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 testState.AssertNotShowing();
             }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public void CancelViaBackspace()
+        public async Task CancelViaBackspace()
         {
             var markup = @"
 class C
@@ -335,21 +336,21 @@ class C
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 testState.AssertShowing("C_MyEvent;");
 
                 testState.SendTypeChar(' ');
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 testState.AssertShowing("C_MyEvent;");
 
                 testState.SendBackspace();
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 testState.AssertNotShowing();
             }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public void EventHookupBeforeEventHookup()
+        public async Task EventHookupBeforeEventHookup()
         {
             var markup = @"
 class C
@@ -370,7 +371,7 @@ class C
             {
                 testState.SendTypeChar('=');
                 testState.SendTab();
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
 
                 var expectedCode = @"
 class C
@@ -397,7 +398,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public void EventHookupBeforeComment()
+        public async Task EventHookupBeforeComment()
         {
             var markup = @"
 class C
@@ -418,7 +419,7 @@ class C
             {
                 testState.SendTypeChar('=');
                 testState.SendTab();
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
 
                 var expectedCode = @"
 class C
@@ -445,7 +446,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public void EventHookupInArgument()
+        public async Task EventHookupInArgument()
         {
             var markup = @"
 class C
@@ -464,7 +465,7 @@ class C
             {
                 testState.SendTypeChar('=');
                 testState.SendTab();
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
 
                 var expectedCode = @"
 class C
@@ -489,7 +490,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public void HookupInFieldDeclarationSingleLineLambda()
+        public async Task HookupInFieldDeclarationSingleLineLambda()
         {
             var markup = @"
 class C
@@ -501,7 +502,7 @@ class C
             {
                 testState.SendTypeChar('=');
                 testState.SendTab();
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
 
                 var expectedCode = @"
 class C
@@ -519,7 +520,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public void HookupInFieldDeclarationMultiLineLambda()
+        public async Task HookupInFieldDeclarationMultiLineLambda()
         {
             var markup = @"
 class C
@@ -534,7 +535,7 @@ class C
             {
                 testState.SendTypeChar('=');
                 testState.SendTab();
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
 
                 var expectedCode = @"
 class C
@@ -555,7 +556,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public void EventHookupInUnformattedPosition1()
+        public async Task EventHookupInUnformattedPosition1()
         {
             var markup = @"
 class C
@@ -569,7 +570,7 @@ class C
             {
                 testState.SendTypeChar('=');
                 testState.SendTab();
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
 
                 var expectedCode = @"
 class C
@@ -590,7 +591,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public void EventHookupInUnformattedPosition2()
+        public async Task EventHookupInUnformattedPosition2()
         {
             var markup = @"
 class C
@@ -616,7 +617,7 @@ class C
                 }
 
                 testState.SendTab();
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
 
                 var expectedCode = @"
 class C
@@ -643,7 +644,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public void SessionCancelledByCharacterBeforeEventHookupDeterminationCompleted()
+        public async Task SessionCancelledByCharacterBeforeEventHookupDeterminationCompleted()
         {
             var markup = @"
 class C
@@ -662,13 +663,13 @@ class C
                 testState.SendTypeChar('z');
 
                 testState.ReleaseEventHookupCheckMutex();
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 testState.AssertNotShowing();
             }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public void TabBeforeEventHookupDeterminationCompleted()
+        public async Task TabBeforeEventHookupDeterminationCompleted()
         {
             var markup = @"
 class C
@@ -688,7 +689,7 @@ class C
                 // tab releases the mutex
                 testState.SendTab();
 
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 testState.AssertNotShowing();
 
                 var expectedCode = @"
@@ -711,7 +712,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public void MoveCaretOutOfSpanBeforeEventHookupDeterminationCompleted()
+        public async Task MoveCaretOutOfSpanBeforeEventHookupDeterminationCompleted()
         {
             var markup = @"
 class C
@@ -730,19 +731,19 @@ class C
                 testState.SendLeftKey();
                 testState.ReleaseEventHookupCheckMutex();
 
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 testState.AssertNotShowing();
             }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public void EnsureNameUniquenessInPartialClasses()
+        public async Task EnsureNameUniquenessInPartialClasses()
         {
             var markup = @"
 public partial class C
 {
     event System.Action MyEvent;
-    public void Test()
+    public async Task Test()
     {
         MyEvent +$$
     }
@@ -758,13 +759,13 @@ public partial class C
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 testState.AssertShowing("C_MyEvent1;");
             }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public void EnsureNameUniquenessAgainstBaseClasses()
+        public async Task EnsureNameUniquenessAgainstBaseClasses()
         {
             var markup = @"
 class Base
@@ -782,13 +783,13 @@ class Program : Base
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 testState.AssertShowing("Console_CancelKeyPress1;");
             }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public void EnsureNameUniquenessAgainstParameters()
+        public async Task EnsureNameUniquenessAgainstParameters()
         {
             var markup = @"
 class C
@@ -803,13 +804,13 @@ class C
             using (var testState = EventHookupTestState.CreateTestState(markup))
             {
                 testState.SendTypeChar('=');
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 testState.AssertShowing("C_MyEvent1;");
             }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
-        public void DelegateInvokeMethodReturnsNonVoid()
+        public async Task DelegateInvokeMethodReturnsNonVoid()
         {
             var markup = @"
 class C
@@ -826,7 +827,7 @@ class C
             {
                 testState.SendTypeChar('=');
                 testState.SendTab();
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
 
                 var expectedCode = @"
 class C
@@ -850,7 +851,7 @@ class C
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         [WorkItem(553660)]
-        public void PlusEqualsInsideComment()
+        public async Task PlusEqualsInsideComment()
         {
             var markup = @"
 class C
@@ -864,14 +865,14 @@ class C
             {
                 testState.SendTypeChar('=');
                 testState.SendTab();
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
                 testState.AssertNotShowing();
             }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         [WorkItem(951664)]
-        public void UseInvocationLocationTypeNameWhenEventIsMemberOfBaseType()
+        public async Task UseInvocationLocationTypeNameWhenEventIsMemberOfBaseType()
         {
             var markup = @"
 namespace Scenarios
@@ -895,7 +896,7 @@ class TestClass_T1_S1_4 : Scenarios.DelegateTest_Generics_NonGenericClass
             {
                 testState.SendTypeChar('=');
                 testState.SendTab();
-                testState.WaitForAsynchronousOperations();
+                await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(true);
 
                 var expectedCode = @"
 namespace Scenarios

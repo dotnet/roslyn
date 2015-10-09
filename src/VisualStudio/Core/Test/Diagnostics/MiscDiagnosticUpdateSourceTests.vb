@@ -19,7 +19,7 @@ Imports Roslyn.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
     Public Class MiscDiagnosticUpdateSourceTests
         <WpfFact>
-        Public Sub TestMiscSquiggles()
+        Public Async Function TestMiscSquiggles() As Tasks.Task
             Dim code = <code>
 class 123 { }
                        </code>
@@ -49,7 +49,7 @@ class 123 { }
                     Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
                     analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).PumpingWait()
 
-                    listener.CreateWaitTask().PumpingWait()
+                    Await listener.CreateWaitTask().ConfigureAwait(True)
 
                     Dim snapshot = buffer.CurrentSnapshot
                     Dim spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray()
@@ -58,7 +58,7 @@ class 123 { }
                     Assert.True(spans.All(Function(s) s.Span.Length > 0))
                 End Using
             End Using
-        End Sub
+        End Function
 
         <WpfFact>
         Public Sub TestMiscCSharpErrorSource()

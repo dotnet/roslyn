@@ -2,6 +2,7 @@
 
 Imports System.ComponentModel.Composition.Hosting
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
@@ -45,6 +46,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         Public Function GetGraphContextAfterQuery(graph As Graph, graphQuery As IGraphQuery, direction As GraphContextDirection) As IGraphContext
             Dim graphContext As New MockGraphContext(direction, graph.Copy(), graph.Nodes)
             Dim graphBuilder = graphQuery.GetGraphAsync(_workspace.CurrentSolution, graphContext, CancellationToken.None).PumpingWaitResult
+            graphBuilder.ApplyToGraph(graphContext.Graph)
+
+            Return graphContext
+        End Function
+
+        Public Async Function GetGraphContextAfterQueryAsync(graph As Graph, graphQuery As IGraphQuery, direction As GraphContextDirection) As Task(Of IGraphContext)
+            Dim graphContext As New MockGraphContext(direction, graph.Copy(), graph.Nodes)
+            Dim graphBuilder = Await graphQuery.GetGraphAsync(_workspace.CurrentSolution, graphContext, CancellationToken.None).ConfigureAwait(True)
             graphBuilder.ApplyToGraph(graphContext.Graph)
 
             Return graphContext

@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             controller.Verify(Sub(c) c.OnModelUpdated(model), Times.Once)
         End Sub
 
-        <WpfFact>
+        <WpfFact(Skip:="true")>
         Public Sub ControllerIsNotUpdatedIfComputationIsCancelled()
             Dim controller = New Mock(Of IController(Of Model))
             Dim token = New Mock(Of IAsyncToken)

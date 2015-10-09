@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
         End Sub
 
         <WpfFact>
-        Public Sub TestPickTheRightPreview_NoPreference()
+        Public Async Function TestPickTheRightPreview_NoPreference() As Task
             Using workspace = CreateWorkspaceFromFile("Class D : End Class", Nothing, Nothing)
                 Dim document As Document = Nothing
                 Dim previews As SolutionPreviewResult = Nothing
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
                 diffView.Close()
 
                 ' The added document comes next.
-                preview = previews.TakeNextPreviewAsync().PumpingWaitResult()
+                preview = Await previews.TakeNextPreviewAsync().ConfigureAwait(True)
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is IWpfDifferenceViewer)
                 diffView = DirectCast(preview, IWpfDifferenceViewer)
@@ -102,26 +102,26 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
                 diffView.Close()
 
                 ' Then comes the removed metadata reference.
-                preview = previews.TakeNextPreviewAsync().PumpingWaitResult()
+                preview = Await previews.TakeNextPreviewAsync().ConfigureAwait(True)
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is String)
                 text = DirectCast(preview, String)
                 Assert.Contains(s_removedMetadataReferenceDisplayName, text, StringComparison.Ordinal)
 
                 ' And finally the added project.
-                preview = previews.TakeNextPreviewAsync().PumpingWaitResult()
+                preview = Await previews.TakeNextPreviewAsync().ConfigureAwait(True)
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is String)
                 text = DirectCast(preview, String)
                 Assert.Contains(s_addedProjectName, text, StringComparison.Ordinal)
 
                 ' There are no more previews.
-                preview = previews.TakeNextPreviewAsync().PumpingWaitResult()
+                preview = Await previews.TakeNextPreviewAsync().ConfigureAwait(True)
                 Assert.Null(preview)
-                preview = previews.TakeNextPreviewAsync().PumpingWaitResult()
+                preview = Await previews.TakeNextPreviewAsync().ConfigureAwait(True)
                 Assert.Null(preview)
             End Using
-        End Sub
+        End Function
 
         <WpfFact>
         Public Sub TestPickTheRightPreview_WithPreference()

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.CSharp.Classification;
@@ -1395,7 +1396,7 @@ class C
 
         [WorkItem(744813)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void TestCreateWithBufferNotInWorkspace()
+        public async Task TestCreateWithBufferNotInWorkspace()
         {
             // don't crash
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(""))
@@ -1423,7 +1424,7 @@ class C
                         edit.Apply();
                     }
 
-                    waiter.CreateWaitTask().PumpingWait();
+                    await waiter.CreateWaitTask().ConfigureAwait(true);
                 }
             }
         }

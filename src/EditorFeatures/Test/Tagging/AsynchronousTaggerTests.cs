@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
         /// </summary>
         [WpfFact]
         [WorkItem(530368)]
-        public void LargeNumberOfSpans()
+        public async Task LargeNumberOfSpans()
         {
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(@"class Program
 {
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
 
                     eventSource.SendUpdateEvent();
 
-                    asyncListener.CreateWaitTask().PumpingWait();
+                    await asyncListener.CreateWaitTask().ConfigureAwait(true);
 
                     var tags = tagger.GetTags(snapshotSpans);
 

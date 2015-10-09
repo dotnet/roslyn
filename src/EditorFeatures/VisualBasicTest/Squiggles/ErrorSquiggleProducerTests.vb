@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
@@ -14,22 +15,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
     Public Class ErrorSquiggleProducerTests
         Inherits AbstractSquiggleProducerTests
 
-        Private Function ProduceSquiggles(ParamArray lines As String()) As IEnumerable(Of ITagSpan(Of IErrorTag))
+        Private Async Function ProduceSquiggles(ParamArray lines As String()) As Task(Of IEnumerable(Of ITagSpan(Of IErrorTag)))
             Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(lines)
-                Return GetErrorSpans(workspace)
+                Return Await GetErrorSpans(workspace).ConfigureAwait(True)
             End Using
         End Function
 
-        Private Function ProduceSquiggles(analyzerMap As Dictionary(Of String, DiagnosticAnalyzer()), ParamArray lines As String()) As IEnumerable(Of ITagSpan(Of IErrorTag))
+        Private Async Function ProduceSquiggles(analyzerMap As Dictionary(Of String, DiagnosticAnalyzer()), ParamArray lines As String()) As Task(Of IEnumerable(Of ITagSpan(Of IErrorTag)))
             Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(lines)
-                Return GetErrorSpans(workspace, analyzerMap)
+                Return Await GetErrorSpans(workspace, analyzerMap).ConfigureAwait(True)
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
-        Public Sub ErrorTagGeneratedForSimpleError()
+        Public Async Sub ErrorTagGeneratedForSimpleError()
             ' Make sure we have errors from the tree
-            Dim spans = ProduceSquiggles("^")
+            Dim spans = Await ProduceSquiggles("^").ConfigureAwait(True)
             Assert.Equal(1, spans.Count())
 
             Dim firstSpan = spans.First()
@@ -37,30 +38,30 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
-        Public Sub ArgOutOfRangeExceptionBug_904382()
-            Dim spans = ProduceSquiggles("Class C1", "Sub Foo(", "End Class")
+        Public Async Sub ArgOutOfRangeExceptionBug_904382()
+            Dim spans = Await ProduceSquiggles("Class C1", "Sub Foo(", "End Class").ConfigureAwait(True)
 
             'If the following line does not throw an exception then the test passes.
             Dim count = spans.Count
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
-        Public Sub ErrorDoesNotCrashPastEOF()
-            Dim spans = ProduceSquiggles("Class C1",
+        Public Async Sub ErrorDoesNotCrashPastEOF()
+            Dim spans = Await ProduceSquiggles("Class C1",
                                          "    Sub Foo()",
                                          "        Dim x = <xml>",
                                          "    End Sub",
-                                         "End Class")
+                                         "End Class").ConfigureAwait(True)
             Assert.Equal(5, spans.Count())
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
-        Public Sub SemanticError()
-            Dim spans = ProduceSquiggles(
+        Public Async Sub SemanticError()
+            Dim spans = Await ProduceSquiggles(
 "Class C1",
 "    Sub Foo(b as Bar)",
 "    End Sub",
-"End Class")
+"End Class").ConfigureAwait(True)
             Assert.Equal(1, spans.Count())
 
             Dim firstSpan = spans.First()
@@ -69,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
-        Public Sub SuggestionTagsForUnnecessaryCode()
+        Public Async Sub SuggestionTagsForUnnecessaryCode()
 
             Dim analyzerMap = New Dictionary(Of String, DiagnosticAnalyzer())
             analyzerMap.Add(LanguageNames.VisualBasic,
@@ -78,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
                         New VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer()
                     })
 
-            Dim spans = ProduceSquiggles(analyzerMap,
+            Dim spans = (Await ProduceSquiggles(analyzerMap,
 "
 ' System.Diagnostics is used - rest are unused.
 Imports System.Diagnostics
@@ -90,7 +91,7 @@ Class C1
     Sub Foo()
         Process.Start(GetType(Int32).ToString()) 'Int32 can be simplified.
     End Sub
-End Class").OrderBy(Function(s) s.Span.Span.Start).ToImmutableArray()
+End Class").ConfigureAwait(True)).OrderBy(Function(s) s.Span.Span.Start).ToImmutableArray()
 
             Assert.Equal(2, spans.Length)
             Dim first = spans(0)

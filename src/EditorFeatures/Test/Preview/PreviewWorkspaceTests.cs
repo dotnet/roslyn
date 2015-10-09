@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         }
 
         [WpfFact]
-        public void TestPreviewDiagnosticTagger()
+        public async Task TestPreviewDiagnosticTagger()
         {
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines("class { }"))
             using (var previewWorkspace = new PreviewWorkspace(workspace.CurrentSolution))
@@ -192,13 +192,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                 //// enable preview diagnostics
                 previewWorkspace.EnableDiagnostic();
 
-                var spans = SquiggleUtilities.GetErrorSpans(workspace);
+                var spans = await SquiggleUtilities.GetErrorSpans(workspace).ConfigureAwait(true);
                 Assert.Equal(1, spans.Count);
             }
         }
 
         [WpfFact]
-        public void TestPreviewDiagnosticTaggerInPreviewPane()
+        public async Task TestPreviewDiagnosticTaggerInPreviewPane()
         {
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines("class { }"))
             {
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                         }
 
                         // wait taggers
-                        waiter.CreateWaitTask().PumpingWait();
+                        await waiter.CreateWaitTask().ConfigureAwait(true)
 
                         // check left buffer
                         var leftSnapshot = leftBuffer.CurrentSnapshot;
