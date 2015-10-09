@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             For Each diagnostic In diagnostics
                 Dim fixes = New List(Of CodeFix)
-                Dim context = New CodeFixContext(_document, diagnostic, Sub(a, d) fixes.Add(New CodeFix(a, d)), CancellationToken.None)
+                Dim context = New CodeFixContext(_document, diagnostic, Sub(a, d) fixes.Add(New CodeFix(_document.Project, a, d)), CancellationToken.None)
                 providerAndFixer.Item2.RegisterCodeFixesAsync(context).Wait()
                 If fixes.Any() Then
                     Yield Tuple.Create(diagnostic, New CodeFixCollection(fixer, diagnostic.Location.SourceSpan, fixes))

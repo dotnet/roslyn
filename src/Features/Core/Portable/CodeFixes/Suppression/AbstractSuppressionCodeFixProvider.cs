@@ -143,14 +143,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         nestedActions.Add(new GlobalSuppressMessageCodeAction(suppressionTargetInfo.TargetSymbol, project, diagnostic, this));
                     }
 
-                    result.Add(new CodeFix(new SuppressionCodeAction(diagnostic, nestedActions), diagnostic));
+                    result.Add(new CodeFix(project, new SuppressionCodeAction(diagnostic, nestedActions), diagnostic));
                 }
                 else if (!skipUnsuppress)
                 {
                     var codeAction = await RemoveSuppressionCodeAction.CreateAsync(suppressionTargetInfo, documentOpt, project, diagnostic, this, cancellationToken).ConfigureAwait(false);
                     if (codeAction != null)
                     {
-                        result.Add(new CodeFix(codeAction, diagnostic));
+                        result.Add(new CodeFix(project, codeAction, diagnostic));
                     }
                 }
             }

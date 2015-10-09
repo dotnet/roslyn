@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var fixAllSuggestedActionSet = _getFixAllSuggestedActionSet(c);
                     nestedSuggestedActions.Add(new CodeFixSuggestedAction(
                             this.Workspace, this.SubjectBuffer, this.EditHandler,
-                            new CodeFix(c, _fix.Diagnostics), c, this.Provider, fixAllSuggestedActionSet));
+                            new CodeFix(_fix.Project, c, _fix.Diagnostics), c, this.Provider, fixAllSuggestedActionSet));
                 }
 
                 _actionSets = ImmutableArray.Create(
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             // if it is from third party, we use hashcode
-            return diagnostic.GetHashCode().ToString(CultureInfo.InvariantCulture);
+            return diagnostic.Id.GetHashCode().ToString(CultureInfo.InvariantCulture);
         }
     }
 }

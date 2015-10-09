@@ -327,14 +327,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
         private static CodeFixProvider GetSuppressionFixer(IEnumerable<Diagnostic> diagnostics, string language, ICodeFixService codeFixService)
         {
-            var allDiagnosticsBuilder = ImmutableArray.CreateBuilder<Diagnostic>();
-            foreach (var documentDiagnostics in diagnostics)
-            {
-                allDiagnosticsBuilder.AddRange(diagnostics);
-            }
-
             // Fetch the suppression fixer to apply the fix.
-            return codeFixService.GetSuppressionFixer(language, allDiagnosticsBuilder.ToImmutable());
+            return codeFixService.GetSuppressionFixer(language, diagnostics.Select(d => d.Id).Distinct().ToImmutableArray());
         }
 
         private async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(IEnumerable<DiagnosticData> diagnosticsToFix, Func<Project, bool> shouldFixInProject, CancellationToken cancellationToken)
@@ -380,7 +374,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     latestDocumentDiagnosticsMap.Add(kvp.Key, kvp.ToImmutableHashSet());
                 }
 
-                var documentsToTreeMap = await GetDocumentIdsToTreeMapAsync(project, cancellationToken).ConfigureAwait(false);
                 foreach (var documentDiagnostics in group)
                 {
                     var document = project.GetDocument(documentDiagnostics.Key);
@@ -398,13 +391,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
                     // Filter out stale diagnostics in error list.
                     var documentDiagnosticsToFix = documentDiagnostics.Value.Where(d => latestDocumentDiagnostics.Contains(d) || _suppressionStateService.IsSynthesizedNonRoslynDiagnostic(d));
-
                     if (documentDiagnosticsToFix.IsEmpty())
                     {
                         continue;
                     }
 
-                    var diagnostics = await DiagnosticData.ToDiagnosticsAsync(project, documentDiagnosticsToFix, cancellationToken).ConfigureAwait(false);
+                    var diagnostics = await documentDiagnosticsToFix.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
                     finalBuilder.Add(document, diagnostics.ToImmutableArray());
                 }
             }
@@ -459,7 +451,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     continue;
                 }
 
-                var projectDiagnostics = await DiagnosticData.ToDiagnosticsAsync(project, projectDiagnosticsToFix, cancellationToken).ConfigureAwait(false);
+                var projectDiagnostics = await projectDiagnosticsToFix.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
                 finalBuilder.Add(project, projectDiagnostics.ToImmutableArray());
             }
 
