@@ -45,7 +45,7 @@ static void addWrappers(def myJob) {
   myJob.with {
     wrappers {
       timeout {
-        absolute(60)
+        absolute(90)
         abortBuild()
       }
       timestamps()
