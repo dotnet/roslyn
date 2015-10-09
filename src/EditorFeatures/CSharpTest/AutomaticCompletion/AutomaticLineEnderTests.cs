@@ -50,12 +50,11 @@ $$", "class {$$}");
         {
             Test(@"class C
 {
-    void Method() { }
-    $$
+    void Method() {$$}
 }", @"class C
 {
     void Method() {$$}
-}");
+}", assertNextHandlerInvoked: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -700,6 +699,144 @@ $$
 }", @"class TestClass
 {
     public int A { get; set; }$$
+}");
+        }
+
+        [WorkItem(150480)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void DelegatedInEmptyBlock()
+        {
+            Test(@"class TestClass
+{
+    void Method()
+    {
+        try { $$}
+    }
+}", @"class TestClass
+{
+    void Method()
+    {
+        try { $$}
+    }
+}", assertNextHandlerInvoked: true);
+        }
+
+        [WorkItem(150480)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void DelegatedInEmptyBlock2()
+        {
+            Test(@"class TestClass
+{
+    void Method()
+    {
+        if (true) { $$}
+    }
+}", @"class TestClass
+{
+    void Method()
+    {
+        if (true) { $$}
+    }
+}", assertNextHandlerInvoked: true);
+        }
+
+        [WorkItem(150480)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void NotDelegatedOutsideEmptyBlock()
+        {
+            Test(@"class TestClass
+{
+    void Method()
+    {
+        try { }
+        $$
+    }
+}", @"class TestClass
+{
+    void Method()
+    {
+        try { }$$
+    }
+}");
+        }
+
+        [WorkItem(150480)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void NotDelegatedAfterOpenBraceAndMissingCloseBrace()
+        {
+            Test(@"class TestClass
+{
+    void Method()
+    {
+        try {
+            $$
+    }
+}", @"class TestClass
+{
+    void Method()
+    {
+        try {$$
+    }
+}");
+        }
+
+        [WorkItem(150480)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void NotDelegatedInNonEmptyBlock()
+        {
+            Test(@"class TestClass
+{
+    void Method()
+    {
+        try { x }
+        $$
+    }
+}", @"class TestClass
+{
+    void Method()
+    {
+        try { x$$ }
+    }
+}");
+        }
+
+        [WorkItem(150480)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void NotDelegatedAfterOpenBraceInAnonymousObjectCreationExpression()
+        {
+            Test(@"class TestClass
+{
+    void Method()
+    {
+        var pet = new { };
+        $$
+    }
+}", @"class TestClass
+{
+    void Method()
+    {
+        var pet = new { $$}
+    }
+}");
+        }
+
+        [WorkItem(150480)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void NotDelegatedAfterOpenBraceObjectCreationExpression()
+        {
+            Test(@"class TestClass
+{
+    void Method()
+    {
+        var pet = new List<int> { };
+        $$
+    }
+}", @"class TestClass
+{
+    void Method()
+    {
+        var pet = new List<int> { $$}
+    }
 }");
         }
 
