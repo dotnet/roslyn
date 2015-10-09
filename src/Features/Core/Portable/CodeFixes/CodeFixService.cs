@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 FixAllCodeActionContext fixAllContext = null;
                 if (fixAllProviderInfo != null)
                 {
-                    var codeFixProvider = (fixer as CodeFixProvider) ?? new WrapperCodeFixProvider((ISuppressionFixProvider)fixer, diagnostics.Select(d => d.Id).Distinct().ToImmutableArray());
+                    var codeFixProvider = (fixer as CodeFixProvider) ?? new WrapperCodeFixProvider((ISuppressionFixProvider)fixer, diagnostics.Select(d => d.Id));
                     fixAllContext = FixAllCodeActionContext.Create(
                         document, fixAllProviderInfo, codeFixProvider, diagnostics,
                         this.GetDocumentDiagnosticsAsync, this.GetProjectDiagnosticsAsync, cancellationToken);
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return result;
         }
 
-        public CodeFixProvider GetSuppressionFixer(string language, ImmutableArray<string> diagnosticIds)
+        public CodeFixProvider GetSuppressionFixer(string language, IEnumerable<string> diagnosticIds)
         {
             Lazy<ISuppressionFixProvider> lazySuppressionProvider;
             if (!_suppressionProvidersMap.TryGetValue(language, out lazySuppressionProvider) || lazySuppressionProvider.Value == null)
