@@ -17,6 +17,7 @@
         <tags>$tags$</tags>
         <dependencies>
             <group>
+                <dependency id="Microsoft.CodeAnalysis.Compilers" version="$version$" />
                 <dependency id="System.AppContext" version="4.0.1-beta-23401" />
                 <dependency id="System.Collections" version="4.0.11-beta-23401" />
                 <dependency id="System.Collections.Immutable" version="1.1.36" />
@@ -54,9 +55,6 @@
         </dependencies>
     </metadata>
     <files>
-        <file src="Microsoft.CodeAnalysis.dll" target="runtimes/any/lib/dotnet" />
-        <file src="Microsoft.CodeAnalysis.CSharp.dll" target="runtimes/any/lib/dotnet" />
-        <file src="Microsoft.CodeAnalysis.VisualBasic.dll" target="runtimes/any/lib/dotnet" />
         <file src="csc.exe" target="runtimes/any/native" />
         <file src="vbc.exe" target="runtimes/any/native" />
     </files>
