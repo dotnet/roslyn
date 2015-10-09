@@ -936,7 +936,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (CustomModifier modifier in customModifiers)
             {
-                if (DeriveUseSiteDiagnosticFromType(ref result, (TypeSymbol)modifier.Modifier))
+                var modifierType = (NamedTypeSymbol)modifier.Modifier;
+
+                // Unbound generic type is valid as a modifier, let's not report any use site diagnostics because of that.
+                if (modifierType.IsUnboundGenericType )
+                {
+                    modifierType = modifierType.OriginalDefinition;
+                }
+
+                if (DeriveUseSiteDiagnosticFromType(ref result, modifierType))
                 {
                     return true;
                 }
