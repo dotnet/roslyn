@@ -847,6 +847,27 @@ End Class
             TestAddAttributeArgument(code, expectedCode, New AttributeArgumentData With {.Name = "AllowMultiple", .Value = "False", .Position = 1})
 
         End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttributeArgumentStress()
+            Dim code =
+<Code>
+&lt;$$A&gt;
+Class C
+End Class
+</Code>
+
+            TestElement(code,
+                Sub(codeAttribute)
+                    For i = 1 To 100
+                        Dim value = i.ToString()
+                        Assert.DoesNotThrow(
+                            Sub()
+                                Dim codeAttributeArgument = codeAttribute.AddArgument(value, Position:=1)
+                            End Sub)
+                    Next
+                End Sub)
+        End Sub
 #End Region
 
 #Region "Delete tests"
