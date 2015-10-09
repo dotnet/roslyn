@@ -147,11 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     }
                 }
 
-                var shouldComplexifyNode =
-                    !isInConflictLambdaBody &&
-                    _skipRenameForComplexification == 0 &&
-                    !_isProcessingComplexifiedSpans &&
-                    _conflictLocations.Contains(node.Span);
+                var shouldComplexifyNode = ShouldComplexifyNode(node, isInConflictLambdaBody);
 
                 SyntaxNode result;
 
@@ -170,6 +166,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 }
 
                 return result;
+            }
+
+            private bool ShouldComplexifyNode(SyntaxNode node, bool isInConflictLambdaBody)
+            {
+                return !isInConflictLambdaBody &&
+                       _skipRenameForComplexification == 0 &&
+                       !_isProcessingComplexifiedSpans &&
+                       _conflictLocations.Contains(node.Span) &&
+                       (node is AttributeSyntax ||
+                        node is AttributeArgumentSyntax ||
+                        node is ConstructorInitializerSyntax ||
+                        node is ExpressionSyntax ||
+                        node is FieldDeclarationSyntax ||
+                        node is StatementSyntax ||
+                        node is CrefSyntax ||
+                        node is XmlNameAttributeSyntax ||
+                        node is TypeConstraintSyntax ||
+                        node is BaseTypeSyntax);
             }
 
             public override SyntaxToken VisitToken(SyntaxToken token)
