@@ -48,7 +48,7 @@
           "lib/net20/xunit.dll": {}
         }
       },
-      "xunit.runner.console/2.1.0-beta4-build3109": {},
+      "xunit.runner.console/2.1.0": {},
       "xunit.runners/2.0.0-alpha-build2576": {}
     },
     ".NETFramework,Version=v4.5/win": {
@@ -103,7 +103,7 @@
           "lib/net20/xunit.dll": {}
         }
       },
-      "xunit.runner.console/2.1.0-beta4-build3109": {},
+      "xunit.runner.console/2.1.0": {},
       "xunit.runners/2.0.0-alpha-build2576": {}
     }
   },
@@ -1087,13 +1087,13 @@
         "xunit.nuspec"
       ]
     },
-    "xunit.runner.console/2.1.0-beta4-build3109": {
-      "sha512": "lz+sZtqfQhD6CA+u1KhahQD8ijyL64HNqiiPK4eplvM9r5f6C2OP9EiWS6nVT3rZlPCUXmGzf5kCCWh45kFf6w==",
+    "xunit.runner.console/2.1.0": {
+      "sha512": "dryP6nBDWD2aH6OUidwoPQLebelnfA6DDKUs9PxJ6iPDbT9t5eSKyjqLSas/nQFEJZwXXWVnbImrgK/IgiyOdQ==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
-        "package/services/metadata/core-properties/23dac145d7e04a5fac9971b73d372c76.psmdcp",
+        "package/services/metadata/core-properties/3ff6ecc00c3b4e6c93baf7de3f0b9697.psmdcp",
         "tools/HTML.xslt",
         "tools/NUnitXml.xslt",
         "tools/xunit.abstractions.dll",
@@ -1137,7 +1137,7 @@
       "Microsoft.Net.Compilers >= 1.1.0-beta1-20150727-01",
       "Microsoft.Net.RoslynDiagnostics >= 1.1.1-beta1-20150818-01",
       "xunit >= 1.9.2",
-      "xunit.runner.console >= 2.1.0-beta4-build3109",
+      "xunit.runner.console >= 2.1.0",
       "xunit.runners >= 2.0.0-alpha-build2576"
     ],
     ".NETFramework,Version=v4.5": []
