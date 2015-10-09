@@ -2448,12 +2448,15 @@ namespace Class____foo____Library1
                     Assert.True(false, "server took more than 5 seconds to start, please investigate");
                 }
             }
+            // Server 1 should now be running normally. Server2 will only exit if Server1
+            // is running
             Assert.False(server1.HasExited);
 
             var server2 = ProcessUtilities.StartProcess(_compilerServerExecutable, args);
 
             var exited2 = server2.WaitForExit(s_fiveSecMillis);
 
+            // Server2 exiting shouldn't affect server1
             Assert.False(server1.HasExited);
             if (!server1.HasExited)
             {
