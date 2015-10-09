@@ -46,7 +46,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
 
         Protected Overrides ReadOnly Property Title As String
             Get
-                ' TODO: localize
+                ' Note: intentionally left unlocalized (we treat these words as if they were unregistered trademarks)
                 Return "Visual Basic Interactive"
             End Get
         End Property
