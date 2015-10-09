@@ -209,7 +209,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             if (allFixers.Count == 0)
             {
-                Debug.Assert(isInteractive);
                 return result;
             }
 
