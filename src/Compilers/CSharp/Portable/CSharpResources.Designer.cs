@@ -1052,6 +1052,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The &apos;await&apos; operator cannot be used in a static script variable initializer..
+        /// </summary>
+        internal static string ERR_BadAwaitInStaticVariableInitializer {
+            get {
+                return ResourceManager.GetString("ERR_BadAwaitInStaticVariableInitializer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The &apos;await&apos; operator can only be used when contained within a method or lambda expression marked with the &apos;async&apos; modifier.
         /// </summary>
         internal static string ERR_BadAwaitWithoutAsync {

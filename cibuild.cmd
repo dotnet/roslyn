@@ -51,7 +51,7 @@ REM if ERRORLEVEL 1 (
 REM    echo Commit changed dependencies without updating project.lock.json
 REM    git diff --exit-code
 REM    exit /b 1
-REM)
+REM )
 
 REM It is okay and expected for taskkill to fail (it's a cleanup routine).  Ensure
 REM caller sees successful exit.

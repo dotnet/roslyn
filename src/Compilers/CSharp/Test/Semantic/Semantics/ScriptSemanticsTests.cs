@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string test = @"
 this[1]
 ";
-            var compilation = CreateCompilationWithMscorlib(test, parseOptions: TestOptions.Interactive);
+            var compilation = CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.Interactive);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -53,7 +53,7 @@ this[1]
 
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Script);
 
-            var compilation = CreateCompilationWithMscorlib(tree, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
             compilation.VerifyDiagnostics(
                 // (1,13): warning CS7022: The entry point of the program is global script code; ignoring 'Main()' entry point.
@@ -76,7 +76,7 @@ this[1]
 
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Script);
 
-            var compilation = CreateCompilationWithMscorlib(tree, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
             compilation.VerifyDiagnostics(
                 // (1,13): warning CS7022: The entry point of the program is global script code; ignoring 'Main()' entry point.
@@ -230,10 +230,9 @@ delegate void G();
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
-            var compilation = CSharpCompilation.Create(
-                assemblyName: "Test",
-                options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                syntaxTrees: new[] { tree });
+            var compilation = CreateCompilationWithMscorlib45(
+                new[] { tree },
+                options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
             var global = compilation.GlobalNamespace;
             ImmutableArray<NamedTypeSymbol> members;
@@ -273,11 +272,9 @@ WriteLine(""hello"");
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp6));
 
-            var compilation = CSharpCompilation.Create(
-                assemblyName: "Test",
-                options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                syntaxTrees: new[] { tree },
-                references: new[] { MscorlibRef });
+            var compilation = CreateCompilationWithMscorlib45(
+                new[] { tree },
+                options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
             var expr = (((tree.
                 GetCompilationUnitRoot() as CompilationUnitSyntax).
@@ -383,7 +380,7 @@ this[1]
 decimal d = checked(2M + 1M);
 ";
 
-            var compilation = CreateCompilationWithMscorlib(Parse(source, options: TestOptions.Script));
+            var compilation = CreateCompilationWithMscorlib45(new[] { Parse(source, options: TestOptions.Script) });
             compilation.VerifyDiagnostics();
         }
 
@@ -396,7 +393,7 @@ using System.IO;
 FileAccess fa = checked(FileAccess.Read + 1);
 ";
 
-            var compilation = CreateCompilationWithMscorlib(Parse(source, options: TestOptions.Script));
+            var compilation = CreateCompilationWithMscorlib45(new[] { Parse(source, options: TestOptions.Script) });
             compilation.VerifyDiagnostics();
         }
 
@@ -408,7 +405,7 @@ FileAccess fa = checked(FileAccess.Read + 1);
 System.Action a = null;
 a += null;
 ";
-            var compilation = CreateCompilationWithMscorlib(Parse(source, options: TestOptions.Script));
+            var compilation = CreateCompilationWithMscorlib45(new[] { Parse(source, options: TestOptions.Script) });
             compilation.VerifyDiagnostics();
         }
 

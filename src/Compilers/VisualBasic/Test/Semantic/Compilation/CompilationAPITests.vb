@@ -1288,7 +1288,7 @@ End Class
         <Fact()>
         Public Sub GetEntryPoint_Script()
             Dim source = <![CDATA[System.Console.WriteLine(1)]]>
-            Dim compilation = CreateCompilationWithMscorlib({VisualBasicSyntaxTree.ParseText(source.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib45({VisualBasicSyntaxTree.ParseText(source.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics()
 
             Dim scriptMethod = compilation.GetMember("Script.<Main>")
@@ -1308,7 +1308,7 @@ End Class
         End Sub
     End Class
     ]]>
-            Dim compilation = CreateCompilationWithMscorlib({VisualBasicSyntaxTree.ParseText(source.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib45({VisualBasicSyntaxTree.ParseText(source.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics(Diagnostic(ERRID.WRN_MainIgnored, "Main").WithArguments("Public Shared Sub Main()").WithLocation(3, 20))
 
             Dim scriptMethod = compilation.GetMember("Script.<Main>")
