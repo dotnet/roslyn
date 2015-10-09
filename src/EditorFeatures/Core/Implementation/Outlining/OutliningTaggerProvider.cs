@@ -123,6 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
                                                       region.BannerText,
                                                       hintSpan,
                                                       region.AutoCollapse,
+                                                      region.IsDefaultCollapsed,
                                                       _textEditorFactoryService,
                                                       _projectionBufferFactoryService,
                                                       _editorOptionsFactoryService)

@@ -10,16 +10,16 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Scripting
+namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
     using TypeInfo = System.Reflection.TypeInfo;
 
     /// <summary>
     /// Object pretty printer.
     /// </summary>
-    internal abstract partial class ObjectFormatter
+    public abstract partial class ObjectFormatter
     {
-        protected ObjectFormatter()
+        internal ObjectFormatter()
         {
         }
 
@@ -462,39 +462,39 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <summary>
         /// String that describes "void" return type in the language.
         /// </summary>
-        public abstract object VoidDisplayString { get; }
+        internal abstract object VoidDisplayString { get; }
 
         /// <summary>
         /// String that describes "null" literal in the language.
         /// </summary>
-        public abstract string NullLiteral { get; }
+        internal abstract string NullLiteral { get; }
 
-        public abstract string FormatLiteral(bool value);
-        public abstract string FormatLiteral(string value, bool quote, bool useHexadecimalNumbers = false);
-        public abstract string FormatLiteral(char value, bool quote, bool includeCodePoints = false, bool useHexadecimalNumbers = false);
-        public abstract string FormatLiteral(sbyte value, bool useHexadecimalNumbers = false);
-        public abstract string FormatLiteral(byte value, bool useHexadecimalNumbers = false);
-        public abstract string FormatLiteral(short value, bool useHexadecimalNumbers = false);
-        public abstract string FormatLiteral(ushort value, bool useHexadecimalNumbers = false);
-        public abstract string FormatLiteral(int value, bool useHexadecimalNumbers = false);
-        public abstract string FormatLiteral(uint value, bool useHexadecimalNumbers = false);
-        public abstract string FormatLiteral(long value, bool useHexadecimalNumbers = false);
-        public abstract string FormatLiteral(ulong value, bool useHexadecimalNumbers = false);
-        public abstract string FormatLiteral(double value);
-        public abstract string FormatLiteral(float value);
-        public abstract string FormatLiteral(decimal value);
-        public abstract string FormatLiteral(DateTime value);
+        internal abstract string FormatLiteral(bool value);
+        internal abstract string FormatLiteral(string value, bool quote, bool useHexadecimalNumbers = false);
+        internal abstract string FormatLiteral(char value, bool quote, bool includeCodePoints = false, bool useHexadecimalNumbers = false);
+        internal abstract string FormatLiteral(sbyte value, bool useHexadecimalNumbers = false);
+        internal abstract string FormatLiteral(byte value, bool useHexadecimalNumbers = false);
+        internal abstract string FormatLiteral(short value, bool useHexadecimalNumbers = false);
+        internal abstract string FormatLiteral(ushort value, bool useHexadecimalNumbers = false);
+        internal abstract string FormatLiteral(int value, bool useHexadecimalNumbers = false);
+        internal abstract string FormatLiteral(uint value, bool useHexadecimalNumbers = false);
+        internal abstract string FormatLiteral(long value, bool useHexadecimalNumbers = false);
+        internal abstract string FormatLiteral(ulong value, bool useHexadecimalNumbers = false);
+        internal abstract string FormatLiteral(double value);
+        internal abstract string FormatLiteral(float value);
+        internal abstract string FormatLiteral(decimal value);
+        internal abstract string FormatLiteral(DateTime value);
 
         // TODO (tomat): Use DebuggerDisplay.Type if specified?
-        public abstract string FormatGeneratedTypeName(Type type);
-        public abstract string FormatMemberName(MemberInfo member);
-        public abstract string GetPrimitiveTypeName(SpecialType type);
+        internal abstract string FormatGeneratedTypeName(Type type);
+        internal abstract string FormatMemberName(MemberInfo member);
+        internal abstract string GetPrimitiveTypeName(SpecialType type);
 
         /// <summary>
         /// Returns a method signature display string. Used to display stack frames.
         /// </summary>
         /// <returns>Null if the method is a compiler generated method that shouldn't be displayed to the user.</returns>
-        public virtual string FormatMethodSignature(MethodBase method)
+        internal virtual string FormatMethodSignature(MethodBase method)
         {
             // TODO: https://github.com/dotnet/roslyn/issues/5250
 
@@ -511,18 +511,18 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         private static readonly char[] s_generatedNameChars = { '$', '<' };
 
-        public abstract string GenericParameterOpening { get; }
-        public abstract string GenericParameterClosing { get; }
+        internal abstract string GenericParameterOpening { get; }
+        internal abstract string GenericParameterClosing { get; }
 
         /// <summary>
         /// Formats an array type name (vector or multidimensional).
         /// </summary>
-        public abstract string FormatArrayTypeName(Type arrayType, Array arrayOpt, ObjectFormattingOptions options);
+        internal abstract string FormatArrayTypeName(Type arrayType, Array arrayOpt, ObjectFormattingOptions options);
 
         /// <summary>
         /// Returns true if the member shouldn't be displayed (e.g. it's a compiler generated field).
         /// </summary>
-        public virtual bool IsHiddenMember(MemberInfo member) => false;
+        internal virtual bool IsHiddenMember(MemberInfo member) => false;
 
         internal static ObjectDisplayOptions GetObjectDisplayOptions(bool useHexadecimalNumbers)
         {
@@ -700,7 +700,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             return SpecialType.None;
         }
 
-        public string FormatTypeName(Type type, ObjectFormattingOptions options)
+        internal string FormatTypeName(Type type, ObjectFormattingOptions options)
         {
             string result = GetPrimitiveTypeName(GetPrimitiveSpecialType(type));
             if (result != null)

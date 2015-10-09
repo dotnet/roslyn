@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             if (index >= 0 && index < memberNodes.Count())
             {
                 var child = memberNodes.ElementAt(index);
-                element = FileCodeModel.CreateCodeElement<EnvDTE.CodeElement>(child);
+                element = FileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(child);
                 return true;
             }
 
@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
                 var childName = CodeModelService.GetName(child);
                 if (childName == name)
                 {
-                    element = FileCodeModel.CreateCodeElement<EnvDTE.CodeElement>(child);
+                    element = FileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(child);
                     return true;
                 }
             }

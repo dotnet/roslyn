@@ -4,17 +4,19 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Editor.Completion.FileSystem;
+using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
 {
     // TODO(cyrusn): Use a predefined name here.
     [ExportCompletionProvider("ReferenceDirectiveCompletionProvider", LanguageNames.CSharp)]
+    // Using TextViewRole here is a temporary work-around to prevent this component from being loaded in
+    // regular C# contexts.  We will need to remove this and implement a new "CSharp Script" Content type
+    // in order to fix #r completion in .csx files (https://github.com/dotnet/roslyn/issues/5325).
+    [TextViewRole(PredefinedInteractiveTextViewRoles.InteractiveTextViewRole)]
     internal partial class ReferenceDirectiveCompletionProvider : AbstractReferenceDirectiveCompletionProvider
     {
-        public ReferenceDirectiveCompletionProvider()
-        {
-        }
-
         protected override bool TryGetStringLiteralToken(SyntaxTree tree, int position, out SyntaxToken stringLiteral, CancellationToken cancellationToken)
         {
             if (tree.IsEntirelyWithinStringLiteral(position, cancellationToken))
