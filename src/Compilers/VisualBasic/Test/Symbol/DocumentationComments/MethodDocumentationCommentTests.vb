@@ -199,5 +199,49 @@ End Class
                              .GetMembers("op_Implicit").Single().GetDocumentationCommentId())
         End Sub
 
+        <Fact, WorkItem(4699, "https://github.com/dotnet/roslyn/issues/4699")>
+        Public Sub GetMalformedDocumentationCommentXml()
+            Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class Test
+    ''' <summary>
+    ''' Info
+    ''' <!-- comment
+    ''' </summary
+    Shared Sub Main()
+    End Sub
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose))
+            Dim main = compilation.GetTypeByMetadataName("Test").GetMember(Of MethodSymbol)("Main")
+
+            Assert.Equal(
+"<member name=""M:Test.Main"">
+ <summary>
+ Info
+ <!-- comment
+ </summary
+</member>", main.GetDocumentationCommentXml().Trim())
+
+            compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=TestOptions.Regular.WithDocumentationMode(DocumentationMode.Parse))
+            main = compilation.GetTypeByMetadataName("Test").GetMember(Of MethodSymbol)("Main")
+
+            Assert.Equal(
+"<member name=""M:Test.Main"">
+ <summary>
+ Info
+ <!-- comment
+ </summary
+</member>", main.GetDocumentationCommentXml().Trim())
+
+            compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=TestOptions.Regular.WithDocumentationMode(DocumentationMode.None))
+            main = compilation.GetTypeByMetadataName("Test").GetMember(Of MethodSymbol)("Main")
+
+            Assert.Equal("", main.GetDocumentationCommentXml().Trim())
+        End Sub
+
     End Class
 End Namespace
