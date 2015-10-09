@@ -41,7 +41,7 @@ namespace RunTests
 
         internal async Task<bool> RunAllAsync(IEnumerable<string> assemblyList, CancellationToken cancellationToken)
         {
-            var max = Environment.ProcessorCount;
+            var max = Environment.ProcessorCount * 1.5;
             var allPassed = true;
             var waiting = new Stack<string>(assemblyList);
             var running = new List<Task<TestResult>>();
