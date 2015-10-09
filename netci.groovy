@@ -160,7 +160,7 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
                 myJob.with {
                   label('ubuntu-fast')
                   steps {
-                    shell("./cibuild.sh --no-cache --debug")
+                    shell("./cibuild.sh --nocache --debug")
                   }
                 }
                 addConcurrentBuild(myJob, 'roslyn/lin/unit')
@@ -169,7 +169,7 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
                 myJob.with {
                   label('mac-roslyn')
                   steps {
-                    shell("./cibuild.sh --no-cache --debug")
+                    shell("./cibuild.sh --nocache --debug")
                   }
                 }
                 addConcurrentBuild(myJob, 'roslyn/mac/unit')
