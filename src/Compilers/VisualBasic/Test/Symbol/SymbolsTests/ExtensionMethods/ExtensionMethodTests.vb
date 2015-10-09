@@ -2433,19 +2433,16 @@ End Module
 
         <Fact>
         Public Sub ScriptExtensionMethods()
-            Dim comp = CreateCompilationWithMscorlib(
-                <compilation>
-                    <file name="a.vbx"><![CDATA[
+            Dim source = <![CDATA[
 Imports System.Runtime.CompilerServices
 <Extension>
 Shared Function F(o As Object) As Object
     Return Nothing
 End Function
 Dim o As New Object()
-o.F()]]></file>
-                </compilation>,
-                parseOptions:=TestOptions.Script,
-                references:={MscorlibRef, SystemCoreRef})
+o.F()]]>
+            Dim comp = CreateCompilationWithMscorlib45(
+                {VisualBasicSyntaxTree.ParseText(source.Value, TestOptions.Script)})
             comp.VerifyDiagnostics()
             Assert.True(comp.SourceAssembly.MightContainExtensionMethods)
         End Sub
@@ -2463,6 +2460,7 @@ End Function
 Dim o As New Object()
 ? o.F()]]>
             Dim source1 = <![CDATA[
+Imports System.Runtime.CompilerServices
 <Extension>
 Shared Function G(o As Object) As Object
     Return 1
@@ -2477,7 +2475,7 @@ Dim o As New Object()
             Assert.True(s0.SourceAssembly.MightContainExtensionMethods)
             Dim s1 = VisualBasicCompilation.CreateSubmission(
                 "s1.dll",
-                syntaxTree:=Parse(source0.Value, parseOptions),
+                syntaxTree:=Parse(source1.Value, parseOptions),
                 previousSubmission:=s0,
                 references:=references)
             s1.VerifyDiagnostics()

@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function ConvertSymbolToString(errorCode As Integer, symbol As ISymbol) As String
-            ' show extra info for assembly if possible such as version, publictoken and etc
+            ' show extra info for assembly if possible such as version, public key token etc.
             If symbol.Kind = SymbolKind.Assembly OrElse symbol.Kind = SymbolKind.Namespace Then
                 Return symbol.ToString()
             End If

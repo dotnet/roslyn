@@ -10,13 +10,10 @@ using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading;
-using System.Xml.Linq;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -1345,7 +1342,7 @@ class A
         public void GetEntryPoint_Script()
         {
             var source = @"System.Console.WriteLine(1);";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Script);
             compilation.VerifyDiagnostics();
 
             var scriptMethod = compilation.GetMember<MethodSymbol>("Script.<Main>");
@@ -1366,7 +1363,7 @@ class A
     static void Main() { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script);
             compilation.VerifyDiagnostics(
                 // (4,17): warning CS7022: The entry point of the program is global script code; ignoring 'A.Main()' entry point.
                 //     static void Main() { }

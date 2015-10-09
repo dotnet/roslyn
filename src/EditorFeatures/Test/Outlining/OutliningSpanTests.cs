@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
 
             var outliningRegion = new OutliningSpan(span, hintSpan, bannerText, autoCollapse);
 
-            Assert.Equal("{Span=[0..1), HintSpan=[2..3), BannerText=\"Foo\", AutoCollapse=True}", outliningRegion.ToString());
+            Assert.Equal("{Span=[0..1), HintSpan=[2..3), BannerText=\"Foo\", AutoCollapse=True, IsDefaultCollapsed=False}", outliningRegion.ToString());
         }
 
         [Fact]
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
 
             var outliningRegion = new OutliningSpan(span, bannerText, autoCollapse);
 
-            Assert.Equal("{Span=[0..1), BannerText=\"Foo\", AutoCollapse=True}", outliningRegion.ToString());
+            Assert.Equal("{Span=[0..1), BannerText=\"Foo\", AutoCollapse=True, IsDefaultCollapsed=False}", outliningRegion.ToString());
         }
     }
 }

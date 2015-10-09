@@ -26,7 +26,7 @@ namespace Metadata
         public virtual byte /*modopt*/ /*modopt*/ M(byte t, byte v) { return 11; }
         // 1
         public virtual byte /*modopt*/ M3(byte t, byte v) { return 51; }
-        // 1 - modreq (Not paticipate in OR)
+        // 1 - modreq (Not participate in OR)
         public virtual byte /*modreq*/ M4(byte t, byte v) { return 44; }
     }
 

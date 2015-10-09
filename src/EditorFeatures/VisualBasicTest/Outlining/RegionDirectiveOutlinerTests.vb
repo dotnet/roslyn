@@ -45,7 +45,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
                                      textSpan:=TextSpan.FromBounds(0, 26),
                                      bannerText:="Foo",
                                      hintSpan:=TextSpan.FromBounds(0, 26),
-                                     autoCollapse:=False)
+                                     autoCollapse:=False,
+                                     isDefaultCollapsed:=True)
 
             AssertRegion(expectedRegion, actualRegion)
         End Sub
@@ -66,7 +67,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
                                      textSpan:=TextSpan.FromBounds(0, 20),
                                      bannerText:="#Region",
                                      hintSpan:=TextSpan.FromBounds(0, 20),
-                                     autoCollapse:=False)
+                                     autoCollapse:=False,
+                                     isDefaultCollapsed:=True)
 
             AssertRegion(expectedRegion, actualRegion)
         End Sub
@@ -87,7 +89,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
                                      textSpan:=TextSpan.FromBounds(0, 23),
                                      bannerText:="#Region",
                                      hintSpan:=TextSpan.FromBounds(0, 23),
-                                     autoCollapse:=False)
+                                     autoCollapse:=False,
+                                     isDefaultCollapsed:=True)
 
             AssertRegion(expectedRegion, actualRegion)
         End Sub
@@ -112,7 +115,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
                                textSpan:=TextSpan.FromBounds(20, 40),
                                bannerText:="#Region",
                                hintSpan:=TextSpan.FromBounds(20, 40),
-                               autoCollapse:=False)
+                               autoCollapse:=False,
+                               isDefaultCollapsed:=True)
 
             AssertRegion(expectedRegion, actualRegion)
         End Sub

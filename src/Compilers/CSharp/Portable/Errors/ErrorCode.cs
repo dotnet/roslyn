@@ -1315,5 +1315,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_LoadDirectiveOnlyAllowedInScripts = 8097,
         ERR_PPLoadFollowsToken = 8098,
         ERR_SourceFileReferencesNotSupported = 8099,
+        ERR_BadAwaitInStaticVariableInitializer = 8100,
     }
 }

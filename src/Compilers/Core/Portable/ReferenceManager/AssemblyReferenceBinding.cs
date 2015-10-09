@@ -95,7 +95,6 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    Debug.Assert(IsBound);
                     return _referenceIdentity;
                 }
             }

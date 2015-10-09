@@ -178,6 +178,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             var firstTokenOfNode = node.GetFirstToken(includeZeroWidth: true);
 
+            var memberDeclNode = node as MemberDeclarationSyntax;
+            if (memberDeclNode != null)
+            {
+                var firstAndLastTokens = memberDeclNode.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
+                firstTokenOfNode = firstAndLastTokens.Item1;
+            }
+
             if (node.IsLambdaBodyBlock())
             {
                 // include lambda itself.
@@ -203,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // this construct in the mind of the user. 
             //
             // However, say the user hits semicolon, then hits enter, then types a close curly.
-            // In this scenario we woudl actually want the get-accessor to be formatted over multiple 
+            // In this scenario we would actually want the get-accessor to be formatted over multiple 
             // lines.  The difference here is that because the user just hit close-curly here we can 
             // consider it as being part of the closest construct and we can consider its placement
             // when deciding if the construct is on a single line.
