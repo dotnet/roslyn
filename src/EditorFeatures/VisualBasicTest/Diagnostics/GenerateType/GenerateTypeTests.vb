@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Option Strict Off
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -160,22 +161,22 @@ index:=1)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub TestGenerateIntoNewNamespace()
-            TestAddDocument(
+        Public Async Function TestGenerateIntoNewNamespace() As Task
+            Await TestAddDocument(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program \n Sub Main() \n Call New Foo.[|Bar|]() \n End Sub \n End Class"),
 NewLines("Namespace Foo \n Friend Class Bar \n Public Sub New() \n End Sub \n End Class \n End Namespace"),
 expectedContainers:={"Foo"},
-expectedDocumentName:="Bar.vb")
-        End Sub
+expectedDocumentName:="Bar.vb").ConfigureAwait(True)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub TestGenerateIntoGlobalNamespaceNewFile()
-            TestAddDocument(
+        Public Async Function TestGenerateIntoGlobalNamespaceNewFile() As Task
+            Await TestAddDocument(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Dim x As New [|Foo|] \n End Sub \n End Module"),
 NewLines("Friend Class Foo \n End Class"),
 expectedContainers:=Array.Empty(Of String)(),
-expectedDocumentName:="Foo.vb")
-        End Sub
+expectedDocumentName:="Foo.vb").ConfigureAwait(True)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateTypeThatImplementsInterface1()
@@ -276,13 +277,13 @@ NewLines("Imports [|System|]"))
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub TestNoContainersInNewType()
-            TestAddDocument(
+        Public Async Function TestNoContainersInNewType() As Task
+            Await TestAddDocument(
 NewLines("Class Base \n Sub Main \n Dim p = New [|Derived|]() \n End Sub \n End Class"),
 NewLines("Friend Class Derived \n Public Sub New() \n End Sub \n End Class"),
 expectedContainers:=Array.Empty(Of String)(),
-expectedDocumentName:="Derived.vb")
-        End Sub
+expectedDocumentName:="Derived.vb").ConfigureAwait(True)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestNotOfferedInsideBinaryExpressions()

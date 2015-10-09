@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public async Task WaitForAsynchronousOperationsAsync()
         {
             var waiters = Workspace.ExportProvider.GetExportedValues<IAsynchronousOperationWaiter>();
-            await waiters.PumpingWaitAllAsync().ConfigureAwait(true);
+            await waiters.WaitAllAsync().ConfigureAwait(true);
         }
 
         public void WaitForAsynchronousOperations()

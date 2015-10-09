@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Sub
         End Class
 
-        <WpfFact>
+        <WpfFact(Skip:="xunit wait")>
         Public Sub ChainingTaskStartsAsyncOperation()
             Dim controller = New Mock(Of IController(Of Model))
             Dim modelComputation = TestModelComputation.Create(controller:=controller.Object)

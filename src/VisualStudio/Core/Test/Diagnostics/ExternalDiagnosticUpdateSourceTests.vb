@@ -81,7 +81,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Sub
 
         <WpfFact>
-        Public Sub TestBuildStartEvent()
+        Public Async Function TestBuildStartEvent() As Task
             Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
                 Dim waiter = New Waiter()
 
@@ -101,12 +101,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                         SpecializedCollections.SingletonEnumerable(GetDiagnosticData(workspace, project.Id))))
 
                 source.AddNewErrors(project.Id, New HashSet(Of DiagnosticData)(SpecializedCollections.SingletonEnumerable(diagnostic)), map)
-                waiter.CreateWaitTask().PumpingWait()
+                Await waiter.CreateWaitTask().ConfigureAwait(True)
 
                 source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
-                waiter.CreateWaitTask().PumpingWait()
+                Await waiter.CreateWaitTask().ConfigureAwait(True)
             End Using
-        End Sub
+        End Function
 
         <WpfFact>
         Public Sub TestExternalBuildErrorCustomTags()

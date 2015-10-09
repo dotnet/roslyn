@@ -429,7 +429,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="xunit wait"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNavigationBeforeCompletedComputation() As Task
             ' Simulate a very slow completion provider.
             Dim e = New ManualResetEvent(False)

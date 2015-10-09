@@ -209,8 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         private async Task WaitForAsyncOperationsAsync()
         {
             var waiters = Workspace.ExportProvider.GetExportedValues<IAsynchronousOperationWaiter>();
-            var tasks = waiters.Select(w => w.CreateWaitTask()).ToList();
-            await tasks.PumpingWaitAllAsync().ConfigureAwait(true);
+            await waiters.WaitAllAsync().ConfigureAwait(true);
         }
 
         public void Dispose()

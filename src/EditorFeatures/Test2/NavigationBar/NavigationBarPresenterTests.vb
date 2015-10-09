@@ -77,9 +77,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
                 Dim controller = controllerFactory.CreateController(mockPresenter, subjectDocument.TextBuffer)
 
-                Dim tasks = workspace.ExportProvider.GetExportedValues(Of IAsynchronousOperationWaiter) _
-                    .Select(Function(waiter) waiter.CreateWaitTask())
-                Await tasks.PumpingWaitAllAsync().ConfigureAwait(True)
+                Dim waiters = workspace.ExportProvider.GetExportedValues(Of IAsynchronousOperationWaiter)
+                Await waiters.WaitAllAsync().ConfigureAwait(True)
 
                 Assert.True(presentItemsCalled)
             End Using
@@ -319,14 +318,9 @@ End Class
 
                 workspace.OnProjectNameChanged(workspace.Projects.Single().Id, "VBProj2", "VBProj2.vbproj")
 
-                workspace.ExportProvider.GetExports(Of IAsynchronousOperationWaiter, FeatureMetadata)().Where(Function(l) l.Metadata.FeatureName = FeatureAttribute.Workspace).Single().Value.CreateWaitTask().PumpingWait()
-                workspace.ExportProvider.GetExports(Of IAsynchronousOperationWaiter, FeatureMetadata)().Where(Function(l) l.Metadata.FeatureName = FeatureAttribute.NavigationBar).Single().Value.CreateWaitTask().PumpingWait()
-
-                Dim tasks = workspace.ExportProvider.GetExportedValues(Of IAsynchronousOperationWaiter) _
-                    .Select(Function(waiter) waiter.CreateWaitTask())
-
-                Await tasks.PumpingWaitAllAsync().ConfigureAwait(True)
-
+                Await workspace.ExportProvider.GetExports(Of IAsynchronousOperationWaiter, FeatureMetadata)().Where(Function(l) l.Metadata.FeatureName = FeatureAttribute.Workspace).Single().Value.CreateWaitTask().ConfigureAwait(True)
+                Await workspace.ExportProvider.GetExports(Of IAsynchronousOperationWaiter, FeatureMetadata)().Where(Function(l) l.Metadata.FeatureName = FeatureAttribute.NavigationBar).Single().Value.CreateWaitTask().ConfigureAwait(True)
+                Await workspace.ExportProvider.GetExportedValues(Of IAsynchronousOperationWaiter).WaitAllAsync().ConfigureAwait(True)
                 Assert.Equal("VBProj2", projectName)
             End Using
         End Function

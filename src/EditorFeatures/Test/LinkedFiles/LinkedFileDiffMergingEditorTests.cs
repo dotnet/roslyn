@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
         }
 
         [WpfFact]
-        public void TestCodeActionPreviewAndApply()
+        public async Task TestCodeActionPreviewAndApply()
         {
             using (var workspace = TestWorkspaceFactory.CreateWorkspace(WorkspaceXml))
             {
@@ -43,12 +43,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
 
                 var expectedCode = "private class D { }";
 
-                TestActionsOnLinkedFiles(
+                await TestActionsOnLinkedFiles(
                     workspace,
                     expectedText: expectedCode,
                     index: 0,
                     actions: codeIssueOrRefactoring.Actions.ToList(),
-                    expectedPreviewContents: expectedCode);
+                    expectedPreviewContents: expectedCode).ConfigureAwait(true);
             }
         }
 

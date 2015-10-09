@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType;
@@ -124,23 +125,23 @@ index: 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void TestGenerateClassFromFieldDeclarationIntoGlobalNamespace()
+        public async Task TestGenerateClassFromFieldDeclarationIntoGlobalNamespace()
         {
-            TestAddDocument(
+            await TestAddDocument(
 @"class Program { void Main ( ) { [|Foo|] f ; } } ",
 @"internal class Foo { } ",
 expectedContainers: Array.Empty<string>(),
-expectedDocumentName: "Foo.cs");
+expectedDocumentName: "Foo.cs").ConfigureAwait(true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void TestGenerateClassFromFieldDeclarationIntoCustomNamespace()
+        public async Task TestGenerateClassFromFieldDeclarationIntoCustomNamespace()
         {
-            TestAddDocument(
+            await TestAddDocument(
 @"class Class { [|TestNamespace|].Foo f; }",
 @"namespace TestNamespace { internal class Foo { } }",
 expectedContainers: new List<string> { "TestNamespace" },
-expectedDocumentName: "Foo.cs");
+expectedDocumentName: "Foo.cs").ConfigureAwait(true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -405,13 +406,13 @@ index: 1);
 
         [WorkItem(538516)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void TestGenerateClassFromIntoNewNamespace()
+        public async Task TestGenerateClassFromIntoNewNamespace()
         {
-            TestAddDocument(
+            await TestAddDocument(
 @"class Class { static void Main(string[] args) { [|N|].C c; } }",
 @"namespace N { internal class C { } }",
 expectedContainers: new List<string> { "N" },
-expectedDocumentName: "C.cs");
+expectedDocumentName: "C.cs").ConfigureAwait(true);
         }
 
         [WorkItem(538558)]
@@ -1018,13 +1019,13 @@ index: 1);
 
         [WorkItem(539535)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void TestGenerateIntoNewFile()
+        public async Task TestGenerateIntoNewFile()
         {
-            TestAddDocument(
+            await TestAddDocument(
 @"class Class { void F() { new [|Foo|].Bar(); } }",
 @"namespace Foo { internal class Bar { public Bar() { } } }",
 expectedContainers: new List<string> { "Foo" },
-expectedDocumentName: "Bar.cs");
+expectedDocumentName: "Bar.cs").ConfigureAwait(true);
         }
 
         [WorkItem(539620)]
@@ -1513,13 +1514,13 @@ string.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Foo", Featur
 
         [WorkItem(543853)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void TestAddDocumentForGlobalNamespace()
+        public async Task TestAddDocumentForGlobalNamespace()
         {
-            TestAddDocument(
+            await TestAddDocument(
 @"class C : [|Foo|]",
 "internal class Foo { }",
 Array.Empty<string>(),
-"Foo.cs");
+"Foo.cs").ConfigureAwait(true);
         }
 
         [WorkItem(543886)]
@@ -1654,7 +1655,7 @@ namespace A
 
         [WorkItem(932602)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void TestGenerateTypeInFolderNotDefaultNamespace_0()
+        public async Task TestGenerateTypeInFolderNotDefaultNamespace_0()
         {
             var code = @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" DefaultNamespace = ""Namespace1.Namespace2"">
@@ -1676,17 +1677,17 @@ namespace Namespace1.Namespace2
     }
 }";
 
-            TestAddDocument(code,
+            await TestAddDocument(code,
                 expected,
                 expectedContainers: Array.Empty<string>(),
                 expectedDocumentName: "ClassB.cs",
                 compareTokens: false,
-                isLine: false);
+                isLine: false).ConfigureAwait(true);
         }
 
         [WorkItem(932602)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void TestGenerateTypeInFolderNotDefaultNamespace_1()
+        public async Task TestGenerateTypeInFolderNotDefaultNamespace_1()
         {
             var code = @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" DefaultNamespace = ""Namespace1.Namespace2"" >
@@ -1708,12 +1709,12 @@ namespace Namespace1.Namespace2.Namespace3
     }
 }";
 
-            TestAddDocument(code,
+            await TestAddDocument(code,
                 expected,
                 expectedContainers: new List<string> { "Namespace1", "Namespace2" },
                 expectedDocumentName: "ClassB.cs",
                 compareTokens: false,
-                isLine: false);
+                isLine: false).ConfigureAwait(true);
         }
 
         [WorkItem(612700)]

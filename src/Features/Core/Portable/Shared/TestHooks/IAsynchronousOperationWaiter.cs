@@ -19,7 +19,16 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
     internal static class AsynchronousOperationWaiter
     {
-        internal static async Task PumpingWaitAllAsync(this IEnumerable<IAsynchronousOperationWaiter> waiters)
+        /// <summary>
+        /// Wait for all of the <see cref="IAsynchronousOperationWaiter"/> instances to finish their
+        /// work.
+        /// </summary>
+        /// <remarks>
+        /// This is a very handy method for debugging hangs in the unit test.  Set a break point in the 
+        /// loop, dig into the waiters and see all of the active <see cref="IAsyncToken"/> values 
+        /// representing the remaining work.
+        /// </remarks>
+        internal static async Task WaitAllAsync(this IEnumerable<IAsynchronousOperationWaiter> waiters)
         {
             var smallTimeout = TimeSpan.FromMilliseconds(10);
             var tasks = waiters.Select(x => x.CreateWaitTask()).ToList();

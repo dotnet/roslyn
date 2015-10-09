@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
                 GetMainDocumentAndPreviews(workspace, document, previews)
 
                 ' The changed document comes first.
-                Dim preview = previews.TakeNextPreviewAsync().PumpingWaitResult()
+                Dim preview = Await previews.TakeNextPreviewAsync().ConfigureAwait(True)
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is IWpfDifferenceViewer)
                 Dim diffView = DirectCast(preview, IWpfDifferenceViewer)

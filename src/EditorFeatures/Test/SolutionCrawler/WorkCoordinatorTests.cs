@@ -211,13 +211,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [WpfFact]
-        public void Project_AnalyzerOptions_Change()
+        public async Task Project_AnalyzerOptions_Change()
         {
             using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
             {
                 var solutionInfo = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solutionInfo);
-                WaitWaiter(workspace.ExportProvider);
+                await WaitWaiterAsync(workspace.ExportProvider).ConfigureAwait(true);
 
                 var project = workspace.CurrentSolution.Projects.First(p => p.Name == "P1").AddAdditionalDocument("a1", SourceText.From("")).Project;
                 var worker = ExecuteOperation(workspace, w => w.ChangeProject(project.Id, project.Solution));
@@ -483,85 +483,85 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [WpfFact]
-        public void Document_TopLevelType_Whitespace()
+        public async Task Document_TopLevelType_Whitespace()
         {
             var code = @"class C { $$ }";
             var textToInsert = " ";
 
-            InsertText(code, textToInsert, expectDocumentAnalysis: true);
+            await InsertText(code, textToInsert, expectDocumentAnalysis: true).ConfigureAwait(true);
         }
 
         [WpfFact]
-        public void Document_TopLevelType_Character()
+        public async Task Document_TopLevelType_Character()
         {
             var code = @"class C { $$ }";
             var textToInsert = "int";
 
-            InsertText(code, textToInsert, expectDocumentAnalysis: true);
+            await InsertText(code, textToInsert, expectDocumentAnalysis: true).ConfigureAwait(true);
         }
 
         [WpfFact]
-        public void Document_TopLevelType_NewLine()
+        public async Task Document_TopLevelType_NewLine()
         {
             var code = @"class C { $$ }";
             var textToInsert = "\r\n";
 
-            InsertText(code, textToInsert, expectDocumentAnalysis: true);
+            await InsertText(code, textToInsert, expectDocumentAnalysis: true).ConfigureAwait(true);
         }
 
         [WpfFact]
-        public void Document_TopLevelType_NewLine2()
+        public async Task Document_TopLevelType_NewLine2()
         {
             var code = @"class C { $$";
             var textToInsert = "\r\n";
 
-            InsertText(code, textToInsert, expectDocumentAnalysis: true);
+            await InsertText(code, textToInsert, expectDocumentAnalysis: true).ConfigureAwait(true);
         }
 
         [WpfFact]
-        public void Document_EmptyFile()
+        public async Task Document_EmptyFile()
         {
             var code = @"$$";
             var textToInsert = "class";
 
-            InsertText(code, textToInsert, expectDocumentAnalysis: true);
+            await InsertText(code, textToInsert, expectDocumentAnalysis: true).ConfigureAwait(true);
         }
 
         [WpfFact]
-        public void Document_TopLevel1()
+        public async Task Document_TopLevel1()
         {
             var code = @"class C
 {
     public void Test($$";
             var textToInsert = "int";
 
-            InsertText(code, textToInsert, expectDocumentAnalysis: true);
+            await InsertText(code, textToInsert, expectDocumentAnalysis: true).ConfigureAwait(true);
         }
 
         [WpfFact]
-        public void Document_TopLevel2()
+        public async Task Document_TopLevel2()
         {
             var code = @"class C
 {
     public void Test(int $$";
             var textToInsert = " ";
 
-            InsertText(code, textToInsert, expectDocumentAnalysis: true);
+            await InsertText(code, textToInsert, expectDocumentAnalysis: true).ConfigureAwait(true);
         }
 
         [WpfFact]
-        public void Document_TopLevel3()
+        public async Task Document_TopLevel3()
         {
             var code = @"class C
 {
     public void Test(int i,$$";
             var textToInsert = "\r\n";
 
-            InsertText(code, textToInsert, expectDocumentAnalysis: true);
+            await InsertText(code, textToInsert, expectDocumentAnalysis: true).ConfigureAwait(true);
         }
 
         [WpfFact]
-        public void Document_InteriorNode1()
+        public async Task Document_InteriorNode1()
         {
             var code = @"class C
 {
@@ -569,11 +569,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
     {$$";
             var textToInsert = "\r\n";
 
-            InsertText(code, textToInsert, expectDocumentAnalysis: false);
+            await InsertText(code, textToInsert, expectDocumentAnalysis: false).ConfigureAwait(true);
         }
 
         [WpfFact]
-        public void Document_InteriorNode2()
+        public async Task Document_InteriorNode2()
         {
             var code = @"class C
 {
@@ -583,11 +583,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
     }";
             var textToInsert = "int";
 
-            InsertText(code, textToInsert, expectDocumentAnalysis: false);
+            await InsertText(code, textToInsert, expectDocumentAnalysis: false).ConfigureAwait(true);
         }
 
         [WpfFact]
-        public void Document_InteriorNode_Field()
+        public async Task Document_InteriorNode_Field()
         {
             var code = @"class C
 {
@@ -595,11 +595,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 }";
             var textToInsert = "1";
 
-            InsertText(code, textToInsert, expectDocumentAnalysis: false);
+            await InsertText(code, textToInsert, expectDocumentAnalysis: false).ConfigureAwait(true);
         }
 
         [WpfFact]
-        public void Document_InteriorNode_Field1()
+        public async Task Document_InteriorNode_Field1()
         {
             var code = @"class C
 {
@@ -607,11 +607,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 }";
             var textToInsert = "1";
 
-            InsertText(code, textToInsert, expectDocumentAnalysis: false);
+            await InsertText(code, textToInsert, expectDocumentAnalysis: false).ConfigureAwait(true);
         }
 
         [WpfFact]
-        public void Document_InteriorNode_Accessor()
+        public async Task Document_InteriorNode_Accessor()
         {
             var code = @"class C
 {
@@ -625,11 +625,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 }";
             var textToInsert = "return";
 
-            InsertText(code, textToInsert, expectDocumentAnalysis: false);
+            await InsertText(code, textToInsert, expectDocumentAnalysis: false).ConfigureAwait(true);
         }
 
         [WpfFact]
-        public void Document_TopLevelWhitespace()
+        public async Task Document_TopLevelWhitespace()
         {
             var code = @"class C
 {
@@ -640,11 +640,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 }";
             var textToInsert = "return";
 
-            InsertText(code, textToInsert, expectDocumentAnalysis: true);
+            await InsertText(code, textToInsert, expectDocumentAnalysis: true).ConfigureAwait(true);
         }
 
         [WpfFact]
-        public void Document_TopLevelWhitespace2()
+        public async Task Document_TopLevelWhitespace2()
         {
             var code = @"/// $$
 class C
@@ -655,11 +655,11 @@ class C
 }";
             var textToInsert = "return";
 
-            InsertText(code, textToInsert, expectDocumentAnalysis: true);
+            await InsertText(code, textToInsert, expectDocumentAnalysis: true).ConfigureAwait(true);
         }
 
         [WpfFact]
-        public void Document_InteriorNode_Malformed()
+        public async Task Document_InteriorNode_Malformed()
         {
             var code = @"class C
 {
@@ -668,7 +668,7 @@ class C
         $$";
             var textToInsert = "int";
 
-            InsertText(code, textToInsert, expectDocumentAnalysis: true);
+            await InsertText(code, textToInsert, expectDocumentAnalysis: true).ConfigureAwait(true);
         }
 
         [WpfFact]
@@ -769,7 +769,7 @@ End Class";
             }
         }
 
-        private void InsertText(string code, string text, bool expectDocumentAnalysis, string language = LanguageNames.CSharp)
+        private async Task InsertText(string code, string text, bool expectDocumentAnalysis, string language = LanguageNames.CSharp)
         {
             using (var workspace = TestWorkspaceFactory.CreateWorkspaceFromLines(
                 SolutionCrawler, language, compilationOptions: null, parseOptions: null, content: new string[] { code }))
@@ -791,7 +791,7 @@ End Class";
                     edit.Apply();
                 }
 
-                Wait(service, workspace);
+                await WaitAsync(service, workspace).ConfigureAwait(true);
 
                 service.Unregister(workspace);
 
@@ -840,6 +840,13 @@ End Class";
             service.WaitUntilCompletion_ForTestingPurposesOnly(workspace);
         }
 
+        private async Task WaitAsync(SolutionCrawlerRegistrationService service, TestWorkspace workspace)
+        {
+            await WaitWaiterAsync(workspace.ExportProvider).ConfigureAwait(true);
+
+            service.WaitUntilCompletion_ForTestingPurposesOnly(workspace);
+        }
+
         private void WaitWaiter(ExportProvider provider)
         {
             var workspaceWaiter = GetListeners(provider).First(l => l.Metadata.FeatureName == FeatureAttribute.Workspace).Value as IAsynchronousOperationWaiter;
@@ -847,6 +854,15 @@ End Class";
 
             var solutionCrawlerWaiter = GetListeners(provider).First(l => l.Metadata.FeatureName == FeatureAttribute.SolutionCrawler).Value as IAsynchronousOperationWaiter;
             solutionCrawlerWaiter.CreateWaitTask().PumpingWait();
+        }
+
+        private async Task WaitWaiterAsync(ExportProvider provider)
+        {
+            var workspaceWaiter = GetListeners(provider).First(l => l.Metadata.FeatureName == FeatureAttribute.Workspace).Value as IAsynchronousOperationWaiter;
+            await workspaceWaiter.CreateWaitTask().ConfigureAwait(true);
+
+            var solutionCrawlerWaiter = GetListeners(provider).First(l => l.Metadata.FeatureName == FeatureAttribute.SolutionCrawler).Value as IAsynchronousOperationWaiter;
+            await solutionCrawlerWaiter.CreateWaitTask().ConfigureAwait(true);
         }
 
         private static SolutionInfo GetInitialSolutionInfoWithP2P()

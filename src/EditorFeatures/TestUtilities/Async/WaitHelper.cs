@@ -15,7 +15,8 @@ namespace Roslyn.Test.Utilities
     {
         /// <summary>
         /// This is a hueristic for checking to see if we are in a deadlock state because
-        /// we are waiting on a Task that may be in the StaTaskScheduler queue
+        /// we are waiting on a Task that may be in the StaTaskScheduler queue from the 
+        /// main thread.
         /// </summary>
         /// <param name="tasks"></param>
         private static void CheckForStaDeadlockInPumpingWait(IEnumerable<Task> tasks)
@@ -86,30 +87,6 @@ namespace Roslyn.Test.Utilities
                     WaitForDispatchedOperationsToComplete(DispatcherPriority.ApplicationIdle);
                     CheckForStaDeadlockInPumpingWait(tasks);
                 }
-            }
-
-            foreach (var task in tasks)
-            {
-                if (task.Exception != null)
-                {
-                    throw task.Exception;
-                }
-            }
-        }
-
-        public static async Task PumpingWaitAllAsync(this IEnumerable<Task> tasks)
-        {
-            var smallTimeout = TimeSpan.FromMilliseconds(10);
-            var done = false;
-            while (!done)
-            {
-                done = await tasks.WhenAll(smallTimeout).ConfigureAwait(true);
-                /*
-                if (!done)
-                {
-                    WaitForDispatchedOperationsToComplete(DispatcherPriority.ApplicationIdle);
-                }
-                */
             }
 
             foreach (var task in tasks)
