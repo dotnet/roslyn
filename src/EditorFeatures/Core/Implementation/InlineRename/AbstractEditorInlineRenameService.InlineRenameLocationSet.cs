@@ -34,12 +34,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             public async Task<IInlineRenameReplacementInfo> GetReplacementsAsync(string replacementText, OptionSet optionSet, CancellationToken cancellationToken)
             {
-                System.IO.File.AppendAllText(@"c:\users\jaredpar\data.txt", $"Begin {replacementText}");
                 var conflicts = await ConflictResolver.ResolveConflictsAsync(
                     _renameLocationSet, _renameLocationSet.Symbol.Name,
                     _renameInfo.GetFinalSymbolName(replacementText), optionSet, hasConflict: null, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                System.IO.File.AppendAllText(@"c:\users\jaredpar\data.txt", $"End {replacementText}");
                 return new InlineRenameReplacementInfo(conflicts);
             }
         }

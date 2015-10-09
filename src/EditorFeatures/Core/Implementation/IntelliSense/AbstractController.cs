@@ -78,11 +78,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             this.OnModelUpdated(result);
         }
 
-        IAsyncToken IController<TModel>.BeginAsyncOperation(string filePath, int lineNumber)
+        IAsyncToken IController<TModel>.BeginAsyncOperation(string name, object tag, string filePath, int lineNumber)
         {
             AssertIsForeground();
             VerifySessionIsActive();
-            return _asyncListener.BeginAsyncOperation(_asyncOperationId, filePath: filePath, lineNumber: lineNumber);
+            name = String.IsNullOrEmpty(name)
+                ? _asyncOperationId
+                : $"{_asyncOperationId} - {name}";
+            return _asyncListener.BeginAsyncOperation(name, tag, filePath: filePath, lineNumber: lineNumber);
         }
 
         protected void VerifySessionIsActive()

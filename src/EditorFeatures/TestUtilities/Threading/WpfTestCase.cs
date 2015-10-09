@@ -61,8 +61,6 @@ namespace Roslyn.Test.Utilities
                 }
                 finally
                 {
-                    sta.DrainQueued();
-
                     ForegroundThreadAffinitizedObject.DefaultForegroundThreadData = null;
 
                     // Cleanup the synchronization context even if the test is failing exceptionally

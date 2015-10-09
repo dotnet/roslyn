@@ -31,6 +31,8 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
                 _completesAsyncOperationStackTrace = PortableShim.StackTrace.GetString();
             }
+
+            public override string ToString() => $"{_name} {_tag}";
         }
     }
 }

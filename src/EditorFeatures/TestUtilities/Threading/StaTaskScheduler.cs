@@ -46,7 +46,10 @@ namespace Roslyn.Test.Utilities
                     // This will continue until the scheduler is disposed and no more tasks remain.
                     foreach (var t in _tasks.GetConsumingEnumerable())
                     {
-                        TryExecuteTask(t);
+                        if (!TryExecuteTask(t))
+                        {
+                            System.Diagnostics.Debug.Assert(t.IsCompleted, "Can't run, not completed");
+                        }
                     }
                 });
                 thread.IsBackground = true;
@@ -127,16 +130,6 @@ namespace Roslyn.Test.Utilities
             }
 
             return _tasks.Count > 0;
-        }
-
-        public void DrainQueued()
-        {
-            bool more;
-            do
-            {
-                Task task;
-                more = _tasks.TryTake(out task);
-            } while (more);
         }
     }
 }
